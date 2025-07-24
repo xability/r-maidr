@@ -1,0 +1,28 @@
+---
+title: "MAIDR Shiny Notebook Demo"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
+devtools::load_all('.')
+```
+
+## Accessible Bar Plot with MAIDR
+
+This notebook demonstrates how to use the MAIDR R binder in a Shiny notebook to display an accessible bar plot.
+
+```{r}
+data <- data.frame(
+  Species = c("Adelie", "Chinstrap", "Gentoo"),
+  BodyMass = c(3700.66, 3733.09, 5076.02)
+)
+
+plot_obj <- ggplot(data, aes(x = Species, y = BodyMass)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Body Mass by Species", x = "Species", y = "Body Mass (g)")
+
+maidr_display_plot(plot_obj)
+``` 
