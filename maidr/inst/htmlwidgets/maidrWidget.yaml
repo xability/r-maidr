@@ -1,0 +1,5 @@
+name: maidrWidget
+version: 0.0.1
+src:
+  file: .
+script: maidrWidget.js 
