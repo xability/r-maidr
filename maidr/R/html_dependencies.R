@@ -14,5 +14,6 @@ maidr_html_dependencies <- function() {
     src = c(href = "https://cdn.jsdelivr.net/npm/maidr@latest/dist/"),
     stylesheet = "maidr_style.css"
   )
+
   list(js_dep, css_dep)
-} 
+}

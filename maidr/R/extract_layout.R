@@ -6,6 +6,7 @@ extract_layout <- function(gg) {
   if (!inherits(gg, "ggplot")) {
     stop("Input must be a ggplot object.")
   }
+
   # Title
   title <- gg$labels$title %||% ""
   # Axes labels
@@ -18,9 +19,10 @@ extract_layout <- function(gg) {
     if (is.null(facet_vars)) facet_vars <- gg$facet$params$rows
     if (is.null(facet_vars)) facet_vars <- gg$facet$params$cols
   }
+
   list(
     title = title,
     axes = list(x = xlab, y = ylab),
     facet_vars = facet_vars
   )
-} 
+}

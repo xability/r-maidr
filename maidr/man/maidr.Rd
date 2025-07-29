@@ -2,20 +2,19 @@
 % Please edit documentation in R/maidr.R
 \name{maidr}
 \alias{maidr}
-\title{Display a plot in the appropriate environment (browser, Viewer, etc.)
-Assembles the maidr data structure for a ggplot2 bar plot.}
+\title{Display a plot in the appropriate environment (browser, Viewer, etc.)}
 \usage{
-maidr(plot, ...)
+maidr(plot, file = NULL, open = TRUE, ...)
 }
 \arguments{
 \item{plot}{A ggplot2 object}
 
-\item{...}{Additional arguments (unused for now)}
-}
-\value{
-A list representing the maidr data structure
+\item{file}{Optional file path to save HTML. If NULL, creates temporary file}
+
+\item{open}{Whether to open the HTML file in browser/RStudio Viewer}
+
+\item{...}{Additional arguments passed to internal functions}
 }
 \description{
 Display a plot in the appropriate environment (browser, Viewer, etc.)
-Assembles the maidr data structure for a ggplot2 bar plot.
 }

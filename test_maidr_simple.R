@@ -26,7 +26,7 @@ cat("Created bar plot with 10 random bars\n")
 cat("Calling maidr() to open in browser...\n")
 
 # This will open the plot in your browser or RStudio Viewer
-file_path <- maidr(p)
+file_path <- maidr(p, open = TRUE)
 
 cat("✓ maidr() completed successfully\n")
 cat("✓ HTML file created at:", file_path, "\n")

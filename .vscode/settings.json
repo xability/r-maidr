@@ -1,0 +1,14 @@
+{
+  "r.lsp.enabled": true,
+  "r.linting.enable": true,
+  "r.linting.lintr.enable": true,
+  "r.linting.lintr.config": ".lintr",
+  "r.linting.lintr.cache": false,
+  "r.linting.lintr.diagnostics": true,
+  "r.linting.lintr.exclude": ["**/shiny_*.R", "**/test_*.R", "**/*_simple.R"],
+  "r.linting.lintr.files": "maidr/R/**/*.R",
+  "r.linting.lintr.ignore": ["shiny_maidr_simple.R", "test_maidr_simple.R"],
+  "r.linting.lintr.linters": "linters_with_defaults(line_length_linter(120), object_name_linter = NULL, object_length_linter(40), object_usage_linter = NULL, indentation_linter = NULL)",
+  "r.linting.lintr.path": "maidr",
+  "r.linting.lintr.timeout": 5000
+} 

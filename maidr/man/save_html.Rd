@@ -2,10 +2,17 @@
 % Please edit documentation in R/maidr.R
 \name{save_html}
 \alias{save_html}
-\title{Save a plot as a standalone HTML file}
+\title{Save ggplot2 plot as interactive HTML with maidr enhancements}
 \usage{
 save_html(plot, file, ...)
 }
+\arguments{
+\item{plot}{A ggplot2 object}
+
+\item{file}{Output HTML file path}
+
+\item{...}{Additional arguments passed to internal functions}
+}
 \description{
-Save a plot as a standalone HTML file
+Save ggplot2 plot as interactive HTML with maidr enhancements
 }
