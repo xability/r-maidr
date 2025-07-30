@@ -48,17 +48,49 @@ create_maidr_html <- function(plot, ...) {
   # Use the factory pattern to process the plot
   plot_processor <- create_plot_processor(plot, ...)
   
-  # Extract layout information
-  layout <- extract_layout(plot)
-  
-  # Convert to gtable for SVG generation
-  gt <- ggplot2::ggplotGrob(plot)
-  
-  # Get plot type from processor
+  # Get the plot type and appropriate plot for SVG generation
   plot_type <- get_plot_type(plot_processor)
+  svg_plot <- get_svg_plot(plot_processor, plot, plot_type)
+  
+  # Generate SVG content
+  layout <- extract_layout(svg_plot)
+  gt <- ggplot2::ggplotGrob(svg_plot)
   layer_ids <- extract_layer_ids(gt, plot_type)
   
-  # Create layers structure from the processed plot data
+  # Create layers structure
+  layers <- create_layers(layer_ids, plot_type, svg_plot, plot_processor, layout)
+  
+  # Generate final HTML
+  maidr_data <- create_maidr_data(layers)
+  svg_content <- create_enhanced_svg(gt, maidr_data, ...)
+  html_doc <- create_html_document(svg_content)
+
+  html_doc
+}
+
+#' Get the appropriate plot for SVG generation
+#' @param plot_processor The plot processor object
+#' @param original_plot The original plot
+#' @param plot_type The plot type
+#' @return The plot to use for SVG generation
+#' @keywords internal
+get_svg_plot <- function(plot_processor, original_plot, plot_type) {
+  if (plot_type == "stacked_bar" && !is.null(plot_processor$reordered_plot)) {
+    plot_processor$reordered_plot
+  } else {
+    original_plot
+  }
+}
+
+#' Create layers structure for HTML generation
+#' @param layer_ids Vector of layer IDs
+#' @param plot_type The plot type
+#' @param svg_plot The plot used for SVG generation
+#' @param plot_processor The plot processor object
+#' @param layout Layout information
+#' @return List of layer structures
+#' @keywords internal
+create_layers <- function(layer_ids, plot_type, svg_plot, plot_processor, layout) {
   layers <- list()
   
   for (i in seq_along(layer_ids)) {
@@ -66,19 +98,15 @@ create_maidr_html <- function(plot, ...) {
     
     layers[[i]] <- list(
       id = layer_id,
-      selectors = make_selector(plot_type, layer_id),
+      selectors = make_selector(plot_type, layer_id, svg_plot),
       type = plot_type,
       data = plot_processor$data,
       title = if (!is.null(layout$title)) layout$title else "",
       axes = if (!is.null(layout$axes)) layout$axes else list(x = "", y = "")
     )
   }
-
-  maidr_data <- create_maidr_data(layers)
-  svg_content <- create_enhanced_svg(gt, maidr_data, ...)
-  html_doc <- create_html_document(svg_content)
-
-  html_doc
+  
+  layers
 }
 
 #' Create maidr-data structure
