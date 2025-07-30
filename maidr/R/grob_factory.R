@@ -9,7 +9,7 @@ extract_layer_ids <- function(gt, plot_type) {
     "stacked_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
     character(0) # Return empty vector for unsupported types
   )
-  
+
   layer_ids
 }
 
