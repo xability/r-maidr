@@ -113,77 +113,50 @@ extract_stacked_bar_data <- function(plot) {
     stop("y aesthetic column '", y_col, "' not found in data")
   }
   
-  # Group by fill values if fill aesthetic exists
-  if (!is.null(fill_col) && fill_col %in% names(original_data)) {
-    fill_groups <- split(original_data, original_data[[fill_col]])
+  # Group by fill values - this is a stacked bar plot with fill aesthetic
+  fill_groups <- split(original_data, original_data[[fill_col]])
+  
+  # Extract the stacking order from the built data
+  built_data <- ggplot2::ggplot_build(plot)
+  if (length(built_data$data) > 0) {
+    built_data_layer <- built_data$data[[1]]
     
-    # STACKING ORDER LOGIC: Determine visual stacking order from ggplot_build output
-    # 
-    # ggplot2 assigns colors to fill values in order of appearance in data.
-    # The visual stacking order is determined by the ymin values in the built data:
-    # - Lowest ymin = bottom of stack
-    # - Highest ymin = top of stack
-    # 
-    # We map colors back to fill values and sort by ymin to get the correct order.
+    # Get the stacking order by looking at the first bar's layers
+    first_bar_data <- built_data_layer[built_data_layer$x == 1, ]
+    first_bar_data <- first_bar_data[order(first_bar_data$ymin), ]  # Order by ymin (bottom to top)
     
-    unique_fill_values <- unique(original_data[[fill_col]])
-    unique_colors <- unique(built_data$fill)
-
-    # Step 1: Map colors to fill values (simple 1:1 mapping based on order of appearance)
-    color_to_fill <- list()
-    for (i in 1:length(unique_colors)) {
-      color_to_fill[[unique_colors[i]]] <- unique_fill_values[i]
-    }
-
-    # Step 2: Calculate average ymin for each color to determine visual position
-    color_ymin <- sapply(unique_colors, function(color) {
-      mean(built_data$ymin[built_data$fill == color])
-    })
-
-    # Step 3: Sort colors by ymin (lowest first = bottom of stack)
-    sorted_indices <- order(color_ymin)
-    sorted_colors <- unique_colors[sorted_indices]
-
-    # Step 4: Get final stacking order by mapping sorted colors back to fill values
-    fill_order <- sapply(sorted_colors, function(color) color_to_fill[[color]])
-
-    # Create nested structure for maidr with text values
-    # Order groups to match visual stacking (bottom to top)
-    # Each group represents one fill value (e.g., one color in the stack)
-    maidr_data <- list()
-    for (fill_value in fill_order) {
-      if (fill_value %in% names(fill_groups)) {
-        group_data <- fill_groups[[fill_value]]
-        # Sort by x position to match visual order
-        if (!is.null(x_col)) {
-          group_data <- group_data[order(group_data[[x_col]]), ]
-        }
-        
-        group_points <- list()
-        for (i in 1:nrow(group_data)) {
-          # Create point with original text values (not ggplot2's internal representations)
-          point <- list(
-            x = as.character(group_data[[x_col]][i]),  # Keep as text
-            y = group_data[[y_col]][i],                # Keep as number
-            fill = as.character(fill_value)            # Keep as text
-          )
-          group_points[[i]] <- point
-        }
-        maidr_data[[length(maidr_data) + 1]] <- group_points
-      }
-    }
+    # Map colors back to fill values
+    color_to_fill <- setNames(original_data[[fill_col]], built_data_layer$fill)
+    stacking_order <- unique(color_to_fill[first_bar_data$fill])
+    
+    # Use the stacking order (bottom to top)
+    fill_order <- stacking_order
   } else {
-    # If no fill aesthetic, treat as regular bar plot
-    maidr_data <- list()
-    group_points <- list()
-    for (i in 1:nrow(original_data)) {
-      point <- list(
-        x = as.character(original_data[[x_col]][i]),  # Keep as text
-        y = original_data[[y_col]][i]                 # Keep as number
-      )
-      group_points[[i]] <- point
+    # Fallback to alphabetical order if we can't determine stacking order
+    fill_order <- unique(original_data[[fill_col]])
+  }
+
+  maidr_data <- list()
+  for (fill_value in fill_order) {
+    if (fill_value %in% names(fill_groups)) {
+      group_data <- fill_groups[[fill_value]]
+      # Sort by x position to match visual order
+      if (!is.null(x_col)) {
+        group_data <- group_data[order(group_data[[x_col]]), ]
+      }
+      
+      group_points <- list()
+      for (i in 1:nrow(group_data)) {
+        # Create point with original text values (not ggplot2's internal representations)
+        point <- list(
+          x = as.character(group_data[[x_col]][i]),
+          y = group_data[[y_col]][i],
+          fill = as.character(fill_value)
+        )
+        group_points[[i]] <- point
+      }
+      maidr_data[[length(maidr_data) + 1]] <- group_points
     }
-    maidr_data[[1]] <- group_points
   }
   
   maidr_data
@@ -199,7 +172,6 @@ make_stacked_bar_selectors <- function(plot, layer_id) {
   layer_id <- as.integer(layer_id)
   
   # Create single selector using parent element with rect selector
-  # This targets all rect elements within the parent grob
   selector_string <- sprintf("#geom_rect\\.rect\\.%d\\.1 rect", layer_id)
   
   return(selector_string)

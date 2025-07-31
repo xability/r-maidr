@@ -7,6 +7,7 @@ extract_layer_ids <- function(gt, plot_type) {
   layer_ids <- switch(plot_type,
     "bar" = extract_bar_layer_ids_from_gtable(gt),
     "stacked_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
+    "dodged_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
     character(0) # Return empty vector for unsupported types
   )
 
@@ -44,6 +45,7 @@ make_selector <- function(plot_type, layer_id, plot = NULL) {
   result <- switch(plot_type,
     "bar" = make_bar_selector(layer_id),
     "stacked_bar" = make_stacked_bar_selectors(plot, layer_id),
+    "dodged_bar" = make_dodged_bar_selectors(plot, layer_id),
     stop("Unsupported plot type: ", plot_type)
   )
   
