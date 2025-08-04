@@ -75,8 +75,7 @@ create_maidr_html <- function(plot, ...) {
 #' @return The plot to use for SVG generation
 #' @keywords internal
 get_svg_plot <- function(plot_processor, original_plot, plot_type) {
-  if ((plot_type == "stacked_bar" || plot_type == "dodged_bar") && 
-      !is.null(plot_processor$reordered_plot)) {
+  if (!is.null(plot_processor$reordered_plot)) {
     plot_processor$reordered_plot
   } else {
     original_plot
@@ -94,7 +93,7 @@ extract_layer_data <- function(plot_processor, layer_id, plot_type) {
     "bar" = extract_bar_layer_data(plot_processor, layer_id),
     "stacked_bar" = extract_stacked_bar_layer_data(plot_processor, layer_id),
     "dodged_bar" = extract_dodged_bar_layer_data(plot_processor, layer_id),
-    "histogram" = extract_histogram_layer_data(plot_processor, layer_id),
+    "hist" = extract_histogram_layer_data(plot_processor, layer_id),
     "smooth" = extract_smooth_layer_data(plot_processor, layer_id),
     extract_default_layer_data(plot_processor, layer_id)  # fallback
   )

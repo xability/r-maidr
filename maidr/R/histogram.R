@@ -64,6 +64,15 @@ make_histogram_selectors <- function(plot) {
   list()
 }
 
+#' Make histogram bar selector
+#' @param layer_id The layer ID
+#' @return CSS selector string
+#' @keywords internal
+make_hist_selector <- function(layer_id) {
+  # Use the same selector logic as bar plots since histogram bars are rendered as rectangles
+  make_bar_selector(layer_id)
+}
+
 #' Create histogram plot data object
 #' @param data The extracted data
 #' @param layout The layout information

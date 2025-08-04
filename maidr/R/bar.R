@@ -131,56 +131,8 @@ make_bar_selector <- function(layer_id) {
 #' @return List of bar grobs
 #' @keywords internal
 find_bar_grobs <- function(gt) {
-  panel_index <- which(gt$layout$name == "panel")
-  if (length(panel_index) == 0) {
-    stop("No panel found in gtable")
-  }
-
-  panel_grob <- gt$grobs[[panel_index]]
-
-  if (!inherits(panel_grob, "gTree")) {
-    stop("Panel grob is not a gTree")
-  }
-
-  find_rect_grobs_recursive <- function(grob) {
-    rect_grobs <- list()
-
-    if (inherits(grob, "rectGrob") ||
-      (inherits(grob, "rect") && !inherits(grob, "zeroGrob"))) {
-      rect_grobs[[length(rect_grobs) + 1]] <- grob
-    }
-
-    if (inherits(grob, "gList")) {
-      for (i in seq_along(grob)) {
-        rect_grobs <- c(rect_grobs, find_rect_grobs_recursive(grob[[i]]))
-      }
-    }
-
-    if (inherits(grob, "gTree")) {
-      for (i in seq_along(grob$children)) {
-        rect_grobs <- c(
-          rect_grobs,
-          find_rect_grobs_recursive(grob$children[[i]])
-        )
-      }
-    }
-
-    rect_grobs
-  }
-
-  all_rects <- find_rect_grobs_recursive(panel_grob)
-
-  bar_grobs <- list()
-  for (i in seq_along(all_rects)) {
-    grob <- all_rects[[i]]
-    if (inherits(grob, "rectGrob") || inherits(grob, "rect")) {
-      if (!grepl("background|border", grob$name, ignore.case = TRUE)) {
-        bar_grobs[[length(bar_grobs) + 1]] <- grob
-      }
-    }
-  }
-
-  bar_grobs
+  # Use the generic rectangular grob finder
+  find_rect_grobs(gt)
 }
 
 #' Make bar plot selectors

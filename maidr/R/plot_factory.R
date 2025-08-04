@@ -142,7 +142,7 @@ detect_bar_type <- function(plot, geom_types) {
   }
   # Check for histogram first
   if (is_histogram_plot(plot)) {
-    return("histogram")
+    return("hist")
   }
   if (is_stacked_bar(plot)) {
     return("stacked_bar")
@@ -197,7 +197,7 @@ has_density_stat <- function(plot) {
 #' @return Character vector of supported plot types
 #' @export
 get_supported_plot_types <- function() {
-  c("bar", "stacked_bar", "dodged_bar", "histogram", "smooth")
+  c("bar", "stacked_bar", "dodged_bar", "hist", "smooth")
 }
 
 #' Check if plot type is supported
@@ -210,14 +210,11 @@ is_supported_plot_type <- function(plot_type) {
 
 #' Create plot processor based on plot type using factory pattern
 #' @param plot A ggplot2 object
-#' @param plot_type The type of plot (if NULL, will be detected)
 #' @param ... Additional arguments
 #' @return A plot_data object
 #' @export
-create_plot_processor <- function(plot, plot_type = NULL, ...) {
-  if (is.null(plot_type)) {
-    plot_type <- detect_plot_type(plot)
-  }
+create_plot_processor <- function(plot, ...) {
+  plot_type <- detect_plot_type(plot)
 
   if (!is_supported_plot_type(plot_type)) {
     stop("Unsupported plot type: ", plot_type)
@@ -227,7 +224,7 @@ create_plot_processor <- function(plot, plot_type = NULL, ...) {
     "bar" = process_bar_plot(plot, ...),
     "stacked_bar" = process_stacked_bar_plot(plot, ...),
     "dodged_bar" = process_dodged_bar_plot(plot, ...),
-    "histogram" = process_histogram_plot(plot, ...),
+    "hist" = process_histogram_plot(plot, ...),
     "smooth" = process_smooth_plot(plot, ...),
     stop("Unsupported plot type: ", plot_type)
   )

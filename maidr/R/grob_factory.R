@@ -6,15 +6,72 @@
 extract_layer_ids <- function(gt, plot_type) {
   layer_ids <- switch(plot_type,
     "bar" = extract_bar_layer_ids_from_gtable(gt),
-    "stacked_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
-    "dodged_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
-    "hist" = extract_bar_layer_ids_from_gtable(gt),  # Histogram bars are rectangles
-    "histogram" = extract_bar_layer_ids_from_gtable(gt),  # Backward compatibility
-    "smooth" = extract_polyline_layer_ids_from_gtable(gt),  # Use polyline logic for smooth curves
-    character(0) # Return empty vector for unsupported types
+    "stacked_bar" = extract_bar_layer_ids_from_gtable(gt),
+    "dodged_bar" = extract_bar_layer_ids_from_gtable(gt),
+    "hist" = extract_bar_layer_ids_from_gtable(gt), 
+    "smooth" = extract_polyline_layer_ids_from_gtable(gt), 
+    character(0)
   )
 
   layer_ids
+}
+
+#' Find rectangular grobs from a gtable (generic)
+#' @param gt A gtable object (from ggplotGrob)
+#' @return List of rectangular grobs
+#' @keywords internal
+find_rect_grobs <- function(gt) {
+  panel_index <- which(gt$layout$name == "panel")
+  if (length(panel_index) == 0) {
+    stop("No panel found in gtable")
+  }
+
+  panel_grob <- gt$grobs[[panel_index]]
+
+  if (!inherits(panel_grob, "gTree")) {
+    stop("Panel grob is not a gTree")
+  }
+
+  find_rect_grobs_recursive <- function(grob) {
+    rect_grobs <- list()
+
+    if (inherits(grob, "rectGrob") ||
+      (inherits(grob, "rect") && !inherits(grob, "zeroGrob"))) {
+      rect_grobs[[length(rect_grobs) + 1]] <- grob
+    }
+
+    if (inherits(grob, "gList")) {
+      for (i in seq_along(grob)) {
+        rect_grobs <- c(rect_grobs, find_rect_grobs_recursive(grob[[i]]))
+      }
+    }
+
+    if (inherits(grob, "gTree")) {
+      for (i in seq_along(grob$children)) {
+        rect_grobs <- c(
+          rect_grobs,
+          find_rect_grobs_recursive(grob$children[[i]])
+        )
+      }
+    }
+
+    rect_grobs
+  }
+
+  all_rects <- find_rect_grobs_recursive(panel_grob)
+
+  # Filter out background/border grobs
+  rect_grobs <- list()
+  for (i in seq_along(all_rects)) {
+    grob <- all_rects[[i]]
+    if (inherits(grob, "rectGrob") || inherits(grob, "rect")) {
+      if (!grepl("background|border", grob$name, ignore.case = TRUE)) {
+        rect_grobs[[length(rect_grobs) + 1]] <- grob
+      }
+    }
+  }
+
+  rect_grobs
 }
 
 #' Extract bar layer IDs from gtable
@@ -22,8 +79,8 @@ extract_layer_ids <- function(gt, plot_type) {
 #' @return Character vector of layer IDs
 #' @keywords internal
 extract_bar_layer_ids_from_gtable <- function(gt) {
-  # Find bar grobs
-  grobs <- find_bar_grobs(gt)
+  # Find rectangular grobs (generic)
+  grobs <- find_rect_grobs(gt)
 
   # Extract layer IDs from grob names
   layer_ids <- character(0)
@@ -38,6 +95,8 @@ extract_bar_layer_ids_from_gtable <- function(gt) {
   layer_ids
 }
 
+
+
 #' Make selector for plot type and layer ID using factory pattern
 #' @param plot_type The type of plot
 #' @param layer_id The layer ID
@@ -49,36 +108,10 @@ make_selector <- function(plot_type, layer_id, plot = NULL) {
     "bar" = make_bar_selector(layer_id),
     "stacked_bar" = make_stacked_bar_selectors(plot, layer_id),
     "dodged_bar" = make_dodged_bar_selectors(plot, layer_id),
-    "hist" = make_hist_selector(layer_id), # Histogram type
-    "smooth" = make_smooth_selector(layer_id), # Added smooth type
+    "hist" = make_hist_selector(layer_id),
+    "smooth" = make_smooth_selector(layer_id),
     stop("Unsupported plot type: ", plot_type)
   )
   
   result
-}
-
-#' Make histogram bar selector
-#' @param layer_id The layer ID
-#' @return CSS selector string
-#' @keywords internal
-make_hist_selector <- function(layer_id) {
-  # Use the same selector logic as bar plots since histogram bars are rendered as rectangles
-  make_bar_selector(layer_id)
-}
-
-#' Make smooth curve selector
-#' @param layer_id The layer ID
-#' @return CSS selector array
-#' @keywords internal
-make_smooth_selector <- function(layer_id) {
-  # For smooth plots, the layer_id should be the actual numeric ID from the grob name
-  # The pattern is "GRID.polyline.{layer_id}.1.1"
-  grob_id <- paste0("GRID.polyline.", layer_id, ".1.1")
-  
-  escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-  
-  selector <- paste0("#", escaped_grob_id)
-  
-  # Return as character vector to ensure proper JSON serialization as array
-  c(selector)
 }

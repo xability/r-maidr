@@ -4,12 +4,10 @@
 \alias{create_plot_processor}
 \title{Create plot processor based on plot type using factory pattern}
 \usage{
-create_plot_processor(plot, plot_type = NULL, ...)
+create_plot_processor(plot, ...)
 }
 \arguments{
 \item{plot}{A ggplot2 object}
-
-\item{plot_type}{The type of plot (if NULL, will be detected)}
 
 \item{...}{Additional arguments}
 }

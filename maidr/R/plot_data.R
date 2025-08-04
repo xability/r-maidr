@@ -90,7 +90,7 @@ extract_layer_data <- function(plot_processor, plot_type, layer_id) {
   
   # Delegate to plot-specific extraction functions
   switch(plot_type,
-    "histogram" = extract_histogram_layer_data(plot_processor, layer_id),
+    "hist" = extract_histogram_layer_data(plot_processor, layer_id),
     "smooth" = extract_smooth_layer_data(plot_processor, layer_id),
     "bar" = extract_bar_layer_data(plot_processor, layer_id),
     "stacked_bar" = extract_stacked_bar_layer_data(plot_processor, layer_id),
