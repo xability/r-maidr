@@ -162,6 +162,25 @@ extract_stacked_bar_data <- function(plot) {
   maidr_data
 }
 
+#' Extract stacked bar layer data from plot processor
+#' @param plot_processor The plot processor object
+#' @param layer_id The layer ID
+#' @return Stacked bar layer data structure (nested array format)
+#' @keywords internal
+extract_stacked_bar_layer_data <- function(plot_processor, layer_id) {
+  if (is.null(plot_processor$data)) {
+    return(list())
+  }
+  
+  # For stacked bar plots, return the entire nested array structure
+  # plot_processor$data is already the nested array of stacked bar data points
+  if (length(plot_processor$data) > 0) {
+    return(plot_processor$data)
+  }
+  
+  return(list())
+}
+
 #' Make stacked bar selectors using parent element with rect selector
 #' @param plot The ggplot2 object
 #' @param layer_id The layer ID to use

@@ -102,20 +102,18 @@ extract_bar_data <- function(plot) {
   data_points
 }
 
-#' Extract layer IDs from bar grobs
-#' @param grobs List of bar grobs
-#' @return Character vector of layer IDs
+#' Extract bar layer data from plot processor
+#' @param plot_processor The plot processor object
+#' @param layer_id The layer ID
+#' @return Bar layer data structure
 #' @keywords internal
-extract_bar_layer_ids <- function(grobs) {
-  layer_ids <- character(0)
-  if (length(grobs) > 0) {
-    for (grob in grobs) {
-      grob_name <- grob$name
-      layer_id <- gsub("geom_rect\\.rect\\.", "", grob_name)
-      layer_ids <- c(layer_ids, layer_id)
-    }
+extract_bar_layer_data <- function(plot_processor, layer_id) {
+  if (is.null(plot_processor$data)) {
+    return(list())
   }
-  layer_ids
+  
+  # For bar plots, return the data as is
+  plot_processor$data
 }
 
 #' Make bar plot selector

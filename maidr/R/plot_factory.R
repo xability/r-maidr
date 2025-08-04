@@ -74,6 +74,25 @@ is_bar_geom <- function(geom_types) {
   any(geom_types %in% c("GeomBar", "GeomCol"))
 }
 
+#' Check if plot is a histogram
+#' @param plot A ggplot2 object
+#' @return Logical indicating if plot is a histogram
+#' @keywords internal
+is_histogram_plot <- function(plot) {
+  if (length(plot$layers) == 0) {
+    return(FALSE)
+  }
+  
+  # Check if any layer has GeomBar with StatBin
+  for (layer in plot$layers) {
+    if (inherits(layer$geom, "GeomBar") && inherits(layer$stat, "StatBin")) {
+      return(TRUE)
+    }
+  }
+  
+  FALSE
+}
+
 #' Determine if plot is stacked bar
 #' @param plot A ggplot2 object
 #' @return Logical indicating if plot is stacked bar
@@ -121,6 +140,10 @@ detect_bar_type <- function(plot, geom_types) {
   if (!is_bar_geom(geom_types)) {
     return(NA_character_)
   }
+  # Check for histogram first
+  if (is_histogram_plot(plot)) {
+    return("histogram")
+  }
   if (is_stacked_bar(plot)) {
     return("stacked_bar")
   } else if (is_dodged_bar(plot)) {
@@ -136,26 +159,45 @@ detect_bar_type <- function(plot, geom_types) {
 #' @return Plot type or NA_character_
 #' @keywords internal
 determine_plot_type_from_geoms_and_position <- function(plot, geom_types) {
-  detect_bar_type(plot, geom_types)
+  # Check for smooth plots first (GeomDensity or GeomLine with StatDensity)
+  if (any(geom_types %in% c("GeomDensity")) || 
+      (any(geom_types %in% c("GeomLine")) && has_density_stat(plot))) {
+    return("smooth")
+  }
+  
+  # Check for bar types
+  if (is_bar_geom(geom_types)) {
+    return(detect_bar_type(plot, geom_types))
+  }
+  
+  # If no specific type is detected, return NA
+  NA_character_
 }
 
-#' Determine plot type based on geom classes using factory pattern (legacy)
-#' @param geom_types Character vector of geom classes
-#' @return Plot type or NA_character_
+#' Check if plot has density stat
+#' @param plot A ggplot2 object
+#' @return Logical indicating if plot has density stat
 #' @keywords internal
-determine_plot_type_from_geoms <- function(geom_types) {
-  if (any(geom_types %in% c("GeomBar", "GeomCol"))) {
-    return("bar")
+has_density_stat <- function(plot) {
+  if (length(plot$layers) == 0) {
+    return(FALSE)
   }
-
-  NA_character_
+  
+  # Check if any layer has StatDensity
+  for (layer in plot$layers) {
+    if (inherits(layer$stat, "StatDensity")) {
+      return(TRUE)
+    }
+  }
+  
+  FALSE
 }
 
 #' Get list of supported plot types
 #' @return Character vector of supported plot types
 #' @export
 get_supported_plot_types <- function() {
-  c("bar", "stacked_bar", "dodged_bar")
+  c("bar", "stacked_bar", "dodged_bar", "histogram", "smooth")
 }
 
 #' Check if plot type is supported
@@ -185,6 +227,8 @@ create_plot_processor <- function(plot, plot_type = NULL, ...) {
     "bar" = process_bar_plot(plot, ...),
     "stacked_bar" = process_stacked_bar_plot(plot, ...),
     "dodged_bar" = process_dodged_bar_plot(plot, ...),
+    "histogram" = process_histogram_plot(plot, ...),
+    "smooth" = process_smooth_plot(plot, ...),
     stop("Unsupported plot type: ", plot_type)
   )
 }
@@ -248,18 +292,36 @@ process_dodged_bar_plot <- function(plot, ...) {
   dodged_bar_plot_data(data = data, layout = layout, selectors = list(), reordered_plot = reordered_plot)
 }
 
-#' Extract plot data using factory pattern
+#' Process histogram plot using factory pattern
 #' @param plot A ggplot2 object
-#' @param built The built plot data
-#' @param layout Layout information
-#' @param plot_type The type of plot
-#' @return List of data for each layer
+#' @param ... Additional arguments
+#' @return A histogram_plot_data object
 #' @keywords internal
-extract_plot_data <- function(plot, built, layout, plot_type) {
-  switch(plot_type,
-    "bar" = extract_bar_data(plot),
-    "stacked_bar" = extract_stacked_bar_data(plot),
-    "dodged_bar" = extract_dodged_bar_data(plot),
-    list() # Return empty list for unsupported types
-  )
+process_histogram_plot <- function(plot, ...) {
+  if (!inherits(plot, "ggplot")) {
+    stop("Input must be a ggplot object.")
+  }
+
+  layout <- extract_layout(plot)
+  data <- extract_histogram_data(plot)
+  selectors <- make_histogram_selectors(plot)
+
+  histogram_plot_data(data = data, layout = layout, selectors = selectors)
+}
+
+#' Process smooth plot using factory pattern
+#' @param plot A ggplot2 object
+#' @param ... Additional arguments
+#' @return A smooth_plot_data object
+#' @keywords internal
+process_smooth_plot <- function(plot, ...) {
+  if (!inherits(plot, "ggplot")) {
+    stop("Input must be a ggplot object.")
+  }
+
+  layout <- extract_layout(plot)
+  data <- extract_smooth_data(plot)
+  selectors <- make_smooth_selectors(plot)
+
+  smooth_plot_data(data = data, layout = layout, selectors = selectors)
 }

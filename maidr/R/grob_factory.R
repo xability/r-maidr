@@ -8,6 +8,9 @@ extract_layer_ids <- function(gt, plot_type) {
     "bar" = extract_bar_layer_ids_from_gtable(gt),
     "stacked_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
     "dodged_bar" = extract_bar_layer_ids_from_gtable(gt),  # Use same logic as regular bars
+    "hist" = extract_bar_layer_ids_from_gtable(gt),  # Histogram bars are rectangles
+    "histogram" = extract_bar_layer_ids_from_gtable(gt),  # Backward compatibility
+    "smooth" = extract_polyline_layer_ids_from_gtable(gt),  # Use polyline logic for smooth curves
     character(0) # Return empty vector for unsupported types
   )
 
@@ -46,8 +49,36 @@ make_selector <- function(plot_type, layer_id, plot = NULL) {
     "bar" = make_bar_selector(layer_id),
     "stacked_bar" = make_stacked_bar_selectors(plot, layer_id),
     "dodged_bar" = make_dodged_bar_selectors(plot, layer_id),
+    "hist" = make_hist_selector(layer_id), # Histogram type
+    "smooth" = make_smooth_selector(layer_id), # Added smooth type
     stop("Unsupported plot type: ", plot_type)
   )
   
   result
+}
+
+#' Make histogram bar selector
+#' @param layer_id The layer ID
+#' @return CSS selector string
+#' @keywords internal
+make_hist_selector <- function(layer_id) {
+  # Use the same selector logic as bar plots since histogram bars are rendered as rectangles
+  make_bar_selector(layer_id)
+}
+
+#' Make smooth curve selector
+#' @param layer_id The layer ID
+#' @return CSS selector array
+#' @keywords internal
+make_smooth_selector <- function(layer_id) {
+  # For smooth plots, the layer_id should be the actual numeric ID from the grob name
+  # The pattern is "GRID.polyline.{layer_id}.1.1"
+  grob_id <- paste0("GRID.polyline.", layer_id, ".1.1")
+  
+  escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+  
+  selector <- paste0("#", escaped_grob_id)
+  
+  # Return as character vector to ensure proper JSON serialization as array
+  c(selector)
 }

@@ -71,36 +71,23 @@ apply_dodged_bar_reordering <- function(plot) {
   return(new_plot)
 }
 
-#' Create dodged bar plot with correct data order
-#' 
-#' @param data A data.frame with the plot data
-#' @param x_col Name of the x-axis column
-#' @param y_col Name of the y-axis column  
-#' @param fill_col Name of the fill column
-#' @return A ggplot object with correctly ordered data
-#' @keywords internal
-create_dodged_bar_plot_with_correct_order <- function(data, x_col, y_col, fill_col) {
-  # Reorder data for visual order
-  reordered_data <- reorder_data_for_visual_order(data, x_col, y_col, fill_col)
-  
-  # Create plot with reordered data
-  p <- ggplot(reordered_data, aes_string(x = x_col, y = y_col, fill = fill_col)) +
-    geom_bar(stat = "identity", position = position_dodge(width = 0.8))
-  
-  return(p)
-}
-
-#' Extract data from dodged bar plot
-#' 
-#' @param plot A ggplot2 object representing a dodged bar plot
-#' @return A list of dodged bar data points in visual order
+#' Extract dodged bar data from ggplot object
+#' @param plot A ggplot2 object
+#' @return List of dodged bar data points
 #' @keywords internal
 extract_dodged_bar_data <- function(plot) {
-  # Get original data to retain text values
-  original_data <- plot$data
+  if (!inherits(plot, "ggplot")) {
+    stop("Input must be a ggplot object.")
+  }
+
+  # Get the built data from the plot
+  built <- ggplot_build(plot)
   
-  # Get built data (already in correct order due to reordered input)
-  built_data <- ggplot_build(plot)$data[[1]]
+  # Extract data from the first layer (dodged bar layer)
+  layer_data <- built$data[[1]]
+  
+  # Get the original data to retain text values
+  original_data <- plot$data
   
   # Get the actual column names from the plot aesthetics
   plot_mapping <- plot$mapping
@@ -173,6 +160,25 @@ extract_dodged_bar_data <- function(plot) {
   maidr_data
 }
 
+#' Extract dodged bar layer data from plot processor
+#' @param plot_processor The plot processor object
+#' @param layer_id The layer ID
+#' @return Dodged bar layer data structure (nested array format)
+#' @keywords internal
+extract_dodged_bar_layer_data <- function(plot_processor, layer_id) {
+  if (is.null(plot_processor$data)) {
+    return(list())
+  }
+  
+  # For dodged bar plots, return the entire nested array structure
+  # plot_processor$data is already the nested array of dodged bar data points
+  if (length(plot_processor$data) > 0) {
+    return(plot_processor$data)
+  }
+  
+  return(list())
+}
+
 #' Make dodged bar selectors using parent element with path selector
 #' @param plot The ggplot2 object
 #' @param layer_id The layer ID to use
@@ -188,46 +194,6 @@ make_dodged_bar_selectors <- function(plot, layer_id) {
   selector_string <- sprintf("#geom_rect\\.rect\\.%d\\.1 rect", layer_id)
   
   return(selector_string)
-}
-
-#' Check if a plot is a dodged bar plot
-#' 
-#' @param plot A ggplot object
-#' @return TRUE if the plot is a dodged bar plot, FALSE otherwise
-#' @keywords internal
-is_dodged_bar <- function(plot) {
-  # Get the layers
-  layers <- plot$layers
-  
-  for (layer in layers) {
-    # Check if this is a bar layer
-    if (inherits(layer$geom, "GeomBar") || inherits(layer$geom, "GeomCol")) {
-      # Check if position is dodge
-      if (inherits(layer$position, "PositionDodge")) {
-        # Check if there's a fill aesthetic (either in layer or plot mapping)
-        has_fill <- "fill" %in% names(layer$mapping) || 
-                   "fill" %in% names(plot$mapping) ||
-                   "fill" %in% names(layer$aes_params)
-        if (has_fill) {
-          return(TRUE)
-        }
-      }
-    }
-  }
-  
-  return(FALSE)
-}
-
-#' Process dodged bar plot
-#' 
-#' @param plot A ggplot object representing a dodged bar plot
-#' @return A plot_data object for the dodged bar plot
-#' @keywords internal
-process_dodged_bar_plot <- function(plot) {
-  # Extract data from the plot
-  plot_data <- extract_dodged_bar_data(plot)
-  
-  return(plot_data)
 }
 
 #' Create dodged bar plot data object

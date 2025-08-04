@@ -83,6 +83,23 @@ get_svg_plot <- function(plot_processor, original_plot, plot_type) {
   }
 }
 
+#' Extract layer-specific data using the appropriate function
+#' @param plot_processor The plot processor object
+#' @param layer_id The layer ID
+#' @param plot_type The plot type
+#' @return Layer-specific data structure
+#' @keywords internal
+extract_layer_data <- function(plot_processor, layer_id, plot_type) {
+  switch(plot_type,
+    "bar" = extract_bar_layer_data(plot_processor, layer_id),
+    "stacked_bar" = extract_stacked_bar_layer_data(plot_processor, layer_id),
+    "dodged_bar" = extract_dodged_bar_layer_data(plot_processor, layer_id),
+    "histogram" = extract_histogram_layer_data(plot_processor, layer_id),
+    "smooth" = extract_smooth_layer_data(plot_processor, layer_id),
+    extract_default_layer_data(plot_processor, layer_id)  # fallback
+  )
+}
+
 #' Create layers structure for HTML generation
 #' @param layer_ids Vector of layer IDs
 #' @param plot_type The plot type
@@ -97,11 +114,22 @@ create_layers <- function(layer_ids, plot_type, svg_plot, plot_processor, layout
   for (i in seq_along(layer_ids)) {
     layer_id <- layer_ids[i]
     
+    # Get selectors and ensure they're always an array
+    selectors <- make_selector(plot_type, layer_id, svg_plot)
+    
+    # Ensure selectors is always a list/array, even for single elements
+    if (!is.list(selectors) && length(selectors) == 1) {
+      selectors <- list(selectors)
+    }
+    
+    # Extract layer-specific data using the appropriate function
+    layer_data <- extract_layer_data(plot_processor, layer_id, plot_type)
+    
     layers[[i]] <- list(
       id = layer_id,
-      selectors = make_selector(plot_type, layer_id, svg_plot),
+      selectors = selectors,
       type = plot_type,
-      data = plot_processor$data,
+      data = layer_data,
       title = if (!is.null(layout$title)) layout$title else "",
       axes = if (!is.null(layout$axes)) layout$axes else list(x = "", y = "")
     )

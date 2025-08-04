@@ -16,7 +16,8 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   grid.newpage()
   grid.draw(gt)
 
-  grid.export(svg_file, exportCoords = "none", exportMappings = "inline")
+  # Export with coordinate information for proper coordinate transformation
+  grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
 
   svg_content <- readLines(svg_file, warn = FALSE)
   svg_content <- add_maidr_data_to_svg(svg_content, maidr_data)
