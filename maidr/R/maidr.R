@@ -39,26 +39,25 @@ save_html <- function(plot, file, ...) {
   invisible(file)
 }
 
-#' Create HTML document with maidr enhancements
+#' Create HTML document with maidr enhancements using the orchestrator
 #' @param plot A ggplot2 object
 #' @param ... Additional arguments passed to internal functions
 #' @return An htmltools HTML document object
 #' @keywords internal
 create_maidr_html <- function(plot, ...) {
-  # Use the factory pattern to process the plot
-  plot_processor <- create_plot_processor(plot, ...)
+  # Use the orchestrator to process the plot
+  orchestrator <- PlotOrchestrator$new(plot)
   
-  # Get the plot type and appropriate plot for SVG generation
-  plot_type <- get_plot_type(plot_processor)
-  svg_plot <- get_svg_plot(plot_processor, plot, plot_type)
+  # Get the gtable for SVG generation
+  gt <- orchestrator$get_gtable()
   
-  # Generate SVG content
-  layout <- extract_layout(svg_plot)
-  gt <- ggplot2::ggplotGrob(svg_plot)
-  layer_ids <- extract_layer_ids(gt, plot_type)
+  # Get combined data and selectors from orchestrator
+  combined_data <- orchestrator$get_combined_data()
+  combined_selectors <- orchestrator$get_selectors()
+  layout <- orchestrator$get_layout()
   
-  # Create layers structure
-  layers <- create_layers(layer_ids, plot_type, svg_plot, plot_processor, layout)
+  # Create layers structure for HTML generation
+  layers <- create_layers_from_orchestrator(orchestrator, layout)
   
   # Generate final HTML
   maidr_data <- create_maidr_data(layers)
@@ -68,73 +67,103 @@ create_maidr_html <- function(plot, ...) {
   html_doc
 }
 
-#' Get the appropriate plot for SVG generation
-#' @param plot_processor The plot processor object
-#' @param original_plot The original plot
-#' @param plot_type The plot type
-#' @return The plot to use for SVG generation
-#' @keywords internal
-get_svg_plot <- function(plot_processor, original_plot, plot_type) {
-  if (!is.null(plot_processor$reordered_plot)) {
-    plot_processor$reordered_plot
-  } else {
-    original_plot
-  }
-}
-
-#' Extract layer-specific data using the appropriate function
-#' @param plot_processor The plot processor object
-#' @param layer_id The layer ID
-#' @param plot_type The plot type
-#' @return Layer-specific data structure
-#' @keywords internal
-extract_layer_data <- function(plot_processor, layer_id, plot_type) {
-  switch(plot_type,
-    "bar" = extract_bar_layer_data(plot_processor, layer_id),
-    "stacked_bar" = extract_stacked_bar_layer_data(plot_processor, layer_id),
-    "dodged_bar" = extract_dodged_bar_layer_data(plot_processor, layer_id),
-    "hist" = extract_histogram_layer_data(plot_processor, layer_id),
-    "smooth" = extract_smooth_layer_data(plot_processor, layer_id),
-    extract_default_layer_data(plot_processor, layer_id)  # fallback
-  )
-}
-
-#' Create layers structure for HTML generation
-#' @param layer_ids Vector of layer IDs
-#' @param plot_type The plot type
-#' @param svg_plot The plot used for SVG generation
-#' @param plot_processor The plot processor object
+#' Create layers structure from orchestrator data
+#' @param orchestrator The PlotOrchestrator instance
 #' @param layout Layout information
 #' @return List of layer structures
 #' @keywords internal
-create_layers <- function(layer_ids, plot_type, svg_plot, plot_processor, layout) {
+create_layers_from_orchestrator <- function(orchestrator, layout) {
   layers <- list()
+  layer_processors <- orchestrator$get_layer_processors()
   
-  for (i in seq_along(layer_ids)) {
-    layer_id <- layer_ids[i]
+  for (i in seq_along(layer_processors)) {
+    processor <- layer_processors[[i]]
+    layer_info <- processor$layer_info
     
-    # Get selectors and ensure they're always an array
-    selectors <- make_selector(plot_type, layer_id, svg_plot)
+    # Get the already processed data from the orchestrator
+    # The orchestrator has already called process() on each layer processor
+    # so we can get the results directly
+    processed_result <- processor$get_last_result()
     
-    # Ensure selectors is always a list/array, even for single elements
-    if (!is.list(selectors) && length(selectors) == 1) {
-      selectors <- list(selectors)
+    if (!is.null(processed_result)) {
+      # Use the selectors and data from the processed result
+      selectors <- processed_result$selectors
+      data <- processed_result$data
+    } else {
+      # Fallback: get selectors and data directly from processor
+      selectors <- processor$generate_selectors(orchestrator$get_plot(), orchestrator$get_gtable())
+      data <- processor$extract_data(orchestrator$get_plot())
     }
     
-    # Extract layer-specific data using the appropriate function
-    layer_data <- extract_layer_data(plot_processor, layer_id, plot_type)
+    # Filter out layer information from final JSON
+    data <- filter_layer_info_from_data(data)
+    
+    # Keep selectors as a list format
+    # If selectors is already a list, use it directly
+    # If it's a single string, wrap it in a list
+    # If it's empty, use empty list
+    if (is.character(selectors) && length(selectors) == 1) {
+      selectors_list <- list(selectors)
+    } else if (is.list(selectors)) {
+      selectors_list <- selectors
+    } else {
+      selectors_list <- list()
+    }
     
     layers[[i]] <- list(
-      id = layer_id,
-      selectors = selectors,
-      type = plot_type,
-      data = layer_data,
+      id = layer_info$index,
+      selectors = selectors_list,
+      type = layer_info$type,
+      data = data,
       title = if (!is.null(layout$title)) layout$title else "",
       axes = if (!is.null(layout$axes)) layout$axes else list(x = "", y = "")
     )
   }
   
   layers
+}
+
+#' Filter out layer information from data for final JSON
+#' @param data The data to filter
+#' @return Filtered data without layer information
+#' @keywords internal
+filter_layer_info_from_data <- function(data) {
+  # Recursively remove layer_index and layer_type from data points
+  filter_recursive <- function(data) {
+    if (is.list(data)) {
+      # Remove layer info if this is a data point (has x, y, etc.)
+      if (any(c("x", "y", "fill") %in% names(data))) {
+        data$layer_index <- NULL
+        data$layer_type <- NULL
+      }
+      
+      # Recursively filter nested structures
+      for (i in seq_along(data)) {
+        if (is.list(data[[i]])) {
+          data[[i]] <- filter_recursive(data[[i]])
+        }
+      }
+    }
+    return(data)
+  }
+  
+  return(filter_recursive(data))
+}
+
+#' Filter out layer information from selectors for final JSON
+#' @param selectors The selectors to filter
+#' @return Filtered selectors without layer information
+#' @keywords internal
+filter_layer_info_from_selectors <- function(selectors) {
+  # Remove layer_index and layer_type from selector objects
+  for (i in seq_along(selectors)) {
+    if (is.list(selectors[[i]]) && "selector" %in% names(selectors[[i]])) {
+      selectors[[i]]$layer_index <- NULL
+      selectors[[i]]$layer_type <- NULL
+    }
+  }
+  
+  return(selectors)
 }
 
 #' Create maidr-data structure

@@ -1,13 +1,4 @@
-# Proposed Singleton Architecture for Layer-Wise Detection
-# This shows how we can structure the maidr package to handle multiple layers
-
-library(ggplot2)
-
-# =============================================================================
-# SINGLETON PLOT ORCHESTRATOR CLASS
-# =============================================================================
-
-#' Plot Orchestrator Singleton Class
+#' Plot Orchestrator Class
 #' 
 #' This class orchestrates the detection and processing of multiple layers
 #' in a ggplot2 object. It analyzes each layer individually and combines
@@ -18,6 +9,7 @@ library(ggplot2)
 #' @field layer_processors List of layer-specific processors
 #' @field combined_data Combined data from all layers
 #' @field combined_selectors Combined selectors from all layers
+#' @field layout Layout information from the plot
 #' 
 #' @export
 PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
@@ -28,7 +20,8 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     .layer_processors = list(),
     .combined_data = list(),
     .combined_selectors = list(),
-    .layout = NULL
+    .layout = NULL,
+    .gtable = NULL
   ),
   
   public = list(
@@ -40,6 +33,7 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       private$.plot <- plot
       self$detect_layers()
       self$create_layer_processors()
+      self$process_layers()
     },
     
     # =======================================================================
@@ -76,8 +70,11 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       stat_class <- class(stat)[1]
       position_class <- class(position)[1]
       
-      # Detect layer type
+      # Detect initial layer type
       layer_type <- self$detect_layer_type(geom_class, stat_class, position_class)
+      
+      # Refine layer type based on actual characteristics
+      layer_type <- self$refine_layer_type(layer_type, layer, mapping)
       
       # Create layer information
       layer_info <- list(
@@ -94,16 +91,16 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       return(layer_info)
     },
     
-    #' Detect individual layer type
+    #' Detect individual layer type (simplified for existing plot types)
     detect_layer_type = function(geom_class, stat_class, position_class) {
       # Bar-related layers
       if (geom_class %in% c("GeomBar", "GeomCol")) {
         if (stat_class == "StatBin") {
-          return("histogram")
-        } else if (position_class == "PositionStack") {
-          return("stacked_bar")
+          return("hist")
         } else if (position_class == "PositionDodge") {
           return("dodged_bar")
+        } else if (position_class == "PositionStack") {
+          return("stacked_bar")
         } else {
           return("bar")
         }
@@ -114,28 +111,29 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         return("smooth")
       }
       
-      # Line layers
-      if (geom_class == "GeomLine") {
-        return("line")
-      }
-      
-      # Point layers
-      if (geom_class == "GeomPoint") {
-        return("point")
-      }
-      
-      # Text layers
-      if (geom_class == "GeomText") {
-        return("text")
-      }
-      
-      # Error bar layers
-      if (geom_class == "GeomErrorbar") {
-        return("errorbar")
-      }
-      
-      # Default
+      # Default - unknown layer type
       return("unknown")
+    },
+    
+    #' Refine layer type based on actual layer characteristics
+    refine_layer_type = function(layer_type, layer, mapping) {
+      # For stacked bars, check if it's actually a simple bar
+      if (layer_type == "stacked_bar") {
+        # Check if this is a simple bar (no fill aesthetic or single fill value)
+        # Check both layer mapping and plot's global mapping
+        has_fill_layer <- !is.null(mapping$fill)
+        has_fill_plot <- !is.null(private$.plot$mapping$fill)
+        
+        if (!has_fill_layer && !has_fill_plot) {
+          # No fill aesthetic - this is a simple bar
+          return("bar")
+        }
+        
+        # Has fill aesthetic - this is a true stacked bar
+        return("stacked_bar")
+      }
+      
+      return(layer_type)
     },
     
     # =======================================================================
@@ -160,18 +158,14 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     create_layer_processor = function(layer_info) {
       layer_type <- layer_info$type
       
-      # Create processor based on layer type
+      # Create processor based on layer type (only existing types)
       processor <- switch(layer_type,
         "bar" = BarLayerProcessor$new(layer_info),
         "stacked_bar" = StackedBarLayerProcessor$new(layer_info),
         "dodged_bar" = DodgedBarLayerProcessor$new(layer_info),
-        "histogram" = HistogramLayerProcessor$new(layer_info),
+        "hist" = HistogramLayerProcessor$new(layer_info),
         "smooth" = SmoothLayerProcessor$new(layer_info),
-        "line" = LineLayerProcessor$new(layer_info),
-        "point" = PointLayerProcessor$new(layer_info),
-        "text" = TextLayerProcessor$new(layer_info),
-        "errorbar" = ErrorBarLayerProcessor$new(layer_info),
-        UnknownLayerProcessor$new(layer_info)  # Default
+        UnknownLayerProcessor$new(layer_info)  # Default for unknown types
       )
       
       return(processor)
@@ -188,8 +182,12 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       # Extract layout information
       private$.layout <- self$extract_layout()
       
-      # Process each layer
+      # Build the plot once to get consistent data
+      built_plot <- ggplot2::ggplot_build(private$.plot)
+      
+      # Process each layer first to get any reordered plots
       layer_results <- list()
+      reordered_plots <- list()
       
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
@@ -197,9 +195,42 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         
         cat("Processing layer", i, "(", layer_info$type, ")\n")
         
-        # Process the layer
-        result <- processor$process(private$.plot, private$.layout)
+        # Process the layer with built data
+        result <- processor$process(private$.plot, private$.layout, NULL)
+        
+        # Store the result in the processor for later retrieval
+        processor$set_last_result(result)
+        
         layer_results[[i]] <- result
+        
+        # Check if this processor has a reordered plot
+        if (!is.null(processor$get_reordered_plot())) {
+          reordered_plots[[i]] <- processor$get_reordered_plot()
+        }
+      }
+      
+      # Use reordered plot for gtable if any layer has reordering
+      plot_for_gtable <- private$.plot
+      if (length(reordered_plots) > 0) {
+        # Use the first reordered plot (assuming single layer for now)
+        plot_for_gtable <- reordered_plots[[1]]
+      }
+      
+      gt_plot <- ggplot2::ggplotGrob(plot_for_gtable)
+      
+      # Store the gtable for later use
+      private$.gtable <- gt_plot
+      
+      # Re-process layers with the correct gtable
+      for (i in seq_along(private$.layer_processors)) {
+        processor <- private$.layer_processors[[i]]
+        
+        # Re-generate selectors with the correct gtable
+        if (!is.null(processor$get_last_result())) {
+          result <- processor$get_last_result()
+          result$selectors <- processor$generate_selectors(plot_for_gtable, gt_plot)
+          processor$set_last_result(result)
+        }
       }
       
       # Combine results
@@ -208,11 +239,16 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     
     #' Extract layout information
     extract_layout = function() {
+      # Build the plot to get actual axis labels
+      built <- ggplot2::ggplot_build(private$.plot)
+      
       # Extract title, axes labels, etc.
       layout <- list(
         title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
-        x = if (!is.null(private$.plot$labels$x)) private$.plot$labels$x else "",
-        y = if (!is.null(private$.plot$labels$y)) private$.plot$labels$y else ""
+        axes = list(
+          x = if (!is.null(private$.plot$labels$x)) private$.plot$labels$x else "",
+          y = if (!is.null(private$.plot$labels$y)) private$.plot$labels$y else ""
+        )
       )
       
       return(layout)
@@ -224,7 +260,15 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       
       # Combine data
       combined_data <- list()
-      for (result in layer_results) {
+      for (i in seq_along(layer_results)) {
+        result <- layer_results[[i]]
+        
+        # Add layer information to data points for consistent grouping
+        # Each layer processor is responsible for its own data structure
+        if (length(result$data) > 0) {
+          result$data <- self$add_layer_info_to_data(result$data, i, private$.layers[[i]]$type)
+        }
+        
         combined_data <- c(combined_data, result$data)
       }
       
@@ -264,6 +308,27 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       return(maidr_data)
     },
     
+    #' Get reordered plots from layer processors
+    get_reordered_plots = function() {
+      reordered_plots <- list()
+      
+      for (i in seq_along(private$.layer_processors)) {
+        processor <- private$.layer_processors[[i]]
+        reordered_plot <- processor$get_reordered_plot()
+        
+        if (!is.null(reordered_plot)) {
+          reordered_plots[[i]] <- reordered_plot
+        }
+      }
+      
+      return(reordered_plots)
+    },
+    
+    #' Get the gtable (for consistent layer IDs)
+    get_gtable = function() {
+      return(private$.gtable)
+    },
+    
     #' Get combined selectors
     get_selectors = function() {
       return(private$.combined_selectors)
@@ -277,155 +342,45 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     #' Get layer information
     get_layers = function() {
       return(private$.layers)
-    }
-  )
-)
-
-# =============================================================================
-# LAYER PROCESSOR BASE CLASS
-# =============================================================================
-
-#' Base Layer Processor Class
-#' 
-#' This is the base class for all layer processors. Each layer type
-#' will have its own processor that inherits from this class.
-#' 
-#' @field layer_info Information about the layer
-#' @export
-LayerProcessor <- R6::R6Class("LayerProcessor",
-  public = list(
-    layer_info = NULL,
-    
-    initialize = function(layer_info) {
-      self$layer_info <- layer_info
     },
     
-    #' Process the layer (to be implemented by subclasses)
-    process = function(plot, layout) {
-      stop("process() method must be implemented by subclasses")
+    #' Get combined data
+    get_combined_data = function() {
+      return(private$.combined_data)
     },
     
-    #' Extract data from the layer
-    extract_data = function(plot) {
-      stop("extract_data() method must be implemented by subclasses")
+    #' Get the original plot
+    get_plot = function() {
+      return(private$.plot)
     },
     
-    #' Generate selectors for the layer
-    generate_selectors = function(plot) {
-      stop("generate_selectors() method must be implemented by subclasses")
-    }
-  )
-)
-
-# =============================================================================
-# SPECIFIC LAYER PROCESSORS
-# =============================================================================
-
-#' Bar Layer Processor
-BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
-  inherit = LayerProcessor,
-  
-  public = list(
-    process = function(plot, layout) {
-      data <- self$extract_data(plot)
-      selectors <- self$generate_selectors(plot)
+    #' Get layer processors
+    get_layer_processors = function() {
+      return(private$.layer_processors)
+    },
+    
+    #' Add layer information to data points
+    add_layer_info_to_data = function(data, layer_index, layer_type) {
+      # Recursively add layer info to all data points
+      add_layer_info_recursive <- function(data) {
+        if (is.list(data)) {
+          # Only add layer info if this is a data point (has x, y, etc.)
+          if (any(c("x", "y", "fill") %in% names(data))) {
+            data$layer_index <- layer_index
+            data$layer_type <- layer_type
+          }
+          
+          # Recursively add layer info to nested structures
+          for (i in seq_along(data)) {
+            if (is.list(data[[i]])) {
+              data[[i]] <- add_layer_info_recursive(data[[i]])
+            }
+          }
+        }
+        return(data)
+      }
       
-      return(list(
-        data = data,
-        selectors = selectors
-      ))
-    },
-    
-    extract_data = function(plot) {
-      # Extract bar-specific data
-      # This would use the existing extract_bar_data logic
-      return(list())  # Placeholder
-    },
-    
-    generate_selectors = function(plot) {
-      # Generate bar-specific selectors
-      # This would use the existing make_bar_selectors logic
-      return(list())  # Placeholder
+      return(add_layer_info_recursive(data))
     }
   )
-)
-
-#' Stacked Bar Layer Processor
-StackedBarLayerProcessor <- R6::R6Class("StackedBarLayerProcessor",
-  inherit = LayerProcessor,
-  
-  public = list(
-    process = function(plot, layout) {
-      data <- self$extract_data(plot)
-      selectors <- self$generate_selectors(plot)
-      
-      return(list(
-        data = data,
-        selectors = selectors
-      ))
-    },
-    
-    extract_data = function(plot) {
-      # Extract stacked bar-specific data
-      return(list())  # Placeholder
-    },
-    
-    generate_selectors = function(plot) {
-      # Generate stacked bar-specific selectors
-      return(list())  # Placeholder
-    }
-  )
-)
-
-# Add other layer processors as needed...
-
-#' Unknown Layer Processor (fallback)
-UnknownLayerProcessor <- R6::R6Class("UnknownLayerProcessor",
-  inherit = LayerProcessor,
-  
-  public = list(
-    process = function(plot, layout) {
-      # Return empty data for unknown layer types
-      return(list(
-        data = list(),
-        selectors = list()
-      ))
-    }
-  )
-)
-
-# =============================================================================
-# USAGE EXAMPLE
-# =============================================================================
-
-# Example usage of the singleton orchestrator
-example_usage <- function() {
-  # Create a multi-layer plot
-  plot <- ggplot(mtcars, aes(factor(cyl))) + 
-    geom_bar() + 
-    geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
-  
-  # Create the orchestrator
-  orchestrator <- PlotOrchestrator$new(plot)
-  
-  # Process all layers
-  orchestrator$process_layers()
-  
-  # Generate final data
-  maidr_data <- orchestrator$generate_maidr_data()
-  
-  # Get results
-  layers <- orchestrator$get_layers()
-  selectors <- orchestrator$get_selectors()
-  layout <- orchestrator$get_layout()
-  
-  cat("Final results:\n")
-  cat("Layers:", length(layers), "\n")
-  cat("Selectors:", length(selectors), "\n")
-  cat("Layout:", layout$title, "\n")
-  
-  return(maidr_data)
-}
-
-# Run the example
-# result <- example_usage() 
+) 
