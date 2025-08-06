@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `maidr` R package provides interactive HTML output for ggplot2 plots by converting them to SVG and adding interactive highlighting capabilities. The package uses a sophisticated R6 class-based architecture with a singleton orchestrator pattern to handle multiple plot layers independently.
+The `maidr` R package is designed to convert ggplot2 plots into interactive HTML visualizations with embedded data for AI model consumption. The package uses a sophisticated R6 class-based architecture with a singleton orchestrator pattern to handle multiple plot layers and their specific processing requirements.
 
 ## Core Architecture Components
 
@@ -10,171 +10,128 @@ The `maidr` R package provides interactive HTML output for ggplot2 plots by conv
 
 **File**: `maidr/R/plot_orchestrator.R`
 
-The `PlotOrchestrator` is the central coordinator that manages the entire plot processing workflow. It follows the singleton pattern to ensure only one orchestrator instance exists per plot.
+The `PlotOrchestrator` is the central coordinator that manages the entire plot processing pipeline. It implements a singleton pattern to ensure consistent state management across the package.
 
 #### Key Responsibilities:
 - **Layer Detection**: Automatically detects plot layers and their types
-- **Layer Processing**: Coordinates individual layer processors
-- **Data Combination**: Merges results from multiple layers
-- **GTable Management**: Handles the ggplot2 internal representation
-- **Reordering/Sorting Coordination**: Manages plot modifications for correct DOM order
+- **Processor Creation**: Creates appropriate `LayerProcessor` instances for each layer
+- **Data Flow Management**: Coordinates data extraction and selector generation
+- **Reordering Coordination**: Manages plot reordering for consistent DOM/data alignment
+- **Result Combination**: Combines results from multiple layers into a unified JSON structure
 
-#### Critical Implementation Details:
+#### Core Methods:
 
 ```r
-#' Process all layers
-process_layers = function() {
-  # Extract layout information
-  private$.layout <- self$extract_layout()
-  
-  # Build the plot once to get consistent data
-  built_plot <- ggplot2::ggplot_build(private$.plot)
-  
-  # Process each layer first to get any reordered/sorted plots
-  layer_results <- list()
-  reordered_plots <- list()
-  sorted_plots <- list()
-  
-  for (i in seq_along(private$.layer_processors)) {
-    processor <- private$.layer_processors[[i]]
-    layer_info <- private$.layers[[i]]
-    
-    # Process the layer with built data
-    result <- processor$process(private$.plot, private$.layout, NULL)
-    
-    # Store the result in the processor for later retrieval
-    processor$set_last_result(result)
-    
-    layer_results[[i]] <- result
-    
-    # Check if this processor has a reordered plot
-    if (!is.null(processor$get_reordered_plot())) {
-      reordered_plots[[i]] <- processor$get_reordered_plot()
-    }
-    
-    # Check if this processor has a sorted plot
-    if (!is.null(processor$get_sorted_plot())) {
-      sorted_plots[[i]] <- processor$get_sorted_plot()
-    }
-  }
-  
-  # Use reordered/sorted plot for gtable if any layer has modifications
-  plot_for_gtable <- private$.plot
-  if (length(reordered_plots) > 0) {
-    plot_for_gtable <- reordered_plots[[1]]
-  } else if (length(sorted_plots) > 0) {
-    plot_for_gtable <- sorted_plots[[1]]
-  }
-  
-  gt_plot <- ggplot2::ggplotGrob(plot_for_gtable)
-  
-  # Store the gtable for later use
-  private$.gtable <- gt_plot
-  
-  # Re-process layers with the correct gtable (only for selectors)
-  for (i in seq_along(private$.layer_processors)) {
-    processor <- private$.layer_processors[[i]]
-    
-    # Re-generate selectors with the correct gtable
-    if (!is.null(processor$get_last_result())) {
-      result <- processor$get_last_result()
-      result$selectors <- processor$generate_selectors(plot_for_gtable, gt_plot)
-      processor$set_last_result(result)
-    }
-  }
-  
-  # Combine results
-  self$combine_layer_results(layer_results)
-}
+# Initialize orchestrator with plot
+orchestrator <- PlotOrchestrator$new(plot)
+
+# Detect and create processors for all layers
+orchestrator$detect_layers()
+orchestrator$create_layer_processors()
+
+# Process all layers with unified reordering
+orchestrator$process_layers()
+
+# Extract final results
+results <- orchestrator$get_combined_results()
 ```
 
-**Critical Insight**: The orchestrator processes layers twice - first to get any plot modifications (reordering/sorting), then again to generate selectors using the modified plot. This ensures SVG element IDs match the modified data structure.
+#### Layer Detection Logic:
+```r
+detect_layer_type = function(layer) {
+  geom_name <- class(layer$geom)[1]
+  
+  # Map geom types to processor types
+  switch(geom_name,
+    "GeomBar" = {
+      if (layer$position$class[1] == "PositionDodge") "dodged_bar"
+      else if (layer$position$class[1] == "PositionStack") "stacked_bar"
+      else "bar"
+    },
+    "GeomHistogram" = "hist",
+    "GeomDensity" = "smooth",
+    "GeomSmooth" = "smooth",
+    "unknown"
+  )
+}
+```
 
 ### 2. LayerProcessor Base Class
 
 **File**: `maidr/R/layer_processor.R`
 
-The base class that all specific layer processors inherit from. Provides common functionality and interface.
+The `LayerProcessor` base class provides a unified interface for all layer-specific processing. It defines the contract that all specific processors must implement.
 
-#### Key Methods:
-- `process()`: Main processing method (to be overridden)
-- `extract_data_impl()`: Data extraction (to be overridden)
-- `generate_selectors()`: Selector generation (to be overridden)
-- `set_last_result()` / `get_last_result()`: Result storage
-- `get_reordered_plot()` / `get_sorted_plot()`: Plot modification retrieval
-
-#### Private Fields:
-- `last_result`: Stores the processed result for each layer
-- `reordered_plot`: Stores plot after reordering (for dodged bars)
-- `sorted_plot`: Stores plot after sorting (for bar plots)
+#### Core Interface:
+```r
+LayerProcessor <- R6::R6Class("LayerProcessor",
+  public = list(
+    # Process the layer and return structured data
+    process = function(plot, layout, gt = NULL) { ... },
+    
+    # Extract data points from the layer
+    extract_data_impl = function(plot) { ... },
+    
+    # Generate CSS selectors for SVG elements
+    generate_selectors = function(plot, gt) { ... },
+    
+    # Check if layer needs reordering
+    needs_reordering = function() { ... },
+    
+    # Apply reordering to plot data
+    apply_reordering = function(plot) { ... },
+    
+    # Get reordered plot for orchestrator
+    get_reordered_plot = function() { ... },
+    
+    # Store/retrieve last processing result
+    set_last_result = function(result) { ... },
+    get_last_result = function() { ... }
+  ),
+  
+  private = list(
+    reordered_plot = NULL,
+    last_result = NULL
+  )
+)
+```
 
 ### 3. Specific Layer Processors
 
-Each plot type has its own specialized processor that inherits from `LayerProcessor`.
+Each plot type has its own specialized processor that inherits from `LayerProcessor`:
 
 #### BarLayerProcessor
 **File**: `maidr/R/bar_layer_processor.R`
 
-**Key Features**:
-- **Sorting Implementation**: Sorts plot data by x-axis values before building
-- **Fill Attribute Logic**: Only includes fill in JSON if user explicitly mapped it
-- **Selector Generation**: Uses recursive grob tree traversal
+Handles simple bar plots with:
+- **Reordering**: Sorts data by x-axis for consistent SVG rect order
+- **Fill Detection**: Only includes `fill` attribute if explicitly mapped by user
+- **Selector Generation**: Uses recursive grob traversal to find correct rect elements
 
 ```r
-#' Apply sorting to the plot data
-apply_sorting = function(plot) {
-  # Get the original data
-  original_data <- plot$data
-  
-  # Get column names from aesthetics
-  plot_mapping <- plot$mapping
-  layer_mapping <- plot$layers[[1]]$mapping
-  
-  x_col <- NULL
-  if (!is.null(layer_mapping$x)) {
-    x_col <- rlang::as_name(layer_mapping$x)
-  } else if (!is.null(plot_mapping$x)) {
-    x_col <- rlang::as_name(plot_mapping$x)
-  }
-  
-  if (!is.null(x_col)) {
-    # Sort the data by x-axis values
-    sorted_data <- original_data[order(original_data[[x_col]]), ]
-    
-    # Create a new plot with sorted data
-    sorted_plot <- plot
-    sorted_plot$data <- sorted_data
-    
-    return(sorted_plot)
-  }
-  
-  return(plot)
-}
+# Example bar plot processing
+bar_processor <- BarLayerProcessor$new()
+result <- bar_processor$process(plot, layout, gt)
+# Returns: {type: "bar", data: [...], selectors: ["#geom_rect\\.rect\\.145\\.1 rect"]}
 ```
-
-**Critical Insight**: The sorting is applied to the plot data itself, not just the output JSON. This ensures the SVG rects are generated in the correct order.
 
 #### DodgedBarLayerProcessor
 **File**: `maidr/R/dodged_bar_layer_processor.R`
 
-**Key Features**:
-- **Complex Reordering**: Reorders data to achieve specific DOM element order
-- **Visual Order Control**: Ensures right-left-right-left DOM order for highlighting
-- **Data Structure Alignment**: Aligns JSON data structure with DOM order
+Handles dodged bar plots with complex reordering:
+- **DOM Order**: Ensures `right-left-right-left` pattern for highlighting
+- **Data Structure**: Maintains `Type1, Type2` order for data consistency
+- **Reordering Logic**: Uses `rev(fill_values)` to achieve desired visual order
 
 ```r
+# Complex reordering for dodged bars
 reorder_data_for_visual_order = function(data, x_col, y_col, fill_col) {
-  # Get unique values and sort them consistently
   x_values <- sort(unique(data[[x_col]]))
   fill_values <- sort(unique(data[[fill_col]]))
   
   reordered_data <- data.frame()
-  
-  # For each x value, process fill values in reverse order
-  # This creates: A-Type2, A-Type1, B-Type2, B-Type1, C-Type2, C-Type1
   for (x_val in x_values) {
-    for (fill_val in rev(fill_values)) {  # Type2 first, then Type1 for each x
-      # Find the row for this x-fill combination
+    for (fill_val in rev(fill_values)) {  # Type2 first, then Type1
       matching_rows <- which(data[[x_col]] == x_val & data[[fill_col]] == fill_val)
       if (length(matching_rows) > 0) {
         reordered_data <- rbind(reordered_data, data[matching_rows, ])
@@ -185,179 +142,209 @@ reorder_data_for_visual_order = function(data, x_col, y_col, fill_col) {
 }
 ```
 
-**Critical Insight**: The reordering logic is crucial for achieving the desired highlighting behavior. The DOM order (right-left-right-left) must match the data structure order for proper interaction.
-
 #### StackedBarLayerProcessor
 **File**: `maidr/R/stacked_bar_layer_processor.R`
 
-**Key Features**:
-- **Reordering Logic**: Similar to dodged bars but for stacked arrangement
-- **Selector Generation**: Uses recursive grob finding
+Handles stacked bar plots with:
+- **Height Calculation**: Properly calculates stacked bar heights
+- **Fill Grouping**: Groups data by fill values for proper stacking
+- **Selector Generation**: Uses `find_geom_rect_grobs` for accurate targeting
 
 #### HistogramLayerProcessor
 **File**: `maidr/R/histogram_layer_processor.R`
 
-**Key Features**:
-- **Type Detection**: Detected as "hist" (not "histogram")
-- **Selector Generation**: Uses bar grob finding with `.1` suffix
+Handles histogram plots with:
+- **Density Scaling**: Supports `aes(y = ..density..)` for density histograms
+- **Bin Data**: Extracts bin boundaries and heights
+- **Selector Generation**: Uses `find_bar_grobs` with `.1` suffix
 
 #### SmoothLayerProcessor
 **File**: `maidr/R/smooth_layer_processor.R`
 
-**Key Features**:
-- **Polyline Selectors**: Targets `GRID.polyline` elements
-- **Array Output**: Returns selectors as array of strings
+Handles smooth plots (density curves, loess, etc.) with:
+- **Point Extraction**: Extracts 512+ data points for smooth curves
+- **SVG Coordinates**: Includes `svg_x` and `svg_y` for precise positioning
+- **Selector Generation**: Uses `find_polyline_grobs` with `.1.1` suffix
+
+#### UnknownLayerProcessor
+**File**: `maidr/R/unknown_layer_processor.R`
+
+Fallback processor for unsupported layer types:
+- **Graceful Handling**: Returns empty data without errors
+- **Type Detection**: Marks as "unknown" for debugging
+- **Minimal Impact**: Allows processing to continue for other layers
+
+## Unified Reordering System
+
+### Overview
+The package uses a unified "reordering" approach instead of separate "sorting" and "reordering" mechanisms. This simplifies the architecture and ensures consistent behavior across all layer types.
+
+### Implementation Details
+
+#### 1. Reordering Interface
+All layer processors implement the same reordering interface:
+```r
+needs_reordering = function() {
+  # Return TRUE if layer needs reordering
+}
+
+apply_reordering = function(plot) {
+  # Apply reordering logic and return modified plot
+}
+
+get_reordered_plot = function() {
+  # Return the reordered plot for orchestrator use
+}
+```
+
+#### 2. Orchestrator Integration
+The `PlotOrchestrator` manages reordering at the system level:
+```r
+process_layers = function() {
+  # Process layers first to get reordered plots
+  for (i in seq_along(private$.layer_processors)) {
+    processor <- private$.layer_processors[[i]]
+    result <- processor$process(private$.plot, private$.layout, NULL)
+    
+    # Store reordered plot if available
+    if (!is.null(processor$get_reordered_plot())) {
+      reordered_plots[[i]] <- processor$get_reordered_plot()
+    }
+  }
+  
+  # Use reordered plot for gtable generation
+  plot_for_gtable <- private$.plot
+  if (length(reordered_plots) > 0) {
+    plot_for_gtable <- reordered_plots[[1]]
+  }
+  
+  # Generate gtable from reordered plot
+  gt_plot <- ggplot2::ggplotGrob(plot_for_gtable)
+}
+```
+
+#### 3. Reordering Examples
+
+**Bar Plots**: Sort by x-axis for consistent rect order
+```r
+apply_reordering = function(plot) {
+  x_col <- rlang::as_name(plot$mapping$x)
+  reordered_data <- original_data[order(original_data[[x_col]]), ]
+  new_plot <- plot
+  new_plot$data <- reordered_data
+  return(new_plot)
+}
+```
+
+**Dodged Bar Plots**: Complex reordering for visual consistency
+```r
+apply_reordering = function(plot) {
+  # Reorder data to achieve right-left-right-left DOM order
+  reordered_data <- reorder_data_for_visual_order(data, x_col, y_col, fill_col)
+  new_plot <- plot
+  new_plot$data <- reordered_data
+  return(new_plot)
+}
+```
 
 ## Data Flow Architecture
 
-### 1. Plot Processing Pipeline
-
-```
-User Plot → PlotOrchestrator → Layer Detection → Layer Processors → 
-Data Extraction + Selector Generation → Result Combination → JSON Output
-```
-
-### 2. Critical Data Flow Steps
-
-#### Step 1: Layer Detection
+### 1. Plot Input
 ```r
-detect_layer_type = function(layer) {
-  geom <- layer$geom
-  stat <- layer$stat
-  
-  if (inherits(geom, "GeomBar") || inherits(geom, "GeomCol")) {
-    position <- layer$position
-    if (inherits(position, "PositionDodge")) {
-      return("dodged_bar")
-    } else if (inherits(position, "PositionStack")) {
-      return("stacked_bar")
-    } else {
-      return("bar")
-    }
-  } else if (inherits(geom, "GeomBar") && inherits(stat, "StatBin")) {
-    return("hist")
-  } else if (inherits(geom, "GeomSmooth")) {
-    return("smooth")
-  }
-  
-  return("unknown")
-}
+# User creates ggplot2 plot
+p <- ggplot(data, aes(x = x, y = y)) + geom_bar()
 ```
 
-#### Step 2: Plot Modification (Reordering/Sorting)
-- **Dodged Bars**: Apply reordering to achieve right-left DOM order
-- **Bar Plots**: Apply sorting to achieve alphabetical x-axis order
-- **Other Plots**: No modification needed
-
-#### Step 3: GTable Generation
-- Use modified plot (if any) for `ggplotGrob()` call
-- This ensures SVG elements match the modified data structure
-
-#### Step 4: Selector Generation
-- Traverse gtable recursively to find actual grob IDs
-- Generate CSS selectors that target specific SVG elements
-
-#### Step 5: Data Extraction
-- Extract data from the modified plot
-- Structure data to match DOM element order
-- Apply final sorting for JSON output
-
-## Sorting and Reordering Mechanisms
-
-### 1. Bar Plot Sorting
-
-**Purpose**: Ensure x-axis values are sorted alphabetically to match ggplot2's default behavior.
-
-**Implementation**:
+### 2. Orchestrator Initialization
 ```r
-# In BarLayerProcessor$apply_sorting()
-sorted_data <- original_data[order(original_data[[x_col]]), ]
-sorted_plot$data <- sorted_data
+# Create singleton orchestrator
+orchestrator <- PlotOrchestrator$new(p)
 ```
 
-**Effect**: 
-- SVG rects are generated in alphabetical order (A, B, C, D)
-- JSON data matches rect order
-- Highlighting works correctly from left to right
-
-### 2. Dodged Bar Reordering
-
-**Purpose**: Achieve specific DOM element order for proper highlighting behavior.
-
-**Implementation**:
+### 3. Layer Detection & Processing
 ```r
-# In DodgedBarLayerProcessor$reorder_data_for_visual_order()
-for (x_val in x_values) {
-  for (fill_val in rev(fill_values)) {  # Type2 first, then Type1
-    # Add data in this order
-  }
-}
+# Detect layers automatically
+orchestrator$detect_layers()
+# Creates: [{type: "bar", layer: layer_object}]
+
+# Create processors for each layer
+orchestrator$create_layer_processors()
+# Creates: [BarLayerProcessor$new()]
+
+# Process all layers with reordering
+orchestrator$process_layers()
+# Calls: processor$process() for each layer
 ```
 
-**Effect**:
-- DOM order: Type2 (right), Type1 (left) for each category
-- Data structure: Type1 first, then Type2 (for highlighting)
-- Creates right-left-right-left visual pattern
-
-### 3. Fill Value Sorting
-
-**Purpose**: Ensure consistent fill value ordering in JSON output.
-
-**Implementation**:
+### 4. Data Extraction & Selector Generation
 ```r
-# In DodgedBarLayerProcessor$extract_data_impl()
-fill_order <- sort(unique(original_data[[fill_col]]))
+# Each processor extracts data
+data <- processor$extract_data_impl(plot)
+# Returns: [{x: "A", y: 10, fill: "steelblue"}, ...]
+
+# Each processor generates selectors
+selectors <- processor$generate_selectors(plot, gt)
+# Returns: ["#geom_rect\\.rect\\.145\\.1 rect"]
 ```
 
-**Effect**: JSON data groups are sorted by fill values (Type1, Type2)
-
-## Selector Generation Architecture
-
-### 1. Grob Tree Traversal
-
-All selectors are generated by recursively traversing the gtable's grob tree:
-
+### 5. Result Combination
 ```r
-find_bar_grobs = function(grob) {
-  if (inherits(grob, "grob")) {
-    if (grepl("geom_rect", grob$name) && grepl("rect", grob$name)) {
-      return(list(grob))
-    }
-  }
-  
+# Orchestrator combines all layer results
+combined_results <- orchestrator$get_combined_results()
+# Returns: {layers: [{type: "bar", data: [...], selectors: [...]}]}
+```
+
+### 6. JSON Generation
+```r
+# Convert to JSON for HTML embedding
+json_data <- jsonlite::toJSON(combined_results, auto_unbox = TRUE)
+# Embed in SVG: maidr-data="{...}"
+```
+
+## Selector Generation System
+
+### Overview
+The selector generation system uses recursive grob tree traversal to find the exact SVG elements that correspond to each plot layer.
+
+### Implementation Details
+
+#### 1. Grob Tree Traversal
+```r
+find_bar_grobs = function(grob, grobs = list()) {
   if (inherits(grob, "gTree")) {
-    result <- list()
     for (child in grob$children) {
-      result <- c(result, find_bar_grobs(child))
+      grobs <- find_bar_grobs(child, grobs)
     }
-    return(result)
+  } else if (inherits(grob, "rect") && grepl("geom_rect", grob$name)) {
+    grobs[[length(grobs) + 1]] <- grob
   }
-  
-  return(list())
+  return(grobs)
 }
 ```
 
-### 2. Selector Format
+#### 2. Selector Construction
+```r
+make_bar_selector = function(grob) {
+  # Extract grob ID and construct CSS selector
+  grob_id <- grob$name
+  selector <- paste0("#", gsub("\\.", "\\\\.", grob_id), " rect")
+  return(selector)
+}
+```
 
-Different plot types use different selector formats:
+#### 3. Layer-Specific Selectors
 
-- **Bar Plots**: `#geom_rect\\.rect\\.42\\.1\\.1 rect`
-- **Dodged Bars**: `#geom_rect\\.rect\\.42\\.1\\.1 rect`
-- **Stacked Bars**: `#geom_rect\\.rect\\.42\\.1\\.1 rect`
-- **Histograms**: `#geom_rect\\.rect\\.207\\.1 rect`
-- **Smooth Plots**: `#GRID\\.polyline\\.264\\.1\\.1`
+**Bar Plots**: `#geom_rect\.rect\.145\.1 rect`
+**Histograms**: `#geom_rect\.rect\.207\.1 rect`
+**Smooth Plots**: `#GRID\.polyline\.264\.1\.1`
+**Dodged Bars**: `#geom_rect\.rect\.145\.1 rect`
 
-### 3. Critical Selector Rules
+## JSON Data Structure
 
-1. **Escape Special Characters**: Use `\\.` for dots in CSS selectors
-2. **Append Element Type**: Add ` rect` for rectangles, ` polyline` for lines
-3. **Use Actual Grob IDs**: Don't hardcode - find actual IDs from gtable
-4. **Consistent Suffixes**: Use `.1` for bars, `.1.1` for smooth plots
+### Overview
+The package generates a standardized JSON structure that embeds plot data and metadata for AI model consumption.
 
-## JSON Output Structure
-
-### 1. Maidr-Data Format
-
+### Structure Definition
 ```json
 {
   "id": "maidr-plot-1234567890",
@@ -367,15 +354,16 @@ Different plot types use different selector formats:
       "layers": [
         {
           "id": 1,
-          "selectors": "#geom_rect\\.rect\\.42\\.1\\.1 rect",
           "type": "bar",
+          "selectors": ["#geom_rect\\.rect\\.145\\.1 rect"],
           "data": [
-            {"x": "A", "y": 30},
-            {"x": "B", "y": 25},
-            {"x": "C", "y": 15},
-            {"x": "D", "y": 10}
+            {
+              "x": "A",
+              "y": 10,
+              "fill": "steelblue"
+            }
           ],
-          "title": "Simple Bar Test",
+          "title": "Plot Title",
           "axes": {
             "x": "Category",
             "y": "Value"
@@ -387,200 +375,294 @@ Different plot types use different selector formats:
 }
 ```
 
-### 2. Data Structure Rules
+### Data Extraction Examples
 
-- **Single Layer**: `"selectors": "string"` (bar, stacked_bar, dodged_bar)
-- **Multiple Elements**: `"selectors": ["string1", "string2"]` (smooth, histogram)
-- **Fill Attribute**: Only included if user explicitly mapped `aes(fill = variable)`
-- **Data Ordering**: Must match DOM element order for proper highlighting
-
-## Implementing New Features
-
-### What an AI Model Needs to Know
-
-#### 1. Layer Detection Requirements
-
-When adding a new plot type, you must:
-
-1. **Update `detect_layer_type()`** in `PlotOrchestrator`:
+#### Bar Plot Data
 ```r
-if (inherits(geom, "GeomYourNewGeom")) {
-  return("your_new_type")
+extract_data_impl = function(plot) {
+  # Extract x, y, fill values
+  data_points <- list()
+  for (i in seq_len(nrow(data))) {
+    data_points[[i]] <- list(
+      x = as.character(data[[x_col]][i]),
+      y = data[[y_col]][i],
+      fill = if (has_fill_mapping) as.character(data[[fill_col]][i]) else NULL
+    )
+  }
+  return(data_points)
 }
 ```
 
-2. **Update `create_layer_processor()`** in `PlotOrchestrator`:
+#### Histogram Data
 ```r
-case "your_new_type":
-  return(YourNewLayerProcessor$new())
+extract_data_impl = function(plot) {
+  # Extract bin data with boundaries
+  data_points <- list()
+  for (i in seq_len(nrow(data))) {
+    data_points[[i]] <- list(
+      x = data[[x_col]][i],
+      y = data[[y_col]][i],
+      xMin = data[[xmin_col]][i],
+      xMax = data[[xmax_col]][i],
+      yMin = 0,
+      yMax = data[[y_col]][i]
+    )
+  }
+  return(data_points)
+}
 ```
 
-3. **Create a new LayerProcessor class** that inherits from `LayerProcessor`
-
-#### 2. LayerProcessor Implementation Requirements
-
-Your new processor must implement:
-
+#### Smooth Plot Data
 ```r
-YourNewLayerProcessor <- R6::R6Class("YourNewLayerProcessor",
-  inherit = LayerProcessor,
+extract_data_impl = function(plot) {
+  # Extract curve points with SVG coordinates
+  data_points <- list()
+  for (i in seq_len(nrow(data))) {
+    data_points[[i]] <- list(
+      x = data[[x_col]][i],
+      y = data[[y_col]][i],
+      svg_x = svg_coords[[i]]$x,
+      svg_y = svg_coords[[i]]$y
+    )
+  }
+  return(data_points)
+}
+```
+
+## Multi-Layer Support
+
+### Overview
+The package supports plots with multiple layers (e.g., histogram + density curve) through the orchestrator's layer management system.
+
+### Implementation Details
+
+#### 1. Layer Detection
+```r
+detect_layers = function() {
+  layers <- list()
+  for (i in seq_along(private$.plot$layers)) {
+    layer <- private$.plot$layers[[i]]
+    layer_type <- self$detect_layer_type(layer)
+    layers[[i]] <- list(type = layer_type, layer = layer)
+  }
+  return(layers)
+}
+```
+
+#### 2. Multi-Processor Creation
+```r
+create_layer_processors = function() {
+  processors <- list()
+  for (layer_info in private$.layers) {
+    processor <- self$create_layer_processor(layer_info$type)
+    processors[[length(processors) + 1]] <- processor
+  }
+  return(processors)
+}
+```
+
+#### 3. Result Combination
+```r
+combine_layer_results = function(layer_results) {
+  combined_data <- list()
+  combined_selectors <- list()
   
+  for (result in layer_results) {
+    combined_data <- c(combined_data, result$data)
+    combined_selectors <- c(combined_selectors, result$selectors)
+  }
+  
+  return(list(
+    data = combined_data,
+    selectors = combined_selectors
+  ))
+}
+```
+
+### Example: Histogram with Density Curve
+```r
+# Plot with two layers
+p <- ggplot(data, aes(x = x)) +
+  geom_histogram(aes(y = ..density..), binwidth = 0.5) +
+  geom_density(color = "red")
+
+# Orchestrator detects both layers
+# Layer 1: "hist" -> HistogramLayerProcessor
+# Layer 2: "smooth" -> SmoothLayerProcessor
+
+# Results combined into single JSON
+{
+  "layers": [
+    {
+      "type": "hist",
+      "data": [...],  # 18 histogram bars
+      "selectors": ["#geom_rect\\.rect\\.145\\.1 rect"]
+    },
+    {
+      "type": "smooth", 
+      "data": [...],  # 512 density curve points
+      "selectors": ["#GRID\\.polyline\\.147\\.1\\.1"]
+    }
+  ]
+}
+```
+
+## Error Handling & Robustness
+
+### 1. Unknown Layer Types
+```r
+UnknownLayerProcessor <- R6::R6Class("UnknownLayerProcessor",
+  inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, gt = NULL) {
-      # Apply any needed modifications (sorting/reordering)
-      # Extract data
-      # Generate selectors
-      return(list(data = data, selectors = selectors))
-    },
-    
     extract_data_impl = function(plot) {
-      # Extract data points in correct order
-      # Return list of data points
+      return(list())  # Return empty data
     },
-    
     generate_selectors = function(plot, gt) {
-      # Find grobs in gtable
-      # Generate CSS selectors
-      # Return string or array of strings
+      return(list())  # Return empty selectors
     }
   )
 )
 ```
 
-#### 3. Critical Implementation Patterns
-
-**For Plot Modifications (Sorting/Reordering)**:
+### 2. Missing Aesthetic Mappings
 ```r
-process = function(plot, layout, gt = NULL) {
-  # Apply modification if needed
-  if (self$needs_modification()) {
-    plot <- self$apply_modification(plot)
-    private$modified_plot <- plot
-  }
-  
-  # Extract data from modified plot
-  data <- self$extract_data_impl(plot)
-  
-  # Generate selectors using modified plot
-  selectors <- self$generate_selectors(plot, gt)
-  
-  return(list(data = data, selectors = selectors))
+# Graceful handling of missing aesthetics
+if (is.null(x_col)) {
+  stop("Could not determine x aesthetic mapping")
 }
 ```
 
-**For Grob Finding**:
+### 3. Grob Tree Traversal Failures
 ```r
-find_your_grobs = function(grob) {
-  if (inherits(grob, "grob")) {
-    if (grepl("your_pattern", grob$name)) {
-      return(list(grob))
-    }
-  }
-  
-  if (inherits(grob, "gTree")) {
-    result <- list()
-    for (child in grob$children) {
-      result <- c(result, find_your_grobs(child))
-    }
-    return(result)
-  }
-  
-  return(list())
+# Fallback selector generation
+if (length(grobs) == 0) {
+  return(list())  # Return empty selectors
 }
 ```
 
-**For Selector Generation**:
+## Performance Considerations
+
+### 1. Singleton Pattern Benefits
+- **Memory Efficiency**: Single orchestrator instance
+- **State Consistency**: Centralized plot processing state
+- **Resource Management**: Coordinated gtable generation
+
+### 2. Lazy Processing
+- **On-Demand Processing**: Layers processed only when needed
+- **Cached Results**: Store processing results for reuse
+- **Incremental Updates**: Process only changed layers
+
+### 3. Efficient Data Structures
+- **List-Based Storage**: Efficient for variable-length data
+- **JSON Serialization**: Optimized for HTML embedding
+- **Selector Caching**: Avoid repeated grob tree traversal
+
+## Testing & Validation
+
+### 1. Unit Tests
 ```r
-generate_selectors = function(plot, gt) {
-  # Find the panel grob
-  panel_grob <- find_panel_grob(gt)
-  
-  # Find your specific grobs
-  your_grobs <- find_your_grobs(panel_grob)
-  
-  # Generate selectors
-  selectors <- lapply(your_grobs, function(grob) {
-    make_your_selector(grob)
-  })
-  
-  # Return appropriate format
-  if (length(selectors) == 1) {
-    return(selectors[[1]])
-  } else {
-    return(selectors)
-  }
+# Test individual processors
+test_that("BarLayerProcessor extracts correct data", {
+  processor <- BarLayerProcessor$new()
+  result <- processor$extract_data_impl(test_plot)
+  expect_equal(length(result), 4)
+  expect_equal(result[[1]]$x, "A")
+})
+```
+
+### 2. Integration Tests
+```r
+# Test complete pipeline
+test_that("Orchestrator processes multi-layer plot", {
+  orchestrator <- PlotOrchestrator$new(multi_layer_plot)
+  results <- orchestrator$process_layers()
+  expect_equal(length(results$layers), 2)
+})
+```
+
+### 3. Visual Validation
+- **HTML Output**: Verify correct SVG generation
+- **Selector Accuracy**: Confirm CSS selectors target correct elements
+- **Data Completeness**: Ensure all plot data is captured
+
+## Extension Points
+
+### 1. Adding New Plot Types
+```r
+# 1. Create new processor class
+NewPlotProcessor <- R6::R6Class("NewPlotProcessor",
+  inherit = LayerProcessor,
+  public = list(
+    extract_data_impl = function(plot) { ... },
+    generate_selectors = function(plot, gt) { ... }
+  )
+)
+
+# 2. Add detection logic to orchestrator
+detect_layer_type = function(layer) {
+  switch(geom_name,
+    "GeomNewPlot" = "new_plot",
+    # ... existing cases
+  )
+}
+
+# 3. Add processor creation logic
+create_layer_processor = function(type) {
+  switch(type,
+    "new_plot" = NewPlotProcessor$new(),
+    # ... existing cases
+  )
 }
 ```
 
-#### 4. Testing Requirements
-
-1. **Create test data** with known structure
-2. **Generate plot** using ggplot2
-3. **Call maidr()** to create HTML
-4. **Verify JSON structure** matches expected format
-5. **Check SVG elements** match selector targets
-6. **Test highlighting behavior** in browser
-
-#### 5. Common Pitfalls to Avoid
-
-1. **Hardcoded Selectors**: Always find actual grob IDs from gtable
-2. **Inconsistent Data Order**: Ensure JSON data order matches DOM order
-3. **Missing Plot Modifications**: Apply sorting/reordering before building gtable
-4. **Incorrect Selector Format**: Use proper CSS escaping and element suffixes
-5. **Forgetting Fill Logic**: Only include fill if user explicitly mapped it
-
-#### 6. Debugging Techniques
-
-1. **Add Debug Logs**:
+### 2. Custom Reordering Logic
 ```r
-cat("Processing layer", i, "(", layer_info$type, ")\n")
-cat("Found grob:", grob$name, "\n")
+# Override reordering methods in new processor
+needs_reordering = function() {
+  return(TRUE)  # Custom logic
+}
+
+apply_reordering = function(plot) {
+  # Custom reordering implementation
+  return(reordered_plot)
+}
 ```
 
-2. **Inspect GTable Structure**:
+### 3. Custom Data Extraction
 ```r
-str(gt, max.level = 3)
+# Override data extraction in new processor
+extract_data_impl = function(plot) {
+  # Custom data extraction logic
+  return(custom_data_structure)
+}
 ```
 
-3. **Check JSON Output**:
-```r
-cat("JSON data:", jsonlite::toJSON(data, auto_unbox = TRUE), "\n")
-```
+## Best Practices for AI Model Integration
 
-4. **Verify SVG Elements**:
-```r
-# Look for the actual element IDs in the generated HTML
-```
+### 1. JSON Structure Consistency
+- **Standardized Format**: Always use the defined JSON structure
+- **Type Consistency**: Ensure data types match expected formats
+- **Null Handling**: Use empty arrays/objects instead of null values
 
-## Package Structure
+### 2. Selector Reliability
+- **CSS Escaping**: Properly escape dots in grob names
+- **Element Targeting**: Target specific SVG elements (rect, polyline, etc.)
+- **Fallback Handling**: Provide empty selectors for unsupported elements
 
-```
-maidr/
-├── R/
-│   ├── maidr.R                    # Main entry point
-│   ├── plot_orchestrator.R        # Singleton orchestrator
-│   ├── layer_processor.R          # Base layer processor
-│   ├── bar_layer_processor.R      # Bar plot processor
-│   ├── dodged_bar_layer_processor.R
-│   ├── stacked_bar_layer_processor.R
-│   ├── histogram_layer_processor.R
-│   ├── smooth_layer_processor.R
-│   └── unknown_layer_processor.R
-├── inst/
-│   └── htmlwidgets/
-│       ├── maidrWidget.js         # JavaScript for highlighting
-│       └── maidrWidget.yaml       # Widget configuration
-├── man/                           # Documentation
-└── DESCRIPTION                     # Package metadata
-```
+### 3. Data Completeness
+- **All Plot Elements**: Capture all visible plot elements
+- **Metadata Inclusion**: Include titles, axes labels, and legends
+- **Coordinate Systems**: Preserve both data and SVG coordinates
 
-## Key Design Principles
+### 4. Performance Optimization
+- **Efficient Processing**: Minimize redundant calculations
+- **Memory Management**: Clean up large objects after processing
+- **Caching Strategy**: Cache expensive operations (grob traversal, etc.)
 
-1. **Separation of Concerns**: Each layer type has its own processor
-2. **Singleton Pattern**: One orchestrator per plot ensures consistency
-3. **Modification Before Building**: Apply sorting/reordering before gtable generation
-4. **Recursive Grob Traversal**: Find actual element IDs, don't hardcode
-5. **Consistent Data Order**: JSON data must match DOM element order
-6. **Robust Error Handling**: Graceful fallbacks for unknown plot types
+## Conclusion
 
-This architecture provides a solid foundation for extending the package with new plot types while maintaining consistency and reliability. 
+The `maidr` package architecture provides a robust, extensible foundation for converting ggplot2 plots into interactive HTML visualizations. The unified reordering system, multi-layer support, and comprehensive error handling ensure reliable operation across diverse plot types and configurations.
+
+The R6 class-based design with singleton orchestrator pattern enables clean separation of concerns while maintaining efficient resource usage. The standardized JSON output format ensures compatibility with AI model consumption requirements.
+
+For developers extending the package, the well-defined interfaces and extension points provide clear guidance for adding new plot types and customizing processing behavior. The comprehensive testing framework ensures reliability and maintainability as the package evolves. 

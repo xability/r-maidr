@@ -106,6 +106,11 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         }
       }
       
+      # Line-related layers
+      if (geom_class == "GeomLine" || geom_class == "GeomPath") {
+        return("line")
+      }
+      
       # Smooth-related layers
       if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
         return("smooth")
@@ -164,6 +169,7 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         "stacked_bar" = StackedBarLayerProcessor$new(layer_info),
         "dodged_bar" = DodgedBarLayerProcessor$new(layer_info),
         "hist" = HistogramLayerProcessor$new(layer_info),
+        "line" = LineLayerProcessor$new(layer_info),
         "smooth" = SmoothLayerProcessor$new(layer_info),
         UnknownLayerProcessor$new(layer_info)  # Default for unknown types
       )
