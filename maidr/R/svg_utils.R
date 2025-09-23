@@ -16,7 +16,6 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   grid.newpage()
   grid.draw(gt)
 
-  # Export with coordinate information for proper coordinate transformation
   grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
 
   svg_content <- readLines(svg_file, warn = FALSE)
@@ -85,8 +84,7 @@ display_html <- function(html_doc) {
   if (Sys.getenv("RSTUDIO") == "1") {
     htmltools::html_print(html_doc)
   } else {
-    # Use browsable for non-RStudio environments
-    print(htmltools::browsable(html_doc))
+    htmltools::browsable(html_doc)
   }
 }
 

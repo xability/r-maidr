@@ -1,0 +1,33 @@
+# lintr configuration for maidr package
+# Excludes object_name_linter to avoid R6 class naming issues
+
+linters: linters_with_defaults(
+  object_name_linter = NULL,  # Disabled for R6 classes (use PascalCase)
+  line_length_linter = line_length_linter(80),
+  trailing_whitespace_linter = trailing_whitespace_linter(),
+  trailing_blank_lines_linter = trailing_blank_lines_linter(),
+  commas_linter = commas_linter(),
+  infix_spaces_linter = infix_spaces_linter(),
+  assignment_linter = assignment_linter(),
+  spaces_inside_linter = spaces_inside_linter(),
+  return_linter = return_linter(),
+  seq_linter = seq_linter(),
+  semicolon_linter = semicolon_linter(),
+  quotes_linter = quotes_linter(),
+  T_and_F_symbol_linter = T_and_F_symbol_linter(),
+  function_left_parentheses_linter = function_left_parentheses_linter(),
+  equals_na_linter = equals_na_linter(),
+  commented_code_linter = commented_code_linter(),
+  brace_linter = brace_linter(),
+  paren_body_linter = paren_body_linter(),
+  pipe_continuation_linter = pipe_continuation_linter(),
+  vector_logic_linter = vector_logic_linter(),
+  whitespace_linter = whitespace_linter()
+)
+
+# Exclude certain files/directories
+exclusions: list(
+  "inst/",
+  "man/",
+  "RcppExports.R"
+)

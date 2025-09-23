@@ -1,16 +1,25 @@
 #!/usr/bin/env Rscript
 
-# Test script for maidr package with unified reordering approach
-# This script tests all supported plot types and generates HTML files
+# Example script for maidr package demonstrating all supported plot types
+# This script generates interactive HTML files for various ggplot2 plot types
 
 # Load required libraries
 library(ggplot2)
 library(devtools)
 
 # Load the maidr package
-load_all("maidr")
+# Use absolute path to ensure it works from anywhere
+maidr_dir <- "/Users/niranjank/xability/r-maidr-prototype/maidr"
+load_all(maidr_dir)
 
-cat("=== Maidr Package Test - Unified Reordering Approach ===\n")
+# Create output directory if it doesn't exist
+output_dir <- "../../output"
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir, recursive = TRUE)
+}
+
+cat("=== Maidr Package Examples - All Supported Plot Types ===\n")
+cat("Output files will be saved to:", output_dir, "\n")
 
 # Test 1: Simple bar plot
 cat("\n=== TEST 1: Simple Bar Plot ===\n")
@@ -23,8 +32,8 @@ p_bar <- ggplot(bar_data, aes(x = Category, y = Value)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   labs(title = "Simple Bar Test")
 
-html_file_bar <- "test_maidr_bar.html"
-result_bar <- maidr(p_bar, file = html_file_bar)
+html_file_bar <- file.path(output_dir, "example_bar_plot.html")
+result_bar <- maidr(p_bar, file = html_file_bar, open = FALSE)
 cat("Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
 
 # Test 2: Dodged bar plot
@@ -39,8 +48,8 @@ p_dodged <- ggplot(dodged_data, aes(x = Category, y = Value, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
   labs(title = "Dodged Bar Test")
 
-html_file_dodged <- "test_maidr_dodged_bar.html"
-result_dodged <- maidr(p_dodged, file = html_file_dodged)
+html_file_dodged <- file.path(output_dir, "example_dodged_bar_plot.html")
+result_dodged <- maidr(p_dodged, file = html_file_dodged, open = FALSE)
 cat("Dodged bar plot:", if(file.exists(html_file_dodged)) "✓" else "✗", "\n")
 
 # Test 3: Stacked bar plot
@@ -55,8 +64,8 @@ p_stacked <- ggplot(stacked_data, aes(x = Category, y = Value, fill = Type)) +
   geom_bar(stat = "identity", position = position_stack()) +
   labs(title = "Stacked Bar Test")
 
-html_file_stacked <- "test_maidr_stacked_bar.html"
-result_stacked <- maidr(p_stacked, file = html_file_stacked)
+html_file_stacked <- file.path(output_dir, "example_stacked_bar_plot.html")
+result_stacked <- maidr(p_stacked, file = html_file_stacked, open = FALSE)
 cat("Stacked bar plot:", if(file.exists(html_file_stacked)) "✓" else "✗", "\n")
 
 # Test 4: Histogram
@@ -69,8 +78,8 @@ p_hist <- ggplot(hist_data, aes(x = values)) +
   geom_histogram(bins = 20, fill = "steelblue", color = "black") +
   labs(title = "Histogram Test")
 
-html_file_hist <- "test_maidr_histogram.html"
-result_hist <- maidr(p_hist, file = html_file_hist)
+html_file_hist <- file.path(output_dir, "example_histogram.html")
+result_hist <- maidr(p_hist, file = html_file_hist, open = FALSE)
 cat("Histogram:", if(file.exists(html_file_hist)) "✓" else "✗", "\n")
 
 # Test 5: Smooth plot
@@ -83,12 +92,28 @@ p_smooth <- ggplot(smooth_data, aes(x = x)) +
   geom_density(fill = "lightblue", alpha = 0.5) +
   labs(title = "Smooth Plot Test")
 
-html_file_smooth <- "test_maidr_smooth.html"
-result_smooth <- maidr(p_smooth, file = html_file_smooth)
+html_file_smooth <- file.path(output_dir, "example_smooth_plot.html")
+result_smooth <- maidr(p_smooth, file = html_file_smooth, open = FALSE)
 cat("Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
 
-# Test 6: Histogram with Density Curve (Iris Dataset)
-cat("\n=== TEST 6: Histogram with Density Curve ===\n")
+# Test 6: Line plot
+cat("\n=== TEST 6: Line Plot ===\n")
+line_data <- data.frame(
+  x = 1:10,
+  y = c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
+)
+
+p_line <- ggplot(line_data, aes(x = x, y = y)) +
+  geom_line(color = "steelblue", linewidth = 1.5) +
+  labs(title = "Line Plot Test", x = "X values", y = "Y values") +
+  theme_minimal()
+
+html_file_line <- file.path(output_dir, "example_line_plot.html")
+result_line <- maidr(p_line, file = html_file_line, open = FALSE)
+cat("Line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
+
+# Test 7: Histogram with Density Curve (Iris Dataset)
+cat("\n=== TEST 7: Histogram with Density Curve ===\n")
 
 # Create sample data equivalent to iris petal lengths
 set.seed(123)
@@ -97,7 +122,7 @@ petal_data <- data.frame(petal_length = petal_lengths)
 
 # Create histogram with density curve (equivalent to seaborn histplot with kde=True)
 p_hist_density <- ggplot(petal_data, aes(x = petal_length)) +
-  geom_histogram(aes(y = ..density..), binwidth = 0.5, fill = "lightblue", alpha = 0.7, color = "black") +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.5, fill = "lightblue", alpha = 0.7, color = "black") +
   geom_density(color = "red", linewidth = 1) +
   labs(
     title = "Petal Lengths in Iris Dataset",
@@ -106,18 +131,20 @@ p_hist_density <- ggplot(petal_data, aes(x = petal_length)) +
   ) +
   theme_minimal()
 
-html_file_hist_density <- "test_maidr_histogram_density.html"
-result_hist_density <- maidr(p_hist_density, file = html_file_hist_density)
+html_file_hist_density <- file.path(output_dir, "example_histogram_density.html")
+result_hist_density <- maidr(p_hist_density, file = html_file_hist_density, open = FALSE)
 cat("Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
 
 # Summary
 cat("\n=== SUMMARY ===\n")
-cat("Generated HTML files:\n")
+cat("Generated HTML files in output/ directory:\n")
 cat("- Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
 cat("- Dodged bar plot:", if(file.exists(html_file_dodged)) "✓" else "✗", "\n")
 cat("- Stacked bar plot:", if(file.exists(html_file_stacked)) "✓" else "✗", "\n")
 cat("- Histogram:", if(file.exists(html_file_hist)) "✓" else "✗", "\n")
 cat("- Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
+cat("- Line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
 cat("- Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
 
-cat("\nAll tests completed with unified reordering approach!\n") 
+cat("\nAll examples completed successfully!\n")
+cat("Check the output/ directory for interactive HTML files.\n") 

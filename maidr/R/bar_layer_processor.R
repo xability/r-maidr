@@ -1,73 +1,59 @@
 #' Bar Layer Processor
-#' 
+#'
 #' Processes bar plot layers with complete logic included
-#' 
+#'
 #' @export
 BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
   inherit = LayerProcessor,
-  
   public = list(
-    process = function(plot, layout, gt = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL) {
       # Apply reordering if needed
       if (self$needs_reordering()) {
         plot <- self$apply_reordering(plot)
         # Store the reordered plot for later use
         private$reordered_plot <- plot
       }
-      
+
       # Extract data from the reordered plot
-      data <- self$extract_data_impl(plot)
-      
+      data <- self$extract_data_impl(plot, built)
+
       # Generate selectors using the reordered plot
       selectors <- self$generate_selectors(plot, gt)
-      
-      return(list(
+
+      list(
         data = data,
         selectors = selectors
-      ))
+      )
     },
-    
+
     #' Check if this layer needs reordering
     needs_reordering = function() {
-      return(TRUE)  # Bar plots need reordering by x-axis
+      TRUE # Bar plots need reordering by x-axis
     },
+
     
-    #' Apply reordering to the plot data
-    apply_reordering = function(plot) {
-      # Get the original data
-      original_data <- plot$data
-      
-      # Get the actual column names from the plot aesthetics
+
+    #' Reorder only this layer's data using category order
+    reorder_layer_data = function(data, plot) {
       plot_mapping <- plot$mapping
-      layer_mapping <- plot$layers[[1]]$mapping
-      
+      layer_mapping <- plot$layers[[self$get_layer_index()]]$mapping
       x_col <- NULL
-      
       if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
         x_col <- rlang::as_name(layer_mapping$x)
       } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
         x_col <- rlang::as_name(plot_mapping$x)
       }
-      
-      # If we found an x column, reorder the data
-      if (!is.null(x_col) && !is.null(original_data) && is.data.frame(original_data)) {
-        # Reorder the data by x column (simple alphabetical sorting)
-        reordered_data <- original_data[order(original_data[[x_col]]), ]
-        
-        # Create a new plot with reordered data
-        new_plot <- plot
-        new_plot$data <- reordered_data
-        
-        return(new_plot)
+      if (!is.null(x_col) && x_col %in% names(data)) {
+        data[order(data[[x_col]]), , drop = FALSE]
+      } else {
+        data
       }
-      
-      return(plot)  # Return original plot if no reordering needed
     },
-    
+
     #' Extract data implementation
-    extract_data_impl = function(plot) {
-      # Build the plot to get data
-      built <- ggplot2::ggplot_build(plot)
+    extract_data_impl = function(plot, built = NULL) {
+      # Build the plot to get data (use provided built if available)
+      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
 
       # Find bar layers
       bar_layers <- which(sapply(plot$layers, function(layer) {
@@ -85,7 +71,7 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
       if (!is.null(original_data) && is.data.frame(original_data)) {
         for (col in names(original_data)) {
           if (is.character(original_data[[col]]) ||
-            is.factor(original_data[[col]])) {
+                is.factor(original_data[[col]])) {
             x_col <- col
             break
           }
@@ -96,7 +82,7 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
       has_user_fill <- FALSE
       plot_mapping <- plot$mapping
       layer_mapping <- plot$layers[[bar_layers[1]]]$mapping
-      
+
       if (!is.null(layer_mapping) && !is.null(layer_mapping$fill)) {
         has_user_fill <- TRUE
       } else if (!is.null(plot_mapping) && !is.null(plot_mapping$fill)) {
@@ -136,10 +122,9 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
           data_points[[j]] <- point
         }
       }
-      
-      return(data_points)
+
+      data_points
     },
-    
     generate_selectors = function(plot, gt = NULL) {
       # Convert to gtable to get grob information if not provided
       if (is.null(gt)) {
@@ -151,21 +136,20 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
 
       # For bar plots, we expect only one grob
       if (length(grobs) == 0) {
-        return("")
+        return(list())
+      } else {
+        # Use the first (and only) grob
+        grob <- grobs[[1]]
+        grob_name <- grob$name
+
+        # Extract the numeric part from grob name
+        # (e.g., "2" from "geom_rect.rect.2")
+        layer_id <- gsub("geom_rect\\.rect\\.", "", grob_name)
+
+        # Create selector for this bar
+        selector <- self$make_bar_selector(layer_id)
+        return(list(selector))
       }
-
-      # Use the first (and only) grob
-      grob <- grobs[[1]]
-      grob_name <- grob$name
-      
-      # Extract the numeric part from grob name
-      # (e.g., "2" from "geom_rect.rect.2")
-      layer_id <- gsub("geom_rect\\.rect\\.", "", grob_name)
-
-      # Create selector for this bar
-      selector <- self$make_bar_selector(layer_id)
-      
-      return(selector)
     },
 
     #' Make bar plot selector (same as original bar.R)
@@ -208,20 +192,18 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
           }
         }
 
-        return(rect_grobs)
+        rect_grobs
       }
 
-      bar_grobs <- find_geom_rect_grobs_recursive(panel_grob)
-      return(bar_grobs)
+      find_geom_rect_grobs_recursive(panel_grob)
     },
-    
+
     #' Get the reordered plot if it exists
     get_reordered_plot = function() {
-      return(private$reordered_plot)
+      private$reordered_plot
     }
   ),
-  
   private = list(
     reordered_plot = NULL
   )
-) 
+)

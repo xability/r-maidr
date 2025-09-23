@@ -13,8 +13,14 @@ Imports:
     gridSVG,
     htmltools,
     jsonlite,
-    xml2
+    xml2,
+    rlang,
+    R6
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    lintr,
+    styler,
+    goodpractice,
+    cyclocomp
 Config/testthat/edition: 3 
 RoxygenNote: 7.3.2
