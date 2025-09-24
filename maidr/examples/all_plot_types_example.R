@@ -96,8 +96,8 @@ html_file_smooth <- file.path(output_dir, "example_smooth_plot.html")
 result_smooth <- maidr(p_smooth, file = html_file_smooth, open = FALSE)
 cat("Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
 
-# Test 6: Line plot
-cat("\n=== TEST 6: Line Plot ===\n")
+# Test 6: Single Line plot
+cat("\n=== TEST 6: Single Line Plot ===\n")
 line_data <- data.frame(
   x = 1:10,
   y = c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
@@ -105,15 +105,45 @@ line_data <- data.frame(
 
 p_line <- ggplot(line_data, aes(x = x, y = y)) +
   geom_line(color = "steelblue", linewidth = 1.5) +
-  labs(title = "Line Plot Test", x = "X values", y = "Y values") +
+  labs(title = "Single Line Plot Test", x = "X values", y = "Y values") +
   theme_minimal()
 
 html_file_line <- file.path(output_dir, "example_line_plot.html")
 result_line <- maidr(p_line, file = html_file_line, open = FALSE)
-cat("Line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
+cat("Single line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
 
-# Test 7: Histogram with Density Curve (Iris Dataset)
-cat("\n=== TEST 7: Histogram with Density Curve ===\n")
+# Test 7: Multiline plot (3 series with 10 points each)
+cat("\n=== TEST 7: Multiline Plot (3 Series with 10 Points) ===\n")
+# Create data with 10 points for each of 3 series
+set.seed(123)  # For reproducible data
+x <- 1:10
+y1 <- c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
+y2 <- c(1, 3, 5, 2, 4, 6, 8, 7, 5, 3)
+y3 <- c(3, 1, 4, 6, 5, 2, 4, 5, 7, 6)
+
+multiline_data <- data.frame(
+  x = rep(x, 3),
+  y = c(y1, y2, y3),
+  series = rep(c("G 1", "G 2", "G 3"), each = length(x))
+)
+
+p_multiline <- ggplot(multiline_data, aes(x = x, y = y, color = series)) +
+  geom_line(linewidth = 1) +
+  labs(
+    title = "Multiline Plot Test (3 Series with 10 Points)",
+    x = "X values", 
+    y = "Y values",
+    color = "Series"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+html_file_multiline <- file.path(output_dir, "example_multiline_plot.html")
+result_multiline <- maidr(p_multiline, file = html_file_multiline, open = FALSE)
+cat("Multiline plot (3 series with 10 points):", if(file.exists(html_file_multiline)) "✓" else "✗", "\n")
+
+# Test 8: Histogram with Density Curve (Iris Dataset)
+cat("\n=== TEST 8: Histogram with Density Curve ===\n")
 
 # Create sample data equivalent to iris petal lengths
 set.seed(123)
@@ -143,7 +173,8 @@ cat("- Dodged bar plot:", if(file.exists(html_file_dodged)) "✓" else "✗", "\
 cat("- Stacked bar plot:", if(file.exists(html_file_stacked)) "✓" else "✗", "\n")
 cat("- Histogram:", if(file.exists(html_file_hist)) "✓" else "✗", "\n")
 cat("- Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
-cat("- Line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
+cat("- Single line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
+cat("- Multiline plot (3 series with 10 points):", if(file.exists(html_file_multiline)) "✓" else "✗", "\n")
 cat("- Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
 
 cat("\nAll examples completed successfully!\n")

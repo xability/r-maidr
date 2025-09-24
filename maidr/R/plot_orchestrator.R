@@ -212,6 +212,9 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     },
     get_layer_processors = function() {
       private$.layer_processors
+    },
+    get_layers = function() {
+      private$.layers
     }
   )
 )

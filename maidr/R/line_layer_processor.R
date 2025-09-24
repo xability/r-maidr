@@ -1,181 +1,262 @@
-#' Line Layer Processor
+#' Final Line Layer Processor - Uses Actual SVG Structure
 #'
-#' Processes line plot layers (geom_line) to extract data and generate selectors.
+#' Processes line plot layers using the actual gridSVG structure discovered:
+#' - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
+#' - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
 #'
 #' @field layer_info Information about the layer being processed
-#' @field reordered_plot The plot after reordering (if needed)
 #' @field last_result The last processing result
 #'
 #' @keywords internal
 LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    #' Process the line layer
+    #' Process the line layer with actual SVG structure
     #' @param plot The ggplot2 object
     #' @param layout Layout information
+    #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
     #' @return List with data and selectors
     process = function(plot, layout, built = NULL, gt = NULL) {
       # Extract data from the line layer
       data <- self$extract_data(plot, built)
-
+      
       # Generate selectors for the line elements
       selectors <- self$generate_selectors(plot, gt)
-
-      # Return the result (orchestrator will handle setting last_result)
-      result <- list(
-        type = "line",
+      
+      list(
         data = data,
         selectors = selectors
       )
-
-      result
     },
-
-    #' Extract data from line layer
+    
+    #' Extract data from line layer (single or multiline)
     #' @param plot The ggplot2 object
-    #' @return List of data points
+    #' @param built Built plot data (optional)
+    #' @return List of arrays, each containing series data points
     extract_data = function(plot, built = NULL) {
       # Build the plot to get the processed data
       if (is.null(built)) built <- ggplot2::ggplot_build(plot)
-
+      
       # Get the layer data for this specific layer
       layer_data <- built$data[[self$layer_info$index]]
-
-      # Extract x and y coordinates
-      x_col <- "x"
-      y_col <- "y"
-
-      # Check if x and y columns exist
-      if (!x_col %in% names(layer_data) || !y_col %in% names(layer_data)) {
-        stop("Could not find x and y columns in line layer data")
+      
+      # Check if we have multiple groups (more than just the default -1 group)
+      if ("group" %in% names(layer_data)) {
+        unique_groups <- unique(layer_data$group)
+        # Only treat as multiline if we have more than one group and not just the default -1
+        if (length(unique_groups) > 1 || (length(unique_groups) == 1 && unique_groups[1] != -1)) {
+          # Multiline plot - group by series
+          series_data <- self$extract_multiline_data(layer_data, plot)
+          return(series_data)
+        }
       }
-
-      # Create data points list
-      data_points <- list()
-
+      
+      # Single line plot - maintain backward compatibility
+      return(self$extract_single_line_data(layer_data))
+    },
+    
+    #' Extract data for multiple line series
+    #' @param layer_data The built layer data
+    #' @param plot The original ggplot2 object
+    #' @return List of arrays, each containing series data
+    extract_multiline_data = function(layer_data, plot) {
+      # Get the original data from the plot (following BarLayerProcessor pattern)
+      original_data <- plot$data
+      mapping_col <- self$get_group_column(plot)
+      
+      # Get unique groups from built data and unique categories from original data
+      unique_groups <- sort(unique(layer_data$group))
+      
+      # Extract unique values from the mapping column in original data
+      if (!is.null(original_data) && mapping_col %in% names(original_data)) {
+        unique_categories <- sort(unique(original_data[[mapping_col]]))
+      } else {
+        # Fallback: use group numbers
+        unique_categories <- paste0("Series ", unique_groups)
+      }
+      
+      # Split built data by group
+      series_groups <- split(layer_data, layer_data$group)
+      
+      # Extract data for each series
+      series_data <- list()
+      for (group_num in names(series_groups)) {
+        series_points <- series_groups[[group_num]]
+        
+        # Map group number to category name (following BarLayerProcessor pattern)
+        group_idx <- as.numeric(group_num)
+        category_idx <- which(unique_groups == group_idx)
+        series_name <- if (length(category_idx) > 0 && category_idx <= length(unique_categories)) {
+          as.character(unique_categories[category_idx])
+        } else {
+          paste0("Series ", group_num)
+        }
+        
+        points <- list()
+        for (i in seq_len(nrow(series_points))) {
+          point <- list(
+            x = as.character(series_points$x[i]),
+            y = series_points$y[i],
+            fill = series_name
+          )
+          points[[i]] <- point
+        }
+        
+        series_data[[length(series_data) + 1]] <- points
+      }
+      
+      series_data
+    },
+    
+    #' Extract data for single line (backward compatibility)
+    #' @param layer_data The built layer data
+    #' @return List containing single series data
+    extract_single_line_data = function(layer_data) {
+      points <- list()
       for (i in seq_len(nrow(layer_data))) {
         point <- list(
-          x = layer_data[[x_col]][i],
-          y = layer_data[[y_col]][i]
+          x = as.character(layer_data$x[i]),
+          y = layer_data$y[i]
         )
-
-        data_points[[i]] <- point
+        points[[i]] <- point
       }
-
-      # Wrap in array to match Python maidr format: [[{x,y}, {x,y}, ...]]
-      list(data_points)
+      
+      list(points)
     },
-
-    #' Generate selectors for line elements
+    
+    #' Get the grouping column name from plot mappings
     #' @param plot The ggplot2 object
-    #' @param gt Gtable object
-    #' @return List of selectors
-    generate_selectors = function(plot, gt) {
+    #' @return Name of the grouping column
+    get_group_column = function(plot) {
+      # Check layer mapping first
+      layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
+      if (!is.null(layer_mapping)) {
+        if (!is.null(layer_mapping$colour)) return(rlang::as_name(layer_mapping$colour))
+        if (!is.null(layer_mapping$color)) return(rlang::as_name(layer_mapping$color))
+      }
+      
+      # Check plot mapping
+      plot_mapping <- plot$mapping
+      if (!is.null(plot_mapping)) {
+        if (!is.null(plot_mapping$colour)) return(rlang::as_name(plot_mapping$colour))
+        if (!is.null(plot_mapping$color)) return(rlang::as_name(plot_mapping$color))
+      }
+      
+      # Default to 'group' if no color mapping found
+      "group"
+    },
+    
+    #' Generate selectors using actual SVG structure
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @return List of selectors for each series
+    generate_selectors = function(plot, gt = NULL) {
       if (is.null(gt)) {
-        # If no gtable provided, try to get it from the plot
         gt <- ggplot2::ggplotGrob(plot)
       }
-
-      # Find polyline elements (lines)
-      polylines <- self$find_polyline_grobs(gt)
-
-      # Only return the main data line (GRID.polyline), not grid lines
-      data_polylines <- list()
-      for (polyline in polylines) {
-        if (grepl("^GRID\\.polyline", polyline$name)) {
-          data_polylines <- c(data_polylines, list(polyline))
-        }
+      
+      # Find the main polyline grob (GRID.polyline.61)
+      main_polyline_grob <- self$find_main_polyline_grob(gt)
+      
+      if (is.null(main_polyline_grob)) {
+        return(list())
       }
-
-      # Return only the first data polyline (should be only one)
-      if (length(data_polylines) > 0) {
-        polyline <- data_polylines[[1]]
-        grob_name <- polyline$name
-
-        # Extract the numeric part from grob name
-        # (e.g., "155" from "GRID.polyline.155")
-        layer_id <- gsub("GRID\\.polyline\\.", "", grob_name)
-
-        # Create selector matching R maidr format: #escaped_id element_type
-        # Use the grob name with escaped dots and add .1 suffix
-        escaped_id <- gsub("\\.", "\\\\.", paste0(grob_name, ".1"))
-
-        # Return as R-style selector: #escaped_id polyline
-        css_selector <- paste0("#", escaped_id, " polyline")
-
-        list(css_selector)
+      
+      # Extract the base ID from the grob name (e.g., "61" from "GRID.polyline.61")
+      grob_name <- main_polyline_grob$name
+      base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
+      
+      # Check if this is multiline by examining the built data
+      built <- ggplot2::ggplot_build(plot)
+      layer_data <- built$data[[self$layer_info$index]]
+      
+      if ("group" %in% names(layer_data)) {
+        # Multiline plot - use the actual structure: GRID.polyline.61.1.1, .2, .3
+        num_series <- length(unique(layer_data$group))
+        return(self$generate_multiline_selectors(base_id, num_series))
       } else {
-        list()
+        # Single line plot
+        return(self$generate_single_line_selector(base_id))
       }
     },
-
-    #' Find polyline grobs in the gtable
+    
+    #' Generate selectors for multiline plots using actual structure
+    #' @param base_id The base ID from the grob (e.g., "61")
+    #' @param num_series Number of series
+    #' @return List of selectors
+    generate_multiline_selectors = function(base_id, num_series) {
+      selectors <- list()
+      
+      # Use the actual structure discovered: GRID.polyline.{base_id}.1.{series_index}
+      for (i in 1:num_series) {
+        # Create selector targeting the specific polyline element
+        # Format: #GRID\.polyline\.{base_id}\.1\.{series_index}
+        escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.", i))
+        selector <- paste0("#", escaped_id)
+        selectors[[i]] <- selector
+      }
+      
+      selectors
+    },
+    
+    #' Generate selector for single line plot
+    #' @param base_id The base ID from the grob
+    #' @return List with single selector
+    generate_single_line_selector = function(base_id) {
+      escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
+      selector <- paste0("#", escaped_id)
+      list(selector)
+    },
+    
+    #' Find the main polyline grob (GRID.polyline.XX)
     #' @param gt The gtable to search
-    #' @return List of polyline grobs
-    find_polyline_grobs = function(gt) {
+    #' @return The main polyline grob or NULL
+    find_main_polyline_grob = function(gt) {
       panel_index <- which(gt$layout$name == "panel")
       if (length(panel_index) == 0) {
-        stop("No panel found in gtable")
+        return(NULL)
       }
-
+      
       panel_grob <- gt$grobs[[panel_index]]
-
+      
       if (!inherits(panel_grob, "gTree")) {
-        stop("Panel grob is not a gTree")
+        return(NULL)
       }
-
-      find_polyline_grobs_recursive <- function(grob) {
-        polyline_grobs <- list()
-
-        # Look specifically for polyline grobs
-        if (!is.null(grob$name) && grepl("polyline", grob$name, ignore.case = TRUE)) {
-          polyline_grobs[[length(polyline_grobs) + 1]] <- grob
+      
+      # Search for the main GRID.polyline grob
+      find_main_polyline_recursive <- function(grob) {
+        if (!is.null(grob$name) && grepl("^GRID\\.polyline\\.\\d+$", grob$name)) {
+          return(grob)
         }
-
+        
         if (inherits(grob, "gList")) {
           for (i in seq_along(grob)) {
-            polyline_grobs <- c(polyline_grobs, find_polyline_grobs_recursive(grob[[i]]))
+            result <- find_main_polyline_recursive(grob[[i]])
+            if (!is.null(result)) return(result)
           }
         }
-
+        
         if (inherits(grob, "gTree")) {
           for (i in seq_along(grob$children)) {
-            polyline_grobs <- c(polyline_grobs, find_polyline_grobs_recursive(grob$children[[i]]))
+            result <- find_main_polyline_recursive(grob$children[[i]])
+            if (!is.null(result)) return(result)
           }
         }
-
-        polyline_grobs
+        
+        NULL
       }
-
-      polyline_grobs <- find_polyline_grobs_recursive(panel_grob)
-      polyline_grobs
+      
+      find_main_polyline_recursive(panel_grob)
     },
-
-
-
+    
     #' Check if layer needs reordering
     #' @return FALSE (line plots typically don't need reordering)
     needs_reordering = function() {
       FALSE
-    },
-
-    #' Apply reordering to plot (not needed for lines)
-    #' @param plot The ggplot2 object
-    #' @return The original plot (no reordering needed)
-    apply_reordering = function(plot) {
-      # Line plots don't need reordering
-      plot
-    },
-
-    #' Get reordered plot (same as original for lines)
-    #' @return The plot (no reordering applied)
-    get_reordered_plot = function() {
-      private$.reordered_plot
     }
   ),
   private = list(
-    reordered_plot = NULL,
     last_result = NULL
   )
 )
