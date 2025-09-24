@@ -2,7 +2,7 @@
 #'
 #' Handles unsupported layer types gracefully by returning empty data
 #'
-#' @export
+#' @keywords internal
 UnknownLayerProcessor <- R6::R6Class("UnknownLayerProcessor",
   inherit = LayerProcessor,
   public = list(
@@ -13,7 +13,7 @@ UnknownLayerProcessor <- R6::R6Class("UnknownLayerProcessor",
         selectors = list()
       )
     },
-    extract_data_impl = function(plot) {
+    extract_data = function(plot, built = NULL) {
       # Return empty data for unknown layer types
       list()
     },

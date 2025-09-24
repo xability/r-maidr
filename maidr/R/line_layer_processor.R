@@ -6,7 +6,7 @@
 #' @field reordered_plot The plot after reordering (if needed)
 #' @field last_result The last processing result
 #'
-#' @export
+#' @keywords internal
 LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
@@ -17,7 +17,7 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' @return List with data and selectors
     process = function(plot, layout, built = NULL, gt = NULL) {
       # Extract data from the line layer
-      data <- self$extract_data_impl(plot, built)
+      data <- self$extract_data(plot, built)
 
       # Generate selectors for the line elements
       selectors <- self$generate_selectors(plot, gt)
@@ -35,7 +35,7 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' Extract data from line layer
     #' @param plot The ggplot2 object
     #' @return List of data points
-    extract_data_impl = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL) {
       # Build the plot to get the processed data
       if (is.null(built)) built <- ggplot2::ggplot_build(plot)
 

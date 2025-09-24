@@ -13,7 +13,7 @@ maidr_dir <- "/Users/niranjank/xability/r-maidr-prototype/maidr"
 load_all(maidr_dir)
 
 # Create output directory if it doesn't exist
-output_dir <- "../../output"
+output_dir <- "../output"
 if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }

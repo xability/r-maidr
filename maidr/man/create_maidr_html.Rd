@@ -2,7 +2,7 @@
 % Please edit documentation in R/maidr.R
 \name{create_maidr_html}
 \alias{create_maidr_html}
-\title{Create HTML document with maidr enhancements}
+\title{Create HTML document with maidr enhancements using the orchestrator}
 \usage{
 create_maidr_html(plot, ...)
 }
@@ -15,6 +15,6 @@ create_maidr_html(plot, ...)
 An htmltools HTML document object
 }
 \description{
-Create HTML document with maidr enhancements
+Create HTML document with maidr enhancements using the orchestrator
 }
 \keyword{internal}

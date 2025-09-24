@@ -11,10 +11,9 @@
 #' @field combined_selectors Combined selectors from all layers
 #' @field layout Layout information from the plot
 #'
-#' @export
+#' @keywords internal
 PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
   private = list(
-    # Private fields
     .plot = NULL,
     .layers = list(),
     .layer_processors = list(),
@@ -24,15 +23,12 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     .gtable = NULL
   ),
   public = list(
-    # Constructor
     initialize = function(plot) {
       private$.plot <- plot
       self$detect_layers()
       self$create_layer_processors()
       self$process_layers()
     },
-
-    #' Detect all layers in the plot
     detect_layers = function() {
       layers <- private$.plot$layers
       private$.layers <- list()
@@ -42,25 +38,19 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         private$.layers[[i]] <- layer_info
       }
     },
-
-    #' Analyze a single layer
     analyze_single_layer = function(layer, layer_index) {
-      # Extract layer components
       geom <- layer$geom
       stat <- layer$stat
       position <- layer$position
       mapping <- layer$mapping
       params <- layer$params
 
-      # Get class information
       geom_class <- class(geom)[1]
       stat_class <- class(stat)[1]
       position_class <- class(position)[1]
 
-      # Determine layer type using class-based logic
       layer_type <- self$determine_layer_type(private$.plot, layer_index)
 
-      # Create layer information
       layer_info <- list(
         index = layer_index,
         type = layer_type,
@@ -74,23 +64,31 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
 
       layer_info
     },
-
-    #' Determine layer type using class-based ggplot2 semantics
     determine_layer_type = function(plot, layer_index) {
       layer <- plot$layers[[layer_index]]
-      if (is.null(layer)) return("unknown")
+      if (is.null(layer)) {
+        return("unknown")
+      }
 
       geom_class <- class(layer$geom)[1]
       stat_class <- class(layer$stat)[1]
       position_class <- class(layer$position)[1]
 
-      if (geom_class %in% c("GeomLine", "GeomPath")) return("line")
-      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") return("smooth")
+      if (geom_class %in% c("GeomLine", "GeomPath")) {
+        return("line")
+      }
+      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
+        return("smooth")
+      }
 
       if (geom_class %in% c("GeomBar", "GeomCol")) {
-        if (stat_class == "StatBin") return("hist")
+        if (stat_class == "StatBin") {
+          return("hist")
+        }
 
-        if (position_class %in% c("PositionDodge", "PositionDodge2")) return("dodged_bar")
+        if (position_class %in% c("PositionDodge", "PositionDodge2")) {
+          return("dodged_bar")
+        }
 
         if (position_class %in% c("PositionStack", "PositionFill")) {
           layer_mapping <- layer$mapping
@@ -106,12 +104,6 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       }
       "unknown"
     },
-
-    # =======================================================================
-    # LAYER PROCESSOR CREATION
-    # =======================================================================
-
-    #' Create layer-specific processors
     create_layer_processors = function() {
       private$.layer_processors <- list()
 
@@ -121,12 +113,9 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         private$.layer_processors[[i]] <- processor
       }
     },
-
-    #' Create a layer-specific processor
     create_layer_processor = function(layer_info) {
       layer_type <- layer_info$type
 
-      # Create processor based on layer type (only existing types)
       processor <- switch(layer_type,
         "bar" = BarLayerProcessor$new(layer_info),
         "stacked_bar" = StackedBarLayerProcessor$new(layer_info),
@@ -139,40 +128,26 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
 
       processor
     },
-
-    # =======================================================================
-    # LAYER PROCESSING
-    # =======================================================================
-
-    #' Process all layers
     process_layers = function() {
-      # Phase 0: layout from original plot
       private$.layout <- self$extract_layout()
 
-      # Phase 1: determine final plot for rendering via layer-local data reorders
       plot_for_render <- private$.plot
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
         if (isTRUE(processor$needs_reordering())) {
-          # Effective data for this layer
-          layer_data <- plot_for_render$layers[[i]]$data
-          if (is.null(layer_data)) layer_data <- plot_for_render$data
-          if (!is.null(layer_data) && is.data.frame(layer_data)) {
-            reordered <- processor$reorder_layer_data(layer_data, plot_for_render)
-            if (is.data.frame(reordered)) {
-              # Assign back only to this layer
-              plot_for_render$layers[[i]]$data <- reordered
+          if (is.data.frame(plot_for_render$data) && nrow(plot_for_render$data) > 0 && ncol(plot_for_render$data) > 0) {
+            reordered <- processor$reorder_layer_data(plot_for_render$data, plot_for_render)
+            if (is.data.frame(reordered) && nrow(reordered) > 0 && ncol(reordered) > 0) {
+              plot_for_render$data <- reordered
             }
           }
         }
       }
 
-      # Phase 2: build and gtable once
       built_final <- ggplot2::ggplot_build(plot_for_render)
       gt_final <- ggplot2::ggplotGrob(plot_for_render)
       private$.gtable <- gt_final
 
-      # Phase 3: process each layer using shared artifacts
       layer_results <- list()
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
@@ -181,15 +156,11 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         layer_results[[i]] <- result
       }
 
-      # Results are stored on processors; combined aggregation not required
+      self$combine_layer_results(layer_results)
     },
-
-    #' Extract layout information
     extract_layout = function() {
-      # Build the plot to get actual axis labels
       built <- ggplot2::ggplot_build(private$.plot)
 
-      # Extract title, axes labels, etc.
       layout <- list(
         title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
         axes = list(
@@ -200,34 +171,22 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
 
       layout
     },
-
-    #' Combine results from all layers
     combine_layer_results = function(layer_results) {
-      # Combine data without additional annotation
       combined_data <- list()
       for (i in seq_along(layer_results)) {
         result <- layer_results[[i]]
         combined_data <- c(combined_data, result$data)
       }
 
-      # Combine selectors
       combined_selectors <- list()
       for (result in layer_results) {
         combined_selectors <- c(combined_selectors, result$selectors)
       }
 
-      # Store combined results
       private$.combined_data <- combined_data
       private$.combined_selectors <- combined_selectors
     },
-
-    # =======================================================================
-    # OUTPUT GENERATION
-    # =======================================================================
-
-    #' Generate final maidr data structure
     generate_maidr_data = function() {
-      # Create the final data structure
       maidr_data <- list(
         id = paste0("maidr-plot-", as.integer(Sys.time())),
         subplots = list(
@@ -242,29 +201,17 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
 
       maidr_data
     },
-
-   
-
-    #' Get the gtable (for consistent layer IDs)
     get_gtable = function() {
       private$.gtable
     },
-
-
-    #' Get layout information
     get_layout = function() {
       private$.layout
     },
-
-    #' Get combined data
     get_combined_data = function() {
       private$.combined_data
     },
-
-    #' Get layer processors
     get_layer_processors = function() {
       private$.layer_processors
     }
-
   )
 )

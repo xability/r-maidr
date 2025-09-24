@@ -29,7 +29,6 @@ maidr <- function(plot, file = NULL, open = TRUE, ...) {
 #' @return An htmltools HTML document object
 #' @keywords internal
 create_maidr_html <- function(plot, ...) {
-
   orchestrator <- PlotOrchestrator$new(plot)
 
   gt <- orchestrator$get_gtable()

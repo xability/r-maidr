@@ -1,94 +1,81 @@
-#' Base Layer Processor Class
+#' Abstract Layer Processor Interface
 #'
-#' This is the base class for all layer processors. Each layer type
-#' will have its own processor that inherits from this class.
+#' This is the abstract base class for all layer processors. It defines the
+#' interface that all layer processors must implement.
 #'
 #' @field layer_info Information about the layer
-#' @export
+#' @keywords internal
 LayerProcessor <- R6::R6Class("LayerProcessor",
   private = list(
-    reordered_plot = NULL,
-    last_result = NULL
+    .last_result = NULL
   ),
   public = list(
+    #' @field layer_info Information about the layer
     layer_info = NULL,
+
+    #' @description Initialize the layer processor
+    #' @param layer_info Information about the layer
     initialize = function(layer_info) {
       self$layer_info <- layer_info
     },
 
-    #' Process the layer (to be implemented by subclasses)
+    #' @description Process the layer (MUST be implemented by subclasses)
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @return List with data and selectors
     process = function(plot, layout, built = NULL, gt = NULL) {
-      stop("process() method must be implemented by subclasses")
+      stop("process() method must be implemented by subclasses", call. = FALSE)
     },
 
-    #' Extract data from the layer (with optional reordering)
-    extract_data = function(plot) {
-      # Apply reordering if needed
-      if (self$needs_reordering()) {
-        plot <- self$apply_reordering(plot)
-        # Store the reordered plot for later use
-        private$reordered_plot <- plot
-      }
+    #' @description Extract data from the layer (MUST be implemented by subclasses)
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @return Extracted data
+    extract_data = function(plot, built = NULL) {
+      stop("extract_data() method must be implemented by subclasses", call. = FALSE)
+    },
 
-      # Extract data using implementation method
-      data <- self$extract_data_impl(plot)
+    #' @description Generate selectors for the layer (MUST be implemented by subclasses)
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @return List of selectors
+    generate_selectors = function(plot, gt = NULL) {
+      stop("generate_selectors() method must be implemented by subclasses", call. = FALSE)
+    },
 
-      # Add layer information to each data point only for multi-layer plots
-      # This is handled by the orchestrator when combining results
+    #' @description Check if this layer needs reordering (OPTIONAL - default: FALSE)
+    #' @return Logical indicating if reordering is needed
+    needs_reordering = function() {
+      FALSE
+    },
+
+    #' @description Reorder layer data (OPTIONAL - default: no-op)
+    #' @param data data.frame effective for this layer
+    #' @param plot full ggplot object (for mappings)
+    #' @return Reordered data
+    reorder_layer_data = function(data, plot) {
       data
     },
 
-    #' Extract data implementation (to be implemented by subclasses)
-    #' If built is provided, use it instead of calling ggplot_build
-    extract_data_impl = function(plot, built = NULL) {
-      stop("extract_data_impl() method must be implemented by subclasses")
-    },
-
-    #' Check if this layer needs reordering
-    needs_reordering = function() {
-      FALSE # Default: no reordering needed
-    },
-
-    #' Apply reordering to plot (to be implemented by subclasses if needed)
-    apply_reordering = function(plot) {
-      plot # Default: no reordering
-    },
-
-    #' Generate selectors for the layer
-    generate_selectors = function(plot, gt = NULL) {
-      stop("generate_selectors() method must be implemented by subclasses")
-    },
-
-    #' Get layer type
-    get_layer_type = function() {
-      self$layer_info$type
-    },
-
-    #' Get layer index
+    #' @description Get layer index
+    #' @return Layer index
     get_layer_index = function() {
       self$layer_info$index
     },
 
-    #' Get reordered plot (if available)
-    get_reordered_plot = function() {
-      private$reordered_plot
-    },
-
-    #' Store the last processed result
+    #' @description Store the last processed result (used by orchestrator)
+    #' @param result The result to store
     set_last_result = function(result) {
-      private$last_result <- result
+      private$.last_result <- result
+      invisible(result)
     },
 
-    #' Get the last processed result
+    #' @description Get the last processed result
+    #' @return The last result
     get_last_result = function() {
-      private$last_result
-    },
-
-    #' Reorder only this layer's data (default: no-op)
-    #' @param data data.frame effective for this layer
-    #' @param plot full ggplot object (for mappings)
-    reorder_layer_data = function(data, plot) {
-      data
+      private$.last_result
     }
   )
 )
