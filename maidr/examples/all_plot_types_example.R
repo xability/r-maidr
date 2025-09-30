@@ -13,7 +13,7 @@ maidr_dir <- "/Users/niranjank/xability/r-maidr-prototype/maidr"
 load_all(maidr_dir)
 
 # Create output directory if it doesn't exist
-output_dir <- "../output"
+output_dir <- "/Users/niranjank/xability/r-maidr-prototype/maidr/output"
 if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }
@@ -165,7 +165,120 @@ html_file_hist_density <- file.path(output_dir, "example_histogram_density.html"
 result_hist_density <- maidr(p_hist_density, file = html_file_hist_density, open = FALSE)
 cat("Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
 
+# Test 9: Heatmap with labels
+cat("\n=== TEST 9: Heatmap with Labels ===\n")
+heatmap_data <- data.frame(
+  x = c("B", "A", "B", "A"),
+  y = c("2", "2", "1", "1"),
+  z = c(4, 3, 2, 1)
+)
+
+p_heatmap_labels <- ggplot(heatmap_data, aes(x = x, y = y, fill = z)) + 
+  geom_tile() +
+  geom_text(aes(label = z), color = "white", size = 4) +
+  labs(title = "Heatmap with Labels Test")
+
+html_file_heatmap_labels <- file.path(output_dir, "example_heatmap_with_labels.html")
+result_heatmap_labels <- maidr(p_heatmap_labels, file = html_file_heatmap_labels, open = FALSE)
+cat("Heatmap with labels:", if(file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
+
+# Test 10: Point/Scatter plot with multiple y values per x
+cat("\n=== TEST 10: Point/Scatter Plot with Multiple Y Values per X ===\n")
+# Create data with multiple y values for single x value
+set.seed(123)
+x_values <- rep(1:5, each = 3)  # 3 measurements per x value
+y_values <- c(rnorm(3, 10, 1), rnorm(3, 15, 2), rnorm(3, 12, 1.5),
+              rnorm(3, 18, 1.8), rnorm(3, 14, 0.8))
+groups <- rep(c("A", "B", "C"), times = 5)
+
+point_data <- data.frame(
+  x = x_values,
+  y = y_values,
+  group = groups
+)
+
+# Create the scatter plot with multiple y values per x
+p_point <- ggplot(point_data, aes(x = x, y = y, color = group)) +
+  geom_point(size = 4, alpha = 0.8) +
+  labs(
+    title = "Multiple Y Values per X Value",
+    x = "X Values",
+    y = "Y Values",
+    color = "Group"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(breaks = 1:5)
+
+html_file_point <- file.path(output_dir, "example_point_plot.html")
+result_point <- maidr(p_point, file = html_file_point, open = FALSE)
+cat("Point/Scatter plot (multiple y per x):", if(file.exists(html_file_point)) "✓" else "✗", "\n")
+
+# Test 11: Dual-axis plot (Bar + Line)
+cat("\n=== TEST 11: Dual-Axis Plot (Bar + Line) ===\n")
+# Generate sample data (equivalent to the Python version)
+x_dual <- 0:4
+bar_data_dual <- c(3, 5, 2, 7, 3)
+line_data_dual <- c(10, 8, 12, 14, 9)
+
+# Create data frame
+dual_plot_data <- data.frame(
+  x = x_dual,
+  bar_values = bar_data_dual,
+  line_values = line_data_dual
+)
+
+# Create the dual-axis plot
+p_dual_axis <- ggplot(dual_plot_data, aes(x = x)) +
+  # Bar chart on primary y-axis
+  geom_bar(aes(y = bar_values), stat = "identity", fill = "skyblue", alpha = 0.7) +
+  # Line chart on secondary y-axis (scaled)
+  geom_line(aes(y = line_values * max(bar_data_dual) / max(line_data_dual)), color = "red", linewidth = 1) +
+
+  # Labels and title
+  labs(
+    title = "Dual-Axis Plot Example",
+    x = "X values",
+    y = "Bar values"
+  ) +
+
+  # Scale the secondary axis
+  scale_y_continuous(
+    name = "Bar values",
+    sec.axis = sec_axis(~ . * max(line_data_dual) / max(bar_data_dual), name = "Line values")
+  ) +
+
+  # Theme
+  theme_minimal() +
+  theme(
+    axis.title.y.right = element_text(color = "red"),
+    axis.text.y.right = element_text(color = "red"),
+    axis.title.y.left = element_text(color = "blue"),
+    axis.text.y.left = element_text(color = "blue")
+  )
+
+html_file_dual_axis <- file.path(output_dir, "example_dual_axis_plot.html")
+result_dual_axis <- maidr(p_dual_axis, file = html_file_dual_axis, open = FALSE)
+cat("Dual-axis plot (bar + line):", if(file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
+
 # Summary
+cat("\n=== TEST 12: Boxplot (Horizontal) ===\n")
+
+# Use iris dataset for boxplot example
+iris_data <- datasets::iris
+
+p_box <- ggplot(iris_data, aes(x = Petal.Length, y = Species)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  labs(
+    title = "Petal Length by Species from Iris Dataset",
+    x = "Petal Length",
+    y = "Species"
+  ) +
+  theme_minimal()
+
+html_file_box <- file.path(output_dir, "example_boxplot_horizontal.html")
+result_box <- maidr(p_box, file = html_file_box, open = FALSE)
+cat("Boxplot (horizontal):", if(file.exists(html_file_box)) "✓" else "✗", "\n")
+
 cat("\n=== SUMMARY ===\n")
 cat("Generated HTML files in output/ directory:\n")
 cat("- Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
@@ -176,6 +289,10 @@ cat("- Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
 cat("- Single line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
 cat("- Multiline plot (3 series with 10 points):", if(file.exists(html_file_multiline)) "✓" else "✗", "\n")
 cat("- Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
+cat("- Heatmap with labels:", if(file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
+cat("- Point/Scatter plot (multiple y per x):", if(file.exists(html_file_point)) "✓" else "✗", "\n")
+cat("- Dual-axis plot (bar + line):", if(file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
+cat("- Boxplot (horizontal):", if(file.exists(html_file_box)) "✓" else "✗", "\n")
 
 cat("\nAll examples completed successfully!\n")
 cat("Check the output/ directory for interactive HTML files.\n") 

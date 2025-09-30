@@ -62,19 +62,33 @@ create_layers_from_orchestrator <- function(orchestrator, layout) {
     if (!is.null(processed_result)) {
       selectors <- processed_result$selectors
       data <- processed_result$data
+      axes <- processed_result$axes
+
+      # Include orientation and type from processor if available
+      orientation <- if (!is.null(processed_result$orientation)) processed_result$orientation else "vert"
     } else {
       selectors <- list()
       data <- list()
+      axes <- list(x = "", y = "")
+      orientation <- ""
+      type <- layer_info$type
     }
 
-    layers[[i]] <- list(
+    layer_obj <- list(
       id = layer_info$index,
       selectors = selectors,
       type = layer_info$type,
       data = data,
       title = if (!is.null(layout$title)) layout$title else "",
-      axes = if (!is.null(layout$axes)) layout$axes else list(x = "", y = "")
+      axes = axes
     )
+
+    # Only include orientation if it's not the default "vert"
+    if (orientation != "") {
+      layer_obj$orientation <- orientation
+    }
+
+    layers[[i]] <- layer_obj
   }
 
   layers

@@ -102,6 +102,23 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
 
         return("bar")
       }
+
+      if (geom_class == "GeomTile") {
+        return("heat")
+      }
+
+      if (geom_class == "GeomPoint") {
+        return("point")
+      }
+
+      if (geom_class == "GeomBoxplot") {
+        return("box")
+      }
+
+      if (geom_class == "GeomText") {
+        return("skip")
+      }
+
       "unknown"
     },
     create_layer_processors = function() {
@@ -109,8 +126,11 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
 
       for (i in seq_along(private$.layers)) {
         layer_info <- private$.layers[[i]]
-        processor <- self$create_layer_processor(layer_info)
-        private$.layer_processors[[i]] <- processor
+        # Skip layers that don't need processing (like text labels)
+        if (layer_info$type != "skip") {
+          processor <- self$create_layer_processor(layer_info)
+          private$.layer_processors[[i]] <- processor
+        }
       }
     },
     create_layer_processor = function(layer_info) {
@@ -123,6 +143,9 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         "hist" = HistogramLayerProcessor$new(layer_info),
         "line" = LineLayerProcessor$new(layer_info),
         "smooth" = SmoothLayerProcessor$new(layer_info),
+        "heat" = HeatmapLayerProcessor$new(layer_info),
+        "point" = PointLayerProcessor$new(layer_info),
+        "box" = BoxplotLayerProcessor$new(layer_info),
         UnknownLayerProcessor$new(layer_info) # Default for unknown types
       )
 
@@ -151,7 +174,8 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       layer_results <- list()
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
-        result <- processor$process(plot_for_render, private$.layout, built_final, gt_final)
+
+        result <- processor$process(plot_for_render, private$.layout, built = built_final, gt = private$.gtable)
         processor$set_last_result(result)
         layer_results[[i]] <- result
       }
@@ -173,9 +197,26 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     },
     combine_layer_results = function(layer_results) {
       combined_data <- list()
+
       for (i in seq_along(layer_results)) {
         result <- layer_results[[i]]
-        combined_data <- c(combined_data, result$data)
+
+        # Create layer object with standard structure
+        layer_obj <- list(
+          id = i,
+          selectors = result$selectors,
+          type = result$type,
+          data = result$data,
+          title = result$title,
+          axes = result$axes
+        )
+
+        # Add labels if they exist and are not empty
+        if (!is.null(result$labels) && length(result$labels) > 0) {
+          layer_obj$labels <- result$labels
+        }
+
+        combined_data[[i]] <- layer_obj
       }
 
       combined_selectors <- list()
