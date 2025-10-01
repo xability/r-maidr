@@ -25,9 +25,15 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
   public = list(
     initialize = function(plot) {
       private$.plot <- plot
-      self$detect_layers()
-      self$create_layer_processors()
-      self$process_layers()
+      
+      # Check if plot is faceted
+      if (self$is_faceted_plot()) {
+        self$process_faceted_plot()
+      } else {
+        self$detect_layers()
+        self$create_layer_processors()
+        self$process_layers()
+      }
     },
     detect_layers = function() {
       layers <- private$.plot$layers
@@ -228,17 +234,27 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       private$.combined_selectors <- combined_selectors
     },
     generate_maidr_data = function() {
-      maidr_data <- list(
-        id = paste0("maidr-plot-", as.integer(Sys.time())),
-        subplots = list(
-          list(
+      # Check if this is a faceted plot
+      if (self$is_faceted_plot()) {
+        # For faceted plots, use the 2D grid structure directly
+        maidr_data <- list(
+          id = paste0("maidr-plot-", as.integer(Sys.time())),
+          subplots = private$.combined_data
+        )
+      } else {
+        # For single plots, use the original structure
+        maidr_data <- list(
+          id = paste0("maidr-plot-", as.integer(Sys.time())),
+          subplots = list(
             list(
-              id = paste0("maidr-subplot-", as.integer(Sys.time())),
-              layers = private$.combined_data
+              list(
+                id = paste0("maidr-subplot-", as.integer(Sys.time())),
+                layers = private$.combined_data
+              )
             )
           )
         )
-      )
+      }
 
       maidr_data
     },
@@ -256,6 +272,43 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     },
     get_layers = function() {
       private$.layers
+    },
+    
+    #' @description Check if the plot is faceted
+    #' @return Logical indicating if the plot is faceted
+    is_faceted_plot = function() {
+      # Check if the plot has faceting
+      if (is.null(private$.plot$facet)) {
+        return(FALSE)
+      }
+      
+      # Check if it's not facet_null
+      facet_class <- class(private$.plot$facet)[1]
+      return(facet_class != "FacetNull")
+    },
+    
+    #' @description Process a faceted plot using FacetProcessor
+    #' @return NULL (sets internal state)
+    process_faceted_plot = function() {
+      # Extract layout information
+      private$.layout <- self$extract_layout()
+      
+      # Build the gtable for the original plot FIRST
+      private$.gtable <- ggplot2::ggplotGrob(private$.plot)
+      
+      # Create FacetProcessor with the same gtable that will be exported
+      facet_processor <- FacetProcessor$new(
+        private$.plot,
+        private$.layout,
+        gt = private$.gtable
+      )
+      
+      # Process the faceted plot
+      facet_result <- facet_processor$process()
+      
+      # Store the result in the expected format
+      private$.combined_data <- facet_result$subplots
+      private$.combined_selectors <- list()  # Will be populated by individual subplots
     }
   )
 )

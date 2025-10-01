@@ -12,13 +12,16 @@ PointLayerProcessor <- R6::R6Class("PointLayerProcessor",
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL) {
       # Extract data from the point layer
-      extracted_data <- self$extract_data(plot, built)
+      extracted_data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
       # Generate selectors for the point elements
-      selectors <- self$generate_selectors(plot, gt)
+      selectors <- self$generate_selectors(plot, gt, grob_id)
 
       # Create axes information
       axes <- list(
@@ -39,12 +42,24 @@ PointLayerProcessor <- R6::R6Class("PointLayerProcessor",
     #' Extract data from point layer
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with points array and color information
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
       if (is.null(built)) built <- ggplot2::ggplot_build(plot)
 
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
+
+      # Filter data for specific panel if panel_id is provided
+      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
+        layer_data <- layer_data[layer_data$PANEL == panel_id, ]
+      }
+
+      # Apply scale mapping if provided (for faceted plots)
+      if (!is.null(scale_mapping)) {
+        layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
+      }
 
       # Get the original data
       original_data <- plot$data
@@ -106,31 +121,40 @@ PointLayerProcessor <- R6::R6Class("PointLayerProcessor",
     #' Generate selectors for point elements
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
     #' @return List of selectors
-    generate_selectors = function(plot, gt = NULL) {
-      if (is.null(gt)) {
-        gt <- ggplot2::ggplotGrob(plot)
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL) {
+      if (!is.null(grob_id)) {
+        # For faceted plots: use provided grob ID with .1 suffix (gridSVG adds this)
+        full_grob_id <- paste0(grob_id, ".1")
+        escaped_grob_id <- gsub("\\.", "\\\\.", full_grob_id)
+        return(list(paste0("g#", escaped_grob_id, " > use")))
+      } else {
+        # For single plots: use existing logic
+        if (is.null(gt)) {
+          gt <- ggplot2::ggplotGrob(plot)
+        }
+
+        # Find geom_point container
+        panel_grob <- self$find_panel_grob(gt)
+        if (is.null(panel_grob)) {
+          return(list())
+        }
+
+        # Look for geom_point elements
+        point_children <- self$find_children_by_type(panel_grob, "geom_point")
+        if (length(point_children) == 0) {
+          return(list())
+        }
+
+        # Use the first geom_point container
+        master_container <- point_children[1]
+        svg_id <- paste0(master_container, ".1")
+        escaped_id <- gsub("\\.", "\\\\.", svg_id)
+        css_selector <- paste0("g#", escaped_id, " > use")
+
+        list(css_selector)
       }
-
-      # Find geom_point container
-      panel_grob <- self$find_panel_grob(gt)
-      if (is.null(panel_grob)) {
-        return(list())
-      }
-
-      # Look for geom_point elements
-      point_children <- self$find_children_by_type(panel_grob, "geom_point")
-      if (length(point_children) == 0) {
-        return(list())
-      }
-
-      # Use the first geom_point container
-      master_container <- point_children[1]
-      svg_id <- paste0(master_container, ".1")
-      escaped_id <- gsub("\\.", "\\\\.", svg_id)
-      css_selector <- paste0("g#", escaped_id, " > use")
-
-      list(css_selector)
     },
 
     #' Find the main panel grob

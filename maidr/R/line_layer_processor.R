@@ -16,13 +16,16 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL) {
       # Extract data from the line layer
-      data <- self$extract_data(plot, built)
+      data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
       # Generate selectors for the line elements
-      selectors <- self$generate_selectors(plot, gt)
+      selectors <- self$generate_selectors(plot, gt, grob_id)
 
       list(
         data = data,
@@ -33,13 +36,25 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' Extract data from line layer (single or multiline)
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List of arrays, each containing series data points
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
       # Build the plot to get the processed data
       if (is.null(built)) built <- ggplot2::ggplot_build(plot)
 
       # Get the layer data for this specific layer
       layer_data <- built$data[[self$layer_info$index]]
+
+      # Filter data for specific panel if panel_id is provided
+      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
+        layer_data <- layer_data[layer_data$PANEL == panel_id, ]
+      }
+
+      # Apply scale mapping if provided (for faceted plots)
+      if (!is.null(scale_mapping)) {
+        layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
+      }
 
       # Check if we have multiple groups (more than just the default -1 group)
       if ("group" %in% names(layer_data)) {
@@ -158,34 +173,43 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' Generate selectors using actual SVG structure
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
     #' @return List of selectors for each series
-    generate_selectors = function(plot, gt = NULL) {
-      if (is.null(gt)) {
-        gt <- ggplot2::ggplotGrob(plot)
-      }
-
-      # Find the main polyline grob (GRID.polyline.61)
-      main_polyline_grob <- self$find_main_polyline_grob(gt)
-
-      if (is.null(main_polyline_grob)) {
-        return(list())
-      }
-
-      # Extract the base ID from the grob name (e.g., "61" from "GRID.polyline.61")
-      grob_name <- main_polyline_grob$name
-      base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
-
-      # Check if this is multiline by examining the built data
-      built <- ggplot2::ggplot_build(plot)
-      layer_data <- built$data[[self$layer_info$index]]
-
-      if ("group" %in% names(layer_data)) {
-        # Multiline plot - use the actual structure: GRID.polyline.61.1.1, .2, .3
-        num_series <- length(unique(layer_data$group))
-        return(self$generate_multiline_selectors(base_id, num_series))
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL) {
+      if (!is.null(grob_id)) {
+        # For faceted plots: use provided grob ID with .1.1 suffix (gridSVG adds this)
+        full_grob_id <- paste0(grob_id, ".1.1")
+        escaped_grob_id <- gsub("\\.", "\\\\.", full_grob_id)
+        return(list(paste0("#", escaped_grob_id)))
       } else {
-        # Single line plot
-        return(self$generate_single_line_selector(base_id))
+        # For single plots: use existing logic
+        if (is.null(gt)) {
+          gt <- ggplot2::ggplotGrob(plot)
+        }
+
+        # Find the main polyline grob (GRID.polyline.61)
+        main_polyline_grob <- self$find_main_polyline_grob(gt)
+
+        if (is.null(main_polyline_grob)) {
+          return(list())
+        }
+
+        # Extract the base ID from the grob name (e.g., "61" from "GRID.polyline.61")
+        grob_name <- main_polyline_grob$name
+        base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
+
+        # Check if this is multiline by examining the built data
+        built <- ggplot2::ggplot_build(plot)
+        layer_data <- built$data[[self$layer_info$index]]
+
+        if ("group" %in% names(layer_data)) {
+          # Multiline plot - use the actual structure: GRID.polyline.61.1.1, .2, .3
+          num_series <- length(unique(layer_data$group))
+          return(self$generate_multiline_selectors(base_id, num_series))
+        } else {
+          # Single line plot
+          return(self$generate_single_line_selector(base_id))
+        }
       }
     },
 

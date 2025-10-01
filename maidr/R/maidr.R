@@ -4,7 +4,7 @@
 #' @param open Whether to open the HTML file in browser/RStudio Viewer
 #' @param ... Additional arguments passed to internal functions
 #' @export
-maidr <- function(plot, file = NULL, open = TRUE, ...) {
+show <- function(plot, file = NULL, open = TRUE, ...) {
   if (!inherits(plot, "ggplot")) {
     stop("Input must be a ggplot object.")
   }
@@ -35,9 +35,15 @@ create_maidr_html <- function(plot, ...) {
 
   layout <- orchestrator$get_layout()
 
-  layers <- create_layers_from_orchestrator(orchestrator, layout)
-
-  maidr_data <- create_maidr_data(layers)
+  # Check if this is a faceted plot
+  if (orchestrator$is_faceted_plot()) {
+    # For faceted plots, use orchestrator directly
+    maidr_data <- create_maidr_data(layers = NULL, orchestrator = orchestrator)
+  } else {
+    # For single plots, create layers structure
+    layers <- create_layers_from_orchestrator(orchestrator, layout)
+    maidr_data <- create_maidr_data(layers)
+  }
   svg_content <- create_enhanced_svg(gt, maidr_data, ...)
   html_doc <- create_html_document(svg_content)
 
@@ -97,10 +103,17 @@ create_layers_from_orchestrator <- function(orchestrator, layout) {
 
 
 #' Create maidr-data structure
-#' @param layers List of plot layers
+#' @param layers List of plot layers (for single plots) or orchestrator (for faceted plots)
+#' @param orchestrator Optional orchestrator instance for faceted plots
 #' @return List containing maidr-data structure
 #' @keywords internal
-create_maidr_data <- function(layers) {
+create_maidr_data <- function(layers, orchestrator = NULL) {
+  # If orchestrator is provided, use it to generate the data structure
+  if (!is.null(orchestrator)) {
+    return(orchestrator$generate_maidr_data())
+  }
+  
+  # For single plots, use the original structure
   list(
     id = paste0("maidr-plot-", as.integer(Sys.time())),
     subplots = list(
