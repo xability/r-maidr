@@ -6,6 +6,7 @@
 # Load required libraries
 library(ggplot2)
 library(devtools)
+library(patchwork)
 
 # Load the maidr package
 # Use absolute path to ensure it works from anywhere
@@ -366,6 +367,50 @@ html_file_facet_line <- file.path(output_dir, "example_facet_line_plot.html")
 result_facet_line <- show(p_facet_line, file = html_file_facet_line, open = FALSE)
 cat("Faceted line plot:", if(file.exists(html_file_facet_line)) "✓" else "✗", "\n")
 
+# Test 16: Patchwork 2x2 (Line + Bar + Bar2 + Random Line)
+cat("\n=== TEST 16: Patchwork 2x2 (Line + Bar + Bar2 + Random Line) ===\n")
+
+# Build component plots
+set.seed(99)
+line_df_pw <- data.frame(x = 1:8, y = c(2, 4, 1, 5, 3, 7, 6, 8))
+pw_line <- ggplot(line_df_pw, aes(x, y)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  labs(title = "Line Plot: Random Data", x = "X-axis", y = "Values") +
+  theme_minimal()
+
+bar_df1_pw <- data.frame(
+  categories = c("A", "B", "C", "D", "E"),
+  values = runif(5, 0, 10)
+)
+pw_bar1 <- ggplot(bar_df1_pw, aes(categories, values)) +
+  geom_bar(stat = "identity", fill = "forestgreen", alpha = 0.7) +
+  labs(title = "Bar Plot: Random Values", x = "Categories", y = "Values") +
+  theme_minimal()
+
+bar_df2_pw <- data.frame(
+  categories = c("A", "B", "C", "D", "E"),
+  values = rnorm(5, 0, 100)
+)
+pw_bar2 <- ggplot(bar_df2_pw, aes(categories, values)) +
+  geom_bar(stat = "identity", fill = "royalblue", alpha = 0.7) +
+  labs(title = "Bar Plot 2: Random Values", x = "Categories", y = "Values") +
+  theme_minimal()
+
+# Additional random line plot
+set.seed(1234)
+line_df_extra <- data.frame(x = 1:8, y = cumsum(rnorm(8)))
+pw_line_extra <- ggplot(line_df_extra, aes(x, y)) +
+  geom_line(color = "tomato", linewidth = 1) +
+  labs(title = "Extra Line Plot", x = "X-axis", y = "Values") +
+  theme_minimal()
+
+# Compose 2x2 grid and save
+pw_2x2 <- (pw_line + pw_bar1 + pw_bar2 + pw_line_extra) + plot_layout(ncol = 2)
+html_file_patchwork_2x2 <- file.path(output_dir, "example_patchwork_2x2.html")
+result_patchwork_2x2 <- show(pw_2x2, file = html_file_patchwork_2x2, open = FALSE)
+cat("Patchwork 2x2 (line+bar+bar2+line):", if (file.exists(html_file_patchwork_2x2)) "✓" else "✗", "\n")
+
+
 cat("\n=== SUMMARY ===\n")
 cat("Generated HTML files in output/ directory:\n")
 cat("- Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
@@ -383,6 +428,7 @@ cat("- Boxplot (horizontal):", if(file.exists(html_file_box)) "✓" else "✗", 
 cat("- Faceted bar plot:", if(file.exists(html_file_facet_bar)) "✓" else "✗", "\n")
 cat("- Faceted point plot:", if(file.exists(html_file_facet_point)) "✓" else "✗", "\n")
 cat("- Faceted line plot:", if(file.exists(html_file_facet_line)) "✓" else "✗", "\n")
+cat("- Patchwork 2x2 (line+bar+bar2+line):", if(file.exists(html_file_patchwork_2x2)) "✓" else "✗", "\n")
 
 cat("\nAll examples completed successfully!\n")
 cat("Check the output/ directory for interactive HTML files.\n") 

@@ -35,9 +35,9 @@ create_maidr_html <- function(plot, ...) {
 
   layout <- orchestrator$get_layout()
 
-  # Check if this is a faceted plot
-  if (orchestrator$is_faceted_plot()) {
-    # For faceted plots, use orchestrator directly
+  # Check if this is a faceted or patchwork plot
+  if (orchestrator$is_patchwork_plot() || orchestrator$is_faceted_plot()) {
+    # For multipanel plots, use orchestrator directly
     maidr_data <- create_maidr_data(layers = NULL, orchestrator = orchestrator)
   } else {
     # For single plots, create layers structure

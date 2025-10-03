@@ -26,8 +26,11 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     initialize = function(plot) {
       private$.plot <- plot
       
+      # Check if plot is a patchwork composition
+      if (self$is_patchwork_plot()) {
+        self$process_patchwork_plot()
       # Check if plot is faceted
-      if (self$is_faceted_plot()) {
+      } else if (self$is_faceted_plot()) {
         self$process_faceted_plot()
       } else {
         self$detect_layers()
@@ -234,8 +237,14 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       private$.combined_selectors <- combined_selectors
     },
     generate_maidr_data = function() {
+      # Patchwork multipanel: return 2D grid directly
+      if (self$is_patchwork_plot()) {
+        maidr_data <- list(
+          id = paste0("maidr-plot-", as.integer(Sys.time())),
+          subplots = private$.combined_data
+        )
       # Check if this is a faceted plot
-      if (self$is_faceted_plot()) {
+      } else if (self$is_faceted_plot()) {
         # For faceted plots, use the 2D grid structure directly
         maidr_data <- list(
           id = paste0("maidr-plot-", as.integer(Sys.time())),
@@ -274,6 +283,12 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       private$.layers
     },
     
+    #' @description Check if the plot is a patchwork composition
+    #' @return Logical indicating if the plot is a patchwork plot
+    is_patchwork_plot = function() {
+      inherits(private$.plot, "patchwork")
+    },
+    
     #' @description Check if the plot is faceted
     #' @return Logical indicating if the plot is faceted
     is_faceted_plot = function() {
@@ -309,6 +324,29 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       # Store the result in the expected format
       private$.combined_data <- facet_result$subplots
       private$.combined_selectors <- list()  # Will be populated by individual subplots
+    },
+    
+    #' @description Process a patchwork multipanel plot
+    #' @return NULL (sets internal state)
+    process_patchwork_plot = function() {
+      # Minimal layout information
+      private$.layout <- list(
+        title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
+        axes = list()
+      )
+
+      # Build the composed gtable for patchwork
+      if (requireNamespace("patchwork", quietly = TRUE)) {
+        private$.gtable <- patchwork::patchworkGrob(private$.plot)
+      } else {
+        private$.gtable <- ggplot2::ggplotGrob(ggplot2::ggplot())
+      }
+
+      # Use PatchworkProcessor to build subplots grid
+      pp <- PatchworkProcessor$new(private$.plot, private$.layout, gt = private$.gtable)
+      res <- pp$process()
+      private$.combined_data <- res$subplots
+      private$.combined_selectors <- list()
     }
   )
 )
