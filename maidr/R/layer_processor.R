@@ -26,8 +26,9 @@ LayerProcessor <- R6::R6Class("LayerProcessor",
     #' @param gt Gtable object (optional)
     #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_ctx = NULL) {
       stop("process() method must be implemented by subclasses", call. = FALSE)
     },
 
@@ -44,8 +45,9 @@ LayerProcessor <- R6::R6Class("LayerProcessor",
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
     #' @return List of selectors
-    generate_selectors = function(plot, gt = NULL, grob_id = NULL) {
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
       stop("generate_selectors() method must be implemented by subclasses", call. = FALSE)
     },
 

@@ -30,19 +30,19 @@ apply_scale_mapping <- function(numeric_values, scale_mapping) {
   if (is.null(scale_mapping)) {
     return(numeric_values)
   }
-  
+
   # Convert numeric values to character for lookup
   char_values <- as.character(numeric_values)
-  
+
   # Map using the scale mapping
   mapped_values <- scale_mapping[char_values]
-  
+
   # Handle any unmapped values
   unmapped_idx <- is.na(mapped_values)
   if (any(unmapped_idx)) {
     mapped_values[unmapped_idx] <- char_values[unmapped_idx]
   }
-  
+
   return(mapped_values)
 }
 
@@ -60,7 +60,8 @@ apply_scale_mapping <- function(numeric_values, scale_mapping) {
 #'   category = c("A", "B", "C"),
 #'   value = c(1, 2, 3)
 #' )
-#' p <- ggplot(data, aes(x = category, y = value)) + geom_bar(stat = "identity")
+#' p <- ggplot(data, aes(x = category, y = value)) +
+#'   geom_bar(stat = "identity")
 #' built <- ggplot2::ggplot_build(p)
 #' scale_mapping <- extract_scale_mapping(built)
 #' # Returns: c("1" = "A", "2" = "B", "3" = "C")
@@ -70,15 +71,15 @@ extract_scale_mapping <- function(built) {
   if (is.null(built$layout$panel_scales_x)) {
     return(NULL)
   }
-  
+
   x_scale <- built$layout$panel_scales_x[[1]]
   breaks <- x_scale$get_breaks()
   labels <- x_scale$get_labels()
-  
+
   if (is.null(breaks) || is.null(labels)) {
     return(NULL)
   }
-  
+
   # Create named vector: c("1" = "A", "2" = "B", "3" = "C")
   scale_mapping <- setNames(labels, as.character(seq_along(labels)))
   return(scale_mapping)

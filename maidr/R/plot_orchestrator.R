@@ -25,11 +25,11 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
   public = list(
     initialize = function(plot) {
       private$.plot <- plot
-      
+
       # Check if plot is a patchwork composition
       if (self$is_patchwork_plot()) {
         self$process_patchwork_plot()
-      # Check if plot is faceted
+        # Check if plot is faceted
       } else if (self$is_faceted_plot()) {
         self$process_faceted_plot()
       } else {
@@ -243,7 +243,7 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
           id = paste0("maidr-plot-", as.integer(Sys.time())),
           subplots = private$.combined_data
         )
-      # Check if this is a faceted plot
+        # Check if this is a faceted plot
       } else if (self$is_faceted_plot()) {
         # For faceted plots, use the 2D grid structure directly
         maidr_data <- list(
@@ -282,13 +282,13 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     get_layers = function() {
       private$.layers
     },
-    
+
     #' @description Check if the plot is a patchwork composition
     #' @return Logical indicating if the plot is a patchwork plot
     is_patchwork_plot = function() {
       inherits(private$.plot, "patchwork")
     },
-    
+
     #' @description Check if the plot is faceted
     #' @return Logical indicating if the plot is faceted
     is_faceted_plot = function() {
@@ -296,36 +296,36 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       if (is.null(private$.plot$facet)) {
         return(FALSE)
       }
-      
+
       # Check if it's not facet_null
       facet_class <- class(private$.plot$facet)[1]
       return(facet_class != "FacetNull")
     },
-    
+
     #' @description Process a faceted plot using FacetProcessor
     #' @return NULL (sets internal state)
     process_faceted_plot = function() {
       # Extract layout information
       private$.layout <- self$extract_layout()
-      
+
       # Build the gtable for the original plot FIRST
       private$.gtable <- ggplot2::ggplotGrob(private$.plot)
-      
+
       # Create FacetProcessor with the same gtable that will be exported
       facet_processor <- FacetProcessor$new(
         private$.plot,
         private$.layout,
         gt = private$.gtable
       )
-      
+
       # Process the faceted plot
       facet_result <- facet_processor$process()
-      
+
       # Store the result in the expected format
       private$.combined_data <- facet_result$subplots
-      private$.combined_selectors <- list()  # Will be populated by individual subplots
+      private$.combined_selectors <- list() # Will be populated by individual subplots
     },
-    
+
     #' @description Process a patchwork multipanel plot
     #' @return NULL (sets internal state)
     process_patchwork_plot = function() {

@@ -14,7 +14,6 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
     plot = NULL,
     layout = NULL,
     gt = NULL,
-
     initialize = function(plot, layout, gt = NULL) {
       self$plot <- plot
       self$layout <- layout
@@ -53,12 +52,16 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
     #' Discover panels via gtable layout rows named '^panel-<num>' or '^panel-<row>-<col>'
     #' Returns a data.frame with panel_index, name, t, l, row, col
     find_panels_from_layout = function() {
-      if (is.null(self$gt)) return(data.frame())
+      if (is.null(self$gt)) {
+        return(data.frame())
+      }
       layout <- self$gt$layout
       # Keep only true panel entries, exclude 'panel-area' and others
       is_panel <- grepl("^panel-\\d+(-\\d+)?$", layout$name)
       idx <- which(is_panel)
-      if (length(idx) == 0) return(data.frame())
+      if (length(idx) == 0) {
+        return(data.frame())
+      }
       t_vals <- layout$t[idx]
       l_vals <- layout$l[idx]
 
@@ -67,12 +70,14 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
       parse_rc <- function(nm) {
         m <- regexec("^panel-(\\d+)-(\\d+)$", nm)
         p <- regmatches(nm, m)[[1]]
-        if (length(p) == 3) return(c(as.integer(p[2]), as.integer(p[3])))
+        if (length(p) == 3) {
+          return(c(as.integer(p[2]), as.integer(p[3])))
+        }
         c(NA_integer_, NA_integer_)
       }
       rc_mat <- t(vapply(names_vec, parse_rc, integer(2)))
-      parsed_row <- rc_mat[,1]
-      parsed_col <- rc_mat[,2]
+      parsed_row <- rc_mat[, 1]
+      parsed_col <- rc_mat[, 2]
 
       # If not parsed, derive row/col by ranking unique t/l
       unique_t <- sort(unique(t_vals))
@@ -94,40 +99,7 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
       )
     },
 
-    #' Given a panel index, find a representative child grob id for selectors
-    #' We reuse FacetProcessor's patterns to locate per-geom children
-    find_panel_child_id = function(panel_index, geom_type = c("bar","point","line")) {
-      geom_type <- match.arg(geom_type)
-      if (is.null(self$gt) || panel_index <= 0 || panel_index > length(self$gt$grobs)) return(NULL)
-      panel_grob <- self$gt$grobs[[panel_index]]
-
-      get_child_names <- function(g) {
-        out <- character(0)
-        if (!is.null(g$children)) {
-          cn <- names(g$children)
-          if (!is.null(cn)) out <- c(out, cn)
-          for (nm in cn) out <- c(out, get_child_names(g$children[[nm]]))
-        }
-        out
-      }
-
-      child_names <- get_child_names(panel_grob)
-      if (length(child_names) == 0) return(NULL)
-
-      if (geom_type == "bar") {
-        hits <- child_names[grepl("geom_rect\\.rect\\.", child_names)]
-        if (length(hits) > 0) return(hits[[1]])
-      }
-      if (geom_type == "point") {
-        hits <- child_names[grepl("geom_point\\.points\\.", child_names)]
-        if (length(hits) > 0) return(hits[[1]])
-      }
-      if (geom_type == "line") {
-        hits <- child_names[grepl("^GRID\\.polyline\\.\\d+", child_names) | grepl("geom_line", child_names)]
-        if (length(hits) > 0) return(hits[[1]])
-      }
-      NULL
-    },
+    # Deprecated: child id finder now handled in processors via panel_ctx (none retained here)
 
     #' Process the patchwork plot: build 2D subplots using gtable panels
     process = function() {
@@ -158,7 +130,7 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
         leaf_plot <- if (i <= length(leaves)) leaves[[i]] else self$plot
         leaf_title <- if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else ""
         panel_name <- ordered$name[i]
-        
+
         # Create a simple subplot id
         subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", row, "-", col)
 
@@ -179,42 +151,49 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
           )
 
           if (!is.null(processor)) {
-            # Determine a panel-local child grob id matching this geom
-            grob_id <- switch(geom_type,
-              "GeomBar" = self$find_panel_child_id(panel_index, "bar"),
-              "GeomCol" = self$find_panel_child_id(panel_index, "bar"),
-              "GeomPoint" = self$find_panel_child_id(panel_index, "point"),
-              "GeomLine" = self$find_panel_child_id(panel_index, "line"),
-              "GeomPath" = self$find_panel_child_id(panel_index, "line"),
-              NULL
+            # New panel context API
+            panel_ctx <- list(
+              panel_name = panel_name,
+              panel_index = panel_index,
+              row = row,
+              col = col,
+              layer_index = layer_idx
             )
-            
+
             result <- processor$process(
               leaf_plot,
               self$layout,
               built = ggplot2::ggplot_build(leaf_plot),
               gt = self$gt,
               scale_mapping = NULL,
-              grob_id = grob_id,
+              panel_ctx = panel_ctx,
               panel_id = NULL
             )
 
             if (!is.null(result)) {
               layer_entry <- list(
                 id = paste0("maidr-layer-", layer_idx),
-                type = if (!is.null(result$type)) result$type else switch(geom_type,
-                  "GeomBar" = "bar",
-                  "GeomCol" = "bar",
-                  "GeomPoint" = "point",
-                  "GeomLine" = "line",
-                  "GeomPath" = "line",
-                  "unknown"
-                ),
+                type = if (!is.null(result$type)) {
+                  result$type
+                } else {
+                  switch(geom_type,
+                    "GeomBar" = "bar",
+                    "GeomCol" = "bar",
+                    "GeomPoint" = "point",
+                    "GeomLine" = "line",
+                    "GeomPath" = "line",
+                    "unknown"
+                  )
+                },
                 title = if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else "",
-                axes = if (!is.null(result$axes)) result$axes else list(
-                  x = if (!is.null(leaf_plot$labels$x)) leaf_plot$labels$x else "",
-                  y = if (!is.null(leaf_plot$labels$y)) leaf_plot$labels$y else ""
-                ),
+                axes = if (!is.null(result$axes)) {
+                  result$axes
+                } else {
+                  list(
+                    x = if (!is.null(leaf_plot$labels$x)) leaf_plot$labels$x else "",
+                    y = if (!is.null(leaf_plot$labels$y)) leaf_plot$labels$y else ""
+                  )
+                },
                 data = result$data,
                 selectors = result$selectors
               )
@@ -233,5 +212,3 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
     }
   )
 )
-
-

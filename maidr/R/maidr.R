@@ -112,7 +112,7 @@ create_maidr_data <- function(layers, orchestrator = NULL) {
   if (!is.null(orchestrator)) {
     return(orchestrator$generate_maidr_data())
   }
-  
+
   # For single plots, use the original structure
   list(
     id = paste0("maidr-plot-", as.integer(Sys.time())),

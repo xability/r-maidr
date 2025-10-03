@@ -20,12 +20,12 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL) {
       # Extract data from the line layer
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
       # Generate selectors for the line elements
-      selectors <- self$generate_selectors(plot, gt, grob_id)
+      selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       list(
         data = data,
@@ -175,7 +175,47 @@ LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
     #' @param gt Gtable object (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @return List of selectors for each series
-    generate_selectors = function(plot, gt = NULL, grob_id = NULL) {
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
+      if (!is.null(panel_ctx) && !is.null(gt)) {
+        pn <- panel_ctx$panel_name
+        idx <- which(grepl(paste0("^", pn, "\\b"), gt$layout$name))
+        if (length(idx) == 0) {
+          return(list())
+        }
+        panel_grob <- gt$grobs[[idx[1]]]
+        if (!inherits(panel_grob, "gTree")) {
+          return(list())
+        }
+
+        # Find the main GRID.polyline.* container(s) within this panel
+        poly_ids <- c()
+        find_poly <- function(grob) {
+          if (!is.null(grob$name) && grepl("^GRID\\.polyline\\.\\d+$", grob$name)) {
+            poly_ids <<- c(poly_ids, grob$name)
+          }
+          if (inherits(grob, "gList")) {
+            for (i in seq_along(grob)) find_poly(grob[[i]])
+          }
+          if (inherits(grob, "gTree")) {
+            for (i in seq_along(grob$children)) find_poly(grob$children[[i]])
+          }
+        }
+        find_poly(panel_grob)
+        if (length(poly_ids) == 0) {
+          return(list())
+        }
+
+        # If multiple, use all containers as separate series; otherwise inspect .1.N children
+        selectors <- list()
+        for (pid in poly_ids) {
+          base_id <- gsub("^GRID\\.polyline\\.", "", pid)
+          # We don't know num series exactly here; target the container (works for single series)
+          escaped <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
+          selectors[[length(selectors) + 1]] <- paste0("#", escaped)
+        }
+        return(selectors)
+      }
+
       if (!is.null(grob_id)) {
         # For faceted plots: use provided grob ID with .1.1 suffix (gridSVG adds this)
         full_grob_id <- paste0(grob_id, ".1.1")

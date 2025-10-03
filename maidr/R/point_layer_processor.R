@@ -16,12 +16,12 @@ PointLayerProcessor <- R6::R6Class("PointLayerProcessor",
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL) {
       # Extract data from the point layer
       extracted_data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
       # Generate selectors for the point elements
-      selectors <- self$generate_selectors(plot, gt, grob_id)
+      selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       # Create axes information
       axes <- list(
@@ -123,7 +123,43 @@ PointLayerProcessor <- R6::R6Class("PointLayerProcessor",
     #' @param gt Gtable object (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @return List of selectors
-    generate_selectors = function(plot, gt = NULL, grob_id = NULL) {
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
+      if (!is.null(panel_ctx) && !is.null(gt)) {
+        pn <- panel_ctx$panel_name
+        idx <- which(grepl(paste0("^", pn, "\\b"), gt$layout$name))
+        if (length(idx) == 0) {
+          return(list())
+        }
+        panel_grob <- gt$grobs[[idx[1]]]
+        if (!inherits(panel_grob, "gTree")) {
+          return(list())
+        }
+
+        # Look for geom_point container(s) within this panel
+        point_names <- c()
+        find_points <- function(grob) {
+          if (!is.null(grob$name) && grepl("geom_point\\.points", grob$name)) {
+            point_names <<- c(point_names, grob$name)
+          }
+          if (inherits(grob, "gList")) {
+            for (i in seq_along(grob)) find_points(grob[[i]])
+          }
+          if (inherits(grob, "gTree")) {
+            for (i in seq_along(grob$children)) find_points(grob$children[[i]])
+          }
+        }
+        find_points(panel_grob)
+        if (length(point_names) == 0) {
+          return(list())
+        }
+        selectors <- lapply(point_names, function(nm) {
+          svg_id <- paste0(nm, ".1")
+          escaped <- gsub("\\.", "\\\\.", svg_id)
+          paste0("g#", escaped, " > use")
+        })
+        return(selectors)
+      }
+
       if (!is.null(grob_id)) {
         # For faceted plots: use provided grob ID with .1 suffix (gridSVG adds this)
         full_grob_id <- paste0(grob_id, ".1")

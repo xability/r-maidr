@@ -6,9 +6,9 @@
 BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL) {
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
-      selectors <- self$generate_selectors(plot, gt, grob_id)
+      selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
       list(
         data = data,
         selectors = selectors
@@ -72,7 +72,7 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
 
       data_points <- list()
       n <- min(nrow(built_data), length(x_values))
-      
+
       for (i in seq_len(n)) {
         point <- list(
           x = as.character(x_values[i]),
@@ -93,7 +93,49 @@ BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
 
       data_points
     },
-    generate_selectors = function(plot, gt = NULL, grob_id = NULL) {
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
+      # Prefer panel-scoped selection when panel_ctx is provided
+      if (!is.null(panel_ctx) && !is.null(gt)) {
+        pn <- panel_ctx$panel_name
+        idx <- which(grepl(paste0("^", pn, "\\b"), gt$layout$name))
+        if (length(idx) == 0) {
+          return(list())
+        }
+        panel_grob <- gt$grobs[[idx[1]]]
+        if (!inherits(panel_grob, "gTree")) {
+          return(list())
+        }
+
+        find_rect_names <- function(grob) {
+          names <- character(0)
+          if (!is.null(grob$name) && grepl("geom_rect\\.rect", grob$name)) {
+            names <- c(names, grob$name)
+          }
+          if (inherits(grob, "gList")) {
+            for (i in seq_along(grob)) {
+              names <- c(names, find_rect_names(grob[[i]]))
+            }
+          }
+          if (inherits(grob, "gTree")) {
+            for (i in seq_along(grob$children)) {
+              names <- c(names, find_rect_names(grob$children[[i]]))
+            }
+          }
+          names
+        }
+
+        rect_names <- find_rect_names(panel_grob)
+        if (length(rect_names) == 0) {
+          return(list())
+        }
+        selectors <- lapply(rect_names, function(name) {
+          svg_id <- paste0(name, ".1")
+          escaped <- gsub("\\.", "\\\\.", svg_id)
+          paste0("#", escaped, " rect")
+        })
+        return(selectors)
+      }
+
       if (!is.null(grob_id)) {
         # For faceted plots: use provided grob ID with .1 suffix (gridSVG adds this)
         full_grob_id <- paste0(grob_id, ".1")
