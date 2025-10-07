@@ -2,13 +2,26 @@
 #' @param plot A ggplot2 object
 #' @param file Optional file path to save HTML. If NULL, creates temporary file
 #' @param open Whether to open the HTML file in browser/RStudio Viewer
+#' @param shiny If TRUE, returns just the SVG content instead of full HTML document
+#' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
 #' @param ... Additional arguments passed to internal functions
 #' @export
-show <- function(plot, file = NULL, open = TRUE, ...) {
+show <- function(plot, file = NULL, open = TRUE, shiny = FALSE, as_widget = FALSE, ...) {
   if (!inherits(plot, "ggplot")) {
     stop("Input must be a ggplot object.")
   }
 
+  # Widget mode - return htmlwidget
+  if (as_widget) {
+    return(maidr_widget(plot, ...))
+  }
+
+  # Shiny mode - return just the SVG content
+  if (shiny) {
+    return(create_maidr_html(plot, shiny = TRUE, ...))
+  }
+
+  # Default behavior - create full HTML document
   html_doc <- create_maidr_html(plot, ...)
 
   if (is.null(file)) {
@@ -25,10 +38,11 @@ show <- function(plot, file = NULL, open = TRUE, ...) {
 
 #' Create HTML document with maidr enhancements using the orchestrator
 #' @param plot A ggplot2 object
+#' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param ... Additional arguments passed to internal functions
-#' @return An htmltools HTML document object
+#' @return An htmltools HTML document object or SVG content
 #' @keywords internal
-create_maidr_html <- function(plot, ...) {
+create_maidr_html <- function(plot, shiny = FALSE, ...) {
   orchestrator <- PlotOrchestrator$new(plot)
 
   gt <- orchestrator$get_gtable()
@@ -44,9 +58,16 @@ create_maidr_html <- function(plot, ...) {
     layers <- create_layers_from_orchestrator(orchestrator, layout)
     maidr_data <- create_maidr_data(layers)
   }
+  
   svg_content <- create_enhanced_svg(gt, maidr_data, ...)
+  
+  # If shiny mode, return just the SVG content
+  if (shiny) {
+    return(htmltools::HTML(paste(svg_content, collapse = "\n")))
+  }
+  
+  # Otherwise, create full HTML document
   html_doc <- create_html_document(svg_content)
-
   html_doc
 }
 
