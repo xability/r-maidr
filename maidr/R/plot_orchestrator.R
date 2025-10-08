@@ -20,11 +20,17 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     .combined_data = list(),
     .combined_selectors = list(),
     .layout = NULL,
-    .gtable = NULL
+    .gtable = NULL,
+    .adapter = NULL
   ),
   public = list(
     initialize = function(plot) {
       private$.plot <- plot
+
+      # Get the appropriate adapter for this plot
+      registry <- get_global_registry()
+      system_name <- registry$detect_system(plot)
+      private$.adapter <- registry$get_adapter(system_name)
 
       # Check if plot is a patchwork composition
       if (self$is_patchwork_plot()) {
@@ -48,17 +54,19 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       }
     },
     analyze_single_layer = function(layer, layer_index) {
-      geom <- layer$geom
-      stat <- layer$stat
-      position <- layer$position
-      mapping <- layer$mapping
-      params <- layer$params
+      # Safely extract layer components with error handling
+      geom <- tryCatch(layer$geom, error = function(e) NULL)
+      stat <- tryCatch(layer$stat, error = function(e) NULL)
+      position <- tryCatch(layer$position, error = function(e) NULL)
+      mapping <- tryCatch(layer$mapping, error = function(e) NULL)
+      params <- tryCatch(layer$params, error = function(e) list())
 
-      geom_class <- class(geom)[1]
-      stat_class <- class(stat)[1]
-      position_class <- class(position)[1]
+      geom_class <- if (!is.null(geom)) class(geom)[1] else "unknown"
+      stat_class <- if (!is.null(stat)) class(stat)[1] else "unknown"
+      position_class <- if (!is.null(position)) class(position)[1] else "unknown"
 
-      layer_type <- self$determine_layer_type(private$.plot, layer_index)
+      # Get layer type from adapter instead of determine_layer_type
+      layer_type <- private$.adapter$detect_layer_type(layer, private$.plot)
 
       layer_info <- list(
         index = layer_index,
@@ -67,7 +75,7 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         stat_class = stat_class,
         position_class = position_class,
         aesthetics = if (!is.null(mapping)) names(mapping) else character(0),
-        parameters = names(params),
+        parameters = if (!is.null(params)) names(params) else character(0),
         layer_object = layer
       )
 
@@ -79,56 +87,8 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
         return("unknown")
       }
 
-      geom_class <- class(layer$geom)[1]
-      stat_class <- class(layer$stat)[1]
-      position_class <- class(layer$position)[1]
-
-      if (geom_class %in% c("GeomLine", "GeomPath")) {
-        return("line")
-      }
-      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
-        return("smooth")
-      }
-
-      if (geom_class %in% c("GeomBar", "GeomCol")) {
-        if (stat_class == "StatBin") {
-          return("hist")
-        }
-
-        if (position_class %in% c("PositionDodge", "PositionDodge2")) {
-          return("dodged_bar")
-        }
-
-        if (position_class %in% c("PositionStack", "PositionFill")) {
-          layer_mapping <- layer$mapping
-          plot_mapping <- plot$mapping
-          has_fill <- (!is.null(layer_mapping) && !is.null(layer_mapping$fill)) ||
-            (!is.null(plot_mapping) && !is.null(plot_mapping$fill))
-          if (has_fill) {
-            return("stacked_bar")
-          }
-        }
-
-        return("bar")
-      }
-
-      if (geom_class == "GeomTile") {
-        return("heat")
-      }
-
-      if (geom_class == "GeomPoint") {
-        return("point")
-      }
-
-      if (geom_class == "GeomBoxplot") {
-        return("box")
-      }
-
-      if (geom_class == "GeomText") {
-        return("skip")
-      }
-
-      "unknown"
+      # Delegate layer type detection to the adapter
+      return(private$.adapter$detect_layer_type(layer, plot))
     },
     create_layer_processors = function() {
       private$.layer_processors <- list()
@@ -145,18 +105,13 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
     create_layer_processor = function(layer_info) {
       layer_type <- layer_info$type
 
-      processor <- switch(layer_type,
-        "bar" = BarLayerProcessor$new(layer_info),
-        "stacked_bar" = StackedBarLayerProcessor$new(layer_info),
-        "dodged_bar" = DodgedBarLayerProcessor$new(layer_info),
-        "hist" = HistogramLayerProcessor$new(layer_info),
-        "line" = LineLayerProcessor$new(layer_info),
-        "smooth" = SmoothLayerProcessor$new(layer_info),
-        "heat" = HeatmapLayerProcessor$new(layer_info),
-        "point" = PointLayerProcessor$new(layer_info),
-        "box" = BoxplotLayerProcessor$new(layer_info),
-        UnknownLayerProcessor$new(layer_info) # Default for unknown types
-      )
+      # Get the processor factory from the registry
+      registry <- get_global_registry()
+      system_name <- private$.adapter$get_system_name()
+      factory <- registry$get_processor_factory(system_name)
+
+      # Create processor using the factory
+      processor <- factory$create_processor(layer_type, layer_info)
 
       processor
     },

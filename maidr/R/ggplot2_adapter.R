@@ -1,0 +1,207 @@
+#' ggplot2 System Adapter
+#'
+#' Adapter for the ggplot2 plotting system. This adapter wraps the existing
+#' ggplot2 functionality to work with the new extensible architecture.
+#'
+#' @format An R6 class inheriting from SystemAdapter
+#' @keywords internal
+
+Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
+  inherit = SystemAdapter,
+  public = list(
+    #' Initialize the ggplot2 adapter
+    initialize = function() {
+      super$initialize("ggplot2")
+    },
+
+    #' Check if this adapter can handle a plot object
+    #' @param plot_object The plot object to check
+    #' @return TRUE if this adapter can handle the object, FALSE otherwise
+    can_handle = function(plot_object) {
+      inherits(plot_object, "ggplot")
+    },
+
+    #' Detect the plot type for a ggplot2 object
+    #' @param plot_object The ggplot2 plot object to analyze
+    #' @return String indicating the plot type (e.g., "bar", "line", "point")
+    detect_plot_type = function(plot_object) {
+      if (!self$can_handle(plot_object)) {
+        stop("Plot object is not a ggplot2 object")
+      }
+
+      # Get the layers from the ggplot object
+      layers <- plot_object$layers
+
+      if (length(layers) == 0) {
+        return("unknown")
+      }
+
+      # Analyze the first layer to determine plot type
+      first_layer <- layers[[1]]
+      return(self$detect_layer_type(first_layer, plot_object))
+    },
+
+    #' Detect the type of a single layer
+    #' @param layer The ggplot2 layer object to analyze
+    #' @param plot_object The parent plot object (for context)
+    #' @return String indicating the layer type (e.g., "bar", "line", "point")
+    detect_layer_type = function(layer, plot_object) {
+      if (is.null(layer)) {
+        return("unknown")
+      }
+
+      geom_class <- class(layer$geom)[1]
+      stat_class <- class(layer$stat)[1]
+      position_class <- class(layer$position)[1]
+
+      if (geom_class %in% c("GeomLine", "GeomPath")) {
+        return("line")
+      }
+      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
+        return("smooth")
+      }
+
+      if (geom_class %in% c("GeomBar", "GeomCol")) {
+        if (stat_class == "StatBin") {
+          return("hist")
+        }
+
+        if (position_class %in% c("PositionDodge", "PositionDodge2")) {
+          return("dodged_bar")
+        }
+
+        if (position_class %in% c("PositionStack", "PositionFill")) {
+          layer_mapping <- layer$mapping
+          plot_mapping <- plot_object$mapping
+          has_fill <- (!is.null(layer_mapping) && !is.null(layer_mapping$fill)) ||
+            (!is.null(plot_mapping) && !is.null(plot_mapping$fill))
+          if (has_fill) {
+            return("stacked_bar")
+          }
+        }
+
+        return("bar")
+      }
+
+      if (geom_class == "GeomTile") {
+        return("heat")
+      }
+
+      if (geom_class == "GeomPoint") {
+        return("point")
+      }
+
+      if (geom_class == "GeomBoxplot") {
+        return("box")
+      }
+
+      if (geom_class == "GeomText") {
+        return("skip")
+      }
+
+      return("unknown")
+    },
+
+    #' Create an orchestrator for this system (ggplot2)
+    #' @param plot_object The ggplot2 plot object to process
+    #' @return PlotOrchestrator instance
+    create_orchestrator = function(plot_object) {
+      if (!self$can_handle(plot_object)) {
+        stop("Plot object is not a ggplot2 object")
+      }
+
+      # Use the existing PlotOrchestrator for ggplot2
+      PlotOrchestrator$new(plot_object)
+    },
+
+    #' Extract plot data in ggplot2-specific way
+    #' @param plot_object The ggplot2 plot object to process
+    #' @return List containing extracted plot data
+    extract_plot_data = function(plot_object) {
+      if (!self$can_handle(plot_object)) {
+        stop("Plot object is not a ggplot2 object")
+      }
+
+      # Use ggplot_build to extract data
+      built_plot <- ggplot2::ggplot_build(plot_object)
+
+      # Extract data from the built plot
+      plot_data <- built_plot$data
+      layout <- built_plot$layout
+
+      list(
+        data = plot_data,
+        layout = layout,
+        plot_object = plot_object
+      )
+    },
+
+    #' Create grob tree from ggplot2 plot object
+    #' @param plot_object The ggplot2 plot object to process
+    #' @return Grob tree
+    create_grob_tree = function(plot_object) {
+      if (!self$can_handle(plot_object)) {
+        stop("Plot object is not a ggplot2 object")
+      }
+
+      # Use ggplotGrob to create grob tree
+      ggplot2::ggplotGrob(plot_object)
+    },
+
+    #' Extract plot metadata from ggplot2 object
+    #' @param plot_object The ggplot2 plot object to process
+    #' @return List containing plot metadata
+    extract_metadata = function(plot_object) {
+      if (!self$can_handle(plot_object)) {
+        stop("Plot object is not a ggplot2 object")
+      }
+
+      # Extract labels and theme information
+      labels <- plot_object$labels
+      theme <- plot_object$theme
+
+      list(
+        title = labels$title %||% "",
+        subtitle = labels$subtitle %||% "",
+        caption = labels$caption %||% "",
+        x_label = labels$x %||% "",
+        y_label = labels$y %||% "",
+        theme = theme,
+        plot_object = plot_object
+      )
+    },
+
+    #' Get the system name
+    #' @return System name string
+    get_system_name = function() {
+      self$system_name
+    },
+
+    #' Get a reference to this adapter (for use by orchestrator)
+    #' @return Self reference
+    get_adapter = function() {
+      self
+    },
+
+    #' Check if plot has facets
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE if plot has facets, FALSE otherwise
+    has_facets = function(plot_object) {
+      if (!self$can_handle(plot_object)) {
+        return(FALSE)
+      }
+
+      facet_class <- class(plot_object$facet)[1]
+      facet_class != "FacetNull"
+    },
+
+    #' Check if plot is a patchwork plot
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE if plot is patchwork, FALSE otherwise
+    is_patchwork = function(plot_object) {
+      # Check if the plot object has patchwork attributes
+      inherits(plot_object, "patchwork") ||
+        !is.null(attr(plot_object, "patchwork"))
+    }
+  )
+)

@@ -7,11 +7,6 @@
 #' @param ... Additional arguments passed to internal functions
 #' @export
 show <- function(plot, file = NULL, open = TRUE, shiny = FALSE, as_widget = FALSE, ...) {
-  if (!inherits(plot, "ggplot")) {
-    stop("Input must be a ggplot object.")
-  }
-
-  # Widget mode - return htmlwidget
   if (as_widget) {
     return(maidr_widget(plot, ...))
   }
@@ -43,30 +38,31 @@ show <- function(plot, file = NULL, open = TRUE, shiny = FALSE, as_widget = FALS
 #' @return An htmltools HTML document object or SVG content
 #' @keywords internal
 create_maidr_html <- function(plot, shiny = FALSE, ...) {
-  orchestrator <- PlotOrchestrator$new(plot)
+  registry <- get_global_registry()
+
+  system_name <- registry$detect_system(plot)
+
+  adapter <- registry$get_adapter(system_name)
+
+  orchestrator <- adapter$create_orchestrator(plot)
 
   gt <- orchestrator$get_gtable()
 
   layout <- orchestrator$get_layout()
 
-  # Check if this is a faceted or patchwork plot
   if (orchestrator$is_patchwork_plot() || orchestrator$is_faceted_plot()) {
-    # For multipanel plots, use orchestrator directly
     maidr_data <- create_maidr_data(layers = NULL, orchestrator = orchestrator)
   } else {
-    # For single plots, create layers structure
     layers <- create_layers_from_orchestrator(orchestrator, layout)
     maidr_data <- create_maidr_data(layers)
   }
-  
+
   svg_content <- create_enhanced_svg(gt, maidr_data, ...)
-  
-  # If shiny mode, return just the SVG content
+
   if (shiny) {
     return(htmltools::HTML(paste(svg_content, collapse = "\n")))
   }
-  
-  # Otherwise, create full HTML document
+
   html_doc <- create_html_document(svg_content)
   html_doc
 }
@@ -91,7 +87,6 @@ create_layers_from_orchestrator <- function(orchestrator, layout) {
       data <- processed_result$data
       axes <- processed_result$axes
 
-      # Include orientation and type from processor if available
       orientation <- if (!is.null(processed_result$orientation)) processed_result$orientation else "vert"
     } else {
       selectors <- list()
@@ -110,7 +105,6 @@ create_layers_from_orchestrator <- function(orchestrator, layout) {
       axes = axes
     )
 
-    # Only include orientation if it's not the default "vert"
     if (orientation != "") {
       layer_obj$orientation <- orientation
     }
