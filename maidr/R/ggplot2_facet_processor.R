@@ -5,7 +5,7 @@
 #' to reuse existing processing logic.
 #'
 #' @keywords internal
-FacetProcessor <- R6::R6Class("FacetProcessor",
+Ggplot2FacetProcessor <- R6::R6Class("Ggplot2FacetProcessor",
   public = list(
     #' @field plot The original faceted ggplot2 object
     plot = NULL,
@@ -237,11 +237,11 @@ FacetProcessor <- R6::R6Class("FacetProcessor",
       geom_type <- class(layer$geom)[1]
 
       switch(geom_type,
-        "GeomBar" = BarLayerProcessor$new(layer_info),
-        "GeomCol" = BarLayerProcessor$new(layer_info),
-        "GeomPoint" = PointLayerProcessor$new(layer_info),
-        "GeomLine" = LineLayerProcessor$new(layer_info),
-        "GeomPath" = LineLayerProcessor$new(layer_info),
+        "GeomBar" = Ggplot2BarLayerProcessor$new(layer_info),
+        "GeomCol" = Ggplot2BarLayerProcessor$new(layer_info),
+        "GeomPoint" = Ggplot2PointLayerProcessor$new(layer_info),
+        "GeomLine" = Ggplot2LineLayerProcessor$new(layer_info),
+        "GeomPath" = Ggplot2LineLayerProcessor$new(layer_info),
         # For now, return NULL for unsupported types
         NULL
       )

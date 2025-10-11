@@ -4,7 +4,7 @@
 #' for individual points in the SVG structure.
 #'
 #' @keywords internal
-PointLayerProcessor <- R6::R6Class("PointLayerProcessor",
+Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the point layer

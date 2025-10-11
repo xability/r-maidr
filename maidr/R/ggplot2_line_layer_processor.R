@@ -8,7 +8,7 @@
 #' @field last_result The last processing result
 #'
 #' @keywords internal
-LineLayerProcessor <- R6::R6Class("LineLayerProcessor",
+Ggplot2LineLayerProcessor <- R6::R6Class("Ggplot2LineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the line layer with actual SVG structure

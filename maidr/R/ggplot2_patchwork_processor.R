@@ -9,7 +9,7 @@
 #'    generation by passing composed gtable and panel-local grob IDs
 #'
 #' @keywords internal
-PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
+Ggplot2PatchworkProcessor <- R6::R6Class("Ggplot2PatchworkProcessor",
   public = list(
     plot = NULL,
     layout = NULL,
@@ -142,11 +142,11 @@ PatchworkProcessor <- R6::R6Class("PatchworkProcessor",
           geom_type <- class(layer$geom)[1]
           layer_info <- list(index = layer_idx, type = geom_type)
           processor <- switch(geom_type,
-            "GeomBar" = BarLayerProcessor$new(layer_info),
-            "GeomCol" = BarLayerProcessor$new(layer_info),
-            "GeomPoint" = PointLayerProcessor$new(layer_info),
-            "GeomLine" = LineLayerProcessor$new(layer_info),
-            "GeomPath" = LineLayerProcessor$new(layer_info),
+            "GeomBar" = Ggplot2BarLayerProcessor$new(layer_info),
+            "GeomCol" = Ggplot2BarLayerProcessor$new(layer_info),
+            "GeomPoint" = Ggplot2PointLayerProcessor$new(layer_info),
+            "GeomLine" = Ggplot2LineLayerProcessor$new(layer_info),
+            "GeomPath" = Ggplot2LineLayerProcessor$new(layer_info),
             NULL
           )
 

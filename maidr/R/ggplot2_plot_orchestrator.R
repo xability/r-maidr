@@ -12,7 +12,7 @@
 #' @field layout Layout information from the plot
 #'
 #' @keywords internal
-PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
+Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
   private = list(
     .plot = NULL,
     .layers = list(),
@@ -267,7 +267,7 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       private$.gtable <- ggplot2::ggplotGrob(private$.plot)
 
       # Create FacetProcessor with the same gtable that will be exported
-      facet_processor <- FacetProcessor$new(
+      facet_processor <- Ggplot2FacetProcessor$new(
         private$.plot,
         private$.layout,
         gt = private$.gtable
@@ -298,7 +298,7 @@ PlotOrchestrator <- R6::R6Class("PlotOrchestrator",
       }
 
       # Use PatchworkProcessor to build subplots grid
-      pp <- PatchworkProcessor$new(private$.plot, private$.layout, gt = private$.gtable)
+      pp <- Ggplot2PatchworkProcessor$new(private$.plot, private$.layout, gt = private$.gtable)
       res <- pp$process()
       private$.combined_data <- res$subplots
       private$.combined_selectors <- list()

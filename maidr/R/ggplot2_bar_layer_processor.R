@@ -3,7 +3,7 @@
 #' Processes bar plot layers with complete logic included
 #'
 #' @keywords internal
-BarLayerProcessor <- R6::R6Class("BarLayerProcessor",
+Ggplot2BarLayerProcessor <- R6::R6Class("Ggplot2BarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL) {

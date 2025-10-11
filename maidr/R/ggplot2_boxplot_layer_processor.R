@@ -4,7 +4,7 @@
 #' for individual boxplot components in the SVG structure.
 #'
 #' @keywords internal
-BoxplotLayerProcessor <- R6::R6Class("BoxplotLayerProcessor",
+Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the boxplot layer

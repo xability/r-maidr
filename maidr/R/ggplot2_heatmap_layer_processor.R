@@ -3,7 +3,7 @@
 #' Processes heatmap layers (geom_tile) with generic data and grob reordering
 #'
 #' @keywords internal
-HeatmapLayerProcessor <- R6::R6Class("HeatmapLayerProcessor",
+Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {

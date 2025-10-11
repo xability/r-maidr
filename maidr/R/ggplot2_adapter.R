@@ -111,7 +111,7 @@ Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
       }
 
       # Use the existing PlotOrchestrator for ggplot2
-      PlotOrchestrator$new(plot_object)
+      Ggplot2PlotOrchestrator$new(plot_object)
     },
 
     #' Extract plot data in ggplot2-specific way

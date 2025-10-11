@@ -27,17 +27,17 @@ Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
       # Map plot types to existing processor classes
       # Only support the plot types that the adapter can detect
       switch(plot_type,
-        "bar" = BarLayerProcessor$new(layer_info),
-        "dodged_bar" = DodgedBarLayerProcessor$new(layer_info),
-        "stacked_bar" = StackedBarLayerProcessor$new(layer_info),
-        "hist" = HistogramLayerProcessor$new(layer_info),
-        "line" = LineLayerProcessor$new(layer_info),
-        "smooth" = SmoothLayerProcessor$new(layer_info),
-        "heat" = HeatmapLayerProcessor$new(layer_info),
-        "point" = PointLayerProcessor$new(layer_info),
-        "box" = BoxplotLayerProcessor$new(layer_info),
+        "bar" = Ggplot2BarLayerProcessor$new(layer_info),
+        "dodged_bar" = Ggplot2DodgedBarLayerProcessor$new(layer_info),
+        "stacked_bar" = Ggplot2StackedBarLayerProcessor$new(layer_info),
+        "hist" = Ggplot2HistogramLayerProcessor$new(layer_info),
+        "line" = Ggplot2LineLayerProcessor$new(layer_info),
+        "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
+        "heat" = Ggplot2HeatmapLayerProcessor$new(layer_info),
+        "point" = Ggplot2PointLayerProcessor$new(layer_info),
+        "box" = Ggplot2BoxplotLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
-        UnknownLayerProcessor$new(layer_info)
+        Ggplot2UnknownLayerProcessor$new(layer_info)
       )
     },
 
@@ -76,16 +76,16 @@ Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
     #' @return Character vector of available processor class names
     get_available_processors = function() {
       processor_classes <- c(
-        "BarLayerProcessor",
-        "DodgedBarLayerProcessor",
-        "StackedBarLayerProcessor",
-        "LineLayerProcessor",
-        "PointLayerProcessor",
-        "HistogramLayerProcessor",
-        "SmoothLayerProcessor",
-        "BoxplotLayerProcessor",
-        "HeatmapLayerProcessor",
-        "UnknownLayerProcessor"
+        "Ggplot2BarLayerProcessor",
+        "Ggplot2DodgedBarLayerProcessor",
+        "Ggplot2StackedBarLayerProcessor",
+        "Ggplot2LineLayerProcessor",
+        "Ggplot2PointLayerProcessor",
+        "Ggplot2HistogramLayerProcessor",
+        "Ggplot2SmoothLayerProcessor",
+        "Ggplot2BoxplotLayerProcessor",
+        "Ggplot2HeatmapLayerProcessor",
+        "Ggplot2UnknownLayerProcessor"
       )
 
       available <- sapply(processor_classes, self$is_processor_available)
@@ -106,7 +106,7 @@ Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
           # Fall back to unknown processor
           tryCatch(
             {
-              UnknownLayerProcessor$new(plot_object)
+              Ggplot2UnknownLayerProcessor$new(plot_object)
             },
             error = function(e2) {
               warning("Failed to create unknown processor: ", e2$message)
