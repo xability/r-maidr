@@ -21,25 +21,6 @@ Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
       inherits(plot_object, "ggplot")
     },
 
-    #' Detect the plot type for a ggplot2 object
-    #' @param plot_object The ggplot2 plot object to analyze
-    #' @return String indicating the plot type (e.g., "bar", "line", "point")
-    detect_plot_type = function(plot_object) {
-      if (!self$can_handle(plot_object)) {
-        stop("Plot object is not a ggplot2 object")
-      }
-
-      # Get the layers from the ggplot object
-      layers <- plot_object$layers
-
-      if (length(layers) == 0) {
-        return("unknown")
-      }
-
-      # Analyze the first layer to determine plot type
-      first_layer <- layers[[1]]
-      return(self$detect_layer_type(first_layer, plot_object))
-    },
 
     #' Detect the type of a single layer
     #' @param layer The ggplot2 layer object to analyze
@@ -114,62 +95,6 @@ Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
       Ggplot2PlotOrchestrator$new(plot_object)
     },
 
-    #' Extract plot data in ggplot2-specific way
-    #' @param plot_object The ggplot2 plot object to process
-    #' @return List containing extracted plot data
-    extract_plot_data = function(plot_object) {
-      if (!self$can_handle(plot_object)) {
-        stop("Plot object is not a ggplot2 object")
-      }
-
-      # Use ggplot_build to extract data
-      built_plot <- ggplot2::ggplot_build(plot_object)
-
-      # Extract data from the built plot
-      plot_data <- built_plot$data
-      layout <- built_plot$layout
-
-      list(
-        data = plot_data,
-        layout = layout,
-        plot_object = plot_object
-      )
-    },
-
-    #' Create grob tree from ggplot2 plot object
-    #' @param plot_object The ggplot2 plot object to process
-    #' @return Grob tree
-    create_grob_tree = function(plot_object) {
-      if (!self$can_handle(plot_object)) {
-        stop("Plot object is not a ggplot2 object")
-      }
-
-      # Use ggplotGrob to create grob tree
-      ggplot2::ggplotGrob(plot_object)
-    },
-
-    #' Extract plot metadata from ggplot2 object
-    #' @param plot_object The ggplot2 plot object to process
-    #' @return List containing plot metadata
-    extract_metadata = function(plot_object) {
-      if (!self$can_handle(plot_object)) {
-        stop("Plot object is not a ggplot2 object")
-      }
-
-      # Extract labels and theme information
-      labels <- plot_object$labels
-      theme <- plot_object$theme
-
-      list(
-        title = labels$title %||% "",
-        subtitle = labels$subtitle %||% "",
-        caption = labels$caption %||% "",
-        x_label = labels$x %||% "",
-        y_label = labels$y %||% "",
-        theme = theme,
-        plot_object = plot_object
-      )
-    },
 
     #' Get the system name
     #' @return System name string

@@ -103,6 +103,14 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
       }
     },
     create_layer_processor = function(layer_info) {
+      # Use unified layer processor creation logic
+      self$create_unified_layer_processor(layer_info)
+    },
+
+    #' Unified layer processor creation - used by all plot types
+    #' @param layer_info Layer information
+    #' @return Layer processor instance
+    create_unified_layer_processor = function(layer_info) {
       layer_type <- layer_info$type
 
       # Get the processor factory from the registry
@@ -164,16 +172,30 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
 
       for (i in seq_along(layer_results)) {
         result <- layer_results[[i]]
+        
+        # Get layer type from adapter if not provided by processor
+        layer_type <- result$type
+        if (is.null(layer_type) || length(layer_type) == 0) {
+          layer <- private$.plot$layers[[i]]
+          layer_type <- private$.adapter$detect_layer_type(layer, private$.plot)
+        }
 
         # Create layer object with standard structure
         layer_obj <- list(
           id = i,
           selectors = result$selectors,
-          type = result$type,
+          type = layer_type,
           data = result$data,
           title = result$title,
           axes = result$axes
         )
+
+        # Preserve all other fields from the processor result (like orientation, etc.)
+        for (field_name in names(result)) {
+          if (!field_name %in% c("selectors", "data", "title", "axes", "labels")) {
+            layer_obj[[field_name]] <- result[[field_name]]
+          }
+        }
 
         # Add labels if they exist and are not empty
         if (!is.null(result$labels) && length(result$labels) > 0) {
@@ -188,39 +210,29 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
         combined_selectors <- c(combined_selectors, result$selectors)
       }
 
-      private$.combined_data <- combined_data
+      # For single plots, wrap the combined_data in the correct 2D grid format
+      # This ensures all plot types have the same structure
+      if (!self$is_patchwork_plot() && !self$is_faceted_plot()) {
+        # Single plot: create 1x1 grid
+        single_subplot <- list(
+          id = paste0("maidr-subplot-", as.integer(Sys.time())),
+          layers = combined_data
+        )
+        private$.combined_data <- list(list(single_subplot))
+      } else {
+        # Faceted/patchwork plots already have the correct 2D grid format
+        private$.combined_data <- combined_data
+      }
+
       private$.combined_selectors <- combined_selectors
     },
     generate_maidr_data = function() {
-      # Patchwork multipanel: return 2D grid directly
-      if (self$is_patchwork_plot()) {
-        maidr_data <- list(
-          id = paste0("maidr-plot-", as.integer(Sys.time())),
-          subplots = private$.combined_data
-        )
-        # Check if this is a faceted plot
-      } else if (self$is_faceted_plot()) {
-        # For faceted plots, use the 2D grid structure directly
-        maidr_data <- list(
-          id = paste0("maidr-plot-", as.integer(Sys.time())),
-          subplots = private$.combined_data
-        )
-      } else {
-        # For single plots, use the original structure
-        maidr_data <- list(
-          id = paste0("maidr-plot-", as.integer(Sys.time())),
-          subplots = list(
-            list(
-              list(
-                id = paste0("maidr-subplot-", as.integer(Sys.time())),
-                layers = private$.combined_data
-              )
-            )
-          )
-        )
-      }
-
-      maidr_data
+      # All plot types use the same unified structure
+      # The combined_data already has the correct format for each plot type
+      list(
+        id = paste0("maidr-plot-", as.integer(Sys.time())),
+        subplots = private$.combined_data
+      )
     },
     get_gtable = function() {
       private$.gtable
@@ -257,7 +269,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
       return(facet_class != "FacetNull")
     },
 
-    #' @description Process a faceted plot using FacetProcessor
+    #' @description Process a faceted plot using utility functions
     #' @return NULL (sets internal state)
     process_faceted_plot = function() {
       # Extract layout information
@@ -266,22 +278,17 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
       # Build the gtable for the original plot FIRST
       private$.gtable <- ggplot2::ggplotGrob(private$.plot)
 
-      # Create FacetProcessor with the same gtable that will be exported
-      facet_processor <- Ggplot2FacetProcessor$new(
-        private$.plot,
-        private$.layout,
-        gt = private$.gtable
+      # Built plot data
+      built <- ggplot2::ggplot_build(private$.plot)
+
+      # Use utility function to process faceted plot
+      private$.combined_data <- process_faceted_plot_data(
+        private$.plot, private$.layout, built, private$.gtable
       )
-
-      # Process the faceted plot
-      facet_result <- facet_processor$process()
-
-      # Store the result in the expected format
-      private$.combined_data <- facet_result$subplots
-      private$.combined_selectors <- list() # Will be populated by individual subplots
+      private$.combined_selectors <- list()
     },
 
-    #' @description Process a patchwork multipanel plot
+    #' @description Process a patchwork multipanel plot using utility functions
     #' @return NULL (sets internal state)
     process_patchwork_plot = function() {
       # Minimal layout information
@@ -297,10 +304,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
         private$.gtable <- ggplot2::ggplotGrob(ggplot2::ggplot())
       }
 
-      # Use PatchworkProcessor to build subplots grid
-      pp <- Ggplot2PatchworkProcessor$new(private$.plot, private$.layout, gt = private$.gtable)
-      res <- pp$process()
-      private$.combined_data <- res$subplots
+      # Use utility function to process patchwork plot
+      private$.combined_data <- process_patchwork_plot_data(
+        private$.plot, private$.layout, private$.gtable
+      )
       private$.combined_selectors <- list()
     }
   )

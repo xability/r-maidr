@@ -50,12 +50,8 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 
   layout <- orchestrator$get_layout()
 
-  if (orchestrator$is_patchwork_plot() || orchestrator$is_faceted_plot()) {
-    maidr_data <- create_maidr_data(layers = NULL, orchestrator = orchestrator)
-  } else {
-    layers <- create_layers_from_orchestrator(orchestrator, layout)
-    maidr_data <- create_maidr_data(layers)
-  }
+  # All plot types now use the unified orchestrator data generation
+  maidr_data <- orchestrator$generate_maidr_data()
 
   svg_content <- create_enhanced_svg(gt, maidr_data, ...)
 
@@ -65,79 +61,4 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 
   html_doc <- create_html_document(svg_content)
   html_doc
-}
-
-#' Create layers structure from orchestrator data
-#' @param orchestrator The PlotOrchestrator instance
-#' @param layout Layout information
-#' @return List of layer structures
-#' @keywords internal
-create_layers_from_orchestrator <- function(orchestrator, layout) {
-  layers <- list()
-  layer_processors <- orchestrator$get_layer_processors()
-
-  for (i in seq_along(layer_processors)) {
-    processor <- layer_processors[[i]]
-    layer_info <- processor$layer_info
-
-    processed_result <- processor$get_last_result()
-
-    if (!is.null(processed_result)) {
-      selectors <- processed_result$selectors
-      data <- processed_result$data
-      axes <- processed_result$axes
-
-      orientation <- if (!is.null(processed_result$orientation)) processed_result$orientation else "vert"
-    } else {
-      selectors <- list()
-      data <- list()
-      axes <- list(x = "", y = "")
-      orientation <- ""
-      type <- layer_info$type
-    }
-
-    layer_obj <- list(
-      id = layer_info$index,
-      selectors = selectors,
-      type = layer_info$type,
-      data = data,
-      title = if (!is.null(layout$title)) layout$title else "",
-      axes = axes
-    )
-
-    if (orientation != "") {
-      layer_obj$orientation <- orientation
-    }
-
-    layers[[i]] <- layer_obj
-  }
-
-  layers
-}
-
-
-
-#' Create maidr-data structure
-#' @param layers List of plot layers (for single plots) or orchestrator (for faceted plots)
-#' @param orchestrator Optional orchestrator instance for faceted plots
-#' @return List containing maidr-data structure
-#' @keywords internal
-create_maidr_data <- function(layers, orchestrator = NULL) {
-  # If orchestrator is provided, use it to generate the data structure
-  if (!is.null(orchestrator)) {
-    return(orchestrator$generate_maidr_data())
-  }
-
-  # For single plots, use the original structure
-  list(
-    id = paste0("maidr-plot-", as.integer(Sys.time())),
-    subplots = list(
-      list(
-        list(
-          id = paste0("maidr-subplot-", as.integer(Sys.time())),
-          layers = layers
-        )
-      )
-    )
-  )
 }
