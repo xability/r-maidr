@@ -13,3 +13,10 @@ export(renderMaidrWidget)
 # Shiny integration exports
 export(maidrOutput)
 export(renderMaidr)
+
+# Base R system exports
+export(BaseRAdapter)
+export(BaseRPlotOrchestrator)
+export(BaseRProcessorFactory)
+export(BaseRBarplotLayerProcessor)
+export(BaseRUnknownLayerProcessor)

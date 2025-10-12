@@ -33,7 +33,7 @@ p_bar <- ggplot(bar_data, aes(x = Category, y = Value)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   labs(title = "Simple Bar Test")
 
-html_file_bar <- file.path(output_dir, "example_bar_plot.html")
+html_file_bar <- file.path(output_dir, "example_bar_plot_ggplot2.html")
 result_bar <- show(p_bar, file = html_file_bar, open = FALSE)
 cat("Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
 
@@ -49,7 +49,7 @@ p_dodged <- ggplot(dodged_data, aes(x = Category, y = Value, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
   labs(title = "Dodged Bar Test")
 
-html_file_dodged <- file.path(output_dir, "example_dodged_bar_plot.html")
+html_file_dodged <- file.path(output_dir, "example_dodged_bar_plot_ggplot2.html")
 result_dodged <- show(p_dodged, file = html_file_dodged, open = FALSE)
 cat("Dodged bar plot:", if(file.exists(html_file_dodged)) "✓" else "✗", "\n")
 
@@ -65,7 +65,7 @@ p_stacked <- ggplot(stacked_data, aes(x = Category, y = Value, fill = Type)) +
   geom_bar(stat = "identity", position = position_stack()) +
   labs(title = "Stacked Bar Test")
 
-html_file_stacked <- file.path(output_dir, "example_stacked_bar_plot.html")
+html_file_stacked <- file.path(output_dir, "example_stacked_bar_plot_ggplot2.html")
 result_stacked <- show(p_stacked, file = html_file_stacked, open = FALSE)
 cat("Stacked bar plot:", if(file.exists(html_file_stacked)) "✓" else "✗", "\n")
 
@@ -79,7 +79,7 @@ p_hist <- ggplot(hist_data, aes(x = values)) +
   geom_histogram(bins = 20, fill = "steelblue", color = "black") +
   labs(title = "Histogram Test")
 
-html_file_hist <- file.path(output_dir, "example_histogram.html")
+html_file_hist <- file.path(output_dir, "example_histogram_ggplot2.html")
 result_hist <- show(p_hist, file = html_file_hist, open = FALSE)
 cat("Histogram:", if(file.exists(html_file_hist)) "✓" else "✗", "\n")
 
@@ -93,7 +93,7 @@ p_smooth <- ggplot(smooth_data, aes(x = x)) +
   geom_density(fill = "lightblue", alpha = 0.5) +
   labs(title = "Smooth Plot Test")
 
-html_file_smooth <- file.path(output_dir, "example_smooth_plot.html")
+html_file_smooth <- file.path(output_dir, "example_smooth_plot_ggplot2.html")
 result_smooth <- show(p_smooth, file = html_file_smooth, open = FALSE)
 cat("Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
 
@@ -109,7 +109,7 @@ p_line <- ggplot(line_data, aes(x = x, y = y)) +
   labs(title = "Single Line Plot Test", x = "X values", y = "Y values") +
   theme_minimal()
 
-html_file_line <- file.path(output_dir, "example_line_plot.html")
+html_file_line <- file.path(output_dir, "example_line_plot_ggplot2.html")
 result_line <- show(p_line, file = html_file_line, open = FALSE)
 cat("Single line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
 
@@ -139,7 +139,7 @@ p_multiline <- ggplot(multiline_data, aes(x = x, y = y, color = series)) +
   theme_minimal() +
   theme(legend.position = "right")
 
-html_file_multiline <- file.path(output_dir, "example_multiline_plot.html")
+html_file_multiline <- file.path(output_dir, "example_multiline_plot_ggplot2.html")
 result_multiline <- show(p_multiline, file = html_file_multiline, open = FALSE)
 cat("Multiline plot (3 series with 10 points):", if(file.exists(html_file_multiline)) "✓" else "✗", "\n")
 
@@ -162,7 +162,7 @@ p_hist_density <- ggplot(petal_data, aes(x = petal_length)) +
   ) +
   theme_minimal()
 
-html_file_hist_density <- file.path(output_dir, "example_histogram_density.html")
+html_file_hist_density <- file.path(output_dir, "example_histogram_density_ggplot2.html")
 result_hist_density <- show(p_hist_density, file = html_file_hist_density, open = FALSE)
 cat("Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
 
@@ -179,7 +179,7 @@ p_heatmap_labels <- ggplot(heatmap_data, aes(x = x, y = y, fill = z)) +
   geom_text(aes(label = z), color = "white", size = 4) +
   labs(title = "Heatmap with Labels Test")
 
-html_file_heatmap_labels <- file.path(output_dir, "example_heatmap_with_labels.html")
+html_file_heatmap_labels <- file.path(output_dir, "example_heatmap_with_labels_ggplot2.html")
 result_heatmap_labels <- show(p_heatmap_labels, file = html_file_heatmap_labels, open = FALSE)
 cat("Heatmap with labels:", if(file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
 
@@ -210,7 +210,7 @@ p_point <- ggplot(point_data, aes(x = x, y = y, color = group)) +
   theme_minimal() +
   scale_x_continuous(breaks = 1:5)
 
-html_file_point <- file.path(output_dir, "example_point_plot.html")
+html_file_point <- file.path(output_dir, "example_point_plot_ggplot2.html")
 result_point <- show(p_point, file = html_file_point, open = FALSE)
 cat("Point/Scatter plot (multiple y per x):", if(file.exists(html_file_point)) "✓" else "✗", "\n")
 
@@ -257,7 +257,7 @@ p_dual_axis <- ggplot(dual_plot_data, aes(x = x)) +
     axis.text.y.left = element_text(color = "blue")
   )
 
-html_file_dual_axis <- file.path(output_dir, "example_dual_axis_plot.html")
+html_file_dual_axis <- file.path(output_dir, "example_dual_axis_plot_ggplot2.html")
 result_dual_axis <- show(p_dual_axis, file = html_file_dual_axis, open = FALSE)
 cat("Dual-axis plot (bar + line):", if(file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
 
@@ -276,7 +276,7 @@ p_box <- ggplot(iris_data, aes(x = Petal.Length, y = Species)) +
   ) +
   theme_minimal()
 
-html_file_box <- file.path(output_dir, "example_boxplot_horizontal.html")
+html_file_box <- file.path(output_dir, "example_boxplot_horizontal_ggplot2.html")
 result_box <- show(p_box, file = html_file_box, open = FALSE)
 cat("Boxplot (horizontal):", if(file.exists(html_file_box)) "✓" else "✗", "\n")
 
@@ -305,7 +305,7 @@ p_facet_bar <- ggplot(facet_bar_data, aes(x = x, y = y)) +
   ) +
   theme_minimal()
 
-html_file_facet_bar <- file.path(output_dir, "example_facet_bar_plot.html")
+html_file_facet_bar <- file.path(output_dir, "example_facet_bar_plot_ggplot2.html")
 result_facet_bar <- show(p_facet_bar, file = html_file_facet_bar, open = FALSE)
 cat("Faceted bar plot:", if(file.exists(html_file_facet_bar)) "✓" else "✗", "\n")
 
@@ -334,7 +334,7 @@ p_facet_point <- ggplot(facet_point_data, aes(x = x, y = y)) +
   ) +
   theme_minimal()
 
-html_file_facet_point <- file.path(output_dir, "example_facet_point_plot.html")
+html_file_facet_point <- file.path(output_dir, "example_facet_point_plot_ggplot2.html")
 result_facet_point <- show(p_facet_point, file = html_file_facet_point, open = FALSE)
 cat("Faceted point plot:", if(file.exists(html_file_facet_point)) "✓" else "✗", "\n")
 
@@ -363,7 +363,7 @@ p_facet_line <- ggplot(facet_line_data, aes(x = x, y = y)) +
   ) +
   theme_minimal()
 
-html_file_facet_line <- file.path(output_dir, "example_facet_line_plot.html")
+html_file_facet_line <- file.path(output_dir, "example_facet_line_plot_ggplot2.html")
 result_facet_line <- show(p_facet_line, file = html_file_facet_line, open = FALSE)
 cat("Faceted line plot:", if(file.exists(html_file_facet_line)) "✓" else "✗", "\n")
 
@@ -406,7 +406,7 @@ pw_line_extra <- ggplot(line_df_extra, aes(x, y)) +
 
 # Compose 2x2 grid and save
 pw_2x2 <- (pw_line + pw_bar1 + pw_bar2 + pw_line_extra) + plot_layout(ncol = 2)
-html_file_patchwork_2x2 <- file.path(output_dir, "example_patchwork_2x2.html")
+html_file_patchwork_2x2 <- file.path(output_dir, "example_patchwork_2x2_ggplot2.html")
 result_patchwork_2x2 <- show(pw_2x2, file = html_file_patchwork_2x2, open = FALSE)
 cat("Patchwork 2x2 (line+bar+bar2+line):", if (file.exists(html_file_patchwork_2x2)) "✓" else "✗", "\n")
 

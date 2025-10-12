@@ -43,9 +43,39 @@ Ggplot2BarLayerProcessor <- R6::R6Class("Ggplot2BarLayerProcessor",
         built_data <- built_data[built_data$PANEL == panel_id, ]
       }
 
-      # Apply scale mapping if provided (for faceted plots)
-      if (!is.null(scale_mapping)) {
-        x_values <- self$apply_scale_mapping(built_data$x, scale_mapping)
+      # For faceted plots, get x values from built data or scale mapping
+      if (!is.null(panel_id)) {
+        # For faceted plots, use the x values from built_data which should contain the actual axis values
+        # built_data$x contains the position indices, we need the actual axis values
+        if (!is.null(scale_mapping)) {
+          x_values <- self$apply_scale_mapping(built_data$x, scale_mapping)
+        } else {
+          # Get x values from the original data for this panel
+          plot_mapping <- plot$mapping
+          layer_mapping <- plot$layers[[layer_index]]$mapping
+
+          x_col <- NULL
+          if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
+            x_col <- rlang::as_name(layer_mapping$x)
+          } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
+            x_col <- rlang::as_name(plot_mapping$x)
+          }
+
+          # For faceted plots, we need to get the x values for this specific panel
+          if (!is.null(x_col) && x_col %in% names(plot$data)) {
+            # Filter original data for this panel if it has PANEL column
+            panel_data <- plot$data
+            if ("PANEL" %in% names(panel_data)) {
+              panel_data <- panel_data[panel_data$PANEL == panel_id, ]
+            }
+            # Get unique x values in order
+            x_values <- unique(panel_data[[x_col]])
+            x_values <- sort(x_values)
+          } else {
+            # Fallback: use built_data$x but convert to character
+            x_values <- as.character(built_data$x)
+          }
+        }
       } else {
         # Original logic for non-faceted plots
         plot_mapping <- plot$mapping

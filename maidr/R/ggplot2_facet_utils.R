@@ -27,13 +27,10 @@ process_faceted_plot_data <- function(plot, layout, built, gtable) {
     # Get facet group information
     facet_groups <- get_facet_groups(panel_info, built)
 
-    # Map based on visual position (ROW/COL)
-    expected_panel_name <- paste0("panel-", panel_info$ROW, "-", panel_info$COL)
-    gtable_panel_name <- NULL
-    prefix_matches <- which(grepl(paste0("^", expected_panel_name, "\\b"), gtable$layout$name))
-    if (length(prefix_matches) > 0) {
-      gtable_panel_name <- gtable$layout$name[prefix_matches[1]]
-    }
+    # Map based on visual position (ROW/COL) with DOM order correction
+    # The DOM elements are generated in column-major order, but our data is in row-major order
+    # We need to map the visual position to the correct DOM panel
+    gtable_panel_name <- map_visual_to_dom_panel(panel_info, gtable)
 
     # Process this panel
     subplot_data <- process_facet_panel(
@@ -233,4 +230,75 @@ combine_facet_layer_selectors <- function(layer_results) {
   }
 
   combined_selectors
+}
+
+#' Map visual panel position to DOM panel name
+#' 
+#' This function handles the mismatch between visual layout order (row-major)
+#' and DOM element generation order (column-major) in gridSVG.
+#' 
+#' Visual layout (row-major):
+#'  1  2
+#'  3  4
+#' 
+#' DOM order (column-major):
+#'  1  3
+#'  2  4
+#' 
+#' @param panel_info Panel information from layout
+#' @param gtable Gtable object
+#' @return Gtable panel name or NULL if not found
+map_visual_to_dom_panel <- function(panel_info, gtable) {
+  # Get all panel names from gtable
+  panel_names <- gtable$layout$name[grepl("^panel-", gtable$layout$name)]
+  
+  if (length(panel_names) == 0) {
+    return(NULL)
+  }
+  
+  # Get panel dimensions from the layout
+  panel_layout <- gtable$layout[grepl("^panel-", gtable$layout$name), ]
+  
+  # Extract ROW and COL from panel names to determine grid dimensions
+  panel_coords <- strsplit(gsub("panel-", "", panel_names), "-")
+  rows <- as.numeric(sapply(panel_coords, function(x) x[1]))
+  cols <- as.numeric(sapply(panel_coords, function(x) x[2]))
+  
+  max_row <- max(rows)
+  max_col <- max(cols)
+  
+  # Convert visual position (row-major) to DOM position (column-major)
+  visual_row <- as.numeric(panel_info$ROW)
+  visual_col <- as.numeric(panel_info$COL)
+  
+  # DOM order is column-major: (1,1), (2,1), (3,1), (1,2), (2,2), (3,2), etc.
+  # Visual order is row-major: (1,1), (1,2), (1,3), (2,1), (2,2), (2,3), etc.
+  
+  # Calculate the index in row-major order (visual)
+  visual_index <- (visual_row - 1) * max_col + visual_col
+  
+  # Convert to column-major order (DOM)
+  dom_col <- ((visual_index - 1) %/% max_row) + 1
+  dom_row <- ((visual_index - 1) %% max_row) + 1
+  
+  # Generate the expected DOM panel name
+  expected_dom_name <- paste0("panel-", dom_row, "-", dom_col)
+  
+  # Check if this panel name exists in gtable
+  if (expected_dom_name %in% gtable$layout$name) {
+    return(expected_dom_name)
+  }
+  
+  # Fallback: try direct mapping
+  expected_name <- paste0("panel-", visual_row, "-", visual_col)
+  if (expected_name %in% gtable$layout$name) {
+    return(expected_name)
+  }
+  
+  # Final fallback: return first available panel
+  if (length(panel_names) > 0) {
+    return(panel_names[1])
+  }
+  
+  return(NULL)
 }

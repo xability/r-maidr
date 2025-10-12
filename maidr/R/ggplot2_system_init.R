@@ -38,4 +38,24 @@ initialize_ggplot2_system <- function() {
       warning("Failed to initialize ggplot2 system: ", e$message)
     }
   )
+  
+  # Initialize Base R system
+  tryCatch(
+    {
+      initialize_base_r_system()
+    },
+    error = function(e) {
+      warning("Failed to initialize Base R system: ", e$message)
+    }
+  )
+  
+  # Auto-start Base R patching
+  tryCatch(
+    {
+      initialize_base_r_patching()
+    },
+    error = function(e) {
+      warning("Failed to initialize Base R patching: ", e$message)
+    }
+  )
 }

@@ -56,9 +56,46 @@ Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
         layer_data <- layer_data[layer_data$PANEL == panel_id, ]
       }
 
-      # Apply scale mapping if provided (for faceted plots)
-      if (!is.null(scale_mapping)) {
-        layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
+      # For faceted plots, get x values from original data or scale mapping
+      if (!is.null(panel_id)) {
+        # For faceted plots, we need to get the actual x values from the original data
+        if (!is.null(scale_mapping)) {
+          layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
+        } else {
+          # Get x values from the original data for this panel
+          plot_mapping <- plot$mapping
+          layer_mapping <- plot$layers[[layer_index]]$mapping
+
+          x_col <- NULL
+          if (!is.null(layer_mapping$x)) {
+            x_col <- rlang::as_name(layer_mapping$x)
+          } else if (!is.null(plot_mapping$x)) {
+            x_col <- rlang::as_name(plot_mapping$x)
+          }
+
+          # For faceted plots, we need to get the x values for this specific panel
+          if (!is.null(x_col) && x_col %in% names(plot$data)) {
+            # Filter original data for this panel if it has PANEL column
+            panel_data <- plot$data
+            if ("PANEL" %in% names(panel_data)) {
+              panel_data <- panel_data[panel_data$PANEL == panel_id, ]
+            }
+            # Get unique x values in order
+            x_values <- unique(panel_data[[x_col]])
+            x_values <- sort(x_values)
+            
+            # Map layer_data$x indices to actual x values
+            layer_data$x <- x_values[layer_data$x]
+          } else {
+            # Fallback: use layer_data$x but convert to character
+            layer_data$x <- as.character(layer_data$x)
+          }
+        }
+      } else {
+        # Apply scale mapping if provided (for non-faceted plots)
+        if (!is.null(scale_mapping)) {
+          layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
+        }
       }
 
       # Get the original data
