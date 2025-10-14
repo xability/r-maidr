@@ -25,9 +25,10 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
       }
 
       # Map plot types to Base R processor classes
-      # For now, we only implement bar plot processor
       switch(plot_type,
         "bar" = BaseRBarplotLayerProcessor$new(layer_info),
+        "dodged_bar" = BaseRDodgedBarLayerProcessor$new(layer_info),
+        "stacked_bar" = BaseRUnknownLayerProcessor$new(layer_info),  # TODO: Implement stacked bar processor
         "line" = BaseRUnknownLayerProcessor$new(layer_info),  # TODO: Implement line processor
         "hist" = BaseRUnknownLayerProcessor$new(layer_info),  # TODO: Implement hist processor
         "box" = BaseRUnknownLayerProcessor$new(layer_info),   # TODO: Implement box processor
@@ -44,6 +45,8 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
       c(
         # Plot types supported by Base R system
         "bar",
+        "dodged_bar",
+        "stacked_bar",
         "line",
         "hist", 
         "box",
@@ -71,6 +74,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
     get_available_processors = function() {
       processor_classes <- c(
         "BaseRBarplotLayerProcessor",
+        "BaseRDodgedBarLayerProcessor",
         "BaseRUnknownLayerProcessor"
         # TODO: Add other processor classes as they are implemented
       )

@@ -59,10 +59,22 @@ BaseRBarplotLayerProcessor <- R6::R6Class("BaseRBarplotLayerProcessor",
         # Ensure same length
         n <- min(length(height), length(labels))
         
-        for (i in seq_len(n)) {
+        # Create data frame for easy sorting
+        data_df <- data.frame(
+          x = labels[1:n],
+          y = height[1:n],
+          stringsAsFactors = FALSE
+        )
+        
+        # Sort by x-values for consistent ordering (same as dodged bars)
+        sorted_indices <- order(data_df$x)
+        data_df <- data_df[sorted_indices, ]
+        
+        # Convert to list format
+        for (i in seq_len(nrow(data_df))) {
           data_points[[i]] <- list(
-            x = labels[i],
-            y = height[i]
+            x = data_df$x[i],
+            y = data_df$y[i]
           )
         }
       }
@@ -108,17 +120,9 @@ BaseRBarplotLayerProcessor <- R6::R6Class("BaseRBarplotLayerProcessor",
       # Get the plot call index from layer info
       plot_call_index <- layer_info$index
       
-      # If we have a grob, use recursive search (like ggplot2)
+      # Use recursive search through the grob tree (definitive approach)
       if (!is.null(gt)) {
         selectors <- self$generate_selectors_from_grob(gt, plot_call_index)
-      }
-      
-      # Fallback to pattern-based approach if no grob or no selectors found
-      if (length(selectors) == 0) {
-        # Create selector pattern that matches ggplotify grob structure
-        # Pattern: rect[id^='graphics-plot-{call_index}-rect-1']
-        selector <- paste0("rect[id^='graphics-plot-", plot_call_index, "-rect-1']")
-        selectors[[1]] <- selector
       }
       
       selectors
