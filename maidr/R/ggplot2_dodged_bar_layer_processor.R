@@ -3,7 +3,7 @@
 #' Processes dodged bar plot layers with complete logic included
 #'
 #' @keywords internal
-DodgedBarLayerProcessor <- R6::R6Class("DodgedBarLayerProcessor",
+Ggplot2DodgedBarLayerProcessor <- R6::R6Class("Ggplot2DodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
