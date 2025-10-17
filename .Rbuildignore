@@ -1,0 +1,7 @@
+^bcknd/.*$
+^\.git/.*$
+^\.github/.*$
+^lintr_fix\.sh$
+^README\.md$
+^test_.*\.R$
+
