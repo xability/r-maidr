@@ -1,15 +1,15 @@
 #!/bin/bash
 # Simple R linting fix command
-# Usage: ./rfix.sh
+# Usage: ./lintr_fix.sh
 
 echo "🔧 Fixing R linting issues..."
 
-# Change to maidr package directory
-cd maidr
+# Remove problematic .lintr file
+rm -f .lintr
 
 # Run styler to fix formatting issues
-echo "📝 Running styler..."
-Rscript -e "styler::style_pkg()"
+echo "📝 Running styler with tidyverse style..."
+Rscript -e "styler::style_pkg(style = styler::tidyverse_style, indent_by = 2)"
 
 # Check remaining issues
 echo "🔍 Checking remaining issues..."
