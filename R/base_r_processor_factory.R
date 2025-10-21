@@ -30,7 +30,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "dodged_bar" = BaseRDodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = BaseRStackedBarLayerProcessor$new(layer_info),
         "line" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement line processor
-        "hist" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement hist processor
+        "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement box processor
         "heat" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement heat processor
         "contour" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement contour processor
@@ -76,6 +76,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "BaseRBarplotLayerProcessor",
         "BaseRDodgedBarLayerProcessor",
         "BaseRStackedBarLayerProcessor",
+        "BaseRHistogramLayerProcessor",
         "BaseRUnknownLayerProcessor"
         # TODO: Add other processor classes as they are implemented
       )
