@@ -111,3 +111,23 @@ save_html(file = hist_html_file)
 
 cat("✓ Base R histogram example completed\n")
 cat("Generated:", hist_html_file, "\n")
+
+cat("\n=== Base R Density/Smooth Plot Example ===\n")
+
+# Create a Base R density plot
+set.seed(456)
+density_data <- rnorm(100, mean = 0, sd = 1)
+
+plot(density(density_data),
+     main = "Base R Density Plot",
+     xlab = "Value",
+     ylab = "Density",
+     col = "darkblue",
+     lwd = 2)
+
+# Generate interactive HTML
+density_html_file <- file.path(output_dir, "example_density_plot_base_r.html")
+save_html(file = density_html_file)
+
+cat("✓ Base R density plot example completed\n")
+cat("Generated:", density_html_file, "\n")

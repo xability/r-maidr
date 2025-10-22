@@ -29,11 +29,12 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "bar" = BaseRBarplotLayerProcessor$new(layer_info),
         "dodged_bar" = BaseRDodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = BaseRStackedBarLayerProcessor$new(layer_info),
-        "line" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement line processor
+        "smooth" = BaseRSmoothLayerProcessor$new(layer_info),
+        "line" = BaseRUnknownLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
-        "box" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement box processor
-        "heat" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement heat processor
-        "contour" = BaseRUnknownLayerProcessor$new(layer_info), # TODO: Implement contour processor
+        "box" = BaseRUnknownLayerProcessor$new(layer_info),
+        "heat" = BaseRUnknownLayerProcessor$new(layer_info),
+        "contour" = BaseRUnknownLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
         BaseRUnknownLayerProcessor$new(layer_info)
       )
@@ -47,6 +48,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "bar",
         "dodged_bar",
         "stacked_bar",
+        "smooth",
         "line",
         "hist",
         "box",
@@ -76,6 +78,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "BaseRBarplotLayerProcessor",
         "BaseRDodgedBarLayerProcessor",
         "BaseRStackedBarLayerProcessor",
+        "BaseRSmoothLayerProcessor",
         "BaseRHistogramLayerProcessor",
         "BaseRUnknownLayerProcessor"
         # TODO: Add other processor classes as they are implemented

@@ -38,7 +38,6 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       # Extract function name from the layer (which is a logged plot call)
       function_name <- layer$function_name
       args <- layer$args
-      
 
       # Map Base R functions to MAIDR layer types
       layer_type <- switch(function_name,
@@ -53,7 +52,13 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
           }
         },
         "plot" = {
-          "line" # Default plot type is line/point
+          # Check if this is a density/smooth plot
+          first_arg <- args[[1]]
+          if (!is.null(first_arg) && inherits(first_arg, "density")) {
+            "smooth"
+          } else {
+            "line" # Default plot type is line/point
+          }
         },
         "hist" = {
           "hist"
