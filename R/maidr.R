@@ -5,32 +5,30 @@
 #' @param ... Additional arguments passed to internal functions
 #' @export
 show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
-  # If no plot provided, try Base R auto-detection
+  device_id <- grDevices::dev.cur()
+  
   if (is.null(plot)) {
-    if (!is_patching_active() || length(get_plot_calls()) == 0) {
-      stop("No Base R plots detected. Please create a plot first (e.g., barplot(), plot()).")
+    if (!is_patching_active() || !has_device_calls(device_id)) {
+      stop("No Base R plots detected. Please create a plot first ",
+           "(e.g., barplot(), plot()).")
     }
     plot <- NULL
   }
 
-  # Use existing logic for both ggplot2 and Base R
   if (as_widget) {
     return(maidr_widget(plot, ...))
   }
 
-  # Shiny mode - return just the SVG content
   if (shiny) {
     return(create_maidr_html(plot, shiny = TRUE, ...))
   }
 
-  # Default behavior - create full HTML document and display it
   html_doc <- create_maidr_html(plot, ...)
 
   if (is.null(plot)) {
-    clear_plot_calls()
+    clear_device_storage(device_id)
   }
 
-  # Always display the HTML document
   display_html(html_doc)
 
   invisible(NULL)
@@ -75,22 +73,22 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 #' @return The file path where the HTML was saved
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", ...) {
-  # If no plot provided, try Base R auto-detection
+  device_id <- grDevices::dev.cur()
+  
   if (is.null(plot)) {
-    if (!is_patching_active() || length(get_plot_calls()) == 0) {
-      stop("No Base R plots detected. Please create a plot first (e.g., barplot(), plot()).")
+    if (!is_patching_active() || !has_device_calls(device_id)) {
+      stop("No Base R plots detected. Please create a plot first ",
+           "(e.g., barplot(), plot()).")
     }
     plot <- NULL
   }
 
-  # Create the HTML document
   html_doc <- create_maidr_html(plot, ...)
 
   if (is.null(plot)) {
-    clear_plot_calls()
+    clear_device_storage(device_id)
   }
 
-  # Save the HTML document to file
   save_html_document(html_doc, file)
 
   invisible(file)

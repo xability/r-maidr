@@ -169,7 +169,8 @@ BaseRBarplotLayerProcessor <- R6::R6Class("BaseRBarplotLayerProcessor",
       selectors <- lapply(rect_names, function(name) {
         svg_id <- paste0(name, ".1")
         escaped <- gsub("\\.", "\\\\.", svg_id)
-        paste0("#", escaped, " rect")
+        selector <- paste0("#", escaped, " rect")
+        selector
       })
 
       selectors

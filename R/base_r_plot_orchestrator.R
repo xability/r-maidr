@@ -15,6 +15,8 @@
 BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
   private = list(
     .plot_calls = list(),
+    .plot_groups = list(),
+    .device_id = NULL,
     .layers = list(),
     .layer_processors = list(),
     .combined_data = list(),
@@ -24,35 +26,41 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
     .grob_list = list()
   ),
   public = list(
-    initialize = function() {
-      # Get the Base R adapter
+    initialize = function(device_id = grDevices::dev.cur()) {
+      private$.device_id <- device_id
       registry <- get_global_registry()
       private$.adapter <- registry$get_adapter("base_r")
 
-      # Get recorded plot calls from the function patching system
-      private$.plot_calls <- get_plot_calls()
+      private$.plot_calls <- get_device_calls(device_id)
 
-      # Process the recorded plot calls
+      grouped <- group_device_calls(device_id)
+      private$.plot_groups <- grouped$groups
+
       self$detect_layers()
       self$create_layer_processors()
       self$process_layers()
     },
     detect_layers = function() {
-      plot_calls <- private$.plot_calls
+      plot_groups <- private$.plot_groups
       private$.layers <- list()
 
-      for (i in seq_along(plot_calls)) {
-        layer_info <- self$analyze_single_layer(plot_calls[[i]], i)
+      if (length(plot_groups) == 0) {
+        return(invisible(NULL))
+      }
+
+      for (i in seq_along(plot_groups)) {
+        group <- plot_groups[[i]]
+        high_call <- group$high_call
+
+        layer_info <- self$analyze_single_layer(high_call, i, group)
         private$.layers[[i]] <- layer_info
       }
     },
-    analyze_single_layer = function(plot_call, layer_index) {
-      # Extract information from the recorded plot call
+    analyze_single_layer = function(plot_call, layer_index, group = NULL) {
       function_name <- plot_call$function_name
       args <- plot_call$args
       call_expr <- plot_call$call_expr
 
-      # Get layer type from adapter
       layer_type <- private$.adapter$detect_layer_type(plot_call)
 
       layer_info <- list(
@@ -61,7 +69,8 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         function_name = function_name,
         args = args,
         call_expr = call_expr,
-        plot_call = plot_call
+        plot_call = plot_call,
+        group = group
       )
 
       layer_info
@@ -209,37 +218,34 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       private$.plot_calls
     },
     get_gtable = function() {
-      # For Base R plots, we use ggplotify to convert plot calls to grob trees
-      # This method returns the main/combined grob tree
 
-      if (length(private$.plot_calls) == 0) {
+      if (length(private$.plot_groups) == 0) {
         return(NULL)
       }
 
-      # Convert each plot call to a grob using ggplotify
       grob_list <- list()
 
-      for (i in seq_along(private$.plot_calls)) {
-        plot_call <- private$.plot_calls[[i]]
+      for (i in seq_along(private$.plot_groups)) {
+        group <- private$.plot_groups[[i]]
+        high_call <- group$high_call
+        low_calls <- group$low_calls
 
-        # Create a function that reproduces the plot call
         plot_func <- function() {
-          # Reconstruct the original call
-          args <- plot_call$args
-          func_name <- plot_call$function_name
+          do.call(high_call$function_name, high_call$args)
 
-          # Call the original function with captured arguments
-          do.call(func_name, args)
+          if (length(low_calls) > 0) {
+            for (low_call in low_calls) {
+              do.call(low_call$function_name, low_call$args)
+            }
+          }
         }
 
-        # Convert to grob using ggplotify
         tryCatch(
           {
             grob <- ggplotify::as.grob(plot_func)
             grob_list[[i]] <- grob
           },
           error = function(e) {
-            warning("Failed to convert plot call ", i, " to grob: ", e$message)
             grob_list[[i]] <- NULL
           }
         )
@@ -256,19 +262,14 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       return(NULL)
     },
     get_grob_for_layer = function(layer_index) {
-      # Get the grob for a specific layer
-      # Each layer gets its own grob tree (converted from its plot call)
-
-      if (layer_index < 1 || layer_index > length(private$.plot_calls)) {
+      if (layer_index < 1 || layer_index > length(private$.plot_groups)) {
         return(NULL)
       }
 
-      # Ensure grob list is populated
       if (length(private$.grob_list) == 0) {
-        self$get_gtable() # This populates .grob_list
+        self$get_gtable()
       }
 
-      # Return the grob for this specific layer
       if (layer_index <= length(private$.grob_list)) {
         return(private$.grob_list[[layer_index]])
       }

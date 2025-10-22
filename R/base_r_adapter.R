@@ -18,9 +18,12 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
     #' @param plot_object The plot object to check (should be NULL for Base R)
     #' @return TRUE if Base R plotting is active, FALSE otherwise
     can_handle = function(plot_object) {
-      # For Base R, we check if our patching system is active
-      # and if there are any recorded plot calls
-      return(is_patching_active() && length(get_plot_calls()) > 0)
+      active <- is_patching_active()
+      device_id <- grDevices::dev.cur()
+      has_calls <- has_device_calls(device_id)
+      calls_count <- length(get_device_calls(device_id))
+      can_handle_result <- active && has_calls
+      return(can_handle_result)
     },
 
     #' Detect the type of a single layer from Base R plot calls
@@ -35,27 +38,44 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       # Extract function name from the layer (which is a logged plot call)
       function_name <- layer$function_name
       args <- layer$args
+      
 
       # Map Base R functions to MAIDR layer types
-      switch(function_name,
+      layer_type <- switch(function_name,
         "barplot" = {
           # Check if this is a dodged or stacked bar plot
           if (self$is_dodged_barplot(args)) {
-            return("dodged_bar")
+            "dodged_bar"
+          } else if (self$is_stacked_barplot(args)) {
+            "stacked_bar"
+          } else {
+            "bar" # Regular bar plot
           }
-          if (self$is_stacked_barplot(args)) {
-            return("stacked_bar")
-          }
-          return("bar") # Regular bar plot
         },
-        "plot" = "line", # Default plot type is line/point
-        "hist" = "hist",
-        "boxplot" = "box",
-        "image" = "heat",
-        "contour" = "contour",
-        "matplot" = "line",
-        "unknown"
+        "plot" = {
+          "line" # Default plot type is line/point
+        },
+        "hist" = {
+          "hist"
+        },
+        "boxplot" = {
+          "box"
+        },
+        "image" = {
+          "heat"
+        },
+        "contour" = {
+          "contour"
+        },
+        "matplot" = {
+          "line"
+        },
+        {
+          "unknown"
+        }
       )
+      
+      return(layer_type)
     },
 
     #' Check if a barplot call represents a dodged bar plot
@@ -102,8 +122,8 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
         stop("Base R plotting system is not active or no plot calls recorded")
       }
 
-      # Use the Base R PlotOrchestrator
-      BaseRPlotOrchestrator$new()
+      device_id <- grDevices::dev.cur()
+      BaseRPlotOrchestrator$new(device_id = device_id)
     },
 
     #' Get the system name
@@ -133,14 +153,16 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
     },
 
     #' Get recorded plot calls for processing
+    #' @param device_id Graphics device ID (defaults to current device)
     #' @return List of recorded plot calls
-    get_plot_calls = function() {
-      get_plot_calls()
+    get_plot_calls = function(device_id = grDevices::dev.cur()) {
+      get_device_calls(device_id)
     },
 
     #' Clear recorded plot calls (for cleanup)
-    clear_plot_calls = function() {
-      clear_plot_calls()
+    #' @param device_id Graphics device ID (defaults to current device)
+    clear_plot_calls = function(device_id = grDevices::dev.cur()) {
+      clear_device_storage(device_id)
     },
 
     #' Initialize function patching
