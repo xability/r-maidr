@@ -7,34 +7,32 @@
 
 # Global variables for function patching (using environment)
 .maidr_patching_env <- new.env(parent = .GlobalEnv)
-.maidr_patching_env$.maidr_plot_calls <- list()
 .maidr_patching_env$.saved_graphics_fns <- list()
-
-# Functions to wrap (only major plot types)
-fns_to_wrap <- c(
-  "barplot",
-  "plot",
-  "hist",
-  "boxplot",
-  "image",
-  "contour",
-  "matplot"
-)
 
 #' Initialize Base R function patching
 #'
-#' This function sets up the function patching system by wrapping Base R plotting functions.
+#' This function sets up the function patching system by wrapping Base R
+#' plotting functions (HIGH, LOW, and LAYOUT levels).
 #' It should be called before any Base R plotting commands.
 #'
+#' @param include_low Include LOW-level functions (lines, points, etc.)
+#' @param include_layout Include LAYOUT functions (par, layout, etc.)
 #' @return NULL (invisible)
 #' @keywords internal
-initialize_base_r_patching <- function() {
-  # Clear any existing plot calls
-  .maidr_patching_env$.maidr_plot_calls <- list()
+initialize_base_r_patching <- function(include_low = TRUE,
+                                        include_layout = TRUE) {
+  fns_to_wrap <- get_functions_by_class("HIGH")
+  
+  if (include_low) {
+    fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LOW"))
+  }
+  
+  if (include_layout) {
+    fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LAYOUT"))
+  }
 
-  # Wrap all target functions
   lapply(fns_to_wrap, wrap_function)
-
+  
   invisible(NULL)
 }
 
@@ -47,7 +45,6 @@ wrap_function <- function(function_name) {
   # Find original function
   orig <- find_original_function(function_name)
   if (is.null(orig)) {
-    message("Could not find function ", function_name, " to wrap.")
     return(FALSE)
   }
 
@@ -118,17 +115,17 @@ create_function_wrapper <- function(function_name, original_function) {
     return(create_barplot_wrapper(original_function))
   }
 
-  # Create standard wrapper using eval and substitute to capture the function name and original
   wrapper <- eval(substitute(
     function(...) {
-      # Capture the function call
       this_call <- match.call()
+      args_list <- list(...)
 
-      # Log the call
-      log_plot_call(FNAME, this_call, list(...))
+      result <- ORIG(...)
 
-      # Call original function
-      ORIG(...)
+      device_id <- grDevices::dev.cur()
+      log_plot_call_to_device(FNAME, this_call, args_list, device_id)
+
+      result
     },
     list(FNAME = function_name, ORIG = original_function)
   ))
@@ -143,18 +140,17 @@ create_function_wrapper <- function(function_name, original_function) {
 #' @keywords internal
 create_barplot_wrapper <- function(original_function) {
   wrapper <- function(...) {
-    # Capture the function call
     this_call <- match.call()
-
-    # Log the call
-    log_plot_call("barplot", this_call, list(...))
-
-    # Apply modular patching system
     args <- list(...)
+
     patched_args <- apply_barplot_patches(args)
 
-    # Call original function with patched arguments
-    do.call(original_function, patched_args)
+    result <- do.call(original_function, patched_args)
+
+    device_id <- grDevices::dev.cur()
+    log_plot_call_to_device("barplot", this_call, args, device_id)
+
+    result
   }
 
   wrapper
@@ -209,27 +205,6 @@ apply_barplot_sorting <- function(args) {
   return(args)
 }
 
-#' Log a plot call
-#'
-#' @param function_name Name of the function called
-#' @param call_expr The call expression
-#' @param args List of arguments
-#' @return NULL (invisible)
-#' @keywords internal
-log_plot_call <- function(function_name, call_expr, args) {
-  # Create log entry
-  log_entry <- list(
-    function_name = function_name,
-    call_expr = if (!is.null(call_expr)) deparse(call_expr) else NA,
-    args = args,
-    timestamp = Sys.time()
-  )
-
-  # Add to plot calls list in environment
-  .maidr_patching_env$.maidr_plot_calls <- append(.maidr_patching_env$.maidr_plot_calls, list(log_entry))
-
-  invisible(NULL)
-}
 
 #' Restore original functions
 #'
@@ -252,18 +227,20 @@ restore_original_functions <- function() {
 
 #' Get recorded plot calls
 #'
+#' @param device_id Graphics device ID (defaults to current device)
 #' @return List of recorded plot calls
 #' @keywords internal
-get_plot_calls <- function() {
-  .maidr_patching_env$.maidr_plot_calls
+get_plot_calls <- function(device_id = grDevices::dev.cur()) {
+  get_device_calls(device_id)
 }
 
 #' Clear recorded plot calls
 #'
+#' @param device_id Graphics device ID (defaults to current device)
 #' @return NULL (invisible)
 #' @keywords internal
-clear_plot_calls <- function() {
-  .maidr_patching_env$.maidr_plot_calls <- list()
+clear_plot_calls <- function(device_id = grDevices::dev.cur()) {
+  clear_device_storage(device_id)
   invisible(NULL)
 }
 

@@ -29,7 +29,7 @@ barplot(c(30, 25, 15, 10),
 
 # Generate interactive HTML
 html_file <- file.path(output_dir, "example_bar_plot_base_r.html")
-show(file = html_file, open = FALSE)
+save_html(file = html_file)
 
 cat("✓ Base R bar plot example completed\n")
 cat("Generated:", html_file, "\n")
@@ -59,7 +59,7 @@ barplot(test_matrix,
 
 # Generate interactive HTML
 dodged_html_file <- file.path(output_dir, "example_dodged_bar_plot_base_r.html")
-show(file = dodged_html_file, open = FALSE)
+save_html(file = dodged_html_file)
 
 cat("✓ Base R dodged bar plot example completed\n")
 cat("Generated:", dodged_html_file, "\n")
@@ -87,7 +87,73 @@ barplot(stacked_matrix,
 
 # Generate interactive HTML
 stacked_html_file <- file.path(output_dir, "example_stacked_bar_plot_base_r.html")
-show(file = stacked_html_file, open = FALSE)
+save_html(file = stacked_html_file)
 
 cat("✓ Base R stacked bar plot example completed\n")
 cat("Generated:", stacked_html_file, "\n")
+
+cat("\n=== Base R Histogram Example ===\n")
+
+# Create a Base R histogram
+set.seed(123)
+hist_data <- rnorm(100, mean = 0, sd = 1)
+
+hist(hist_data,
+     main = "Base R Histogram",
+     xlab = "Values",
+     ylab = "Frequency",
+     col = "steelblue",
+     border = "black")
+
+# Generate interactive HTML
+hist_html_file <- file.path(output_dir, "example_histogram_base_r.html")
+save_html(file = hist_html_file)
+
+cat("✓ Base R histogram example completed\n")
+cat("Generated:", hist_html_file, "\n")
+
+cat("\n=== Base R Density/Smooth Plot Example ===\n")
+
+# Create a Base R density plot
+set.seed(456)
+density_data <- rnorm(100, mean = 0, sd = 1)
+
+plot(density(density_data),
+     main = "Base R Density Plot",
+     xlab = "Value",
+     ylab = "Density",
+     col = "darkblue",
+     lwd = 2)
+
+# Generate interactive HTML
+density_html_file <- file.path(output_dir, "example_density_plot_base_r.html")
+save_html(file = density_html_file)
+
+cat("✓ Base R density plot example completed\n")
+cat("Generated:", density_html_file, "\n")
+
+cat("\n=== Base R Histogram + Density Multi-Layer Example ===\n")
+
+# Create histogram with density overlay
+set.seed(42)
+data <- rnorm(200, mean = 10, sd = 3)
+
+hist(data,
+     probability = TRUE,
+     main = "Histogram with Density Curve",
+     xlab = "Value",
+     ylab = "Density",
+     col = "lightblue",
+     border = "white",
+     breaks = 15)
+
+lines(density(data),
+      col = "darkred",
+      lwd = 3)
+
+# Generate interactive HTML
+multilayer_html_file <- file.path(output_dir, "example_histogram_density_base_r.html")
+save_html(file = multilayer_html_file)
+
+cat("✓ Base R histogram + density multi-layer example completed\n")
+cat("Generated:", multilayer_html_file, "\n")
