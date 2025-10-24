@@ -35,7 +35,13 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       hist_data <- args[[1]]
       
       # Create histogram object to get breaks, counts, mids
-      hist_obj <- hist(hist_data, plot = FALSE)
+      # Pass the original parameters to ensure same binning as the plot
+      # Suppress warnings about unused probability parameter
+      hist_params <- list(plot = FALSE)
+      if (!is.null(args$breaks)) hist_params$breaks <- args$breaks
+      if (!is.null(args$probability)) hist_params$probability <- args$probability
+      
+      hist_obj <- suppressWarnings(do.call(hist, c(list(hist_data), hist_params)))
       
       breaks <- hist_obj$breaks
       counts <- hist_obj$counts
@@ -43,34 +49,40 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       
       # Convert to MAIDR format (same as ggplot2 histogram format)
       histogram_data <- list()
-      for(i in 1:length(counts)) {
+      for (i in seq_along(counts)) {
         histogram_data[[i]] <- list(
-          x = mids[i],           # Center of bin
-          y = counts[i],          # Frequency count
-          xMin = breaks[i],      # Left edge
-          xMax = breaks[i+1],    # Right edge
-          yMin = 0,              # Always 0
-          yMax = counts[i]       # Same as y
+          x = mids[i],
+          y = counts[i],
+          xMin = breaks[i],
+          xMax = breaks[i + 1],
+          yMin = 0,
+          yMax = counts[i]
         )
       }
-      
+
       return(histogram_data)
     },
     
     generate_selectors = function(layer_info, gt = NULL) {
-      plot_call_index <- layer_info$index
+      # Use group_index for grob lookup (not layer index)
+      # Multiple layers in same group share same grob with group-based naming
+      group_index <- if (!is.null(layer_info$group_index)) {
+        layer_info$group_index
+      } else {
+        layer_info$index
+      }
 
       # Use the working method - generate selectors from the provided grob
       if (!is.null(gt)) {
-        selectors <- self$generate_selectors_from_grob(gt, plot_call_index)
+        selectors <- self$generate_selectors_from_grob(gt, group_index)
         if (length(selectors) > 0 && selectors != "") {
-          # Return as array with the first (most specific) selector
           return(list(selectors))
         }
       }
 
       # Fallback selector for histograms - return as array
-      main_selector <- paste0("rect[id^='graphics-plot-", plot_call_index, "-rect-1']")
+      main_selector <- paste0("rect[id^='graphics-plot-", group_index,
+                              "-rect-1']")
       list(main_selector)
     },
     
@@ -108,28 +120,11 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       names
     },
     
-    generate_selectors_from_grob = function(grob, call_index) {
-      rect_names <- self$find_rect_grobs(grob, call_index)
-
-      if (length(rect_names) == 0) {
-        return("")
-      }
-
-      # Use the main container pattern - this is the working method
-      main_container_pattern <- paste0("graphics-plot-", call_index, "-rect-1")
-      main_containers <- rect_names[grepl(main_container_pattern, rect_names)]
-
-      if (length(main_containers) > 0) {
-        # Find the container with .1 suffix (the parent container)
-        parent_containers <- main_containers[grepl("\\.1$", main_containers)]
-        if (length(parent_containers) > 0) {
-          escaped_parent <- gsub("\\.", "\\\\.", parent_containers[1])
-          return(paste0("#", escaped_parent, " rect"))
-        }
-      }
-
-      # Fallback to pattern-based selector
-      paste0("rect[id^='graphics-plot-", call_index, "-rect-1']")
+    generate_selectors_from_grob = function(grob, call_index = NULL) {
+      # Use robust selector generation without panel detection
+      selector <- generate_robust_selector(grob, "rect", "rect")
+      
+      return(selector)
     },
     
     extract_axis_titles = function(layer_info) {

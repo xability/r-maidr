@@ -29,57 +29,63 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
     #' Detect the type of a single layer from Base R plot calls
     #' @param layer The plot call entry from our logger
     #' @param plot_object The parent plot object (NULL for Base R)
-    #' @return String indicating the layer type (e.g., "bar", "dodged_bar", "stacked_bar")
+    #' @return String indicating the layer type (e.g., "bar", "dodged_bar",
+    #'   "stacked_bar", "smooth", "line", "point")
     detect_layer_type = function(layer, plot_object = NULL) {
       if (is.null(layer)) {
         return("unknown")
       }
 
-      # Extract function name from the layer (which is a logged plot call)
       function_name <- layer$function_name
       args <- layer$args
 
-      # Map Base R functions to MAIDR layer types
+      # HIGH-level function detection
       layer_type <- switch(function_name,
         "barplot" = {
-          # Check if this is a dodged or stacked bar plot
           if (self$is_dodged_barplot(args)) {
             "dodged_bar"
           } else if (self$is_stacked_barplot(args)) {
             "stacked_bar"
           } else {
-            "bar" # Regular bar plot
+            "bar"
           }
         },
         "plot" = {
-          # Check if this is a density/smooth plot
           first_arg <- args[[1]]
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
           } else {
-            "line" # Default plot type is line/point
+            "line"
           }
         },
-        "hist" = {
-          "hist"
-        },
-        "boxplot" = {
-          "box"
-        },
-        "image" = {
-          "heat"
-        },
-        "contour" = {
-          "contour"
-        },
-        "matplot" = {
-          "line"
-        },
-        {
-          "unknown"
-        }
+        "hist" = "hist",
+        "boxplot" = "box",
+        "image" = "heat",
+        "contour" = "contour",
+        "matplot" = "line",
+        NULL
       )
-      
+
+      if (!is.null(layer_type)) {
+        return(layer_type)
+      }
+
+      # LOW-level function detection (NEW)
+      layer_type <- switch(function_name,
+        "lines" = {
+          first_arg <- args[[1]]
+          if (!is.null(first_arg) && inherits(first_arg, "density")) {
+            "smooth"
+          } else {
+            "line"
+          }
+        },
+        "points" = "point",
+        "abline" = "line",
+        "polygon" = "polygon",
+        "unknown"
+      )
+
       return(layer_type)
     },
 

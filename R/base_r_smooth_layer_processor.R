@@ -53,61 +53,30 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
         return(list())
       }
 
-      call_index <- layer_info$index
+      # Use group_index for grob lookup (not layer index)
+      # Multiple layers in same group share same grob with group-based naming
+      group_index <- if (!is.null(layer_info$group_index)) {
+        layer_info$group_index
+      } else {
+        layer_info$index
+      }
 
-      selectors <- self$generate_selectors_from_grob(gt, call_index)
+      selectors <- self$generate_selectors_from_grob(gt, group_index)
 
       selectors
     },
 
-    find_polyline_grobs = function(grob, call_index) {
-      names <- character(0)
-
-      if (!is.null(grob$name)) {
-        if (grepl(paste0("graphics-plot-", call_index, "-lines-"), grob$name)) {
-          names <- c(names, grob$name)
-        }
-      }
-
-      if (inherits(grob, "gList")) {
-        for (i in seq_along(grob)) {
-          names <- c(names, self$find_polyline_grobs(grob[[i]], call_index))
-        }
-      }
-
-      if (inherits(grob, "gTree")) {
-        if (!is.null(grob$children)) {
-          for (i in seq_along(grob$children)) {
-            names <- c(names,
-              self$find_polyline_grobs(grob$children[[i]], call_index))
-          }
-        }
-      }
-
-      if (!is.null(grob$grobs)) {
-        for (i in seq_along(grob$grobs)) {
-          names <- c(names, self$find_polyline_grobs(grob$grobs[[i]],
-            call_index))
-        }
-      }
-
-      names
+    find_polyline_grobs = function(grob, call_index = NULL) {
+      # Use robust utility function to find lines container
+      # This doesn't rely on call_index matching the actual grob names
+      find_graphics_plot_grob(grob, "lines")
     },
 
-    generate_selectors_from_grob = function(grob, call_index) {
-      polyline_names <- self$find_polyline_grobs(grob, call_index)
-
-      if (length(polyline_names) == 0) {
-        return(list())
-      }
-
-      selectors <- lapply(polyline_names, function(name) {
-        svg_id <- paste0(name, ".1.1")
-        escaped <- gsub("\\.", "\\\\.", svg_id)
-        paste0("#", escaped)
-      })
-
-      selectors
+    generate_selectors_from_grob = function(grob, call_index = NULL) {
+      # Use robust selector generation without panel detection
+      selector <- generate_robust_selector(grob, "lines", "polyline")
+      
+      return(list(selector))
     },
 
     extract_axis_titles = function(layer_info) {
@@ -115,6 +84,17 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
         return(list(x = "", y = ""))
       }
 
+      # For smooth layers, get axis labels from the histogram layer in the same group
+      # since lines() doesn't have xlab/ylab parameters
+      group <- layer_info$group
+      if (!is.null(group) && !is.null(group$high_call)) {
+        hist_args <- group$high_call$args
+        x_title <- if (!is.null(hist_args$xlab)) hist_args$xlab else ""
+        y_title <- if (!is.null(hist_args$ylab)) hist_args$ylab else ""
+        return(list(x = x_title, y = y_title))
+      }
+
+      # Fallback to current layer args (for standalone smooth plots)
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 

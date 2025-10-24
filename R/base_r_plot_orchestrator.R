@@ -48,12 +48,53 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         return(invisible(NULL))
       }
 
-      for (i in seq_along(plot_groups)) {
-        group <- plot_groups[[i]]
+      layer_counter <- 0
+
+      for (group_idx in seq_along(plot_groups)) {
+        group <- plot_groups[[group_idx]]
         high_call <- group$high_call
 
-        layer_info <- self$analyze_single_layer(high_call, i, group)
-        private$.layers[[i]] <- layer_info
+        # LAYER 1: HIGH-level call
+        layer_counter <- layer_counter + 1
+        high_layer_type <- private$.adapter$detect_layer_type(high_call)
+
+        private$.layers[[layer_counter]] <- list(
+          index = layer_counter,
+          type = high_layer_type,
+          function_name = high_call$function_name,
+          args = high_call$args,
+          call_expr = high_call$call_expr,
+          plot_call = high_call,
+          group = group,
+          group_index = group_idx,
+          source = "HIGH"
+        )
+
+        # LAYERS 2+: LOW-level calls (NEW)
+        if (length(group$low_calls) > 0) {
+          for (low_idx in seq_along(group$low_calls)) {
+            low_call <- group$low_calls[[low_idx]]
+            low_layer_type <- private$.adapter$detect_layer_type(low_call)
+
+            # Only create layer if we can identify its type
+            if (low_layer_type != "unknown") {
+              layer_counter <- layer_counter + 1
+
+              private$.layers[[layer_counter]] <- list(
+                index = layer_counter,
+                type = low_layer_type,
+                function_name = low_call$function_name,
+                args = low_call$args,
+                call_expr = low_call$call_expr,
+                plot_call = low_call,
+                group = group,
+                group_index = group_idx,
+                source = "LOW",
+                low_call_index = low_idx
+              )
+            }
+          }
+        }
       }
     },
     analyze_single_layer = function(plot_call, layer_index, group = NULL) {
@@ -262,7 +303,7 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       return(NULL)
     },
     get_grob_for_layer = function(layer_index) {
-      if (layer_index < 1 || layer_index > length(private$.plot_groups)) {
+      if (layer_index < 1 || layer_index > length(private$.layers)) {
         return(NULL)
       }
 
@@ -270,8 +311,14 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         self$get_gtable()
       }
 
-      if (layer_index <= length(private$.grob_list)) {
-        return(private$.grob_list[[layer_index]])
+      # Get the layer info to find which group it belongs to
+      layer_info <- private$.layers[[layer_index]]
+      group_index <- layer_info$group_index
+
+      # Return the grob for this layer's group
+      # (Multiple layers from same group share same grob)
+      if (group_index <= length(private$.grob_list)) {
+        return(private$.grob_list[[group_index]])
       }
 
       return(NULL)
