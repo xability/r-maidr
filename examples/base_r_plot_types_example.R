@@ -157,3 +157,58 @@ save_html(file = multilayer_html_file)
 
 cat("✓ Base R histogram + density multi-layer example completed\n")
 cat("Generated:", multilayer_html_file, "\n")
+
+cat("\n=== Base R Single Line Plot Example ===\n")
+
+# Create a Base R single line plot
+x <- 1:10
+y <- c(5, 7, 3, 8, 6, 9, 4, 7, 10, 8)
+
+plot(x, y,
+     type = "l",
+     main = "Base R Single Line Plot",
+     xlab = "X values",
+     ylab = "Y values",
+     col = "steelblue",
+     lwd = 2)
+
+# Generate interactive HTML
+line_html_file <- file.path(output_dir, "example_line_plot_base_r.html")
+save_html(file = line_html_file)
+
+cat("✓ Base R single line plot example completed\n")
+cat("Generated:", line_html_file, "\n")
+
+cat("\n=== Base R Multiline Plot Example ===\n")
+
+# Create a Base R multiline plot using matplot
+set.seed(123)
+x <- 1:12
+y1 <- c(10, 12, 11, 14, 13, 15, 14, 16, 15, 17, 16, 18)
+y2 <- c(8, 10, 9, 11, 10, 12, 11, 13, 12, 14, 13, 15)
+y3 <- c(15, 17, 16, 18, 17, 19, 18, 20, 19, 21, 20, 22)
+
+y_matrix <- cbind(y1, y2, y3)
+colnames(y_matrix) <- c("Product A", "Product B", "Product C")
+
+matplot(x, y_matrix,
+        type = "l",
+        main = "Base R Multiline Plot (3 Series)",
+        xlab = "Month",
+        ylab = "Sales",
+        col = c("red", "green", "blue"),
+        lty = 1,
+        lwd = 2)
+
+legend("topright",
+       legend = colnames(y_matrix),
+       col = c("red", "green", "blue"),
+       lty = 1,
+       lwd = 2)
+
+# Generate interactive HTML
+multiline_html_file <- file.path(output_dir, "example_multiline_plot_base_r.html")
+save_html(file = multiline_html_file)
+
+cat("✓ Base R multiline plot example completed\n")
+cat("Generated:", multiline_html_file, "\n")
