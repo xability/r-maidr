@@ -212,3 +212,34 @@ save_html(file = multiline_html_file)
 
 cat("✓ Base R multiline plot example completed\n")
 cat("Generated:", multiline_html_file, "\n")
+
+cat("\n=== Base R Heatmap Example ===\n")
+
+# Create a Base R heatmap
+heatmap_data <- matrix(c(
+  4, 3,
+  2, 1
+), nrow = 2, ncol = 2, byrow = TRUE)
+
+colnames(heatmap_data) <- c("A", "B")
+rownames(heatmap_data) <- c("2", "1")
+
+# Generate color palette
+n_colors <- 100
+color_palette <- colorRampPalette(c("darkblue", "blue", "lightblue"))(n_colors)
+
+# Create the heatmap using heatmap() function
+heatmap(heatmap_data,
+        Rowv = NA, Colv = NA,  # No dendrograms
+        col = color_palette,
+        scale = "none",
+        main = "Base R Heatmap Example",
+        xlab = "Columns", ylab = "Rows",
+        margins = c(5, 8))
+
+# Generate interactive HTML
+heatmap_html_file <- file.path(output_dir, "example_heatmap_base_r.html")
+save_html(file = heatmap_html_file)
+
+cat("✓ Base R heatmap example completed\n")
+cat("Generated:", heatmap_html_file, "\n")
