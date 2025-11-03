@@ -4,15 +4,17 @@
 \alias{create_maidr_html}
 \title{Create HTML document with maidr enhancements using the orchestrator}
 \usage{
-create_maidr_html(plot, ...)
+create_maidr_html(plot, shiny = FALSE, ...)
 }
 \arguments{
 \item{plot}{A ggplot2 object}
 
+\item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}
+
 \item{...}{Additional arguments passed to internal functions}
 }
 \value{
-An htmltools HTML document object
+An htmltools HTML document object or SVG content
 }
 \description{
 Create HTML document with maidr enhancements using the orchestrator

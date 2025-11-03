@@ -32,7 +32,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "smooth" = BaseRSmoothLayerProcessor$new(layer_info),
         "line" = BaseRLineLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
-        "box" = BaseRUnknownLayerProcessor$new(layer_info),
+        "box" = BaseRBoxplotLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
         "contour" = BaseRUnknownLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
@@ -81,6 +81,7 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
         "BaseRSmoothLayerProcessor",
         "BaseRLineLayerProcessor",
         "BaseRHistogramLayerProcessor",
+        "BaseRBoxplotLayerProcessor",
         "BaseRUnknownLayerProcessor"
         # TODO: Add other processor classes as they are implemented
       )

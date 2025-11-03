@@ -32,6 +32,9 @@ interface that all layer processors must implement.
 \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
 \item \href{#method-LayerProcessor-reorder_layer_data}{\code{LayerProcessor$reorder_layer_data()}}
 \item \href{#method-LayerProcessor-get_layer_index}{\code{LayerProcessor$get_layer_index()}}
+\item \href{#method-LayerProcessor-set_last_result}{\code{LayerProcessor$set_last_result()}}
+\item \href{#method-LayerProcessor-get_last_result}{\code{LayerProcessor$get_last_result()}}
+\item \href{#method-LayerProcessor-apply_scale_mapping}{\code{LayerProcessor$apply_scale_mapping()}}
 \item \href{#method-LayerProcessor-clone}{\code{LayerProcessor$clone()}}
 }
 }
@@ -58,7 +61,15 @@ Initialize the layer processor
 \subsection{Method \code{process()}}{
 Process the layer (MUST be implemented by subclasses)
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -71,6 +82,12 @@ Process the layer (MUST be implemented by subclasses)
 \item{\code{built}}{Built plot data (optional)}
 
 \item{\code{gt}}{Gtable object (optional)}
+
+\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+
+\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
 }
 \if{html}{\out{</div>}}
 }
@@ -84,7 +101,7 @@ List with data and selectors
 \subsection{Method \code{extract_data()}}{
 Extract data from the layer (MUST be implemented by subclasses)
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$extract_data(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$extract_data(plot, built = NULL, scale_mapping = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -93,6 +110,8 @@ Extract data from the layer (MUST be implemented by subclasses)
 \item{\code{plot}}{The ggplot2 object}
 
 \item{\code{built}}{Built plot data (optional)}
+
+\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
 }
 \if{html}{\out{</div>}}
 }
@@ -106,7 +125,12 @@ Extracted data
 \subsection{Method \code{generate_selectors()}}{
 Generate selectors for the layer (MUST be implemented by subclasses)
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$generate_selectors(plot, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  grob_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -115,6 +139,10 @@ Generate selectors for the layer (MUST be implemented by subclasses)
 \item{\code{plot}}{The ggplot2 object}
 
 \item{\code{gt}}{Gtable object (optional)}
+
+\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
 }
 \if{html}{\out{</div>}}
 }
@@ -168,6 +196,58 @@ Get layer index
 
 \subsection{Returns}{
 Layer index
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-set_last_result"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-set_last_result}{}}}
+\subsection{Method \code{set_last_result()}}{
+Store the last processed result (used by orchestrator)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$set_last_result(result)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{result}}{The result to store}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-get_last_result"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-get_last_result}{}}}
+\subsection{Method \code{get_last_result()}}{
+Get the last processed result
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$get_last_result()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+The last result
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-apply_scale_mapping"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-apply_scale_mapping}{}}}
+\subsection{Method \code{apply_scale_mapping()}}{
+Apply scale mapping to numeric values
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$apply_scale_mapping(numeric_values, scale_mapping)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{numeric_values}}{Vector of numeric values}
+
+\item{\code{scale_mapping}}{Scale mapping vector}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Mapped values
 }
 }
 \if{html}{\out{<hr>}}
