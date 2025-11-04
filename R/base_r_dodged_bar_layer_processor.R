@@ -18,7 +18,7 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
         type = "dodged_bar",
         title = title,
         axes = axes,
-        domOrder = "forward"
+        domMapping = list(groupDirection = "forward")
       )
     },
     extract_data = function(layer_info) {

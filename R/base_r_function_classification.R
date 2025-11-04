@@ -18,6 +18,7 @@
     "hist",
     "boxplot",
     "image",
+    "heatmap",
     "contour",
     "matplot",
     "curve",

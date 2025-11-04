@@ -61,6 +61,7 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
         "hist" = "hist",
         "boxplot" = "box",
         "image" = "heat",
+        "heatmap" = "heat",
         "contour" = "contour",
         "matplot" = "line",
         NULL
