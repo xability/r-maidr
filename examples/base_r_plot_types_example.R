@@ -293,3 +293,27 @@ save_html(file = horizontal_boxplot_html_file)
 
 cat("✓ Base R horizontal boxplot example completed\n")
 cat("Generated:", horizontal_boxplot_html_file, "\n")
+
+cat("\n=== Base R Scatter Plot Example ===\n")
+
+# Create a Base R scatter plot with multiple y values per x
+set.seed(123)
+x_values <- rep(1:5, each = 3)  # 3 measurements per x value
+y_values <- c(rnorm(3, 10, 1), rnorm(3, 15, 2), rnorm(3, 12, 1.5),
+              rnorm(3, 18, 1.8), rnorm(3, 14, 0.8))
+groups <- rep(c("A", "B", "C"), times = 5)
+colors <- rep(c("red", "green", "blue"), times = 5)
+
+plot(x_values, y_values,
+     col = colors,
+     main = "Base R Scatter Plot (Multiple Y per X)",
+     xlab = "X Values",
+     ylab = "Y Values",
+     pch = 19)
+
+# Generate interactive HTML
+scatter_html_file <- file.path(output_dir, "example_scatter_plot_base_r.html")
+save_html(file = scatter_html_file)
+
+cat("✓ Base R scatter plot example completed\n")
+cat("Generated:", scatter_html_file, "\n")

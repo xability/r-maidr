@@ -55,7 +55,15 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
           } else {
-            "line"
+            # Check if this is a scatter plot (point plot)
+            # plot() default type is "p" (points/scatter)
+            # plot(x, y) with two numeric vectors defaults to scatter
+            plot_type <- args$type
+            if (is.null(plot_type) || plot_type == "p") {
+              "point"
+            } else {
+              "line"
+            }
           }
         },
         "hist" = "hist",
