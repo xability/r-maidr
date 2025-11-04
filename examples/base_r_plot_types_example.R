@@ -243,3 +243,53 @@ save_html(file = heatmap_html_file)
 
 cat("✓ Base R heatmap example completed\n")
 cat("Generated:", heatmap_html_file, "\n")
+
+cat("\n=== Base R Vertical Boxplot Example ===\n")
+
+# Create a Base R vertical boxplot
+set.seed(789)
+boxplot_data <- list(
+  Group1 = rnorm(30, mean = 100, sd = 15),
+  Group2 = rnorm(30, mean = 120, sd = 20),
+  Group3 = rnorm(30, mean = 110, sd = 18)
+)
+
+boxplot(boxplot_data,
+        horizontal = FALSE,
+        col = c("lightblue", "lightgreen", "lightcoral"),
+        main = "Base R Vertical Boxplot",
+        xlab = "Group",
+        ylab = "Value",
+        border = "black")
+
+# Generate interactive HTML
+vertical_boxplot_html_file <- file.path(output_dir, "example_boxplot_vertical_base_r.html")
+save_html(file = vertical_boxplot_html_file)
+
+cat("✓ Base R vertical boxplot example completed\n")
+cat("Generated:", vertical_boxplot_html_file, "\n")
+
+cat("\n=== Base R Horizontal Boxplot Example ===\n")
+
+# Create a Base R horizontal boxplot
+set.seed(890)
+boxplot_data_h <- list(
+  Category_A = rnorm(25, mean = 50, sd = 10),
+  Category_B = rnorm(25, mean = 70, sd = 12),
+  Category_C = rnorm(25, mean = 60, sd = 11)
+)
+
+boxplot(boxplot_data_h,
+        horizontal = TRUE,
+        col = c("steelblue", "orange", "purple"),
+        main = "Base R Horizontal Boxplot",
+        xlab = "Value",
+        ylab = "Category",
+        border = "black")
+
+# Generate interactive HTML
+horizontal_boxplot_html_file <- file.path(output_dir, "example_boxplot_horizontal_base_r.html")
+save_html(file = horizontal_boxplot_html_file)
+
+cat("✓ Base R horizontal boxplot example completed\n")
+cat("Generated:", horizontal_boxplot_html_file, "\n")

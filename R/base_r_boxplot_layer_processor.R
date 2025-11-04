@@ -14,13 +14,18 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
       title <- self$extract_main_title(layer_info)
       orientation <- self$determine_orientation(layer_info)
 
+      # Determine if IQR direction should be reversed
+      # For vertical Base R boxplots, Q1/Q3 edges are inverted from frontend default
+      iqr_direction <- if (orientation == "vert") "reverse" else "forward"
+
       list(
         data = data,
         selectors = selectors,
         type = "box",
         title = title,
         axes = axes,
-        orientation = orientation
+        orientation = orientation,
+        domMapping = list(iqrDirection = iqr_direction)
       )
     },
 
