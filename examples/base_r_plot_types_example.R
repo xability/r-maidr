@@ -317,3 +317,55 @@ save_html(file = scatter_html_file)
 
 cat("✓ Base R scatter plot example completed\n")
 cat("Generated:", scatter_html_file, "\n")
+
+cat("\n=== Base R Scatter + Linear Regression Example ===\n")
+
+# Create a scatter plot with linear regression line
+set.seed(42)
+x <- 1:30
+y <- 3 * x + 10 + rnorm(30, sd = 5)
+
+plot(x, y,
+     main = "Base R Scatter with Linear Regression",
+     xlab = "X Variable",
+     ylab = "Y Variable",
+     pch = 19,
+     col = "darkblue")
+
+# Add linear regression line using abline
+model <- lm(y ~ x)
+abline(model, col = "red", lwd = 2)
+
+# Generate interactive HTML
+scatter_lm_html_file <- file.path(output_dir, "example_scatter_linear_regression_base_r.html")
+save_html(file = scatter_lm_html_file)
+
+cat("✓ Base R scatter + linear regression example completed\n")
+cat("Generated:", scatter_lm_html_file, "\n")
+
+cat("\n=== Base R Scatter + LOESS Smooth Example ===\n")
+
+# Create a scatter plot with LOESS smooth curve
+set.seed(42)
+x <- seq(0, 10, length.out = 50)
+y <- sin(x) * 10 + x * 2 + rnorm(50, sd = 2)
+
+plot(x, y,
+     main = "Base R Scatter with LOESS Smooth",
+     xlab = "X Variable",
+     ylab = "Y Variable",
+     pch = 16,
+     col = "darkgreen")
+
+# Add LOESS smooth curve using lines and predict
+lo <- loess(y ~ x, span = 0.5)
+x_seq <- seq(min(x), max(x), length.out = 100)
+y_pred <- predict(lo, x_seq)
+lines(x_seq, y_pred, col = "purple", lwd = 3)
+
+# Generate interactive HTML
+scatter_loess_html_file <- file.path(output_dir, "example_scatter_loess_smooth_base_r.html")
+save_html(file = scatter_loess_html_file)
+
+cat("✓ Base R scatter + LOESS smooth example completed\n")
+cat("Generated:", scatter_loess_html_file, "\n")

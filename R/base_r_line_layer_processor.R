@@ -106,9 +106,9 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
 
       function_name <- layer_info$function_name
 
-      # For abline() calls, get axis labels from the HIGH call (plot(x, y))
-      # since abline() doesn't have xlab/ylab parameters
-      if (function_name == "abline") {
+      # For LOW-level calls (abline, lines, etc.), get axis labels from the HIGH call (plot(x, y))
+      # since LOW-level functions don't have xlab/ylab parameters
+      if (function_name %in% c("abline", "lines", "points")) {
         group <- layer_info$group
         if (!is.null(group) && !is.null(group$high_call)) {
           high_args <- group$high_call$args
@@ -121,7 +121,7 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
+      # Extract axis titles from plot call arguments (for HIGH-level calls)
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 

@@ -83,8 +83,22 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       layer_type <- switch(function_name,
         "lines" = {
           first_arg <- args[[1]]
-          if (!is.null(first_arg) && inherits(first_arg, "density")) {
-            "smooth"
+          if (!is.null(first_arg)) {
+            # Check for various smooth object types
+            if (inherits(first_arg, "density")) {
+              "smooth"  # Existing: density curves
+            } else if (inherits(first_arg, "loess")) {
+              "smooth"  # Loess objects (shouldn't happen directly, but check)
+            } else if (inherits(first_arg, "smooth.spline")) {
+              "smooth"  # Smooth spline objects
+            } else if (is.list(first_arg) &&
+                       all(c("x", "y") %in% names(first_arg)) &&
+                       length(args) == 1) {
+              # List with x,y and no other args - likely loess.smooth result
+              "smooth"
+            } else {
+              "line"  # Default: regular line
+            }
           } else {
             "line"
           }
