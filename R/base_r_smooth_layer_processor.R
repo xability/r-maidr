@@ -1,6 +1,9 @@
 #' Base R Smooth/Density Layer Processor
 #'
-#' Processes Base R smooth/density plots (created with plot(density()))
+#' Processes Base R smooth curves including:
+#' - Density plots: plot(density()) or lines(density())
+#' - Loess smooth: lines(loess.smooth()) or lines(predict(loess))
+#' - Smooth splines: lines(smooth.spline())
 #'
 #' @keywords internal
 BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
@@ -32,20 +35,54 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      density_obj <- args[[1]]
+      # Handle different smooth object types
+      if (length(args) > 0) {
+        first_arg <- args[[1]]
 
-      if (!inherits(density_obj, "density")) {
-        return(list())
+        # Initialize x and y values
+        x_values <- NULL
+        y_values <- NULL
+
+        # Case 1: density object (existing)
+        if (inherits(first_arg, "density")) {
+          x_values <- first_arg$x
+          y_values <- first_arg$y
+        }
+        # Case 2: smooth.spline object
+        else if (inherits(first_arg, "smooth.spline")) {
+          x_values <- first_arg$x
+          y_values <- first_arg$y
+        }
+        # Case 3: loess object (shouldn't happen directly, but handle it)
+        else if (inherits(first_arg, "loess")) {
+          x_values <- first_arg$x
+          y_values <- fitted(first_arg)
+        }
+        # Case 4: list with x,y (loess.smooth result)
+        else if (is.list(first_arg) && all(c("x", "y") %in% names(first_arg))) {
+          x_values <- first_arg$x
+          y_values <- first_arg$y
+        }
+        # Case 5: Two numeric vectors (e.g., from predict(loess))
+        else if (is.numeric(first_arg) && length(args) >= 2 && is.numeric(args[[2]])) {
+          x_values <- first_arg
+          y_values <- args[[2]]
+        }
+        # Default: no data
+        else {
+          return(list())
+        }
+
+        # Convert to MAIDR format (nested list for single line)
+        if (!is.null(x_values) && !is.null(y_values)) {
+          data_points <- lapply(seq_along(x_values), function(i) {
+            list(x = x_values[i], y = y_values[i])
+          })
+          return(list(data_points))
+        }
       }
 
-      x_values <- density_obj$x
-      y_values <- density_obj$y
-
-      data_points <- lapply(seq_along(x_values), function(i) {
-        list(x = x_values[i], y = y_values[i])
-      })
-
-      list(data_points)
+      return(list())
     },
 
     generate_selectors = function(layer_info, gt = NULL) {
@@ -84,13 +121,13 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
         return(list(x = "", y = ""))
       }
 
-      # For smooth layers, get axis labels from the histogram layer in the same group
+      # For smooth layers, get axis labels from the HIGH-level call (plot/hist) in the same group
       # since lines() doesn't have xlab/ylab parameters
       group <- layer_info$group
       if (!is.null(group) && !is.null(group$high_call)) {
-        hist_args <- group$high_call$args
-        x_title <- if (!is.null(hist_args$xlab)) hist_args$xlab else ""
-        y_title <- if (!is.null(hist_args$ylab)) hist_args$ylab else ""
+        high_args <- group$high_call$args
+        x_title <- if (!is.null(high_args$xlab)) high_args$xlab else ""
+        y_title <- if (!is.null(high_args$ylab)) high_args$ylab else ""
         return(list(x = x_title, y = y_title))
       }
 

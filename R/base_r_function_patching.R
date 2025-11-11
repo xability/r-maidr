@@ -32,7 +32,10 @@ initialize_base_r_patching <- function(include_low = TRUE,
   }
 
   lapply(fns_to_wrap, wrap_function)
-  
+
+  # Special handling for S3 generics (lines, points)
+  wrap_s3_generics()
+
   invisible(NULL)
 }
 
@@ -58,6 +61,101 @@ wrap_function <- function(function_name) {
 
   # Assign wrapper to global environment to shadow the original
   assign(function_name, wrapper, envir = .GlobalEnv)
+
+  invisible(TRUE)
+}
+
+#' Wrap S3 generic functions (lines and points)
+#'
+#' Special handling for S3 generics that can't be traced normally
+#' @keywords internal
+wrap_s3_generics <- function() {
+  # Wrap lines() function
+  # Check if we need to wrap it (not already our wrapper)
+  needs_wrapping <- TRUE
+  if (exists("lines", where = .GlobalEnv)) {
+    lines_fn <- get("lines", envir = .GlobalEnv)
+    # Check if it's already our wrapper (would have match.call in it)
+    fn_body <- body(lines_fn)
+    if (is.call(fn_body) && length(fn_body) > 1) {
+      # Check if it contains our logging call
+      body_text <- deparse(fn_body)
+      if (any(grepl("log_plot_call_to_device", body_text))) {
+        needs_wrapping <- FALSE
+      }
+    }
+  }
+
+  if (needs_wrapping) {
+    # Store original if not already stored
+    if (is.null(.maidr_patching_env$.saved_graphics_fns[["lines"]])) {
+      .maidr_patching_env$.saved_graphics_fns[["lines"]] <- graphics::lines
+    }
+
+    # Create wrapper that handles method dispatch and logging
+    lines_wrapper <- function(x, ...) {
+      # Prepare for logging
+      this_call <- match.call()
+      args <- list(x, ...)
+      device_id <- grDevices::dev.cur()
+
+      # Log the call
+      log_plot_call_to_device("lines", this_call, args, device_id)
+
+      # Dispatch to appropriate method
+      if (inherits(x, "smooth.spline")) {
+        graphics::lines.smooth.spline(x, ...)
+      } else if (is.list(x) && all(c("x", "y") %in% names(x))) {
+        # Handle loess.smooth results
+        graphics::lines.default(x$x, x$y, ...)
+      } else {
+        # Default method
+        graphics::lines.default(x, ...)
+      }
+    }
+
+    # Assign to global environment
+    assign("lines", lines_wrapper, envir = .GlobalEnv)
+  }
+
+  # Wrap points() function
+  # Check if we need to wrap it (not already our wrapper)
+  needs_wrapping_points <- TRUE
+  if (exists("points", where = .GlobalEnv)) {
+    points_fn <- get("points", envir = .GlobalEnv)
+    # Check if it's already our wrapper
+    fn_body <- body(points_fn)
+    if (is.call(fn_body) && length(fn_body) > 1) {
+      body_text <- deparse(fn_body)
+      if (any(grepl("log_plot_call_to_device", body_text))) {
+        needs_wrapping_points <- FALSE
+      }
+    }
+  }
+
+  if (needs_wrapping_points) {
+    # Store original if not already stored
+    if (is.null(.maidr_patching_env$.saved_graphics_fns[["points"]])) {
+      .maidr_patching_env$.saved_graphics_fns[["points"]] <- graphics::points
+    }
+
+    # Create wrapper
+    points_wrapper <- function(x, ...) {
+      # Prepare for logging
+      this_call <- match.call()
+      args <- list(x, ...)
+      device_id <- grDevices::dev.cur()
+
+      # Log the call
+      log_plot_call_to_device("points", this_call, args, device_id)
+
+      # Call the default method
+      graphics::points.default(x, ...)
+    }
+
+    # Assign to global environment
+    assign("points", points_wrapper, envir = .GlobalEnv)
+  }
 
   invisible(TRUE)
 }
