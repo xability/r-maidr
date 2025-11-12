@@ -510,4 +510,59 @@ save_html(file = multipanel_3x2_html_file)
 cat("✓ Base R multipanel 3x2 example completed\n")
 cat("Generated:", multipanel_3x2_html_file, "\n")
 
+# ============================================================================
+# FACET-LIKE EXAMPLES (using par(mfrow) + manual subsetting)
+# ============================================================================
+
+cat("\n=== Base R Facet-like Plot: Point Plot by Species (1x3) ===\n")
+
+# Example: Point plot faceted by Species (like ggplot2 facet_wrap)
+species_levels <- unique(iris$Species)
+par(mfrow = c(1, 3))
+
+for (species in species_levels) {
+  subset_data <- iris[iris$Species == species, ]
+  plot(subset_data$Petal.Length, subset_data$Petal.Width,
+       main = paste("Species:", species),
+       xlab = "Petal Length",
+       ylab = "Petal Width",
+       pch = 19,
+       col = "steelblue")
+}
+
+# Generate interactive HTML
+facet_point_html_file <- file.path(output_dir, "example_facet_point_1x3_base_r.html")
+save_html(file = facet_point_html_file)
+
+cat("✓ Base R facet point plot (1x3) example completed\n")
+cat("Generated:", facet_point_html_file, "\n")
+
+cat("\n=== Base R Facet-like Plot: Multi-layer by Species (1x3) ===\n")
+
+# Example: Multi-layer facet (scatter + regression line)
+par(mfrow = c(1, 3))
+
+for (species in unique(iris$Species)) {
+  subset_data <- iris[iris$Species == species, ]
+
+  # Layer 1: Scatter plot
+  plot(subset_data$Petal.Length, subset_data$Petal.Width,
+       main = paste(species),
+       xlab = "Petal Length",
+       ylab = "Petal Width",
+       pch = 19,
+       col = rgb(0.2, 0.4, 0.8, 0.5))
+
+  # Layer 2: Add linear regression line (LOW-level call)
+  fit <- lm(Petal.Width ~ Petal.Length, data = subset_data)
+  abline(fit, col = "red", lwd = 2)
+}
+
+# Generate interactive HTML
+facet_multilayer_html_file <- file.path(output_dir, "example_facet_multilayer_1x3_base_r.html")
+save_html(file = facet_multilayer_html_file)
+
+cat("✓ Base R facet multi-layer plot (1x3) example completed\n")
+cat("Generated:", facet_multilayer_html_file, "\n")
+
 dev.off()

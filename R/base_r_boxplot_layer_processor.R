@@ -92,7 +92,14 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
       # Simplified selector mapping: use the IQ polygon selector for all parts
       data_len <- 0
       data_to_use <- extracted_data
-      
+
+      # Get panel/group index for multipanel support
+      plot_index <- if (!is.null(layer_info$group_index)) {
+        layer_info$group_index
+      } else {
+        1
+      }
+
       if (!is.null(self$layer_info) && !is.null(self$layer_info$plot_call)) {
         plot_call <- self$layer_info$plot_call
         args <- plot_call$args
@@ -128,7 +135,8 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
         ids[ord]
       }
       all_names <- if (!is.null(gt)) collect_names(gt) else character(0)
-      poly_ids <- sort_ids(grep('^graphics-plot-[0-9]+-polygon-[0-9]+$', all_names, value = TRUE))
+      poly_pattern <- paste0('^graphics-plot-', plot_index, '-polygon-[0-9]+$')
+      poly_ids <- sort_ids(grep(poly_pattern, all_names, value = TRUE))
 
       # Heuristic: polygons often come as pairs per box (filled, outline)
       per_box_ids <- character(0)
@@ -141,14 +149,14 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
         if (length(poly_ids) > 0) {
           per_box_ids <- rep(poly_ids[length(poly_ids)], data_len)
         } else {
-          per_box_ids <- rep("graphics-plot-1-polygon-1", data_len)
+          per_box_ids <- rep(paste0("graphics-plot-", plot_index, "-polygon-1"), data_len)
         }
       }
 
-                  make_poly_sel <- function(id) paste0("polygon[id^='", id, ".1']")
-      make_group_sel <- function(group_idx) paste0("g#graphics-plot-1-segments-", group_idx, "\\.1 > polyline")
+      make_poly_sel <- function(id) paste0("polygon[id^='", id, ".1']")
+      make_group_sel <- function(group_idx) paste0("g#graphics-plot-", plot_index, "-segments-", group_idx, "\\.1 > polyline")
       make_whisker_sel <- function(group_idx, which_child) {
-        paste0("g#graphics-plot-1-segments-", group_idx, "\\.1 > polyline:nth-child(", which_child, ")")
+        paste0("g#graphics-plot-", plot_index, "-segments-", group_idx, "\\.1 > polyline:nth-child(", which_child, ")")
       }
 
       # Check if data will be reversed (horizontal plot)
@@ -217,7 +225,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
         upper_sel <- character(0)
         
         if (lower_count > 0 || upper_count > 0) {
-          points_group <- paste0("g#graphics-plot-1-points-", points_idx, "\\.1 > use")
+          points_group <- paste0("g#graphics-plot-", plot_index, "-points-", points_idx, "\\.1 > use")
           
           if (lower_count > 0) {
             # Select first N children for lower outliers
