@@ -185,56 +185,144 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       layout
     },
     combine_layer_results = function(layer_results) {
-      combined_data <- list()
+      # Check if we have a multipanel configuration
+      panel_config <- detect_panel_configuration(private$.device_id)
 
-      for (i in seq_along(layer_results)) {
-        result <- layer_results[[i]]
+      if (!is.null(panel_config) &&
+          panel_config$type %in% c("mfrow", "mfcol") &&
+          (panel_config$nrows > 1 || panel_config$ncols > 1)) {
 
-        # Get layer type from the result
-        layer_type <- result$type
-        if (is.null(layer_type) || length(layer_type) == 0) {
+        # Multipanel case - create 2D grid
+        nrows <- panel_config$nrows
+        ncols <- panel_config$ncols
+
+        # Initialize 2D grid
+        subplot_grid <- vector("list", nrows)
+        for (r in seq_len(nrows)) {
+          subplot_grid[[r]] <- vector("list", ncols)
+        }
+
+        # Map layers to panels based on their group index
+        for (i in seq_along(layer_results)) {
+          result <- layer_results[[i]]
           layer_info <- private$.layers[[i]]
-          layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
-        }
+          group_idx <- layer_info$group_index
 
-        # Create layer object with standard structure
-        layer_obj <- list(
-          id = i,
-          selectors = result$selectors,
-          type = layer_type,
-          data = result$data,
-          title = result$title,
-          axes = result$axes
-        )
-
-        # Preserve all other fields from the processor result
-        for (field_name in names(result)) {
-          if (!field_name %in% c("selectors", "data", "title", "axes", "labels")) {
-            layer_obj[[field_name]] <- result[[field_name]]
+          # Calculate panel position
+          if (panel_config$type == "mfrow") {
+            # Row-major order
+            row <- ceiling(group_idx / ncols)
+            col <- ((group_idx - 1) %% ncols) + 1
+          } else {
+            # Column-major order (mfcol)
+            col <- ceiling(group_idx / nrows)
+            row <- ((group_idx - 1) %% nrows) + 1
           }
+
+          # Ensure we're within bounds
+          if (row > nrows || col > ncols) {
+            next
+          }
+
+          # Get layer type
+          layer_type <- result$type
+          if (is.null(layer_type) || length(layer_type) == 0) {
+            layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
+          }
+
+          # Create layer object
+          layer_obj <- list(
+            id = paste0("maidr-layer-", i),
+            selectors = result$selectors,
+            type = layer_type,
+            data = result$data,
+            title = if (!is.null(result$title)) result$title else "",
+            axes = if (!is.null(result$axes)) result$axes else list(x = "", y = "")
+          )
+
+          # Add labels if they exist
+          if (!is.null(result$labels) && length(result$labels) > 0) {
+            layer_obj$labels <- result$labels
+          }
+
+          # Initialize subplot if needed
+          if (is.null(subplot_grid[[row]][[col]])) {
+            subplot_grid[[row]][[col]] <- list(
+              id = paste0("maidr-subplot-", row, "-", col),
+              layers = list()
+            )
+          }
+
+          # Add layer to subplot
+          subplot_grid[[row]][[col]]$layers <- append(
+            subplot_grid[[row]][[col]]$layers,
+            list(layer_obj)
+          )
         }
 
-        # Add labels if they exist and are not empty
-        if (!is.null(result$labels) && length(result$labels) > 0) {
-          layer_obj$labels <- result$labels
+        # Store as 2D grid
+        private$.combined_data <- subplot_grid
+
+        # Collect all selectors
+        combined_selectors <- list()
+        for (result in layer_results) {
+          combined_selectors <- c(combined_selectors, result$selectors)
+        }
+        private$.combined_selectors <- combined_selectors
+
+      } else {
+        # Single panel case - original logic
+        combined_data <- list()
+
+        for (i in seq_along(layer_results)) {
+          result <- layer_results[[i]]
+
+          # Get layer type from the result
+          layer_type <- result$type
+          if (is.null(layer_type) || length(layer_type) == 0) {
+            layer_info <- private$.layers[[i]]
+            layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
+          }
+
+          # Create layer object with standard structure
+          layer_obj <- list(
+            id = i,
+            selectors = result$selectors,
+            type = layer_type,
+            data = result$data,
+            title = result$title,
+            axes = result$axes
+          )
+
+          # Preserve all other fields from the processor result
+          for (field_name in names(result)) {
+            if (!field_name %in% c("selectors", "data", "title", "axes", "labels")) {
+              layer_obj[[field_name]] <- result[[field_name]]
+            }
+          }
+
+          # Add labels if they exist and are not empty
+          if (!is.null(result$labels) && length(result$labels) > 0) {
+            layer_obj$labels <- result$labels
+          }
+
+          combined_data[[i]] <- layer_obj
         }
 
-        combined_data[[i]] <- layer_obj
+        combined_selectors <- list()
+        for (result in layer_results) {
+          combined_selectors <- c(combined_selectors, result$selectors)
+        }
+
+        # For Base R, create single plot structure
+        single_subplot <- list(
+          id = paste0("maidr-subplot-", as.integer(Sys.time())),
+          layers = combined_data
+        )
+        private$.combined_data <- list(list(single_subplot))
+
+        private$.combined_selectors <- combined_selectors
       }
-
-      combined_selectors <- list()
-      for (result in layer_results) {
-        combined_selectors <- c(combined_selectors, result$selectors)
-      }
-
-      # For Base R, create single plot structure
-      single_subplot <- list(
-        id = paste0("maidr-subplot-", as.integer(Sys.time())),
-        layers = combined_data
-      )
-      private$.combined_data <- list(list(single_subplot))
-
-      private$.combined_selectors <- combined_selectors
     },
     generate_maidr_data = function() {
       # Base R plots use the same unified structure as ggplot2
@@ -264,43 +352,99 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         return(NULL)
       }
 
-      grob_list <- list()
+      # Check if we have a multipanel configuration
+      panel_config <- detect_panel_configuration(private$.device_id)
 
-      for (i in seq_along(private$.plot_groups)) {
-        group <- private$.plot_groups[[i]]
-        high_call <- group$high_call
-        low_calls <- group$low_calls
+      if (!is.null(panel_config) &&
+          panel_config$type %in% c("mfrow", "mfcol") &&
+          (panel_config$nrows > 1 || panel_config$ncols > 1)) {
 
-        plot_func <- function() {
-          do.call(high_call$function_name, high_call$args)
+        # Multipanel case - create composite grob
+        composite_func <- function() {
+          # Set the panel configuration
+          if (panel_config$type == "mfrow") {
+            graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
+          } else if (panel_config$type == "mfcol") {
+            graphics::par(mfcol = c(panel_config$nrows, panel_config$ncols))
+          }
 
-          if (length(low_calls) > 0) {
-            for (low_call in low_calls) {
-              do.call(low_call$function_name, low_call$args)
+          # Debug logging
+          if (getOption("maidr.debug", FALSE)) {
+            cat("DEBUG: Replaying", length(private$.plot_groups), "plot groups\n")
+            cat("DEBUG: Panel config:", panel_config$nrows, "x", panel_config$ncols, "\n")
+          }
+
+          # Replay all plot groups
+          for (i in seq_along(private$.plot_groups)) {
+            group <- private$.plot_groups[[i]]
+
+            if (getOption("maidr.debug", FALSE)) {
+              cat("DEBUG: Replaying group", i, "-", group$high_call$function_name, "\n")
+            }
+
+            invisible(do.call(group$high_call$function_name, group$high_call$args))
+
+            if (length(group$low_calls) > 0) {
+              for (low_call in group$low_calls) {
+                invisible(do.call(low_call$function_name, low_call$args))
+              }
             }
           }
         }
 
-        tryCatch(
-          {
-            grob <- ggplotify::as.grob(plot_func)
-            grob_list[[i]] <- grob
-          },
-          error = function(e) {
-            grob_list[[i]] <- NULL
+        # Convert entire multipanel to single grob
+        tryCatch({
+          composite_grob <- ggplotify::as.grob(composite_func)
+
+          # Also store individual grobs for reference
+          private$.grob_list <- list(composite_grob)
+
+          return(composite_grob)
+        }, error = function(e) {
+          warning("Failed to create multipanel grob: ", e$message)
+          return(NULL)
+        })
+
+      } else {
+        # Single panel case - original logic
+        grob_list <- list()
+
+        for (i in seq_along(private$.plot_groups)) {
+          group <- private$.plot_groups[[i]]
+          high_call <- group$high_call
+          low_calls <- group$low_calls
+
+          plot_func <- function() {
+            invisible(do.call(high_call$function_name, high_call$args))
+
+            if (length(low_calls) > 0) {
+              for (low_call in low_calls) {
+                invisible(do.call(low_call$function_name, low_call$args))
+              }
+            }
           }
-        )
+
+          tryCatch(
+            {
+              grob <- ggplotify::as.grob(plot_func)
+              grob_list[[i]] <- grob
+            },
+            error = function(e) {
+              grob_list[[i]] <- NULL
+            }
+          )
+        }
+
+        # Store the grob list for use by get_grob_for_layer
+        private$.grob_list <- grob_list
+
+        # Return the first grob as the main gtable (for compatibility)
+        if (length(grob_list) > 0 && !is.null(grob_list[[1]])) {
+          return(grob_list[[1]])
+        }
+
+        return(NULL)
       }
-
-      # Store the grob list for use by get_grob_for_layer
-      private$.grob_list <- grob_list
-
-      # Return the first grob as the main gtable (for compatibility)
-      if (length(grob_list) > 0 && !is.null(grob_list[[1]])) {
-        return(grob_list[[1]])
-      }
-
-      return(NULL)
     },
     get_grob_for_layer = function(layer_index) {
       if (layer_index < 1 || layer_index > length(private$.layers)) {
@@ -311,14 +455,26 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         self$get_gtable()
       }
 
-      # Get the layer info to find which group it belongs to
-      layer_info <- private$.layers[[layer_index]]
-      group_index <- layer_info$group_index
+      # Check if we have a multipanel configuration
+      panel_config <- detect_panel_configuration(private$.device_id)
+      is_multipanel <- !is.null(panel_config) &&
+                       panel_config$type %in% c("mfrow", "mfcol") &&
+                       (panel_config$nrows > 1 || panel_config$ncols > 1)
 
-      # Return the grob for this layer's group
-      # (Multiple layers from same group share same grob)
-      if (group_index <= length(private$.grob_list)) {
-        return(private$.grob_list[[group_index]])
+      if (is_multipanel) {
+        # For multipanel, all layers share the same composite grob
+        # The processors will use group_index to find their specific elements
+        if (length(private$.grob_list) > 0) {
+          return(private$.grob_list[[1]])
+        }
+      } else {
+        # For single panel, return the grob for this layer's group
+        layer_info <- private$.layers[[layer_index]]
+        group_index <- layer_info$group_index
+
+        if (group_index <= length(private$.grob_list)) {
+          return(private$.grob_list[[group_index]])
+        }
       }
 
       return(NULL)

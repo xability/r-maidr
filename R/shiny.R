@@ -14,10 +14,7 @@
 #' @return A Shiny widget output function
 #' @export
 maidrOutput <- function(outputId, width = "100%", height = "400px") {
-  cat("=== MAIDROUTPUT CALLED FOR:", outputId, "===\n")
-  result <- htmlwidgets::shinyWidgetOutput(outputId, "maidr", width, height)
-  cat("=== MAIDROUTPUT COMPLETED FOR:", outputId, "===\n")
-  return(result)
+  htmlwidgets::shinyWidgetOutput(outputId, "maidr", width, height)
 }
 
 #' Render MAIDR plot in Shiny server
@@ -31,27 +28,14 @@ maidrOutput <- function(outputId, width = "100%", height = "400px") {
 #' @return A Shiny render function
 #' @export
 renderMaidr <- function(expr, env = parent.frame(), quoted = FALSE) {
-  cat("=== RENDERMAIDR CALLED ===\n")
-
   if (!quoted) {
     quoted <- TRUE
     expr <- substitute(expr)
   }
 
-  cat("Expression class:", class(expr), "\n")
-  cat("Expression:", deparse(expr)[1:3], "...\n")
-
-  cat("Installing expression function...\n")
   shiny::installExprFunction(expr, "func", env, quoted)
 
-  # Remove direct function test to avoid interference with Shiny's reactive system
-
-  cat("Creating maidr_widget call...\n")
   expr2 <- quote(maidr_widget(func()))
 
-  cat("About to call shinyRenderWidget...\n")
-  result <- htmlwidgets::shinyRenderWidget(expr2, maidr_widgetOutput, environment(), quoted)
-
-  cat("shinyRenderWidget completed\n")
-  return(result)
+  htmlwidgets::shinyRenderWidget(expr2, maidr_widgetOutput, environment(), quoted)
 }

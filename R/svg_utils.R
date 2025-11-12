@@ -13,9 +13,12 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_file <- tempfile(fileext = ".svg")
   library(grid)
   library(gridSVG)
+
+  # Use default rendering (no viewport changes)
   grid.newpage()
   grid.draw(gt)
 
+  # Export to SVG
   grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
 
   svg_content <- readLines(svg_file, warn = FALSE)

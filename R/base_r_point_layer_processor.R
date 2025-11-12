@@ -111,12 +111,12 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
         layer_info$index
       }
 
-      # Find the points grob container
-      points_grob_name <- find_graphics_plot_grob(gt, "points")
+      # Find the points grob container for THIS specific panel
+      points_grob_name <- find_graphics_plot_grob(gt, "points", plot_index = group_index)
 
       if (!is.null(points_grob_name)) {
-        # Generate selector in format: g#graphics-plot-1-points-1.1 > use
-        # (matches ggplot2 format: g#geom_point.points.579.1 > use)
+        # Generate selector in format: g#graphics-plot-N-points-1.1 > use
+        # where N is the group_index (panel number)
         svg_id <- paste0(points_grob_name, ".1")
         escaped_id <- gsub("\\.", "\\\\.", svg_id)
         selector <- paste0("g#", escaped_id, " > use")
