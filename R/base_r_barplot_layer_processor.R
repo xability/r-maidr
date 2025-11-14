@@ -112,12 +112,17 @@ BaseRBarplotLayerProcessor <- R6::R6Class("BaseRBarplotLayerProcessor",
 
       selectors <- list()
 
-      # Get the plot call index from layer info
-      plot_call_index <- layer_info$index
+      # For multipanel plots, use group_index (panel number)
+      # For single panel, use the regular index
+      selector_index <- if (!is.null(layer_info$group_index)) {
+        layer_info$group_index
+      } else {
+        layer_info$index
+      }
 
       # Use recursive search through the grob tree (definitive approach)
       if (!is.null(gt)) {
-        selectors <- self$generate_selectors_from_grob(gt, plot_call_index)
+        selectors <- self$generate_selectors_from_grob(gt, selector_index)
       }
 
       selectors

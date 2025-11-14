@@ -121,8 +121,8 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
     },
     
     generate_selectors_from_grob = function(grob, call_index = NULL) {
-      # Use robust selector generation without panel detection
-      selector <- generate_robust_selector(grob, "rect", "rect")
+      # Use robust selector generation with plot_index for multipanel support
+      selector <- generate_robust_selector(grob, "rect", "rect", plot_index = call_index)
       
       return(selector)
     },

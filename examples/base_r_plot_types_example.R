@@ -369,3 +369,200 @@ save_html(file = scatter_loess_html_file)
 
 cat("✓ Base R scatter + LOESS smooth example completed\n")
 cat("Generated:", scatter_loess_html_file, "\n")
+
+cat("\n=== Base R Multipanel 2x2 (MFROW) Example ===\n")
+
+# Create a 2x2 multipanel layout using mfrow (row-major)
+par(mfrow = c(2, 2))
+
+# Panel 1: Scatter plot
+set.seed(123)
+scatter_x <- 1:10
+scatter_y <- rnorm(10, mean = 10, sd = 2)
+plot(scatter_x, scatter_y,
+     main = "Scatter Plot",
+     xlab = "X Values",
+     ylab = "Y Values",
+     pch = 19,
+     col = "steelblue")
+
+# Panel 2: Line plot
+line_x <- 1:10
+line_y <- c(5, 7, 3, 8, 6, 9, 4, 7, 10, 8)
+plot(line_x, line_y,
+     type = "l",
+     main = "Line Plot",
+     xlab = "Time",
+     ylab = "Value",
+     col = "darkgreen",
+     lwd = 2)
+
+# Panel 3: Bar plot
+bar_categories <- c("A", "B", "C", "D")
+bar_values <- c(30, 25, 15, 10)
+barplot(bar_values,
+        names.arg = bar_categories,
+        main = "Bar Plot",
+        xlab = "Category",
+        ylab = "Count",
+        col = "coral",
+        border = "black")
+
+# Panel 4: Histogram
+set.seed(456)
+hist_data <- rnorm(100, mean = 0, sd = 1)
+hist(hist_data,
+     main = "Histogram",
+     xlab = "Value",
+     ylab = "Frequency",
+     col = "lightblue",
+     border = "black")
+
+# Generate interactive HTML
+multipanel_2x2_html_file <- file.path(output_dir, "example_multipanel_2x2_mfrow_base_r.html")
+save_html(file = multipanel_2x2_html_file)
+
+cat("✓ Base R multipanel 2x2 (mfrow) example completed\n")
+cat("Generated:", multipanel_2x2_html_file, "\n")
+
+dev.off()
+
+cat("\n=== Base R Multipanel 2x2 (MFCOL) Example ===\n")
+
+# Create a 2x2 multipanel layout using mfcol (column-major)
+par(mfcol = c(2, 2))
+
+# Panel 1: Top-Left
+set.seed(111)
+p1_x <- 1:10
+p1_y <- rnorm(10, mean = 10, sd = 2)
+plot(p1_x, p1_y,
+     main = "Panel 1 (Top-Left)",
+     xlab = "X",
+     ylab = "Y",
+     pch = 19,
+     col = "red")
+
+# Panel 2: Bottom-Left
+set.seed(222)
+p2_x <- 1:10
+p2_y <- rnorm(10, mean = 15, sd = 2)
+plot(p2_x, p2_y,
+     main = "Panel 2 (Bottom-Left)",
+     xlab = "X",
+     ylab = "Y",
+     pch = 19,
+     col = "blue")
+
+# Panel 3: Top-Right
+set.seed(333)
+p3_x <- 1:10
+p3_y <- rnorm(10, mean = 20, sd = 2)
+plot(p3_x, p3_y,
+     main = "Panel 3 (Top-Right)",
+     xlab = "X",
+     ylab = "Y",
+     pch = 19,
+     col = "green")
+
+# Panel 4: Bottom-Right
+set.seed(444)
+p4_x <- 1:10
+p4_y <- rnorm(10, mean = 25, sd = 2)
+plot(p4_x, p4_y,
+     main = "Panel 4 (Bottom-Right)",
+     xlab = "X",
+     ylab = "Y",
+     pch = 19,
+     col = "purple")
+
+# Generate interactive HTML
+multipanel_2x2_mfcol_html_file <- file.path(output_dir, "example_multipanel_2x2_mfcol_base_r.html")
+save_html(file = multipanel_2x2_mfcol_html_file)
+
+cat("✓ Base R multipanel 2x2 (mfcol) example completed\n")
+cat("Generated:", multipanel_2x2_mfcol_html_file, "\n")
+
+dev.off()
+
+cat("\n=== Base R Multipanel 3x2 Example ===\n")
+
+# Create a 3x2 multipanel layout
+par(mfrow = c(3, 2))
+
+# Create 6 scatter plots with different colors
+set.seed(789)
+for(i in 1:6) {
+  px <- 1:10
+  py <- rnorm(10, mean = i * 5, sd = 2)
+  plot(px, py,
+       main = paste("Panel", i),
+       xlab = "X Values",
+       ylab = "Y Values",
+       pch = 19,
+       col = rainbow(6)[i])
+}
+
+# Generate interactive HTML
+multipanel_3x2_html_file <- file.path(output_dir, "example_multipanel_3x2_base_r.html")
+save_html(file = multipanel_3x2_html_file)
+
+cat("✓ Base R multipanel 3x2 example completed\n")
+cat("Generated:", multipanel_3x2_html_file, "\n")
+
+# ============================================================================
+# FACET-LIKE EXAMPLES (using par(mfrow) + manual subsetting)
+# ============================================================================
+
+cat("\n=== Base R Facet-like Plot: Point Plot by Species (1x3) ===\n")
+
+# Example: Point plot faceted by Species (like ggplot2 facet_wrap)
+species_levels <- unique(iris$Species)
+par(mfrow = c(1, 3))
+
+for (species in species_levels) {
+  subset_data <- iris[iris$Species == species, ]
+  plot(subset_data$Petal.Length, subset_data$Petal.Width,
+       main = paste("Species:", species),
+       xlab = "Petal Length",
+       ylab = "Petal Width",
+       pch = 19,
+       col = "steelblue")
+}
+
+# Generate interactive HTML
+facet_point_html_file <- file.path(output_dir, "example_facet_point_1x3_base_r.html")
+save_html(file = facet_point_html_file)
+
+cat("✓ Base R facet point plot (1x3) example completed\n")
+cat("Generated:", facet_point_html_file, "\n")
+
+cat("\n=== Base R Facet-like Plot: Multi-layer by Species (1x3) ===\n")
+
+# Example: Multi-layer facet (scatter + regression line)
+par(mfrow = c(1, 3))
+
+for (species in unique(iris$Species)) {
+  subset_data <- iris[iris$Species == species, ]
+
+  # Layer 1: Scatter plot
+  plot(subset_data$Petal.Length, subset_data$Petal.Width,
+       main = paste(species),
+       xlab = "Petal Length",
+       ylab = "Petal Width",
+       pch = 19,
+       col = rgb(0.2, 0.4, 0.8, 0.5))
+
+  # Layer 2: Add linear regression line (LOW-level call)
+  fit <- lm(Petal.Width ~ Petal.Length, data = subset_data)
+  abline(fit, col = "red", lwd = 2)
+}
+
+# Generate interactive HTML
+facet_multilayer_html_file <- file.path(output_dir, "example_facet_multilayer_1x3_base_r.html")
+save_html(file = facet_multilayer_html_file)
+
+cat("✓ Base R facet multi-layer plot (1x3) example completed\n")
+cat("Generated:", facet_multilayer_html_file, "\n")
+
+dev.off()

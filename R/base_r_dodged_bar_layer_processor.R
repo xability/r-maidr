@@ -80,7 +80,13 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       data_by_fill
     },
     generate_selectors = function(layer_info, gt = NULL) {
-      plot_call_index <- layer_info$index
+      # For multipanel plots, use group_index (panel number)
+      # For single panel, use the regular index
+      plot_call_index <- if (!is.null(layer_info$group_index)) {
+        layer_info$group_index
+      } else {
+        layer_info$index
+      }
 
       # Use the working method - generate selectors from the provided grob
       if (!is.null(gt)) {
