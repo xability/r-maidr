@@ -1,5 +1,5 @@
 #' Utility functions for robust selector generation in Base R plots
-#' 
+#'
 #' These functions provide a robust way to find grob elements and generate
 #' CSS selectors, independent of panel structure or hardcoded values.
 
@@ -35,7 +35,9 @@ find_graphics_plot_grob <- function(grob, element_type, plot_index = NULL) {
     if (inherits(g, "gList")) {
       for (i in seq_along(g)) {
         result <- search_recursive(g[[i]])
-        if (!is.null(result)) return(result)
+        if (!is.null(result)) {
+          return(result)
+        }
       }
     }
 
@@ -43,7 +45,9 @@ find_graphics_plot_grob <- function(grob, element_type, plot_index = NULL) {
     if (inherits(g, "gTree") && !is.null(g$children)) {
       for (i in seq_along(g$children)) {
         result <- search_recursive(g$children[[i]])
-        if (!is.null(result)) return(result)
+        if (!is.null(result)) {
+          return(result)
+        }
       }
     }
 
@@ -51,7 +55,9 @@ find_graphics_plot_grob <- function(grob, element_type, plot_index = NULL) {
     if (!is.null(g$grobs)) {
       for (i in seq_along(g$grobs)) {
         result <- search_recursive(g$grobs[[i]])
-        if (!is.null(result)) return(result)
+        if (!is.null(result)) {
+          return(result)
+        }
       }
     }
 
@@ -62,10 +68,10 @@ find_graphics_plot_grob <- function(grob, element_type, plot_index = NULL) {
 }
 
 #' Generate robust CSS selector from grob name
-#' 
+#'
 #' Creates a CSS selector that targets SVG elements by their ID pattern,
 #' without relying on panel structure or hardcoded values.
-#' 
+#'
 #' @param grob_name The name of the grob (e.g., "graphics-plot-1-rect-1")
 #' @param svg_element The SVG element type to target (e.g., "rect", "polyline")
 #' @return A robust CSS selector string, or NULL if grob_name is invalid
@@ -73,13 +79,13 @@ generate_robust_css_selector <- function(grob_name, svg_element) {
   if (is.null(grob_name) || length(grob_name) == 0 || grob_name == "") {
     return(NULL)
   }
-  
+
   # Add .1 suffix (gridSVG convention for SVG IDs)
   svg_id <- paste0(grob_name, ".1")
-  
+
   # Escape dots for CSS selector syntax
   escaped_id <- gsub("\\.", "\\\\.", svg_id)
-  
+
   # Return attribute selector: <element>[id^='<pattern>']
   # This matches any element whose ID starts with the pattern
   paste0(svg_element, "[id^='", escaped_id, "']")

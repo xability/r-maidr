@@ -71,13 +71,13 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       # Extract column names for series names
       series_names <- colnames(y_matrix)
       if (is.null(series_names)) {
-        series_names <- paste0("Col", 1:ncol(y_matrix))
+        series_names <- paste0("Col", seq_len(ncol(y_matrix)))
       }
 
       # Each column is a series
       series_list <- list()
 
-      for (col_idx in 1:ncol(y_matrix)) {
+      for (col_idx in seq_len(ncol(y_matrix))) {
         series_y <- y_matrix[, col_idx]
         series_name <- series_names[col_idx]
 
@@ -219,7 +219,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
 
       list(data_points)
     },
-
     get_x_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
         return(NULL)
@@ -238,7 +237,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       x_padding <- (x_max - x_min) * 0.05
       c(x_min - x_padding, x_max + x_padding)
     },
-
     get_y_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
         return(NULL)
@@ -257,7 +255,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       y_padding <- (y_max - y_min) * 0.05
       c(y_min - y_padding, y_max + y_padding)
     },
-
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -318,7 +315,7 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         }
       }
 
-            # Recursively search children
+      # Recursively search children
       if (inherits(grob, "gList")) {
         for (i in seq_along(grob)) {
           names <- c(names, self$find_lines_grobs(grob[[i]], group_index, grob_type))
@@ -328,7 +325,7 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       if (inherits(grob, "gTree")) {
         if (!is.null(grob$children)) {
           for (i in seq_along(grob$children)) {
-            names <- c(names, self$find_lines_grobs(grob$children[[i]], group_index, grob_type))                                                                           
+            names <- c(names, self$find_lines_grobs(grob$children[[i]], group_index, grob_type))
           }
         }
       }
@@ -375,4 +372,3 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
     }
   )
 )
-

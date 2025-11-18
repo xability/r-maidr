@@ -7,8 +7,8 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL,
-                      scale_mapping = NULL, grob_id = NULL,
-                      panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
+                       scale_mapping = NULL, grob_id = NULL,
+                       panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -20,10 +20,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
         type = "heat",
         title = title,
         axes = axes,
-        domMapping = list(order = "row")  # Explicit row-major DOM mapping
+        dom_mapping = list(order = "row") # Explicit row-major DOM mapping
       )
     },
-
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -77,7 +76,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
         y = as.list(row_names_reversed)
       )
     },
-
     generate_selectors = function(layer_info, gt = NULL) {
       if (is.null(gt)) {
         return(list())
@@ -103,7 +101,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
       )
       list(main_selector)
     },
-
     find_image_rect_grobs = function(grob, group_index) {
       names <- character(0)
 
@@ -143,7 +140,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       names
     },
-
     generate_selectors_from_grob = function(grob, group_index = NULL) {
       # Find image-rect grobs recursively
       rect_names <- self$find_image_rect_grobs(grob, group_index)
@@ -160,7 +156,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       selector
     },
-
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(list(x = "", y = "", fill = ""))
@@ -178,7 +173,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       list(x = x_title, y = y_title, fill = fill_title)
     },
-
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -194,4 +188,3 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
     }
   )
 )
-

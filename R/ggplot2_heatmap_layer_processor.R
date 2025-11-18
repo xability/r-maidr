@@ -117,8 +117,8 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
       y_values <- unique(original_data[[y_col]])
 
       # Create mapping from numeric positions to original values
-      x_mapping <- setNames(x_values, 1:length(x_values))
-      y_mapping <- setNames(y_values, 1:length(y_values))
+      x_mapping <- setNames(x_values, seq_along(x_values))
+      y_mapping <- setNames(y_values, seq_along(y_values))
 
       # Create matrix structure
       score_matrix <- matrix(NA, nrow = length(y_values), ncol = length(x_values))

@@ -20,13 +20,13 @@
 #' @return NULL (invisible)
 #' @keywords internal
 initialize_base_r_patching <- function(include_low = TRUE,
-                                        include_layout = TRUE) {
+                                       include_layout = TRUE) {
   fns_to_wrap <- get_functions_by_class("HIGH")
-  
+
   if (include_low) {
     fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LOW"))
   }
-  
+
   if (include_layout) {
     fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LAYOUT"))
   }

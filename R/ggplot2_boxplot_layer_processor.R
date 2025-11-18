@@ -51,7 +51,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
       # Extract boxplot statistics for each category
       boxplot_data <- list()
 
-      for (i in 1:nrow(layer_data)) {
+      for (i in seq_len(nrow(layer_data))) {
         row <- layer_data[i, ]
 
         # Extract basic statistics

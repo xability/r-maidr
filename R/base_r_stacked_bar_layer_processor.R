@@ -21,7 +21,7 @@ BaseRStackedBarLayerProcessor <- R6::R6Class("BaseRStackedBarLayerProcessor",
         type = "stacked_bar",
         title = title,
         axes = axes,
-        domMapping = list(groupDirection = "forward")
+        dom_mapping = list(groupDirection = "forward")
       )
     },
     needs_reordering = function() {

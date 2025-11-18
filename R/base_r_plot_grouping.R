@@ -32,7 +32,6 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
 
     if (class_level == "LAYOUT") {
       layout_calls <- append(layout_calls, list(call))
-
     } else if (class_level == "HIGH") {
       if (!is.null(current_group)) {
         groups <- append(groups, list(current_group))
@@ -45,7 +44,6 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
         low_call_indices = integer(0),
         panel_info = NULL
       )
-
     } else if (class_level == "LOW") {
       if (!is.null(current_group)) {
         current_group$low_calls <- append(current_group$low_calls, list(call))
@@ -128,7 +126,6 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   for (call in layout_calls) {
     if (call$function_name == "par" &&
         (!is.null(call$args$mfrow) || !is.null(call$args$mfcol))) {
-
       # Handle both mfrow and mfcol
       layout_vec <- if (!is.null(call$args$mfrow)) {
         call$args$mfrow

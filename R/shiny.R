@@ -8,13 +8,13 @@
 #' Creates a Shiny output container for MAIDR widgets using htmlwidgets.
 #' This provides automatic dependency injection and robust JavaScript initialization.
 #'
-#' @param outputId The output variable to read the plot from
+#' @param output_id The output variable to read the plot from
 #' @param width The width of the plot container (default: "100%")
 #' @param height The height of the plot container (default: "400px")
 #' @return A Shiny widget output function
 #' @export
-maidrOutput <- function(outputId, width = "100%", height = "400px") {
-  htmlwidgets::shinyWidgetOutput(outputId, "maidr", width, height)
+maidrOutput <- function(output_id, width = "100%", height = "400px") {
+  htmlwidgets::shinyWidgetOutput(output_id, "maidr", width, height)
 }
 
 #' Render MAIDR plot in Shiny server

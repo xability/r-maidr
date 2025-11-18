@@ -6,11 +6,11 @@
 #' @param plot A ggplot object to render as an interactive MAIDR widget
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
-#' @param elementId A unique identifier for the widget (default: NULL for auto-generated)
+#' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
 #' @param ... Additional arguments passed to create_maidr_html()
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 #' @export
-maidr_widget <- function(plot, width = NULL, height = NULL, elementId = NULL, ...) {
+maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, ...) {
   # Validate input
   if (!inherits(plot, "ggplot")) {
     stop("Input must be a ggplot object.")
@@ -36,7 +36,7 @@ maidr_widget <- function(plot, width = NULL, height = NULL, elementId = NULL, ..
     x = list(svg_content = as.character(svg_content)),
     width = width,
     height = height,
-    elementId = elementId,
+    elementId = element_id,
     dependencies = maidr_deps,
     sizingPolicy = htmlwidgets::sizingPolicy(
       browser.fill = TRUE,
@@ -57,13 +57,13 @@ maidr_widget <- function(plot, width = NULL, height = NULL, elementId = NULL, ..
 #' Creates a Shiny output function for MAIDR widgets.
 #' This function should be used in the UI part of a Shiny application.
 #'
-#' @param outputId The output variable to read the widget from
+#' @param output_id The output variable to read the widget from
 #' @param width The width of the widget (default: "100%")
 #' @param height The height of the widget (default: "400px")
 #' @return A Shiny widget output function
 #' @export
-maidr_widgetOutput <- function(outputId, width = "100%", height = "400px") {
-  htmlwidgets::shinyWidgetOutput(outputId, "maidr", width, height)
+maidr_widgetOutput <- function(output_id, width = "100%", height = "400px") {
+  htmlwidgets::shinyWidgetOutput(output_id, "maidr", width, height)
 }
 
 #' Render a MAIDR widget in Shiny

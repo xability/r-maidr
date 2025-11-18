@@ -129,4 +129,3 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
     }
   )
 )
-

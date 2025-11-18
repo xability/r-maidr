@@ -34,7 +34,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class("Ggplot2DodgedBarLayerProcessor",
         if (is.null(fill_col) && !is.null(plot_mapping$fill)) fill_col <- rlang::as_name(plot_mapping$fill)
       }
       if (is.null(x_col) || is.null(fill_col) ||
-        !(x_col %in% names(data)) || !(fill_col %in% names(data))) {
+          !(x_col %in% names(data)) || !(fill_col %in% names(data))) {
         return(data)
       }
       x_ordered <- factor(data[[x_col]], levels = sort(unique(data[[x_col]])))

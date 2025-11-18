@@ -10,9 +10,9 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL,
-                      scale_mapping = NULL, grob_id = NULL,
-                      panel_id = NULL, panel_ctx = NULL,
-                      layer_info = NULL) {
+                       scale_mapping = NULL, grob_id = NULL,
+                       panel_id = NULL, panel_ctx = NULL,
+                       layer_info = NULL) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -26,7 +26,6 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
         axes = axes
       )
     },
-
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -47,29 +46,24 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
         if (inherits(first_arg, "density")) {
           x_values <- first_arg$x
           y_values <- first_arg$y
-        }
-        # Case 2: smooth.spline object
-        else if (inherits(first_arg, "smooth.spline")) {
+        } else if (inherits(first_arg, "smooth.spline")) {
+          # Case 2: smooth.spline object
           x_values <- first_arg$x
           y_values <- first_arg$y
-        }
-        # Case 3: loess object (shouldn't happen directly, but handle it)
-        else if (inherits(first_arg, "loess")) {
+        } else if (inherits(first_arg, "loess")) {
+          # Case 3: loess object (shouldn't happen directly, but handle it)
           x_values <- first_arg$x
           y_values <- fitted(first_arg)
-        }
-        # Case 4: list with x,y (loess.smooth result)
-        else if (is.list(first_arg) && all(c("x", "y") %in% names(first_arg))) {
+        } else if (is.list(first_arg) && all(c("x", "y") %in% names(first_arg))) {
+          # Case 4: list with x,y (loess.smooth result)
           x_values <- first_arg$x
           y_values <- first_arg$y
-        }
-        # Case 5: Two numeric vectors (e.g., from predict(loess))
-        else if (is.numeric(first_arg) && length(args) >= 2 && is.numeric(args[[2]])) {
+        } else if (is.numeric(first_arg) && length(args) >= 2 && is.numeric(args[[2]])) {
+          # Case 5: Two numeric vectors (e.g., from predict(loess))
           x_values <- first_arg
           y_values <- args[[2]]
-        }
-        # Default: no data
-        else {
+        } else {
+          # Default: no data
           return(list())
         }
 
@@ -84,7 +78,6 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
 
       return(list())
     },
-
     generate_selectors = function(layer_info, gt = NULL) {
       if (is.null(gt)) {
         return(list())
@@ -102,20 +95,17 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
 
       selectors
     },
-
     find_polyline_grobs = function(grob, call_index = NULL) {
       # Use robust utility function to find lines container
       # This doesn't rely on call_index matching the actual grob names
       find_graphics_plot_grob(grob, "lines")
     },
-
     generate_selectors_from_grob = function(grob, call_index = NULL) {
       # Use robust selector generation without panel detection
       selector <- generate_robust_selector(grob, "lines", "polyline")
-      
+
       return(list(selector))
     },
-
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(list(x = "", y = ""))
@@ -140,7 +130,6 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
 
       list(x = x_title, y = y_title)
     },
-
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -154,4 +143,3 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
     }
   )
 )
-

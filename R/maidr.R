@@ -6,11 +6,13 @@
 #' @export
 show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
   device_id <- grDevices::dev.cur()
-  
+
   if (is.null(plot)) {
     if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop("No Base R plots detected. Please create a plot first ",
-           "(e.g., barplot(), plot()).")
+      stop(
+        "No Base R plots detected. Please create a plot first ",
+        "(e.g., barplot(), plot())."
+      )
     }
     plot <- NULL
   }
@@ -74,11 +76,13 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", ...) {
   device_id <- grDevices::dev.cur()
-  
+
   if (is.null(plot)) {
     if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop("No Base R plots detected. Please create a plot first ",
-           "(e.g., barplot(), plot()).")
+      stop(
+        "No Base R plots detected. Please create a plot first ",
+        "(e.g., barplot(), plot())."
+      )
     }
     plot <- NULL
   }

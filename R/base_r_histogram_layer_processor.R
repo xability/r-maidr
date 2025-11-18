@@ -21,7 +21,6 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
         axes = axes
       )
     },
-    
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -30,23 +29,23 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       # Get the histogram call arguments
       plot_call <- layer_info$plot_call
       args <- plot_call$args
-      
+
       # Extract the data (first argument)
       hist_data <- args[[1]]
-      
+
       # Create histogram object to get breaks, counts, mids
       # Pass the original parameters to ensure same binning as the plot
       # Suppress warnings about unused probability parameter
       hist_params <- list(plot = FALSE)
       if (!is.null(args$breaks)) hist_params$breaks <- args$breaks
       if (!is.null(args$probability)) hist_params$probability <- args$probability
-      
+
       hist_obj <- suppressWarnings(do.call(hist, c(list(hist_data), hist_params)))
-      
+
       breaks <- hist_obj$breaks
       counts <- hist_obj$counts
       mids <- hist_obj$mids
-      
+
       # Convert to MAIDR format (same as ggplot2 histogram format)
       histogram_data <- list()
       for (i in seq_along(counts)) {
@@ -62,7 +61,6 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
 
       return(histogram_data)
     },
-    
     generate_selectors = function(layer_info, gt = NULL) {
       # Use group_index for grob lookup (not layer index)
       # Multiple layers in same group share same grob with group-based naming
@@ -81,11 +79,12 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       }
 
       # Fallback selector for histograms - return as array
-      main_selector <- paste0("rect[id^='graphics-plot-", group_index,
-                              "-rect-1']")
+      main_selector <- paste0(
+        "rect[id^='graphics-plot-", group_index,
+        "-rect-1']"
+      )
       list(main_selector)
     },
-    
     find_rect_grobs = function(grob, call_index) {
       names <- character(0)
 
@@ -109,7 +108,7 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
           }
         }
       }
-      
+
       # Also check grobs field (like stacked bar processor)
       if (!is.null(grob$grobs)) {
         for (i in seq_along(grob$grobs)) {
@@ -119,14 +118,12 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
 
       names
     },
-    
     generate_selectors_from_grob = function(grob, call_index = NULL) {
       # Use robust selector generation with plot_index for multipanel support
       selector <- generate_robust_selector(grob, "rect", "rect", plot_index = call_index)
-      
+
       return(selector)
     },
-    
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(list(x = "", y = ""))
@@ -141,7 +138,6 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
 
       list(x = x_title, y = y_title)
     },
-    
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")

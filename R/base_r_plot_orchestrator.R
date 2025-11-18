@@ -191,7 +191,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       if (!is.null(panel_config) &&
           panel_config$type %in% c("mfrow", "mfcol") &&
           (panel_config$nrows > 1 || panel_config$ncols > 1)) {
-
         # Multipanel case - create 2D grid
         nrows <- panel_config$nrows
         ncols <- panel_config$ncols
@@ -269,7 +268,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           combined_selectors <- c(combined_selectors, result$selectors)
         }
         private$.combined_selectors <- combined_selectors
-
       } else {
         # Single panel case - original logic
         combined_data <- list()
@@ -347,7 +345,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       private$.plot_calls
     },
     get_gtable = function() {
-
       if (length(private$.plot_groups) == 0) {
         return(NULL)
       }
@@ -358,7 +355,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       if (!is.null(panel_config) &&
           panel_config$type %in% c("mfrow", "mfcol") &&
           (panel_config$nrows > 1 || panel_config$ncols > 1)) {
-
         # Multipanel case - create composite grob
         composite_func <- function() {
           # Set the panel configuration
@@ -393,18 +389,20 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         }
 
         # Convert entire multipanel to single grob
-        tryCatch({
-          composite_grob <- ggplotify::as.grob(composite_func)
+        tryCatch(
+          {
+            composite_grob <- ggplotify::as.grob(composite_func)
 
-          # Also store individual grobs for reference
-          private$.grob_list <- list(composite_grob)
+            # Also store individual grobs for reference
+            private$.grob_list <- list(composite_grob)
 
-          return(composite_grob)
-        }, error = function(e) {
-          warning("Failed to create multipanel grob: ", e$message)
-          return(NULL)
-        })
-
+            return(composite_grob)
+          },
+          error = function(e) {
+            warning("Failed to create multipanel grob: ", e$message)
+            return(NULL)
+          }
+        )
       } else {
         # Single panel case - original logic
         grob_list <- list()
@@ -458,8 +456,8 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       # Check if we have a multipanel configuration
       panel_config <- detect_panel_configuration(private$.device_id)
       is_multipanel <- !is.null(panel_config) &&
-                       panel_config$type %in% c("mfrow", "mfcol") &&
-                       (panel_config$nrows > 1 || panel_config$ncols > 1)
+        panel_config$type %in% c("mfrow", "mfcol") &&
+        (panel_config$nrows > 1 || panel_config$ncols > 1)
 
       if (is_multipanel) {
         # For multipanel, all layers share the same composite grob

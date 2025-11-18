@@ -48,7 +48,7 @@ get_device_storage <- function(device_id = grDevices::dev.cur()) {
 #' @return NULL (invisible)
 #' @keywords internal
 log_plot_call_to_device <- function(function_name, call_expr, args,
-                                     device_id = grDevices::dev.cur()) {
+                                    device_id = grDevices::dev.cur()) {
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
 
@@ -189,7 +189,7 @@ get_device_storage_summary <- function() {
 #' @return List of filtered plot call entries
 #' @keywords internal
 get_device_calls_by_class <- function(device_id = grDevices::dev.cur(),
-                                       class_level = "HIGH") {
+                                      class_level = "HIGH") {
   all_calls <- get_device_calls(device_id)
 
   if (length(all_calls) == 0) {
