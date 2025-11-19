@@ -184,7 +184,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         }
         character(0)
       }
-      find_descendant_of_parent_by_pattern <- function(grob, parent_id, pattern) {
+      find_desc_by_pattern <- function(grob, parent_id, pattern) {
         if (!inherits(grob, "gTree")) {
           return(NULL)
         }
@@ -194,7 +194,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
             ids <- find_children_by_pattern(child, pattern)
             return(if (length(ids) > 0) ids[1] else NULL)
           }
-          res <- find_descendant_of_parent_by_pattern(child, parent_id, pattern)
+          res <- find_desc_by_pattern(child, parent_id, pattern)
           if (!is.null(res)) {
             return(res)
           }
@@ -234,7 +234,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         box_sel <- list()
 
         # Outliers
-        outlier_container <- find_descendant_of_parent_by_pattern(
+        outlier_container <- find_desc_by_pattern(
           panel_grob,
           box_id,
           "geom_point\\.points"
@@ -281,18 +281,18 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         }
 
         # IQR box and median inside crossbar
-        crossbar_id <- find_descendant_of_parent_by_pattern(
+        crossbar_id <- find_desc_by_pattern(
           panel_grob,
           box_id,
           "geom_crossbar\\.gTree"
         )
         iq_id <- if (!is.null(crossbar_id)) {
-          find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "geom_polygon\\.polygon")
+          find_desc_by_pattern(panel_grob, crossbar_id, "geom_polygon\\.polygon")
         } else {
           NULL
         }
         med_id <- if (!is.null(crossbar_id)) {
-          find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "GRID\\.segments")
+          find_desc_by_pattern(panel_grob, crossbar_id, "GRID\\.segments")
         } else {
           NULL
         }
@@ -304,7 +304,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         }
 
         # Whiskers (another GRID.segments under box)
-        whisker_id <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "GRID\\.segments")
+        whisker_id <- find_desc_by_pattern(panel_grob, box_id, "GRID\\.segments")
         if (!is.null(whisker_id) && !is.null(med_id) && whisker_id == med_id) {
           direct_segments <- first_level_children_of(panel_grob, box_id, "GRID\\.segments")
           if (length(direct_segments) > 0) {

@@ -31,7 +31,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         plot_type,
         "bar" = Ggplot2BarLayerProcessor$new(layer_info),
         "dodged_bar" = Ggplot2DodgedBarLayerProcessor$new(layer_info),
-        "stacked_bar" = Ggplot2StackedBarLayerProcessor$new(layer_info),
+        "stacked_bar" = Ggplot2StackedBarProcessor$new(layer_info),
         "hist" = Ggplot2HistogramLayerProcessor$new(layer_info),
         "line" = Ggplot2LineLayerProcessor$new(layer_info),
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
@@ -80,7 +80,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
       processor_classes <- c(
         "Ggplot2BarLayerProcessor",
         "Ggplot2DodgedBarLayerProcessor",
-        "Ggplot2StackedBarLayerProcessor",
+        "Ggplot2StackedBarProcessor",
         "Ggplot2LineLayerProcessor",
         "Ggplot2PointLayerProcessor",
         "Ggplot2HistogramLayerProcessor",
