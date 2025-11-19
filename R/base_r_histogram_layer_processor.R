@@ -4,7 +4,8 @@
 #' and selector generation logic.
 #'
 #' @keywords internal
-BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
+BaseRHistogramLayerProcessor <- R6::R6Class(
+  "BaseRHistogramLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL, layer_info = NULL) {
@@ -37,8 +38,12 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       # Pass the original parameters to ensure same binning as the plot
       # Suppress warnings about unused probability parameter
       hist_params <- list(plot = FALSE)
-      if (!is.null(args$breaks)) hist_params$breaks <- args$breaks
-      if (!is.null(args$probability)) hist_params$probability <- args$probability
+      if (!is.null(args$breaks)) {
+        hist_params$breaks <- args$breaks
+      }
+      if (!is.null(args$probability)) {
+        hist_params$probability <- args$probability
+      }
 
       hist_obj <- suppressWarnings(do.call(hist, c(list(hist_data), hist_params)))
 
@@ -80,7 +85,8 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
 
       # Fallback selector for histograms - return as array
       main_selector <- paste0(
-        "rect[id^='graphics-plot-", group_index,
+        "rect[id^='graphics-plot-",
+        group_index,
         "-rect-1']"
       )
       list(main_selector)
@@ -89,7 +95,9 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
       names <- character(0)
 
       # Look for graphics-plot pattern matching our call index
-      if (!is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)) {
+      if (
+        !is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)
+      ) {
         names <- c(names, grob$name)
       }
 

@@ -6,7 +6,8 @@
 #' @format An R6 class inheriting from SystemAdapter
 #' @keywords internal
 
-Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
+Ggplot2Adapter <- R6::R6Class(
+  "Ggplot2Adapter",
   inherit = SystemAdapter,
   public = list(
     #' Initialize the ggplot2 adapter
@@ -20,7 +21,6 @@ Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
     can_handle = function(plot_object) {
       inherits(plot_object, "ggplot")
     },
-
 
     #' Detect the type of a single layer
     #' @param layer The ggplot2 layer object to analyze
@@ -94,7 +94,6 @@ Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
       # Use the existing PlotOrchestrator for ggplot2
       Ggplot2PlotOrchestrator$new(plot_object)
     },
-
 
     #' Get the system name
     #' @return System name string

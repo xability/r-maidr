@@ -34,8 +34,14 @@ process_faceted_plot_data <- function(plot, layout, built, gtable) {
 
     # Process this panel
     subplot_data <- process_facet_panel(
-      plot, panel_info, panel_data, facet_groups, gtable_panel_name,
-      built, layout, gtable
+      plot,
+      panel_info,
+      panel_data,
+      facet_groups,
+      gtable_panel_name,
+      built,
+      layout,
+      gtable
     )
     subplots[[i]] <- subplot_data
   }
@@ -78,8 +84,16 @@ get_facet_groups <- function(panel_info, built) {
 #' @param layout Layout information
 #' @param gtable Gtable object
 #' @return Processed panel data
-process_facet_panel <- function(plot, panel_info, panel_data, facet_groups,
-                                gtable_panel_name, built, layout, gtable) {
+process_facet_panel <- function(
+  plot,
+  panel_info,
+  panel_data,
+  facet_groups,
+  gtable_panel_name,
+  built,
+  layout,
+  gtable
+) {
   # Process layers using existing processors with panel-specific data
   layer_results <- list()
 
@@ -99,7 +113,11 @@ process_facet_panel <- function(plot, panel_info, panel_data, facet_groups,
 
     if (!is.null(processor)) {
       # Build panel context for panel-scoped selector generation
-      panel_name <- if (!is.null(gtable_panel_name)) gtable_panel_name else paste0("panel-", panel_info$ROW, "-", panel_info$COL)
+      panel_name <- if (!is.null(gtable_panel_name)) {
+        gtable_panel_name
+      } else {
+        paste0("panel-", panel_info$ROW, "-", panel_info$COL)
+      }
       panel_ctx <- list(
         panel_name = panel_name,
         row = panel_info$ROW,

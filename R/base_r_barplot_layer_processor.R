@@ -3,10 +3,21 @@
 #' Processes Base R bar plot layers based on recorded plot calls
 #'
 #' @keywords internal
-BaseRBarplotLayerProcessor <- R6::R6Class("BaseRBarplotLayerProcessor",
+BaseRBarplotLayerProcessor <- R6::R6Class(
+  "BaseRBarplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL,
+      layer_info = NULL
+    ) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -136,7 +147,9 @@ BaseRBarplotLayerProcessor <- R6::R6Class("BaseRBarplotLayerProcessor",
       names <- character(0)
 
       # Check if current grob matches Base R rect pattern
-      if (!is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)) {
+      if (
+        !is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)
+      ) {
         names <- c(names, grob$name)
       }
 

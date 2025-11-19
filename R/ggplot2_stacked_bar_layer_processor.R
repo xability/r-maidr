@@ -3,7 +3,8 @@
 #' Processes stacked bar plot layers with complete logic included
 #'
 #' @export
-Ggplot2StackedBarLayerProcessor <- R6::R6Class("Ggplot2StackedBarLayerProcessor",
+Ggplot2StackedBarLayerProcessor <- R6::R6Class(
+  "Ggplot2StackedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {

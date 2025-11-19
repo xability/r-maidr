@@ -19,8 +19,7 @@
 #' @param include_layout Include LAYOUT functions (par, layout, etc.)
 #' @return NULL (invisible)
 #' @keywords internal
-initialize_base_r_patching <- function(include_low = TRUE,
-                                       include_layout = TRUE) {
+initialize_base_r_patching <- function(include_low = TRUE, include_layout = TRUE) {
   fns_to_wrap <- get_functions_by_class("HIGH")
 
   if (include_low) {
@@ -261,7 +260,9 @@ create_barplot_wrapper <- function(original_function) {
 #' @keywords internal
 apply_barplot_patches <- function(args) {
   # Initialize patch manager if not already done
-  if (!exists("global_patch_manager", envir = .GlobalEnv) || is.null(.GlobalEnv$global_patch_manager)) {
+  if (
+    !exists("global_patch_manager", envir = .GlobalEnv) || is.null(.GlobalEnv$global_patch_manager)
+  ) {
     .GlobalEnv$global_patch_manager <- PatchManager$new()
   }
 

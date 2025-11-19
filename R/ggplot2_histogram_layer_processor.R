@@ -3,7 +3,8 @@
 #' Processes histogram plot layers with complete logic included
 #'
 #' @keywords internal
-Ggplot2HistogramLayerProcessor <- R6::R6Class("Ggplot2HistogramLayerProcessor",
+Ggplot2HistogramLayerProcessor <- R6::R6Class(
+  "Ggplot2HistogramLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
@@ -16,7 +17,9 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class("Ggplot2HistogramLayerProcessor",
       )
     },
     extract_data = function(plot, built = NULL) {
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       histogram_layers <- built$data[sapply(built$data, function(layer_data) {
         all(c("x", "y", "xmin", "xmax", "ymin", "ymax") %in% names(layer_data))

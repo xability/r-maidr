@@ -4,7 +4,8 @@
 #' and generating selectors for boxplot components.
 #'
 #' @keywords internal
-BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
+BaseRBoxplotLayerProcessor <- R6::R6Class(
+  "BaseRBoxplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL, layer_info = NULL) {
@@ -54,7 +55,11 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
       }
 
       stats_mat <- stats_obj$stats # 5 x N: [1]=min, [2]=Q1, [3]=median, [4]=Q3, [5]=max
-      group_names <- if (!is.null(stats_obj$names)) stats_obj$names else as.character(seq_len(ncol(stats_mat)))
+      group_names <- if (!is.null(stats_obj$names)) {
+        stats_obj$names
+      } else {
+        as.character(seq_len(ncol(stats_mat)))
+      }
 
       # Outliers grouped by $group indices
       out_vals <- if (!is.null(stats_obj$out)) stats_obj$out else numeric(0)
@@ -129,15 +134,23 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
       # Gather per-box polygon ids and build per-group selectors
       collect_names <- function(g) {
         names <- character(0)
-        if (!is.null(g$name)) names <- c(names, as.character(g$name))
+        if (!is.null(g$name)) {
+          names <- c(names, as.character(g$name))
+        }
         if (inherits(g, "gList")) {
-          for (i in seq_along(g)) names <- c(names, collect_names(g[[i]]))
+          for (i in seq_along(g)) {
+            names <- c(names, collect_names(g[[i]]))
+          }
         }
         if (inherits(g, "gTree") && !is.null(g$children)) {
-          for (i in seq_along(g$children)) names <- c(names, collect_names(g$children[[i]]))
+          for (i in seq_along(g$children)) {
+            names <- c(names, collect_names(g$children[[i]]))
+          }
         }
         if (!is.null(g$grobs)) {
-          for (i in seq_along(g$grobs)) names <- c(names, collect_names(g$grobs[[i]]))
+          for (i in seq_along(g$grobs)) {
+            names <- c(names, collect_names(g$grobs[[i]]))
+          }
         }
         names
       }
@@ -168,9 +181,19 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
       }
 
       make_poly_sel <- function(id) paste0("polygon[id^='", id, ".1']")
-      make_group_sel <- function(group_idx) paste0("g#graphics-plot-", plot_index, "-segments-", group_idx, "\\.1 > polyline")
+      make_group_sel <- function(group_idx) {
+        paste0("g#graphics-plot-", plot_index, "-segments-", group_idx, "\\.1 > polyline")
+      }
       make_whisker_sel <- function(group_idx, which_child) {
-        paste0("g#graphics-plot-", plot_index, "-segments-", group_idx, "\\.1 > polyline:nth-child(", which_child, ")")
+        paste0(
+          "g#graphics-plot-",
+          plot_index,
+          "-segments-",
+          group_idx,
+          "\\.1 > polyline:nth-child(",
+          which_child,
+          ")"
+        )
       }
 
       # Check if data will be reversed (horizontal plot)
@@ -185,8 +208,12 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
       for (idx in seq_len(data_len)) {
         if (!is.null(data_to_use) && length(data_to_use) >= idx) {
           box_data <- data_to_use[[idx]]
-          lower_count <- length(if (!is.null(box_data$lowerOutliers)) box_data$lowerOutliers else list())
-          upper_count <- length(if (!is.null(box_data$upperOutliers)) box_data$upperOutliers else list())
+          lower_count <- length(
+            if (!is.null(box_data$lowerOutliers)) box_data$lowerOutliers else list()
+          )
+          upper_count <- length(
+            if (!is.null(box_data$upperOutliers)) box_data$upperOutliers else list()
+          )
           # Map idx (which is in data_to_use order) to original SVG order
           svg_order_idx <- if (is_horizontal) (data_len - idx + 1) else idx
           boxes_with_no_outliers[svg_order_idx] <- (lower_count == 0 && upper_count == 0)
@@ -205,13 +232,15 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
         no_outlier_count_before <- sum(boxes_with_no_outliers[seq_len(svg_idx - 1)])
 
         iq_sel <- make_poly_sel(per_box_ids[[svg_idx]])
-        y_idx <- 4 * svg_idx - 3 - no_outlier_count_before # median group index (adjusted for boxes with no outliers)
-        w_idx <- 4 * svg_idx - 1 - no_outlier_count_before # whisker caps group index (adjusted for boxes with no outliers)
+        # Median group index (adjusted for boxes with no outliers)
+        y_idx <- 4 * svg_idx - 3 - no_outlier_count_before
+        # Whisker caps group index (adjusted for boxes with no outliers)
+        w_idx <- 4 * svg_idx - 1 - no_outlier_count_before
 
         q2_sel <- make_group_sel(y_idx)
         # For whisker caps: the order of nth-child depends on orientation
         # Vertical plots: nth-child(1) is MIN, nth-child(2) is MAX
-        # Horizontal plots: nth-child(1) is visually left (MIN), nth-child(2) is visually right (MAX)
+        # Horizontal plots: nth-child(1) is left (MIN), nth-child(2) is right (MAX)
         if (is_horizontal) {
           min_sel <- make_whisker_sel(w_idx, 1)
           max_sel <- make_whisker_sel(w_idx, 2)
@@ -229,8 +258,16 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
         upper_count <- 0
         if (!is.null(data_to_use) && length(data_to_use) >= i) {
           box_data <- data_to_use[[i]]
-          lower_outliers_data <- if (!is.null(box_data$lowerOutliers)) box_data$lowerOutliers else list()
-          upper_outliers_data <- if (!is.null(box_data$upperOutliers)) box_data$upperOutliers else list()
+          lower_outliers_data <- if (!is.null(box_data$lowerOutliers)) {
+            box_data$lowerOutliers
+          } else {
+            list()
+          }
+          upper_outliers_data <- if (!is.null(box_data$upperOutliers)) {
+            box_data$upperOutliers
+          } else {
+            list()
+          }
           lower_count <- length(lower_outliers_data)
           upper_count <- length(upper_outliers_data)
         }
@@ -239,7 +276,13 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
         upper_sel <- character(0)
 
         if (lower_count > 0 || upper_count > 0) {
-          points_group <- paste0("g#graphics-plot-", plot_index, "-points-", points_idx, "\\.1 > use")
+          points_group <- paste0(
+            "g#graphics-plot-",
+            plot_index,
+            "-points-",
+            points_idx,
+            "\\.1 > use"
+          )
 
           if (lower_count > 0) {
             # Select first N children for lower outliers

@@ -3,7 +3,8 @@
 #' Processes smooth plot layers with complete logic included
 #'
 #' @keywords internal
-Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
+Ggplot2SmoothLayerProcessor <- R6::R6Class(
+  "Ggplot2SmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
@@ -20,7 +21,9 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
         stop("Input must be a ggplot object.")
       }
 
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       smooth_layers <- which(sapply(plot$layers, function(layer) {
         inherits(layer$geom, "GeomSmooth") ||
@@ -86,8 +89,8 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
           numeric_ids <- numeric_ids[numeric_ids > 0]
 
           if (length(numeric_ids) > 0) {
-            # For geom_smooth, the actual fitted line is typically the LAST (highest numbered) polyline
-            # This is because ggplot2 renders confidence interval first, then the fitted line
+            # Fitted line is the LAST polyline (confidence interval rendered first)
+            # ggplot2 renders confidence interval first, then the fitted line
             target_id <- max(numeric_ids)
             grob_id <- paste0("GRID.polyline.", target_id, ".1.1")
             escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)

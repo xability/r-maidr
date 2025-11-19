@@ -62,8 +62,7 @@ update_device_state <- function(device_id = grDevices::dev.cur(), state) {
 #' @param call_index Index of the call in the calls list
 #' @return NULL (invisible)
 #' @keywords internal
-on_high_level_call <- function(device_id = grDevices::dev.cur(),
-                               call_index) {
+on_high_level_call <- function(device_id = grDevices::dev.cur(), call_index) {
   state <- get_device_state(device_id)
 
   state$current_plot_index <- state$current_plot_index + 1
@@ -89,8 +88,7 @@ on_high_level_call <- function(device_id = grDevices::dev.cur(),
 #' @param args Function arguments
 #' @return NULL (invisible)
 #' @keywords internal
-on_layout_call <- function(device_id = grDevices::dev.cur(),
-                           function_name, args) {
+on_layout_call <- function(device_id = grDevices::dev.cur(), function_name, args) {
   state <- get_device_state(device_id)
 
   if (function_name == "par" && !is.null(args$mfrow)) {

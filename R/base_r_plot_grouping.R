@@ -124,8 +124,10 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   }
 
   for (call in layout_calls) {
-    if (call$function_name == "par" &&
-          (!is.null(call$args$mfrow) || !is.null(call$args$mfcol))) {
+    if (
+      call$function_name == "par" &&
+        (!is.null(call$args$mfrow) || !is.null(call$args$mfcol))
+    ) {
       # Handle both mfrow and mfcol
       layout_vec <- if (!is.null(call$args$mfrow)) {
         call$args$mfrow

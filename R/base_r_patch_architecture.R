@@ -5,7 +5,8 @@
 #' @keywords internal
 
 # Abstract base class for all patchers
-BaseRPatcher <- R6::R6Class("BaseRPatcher",
+BaseRPatcher <- R6::R6Class(
+  "BaseRPatcher",
   public = list(
     # Check if this patcher should handle the given function
     can_patch = function(function_name, args) {
@@ -25,7 +26,8 @@ BaseRPatcher <- R6::R6Class("BaseRPatcher",
 )
 
 # Sorting patcher for consistent ordering
-SortingPatcher <- R6::R6Class("SortingPatcher",
+SortingPatcher <- R6::R6Class(
+  "SortingPatcher",
   inherit = BaseRPatcher,
   public = list(
     can_patch = function(function_name, args) {
@@ -144,7 +146,8 @@ SortingPatcher <- R6::R6Class("SortingPatcher",
 )
 
 # Patch Manager - orchestrates all patchers
-PatchManager <- R6::R6Class("PatchManager",
+PatchManager <- R6::R6Class(
+  "PatchManager",
   private = list(
     .patchers = list()
   ),

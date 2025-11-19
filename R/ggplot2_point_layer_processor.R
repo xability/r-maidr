@@ -4,7 +4,8 @@
 #' for individual points in the SVG structure.
 #'
 #' @keywords internal
-Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
+Ggplot2PointLayerProcessor <- R6::R6Class(
+  "Ggplot2PointLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the point layer
@@ -16,7 +17,16 @@ Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    ) {
       # Extract data from the point layer
       extracted_data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
@@ -41,7 +51,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
     #' @param built Built plot data (optional)
     #' @return List with x and y axis labels
     extract_axes_labels = function(plot, built = NULL) {
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       # Get axis labels from the built plot
       x_label <- ""
@@ -81,7 +93,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with points array and color information
     extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
@@ -214,10 +228,14 @@ Ggplot2PointLayerProcessor <- R6::R6Class("Ggplot2PointLayerProcessor",
             point_names <<- c(point_names, grob$name)
           }
           if (inherits(grob, "gList")) {
-            for (i in seq_along(grob)) find_points(grob[[i]])
+            for (i in seq_along(grob)) {
+              find_points(grob[[i]])
+            }
           }
           if (inherits(grob, "gTree")) {
-            for (i in seq_along(grob$children)) find_points(grob$children[[i]])
+            for (i in seq_along(grob$children)) {
+              find_points(grob$children[[i]])
+            }
           }
         }
         find_points(panel_grob)

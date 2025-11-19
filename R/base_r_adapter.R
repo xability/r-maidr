@@ -6,7 +6,8 @@
 #' @format An R6 class inheriting from SystemAdapter
 #' @keywords internal
 
-BaseRAdapter <- R6::R6Class("BaseRAdapter",
+BaseRAdapter <- R6::R6Class(
+  "BaseRAdapter",
   inherit = SystemAdapter,
   public = list(
     #' Initialize the Base R adapter
@@ -40,7 +41,8 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       args <- layer$args
 
       # HIGH-level function detection
-      layer_type <- switch(function_name,
+      layer_type <- switch(
+        function_name,
         "barplot" = {
           if (self$is_dodged_barplot(args)) {
             "dodged_bar"
@@ -80,7 +82,8 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       }
 
       # LOW-level function detection (NEW)
-      layer_type <- switch(function_name,
+      layer_type <- switch(
+        function_name,
         "lines" = {
           first_arg <- args[[1]]
           if (!is.null(first_arg)) {
@@ -91,9 +94,11 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
               "smooth" # Loess objects (shouldn't happen directly, but check)
             } else if (inherits(first_arg, "smooth.spline")) {
               "smooth" # Smooth spline objects
-            } else if (is.list(first_arg) &&
-                         all(c("x", "y") %in% names(first_arg)) &&
-                         length(args) == 1) {
+            } else if (
+              is.list(first_arg) &&
+                all(c("x", "y") %in% names(first_arg)) &&
+                length(args) == 1
+            ) {
               # List with x,y and no other args - likely loess.smooth result
               "smooth"
             } else {

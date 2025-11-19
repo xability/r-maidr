@@ -3,12 +3,21 @@
 #' Processes Base R heatmap layers using the heatmap() function
 #'
 #' @keywords internal
-BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
+BaseRHeatmapLayerProcessor <- R6::R6Class(
+  "BaseRHeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL,
-                       scale_mapping = NULL, grob_id = NULL,
-                       panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL,
+      layer_info = NULL
+    ) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -97,7 +106,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       # Fallback selector
       main_selector <- paste0(
-        "g#graphics-plot-", group_index, "-image-rect-1\\.1 > rect"
+        "g#graphics-plot-",
+        group_index,
+        "-image-rect-1\\.1 > rect"
       )
       list(main_selector)
     },

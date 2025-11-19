@@ -6,7 +6,8 @@
 #' @format An R6 class inheriting from ProcessorFactory
 #' @keywords internal
 
-BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
+BaseRProcessorFactory <- R6::R6Class(
+  "BaseRProcessorFactory",
   inherit = ProcessorFactory,
   public = list(
     #' Initialize the Base R processor factory
@@ -25,7 +26,8 @@ BaseRProcessorFactory <- R6::R6Class("BaseRProcessorFactory",
       }
 
       # Map plot types to Base R processor classes
-      switch(plot_type,
+      switch(
+        plot_type,
         "bar" = BaseRBarplotLayerProcessor$new(layer_info),
         "dodged_bar" = BaseRDodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = BaseRStackedBarLayerProcessor$new(layer_info),

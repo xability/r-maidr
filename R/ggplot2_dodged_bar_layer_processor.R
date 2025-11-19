@@ -3,7 +3,8 @@
 #' Processes dodged bar plot layers with complete logic included
 #'
 #' @keywords internal
-Ggplot2DodgedBarLayerProcessor <- R6::R6Class("Ggplot2DodgedBarLayerProcessor",
+Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
+  "Ggplot2DodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
@@ -24,17 +25,31 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class("Ggplot2DodgedBarLayerProcessor",
       layer_mapping <- plot$layers[[self$get_layer_index()]]$mapping
       x_col <- y_col <- fill_col <- NULL
       if (!is.null(layer_mapping)) {
-        if (!is.null(layer_mapping$x)) x_col <- rlang::as_name(layer_mapping$x)
-        if (!is.null(layer_mapping$y)) y_col <- rlang::as_name(layer_mapping$y)
+        if (!is.null(layer_mapping$x)) {
+          x_col <- rlang::as_name(layer_mapping$x)
+        }
+        if (!is.null(layer_mapping$y)) {
+          y_col <- rlang::as_name(layer_mapping$y)
+        }
         if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_name(layer_mapping$fill)
       }
       if (!is.null(plot_mapping)) {
-        if (is.null(x_col) && !is.null(plot_mapping$x)) x_col <- rlang::as_name(plot_mapping$x)
-        if (is.null(y_col) && !is.null(plot_mapping$y)) y_col <- rlang::as_name(plot_mapping$y)
-        if (is.null(fill_col) && !is.null(plot_mapping$fill)) fill_col <- rlang::as_name(plot_mapping$fill)
+        if (is.null(x_col) && !is.null(plot_mapping$x)) {
+          x_col <- rlang::as_name(plot_mapping$x)
+        }
+        if (is.null(y_col) && !is.null(plot_mapping$y)) {
+          y_col <- rlang::as_name(plot_mapping$y)
+        }
+        if (is.null(fill_col) && !is.null(plot_mapping$fill)) {
+          fill_col <- rlang::as_name(plot_mapping$fill)
+        }
       }
-      if (is.null(x_col) || is.null(fill_col) ||
-            !(x_col %in% names(data)) || !(fill_col %in% names(data))) {
+      if (
+        is.null(x_col) ||
+          is.null(fill_col) ||
+          !(x_col %in% names(data)) ||
+          !(fill_col %in% names(data))
+      ) {
         return(data)
       }
       x_ordered <- factor(data[[x_col]], levels = sort(unique(data[[x_col]])))
@@ -53,14 +68,24 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class("Ggplot2DodgedBarLayerProcessor",
       x_col <- y_col <- fill_col <- NULL
 
       if (!is.null(layer_mapping)) {
-        if (!is.null(layer_mapping$x)) x_col <- rlang::as_name(layer_mapping$x)
-        if (!is.null(layer_mapping$y)) y_col <- rlang::as_name(layer_mapping$y)
+        if (!is.null(layer_mapping$x)) {
+          x_col <- rlang::as_name(layer_mapping$x)
+        }
+        if (!is.null(layer_mapping$y)) {
+          y_col <- rlang::as_name(layer_mapping$y)
+        }
         if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_name(layer_mapping$fill)
       }
       if (!is.null(plot_mapping)) {
-        if (is.null(x_col) && !is.null(plot_mapping$x)) x_col <- rlang::as_name(plot_mapping$x)
-        if (is.null(y_col) && !is.null(plot_mapping$y)) y_col <- rlang::as_name(plot_mapping$y)
-        if (is.null(fill_col) && !is.null(plot_mapping$fill)) fill_col <- rlang::as_name(plot_mapping$fill)
+        if (is.null(x_col) && !is.null(plot_mapping$x)) {
+          x_col <- rlang::as_name(plot_mapping$x)
+        }
+        if (is.null(y_col) && !is.null(plot_mapping$y)) {
+          y_col <- rlang::as_name(plot_mapping$y)
+        }
+        if (is.null(fill_col) && !is.null(plot_mapping$fill)) {
+          fill_col <- rlang::as_name(plot_mapping$fill)
+        }
       }
 
       if (is.null(x_col) || is.null(y_col) || is.null(fill_col)) {
@@ -83,7 +108,9 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class("Ggplot2DodgedBarLayerProcessor",
       })
     },
     generate_selectors = function(plot, gt = NULL) {
-      if (is.null(gt)) gt <- ggplot2::ggplotGrob(plot)
+      if (is.null(gt)) {
+        gt <- ggplot2::ggplotGrob(plot)
+      }
 
       panel_index <- which(gt$layout$name == "panel")
       if (length(panel_index) == 0) {

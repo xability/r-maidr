@@ -5,7 +5,8 @@
 #'
 #' @field layer_info Information about the layer
 #' @keywords internal
-LayerProcessor <- R6::R6Class("LayerProcessor",
+LayerProcessor <- R6::R6Class(
+  "LayerProcessor",
   private = list(
     .last_result = NULL
   ),
@@ -28,7 +29,15 @@ LayerProcessor <- R6::R6Class("LayerProcessor",
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_ctx = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_ctx = NULL
+    ) {
       stop("process() method must be implemented by subclasses", call. = FALSE)
     },
 

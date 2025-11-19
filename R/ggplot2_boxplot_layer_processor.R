@@ -4,7 +4,8 @@
 #' for individual boxplot components in the SVG structure.
 #'
 #' @keywords internal
-Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
+Ggplot2BoxplotLayerProcessor <- R6::R6Class(
+  "Ggplot2BoxplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the boxplot layer
@@ -43,7 +44,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
     #' @param built Built plot data (optional)
     #' @return List with boxplot statistics for each category
     extract_data = function(plot, built = NULL) {
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
@@ -61,13 +64,18 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
           q1 = row$xlower, # Lower quartile (Q1) - box start
           q3 = row$xupper, # Upper quartile (Q3) - box end
           q2 = row$xmiddle, # Median (Q2) - box middle
-          fill = as.character(row$y), # Use y values as category codes (will be mapped to actual names)
+          fill = as.character(row$y), # Y values as category codes (mapped later)
           y_value = row$y # Store the numeric y value for mapping
         )
 
         # Handle outliers - they are stored as "c(value1, value2)" strings
         outliers_str <- as.character(row$outliers)
-        if (outliers_str != "" && !is.na(outliers_str) && outliers_str != "NA" && outliers_str != " numeric(0) ") {
+        if (
+          outliers_str != "" &&
+            !is.na(outliers_str) &&
+            outliers_str != "NA" &&
+            outliers_str != " numeric(0) "
+        ) {
           # Parse the "c(value1, value2)" format
           outliers_text <- gsub("^c\\(|\\)$", "", outliers_str) # Remove "c(" and ")"
           if (outliers_text != "") {
@@ -119,7 +127,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
     #' @param gt Gtable object (optional)
     #' @return List of selectors for each boxplot
     generate_selectors = function(plot, gt = NULL) {
-      if (is.null(gt)) gt <- ggplot2::ggplotGrob(plot)
+      if (is.null(gt)) {
+        gt <- ggplot2::ggplotGrob(plot)
+      }
 
       # Locate panel
       panel_index <- which(gt$layout$name == "panel")
@@ -145,7 +155,11 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
       }
       find_children_by_pattern <- function(grob, pattern) {
         kids <- collect_children(grob)
-        ids <- vapply(kids, function(ch) if (!is.null(ch$name) && grepl(pattern, ch$name)) ch$name else NA_character_, character(1))
+        ids <- vapply(
+          kids,
+          function(ch) if (!is.null(ch$name) && grepl(pattern, ch$name)) ch$name else NA_character_,
+          character(1)
+        )
         ids <- ids[!is.na(ids)]
         unique(ids)
       }
@@ -206,7 +220,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
       }
       master_id <- all_box[1]
       per_box_ids <- first_level_children_of(panel_grob, master_id, "geom_boxplot\\.gTree")
-      if (length(per_box_ids) == 0) per_box_ids <- setdiff(all_box, master_id)
+      if (length(per_box_ids) == 0) {
+        per_box_ids <- setdiff(all_box, master_id)
+      }
 
       # Data for outlier counts
       built <- ggplot2::ggplot_build(plot)
@@ -218,13 +234,22 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         box_sel <- list()
 
         # Outliers
-        outlier_container <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "geom_point\\.points")
+        outlier_container <- find_descendant_of_parent_by_pattern(
+          panel_grob,
+          box_id,
+          "geom_point\\.points"
+        )
         lower_n <- 0
         upper_n <- 0
         if (!is.null(layer_data) && nrow(layer_data) >= i) {
           row <- layer_data[i, ]
           outliers_str <- as.character(row$outliers)
-          if (!is.na(outliers_str) && outliers_str != "" && outliers_str != "NA" && outliers_str != " numeric(0) ") {
+          if (
+            !is.na(outliers_str) &&
+              outliers_str != "" &&
+              outliers_str != "NA" &&
+              outliers_str != " numeric(0) "
+          ) {
             txt <- gsub("^c\\(|\\)$", "", outliers_str)
             if (nzchar(txt)) {
               vals <- suppressWarnings(as.numeric(strsplit(txt, ", ")[[1]]))
@@ -244,17 +269,39 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         }
         if (!is.null(outlier_container) && upper_n > 0) {
           oc <- with_suffix(outlier_container)
-          box_sel$upperOutliers <- list(paste0("g#", esc(oc), " > use:nth-child(n+", lower_n + 1, ")"))
+          box_sel$upperOutliers <- list(paste0(
+            "g#",
+            esc(oc),
+            " > use:nth-child(n+",
+            lower_n + 1,
+            ")"
+          ))
         } else {
           box_sel$upperOutliers <- list()
         }
 
         # IQR box and median inside crossbar
-        crossbar_id <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "geom_crossbar\\.gTree")
-        iq_id <- if (!is.null(crossbar_id)) find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "geom_polygon\\.polygon") else NULL
-        med_id <- if (!is.null(crossbar_id)) find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "GRID\\.segments") else NULL
-        if (!is.null(iq_id)) box_sel$iq <- paste0("g#", esc(with_suffix(iq_id)), " > polygon")
-        if (!is.null(med_id)) box_sel$q2 <- paste0("g#", esc(with_suffix(med_id)), " > polyline")
+        crossbar_id <- find_descendant_of_parent_by_pattern(
+          panel_grob,
+          box_id,
+          "geom_crossbar\\.gTree"
+        )
+        iq_id <- if (!is.null(crossbar_id)) {
+          find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "geom_polygon\\.polygon")
+        } else {
+          NULL
+        }
+        med_id <- if (!is.null(crossbar_id)) {
+          find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "GRID\\.segments")
+        } else {
+          NULL
+        }
+        if (!is.null(iq_id)) {
+          box_sel$iq <- paste0("g#", esc(with_suffix(iq_id)), " > polygon")
+        }
+        if (!is.null(med_id)) {
+          box_sel$q2 <- paste0("g#", esc(with_suffix(med_id)), " > polyline")
+        }
 
         # Whiskers (another GRID.segments under box)
         whisker_id <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "GRID\\.segments")

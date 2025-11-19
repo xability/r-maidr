@@ -8,7 +8,8 @@
 #' @field last_result The last processing result
 #'
 #' @keywords internal
-Ggplot2LineLayerProcessor <- R6::R6Class("Ggplot2LineLayerProcessor",
+Ggplot2LineLayerProcessor <- R6::R6Class(
+  "Ggplot2LineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the line layer with actual SVG structure
@@ -20,7 +21,16 @@ Ggplot2LineLayerProcessor <- R6::R6Class("Ggplot2LineLayerProcessor",
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    ) {
       # Extract data from the line layer
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
@@ -41,7 +51,9 @@ Ggplot2LineLayerProcessor <- R6::R6Class("Ggplot2LineLayerProcessor",
     #' @return List of arrays, each containing series data points
     extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
       # Build the plot to get the processed data
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       # Get the layer data for this specific layer
       layer_data <- built$data[[self$layer_info$index]]
@@ -231,10 +243,14 @@ Ggplot2LineLayerProcessor <- R6::R6Class("Ggplot2LineLayerProcessor",
             poly_ids <<- c(poly_ids, grob$name)
           }
           if (inherits(grob, "gList")) {
-            for (i in seq_along(grob)) find_poly(grob[[i]])
+            for (i in seq_along(grob)) {
+              find_poly(grob[[i]])
+            }
           }
           if (inherits(grob, "gTree")) {
-            for (i in seq_along(grob$children)) find_poly(grob$children[[i]])
+            for (i in seq_along(grob$children)) {
+              find_poly(grob$children[[i]])
+            }
           }
         }
         find_poly(panel_grob)

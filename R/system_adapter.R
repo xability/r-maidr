@@ -7,7 +7,8 @@
 #' @format An R6 class
 #' @keywords internal
 
-SystemAdapter <- R6::R6Class("SystemAdapter",
+SystemAdapter <- R6::R6Class(
+  "SystemAdapter",
   public = list(
     #' System name (e.g., "ggplot2", "base_r", "lattice")
     system_name = NULL,

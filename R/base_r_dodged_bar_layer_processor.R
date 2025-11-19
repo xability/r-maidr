@@ -3,7 +3,8 @@
 #' Processes Base R dodged bar plot layers with proper ordering to match backend logic
 #'
 #' @keywords internal
-BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
+BaseRDodgedBarLayerProcessor <- R6::R6Class(
+  "BaseRDodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL, layer_info = NULL) {
@@ -105,7 +106,9 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       names <- character(0)
 
       # Look for graphics-plot pattern matching our call index
-      if (!is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)) {
+      if (
+        !is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)
+      ) {
         names <- c(names, grob$name)
       }
 

@@ -12,7 +12,8 @@
 #' @field layout Layout information from the plot
 #'
 #' @keywords internal
-BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
+BaseRPlotOrchestrator <- R6::R6Class(
+  "BaseRPlotOrchestrator",
   private = list(
     .plot_calls = list(),
     .plot_groups = list(),
@@ -162,7 +163,12 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         # Pass grob to processor (similar to ggplot2 passing gt)
         # For Base R, we don't have a built plot object like ggplot2
         # We pass the layer info directly and the grob for selector generation
-        result <- processor$process(NULL, private$.layout, layer_info = private$.layers[[i]], gt = layer_grob)
+        result <- processor$process(
+          NULL,
+          private$.layout,
+          layer_info = private$.layers[[i]],
+          gt = layer_grob
+        )
         processor$set_last_result(result)
         layer_results[[i]] <- result
       }
@@ -188,9 +194,11 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       # Check if we have a multipanel configuration
       panel_config <- detect_panel_configuration(private$.device_id)
 
-      if (!is.null(panel_config) &&
-            panel_config$type %in% c("mfrow", "mfcol") &&
-            (panel_config$nrows > 1 || panel_config$ncols > 1)) {
+      if (
+        !is.null(panel_config) &&
+          panel_config$type %in% c("mfrow", "mfcol") &&
+          (panel_config$nrows > 1 || panel_config$ncols > 1)
+      ) {
         # Multipanel case - create 2D grid
         nrows <- panel_config$nrows
         ncols <- panel_config$ncols
@@ -352,9 +360,11 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       # Check if we have a multipanel configuration
       panel_config <- detect_panel_configuration(private$.device_id)
 
-      if (!is.null(panel_config) &&
-            panel_config$type %in% c("mfrow", "mfcol") &&
-            (panel_config$nrows > 1 || panel_config$ncols > 1)) {
+      if (
+        !is.null(panel_config) &&
+          panel_config$type %in% c("mfrow", "mfcol") &&
+          (panel_config$nrows > 1 || panel_config$ncols > 1)
+      ) {
         # Multipanel case - create composite grob
         composite_func <- function() {
           # Set the panel configuration

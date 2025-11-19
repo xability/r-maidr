@@ -6,7 +6,8 @@
 #' @format An R6 class inheriting from ProcessorFactory
 #' @keywords internal
 
-Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
+Ggplot2ProcessorFactory <- R6::R6Class(
+  "Ggplot2ProcessorFactory",
   inherit = ProcessorFactory,
   public = list(
     #' Initialize the ggplot2 processor factory
@@ -26,7 +27,8 @@ Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
 
       # Map plot types to existing processor classes
       # Only support the plot types that the adapter can detect
-      switch(plot_type,
+      switch(
+        plot_type,
         "bar" = Ggplot2BarLayerProcessor$new(layer_info),
         "dodged_bar" = Ggplot2DodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = Ggplot2StackedBarLayerProcessor$new(layer_info),

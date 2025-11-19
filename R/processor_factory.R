@@ -7,7 +7,8 @@
 #' @format An R6 class
 #' @keywords internal
 
-ProcessorFactory <- R6::R6Class("ProcessorFactory",
+ProcessorFactory <- R6::R6Class(
+  "ProcessorFactory",
   public = list(
     #' Abstract method to create a processor for a specific plot type
     #' @param plot_type The type of plot (e.g., "bar", "line", "point")

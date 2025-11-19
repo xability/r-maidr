@@ -12,7 +12,8 @@
 #' @field layout Layout information from the plot
 #'
 #' @keywords internal
-Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
+Ggplot2PlotOrchestrator <- R6::R6Class(
+  "Ggplot2PlotOrchestrator",
   private = list(
     .plot = NULL,
     .layers = list(),
@@ -130,7 +131,11 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
         if (isTRUE(processor$needs_reordering())) {
-          if (is.data.frame(plot_for_render$data) && nrow(plot_for_render$data) > 0 && ncol(plot_for_render$data) > 0) {
+          if (
+            is.data.frame(plot_for_render$data) &&
+              nrow(plot_for_render$data) > 0 &&
+              ncol(plot_for_render$data) > 0
+          ) {
             reordered <- processor$reorder_layer_data(plot_for_render$data, plot_for_render)
             if (is.data.frame(reordered) && nrow(reordered) > 0 && ncol(reordered) > 0) {
               plot_for_render$data <- reordered
@@ -147,7 +152,12 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
 
-        result <- processor$process(plot_for_render, private$.layout, built = built_final, gt = private$.gtable)
+        result <- processor$process(
+          plot_for_render,
+          private$.layout,
+          built = built_final,
+          gt = private$.gtable
+        )
         processor$set_last_result(result)
         layer_results[[i]] <- result
       }
@@ -283,7 +293,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
 
       # Use utility function to process faceted plot
       private$.combined_data <- process_faceted_plot_data(
-        private$.plot, private$.layout, built, private$.gtable
+        private$.plot,
+        private$.layout,
+        built,
+        private$.gtable
       )
       private$.combined_selectors <- list()
     },
@@ -306,7 +319,9 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
 
       # Use utility function to process patchwork plot
       private$.combined_data <- process_patchwork_plot_data(
-        private$.plot, private$.layout, private$.gtable
+        private$.plot,
+        private$.layout,
+        private$.gtable
       )
       private$.combined_selectors <- list()
     }

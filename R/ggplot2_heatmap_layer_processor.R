@@ -3,7 +3,8 @@
 #' Processes heatmap layers (geom_tile) with generic data and grob reordering
 #'
 #' @keywords internal
-Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
+Ggplot2HeatmapLayerProcessor <- R6::R6Class(
+  "Ggplot2HeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
@@ -75,7 +76,9 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
       reordered_data
     },
     extract_data = function(plot, built = NULL) {
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       layer_index <- self$get_layer_index()
       built_data <- built$data[[layer_index]]
@@ -135,7 +138,9 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
         y_val <- y_mapping[as.character(y_pos)]
 
         # Get the original score value
-        score_val <- original_data[[fill_col]][original_data[[x_col]] == x_val & original_data[[y_col]] == y_val]
+        score_val <- original_data[[fill_col]][
+          original_data[[x_col]] == x_val & original_data[[y_col]] == y_val
+        ]
 
         if (length(score_val) > 0) {
           row_idx <- which(y_values == y_val)
@@ -154,7 +159,6 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
 
       # Reverse points array to match reversed y_values
       points <- rev(points)
-
 
       return(list(
         points = points,

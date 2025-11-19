@@ -23,7 +23,9 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
 
   # Prepare grid structure
   grid <- vector("list", max_row)
-  for (r in seq_len(max_row)) grid[[r]] <- vector("list", max_col)
+  for (r in seq_len(max_row)) {
+    grid[[r]] <- vector("list", max_col)
+  }
 
   # Extract leaf plots in visual order
   leaves <- extract_patchwork_leaves(plot)
@@ -41,7 +43,13 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
 
     # Process this panel
     subplot_data <- process_patchwork_panel(
-      leaf_plot, panel_name, panel_index, row, col, layout, gtable
+      leaf_plot,
+      panel_name,
+      panel_index,
+      row,
+      col,
+      layout,
+      gtable
     )
     grid[[row]][[col]] <- subplot_data
   }
@@ -109,7 +117,9 @@ extract_patchwork_leaves <- function(node) {
     plots <- try(node$patches$plots, silent = TRUE)
     if (!inherits(plots, "try-error") && !is.null(plots)) {
       out <- list()
-      for (p in plots) out <- c(out, extract_patchwork_leaves(p))
+      for (p in plots) {
+        out <- c(out, extract_patchwork_leaves(p))
+      }
       return(out)
     }
     return(list())

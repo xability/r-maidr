@@ -102,7 +102,13 @@ generate_robust_css_selector <- function(grob_name, svg_element) {
 #' @param plot_index Optional plot index for multipanel layouts
 #' @param max_elements Optional limit on number of elements to target
 #' @return A robust CSS selector string, or NULL if element not found
-generate_robust_selector <- function(grob, element_type, svg_element, plot_index = NULL, max_elements = NULL) {
+generate_robust_selector <- function(
+  grob,
+  element_type,
+  svg_element,
+  plot_index = NULL,
+  max_elements = NULL
+) {
   # Find the graphics-plot element for this type
   container_name <- find_graphics_plot_grob(grob, element_type, plot_index = plot_index)
 

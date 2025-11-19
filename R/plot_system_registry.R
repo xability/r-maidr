@@ -7,7 +7,8 @@
 #' @format An R6 class
 #' @keywords internal
 
-PlotSystemRegistry <- R6::R6Class("PlotSystemRegistry",
+PlotSystemRegistry <- R6::R6Class(
+  "PlotSystemRegistry",
   private = list(
     #' Registered plotting systems
     .registered_systems = list(),
