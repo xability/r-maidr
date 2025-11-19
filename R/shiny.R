@@ -13,7 +13,7 @@
 #' @param height The height of the plot container (default: "400px")
 #' @return A Shiny widget output function
 #' @export
-maidrOutput <- function(output_id, width = "100%", height = "400px") {
+maidr_output <- function(output_id, width = "100%", height = "400px") {
   htmlwidgets::shinyWidgetOutput(output_id, "maidr", width, height)
 }
 
@@ -27,7 +27,7 @@ maidrOutput <- function(output_id, width = "100%", height = "400px") {
 #' @param quoted Is expr a quoted expression
 #' @return A Shiny render function
 #' @export
-renderMaidr <- function(expr, env = parent.frame(), quoted = FALSE) {
+render_maidr <- function(expr, env = parent.frame(), quoted = FALSE) {
   if (!quoted) {
     quoted <- TRUE
     expr <- substitute(expr)
@@ -37,5 +37,5 @@ renderMaidr <- function(expr, env = parent.frame(), quoted = FALSE) {
 
   expr2 <- quote(maidr_widget(func()))
 
-  htmlwidgets::shinyRenderWidget(expr2, maidr_widgetOutput, environment(), quoted)
+  htmlwidgets::shinyRenderWidget(expr2, maidr_widget_output, environment(), quoted)
 }

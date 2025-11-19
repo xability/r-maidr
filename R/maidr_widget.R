@@ -62,7 +62,7 @@ maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, .
 #' @param height The height of the widget (default: "400px")
 #' @return A Shiny widget output function
 #' @export
-maidr_widgetOutput <- function(output_id, width = "100%", height = "400px") {
+maidr_widget_output <- function(output_id, width = "100%", height = "400px") {
   htmlwidgets::shinyWidgetOutput(output_id, "maidr", width, height)
 }
 
@@ -76,6 +76,6 @@ maidr_widgetOutput <- function(output_id, width = "100%", height = "400px") {
 #' @param quoted Is expr a quoted expression
 #' @return A Shiny render function
 #' @export
-renderMaidrWidget <- function(expr, env = parent.frame(), quoted = FALSE) {
-  htmlwidgets::shinyRenderWidget(expr, maidr_widgetOutput, env, quoted)
+render_maidr_widget <- function(expr, env = parent.frame(), quoted = FALSE) {
+  htmlwidgets::shinyRenderWidget(expr, maidr_widget_output, env, quoted)
 }
