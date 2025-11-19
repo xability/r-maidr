@@ -53,7 +53,7 @@ PlotSystemRegistry <- R6::R6Class("PlotSystemRegistry",
           return(system_name)
         }
       }
-      return(NULL)
+      NULL
     },
 
     #' Get the adapter for a specific system

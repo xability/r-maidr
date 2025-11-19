@@ -61,7 +61,7 @@ find_graphics_plot_grob <- function(grob, element_type, plot_index = NULL) {
       }
     }
 
-    return(NULL)
+    NULL
   }
 
   search_recursive(grob)

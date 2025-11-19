@@ -53,8 +53,6 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 
   gt <- orchestrator$get_gtable()
 
-  layout <- orchestrator$get_layout()
-
   # All plot types now use the unified orchestrator data generation
   maidr_data <- orchestrator$generate_maidr_data()
 

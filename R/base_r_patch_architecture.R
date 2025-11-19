@@ -33,32 +33,34 @@ SortingPatcher <- R6::R6Class("SortingPatcher",
       if (function_name == "barplot") {
         height <- args[[1]]
         # Only patch if height is a vector or matrix
-        return(is.vector(height) || is.matrix(height))
+        is.vector(height) || is.matrix(height)
+      } else {
+        FALSE
       }
-      return(FALSE)
     },
     apply_patch = function(function_name, args) {
       if (function_name == "barplot") {
-        return(self$patch_barplot(args))
+        self$patch_barplot(args)
+      } else {
+        args
       }
-      return(args)
     },
     patch_barplot = function(args) {
       height <- args[[1]]
 
       if (is.vector(height)) {
         # Simple bar plot - sort by x values (names)
-        return(self$patch_simple_barplot(args))
+        self$patch_simple_barplot(args)
       } else if (is.matrix(height)) {
         # Matrix bar plot - determine if dodged or stacked
         if (self$is_dodged_barplot(args)) {
-          return(self$patch_dodged_barplot(args))
+          self$patch_dodged_barplot(args)
         } else {
-          return(self$patch_stacked_barplot(args))
+          self$patch_stacked_barplot(args)
         }
+      } else {
+        args
       }
-
-      return(args)
     },
     patch_simple_barplot = function(args) {
       height <- args[[1]]
@@ -88,7 +90,7 @@ SortingPatcher <- R6::R6Class("SortingPatcher",
         }
       }
 
-      return(args)
+      args
     },
     patch_dodged_barplot = function(args) {
       height_matrix <- args[[1]]
@@ -115,12 +117,12 @@ SortingPatcher <- R6::R6Class("SortingPatcher",
       }
 
       args[[1]] <- reordered_matrix
-      return(args)
+      args
     },
     patch_stacked_barplot = function(args) {
       # For stacked bar plots, we might want different sorting logic
       # For now, apply same logic as dodged bars
-      return(self$patch_dodged_barplot(args))
+      self$patch_dodged_barplot(args)
     },
     is_dodged_barplot = function(args) {
       # Check if beside = TRUE (explicit dodged)
@@ -133,10 +135,10 @@ SortingPatcher <- R6::R6Class("SortingPatcher",
         return(FALSE) # Default is stacked
       }
 
-      return(FALSE)
+      FALSE
     },
     get_name = function() {
-      return("SortingPatcher")
+      "SortingPatcher"
     }
   )
 )
@@ -166,7 +168,7 @@ PatchManager <- R6::R6Class("PatchManager",
           args <- patcher$apply_patch(function_name, args)
         }
       }
-      return(args)
+      args
     },
     get_patcher_names = function() {
       sapply(private$.patchers, function(p) p$get_name())
@@ -181,5 +183,5 @@ get_patch_manager <- function() {
   if (is.null(global_patch_manager)) {
     global_patch_manager <<- PatchManager$new()
   }
-  return(global_patch_manager)
+  global_patch_manager
 }

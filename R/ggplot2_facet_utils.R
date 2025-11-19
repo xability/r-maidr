@@ -256,9 +256,6 @@ map_visual_to_dom_panel <- function(panel_info, gtable) {
     return(NULL)
   }
 
-  # Get panel dimensions from the layout
-  panel_layout <- gtable$layout[grepl("^panel-", gtable$layout$name), ]
-
   # Extract ROW and COL from panel names to determine grid dimensions
   panel_coords <- strsplit(gsub("panel-", "", panel_names), "-")
   rows <- as.numeric(sapply(panel_coords, function(x) x[1]))
@@ -300,5 +297,5 @@ map_visual_to_dom_panel <- function(panel_info, gtable) {
     return(panel_names[1])
   }
 
-  return(NULL)
+  NULL
 }

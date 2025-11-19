@@ -69,13 +69,13 @@ classify_function <- function(function_name) {
   base_name <- sub("\\.default$", "", function_name)
 
   if (base_name %in% .base_r_function_classes$HIGH) {
-    return("HIGH")
+    "HIGH"
   } else if (base_name %in% .base_r_function_classes$LOW) {
-    return("LOW")
+    "LOW"
   } else if (base_name %in% .base_r_function_classes$LAYOUT) {
-    return("LAYOUT")
+    "LAYOUT"
   } else {
-    return("UNKNOWN")
+    "UNKNOWN"
   }
 }
 

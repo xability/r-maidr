@@ -23,7 +23,7 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       has_calls <- has_device_calls(device_id)
       calls_count <- length(get_device_calls(device_id))
       can_handle_result <- active && has_calls
-      return(can_handle_result)
+      can_handle_result
     },
 
     #' Detect the type of a single layer from Base R plot calls
@@ -92,8 +92,8 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
             } else if (inherits(first_arg, "smooth.spline")) {
               "smooth" # Smooth spline objects
             } else if (is.list(first_arg) &&
-                       all(c("x", "y") %in% names(first_arg)) &&
-                       length(args) == 1) {
+                         all(c("x", "y") %in% names(first_arg)) &&
+                         length(args) == 1) {
               # List with x,y and no other args - likely loess.smooth result
               "smooth"
             } else {
@@ -109,7 +109,7 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
         "unknown"
       )
 
-      return(layer_type)
+      layer_type
     },
 
     #' Check if a barplot call represents a dodged bar plot
@@ -127,7 +127,7 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       # For matrices, beside = TRUE creates dodged bars
       beside_true <- if (is.null(beside)) FALSE else beside
 
-      return(is_matrix && beside_true)
+      is_matrix && beside_true
     },
 
     #' Check if a barplot call represents a stacked bar plot
@@ -145,7 +145,7 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       # For matrices, beside = FALSE creates stacked bars
       beside_false <- if (is.null(beside)) FALSE else !beside
 
-      return(is_matrix && beside_false)
+      is_matrix && beside_false
     },
 
     #' Create an orchestrator for this system (Base R)

@@ -80,7 +80,7 @@ Ggplot2Adapter <- R6::R6Class("Ggplot2Adapter",
         return("skip")
       }
 
-      return("unknown")
+      "unknown"
     },
 
     #' Create an orchestrator for this system (ggplot2)

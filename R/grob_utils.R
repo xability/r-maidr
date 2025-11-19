@@ -14,7 +14,7 @@ find_panel_grob <- function(grob_tree) {
       return(grob)
     }
   }
-  return(NULL)
+  NULL
 }
 
 #' Find children matching a type pattern
@@ -32,5 +32,5 @@ find_children_by_type <- function(parent_grob, pattern) {
   }
 
   matching <- grepl(pattern, child_names)
-  return(child_names[matching])
+  child_names[matching]
 }

@@ -76,7 +76,7 @@ BaseRSmoothLayerProcessor <- R6::R6Class("BaseRSmoothLayerProcessor",
         }
       }
 
-      return(list())
+      list()
     },
     generate_selectors = function(layer_info, gt = NULL) {
       if (is.null(gt)) {

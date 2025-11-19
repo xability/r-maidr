@@ -198,7 +198,7 @@ find_original_function <- function(function_name) {
     return(orig)
   }
 
-  return(NULL)
+  NULL
 }
 
 #' Create a function wrapper
@@ -267,7 +267,7 @@ apply_barplot_patches <- function(args) {
 
   # Apply patches
   patch_manager <- .GlobalEnv$global_patch_manager
-  return(patch_manager$apply_patches("barplot", args))
+  patch_manager$apply_patches("barplot", args)
 }
 
 #' Apply sorting logic to barplot arguments for consistent visual ordering
@@ -300,7 +300,7 @@ apply_barplot_sorting <- function(args) {
     }
   }
 
-  return(args)
+  args
 }
 
 

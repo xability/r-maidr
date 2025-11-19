@@ -72,7 +72,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class("Ggplot2HeatmapLayerProcessor",
       reordered_data <- data[order(data[[x_col]], data[[y_col]]), , drop = FALSE]
       rownames(reordered_data) <- NULL
 
-      return(reordered_data)
+      reordered_data
     },
     extract_data = function(plot, built = NULL) {
       if (is.null(built)) built <- ggplot2::ggplot_build(plot)

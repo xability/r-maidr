@@ -189,8 +189,8 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       panel_config <- detect_panel_configuration(private$.device_id)
 
       if (!is.null(panel_config) &&
-          panel_config$type %in% c("mfrow", "mfcol") &&
-          (panel_config$nrows > 1 || panel_config$ncols > 1)) {
+            panel_config$type %in% c("mfrow", "mfcol") &&
+            (panel_config$nrows > 1 || panel_config$ncols > 1)) {
         # Multipanel case - create 2D grid
         nrows <- panel_config$nrows
         ncols <- panel_config$ncols
@@ -353,8 +353,8 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       panel_config <- detect_panel_configuration(private$.device_id)
 
       if (!is.null(panel_config) &&
-          panel_config$type %in% c("mfrow", "mfcol") &&
-          (panel_config$nrows > 1 || panel_config$ncols > 1)) {
+            panel_config$type %in% c("mfrow", "mfcol") &&
+            (panel_config$nrows > 1 || panel_config$ncols > 1)) {
         # Multipanel case - create composite grob
         composite_func <- function() {
           # Set the panel configuration
@@ -400,7 +400,7 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           },
           error = function(e) {
             warning("Failed to create multipanel grob: ", e$message)
-            return(NULL)
+            NULL
           }
         )
       } else {
@@ -441,7 +441,7 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           return(grob_list[[1]])
         }
 
-        return(NULL)
+        NULL
       }
     },
     get_grob_for_layer = function(layer_index) {
@@ -475,7 +475,7 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         }
       }
 
-      return(NULL)
+      NULL
     }
   )
 )

@@ -46,7 +46,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class("BaseRBoxplotLayerProcessor",
           do.call(boxplot, args_no_plot)
         },
         error = function(e) {
-          return(NULL)
+          NULL
         }
       )
       if (is.null(stats_obj) || is.null(stats_obj$stats)) {

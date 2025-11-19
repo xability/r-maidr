@@ -88,7 +88,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
       }
 
       # Delegate layer type detection to the adapter
-      return(private$.adapter$detect_layer_type(layer, plot))
+      private$.adapter$detect_layer_type(layer, plot)
     },
     create_layer_processors = function() {
       private$.layer_processors <- list()
@@ -266,7 +266,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class("Ggplot2PlotOrchestrator",
 
       # Check if it's not facet_null
       facet_class <- class(private$.plot$facet)[1]
-      return(facet_class != "FacetNull")
+      facet_class != "FacetNull"
     },
 
     #' @description Process a faceted plot using utility functions

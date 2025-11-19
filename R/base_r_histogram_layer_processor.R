@@ -59,7 +59,7 @@ BaseRHistogramLayerProcessor <- R6::R6Class("BaseRHistogramLayerProcessor",
         )
       }
 
-      return(histogram_data)
+      histogram_data
     },
     generate_selectors = function(layer_info, gt = NULL) {
       # Use group_index for grob lookup (not layer index)

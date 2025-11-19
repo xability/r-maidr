@@ -45,9 +45,9 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       is_multiline <- is.matrix(y) || (is.array(y) && length(dim(y)) == 2)
 
       if (is_multiline) {
-        return(self$extract_multiline_data(x, y))
+        self$extract_multiline_data(x, y)
       } else {
-        return(self$extract_single_line_data(x, y))
+        self$extract_single_line_data(x, y)
       }
     },
     extract_single_line_data = function(x, y) {

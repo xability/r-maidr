@@ -43,7 +43,7 @@ apply_scale_mapping <- function(numeric_values, scale_mapping) {
     mapped_values[unmapped_idx] <- char_values[unmapped_idx]
   }
 
-  return(mapped_values)
+  mapped_values
 }
 
 #' Extract scale mapping from built plot
@@ -82,5 +82,5 @@ extract_scale_mapping <- function(built) {
 
   # Create named vector: c("1" = "A", "2" = "B", "3" = "C")
   scale_mapping <- setNames(labels, as.character(seq_along(labels)))
-  return(scale_mapping)
+  scale_mapping
 }

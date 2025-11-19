@@ -58,7 +58,7 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
           }
         }
 
-        return(polyline_grobs)
+        polyline_grobs
       }
 
       if (!is.null(gt)) {
