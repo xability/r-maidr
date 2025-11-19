@@ -15,16 +15,13 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' @param gt Gtable object (optional)
     #' @return List with data and selectors
     process = function(plot, layout, built = NULL, gt = NULL) {
-      # Extract data from the boxplot layer
       extracted_data <- self$extract_data(plot, built)
 
-      # Generate selectors for the boxplot elements
       selectors <- self$generate_selectors(plot, gt)
 
       # Determine orientation
       orientation <- self$determine_orientation(plot)
 
-      # Create axes information
       axes <- list(
         x = if (!is.null(layout$axes$x)) layout$axes$x else "x",
         y = if (!is.null(layout$axes$y)) layout$axes$y else "y"
@@ -51,13 +48,11 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
 
-      # Extract boxplot statistics for each category
       boxplot_data <- list()
 
       for (i in seq_len(nrow(layer_data))) {
         row <- layer_data[i, ]
 
-        # Extract basic statistics
         stats <- list(
           min = row$xmin, # Min of data (including outliers)
           max = row$xmax, # Max of data (including outliers)
@@ -76,7 +71,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
             outliers_str != "NA" &&
             outliers_str != " numeric(0) "
         ) {
-          # Parse the "c(value1, value2)" format
           outliers_text <- gsub("^c\\(|\\)$", "", outliers_str) # Remove "c(" and ")"
           if (outliers_text != "") {
             outliers <- suppressWarnings(as.numeric(strsplit(outliers_text, ", ")[[1]]))
@@ -112,7 +106,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       # Map numeric categories to actual names if possible
       boxplot_data <- self$map_categories_to_names(boxplot_data, plot)
 
-      # Remove the temporary y_value field
       for (i in seq_along(boxplot_data)) {
         if (!is.null(boxplot_data[[i]]$y_value)) {
           boxplot_data[[i]]$y_value <- NULL
@@ -141,7 +134,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      # Helpers for traversal
       collect_children <- function(grob) {
         out <- list()
         if (inherits(grob, "gTree") && length(grob$children) > 0) {
@@ -328,11 +320,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return "horz" or "vert"
     determine_orientation = function(plot) {
-      # Build the plot to examine the structure
       built <- ggplot2::ggplot_build(plot)
       layer_data <- built$data[[self$layer_info$index]]
 
-      # Check if y values in built data are numeric codes (indicating categorical y-axis)
       # For horizontal boxplots, y contains numeric codes (1, 2, 3, etc.)
       # For vertical boxplots, y is empty or contains the continuous values
       if ("y" %in% names(layer_data)) {
@@ -343,7 +333,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         }
       }
 
-      # Check if x values in built data indicate categorical x-axis
       if ("x" %in% names(layer_data)) {
         x_values <- layer_data$x
         if (length(x_values) > 0 && all(x_values %in% 1:10)) {
@@ -352,7 +341,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         }
       }
 
-      # Check layer mapping
       layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
 
       # If y is mapped and x is not explicitly continuous, check y data

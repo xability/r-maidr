@@ -57,7 +57,6 @@ BaseRAdapter <- R6::R6Class(
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
           } else {
-            # Check if this is a scatter plot (point plot)
             # plot() default type is "p" (points/scatter)
             # plot(x, y) with two numeric vectors defaults to scatter
             plot_type <- args$type
@@ -87,7 +86,6 @@ BaseRAdapter <- R6::R6Class(
         "lines" = {
           first_arg <- args[[1]]
           if (!is.null(first_arg)) {
-            # Check for various smooth object types
             if (inherits(first_arg, "density")) {
               "smooth" # Existing: density curves
             } else if (inherits(first_arg, "loess")) {
@@ -121,14 +119,11 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
-      # Get height data (first argument)
       height <- args[[1]]
       beside <- args$beside
 
-      # Check if height is a matrix
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # Check beside parameter
       # For matrices, beside = TRUE creates dodged bars
       beside_true <- if (is.null(beside)) FALSE else beside
 
@@ -139,14 +134,11 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
-      # Get height data (first argument)
       height <- args[[1]]
       beside <- args$beside
 
-      # Check if height is a matrix
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # Check beside parameter
       # For matrices, beside = FALSE creates stacked bars
       beside_false <- if (is.null(beside)) FALSE else !beside
 

@@ -25,7 +25,6 @@ PlotSystemRegistry <- R6::R6Class(
     #' @param adapter Adapter instance for this system
     #' @param processor_factory Processor factory instance for this system
     register_system = function(system_name, adapter, processor_factory) {
-      # Validate inputs
       if (!inherits(adapter, "SystemAdapter")) {
         stop("Adapter must inherit from SystemAdapter")
       }
@@ -38,7 +37,6 @@ PlotSystemRegistry <- R6::R6Class(
       private$.system_adapters[[system_name]] <- adapter
       private$.processor_factories[[system_name]] <- processor_factory
 
-      # Set system name in adapter and factory
       adapter$system_name <- system_name
 
       invisible(self)

@@ -8,7 +8,7 @@ Processes Base R heatmap layers using the heatmap() function
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRHeatmapLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRHeatmapLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

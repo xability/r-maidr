@@ -40,7 +40,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract matrix data (first unnamed argument for heatmap())
       heat_matrix <- NULL
       if (length(args) > 0 && length(names(args)) > 0 && names(args)[1] == "") {
         heat_matrix <- args[[1]]
@@ -50,7 +49,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         return(list(points = list(), x = character(0), y = character(0)))
       }
 
-      # Get row and column names
       row_names <- rownames(heat_matrix)
       col_names <- colnames(heat_matrix)
 
@@ -61,7 +59,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         col_names <- as.character(seq_len(ncol(heat_matrix)))
       }
 
-      # Convert matrix to points format
       # points is a 2D array where points[row][col] = value
       # IMPORTANT: Base R heatmap() renders rows from bottom to top visually
       # but DOM elements are created in row-major order matching visual layout
@@ -152,7 +149,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       names
     },
     generate_selectors_from_grob = function(grob, group_index = NULL) {
-      # Find image-rect grobs recursively
       rect_names <- self$find_image_rect_grobs(grob, group_index)
 
       if (length(rect_names) == 0) {
@@ -175,7 +171,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
       # For heatmaps, fill represents the data values
@@ -192,7 +187,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
 
       main_title

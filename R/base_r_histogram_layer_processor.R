@@ -27,14 +27,11 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      # Get the histogram call arguments
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract the data (first argument)
       hist_data <- args[[1]]
 
-      # Create histogram object to get breaks, counts, mids
       # Pass the original parameters to ensure same binning as the plot
       # Suppress warnings about unused probability parameter
       hist_params <- list(plot = FALSE)
@@ -51,7 +48,6 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       counts <- hist_obj$counts
       mids <- hist_obj$mids
 
-      # Convert to MAIDR format (same as ggplot2 histogram format)
       histogram_data <- list()
       for (i in seq_along(counts)) {
         histogram_data[[i]] <- list(
@@ -140,7 +136,6 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 
@@ -154,7 +149,6 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
 
       main_title

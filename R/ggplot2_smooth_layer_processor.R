@@ -75,7 +75,6 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         }
 
         if (length(all_polyline_grobs) > 0) {
-          # Extract the numeric IDs from all polyline grobs
           numeric_ids <- sapply(all_polyline_grobs, function(grob_name) {
             match_result <- regmatches(grob_name, regexpr("GRID\\.polyline\\.(\\d+)", grob_name))
             if (length(match_result) > 0) {
@@ -85,7 +84,6 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
             }
           })
 
-          # Remove any NA or 0 values
           numeric_ids <- numeric_ids[numeric_ids > 0]
 
           if (length(numeric_ids) > 0) {

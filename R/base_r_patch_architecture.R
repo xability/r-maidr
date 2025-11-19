@@ -8,12 +8,10 @@
 BaseRPatcher <- R6::R6Class(
   "BaseRPatcher",
   public = list(
-    # Check if this patcher should handle the given function
     can_patch = function(function_name, args) {
       stop("Abstract method - must be implemented by subclass")
     },
 
-    # Apply the patch transformation
     apply_patch = function(function_name, args) {
       stop("Abstract method - must be implemented by subclass")
     },
@@ -67,26 +65,22 @@ SortingPatcher <- R6::R6Class(
     patch_simple_barplot = function(args) {
       height <- args[[1]]
 
-      # Get names (x-axis values)
       names_arg <- args$names.arg
       if (is.null(names_arg)) {
         names_arg <- names(height)
       }
 
       if (!is.null(names_arg)) {
-        # Sort by names (x-axis values)
         sorted_indices <- order(names_arg)
 
         # Reorder height vector
         height <- height[sorted_indices]
         args[[1]] <- height
 
-        # Update names.arg if it exists
         if ("names.arg" %in% names(args)) {
           args$names.arg <- names_arg[sorted_indices]
         }
 
-        # Update names attribute if it exists
         if (!is.null(names(height))) {
           names(height) <- names_arg[sorted_indices]
         }
@@ -106,12 +100,10 @@ SortingPatcher <- R6::R6Class(
         reordered_matrix <- height_matrix
       }
 
-      # Sort by x values (columns) for consistent category ordering
       if (!is.null(colnames(height_matrix))) {
         sorted_x_values <- sort(colnames(height_matrix))
         reordered_matrix <- reordered_matrix[, sorted_x_values, drop = FALSE]
 
-        # Update names.arg if it exists to match reordered columns
         if ("names.arg" %in% names(args)) {
           original_indices <- match(sorted_x_values, colnames(height_matrix))
           args$names.arg <- args$names.arg[original_indices]
@@ -127,12 +119,10 @@ SortingPatcher <- R6::R6Class(
       self$patch_dodged_barplot(args)
     },
     is_dodged_barplot = function(args) {
-      # Check if beside = TRUE (explicit dodged)
       if (!is.null(args$beside) && args$beside == TRUE) {
         return(TRUE)
       }
 
-      # Check if beside is NULL (default for matrix is FALSE, but let's be explicit)
       if (is.null(args$beside)) {
         return(FALSE) # Default is stacked
       }
@@ -165,7 +155,6 @@ PatchManager <- R6::R6Class(
       private$.patchers[[length(private$.patchers) + 1]] <- patcher
     },
     apply_patches = function(function_name, args) {
-      # Apply patches in sequence (chain of responsibility)
       for (patcher in private$.patchers) {
         if (patcher$can_patch(function_name, args)) {
           args <- patcher$apply_patch(function_name, args)

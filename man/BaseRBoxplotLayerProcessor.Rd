@@ -9,7 +9,7 @@ and generating selectors for boxplot components.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRBoxplotLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRBoxplotLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -65,7 +65,11 @@ and generating selectors for boxplot components.
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$generate_selectors(layer_info, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$generate_selectors(
+  layer_info,
+  gt = NULL,
+  extracted_data = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

@@ -46,7 +46,6 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
       if (length(args) > 0) {
         first_arg <- args[[1]]
 
-        # Initialize x and y values
         x_values <- NULL
         y_values <- NULL
 
@@ -75,7 +74,6 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
           return(list())
         }
 
-        # Convert to MAIDR format (nested list for single line)
         if (!is.null(x_values) && !is.null(y_values)) {
           data_points <- lapply(seq_along(x_values), function(i) {
             list(x = x_values[i], y = y_values[i])

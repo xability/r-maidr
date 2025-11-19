@@ -48,7 +48,6 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
         height <- args[[1]] # First argument if height not named
       }
 
-      # Get labels: names.arg takes precedence, then names(height), then defaults
       labels <- args$names.arg
       if (is.null(labels)) {
         labels <- names(height)
@@ -57,7 +56,6 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
         labels <- seq_along(height)
       }
 
-      # Convert to data points format
       data_points <- list()
 
       if (!is.null(height)) {
@@ -68,18 +66,15 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
         # Ensure same length
         n <- min(length(height), length(labels))
 
-        # Create data frame for easy sorting
         data_df <- data.frame(
           x = labels[1:n],
           y = height[1:n],
           stringsAsFactors = FALSE
         )
 
-        # Sort by x-values for consistent ordering (same as dodged bars)
         sorted_indices <- order(data_df$x)
         data_df <- data_df[sorted_indices, ]
 
-        # Convert to list format
         for (i in seq_len(nrow(data_df))) {
           data_points[[i]] <- list(
             x = data_df$x[i],
@@ -98,7 +93,6 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 
@@ -112,7 +106,6 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
       main_title
     },
@@ -146,7 +139,6 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
     find_rect_grobs = function(grob, call_index) {
       names <- character(0)
 
-      # Check if current grob matches Base R rect pattern
       if (
         !is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)
       ) {
@@ -176,14 +168,12 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
     #' @param call_index The plot call index
     #' @return List of selectors
     generate_selectors_from_grob = function(grob, call_index) {
-      # Find rect grobs recursively
       rect_names <- self$find_rect_grobs(grob, call_index)
 
       if (length(rect_names) == 0) {
         return(list())
       }
 
-      # Generate selectors from grob names (same as ggplot2)
       selectors <- lapply(rect_names, function(name) {
         svg_id <- paste0(name, ".1")
         escaped <- gsub("\\.", "\\\\.", svg_id)

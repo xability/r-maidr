@@ -2,7 +2,7 @@
 % Please edit documentation in R/maidr.R
 \name{save_html}
 \alias{save_html}
-\title{Save a plot as an HTML file}
+\title{Save Interactive Plot as HTML File}
 \usage{
 save_html(plot = NULL, file = "plot.html", ...)
 }
@@ -14,8 +14,24 @@ save_html(plot = NULL, file = "plot.html", ...)
 \item{...}{Additional arguments passed to internal functions}
 }
 \value{
-The file path where the HTML was saved
+The file path where the HTML was saved (invisibly)
 }
 \description{
-Save a plot as an HTML file
+Save a ggplot2 or Base R plot as a standalone HTML file with interactive
+MAIDR accessibility features.
+}
+\examples{
+# ggplot2 example
+library(ggplot2)
+p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_bar(stat = "identity")
+\dontrun{
+  maidr::save_html(p, "myplot.html")
+}
+
+# Base R example
+\dontrun{
+  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+  maidr::save_html(file = "barplot.html")
+}
 }

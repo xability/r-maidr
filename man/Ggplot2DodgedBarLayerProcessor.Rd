@@ -8,7 +8,7 @@ Processes dodged bar plot layers with complete logic included
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2DodgedBarLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2DodgedBarLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

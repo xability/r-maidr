@@ -13,7 +13,7 @@ Processes Base R bar plot layers based on recorded plot calls
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRBarplotLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRBarplotLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

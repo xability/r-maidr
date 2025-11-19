@@ -27,3 +27,4 @@ apply_scale_mapping(numeric_values, scale_mapping)
 # Returns: c("A", "B", "C", "A", "B")
 
 }
+\keyword{internal}

@@ -20,7 +20,6 @@ Ggplot2ProcessorFactory <- R6::R6Class(
     #' @param layer_info Information about the layer (contains plot object and metadata)
     #' @return Processor instance for the specified plot type
     create_processor = function(plot_type, layer_info) {
-      # Validate that layer_info is provided
       if (is.null(layer_info)) {
         stop("Layer info must be provided")
       }

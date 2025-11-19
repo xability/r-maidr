@@ -8,7 +8,7 @@ Processes smooth plot layers with complete logic included
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2SmoothLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2SmoothLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

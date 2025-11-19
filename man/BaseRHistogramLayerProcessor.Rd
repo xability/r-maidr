@@ -9,7 +9,7 @@ and selector generation logic.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRHistogramLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRHistogramLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

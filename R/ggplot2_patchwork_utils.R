@@ -41,7 +41,6 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
     leaf_plot <- if (i <= length(leaves)) leaves[[i]] else plot
     panel_name <- ordered$name[i]
 
-    # Process this panel
     subplot_data <- process_patchwork_panel(
       leaf_plot,
       panel_name,
@@ -140,7 +139,6 @@ extract_patchwork_leaves <- function(node) {
 #' @param gtable Gtable object
 #' @return Processed panel data
 process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col, layout, gtable) {
-  # Create a simple subplot id
   subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", row, "-", col)
 
   layers <- list()
@@ -150,13 +148,11 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     # Use unified layer processor creation logic
     layer_info <- list(index = layer_idx, type = class(layer$geom)[1])
 
-    # Get the processor factory and adapter from the registry
     registry <- get_global_registry()
     system_name <- "ggplot2"
     factory <- registry$get_processor_factory(system_name)
     adapter <- registry$get_adapter(system_name)
 
-    # Create processor using the factory with adapter's layer type detection
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
     processor <- factory$create_processor(layer_type, layer_info)
 

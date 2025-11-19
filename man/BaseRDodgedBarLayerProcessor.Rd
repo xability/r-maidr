@@ -8,7 +8,7 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRDodgedBarLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRDodgedBarLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

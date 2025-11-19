@@ -7,18 +7,14 @@
 #' @return NULL (invisible)
 
 initialize_base_r_system <- function() {
-  # Get the global registry
   registry <- get_global_registry()
 
-  # Check if Base R system is already registered
   if (registry$is_system_registered("base_r")) {
     return(invisible(NULL))
   }
 
-  # Create Base R adapter
   base_r_adapter <- BaseRAdapter$new()
 
-  # Create Base R processor factory
   base_r_factory <- BaseRProcessorFactory$new()
 
   # Register the system

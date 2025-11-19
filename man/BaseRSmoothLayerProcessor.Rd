@@ -4,11 +4,14 @@
 \alias{BaseRSmoothLayerProcessor}
 \title{Base R Smooth/Density Layer Processor}
 \description{
-Processes Base R smooth/density plots (created with plot(density()))
+Processes Base R smooth curves including:
+- Density plots: plot(density()) or lines(density())
+- Loess smooth: lines(loess.smooth()) or lines(predict(loess))
+- Smooth splines: lines(smooth.spline())
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRSmoothLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRSmoothLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

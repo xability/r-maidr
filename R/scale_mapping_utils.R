@@ -25,13 +25,12 @@ NULL
 #' apply_scale_mapping(numeric_values, scale_mapping)
 #' # Returns: c("A", "B", "C", "A", "B")
 #'
-#' @export
+#' @keywords internal
 apply_scale_mapping <- function(numeric_values, scale_mapping) {
   if (is.null(scale_mapping)) {
     return(numeric_values)
   }
 
-  # Convert numeric values to character for lookup
   char_values <- as.character(numeric_values)
 
   # Map using the scale mapping
@@ -66,7 +65,7 @@ apply_scale_mapping <- function(numeric_values, scale_mapping) {
 #' scale_mapping <- extract_scale_mapping(built)
 #' # Returns: c("1" = "A", "2" = "B", "3" = "C")
 #'
-#' @export
+#' @keywords internal
 extract_scale_mapping <- function(built) {
   if (is.null(built$layout$panel_scales_x)) {
     return(NULL)
@@ -80,7 +79,6 @@ extract_scale_mapping <- function(built) {
     return(NULL)
   }
 
-  # Create named vector: c("1" = "A", "2" = "B", "3" = "C")
   scale_mapping <- setNames(labels, as.character(seq_along(labels)))
   scale_mapping
 }

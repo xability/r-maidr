@@ -13,7 +13,7 @@ for individual boxplot components in the SVG structure.
 \keyword{layer}
 \keyword{the}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2BoxplotLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2BoxplotLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

@@ -10,5 +10,6 @@ maidr_html_dependencies()
 A list of htmlDependency objects for maidr.js and maidr_style.css
 }
 \description{
-Register JS/CSS dependencies for maidr from CDN
+Internal function to create HTML dependencies for MAIDR JavaScript and CSS files.
 }
+\keyword{internal}

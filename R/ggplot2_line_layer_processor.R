@@ -31,10 +31,8 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       panel_id = NULL,
       panel_ctx = NULL
     ) {
-      # Extract data from the line layer
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
-      # Generate selectors for the line elements
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       list(
@@ -50,15 +48,12 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List of arrays, each containing series data points
     extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
-      # Build the plot to get the processed data
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
 
-      # Get the layer data for this specific layer
       layer_data <- built$data[[self$layer_info$index]]
 
-      # Filter data for specific panel if panel_id is provided
       if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
         layer_data <- layer_data[layer_data$PANEL == panel_id, ]
       }
@@ -69,7 +64,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         if (!is.null(scale_mapping)) {
           layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
         } else {
-          # Get x values from the original data for this panel
           plot_mapping <- plot$mapping
           layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
 
@@ -82,12 +76,10 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
           # For faceted plots, we need to get the x values for this specific panel
           if (!is.null(x_col) && x_col %in% names(plot$data)) {
-            # Filter original data for this panel if it has PANEL column
             panel_data <- plot$data
             if ("PANEL" %in% names(panel_data)) {
               panel_data <- panel_data[panel_data$PANEL == panel_id, ]
             }
-            # Get unique x values in order
             x_values <- unique(panel_data[[x_col]])
             x_values <- sort(x_values)
 
@@ -99,13 +91,11 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           }
         }
       } else {
-        # Apply scale mapping if provided (for non-faceted plots)
         if (!is.null(scale_mapping)) {
           layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
         }
       }
 
-      # Check if we have multiple groups (more than just the default -1 group)
       if ("group" %in% names(layer_data)) {
         unique_groups <- unique(layer_data$group)
         # Only treat as multiline if we have more than one group and not just the default -1
@@ -125,14 +115,11 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param plot The original ggplot2 object
     #' @return List of arrays, each containing series data
     extract_multiline_data = function(layer_data, plot) {
-      # Get the original data from the plot (following BarLayerProcessor pattern)
       original_data <- plot$data
       mapping_col <- self$get_group_column(plot)
 
-      # Get unique groups from built data and unique categories from original data
       unique_groups <- sort(unique(layer_data$group))
 
-      # Extract unique values from the mapping column in original data
       if (!is.null(original_data) && mapping_col %in% names(original_data)) {
         unique_categories <- sort(unique(original_data[[mapping_col]]))
       } else {
@@ -143,7 +130,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # Split built data by group
       series_groups <- split(layer_data, layer_data$group)
 
-      # Extract data for each series
       series_data <- list()
       for (group_num in names(series_groups)) {
         series_points <- series_groups[[group_num]]
@@ -193,7 +179,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return Name of the grouping column
     get_group_column = function(plot) {
-      # Check layer mapping first
       layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
       if (!is.null(layer_mapping)) {
         if (!is.null(layer_mapping$colour)) {
@@ -204,7 +189,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         }
       }
 
-      # Check plot mapping
       plot_mapping <- plot$mapping
       if (!is.null(plot_mapping)) {
         if (!is.null(plot_mapping$colour)) {
@@ -236,7 +220,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           return(list())
         }
 
-        # Find the main GRID.polyline.* container(s) within this panel
         poly_ids <- c()
         find_poly <- function(grob) {
           if (!is.null(grob$name) && grepl("^GRID\\.polyline\\.\\d+$", grob$name)) {
@@ -280,18 +263,15 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           gt <- ggplot2::ggplotGrob(plot)
         }
 
-        # Find the main polyline grob (GRID.polyline.61)
         main_polyline_grob <- self$find_main_polyline_grob(gt)
 
         if (is.null(main_polyline_grob)) {
           return(list())
         }
 
-        # Extract the base ID from the grob name (e.g., "61" from "GRID.polyline.61")
         grob_name <- main_polyline_grob$name
         base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
 
-        # Check if this is multiline by examining the built data
         built <- ggplot2::ggplot_build(plot)
         layer_data <- built$data[[self$layer_info$index]]
 
@@ -315,7 +295,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
       # Use the actual structure discovered: GRID.polyline.{base_id}.1.{series_index}
       for (i in 1:num_series) {
-        # Create selector targeting the specific polyline element
         # Format: #GRID\.polyline\.{base_id}\.1\.{series_index}
         escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.", i))
         selector <- paste0("#", escaped_id)

@@ -123,7 +123,6 @@ Ggplot2Adapter <- R6::R6Class(
     #' @param plot_object The ggplot2 plot object
     #' @return TRUE if plot is patchwork, FALSE otherwise
     is_patchwork = function(plot_object) {
-      # Check if the plot object has patchwork attributes
       inherits(plot_object, "patchwork") ||
         !is.null(attr(plot_object, "patchwork"))
     }

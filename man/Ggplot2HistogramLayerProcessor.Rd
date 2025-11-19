@@ -8,7 +8,7 @@ Processes histogram plot layers with complete logic included
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2HistogramLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2HistogramLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

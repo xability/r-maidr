@@ -8,7 +8,7 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2HeatmapLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2HeatmapLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

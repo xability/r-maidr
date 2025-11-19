@@ -44,18 +44,15 @@ initialize_base_r_patching <- function(include_low = TRUE, include_layout = TRUE
 #' @return TRUE if successful, FALSE otherwise
 #' @keywords internal
 wrap_function <- function(function_name) {
-  # Find original function
   orig <- find_original_function(function_name)
   if (is.null(orig)) {
     return(FALSE)
   }
 
-  # Store original if not already stored
   if (is.null(.maidr_patching_env$.saved_graphics_fns[[function_name]])) {
     .maidr_patching_env$.saved_graphics_fns[[function_name]] <- orig
   }
 
-  # Create wrapper
   wrapper <- create_function_wrapper(function_name, orig)
 
   # Assign wrapper to global environment to shadow the original
@@ -70,14 +67,11 @@ wrap_function <- function(function_name) {
 #' @keywords internal
 wrap_s3_generics <- function() {
   # Wrap lines() function
-  # Check if we need to wrap it (not already our wrapper)
   needs_wrapping <- TRUE
   if (exists("lines", where = .GlobalEnv)) {
     lines_fn <- get("lines", envir = .GlobalEnv)
-    # Check if it's already our wrapper (would have match.call in it)
     fn_body <- body(lines_fn)
     if (is.call(fn_body) && length(fn_body) > 1) {
-      # Check if it contains our logging call
       body_text <- deparse(fn_body)
       if (any(grepl("log_plot_call_to_device", body_text))) {
         needs_wrapping <- FALSE
@@ -86,12 +80,10 @@ wrap_s3_generics <- function() {
   }
 
   if (needs_wrapping) {
-    # Store original if not already stored
     if (is.null(.maidr_patching_env$.saved_graphics_fns[["lines"]])) {
       .maidr_patching_env$.saved_graphics_fns[["lines"]] <- graphics::lines
     }
 
-    # Create wrapper that handles method dispatch and logging
     lines_wrapper <- function(x, ...) {
       # Prepare for logging
       this_call <- match.call()
@@ -118,11 +110,9 @@ wrap_s3_generics <- function() {
   }
 
   # Wrap points() function
-  # Check if we need to wrap it (not already our wrapper)
   needs_wrapping_points <- TRUE
   if (exists("points", where = .GlobalEnv)) {
     points_fn <- get("points", envir = .GlobalEnv)
-    # Check if it's already our wrapper
     fn_body <- body(points_fn)
     if (is.call(fn_body) && length(fn_body) > 1) {
       body_text <- deparse(fn_body)
@@ -133,12 +123,10 @@ wrap_s3_generics <- function() {
   }
 
   if (needs_wrapping_points) {
-    # Store original if not already stored
     if (is.null(.maidr_patching_env$.saved_graphics_fns[["points"]])) {
       .maidr_patching_env$.saved_graphics_fns[["points"]] <- graphics::points
     }
 
-    # Create wrapper
     points_wrapper <- function(x, ...) {
       # Prepare for logging
       this_call <- match.call()
@@ -259,14 +247,12 @@ create_barplot_wrapper <- function(original_function) {
 #' @return Modified arguments with applied patches
 #' @keywords internal
 apply_barplot_patches <- function(args) {
-  # Initialize patch manager if not already done
   if (
     !exists("global_patch_manager", envir = .GlobalEnv) || is.null(.GlobalEnv$global_patch_manager)
   ) {
     .GlobalEnv$global_patch_manager <- PatchManager$new()
   }
 
-  # Apply patches
   patch_manager <- .GlobalEnv$global_patch_manager
   patch_manager$apply_patches("barplot", args)
 }
@@ -284,18 +270,14 @@ apply_barplot_sorting <- function(args) {
     # Sort fill values (rows) to A,B,C order for consistent visual ordering
     sorted_fill_values <- sort(rownames(height))
 
-    # Sort x values (columns) to natural order for consistent category ordering
     sorted_x_values <- sort(colnames(height))
 
     # Reorder matrix according to sorted values
     reordered_height <- height[sorted_fill_values, sorted_x_values, drop = FALSE]
 
-    # Update the first argument (height) with reordered matrix
     args[[1]] <- reordered_height
 
-    # Update names.arg if it exists to match reordered columns
     if ("names.arg" %in% names(args)) {
-      # Find the indices of the reordered columns in the original names.arg
       original_indices <- match(sorted_x_values, colnames(height))
       args$names.arg <- args$names.arg[original_indices]
     }

@@ -28,15 +28,12 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     initialize = function(plot) {
       private$.plot <- plot
 
-      # Get the appropriate adapter for this plot
       registry <- get_global_registry()
       system_name <- registry$detect_system(plot)
       private$.adapter <- registry$get_adapter(system_name)
 
-      # Check if plot is a patchwork composition
       if (self$is_patchwork_plot()) {
         self$process_patchwork_plot()
-        # Check if plot is faceted
       } else if (self$is_faceted_plot()) {
         self$process_faceted_plot()
       } else {
@@ -66,7 +63,6 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       stat_class <- if (!is.null(stat)) class(stat)[1] else "unknown"
       position_class <- if (!is.null(position)) class(position)[1] else "unknown"
 
-      # Get layer type from adapter instead of determine_layer_type
       layer_type <- private$.adapter$detect_layer_type(layer, private$.plot)
 
       layer_info <- list(
@@ -114,12 +110,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     create_unified_layer_processor = function(layer_info) {
       layer_type <- layer_info$type
 
-      # Get the processor factory from the registry
       registry <- get_global_registry()
       system_name <- private$.adapter$get_system_name()
       factory <- registry$get_processor_factory(system_name)
 
-      # Create processor using the factory
       processor <- factory$create_processor(layer_type, layer_info)
 
       processor
@@ -183,14 +177,12 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       for (i in seq_along(layer_results)) {
         result <- layer_results[[i]]
 
-        # Get layer type from adapter if not provided by processor
         layer_type <- result$type
         if (is.null(layer_type) || length(layer_type) == 0) {
           layer <- private$.plot$layers[[i]]
           layer_type <- private$.adapter$detect_layer_type(layer, private$.plot)
         }
 
-        # Create layer object with standard structure
         layer_obj <- list(
           id = i,
           selectors = result$selectors,
@@ -207,7 +199,6 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
           }
         }
 
-        # Add labels if they exist and are not empty
         if (!is.null(result$labels) && length(result$labels) > 0) {
           layer_obj$labels <- result$labels
         }
@@ -269,12 +260,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     #' @description Check if the plot is faceted
     #' @return Logical indicating if the plot is faceted
     is_faceted_plot = function() {
-      # Check if the plot has faceting
       if (is.null(private$.plot$facet)) {
         return(FALSE)
       }
 
-      # Check if it's not facet_null
       facet_class <- class(private$.plot$facet)[1]
       facet_class != "FacetNull"
     },
@@ -282,10 +271,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     #' @description Process a faceted plot using utility functions
     #' @return NULL (sets internal state)
     process_faceted_plot = function() {
-      # Extract layout information
       private$.layout <- self$extract_layout()
 
-      # Build the gtable for the original plot FIRST
       private$.gtable <- ggplot2::ggplotGrob(private$.plot)
 
       # Built plot data
@@ -310,7 +297,6 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         axes = list()
       )
 
-      # Build the composed gtable for patchwork
       if (requireNamespace("patchwork", quietly = TRUE)) {
         private$.gtable <- patchwork::patchworkGrob(private$.plot)
       } else {

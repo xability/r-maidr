@@ -1,8 +1,27 @@
-#' Display a plot in RStudio Viewer or browser
+#' Display Interactive MAIDR Plot
+#'
+#' Display a ggplot2 or Base R plot as an interactive, accessible visualization
+#' using the MAIDR (Multimodal Access and Interactive Data Representation) system.
+#'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
 #' @param ... Additional arguments passed to internal functions
+#' @returns Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
+#' @examples
+#' # ggplot2 example
+#' library(ggplot2)
+#' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+#'   geom_bar(stat = "identity")
+#' \dontrun{
+#'   maidr::show(p)
+#' }
+#'
+#' # Base R example
+#' \dontrun{
+#'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+#'   maidr::show()
+#' }
 #' @export
 show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
   device_id <- grDevices::dev.cur()
@@ -66,11 +85,29 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
   html_doc
 }
 
-#' Save a plot as an HTML file
+#' Save Interactive Plot as HTML File
+#'
+#' Save a ggplot2 or Base R plot as a standalone HTML file with interactive
+#' MAIDR accessibility features.
+#'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param ... Additional arguments passed to internal functions
-#' @return The file path where the HTML was saved
+#' @returns The file path where the HTML was saved (invisibly)
+#' @examples
+#' # ggplot2 example
+#' library(ggplot2)
+#' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+#'   geom_bar(stat = "identity")
+#' \dontrun{
+#'   maidr::save_html(p, "myplot.html")
+#' }
+#'
+#' # Base R example
+#' \dontrun{
+#'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+#'   maidr::save_html(file = "barplot.html")
+#' }
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", ...) {
   device_id <- grDevices::dev.cur()

@@ -29,3 +29,4 @@ scale_mapping <- extract_scale_mapping(built)
 # Returns: c("1" = "A", "2" = "B", "3" = "C")
 
 }
+\keyword{internal}

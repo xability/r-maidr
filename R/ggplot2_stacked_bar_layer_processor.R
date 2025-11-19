@@ -2,7 +2,7 @@
 #'
 #' Processes stacked bar plot layers with complete logic included
 #'
-#' @export
+#' @keywords internal
 Ggplot2StackedBarProcessor <- R6::R6Class(
   "Ggplot2StackedBarProcessor",
   inherit = LayerProcessor,

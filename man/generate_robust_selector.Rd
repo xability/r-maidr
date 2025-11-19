@@ -4,7 +4,13 @@
 \alias{generate_robust_selector}
 \title{Generate robust selector for any element type}
 \usage{
-generate_robust_selector(grob, element_type, svg_element, max_elements = NULL)
+generate_robust_selector(
+  grob,
+  element_type,
+  svg_element,
+  plot_index = NULL,
+  max_elements = NULL
+)
 }
 \arguments{
 \item{grob}{The grob tree to analyze}
@@ -12,6 +18,8 @@ generate_robust_selector(grob, element_type, svg_element, max_elements = NULL)
 \item{element_type}{The element type to search for (e.g., "rect", "lines")}
 
 \item{svg_element}{The SVG element to target (e.g., "rect", "polyline")}
+
+\item{plot_index}{Optional plot index for multipanel layouts}
 
 \item{max_elements}{Optional limit on number of elements to target}
 }

@@ -103,7 +103,6 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       data_len <- 0
       data_to_use <- extracted_data
 
-      # Get panel/group index for multipanel support
       plot_index <- if (!is.null(layer_info$group_index)) {
         layer_info$group_index
       } else {
@@ -196,7 +195,6 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         )
       }
 
-      # Check if data will be reversed (horizontal plot)
       plot_call <- if (!is.null(self$layer_info)) self$layer_info$plot_call else NULL
       args <- if (!is.null(plot_call)) plot_call$args else list()
       is_horizontal <- !is.null(args$horizontal) && isTRUE(args$horizontal)
@@ -249,7 +247,6 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
           max_sel <- make_whisker_sel(w_idx, 2)
         }
 
-        # Generate outlier selectors
         # Points group index follows pattern: 2 * svg_idx
         points_idx <- 2 * svg_idx
 

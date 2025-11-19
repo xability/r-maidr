@@ -87,7 +87,6 @@ display_html <- function(html_doc) {
   if (Sys.getenv("RSTUDIO") == "1") {
     htmltools::html_print(html_doc)
   } else {
-    # Create temporary HTML file and open it
     temp_file <- tempfile(fileext = ".html")
     htmltools::save_html(html_doc, file = temp_file)
     utils::browseURL(temp_file)

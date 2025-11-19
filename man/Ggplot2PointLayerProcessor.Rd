@@ -13,7 +13,7 @@ for individual points in the SVG structure.
 \keyword{point}
 \keyword{the}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2PointLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2PointLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

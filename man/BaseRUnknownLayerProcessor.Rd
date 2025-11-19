@@ -8,7 +8,7 @@ Processes unknown Base R layer types as a fallback
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRUnknownLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRUnknownLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

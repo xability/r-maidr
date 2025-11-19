@@ -8,7 +8,7 @@ Processes bar plot layers with complete logic included
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2BarLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2BarLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

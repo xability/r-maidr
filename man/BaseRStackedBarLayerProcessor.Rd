@@ -10,7 +10,7 @@ applied by the `SortingPatcher`.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRStackedBarLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{BaseRStackedBarLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{

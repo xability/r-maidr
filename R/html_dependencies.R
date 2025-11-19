@@ -1,6 +1,9 @@
 #' Register JS/CSS dependencies for maidr from CDN
+#'
+#' Internal function to create HTML dependencies for MAIDR JavaScript and CSS files.
+#'
 #' @return A list of htmlDependency objects for maidr.js and maidr_style.css
-#' @export
+#' @keywords internal
 maidr_html_dependencies <- function() {
   js_dep <- htmltools::htmlDependency(
     name = "maidr-js",

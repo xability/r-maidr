@@ -13,18 +13,14 @@
 #' @param gtable Gtable object
 #' @return List with organized subplot data in 2D grid format
 process_faceted_plot_data <- function(plot, layout, built, gtable) {
-  # Extract panel information
   panel_layout <- built$layout$layout
 
-  # Process each panel
   subplots <- list()
   for (i in seq_len(nrow(panel_layout))) {
     panel_info <- panel_layout[i, ]
 
-    # Extract panel data
     panel_data <- built$data[[1]][built$data[[1]]$PANEL == panel_info$PANEL, ]
 
-    # Get facet group information
     facet_groups <- get_facet_groups(panel_info, built)
 
     # Map based on visual position (ROW/COL) with DOM order correction
@@ -32,7 +28,6 @@ process_faceted_plot_data <- function(plot, layout, built, gtable) {
     # We need to map the visual position to the correct DOM panel
     gtable_panel_name <- map_visual_to_dom_panel(panel_info, gtable)
 
-    # Process this panel
     subplot_data <- process_facet_panel(
       plot,
       panel_info,
@@ -57,7 +52,6 @@ process_faceted_plot_data <- function(plot, layout, built, gtable) {
 get_facet_groups <- function(panel_info, built) {
   facet_groups <- list()
 
-  # Extract facet variable information
   if (!is.null(built$layout$facet)) {
     facet_vars <- names(built$layout$facet$params$facets)
     if (length(facet_vars) == 0) {
@@ -94,25 +88,21 @@ process_facet_panel <- function(
   layout,
   gtable
 ) {
-  # Process layers using existing processors with panel-specific data
   layer_results <- list()
 
   for (layer_idx in seq_along(plot$layers)) {
     layer <- plot$layers[[layer_idx]]
     layer_info <- list(index = layer_idx, type = class(layer$geom)[1])
 
-    # Get the processor factory and adapter from the registry
     registry <- get_global_registry()
     system_name <- "ggplot2"
     factory <- registry$get_processor_factory(system_name)
     adapter <- registry$get_adapter(system_name)
 
-    # Create processor using the factory with adapter's layer type detection
     layer_type <- adapter$detect_layer_type(layer, plot)
     processor <- factory$create_processor(layer_type, layer_info)
 
     if (!is.null(processor)) {
-      # Build panel context for panel-scoped selector generation
       panel_name <- if (!is.null(gtable_panel_name)) {
         gtable_panel_name
       } else {
@@ -140,14 +130,11 @@ process_facet_panel <- function(
     }
   }
 
-  # Combine layer results
   combined_data <- combine_facet_layer_data(layer_results)
   combined_selectors <- combine_facet_layer_selectors(layer_results)
 
-  # Create proper subplot structure
   subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", panel_info$PANEL)
 
-  # Create layers structure
   layers <- list()
   if (length(combined_data) > 0) {
     layer_id <- paste0("maidr-layer-", as.integer(Sys.time()), "-", panel_info$PANEL)
@@ -158,13 +145,11 @@ process_facet_panel <- function(
     adapter <- registry$get_adapter(system_name)
     layer_type <- adapter$detect_layer_type(plot$layers[[1]], plot)
 
-    # Create facet title from facet groups
     facet_title <- ""
     if (length(facet_groups) > 0) {
       facet_title <- paste(facet_groups, collapse = " & ")
     }
 
-    # Create axes information
     axes <- list(
       x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
       y = if (!is.null(plot$labels$y)) plot$labels$y else ""
@@ -197,7 +182,6 @@ organize_facet_grid <- function(subplots, panel_layout) {
   max_row <- max(panel_layout$ROW)
   max_col <- max(panel_layout$COL)
 
-  # Create 2D grid
   grid <- list()
   for (row in seq_len(max_row)) {
     grid[[row]] <- list()
@@ -267,14 +251,12 @@ combine_facet_layer_selectors <- function(layer_results) {
 #' @param gtable Gtable object
 #' @return Gtable panel name or NULL if not found
 map_visual_to_dom_panel <- function(panel_info, gtable) {
-  # Get all panel names from gtable
   panel_names <- gtable$layout$name[grepl("^panel-", gtable$layout$name)]
 
   if (length(panel_names) == 0) {
     return(NULL)
   }
 
-  # Extract ROW and COL from panel names to determine grid dimensions
   panel_coords <- strsplit(gsub("panel-", "", panel_names), "-")
   rows <- as.numeric(sapply(panel_coords, function(x) x[1]))
   cols <- as.numeric(sapply(panel_coords, function(x) x[2]))
@@ -296,10 +278,8 @@ map_visual_to_dom_panel <- function(panel_info, gtable) {
   dom_col <- ((visual_index - 1) %/% max_row) + 1
   dom_row <- ((visual_index - 1) %% max_row) + 1
 
-  # Generate the expected DOM panel name
   expected_dom_name <- paste0("panel-", dom_row, "-", dom_col)
 
-  # Check if this panel name exists in gtable
   if (expected_dom_name %in% gtable$layout$name) {
     return(expected_dom_name)
   }

@@ -66,7 +66,6 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
         category_names <- as.character(seq_len(ncol(height)))
       }
 
-      # Build MAIDR data format: list of rows (fills), each row is list of points
       data <- lapply(seq_len(nrow(height)), function(r) {
         lapply(seq_len(ncol(height)), function(c) {
           list(

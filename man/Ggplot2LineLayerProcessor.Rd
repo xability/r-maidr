@@ -18,7 +18,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \keyword{the}
 \keyword{with}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2LineLayerProcessor}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}

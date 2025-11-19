@@ -27,13 +27,10 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       panel_id = NULL,
       panel_ctx = NULL
     ) {
-      # Extract data from the point layer
       extracted_data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
-      # Generate selectors for the point elements
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
-      # Create axes information by extracting labels from the plot
       axes <- self$extract_axes_labels(plot, built)
 
       # For point plots, data is directly the array of points
@@ -55,11 +52,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         built <- ggplot2::ggplot_build(plot)
       }
 
-      # Get axis labels from the built plot
       x_label <- ""
       y_label <- ""
 
-      # Check for x-axis label
       if (!is.null(built$plot$labels$x)) {
         x_label <- built$plot$labels$x
       } else if (!is.null(plot$labels$x)) {
@@ -71,7 +66,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         }
       }
 
-      # Check for y-axis label
       if (!is.null(built$plot$labels$y)) {
         y_label <- built$plot$labels$y
       } else if (!is.null(plot$labels$y)) {
@@ -100,7 +94,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
 
-      # Filter data for specific panel if panel_id is provided
       if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
         layer_data <- layer_data[layer_data$PANEL == panel_id, ]
       }
@@ -111,7 +104,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         if (!is.null(scale_mapping)) {
           layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
         } else {
-          # Get x values from the original data for this panel
           plot_mapping <- plot$mapping
           layer_mapping <- plot$layers[[layer_index]]$mapping
 
@@ -124,12 +116,10 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
           # For faceted plots, we need to get the x values for this specific panel
           if (!is.null(x_col) && x_col %in% names(plot$data)) {
-            # Filter original data for this panel if it has PANEL column
             panel_data <- plot$data
             if ("PANEL" %in% names(panel_data)) {
               panel_data <- panel_data[panel_data$PANEL == panel_id, ]
             }
-            # Get unique x values in order
             x_values <- unique(panel_data[[x_col]])
             x_values <- sort(x_values)
 
@@ -141,16 +131,13 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
           }
         }
       } else {
-        # Apply scale mapping if provided (for non-faceted plots)
         if (!is.null(scale_mapping)) {
           layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
         }
       }
 
-      # Get the original data
       original_data <- plot$data
 
-      # Get column names from plot mapping
       plot_mapping <- plot$mapping
       layer_mapping <- plot$layers[[layer_index]]$mapping
 
@@ -184,7 +171,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         NULL
       }
 
-      # Extract points
       points <- list()
       for (i in seq_len(nrow(layer_data))) {
         point <- list(
@@ -192,7 +178,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
           y = layer_data$y[i]
         )
 
-        # Add color information if available
         if (!is.null(color_col) && color_col %in% names(layer_data)) {
           point$color <- as.character(layer_data[[color_col]][i])
         }
@@ -261,7 +246,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
           gt <- ggplot2::ggplotGrob(plot)
         }
 
-        # Find geom_point container
         panel_grob <- self$find_panel_grob(gt)
         if (is.null(panel_grob)) {
           return(list())

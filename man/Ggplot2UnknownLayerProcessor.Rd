@@ -8,7 +8,7 @@ Handles unsupported layer types gracefully by returning empty data
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2UnknownLayerProcessor}
+\code{maidr::LayerProcessor} -> \code{Ggplot2UnknownLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
