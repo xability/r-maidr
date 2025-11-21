@@ -7,7 +7,8 @@
 #' @format An R6 class
 #' @keywords internal
 
-PlotSystemRegistry <- R6::R6Class("PlotSystemRegistry",
+PlotSystemRegistry <- R6::R6Class(
+  "PlotSystemRegistry",
   private = list(
     #' Registered plotting systems
     .registered_systems = list(),
@@ -24,7 +25,6 @@ PlotSystemRegistry <- R6::R6Class("PlotSystemRegistry",
     #' @param adapter Adapter instance for this system
     #' @param processor_factory Processor factory instance for this system
     register_system = function(system_name, adapter, processor_factory) {
-      # Validate inputs
       if (!inherits(adapter, "SystemAdapter")) {
         stop("Adapter must inherit from SystemAdapter")
       }
@@ -37,7 +37,6 @@ PlotSystemRegistry <- R6::R6Class("PlotSystemRegistry",
       private$.system_adapters[[system_name]] <- adapter
       private$.processor_factories[[system_name]] <- processor_factory
 
-      # Set system name in adapter and factory
       adapter$system_name <- system_name
 
       invisible(self)
@@ -53,7 +52,7 @@ PlotSystemRegistry <- R6::R6Class("PlotSystemRegistry",
           return(system_name)
         }
       }
-      return(NULL)
+      NULL
     },
 
     #' Get the adapter for a specific system

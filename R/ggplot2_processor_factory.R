@@ -6,7 +6,8 @@
 #' @format An R6 class inheriting from ProcessorFactory
 #' @keywords internal
 
-Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
+Ggplot2ProcessorFactory <- R6::R6Class(
+  "Ggplot2ProcessorFactory",
   inherit = ProcessorFactory,
   public = list(
     #' Initialize the ggplot2 processor factory
@@ -19,17 +20,17 @@ Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
     #' @param layer_info Information about the layer (contains plot object and metadata)
     #' @return Processor instance for the specified plot type
     create_processor = function(plot_type, layer_info) {
-      # Validate that layer_info is provided
       if (is.null(layer_info)) {
         stop("Layer info must be provided")
       }
 
       # Map plot types to existing processor classes
       # Only support the plot types that the adapter can detect
-      switch(plot_type,
+      switch(
+        plot_type,
         "bar" = Ggplot2BarLayerProcessor$new(layer_info),
         "dodged_bar" = Ggplot2DodgedBarLayerProcessor$new(layer_info),
-        "stacked_bar" = Ggplot2StackedBarLayerProcessor$new(layer_info),
+        "stacked_bar" = Ggplot2StackedBarProcessor$new(layer_info),
         "hist" = Ggplot2HistogramLayerProcessor$new(layer_info),
         "line" = Ggplot2LineLayerProcessor$new(layer_info),
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
@@ -78,7 +79,7 @@ Ggplot2ProcessorFactory <- R6::R6Class("Ggplot2ProcessorFactory",
       processor_classes <- c(
         "Ggplot2BarLayerProcessor",
         "Ggplot2DodgedBarLayerProcessor",
-        "Ggplot2StackedBarLayerProcessor",
+        "Ggplot2StackedBarProcessor",
         "Ggplot2LineLayerProcessor",
         "Ggplot2PointLayerProcessor",
         "Ggplot2HistogramLayerProcessor",

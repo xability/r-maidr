@@ -4,7 +4,8 @@
 #' for individual boxplot components in the SVG structure.
 #'
 #' @keywords internal
-Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
+Ggplot2BoxplotLayerProcessor <- R6::R6Class(
+  "Ggplot2BoxplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     #' Process the boxplot layer
@@ -14,16 +15,13 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
     #' @param gt Gtable object (optional)
     #' @return List with data and selectors
     process = function(plot, layout, built = NULL, gt = NULL) {
-      # Extract data from the boxplot layer
       extracted_data <- self$extract_data(plot, built)
 
-      # Generate selectors for the boxplot elements
       selectors <- self$generate_selectors(plot, gt)
 
       # Determine orientation
       orientation <- self$determine_orientation(plot)
 
-      # Create axes information
       axes <- list(
         x = if (!is.null(layout$axes$x)) layout$axes$x else "x",
         y = if (!is.null(layout$axes$y)) layout$axes$y else "y"
@@ -43,32 +41,36 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
     #' @param built Built plot data (optional)
     #' @return List with boxplot statistics for each category
     extract_data = function(plot, built = NULL) {
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
 
-      # Extract boxplot statistics for each category
       boxplot_data <- list()
 
-      for (i in 1:nrow(layer_data)) {
+      for (i in seq_len(nrow(layer_data))) {
         row <- layer_data[i, ]
 
-        # Extract basic statistics
         stats <- list(
           min = row$xmin, # Min of data (including outliers)
           max = row$xmax, # Max of data (including outliers)
           q1 = row$xlower, # Lower quartile (Q1) - box start
           q3 = row$xupper, # Upper quartile (Q3) - box end
           q2 = row$xmiddle, # Median (Q2) - box middle
-          fill = as.character(row$y), # Use y values as category codes (will be mapped to actual names)
+          fill = as.character(row$y), # Y values as category codes (mapped later)
           y_value = row$y # Store the numeric y value for mapping
         )
 
         # Handle outliers - they are stored as "c(value1, value2)" strings
         outliers_str <- as.character(row$outliers)
-        if (outliers_str != "" && !is.na(outliers_str) && outliers_str != "NA" && outliers_str != " numeric(0) ") {
-          # Parse the "c(value1, value2)" format
+        if (
+          outliers_str != "" &&
+            !is.na(outliers_str) &&
+            outliers_str != "NA" &&
+            outliers_str != " numeric(0) "
+        ) {
           outliers_text <- gsub("^c\\(|\\)$", "", outliers_str) # Remove "c(" and ")"
           if (outliers_text != "") {
             outliers <- suppressWarnings(as.numeric(strsplit(outliers_text, ", ")[[1]]))
@@ -104,7 +106,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
       # Map numeric categories to actual names if possible
       boxplot_data <- self$map_categories_to_names(boxplot_data, plot)
 
-      # Remove the temporary y_value field
       for (i in seq_along(boxplot_data)) {
         if (!is.null(boxplot_data[[i]]$y_value)) {
           boxplot_data[[i]]$y_value <- NULL
@@ -119,7 +120,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
     #' @param gt Gtable object (optional)
     #' @return List of selectors for each boxplot
     generate_selectors = function(plot, gt = NULL) {
-      if (is.null(gt)) gt <- ggplot2::ggplotGrob(plot)
+      if (is.null(gt)) {
+        gt <- ggplot2::ggplotGrob(plot)
+      }
 
       # Locate panel
       panel_index <- which(gt$layout$name == "panel")
@@ -131,7 +134,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         return(list())
       }
 
-      # Helpers for traversal
       collect_children <- function(grob) {
         out <- list()
         if (inherits(grob, "gTree") && length(grob$children) > 0) {
@@ -145,7 +147,11 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
       }
       find_children_by_pattern <- function(grob, pattern) {
         kids <- collect_children(grob)
-        ids <- vapply(kids, function(ch) if (!is.null(ch$name) && grepl(pattern, ch$name)) ch$name else NA_character_, character(1))
+        ids <- vapply(
+          kids,
+          function(ch) if (!is.null(ch$name) && grepl(pattern, ch$name)) ch$name else NA_character_,
+          character(1)
+        )
         ids <- ids[!is.na(ids)]
         unique(ids)
       }
@@ -170,7 +176,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         }
         character(0)
       }
-      find_descendant_of_parent_by_pattern <- function(grob, parent_id, pattern) {
+      find_desc_by_pattern <- function(grob, parent_id, pattern) {
         if (!inherits(grob, "gTree")) {
           return(NULL)
         }
@@ -180,7 +186,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
             ids <- find_children_by_pattern(child, pattern)
             return(if (length(ids) > 0) ids[1] else NULL)
           }
-          res <- find_descendant_of_parent_by_pattern(child, parent_id, pattern)
+          res <- find_desc_by_pattern(child, parent_id, pattern)
           if (!is.null(res)) {
             return(res)
           }
@@ -206,7 +212,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
       }
       master_id <- all_box[1]
       per_box_ids <- first_level_children_of(panel_grob, master_id, "geom_boxplot\\.gTree")
-      if (length(per_box_ids) == 0) per_box_ids <- setdiff(all_box, master_id)
+      if (length(per_box_ids) == 0) {
+        per_box_ids <- setdiff(all_box, master_id)
+      }
 
       # Data for outlier counts
       built <- ggplot2::ggplot_build(plot)
@@ -218,13 +226,22 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         box_sel <- list()
 
         # Outliers
-        outlier_container <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "geom_point\\.points")
+        outlier_container <- find_desc_by_pattern(
+          panel_grob,
+          box_id,
+          "geom_point\\.points"
+        )
         lower_n <- 0
         upper_n <- 0
         if (!is.null(layer_data) && nrow(layer_data) >= i) {
           row <- layer_data[i, ]
           outliers_str <- as.character(row$outliers)
-          if (!is.na(outliers_str) && outliers_str != "" && outliers_str != "NA" && outliers_str != " numeric(0) ") {
+          if (
+            !is.na(outliers_str) &&
+              outliers_str != "" &&
+              outliers_str != "NA" &&
+              outliers_str != " numeric(0) "
+          ) {
             txt <- gsub("^c\\(|\\)$", "", outliers_str)
             if (nzchar(txt)) {
               vals <- suppressWarnings(as.numeric(strsplit(txt, ", ")[[1]]))
@@ -244,20 +261,42 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         }
         if (!is.null(outlier_container) && upper_n > 0) {
           oc <- with_suffix(outlier_container)
-          box_sel$upperOutliers <- list(paste0("g#", esc(oc), " > use:nth-child(n+", lower_n + 1, ")"))
+          box_sel$upperOutliers <- list(paste0(
+            "g#",
+            esc(oc),
+            " > use:nth-child(n+",
+            lower_n + 1,
+            ")"
+          ))
         } else {
           box_sel$upperOutliers <- list()
         }
 
         # IQR box and median inside crossbar
-        crossbar_id <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "geom_crossbar\\.gTree")
-        iq_id <- if (!is.null(crossbar_id)) find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "geom_polygon\\.polygon") else NULL
-        med_id <- if (!is.null(crossbar_id)) find_descendant_of_parent_by_pattern(panel_grob, crossbar_id, "GRID\\.segments") else NULL
-        if (!is.null(iq_id)) box_sel$iq <- paste0("g#", esc(with_suffix(iq_id)), " > polygon")
-        if (!is.null(med_id)) box_sel$q2 <- paste0("g#", esc(with_suffix(med_id)), " > polyline")
+        crossbar_id <- find_desc_by_pattern(
+          panel_grob,
+          box_id,
+          "geom_crossbar\\.gTree"
+        )
+        iq_id <- if (!is.null(crossbar_id)) {
+          find_desc_by_pattern(panel_grob, crossbar_id, "geom_polygon\\.polygon")
+        } else {
+          NULL
+        }
+        med_id <- if (!is.null(crossbar_id)) {
+          find_desc_by_pattern(panel_grob, crossbar_id, "GRID\\.segments")
+        } else {
+          NULL
+        }
+        if (!is.null(iq_id)) {
+          box_sel$iq <- paste0("g#", esc(with_suffix(iq_id)), " > polygon")
+        }
+        if (!is.null(med_id)) {
+          box_sel$q2 <- paste0("g#", esc(with_suffix(med_id)), " > polyline")
+        }
 
         # Whiskers (another GRID.segments under box)
-        whisker_id <- find_descendant_of_parent_by_pattern(panel_grob, box_id, "GRID\\.segments")
+        whisker_id <- find_desc_by_pattern(panel_grob, box_id, "GRID\\.segments")
         if (!is.null(whisker_id) && !is.null(med_id) && whisker_id == med_id) {
           direct_segments <- first_level_children_of(panel_grob, box_id, "GRID\\.segments")
           if (length(direct_segments) > 0) {
@@ -281,11 +320,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
     #' @param plot The ggplot2 object
     #' @return "horz" or "vert"
     determine_orientation = function(plot) {
-      # Build the plot to examine the structure
       built <- ggplot2::ggplot_build(plot)
       layer_data <- built$data[[self$layer_info$index]]
 
-      # Check if y values in built data are numeric codes (indicating categorical y-axis)
       # For horizontal boxplots, y contains numeric codes (1, 2, 3, etc.)
       # For vertical boxplots, y is empty or contains the continuous values
       if ("y" %in% names(layer_data)) {
@@ -296,7 +333,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         }
       }
 
-      # Check if x values in built data indicate categorical x-axis
       if ("x" %in% names(layer_data)) {
         x_values <- layer_data$x
         if (length(x_values) > 0 && all(x_values %in% 1:10)) {
@@ -305,7 +341,6 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class("Ggplot2BoxplotLayerProcessor",
         }
       }
 
-      # Check layer mapping
       layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
 
       # If y is mapped and x is not explicitly continuous, check y data

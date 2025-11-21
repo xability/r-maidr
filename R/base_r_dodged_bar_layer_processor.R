@@ -3,7 +3,8 @@
 #' Processes Base R dodged bar plot layers with proper ordering to match backend logic
 #'
 #' @keywords internal
-BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
+BaseRDodgedBarLayerProcessor <- R6::R6Class(
+  "BaseRDodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL, layer_info = NULL) {
@@ -22,16 +23,18 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       )
     },
     extract_data = function(layer_info) {
-      # Extract arguments from the barplot call
       plot_call <- layer_info$plot_call
       args <- plot_call$args
       height_matrix <- args[[1]]
 
-      # Get column and row names
       col_names <- args$names.arg
-      row_names <- rownames(height_matrix)
+      row_names <- NULL
 
-      # Handle missing names
+      # Check legend.text: use it only if it's a character vector, not TRUE/FALSE
+      if (!is.null(args$legend.text) && is.character(args$legend.text)) {
+        row_names <- args$legend.text
+      }
+
       if (is.null(col_names)) {
         col_names <- colnames(height_matrix)
         if (is.null(col_names)) {
@@ -40,31 +43,29 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       }
 
       if (is.null(row_names)) {
+        row_names <- rownames(height_matrix)
+      }
+
+      if (is.null(row_names)) {
         row_names <- seq_len(nrow(height_matrix))
       }
 
-      # Convert to characters for consistency
       col_names <- as.character(col_names)
       row_names <- as.character(row_names)
 
-      # Sort series names (fill values) in ascending order
       sorted_series_names <- sort(row_names)
 
-      # Build data structure: group by fill, within each group sort by x value
       data_by_fill <- list()
 
       for (i in seq_len(length(sorted_series_names))) {
         series_name <- sorted_series_names[i]
-        # Find original index in the matrix
         original_index <- which(row_names == series_name)
         series_data <- list()
 
-        # Sort categories (x values) within each series group
         sorted_category_names <- sort(col_names)
 
         for (j in seq_len(length(sorted_category_names))) {
           category_name <- sorted_category_names[j]
-          # Find original column index
           original_col_index <- which(col_names == category_name)
 
           series_data[[j]] <- list(
@@ -92,7 +93,6 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       if (!is.null(gt)) {
         selectors <- self$generate_selectors_from_grob(gt, plot_call_index)
         if (length(selectors) > 0 && selectors != "") {
-          # Return as array with the first (most specific) selector
           return(list(selectors))
         }
       }
@@ -105,7 +105,9 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       names <- character(0)
 
       # Look for graphics-plot pattern matching our call index
-      if (!is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)) {
+      if (
+        !is.null(grob$name) && grepl(paste0("graphics-plot-", call_index, "-rect-1"), grob$name)
+      ) {
         names <- c(names, grob$name)
       }
 
@@ -139,7 +141,6 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       main_containers <- rect_names[grepl(main_container_pattern, rect_names)]
 
       if (length(main_containers) > 0) {
-        # Find the container with .1 suffix (the parent container)
         parent_containers <- main_containers[grepl("\\.1$", main_containers)]
         if (length(parent_containers) > 0) {
           escaped_parent <- gsub("\\.", "\\\\.", parent_containers[1])
@@ -158,7 +159,6 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 
@@ -172,7 +172,6 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class("BaseRDodgedBarLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
 
       main_title

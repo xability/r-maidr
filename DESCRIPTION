@@ -1,26 +1,38 @@
 Package: maidr
 Type: Package
-Title: Accessible, Interactive Plot Export for R
-Version: 0.0.0.9000
-Authors@R: person("Your", "Name", email = "your@email.com", role = c("aut", "cre"))
-Description: Accessible, interactive, and extensible export of R plots (ggplot2) to HTML/SVG with JS/CSS integration.
-License: MIT
+Title: Multimodal Access and Interactive Data Representation
+Version: 0.1.0
+Authors@R: person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cre"))
+Description: Provides accessible, interactive visualizations through the MAIDR
+    (Multimodal Access and Interactive Data Representation) system. Converts
+    ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard
+    navigation, screen reader support, and sonification capabilities. Supports
+    bar charts, histograms, line plots, scatter plots, box plots, heat maps,
+    and other common visualizations. Enables data exploration for users with
+    visual impairments through multiple sensory modalities.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
     ggplot2,
+    ggplotify,
     grid,
     gridSVG,
     htmltools,
+    htmlwidgets,
     jsonlite,
+    shiny,
     xml2,
     rlang,
     R6
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     lintr,
     styler,
     goodpractice,
-    cyclocomp
-Config/testthat/edition: 3 
+    cyclocomp,
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr

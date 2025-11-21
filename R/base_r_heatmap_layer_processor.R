@@ -3,12 +3,21 @@
 #' Processes Base R heatmap layers using the heatmap() function
 #'
 #' @keywords internal
-BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
+BaseRHeatmapLayerProcessor <- R6::R6Class(
+  "BaseRHeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL,
-                      scale_mapping = NULL, grob_id = NULL,
-                      panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL,
+      layer_info = NULL
+    ) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -20,10 +29,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
         type = "heat",
         title = title,
         axes = axes,
-        domMapping = list(order = "row")  # Explicit row-major DOM mapping
+        domMapping = list(order = "row") # Explicit row-major DOM mapping
       )
     },
-
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -32,7 +40,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract matrix data (first unnamed argument for heatmap())
       heat_matrix <- NULL
       if (length(args) > 0 && length(names(args)) > 0 && names(args)[1] == "") {
         heat_matrix <- args[[1]]
@@ -42,7 +49,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
         return(list(points = list(), x = character(0), y = character(0)))
       }
 
-      # Get row and column names
       row_names <- rownames(heat_matrix)
       col_names <- colnames(heat_matrix)
 
@@ -53,7 +59,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
         col_names <- as.character(seq_len(ncol(heat_matrix)))
       }
 
-      # Convert matrix to points format
       # points is a 2D array where points[row][col] = value
       # IMPORTANT: Base R heatmap() renders rows from bottom to top visually
       # but DOM elements are created in row-major order matching visual layout
@@ -77,7 +82,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
         y = as.list(row_names_reversed)
       )
     },
-
     generate_selectors = function(layer_info, gt = NULL) {
       if (is.null(gt)) {
         return(list())
@@ -99,11 +103,12 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       # Fallback selector
       main_selector <- paste0(
-        "g#graphics-plot-", group_index, "-image-rect-1\\.1 > rect"
+        "g#graphics-plot-",
+        group_index,
+        "-image-rect-1\\.1 > rect"
       )
       list(main_selector)
     },
-
     find_image_rect_grobs = function(grob, group_index) {
       names <- character(0)
 
@@ -143,9 +148,7 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       names
     },
-
     generate_selectors_from_grob = function(grob, group_index = NULL) {
-      # Find image-rect grobs recursively
       rect_names <- self$find_image_rect_grobs(grob, group_index)
 
       if (length(rect_names) == 0) {
@@ -160,7 +163,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       selector
     },
-
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(list(x = "", y = "", fill = ""))
@@ -169,7 +171,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
       # For heatmaps, fill represents the data values
@@ -178,7 +179,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
 
       list(x = x_title, y = y_title, fill = fill_title)
     },
-
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -187,11 +187,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class("BaseRHeatmapLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
 
       main_title
     }
   )
 )
-

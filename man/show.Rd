@@ -2,7 +2,7 @@
 % Please edit documentation in R/maidr.R
 \name{show}
 \alias{show}
-\title{Display a plot in RStudio Viewer or browser}
+\title{Display Interactive MAIDR Plot}
 \usage{
 show(plot = NULL, shiny = FALSE, as_widget = FALSE, ...)
 }
@@ -15,6 +15,25 @@ show(plot = NULL, shiny = FALSE, as_widget = FALSE, ...)
 
 \item{...}{Additional arguments passed to internal functions}
 }
+\value{
+Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
+}
 \description{
-Display a plot in RStudio Viewer or browser
+Display a ggplot2 or Base R plot as an interactive, accessible visualization
+using the MAIDR (Multimodal Access and Interactive Data Representation) system.
+}
+\examples{
+# ggplot2 example
+library(ggplot2)
+p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_bar(stat = "identity")
+\dontrun{
+  maidr::show(p)
+}
+
+# Base R example
+\dontrun{
+  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+  maidr::show()
+}
 }

@@ -12,7 +12,8 @@
 #' @field layout Layout information from the plot
 #'
 #' @keywords internal
-BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
+BaseRPlotOrchestrator <- R6::R6Class(
+  "BaseRPlotOrchestrator",
   private = list(
     .plot_calls = list(),
     .plot_groups = list(),
@@ -139,12 +140,10 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
     create_unified_layer_processor = function(layer_info) {
       layer_type <- layer_info$type
 
-      # Get the processor factory from the registry
       registry <- get_global_registry()
       system_name <- private$.adapter$get_system_name()
       factory <- registry$get_processor_factory(system_name)
 
-      # Create processor using the factory
       processor <- factory$create_processor(layer_type, layer_info)
 
       processor
@@ -156,13 +155,17 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
 
-        # Get the grob for this layer (convert from plot call if needed)
         layer_grob <- self$get_grob_for_layer(i)
 
         # Pass grob to processor (similar to ggplot2 passing gt)
         # For Base R, we don't have a built plot object like ggplot2
         # We pass the layer info directly and the grob for selector generation
-        result <- processor$process(NULL, private$.layout, layer_info = private$.layers[[i]], gt = layer_grob)
+        result <- processor$process(
+          NULL,
+          private$.layout,
+          layer_info = private$.layers[[i]],
+          gt = layer_grob
+        )
         processor$set_last_result(result)
         layer_results[[i]] <- result
       }
@@ -185,18 +188,17 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       layout
     },
     combine_layer_results = function(layer_results) {
-      # Check if we have a multipanel configuration
       panel_config <- detect_panel_configuration(private$.device_id)
 
-      if (!is.null(panel_config) &&
+      if (
+        !is.null(panel_config) &&
           panel_config$type %in% c("mfrow", "mfcol") &&
-          (panel_config$nrows > 1 || panel_config$ncols > 1)) {
-
+          (panel_config$nrows > 1 || panel_config$ncols > 1)
+      ) {
         # Multipanel case - create 2D grid
         nrows <- panel_config$nrows
         ncols <- panel_config$ncols
 
-        # Initialize 2D grid
         subplot_grid <- vector("list", nrows)
         for (r in seq_len(nrows)) {
           subplot_grid[[r]] <- vector("list", ncols)
@@ -208,7 +210,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           layer_info <- private$.layers[[i]]
           group_idx <- layer_info$group_index
 
-          # Calculate panel position
           if (panel_config$type == "mfrow") {
             # Row-major order
             row <- ceiling(group_idx / ncols)
@@ -224,13 +225,11 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
             next
           }
 
-          # Get layer type
           layer_type <- result$type
           if (is.null(layer_type) || length(layer_type) == 0) {
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
-          # Create layer object
           layer_obj <- list(
             id = paste0("maidr-layer-", i),
             selectors = result$selectors,
@@ -240,12 +239,10 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
             axes = if (!is.null(result$axes)) result$axes else list(x = "", y = "")
           )
 
-          # Add labels if they exist
           if (!is.null(result$labels) && length(result$labels) > 0) {
             layer_obj$labels <- result$labels
           }
 
-          # Initialize subplot if needed
           if (is.null(subplot_grid[[row]][[col]])) {
             subplot_grid[[row]][[col]] <- list(
               id = paste0("maidr-subplot-", row, "-", col),
@@ -253,14 +250,12 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
             )
           }
 
-          # Add layer to subplot
           subplot_grid[[row]][[col]]$layers <- append(
             subplot_grid[[row]][[col]]$layers,
             list(layer_obj)
           )
         }
 
-        # Store as 2D grid
         private$.combined_data <- subplot_grid
 
         # Collect all selectors
@@ -269,7 +264,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           combined_selectors <- c(combined_selectors, result$selectors)
         }
         private$.combined_selectors <- combined_selectors
-
       } else {
         # Single panel case - original logic
         combined_data <- list()
@@ -277,14 +271,12 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         for (i in seq_along(layer_results)) {
           result <- layer_results[[i]]
 
-          # Get layer type from the result
           layer_type <- result$type
           if (is.null(layer_type) || length(layer_type) == 0) {
             layer_info <- private$.layers[[i]]
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
-          # Create layer object with standard structure
           layer_obj <- list(
             id = i,
             selectors = result$selectors,
@@ -301,7 +293,6 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
             }
           }
 
-          # Add labels if they exist and are not empty
           if (!is.null(result$labels) && length(result$labels) > 0) {
             layer_obj$labels <- result$labels
           }
@@ -347,21 +338,19 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
       private$.plot_calls
     },
     get_gtable = function() {
-
       if (length(private$.plot_groups) == 0) {
         return(NULL)
       }
 
-      # Check if we have a multipanel configuration
       panel_config <- detect_panel_configuration(private$.device_id)
 
-      if (!is.null(panel_config) &&
+      if (
+        !is.null(panel_config) &&
           panel_config$type %in% c("mfrow", "mfcol") &&
-          (panel_config$nrows > 1 || panel_config$ncols > 1)) {
-
+          (panel_config$nrows > 1 || panel_config$ncols > 1)
+      ) {
         # Multipanel case - create composite grob
         composite_func <- function() {
-          # Set the panel configuration
           if (panel_config$type == "mfrow") {
             graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "mfcol") {
@@ -392,19 +381,20 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           }
         }
 
-        # Convert entire multipanel to single grob
-        tryCatch({
-          composite_grob <- ggplotify::as.grob(composite_func)
+        tryCatch(
+          {
+            composite_grob <- ggplotify::as.grob(composite_func)
 
-          # Also store individual grobs for reference
-          private$.grob_list <- list(composite_grob)
+            # Also store individual grobs for reference
+            private$.grob_list <- list(composite_grob)
 
-          return(composite_grob)
-        }, error = function(e) {
-          warning("Failed to create multipanel grob: ", e$message)
-          return(NULL)
-        })
-
+            return(composite_grob)
+          },
+          error = function(e) {
+            warning("Failed to create multipanel grob: ", e$message)
+            NULL
+          }
+        )
       } else {
         # Single panel case - original logic
         grob_list <- list()
@@ -435,15 +425,13 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
           )
         }
 
-        # Store the grob list for use by get_grob_for_layer
         private$.grob_list <- grob_list
 
-        # Return the first grob as the main gtable (for compatibility)
         if (length(grob_list) > 0 && !is.null(grob_list[[1]])) {
           return(grob_list[[1]])
         }
 
-        return(NULL)
+        NULL
       }
     },
     get_grob_for_layer = function(layer_index) {
@@ -455,11 +443,10 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         self$get_gtable()
       }
 
-      # Check if we have a multipanel configuration
       panel_config <- detect_panel_configuration(private$.device_id)
       is_multipanel <- !is.null(panel_config) &&
-                       panel_config$type %in% c("mfrow", "mfcol") &&
-                       (panel_config$nrows > 1 || panel_config$ncols > 1)
+        panel_config$type %in% c("mfrow", "mfcol") &&
+        (panel_config$nrows > 1 || panel_config$ncols > 1)
 
       if (is_multipanel) {
         # For multipanel, all layers share the same composite grob
@@ -477,7 +464,7 @@ BaseRPlotOrchestrator <- R6::R6Class("BaseRPlotOrchestrator",
         }
       }
 
-      return(NULL)
+      NULL
     }
   )
 )

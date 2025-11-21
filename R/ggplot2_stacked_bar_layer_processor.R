@@ -2,8 +2,9 @@
 #'
 #' Processes stacked bar plot layers with complete logic included
 #'
-#' @export
-Ggplot2StackedBarLayerProcessor <- R6::R6Class("Ggplot2StackedBarLayerProcessor",
+#' @keywords internal
+Ggplot2StackedBarProcessor <- R6::R6Class(
+  "Ggplot2StackedBarProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
@@ -13,7 +14,9 @@ Ggplot2StackedBarLayerProcessor <- R6::R6Class("Ggplot2StackedBarLayerProcessor"
 
       list(
         data = data,
-        selectors = selectors
+        selectors = selectors,
+        title = if (!is.null(layout$title)) layout$title else "",
+        axes = self$extract_layer_axes(plot, layout)
       )
     },
     needs_reordering = function() {

@@ -3,7 +3,8 @@
 #' Processes smooth plot layers with complete logic included
 #'
 #' @keywords internal
-Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
+Ggplot2SmoothLayerProcessor <- R6::R6Class(
+  "Ggplot2SmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, built = NULL, gt = NULL) {
@@ -12,7 +13,9 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
 
       list(
         data = data,
-        selectors = selectors
+        selectors = selectors,
+        title = if (!is.null(layout$title)) layout$title else "",
+        axes = self$extract_layer_axes(plot, layout)
       )
     },
     extract_data = function(plot, built = NULL) {
@@ -20,7 +23,9 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
         stop("Input must be a ggplot object.")
       }
 
-      if (is.null(built)) built <- ggplot2::ggplot_build(plot)
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
 
       smooth_layers <- which(sapply(plot$layers, function(layer) {
         inherits(layer$geom, "GeomSmooth") ||
@@ -58,7 +63,7 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
           }
         }
 
-        return(polyline_grobs)
+        polyline_grobs
       }
 
       if (!is.null(gt)) {
@@ -72,7 +77,6 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
         }
 
         if (length(all_polyline_grobs) > 0) {
-          # Extract the numeric IDs from all polyline grobs
           numeric_ids <- sapply(all_polyline_grobs, function(grob_name) {
             match_result <- regmatches(grob_name, regexpr("GRID\\.polyline\\.(\\d+)", grob_name))
             if (length(match_result) > 0) {
@@ -82,12 +86,11 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class("Ggplot2SmoothLayerProcessor",
             }
           })
 
-          # Remove any NA or 0 values
           numeric_ids <- numeric_ids[numeric_ids > 0]
 
           if (length(numeric_ids) > 0) {
-            # For geom_smooth, the actual fitted line is typically the LAST (highest numbered) polyline
-            # This is because ggplot2 renders confidence interval first, then the fitted line
+            # Fitted line is the LAST polyline (confidence interval rendered first)
+            # ggplot2 renders confidence interval first, then the fitted line
             target_id <- max(numeric_ids)
             grob_id <- paste0("GRID.polyline.", target_id, ".1.1")
             escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)

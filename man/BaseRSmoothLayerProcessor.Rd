@@ -4,7 +4,10 @@
 \alias{BaseRSmoothLayerProcessor}
 \title{Base R Smooth/Density Layer Processor}
 \description{
-Processes Base R smooth/density plots (created with plot(density()))
+Processes Base R smooth curves including:
+- Density plots: plot(density()) or lines(density())
+- Loess smooth: lines(loess.smooth()) or lines(predict(loess))
+- Smooth splines: lines(smooth.spline())
 }
 \keyword{internal}
 \section{Super class}{
@@ -27,6 +30,7 @@ Processes Base R smooth/density plots (created with plot(density()))
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>

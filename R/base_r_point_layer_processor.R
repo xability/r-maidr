@@ -3,10 +3,21 @@
 #' Processes Base R scatter plot layers based on recorded plot calls
 #'
 #' @keywords internal
-BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
+BaseRPointLayerProcessor <- R6::R6Class(
+  "BaseRPointLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL,
+      layer_info = NULL
+    ) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -31,16 +42,13 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Get x and y values
       # For plot(): first arg is x, second is y
       # For points(): first arg is x, second is y
       x <- args[[1]]
       y <- args[[2]]
 
-      # Get colors (optional)
       col <- args$col
 
-      # Handle missing x or y
       if (is.null(x) || is.null(y)) {
         return(list())
       }
@@ -48,7 +56,6 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
       # Ensure x and y are same length
       n <- min(length(x), length(y))
 
-      # Convert to data points format (flat array like ggplot2)
       data_points <- list()
 
       for (i in seq_len(n)) {
@@ -57,7 +64,6 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
           y = as.numeric(y[i])
         )
 
-        # Add color if available
         if (!is.null(col)) {
           # Handle single color (repeat for all points)
           if (length(col) == 1) {
@@ -80,7 +86,6 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 
@@ -94,7 +99,6 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
       main_title
     },
@@ -111,11 +115,9 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
         layer_info$index
       }
 
-      # Find the points grob container for THIS specific panel
       points_grob_name <- find_graphics_plot_grob(gt, "points", plot_index = group_index)
 
       if (!is.null(points_grob_name)) {
-        # Generate selector in format: g#graphics-plot-N-points-1.1 > use
         # where N is the group_index (panel number)
         svg_id <- paste0(points_grob_name, ".1")
         escaped_id <- gsub("\\.", "\\\\.", svg_id)
@@ -129,4 +131,3 @@ BaseRPointLayerProcessor <- R6::R6Class("BaseRPointLayerProcessor",
     }
   )
 )
-

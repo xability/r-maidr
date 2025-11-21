@@ -3,22 +3,22 @@
 #' Handles unsupported layer types gracefully by returning empty data
 #'
 #' @keywords internal
-Ggplot2UnknownLayerProcessor <- R6::R6Class("Ggplot2UnknownLayerProcessor",
+Ggplot2UnknownLayerProcessor <- R6::R6Class(
+  "Ggplot2UnknownLayerProcessor",
   inherit = LayerProcessor,
   public = list(
     process = function(plot, layout, gt = NULL) {
-      # Return empty data for unknown layer types
       list(
         data = list(),
-        selectors = list()
+        selectors = list(),
+        title = if (!is.null(layout$title)) layout$title else "",
+        axes = self$extract_layer_axes(plot, layout)
       )
     },
     extract_data = function(plot, built = NULL) {
-      # Return empty data for unknown layer types
       list()
     },
     generate_selectors = function(plot, gt = NULL) {
-      # Return empty selectors for unknown layer types
       list()
     }
   )

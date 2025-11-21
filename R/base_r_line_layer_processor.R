@@ -3,10 +3,21 @@
 #' Processes Base R line plot layers based on recorded plot calls
 #'
 #' @keywords internal
-BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
+BaseRLineLayerProcessor <- R6::R6Class(
+  "BaseRLineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL, scale_mapping = NULL, grob_id = NULL, panel_id = NULL, panel_ctx = NULL, layer_info = NULL) {
+    process = function(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL,
+      layer_info = NULL
+    ) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)
@@ -37,21 +48,18 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         return(self$extract_abline_data(layer_info))
       }
 
-      # Get x and y values for lines() calls
       x <- args[[1]]
       y <- args[[2]]
 
-      # Check if this is a multiline plot (matplot with matrix)
       is_multiline <- is.matrix(y) || (is.array(y) && length(dim(y)) == 2)
 
       if (is_multiline) {
-        return(self$extract_multiline_data(x, y))
+        self$extract_multiline_data(x, y)
       } else {
-        return(self$extract_single_line_data(x, y))
+        self$extract_single_line_data(x, y)
       }
     },
     extract_single_line_data = function(x, y) {
-      # Convert to data points
       data_points <- list()
 
       # Ensure x and y are same length
@@ -64,20 +72,18 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         )
       }
 
-      # Return as nested list (one series)
       list(data_points)
     },
     extract_multiline_data = function(x, y_matrix) {
-      # Extract column names for series names
       series_names <- colnames(y_matrix)
       if (is.null(series_names)) {
-        series_names <- paste0("Col", 1:ncol(y_matrix))
+        series_names <- paste0("Col", seq_len(ncol(y_matrix)))
       }
 
       # Each column is a series
       series_list <- list()
 
-      for (col_idx in 1:ncol(y_matrix)) {
+      for (col_idx in seq_len(ncol(y_matrix))) {
         series_y <- y_matrix[, col_idx]
         series_name <- series_names[col_idx]
 
@@ -121,7 +127,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract axis titles from plot call arguments (for HIGH-level calls)
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 
@@ -132,14 +137,11 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       args <- plot_call$args
       group <- layer_info$group
 
-      # Get intercept and slope
       intercept <- NULL
       slope <- NULL
 
-      # Check if first argument is an lm object
       first_arg <- args[[1]]
       if (!is.null(first_arg) && inherits(first_arg, "lm")) {
-        # Extract coefficients from lm object
         coefs <- coef(first_arg)
         intercept <- coefs[1]
         if (length(coefs) > 1) {
@@ -148,7 +150,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
           slope <- 0
         }
       } else {
-        # Check for named arguments: abline(a=..., b=...)
         if (!is.null(args$a)) {
           intercept <- args$a
         } else if (length(args) > 0 && is.numeric(args[[1]])) {
@@ -168,7 +169,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       if (!is.null(args$h)) {
         # Horizontal line: y = constant
         y_val <- args$h
-        # Get x range from HIGH call (plot(x, y))
         x_range <- self$get_x_range_from_group(group)
         if (is.null(x_range)) {
           return(list())
@@ -183,7 +183,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       if (!is.null(args$v)) {
         # Vertical line: x = constant
         x_val <- args$v
-        # Get y range from HIGH call (plot(x, y))
         y_range <- self$get_y_range_from_group(group)
         if (is.null(y_range)) {
           return(list())
@@ -200,7 +199,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         return(list())
       }
 
-      # Get x range from HIGH call (plot(x, y))
       x_range <- self$get_x_range_from_group(group)
       if (is.null(x_range)) {
         return(list())
@@ -211,7 +209,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       y_min <- intercept + slope * x_range[1]
       y_max <- intercept + slope * x_range[2]
 
-      # Return only the 2 endpoints (like the SVG polyline has)
       data_points <- list(
         list(x = x_range[1], y = y_min),
         list(x = x_range[2], y = y_max)
@@ -219,7 +216,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
 
       list(data_points)
     },
-
     get_x_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
         return(NULL)
@@ -232,13 +228,11 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         return(NULL)
       }
 
-      # Get range with some padding
       x_min <- min(x_data, na.rm = TRUE)
       x_max <- max(x_data, na.rm = TRUE)
       x_padding <- (x_max - x_min) * 0.05
       c(x_min - x_padding, x_max + x_padding)
     },
-
     get_y_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
         return(NULL)
@@ -251,13 +245,11 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         return(NULL)
       }
 
-      # Get range with some padding
       y_min <- min(y_data, na.rm = TRUE)
       y_max <- max(y_data, na.rm = TRUE)
       y_padding <- (y_max - y_min) * 0.05
       c(y_min - y_padding, y_max + y_padding)
     },
-
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -279,14 +271,12 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Extract main title from plot call arguments
       main_title <- if (!is.null(args$main)) args$main else ""
       main_title
     },
     generate_selectors = function(layer_info, gt = NULL) {
       selectors <- list()
 
-      # Get group index for selector generation
       group_index <- if (!is.null(layer_info$group_index)) {
         layer_info$group_index
       } else {
@@ -303,7 +293,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
     find_lines_grobs = function(grob, group_index, grob_type = "lines") {
       names <- character(0)
 
-      # Check if current grob matches Base R lines/abline pattern
       grob_name <- grob$name
       if (!is.null(grob_name)) {
         if (grob_type == "abline") {
@@ -318,7 +307,7 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         }
       }
 
-            # Recursively search children
+      # Recursively search children
       if (inherits(grob, "gList")) {
         for (i in seq_along(grob)) {
           names <- c(names, self$find_lines_grobs(grob[[i]], group_index, grob_type))
@@ -328,7 +317,7 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       if (inherits(grob, "gTree")) {
         if (!is.null(grob$children)) {
           for (i in seq_along(grob$children)) {
-            names <- c(names, self$find_lines_grobs(grob$children[[i]], group_index, grob_type))                                                                           
+            names <- c(names, self$find_lines_grobs(grob$children[[i]], group_index, grob_type))
           }
         }
       }
@@ -347,7 +336,6 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
       function_name <- if (!is.null(layer_info)) layer_info$function_name else "lines"
       grob_type <- if (function_name == "abline") "abline" else "lines"
 
-      # Find lines/abline grobs recursively
       # Returns ALL matching grobs (for multiline support)
       lines_names <- self$find_lines_grobs(grob, group_index, grob_type)
 
@@ -355,18 +343,13 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
         return(list())
       }
 
-      # Sort by series index (from grob name: graphics-plot-1-lines-1, lines-2, lines-3)
-      # Extract the numeric suffix from grob names
       lines_names <- sort(lines_names)
 
-      # Generate selectors from grob names
       # Each grob becomes one selector
       selectors <- lapply(lines_names, function(name) {
-        # Add .1 suffix (gridSVG convention for SVG IDs)
         svg_id <- paste0(name, ".1")
         # Escape dots for CSS selector syntax
         escaped <- gsub("\\.", "\\\\.", svg_id)
-        # Create selector targeting polyline within this container
         selector <- paste0("#", escaped, " polyline")
         selector
       })
@@ -375,4 +358,3 @@ BaseRLineLayerProcessor <- R6::R6Class("BaseRLineLayerProcessor",
     }
   )
 )
-

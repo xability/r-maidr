@@ -7,18 +7,14 @@
 #' @return NULL (invisible)
 
 initialize_ggplot2_system <- function() {
-  # Get the global registry
   registry <- get_global_registry()
 
-  # Check if ggplot2 system is already registered
   if (registry$is_system_registered("ggplot2")) {
     return(invisible(NULL))
   }
 
-  # Create ggplot2 adapter
   ggplot2_adapter <- Ggplot2Adapter$new()
 
-  # Create ggplot2 processor factory
   ggplot2_factory <- Ggplot2ProcessorFactory$new()
 
   # Register the system
@@ -29,7 +25,6 @@ initialize_ggplot2_system <- function() {
 
 # Auto-initialize ggplot2 system when package is loaded
 .onLoad <- function(libname, pkgname) {
-  # Initialize ggplot2 system
   tryCatch(
     {
       initialize_ggplot2_system()
@@ -39,7 +34,6 @@ initialize_ggplot2_system <- function() {
     }
   )
 
-  # Initialize Base R system
   tryCatch(
     {
       initialize_base_r_system()

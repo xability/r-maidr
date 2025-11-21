@@ -19,6 +19,9 @@ Processes Base R line plot layers based on recorded plot calls
 \item \href{#method-BaseRLineLayerProcessor-extract_single_line_data}{\code{BaseRLineLayerProcessor$extract_single_line_data()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_multiline_data}{\code{BaseRLineLayerProcessor$extract_multiline_data()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_axis_titles}{\code{BaseRLineLayerProcessor$extract_axis_titles()}}
+\item \href{#method-BaseRLineLayerProcessor-extract_abline_data}{\code{BaseRLineLayerProcessor$extract_abline_data()}}
+\item \href{#method-BaseRLineLayerProcessor-get_x_range_from_group}{\code{BaseRLineLayerProcessor$get_x_range_from_group()}}
+\item \href{#method-BaseRLineLayerProcessor-get_y_range_from_group}{\code{BaseRLineLayerProcessor$get_y_range_from_group()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_main_title}{\code{BaseRLineLayerProcessor$extract_main_title()}}
 \item \href{#method-BaseRLineLayerProcessor-generate_selectors}{\code{BaseRLineLayerProcessor$generate_selectors()}}
 \item \href{#method-BaseRLineLayerProcessor-find_lines_grobs}{\code{BaseRLineLayerProcessor$find_lines_grobs()}}
@@ -30,6 +33,7 @@ Processes Base R line plot layers based on recorded plot calls
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
@@ -103,6 +107,33 @@ Processes Base R line plot layers based on recorded plot calls
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_abline_data"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_abline_data}{}}}
+\subsection{Method \code{extract_abline_data()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$extract_abline_data(layer_info)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_x_range_from_group"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_x_range_from_group}{}}}
+\subsection{Method \code{get_x_range_from_group()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$get_x_range_from_group(group)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_y_range_from_group"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_y_range_from_group}{}}}
+\subsection{Method \code{get_y_range_from_group()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$get_y_range_from_group(group)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_main_title}{}}}
 \subsection{Method \code{extract_main_title()}}{
@@ -125,7 +156,11 @@ Processes Base R line plot layers based on recorded plot calls
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-find_lines_grobs}{}}}
 \subsection{Method \code{find_lines_grobs()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$find_lines_grobs(grob, group_index)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$find_lines_grobs(
+  grob,
+  group_index,
+  grob_type = "lines"
+)}\if{html}{\out{</div>}}
 }
 
 }

@@ -6,7 +6,8 @@
 #' @format An R6 class inheriting from SystemAdapter
 #' @keywords internal
 
-BaseRAdapter <- R6::R6Class("BaseRAdapter",
+BaseRAdapter <- R6::R6Class(
+  "BaseRAdapter",
   inherit = SystemAdapter,
   public = list(
     #' Initialize the Base R adapter
@@ -23,7 +24,7 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       has_calls <- has_device_calls(device_id)
       calls_count <- length(get_device_calls(device_id))
       can_handle_result <- active && has_calls
-      return(can_handle_result)
+      can_handle_result
     },
 
     #' Detect the type of a single layer from Base R plot calls
@@ -40,7 +41,8 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       args <- layer$args
 
       # HIGH-level function detection
-      layer_type <- switch(function_name,
+      layer_type <- switch(
+        function_name,
         "barplot" = {
           if (self$is_dodged_barplot(args)) {
             "dodged_bar"
@@ -55,7 +57,6 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
           } else {
-            # Check if this is a scatter plot (point plot)
             # plot() default type is "p" (points/scatter)
             # plot(x, y) with two numeric vectors defaults to scatter
             plot_type <- args$type
@@ -80,24 +81,26 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
       }
 
       # LOW-level function detection (NEW)
-      layer_type <- switch(function_name,
+      layer_type <- switch(
+        function_name,
         "lines" = {
           first_arg <- args[[1]]
           if (!is.null(first_arg)) {
-            # Check for various smooth object types
             if (inherits(first_arg, "density")) {
-              "smooth"  # Existing: density curves
+              "smooth" # Existing: density curves
             } else if (inherits(first_arg, "loess")) {
-              "smooth"  # Loess objects (shouldn't happen directly, but check)
+              "smooth" # Loess objects (shouldn't happen directly, but check)
             } else if (inherits(first_arg, "smooth.spline")) {
-              "smooth"  # Smooth spline objects
-            } else if (is.list(first_arg) &&
-                       all(c("x", "y") %in% names(first_arg)) &&
-                       length(args) == 1) {
+              "smooth" # Smooth spline objects
+            } else if (
+              is.list(first_arg) &&
+                all(c("x", "y") %in% names(first_arg)) &&
+                length(args) == 1
+            ) {
               # List with x,y and no other args - likely loess.smooth result
               "smooth"
             } else {
-              "line"  # Default: regular line
+              "line" # Default: regular line
             }
           } else {
             "line"
@@ -109,43 +112,37 @@ BaseRAdapter <- R6::R6Class("BaseRAdapter",
         "unknown"
       )
 
-      return(layer_type)
+      layer_type
     },
 
     #' Check if a barplot call represents a dodged bar plot
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
-      # Get height data (first argument)
       height <- args[[1]]
       beside <- args$beside
 
-      # Check if height is a matrix
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # Check beside parameter
       # For matrices, beside = TRUE creates dodged bars
       beside_true <- if (is.null(beside)) FALSE else beside
 
-      return(is_matrix && beside_true)
+      is_matrix && beside_true
     },
 
     #' Check if a barplot call represents a stacked bar plot
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
-      # Get height data (first argument)
       height <- args[[1]]
       beside <- args$beside
 
-      # Check if height is a matrix
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # Check beside parameter
       # For matrices, beside = FALSE creates stacked bars
       beside_false <- if (is.null(beside)) FALSE else !beside
 
-      return(is_matrix && beside_false)
+      is_matrix && beside_false
     },
 
     #' Create an orchestrator for this system (Base R)

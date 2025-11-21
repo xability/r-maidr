@@ -1,0 +1,387 @@
+---
+title: "Supported Plot Types in MAIDR"
+author: "JooYoung Seo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Supported Plot Types in MAIDR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Overview
+
+MAIDR supports a comprehensive range of plot types from both **ggplot2** and **Base R**. This vignette demonstrates each supported visualization with example code.
+
+## Bar Charts
+
+### Simple Bar Chart
+
+```{r simple-bar}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+bar_data <- data.frame(
+  Category = c("A", "B", "C", "D"),
+  Value = c(30, 25, 35, 20)
+)
+
+p <- ggplot(bar_data, aes(x = Category, y = Value)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Simple Bar Chart") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+barplot(bar_data$Value, 
+        names.arg = bar_data$Category,
+        col = "steelblue",
+        main = "Simple Bar Chart")
+show()  # Note: No arguments for Base R plots
+```
+
+### Dodged Bar Chart
+
+```{r dodged-bar}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+dodged_data <- data.frame(
+  Category = rep(c("A", "B", "C"), each = 2),
+  Type = rep(c("Type1", "Type2"), 3),
+  Value = c(10, 15, 20, 25, 30, 35)
+)
+
+p <- ggplot(dodged_data, aes(x = Category, y = Value, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+  labs(title = "Dodged Bar Chart") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+matrix_data <- matrix(c(10, 15, 20, 25, 30, 35), nrow = 2)
+barplot(matrix_data, 
+        beside = TRUE,  # Creates dodged effect
+        names.arg = c("A", "B", "C"),
+        col = c("steelblue", "coral"),
+        legend = c("Type1", "Type2"),
+        main = "Dodged Bar Chart")
+show()
+```
+
+### Stacked Bar Chart
+
+```{r stacked-bar}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+stacked_data <- data.frame(
+  Category = rep(c("A", "B", "C"), each = 2),
+  Type = rep(c("Type1", "Type2"), 3),
+  Value = c(10, 15, 20, 25, 30, 35)
+)
+
+p <- ggplot(stacked_data, aes(x = Category, y = Value, fill = Type)) +
+  geom_bar(stat = "identity", position = position_stack()) +
+  labs(title = "Stacked Bar Chart") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+matrix_data <- matrix(c(10, 15, 20, 25, 30, 35), nrow = 2)
+barplot(matrix_data, 
+        beside = FALSE,  # Creates stacked effect
+        names.arg = c("A", "B", "C"),
+        col = c("steelblue", "coral"),
+        legend = c("Type1", "Type2"),
+        main = "Stacked Bar Chart")
+show()
+```
+
+## Histograms
+
+```{r histogram}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+hist_data <- data.frame(values = rnorm(1000, mean = 0, sd = 1))
+
+p <- ggplot(hist_data, aes(x = values)) +
+  geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+  labs(title = "Histogram", x = "Values", y = "Frequency") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+hist(rnorm(1000, mean = 0, sd = 1),
+     breaks = 30,
+     col = "skyblue",
+     border = "black",
+     main = "Histogram",
+     xlab = "Values",
+     ylab = "Frequency")
+show()
+```
+
+## Scatter/Point Plots
+
+```{r scatter}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+scatter_data <- data.frame(
+  x = rnorm(50),
+  y = rnorm(50),
+  group = sample(c("A", "B", "C"), 50, replace = TRUE)
+)
+
+p <- ggplot(scatter_data, aes(x = x, y = y, color = group)) +
+  geom_point(size = 3, alpha = 0.7) +
+  labs(title = "Scatter Plot") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+x <- rnorm(50)
+y <- rnorm(50)
+plot(x, y,
+     pch = 19,
+     col = rainbow(3)[as.numeric(factor(sample(c("A", "B", "C"), 50, replace = TRUE)))],
+     main = "Scatter Plot")
+show()
+```
+
+## Line Plots
+
+### Single Line
+
+```{r single-line}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+line_data <- data.frame(
+  x = 1:10,
+  y = c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
+)
+
+p <- ggplot(line_data, aes(x = x, y = y)) +
+  geom_line(color = "steelblue", linewidth = 1.5) +
+  labs(title = "Single Line Plot") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+x <- 1:10
+y <- c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
+plot(x, y, type = "l", col = "steelblue", lwd = 2, main = "Single Line Plot")
+show()
+```
+
+### Multiple Lines
+
+```{r multiline}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+multiline_data <- data.frame(
+  x = rep(1:10, 3),
+  y = c(
+    c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4),  # Series 1
+    c(1, 3, 5, 2, 4, 6, 8, 7, 5, 3),  # Series 2
+    c(3, 1, 4, 6, 5, 2, 4, 5, 7, 6)   # Series 3
+  ),
+  series = rep(c("A", "B", "C"), each = 10)
+)
+
+p <- ggplot(multiline_data, aes(x = x, y = y, color = series)) +
+  geom_line(linewidth = 1) +
+  labs(title = "Multiline Plot") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+x <- 1:10
+y1 <- c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
+y2 <- c(1, 3, 5, 2, 4, 6, 8, 7, 5, 3)
+y3 <- c(3, 1, 4, 6, 5, 2, 4, 5, 7, 6)
+
+plot(x, y1, type = "l", col = "red", lwd = 2, main = "Multiline Plot", ylim = c(0, 10))
+lines(x, y2, col = "blue", lwd = 2)
+lines(x, y3, col = "green", lwd = 2)
+show()
+```
+
+## Box Plots
+
+```{r boxplot}
+library(maidr)
+library(ggplot2)
+
+# ggplot2 - Horizontal
+p <- ggplot(iris, aes(x = Petal.Length, y = Species)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.7) +
+  labs(title = "Boxplot - Petal Length by Species") +
+  theme_minimal()
+
+show(p)
+
+# ggplot2 - Vertical
+p_vert <- ggplot(iris, aes(x = Species, y = Petal.Length)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.7) +
+  labs(title = "Boxplot - Vertical Orientation") +
+  theme_minimal()
+
+show(p_vert)
+
+# Base R equivalent
+boxplot(Petal.Length ~ Species, 
+        data = iris,
+        col = "lightblue",
+        main = "Boxplot - Petal Length by Species",
+        horizontal = TRUE)
+show()
+```
+
+## Heatmaps
+
+```{r heatmap}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+heatmap_data <- data.frame(
+  x = rep(c("A", "B"), each = 2),
+  y = rep(c("1", "2"), 2),
+  z = c(1, 2, 3, 4)
+)
+
+p <- ggplot(heatmap_data, aes(x = x, y = y, fill = z)) +
+  geom_tile() +
+  geom_text(aes(label = z), color = "white", size = 5) +
+  labs(title = "Heatmap with Labels") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+matrix_data <- matrix(c(1, 2, 3, 4), nrow = 2)
+image(matrix_data, 
+      col = heat.colors(10),
+      main = "Heatmap",
+      axes = FALSE)
+axis(1, at = seq(0, 1, length.out = 2), labels = c("A", "B"))
+axis(2, at = seq(0, 1, length.out = 2), labels = c("1", "2"))
+show()
+```
+
+## Density/Smooth Plots
+
+```{r density}
+library(maidr)
+library(ggplot2)
+
+# ggplot2
+density_data <- data.frame(values = rnorm(1000, mean = 0, sd = 1))
+
+p <- ggplot(density_data, aes(x = values)) +
+  geom_density(fill = "lightblue", alpha = 0.5) +
+  labs(title = "Density Plot") +
+  theme_minimal()
+
+show(p)
+
+# Base R equivalent
+values <- rnorm(1000, mean = 0, sd = 1)
+plot(density(values), 
+     col = "blue",
+     lwd = 2,
+     main = "Density Plot")
+polygon(density(values), col = rgb(0.678, 0.847, 0.902, 0.5))
+show()
+```
+
+## Faceted Plots
+
+```{r faceted}
+library(maidr)
+library(ggplot2)
+
+# Faceted bar plot
+facet_data <- data.frame(
+  x = rep(1:5, 4),
+  y = runif(20, 1, 100),
+  group = rep(c("Group 1", "Group 2", "Group 3", "Group 4"), each = 5)
+)
+
+p <- ggplot(facet_data, aes(x = x, y = y)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  facet_wrap(~ group, ncol = 2) +
+  labs(title = "Faceted Bar Plot") +
+  theme_minimal()
+
+show(p)
+```
+
+## Multi-Panel Layouts (Patchwork)
+
+```{r patchwork}
+library(maidr)
+library(ggplot2)
+library(patchwork)
+
+# Create individual plots
+p1 <- ggplot(data.frame(x = 1:10, y = rnorm(10)), aes(x, y)) +
+  geom_line(color = "steelblue") +
+  labs(title = "Line Plot") +
+  theme_minimal()
+
+p2 <- ggplot(data.frame(x = c("A", "B", "C"), y = c(10, 20, 15)), aes(x, y)) +
+  geom_bar(stat = "identity", fill = "coral") +
+  labs(title = "Bar Plot") +
+  theme_minimal()
+
+# Combine with patchwork
+combined <- p1 + p2
+show(combined)
+```
+
+## When to Use Each Plot Type
+
+| Plot Type | Best For | Example Use Case |
+|-----------|----------|------------------|
+| **Bar Chart** | Comparing categories | Sales by product |
+| **Histogram** | Showing distributions | Test score frequencies |
+| **Scatter Plot** | Relationships between variables | Height vs weight |
+| **Line Plot** | Trends over time/order | Stock prices |
+| **Box Plot** | Distribution comparison | Salary by department |
+| **Heatmap** | Matrix relationships | Correlation matrices |
+| **Density** | Smooth distributions | Probability density |
+| **Faceted** | Comparing subgroups | Regional sales trends |
+
+## Next Steps
+
+- **[Getting Started](getting-started.html)** - Learn the basics
+- **[Shiny Integration](shiny-integration.html)** - Use in interactive apps
+- **Package documentation** - Run `help(package = "maidr")`

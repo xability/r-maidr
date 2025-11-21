@@ -4,12 +4,14 @@
 \alias{find_graphics_plot_grob}
 \title{Utility functions for robust selector generation in Base R plots}
 \usage{
-find_graphics_plot_grob(grob, element_type)
+find_graphics_plot_grob(grob, element_type, plot_index = NULL)
 }
 \arguments{
 \item{grob}{The grob tree to search (typically from ggplotify::as.grob())}
 
 \item{element_type}{The element type to search for (e.g., "rect", "lines", "points")}
+
+\item{plot_index}{Optional plot index to match (for multipanel layouts)}
 }
 \value{
 The name of the first matching grob, or NULL if not found

@@ -16,16 +16,4 @@ Named vector for scale mapping, or NULL if no mapping available
 Extracts the scale mapping from a built ggplot2 plot object. This mapping
 converts numeric positions back to category labels.
 }
-\examples{
-library(ggplot2)
-data <- data.frame(
-  category = c("A", "B", "C"),
-  value = c(1, 2, 3)
-)
-p <- ggplot(data, aes(x = category, y = value)) +
-  geom_bar(stat = "identity")
-built <- ggplot2::ggplot_build(p)
-scale_mapping <- extract_scale_mapping(built)
-# Returns: c("1" = "A", "2" = "B", "3" = "C")
-
-}
+\keyword{internal}

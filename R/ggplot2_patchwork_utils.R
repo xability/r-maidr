@@ -23,7 +23,9 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
 
   # Prepare grid structure
   grid <- vector("list", max_row)
-  for (r in seq_len(max_row)) grid[[r]] <- vector("list", max_col)
+  for (r in seq_len(max_row)) {
+    grid[[r]] <- vector("list", max_col)
+  }
 
   # Extract leaf plots in visual order
   leaves <- extract_patchwork_leaves(plot)
@@ -39,9 +41,14 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
     leaf_plot <- if (i <= length(leaves)) leaves[[i]] else plot
     panel_name <- ordered$name[i]
 
-    # Process this panel
     subplot_data <- process_patchwork_panel(
-      leaf_plot, panel_name, panel_index, row, col, layout, gtable
+      leaf_plot,
+      panel_name,
+      panel_index,
+      row,
+      col,
+      layout,
+      gtable
     )
     grid[[row]][[col]] <- subplot_data
   }
@@ -109,7 +116,9 @@ extract_patchwork_leaves <- function(node) {
     plots <- try(node$patches$plots, silent = TRUE)
     if (!inherits(plots, "try-error") && !is.null(plots)) {
       out <- list()
-      for (p in plots) out <- c(out, extract_patchwork_leaves(p))
+      for (p in plots) {
+        out <- c(out, extract_patchwork_leaves(p))
+      }
       return(out)
     }
     return(list())
@@ -118,6 +127,30 @@ extract_patchwork_leaves <- function(node) {
     return(list(node))
   }
   list()
+}
+
+#' Extract layout from a single leaf ggplot
+#' @param leaf_plot The ggplot object
+#' @return Layout with title and axes
+extract_leaf_plot_layout <- function(leaf_plot) {
+  # Extract x label: try labels$x first, fall back to mapping
+  x_label <- leaf_plot$labels$x
+  if (is.null(x_label) && !is.null(leaf_plot$mapping$x)) {
+    x_label <- rlang::as_name(leaf_plot$mapping$x)
+  }
+  if (is.null(x_label)) x_label <- ""
+
+  # Extract y label: try labels$y first, fall back to mapping
+  y_label <- leaf_plot$labels$y
+  if (is.null(y_label) && !is.null(leaf_plot$mapping$y)) {
+    y_label <- rlang::as_name(leaf_plot$mapping$y)
+  }
+  if (is.null(y_label)) y_label <- ""
+
+  list(
+    title = if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else "",
+    axes = list(x = x_label, y = y_label)
+  )
 }
 
 #' Process a single patchwork panel
@@ -130,8 +163,10 @@ extract_patchwork_leaves <- function(node) {
 #' @param gtable Gtable object
 #' @return Processed panel data
 process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col, layout, gtable) {
-  # Create a simple subplot id
   subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", row, "-", col)
+
+  # Extract layout from leaf plot (has its own title and axes)
+  leaf_layout <- extract_leaf_plot_layout(leaf_plot)
 
   layers <- list()
   for (layer_idx in seq_along(leaf_plot$layers)) {
@@ -140,13 +175,11 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     # Use unified layer processor creation logic
     layer_info <- list(index = layer_idx, type = class(layer$geom)[1])
 
-    # Get the processor factory and adapter from the registry
     registry <- get_global_registry()
     system_name <- "ggplot2"
     factory <- registry$get_processor_factory(system_name)
     adapter <- registry$get_adapter(system_name)
 
-    # Create processor using the factory with adapter's layer type detection
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
     processor <- factory$create_processor(layer_type, layer_info)
 
@@ -162,7 +195,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
 
       result <- processor$process(
         leaf_plot,
-        layout,
+        leaf_layout,
         built = ggplot2::ggplot_build(leaf_plot),
         gt = gtable,
         scale_mapping = NULL,

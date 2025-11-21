@@ -31,7 +31,6 @@
     "pairs",
     "coplot"
   ),
-  
   LOW = c(
     "lines",
     "points",
@@ -48,7 +47,6 @@
     "title",
     "grid"
   ),
-  
   LAYOUT = c(
     "par",
     "layout",
@@ -67,17 +65,17 @@ classify_function <- function(function_name) {
   if (is.null(function_name) || !is.character(function_name)) {
     return("UNKNOWN")
   }
-  
+
   base_name <- sub("\\.default$", "", function_name)
-  
+
   if (base_name %in% .base_r_function_classes$HIGH) {
-    return("HIGH")
+    "HIGH"
   } else if (base_name %in% .base_r_function_classes$LOW) {
-    return("LOW")
+    "LOW"
   } else if (base_name %in% .base_r_function_classes$LAYOUT) {
-    return("LAYOUT")
+    "LAYOUT"
   } else {
-    return("UNKNOWN")
+    "UNKNOWN"
   }
 }
 
@@ -141,4 +139,3 @@ get_all_patchable_functions <- function() {
 get_all_function_names <- function() {
   unlist(.base_r_function_classes, use.names = FALSE)
 }
-
