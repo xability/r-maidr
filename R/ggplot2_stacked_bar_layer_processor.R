@@ -14,7 +14,9 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
 
       list(
         data = data,
-        selectors = selectors
+        selectors = selectors,
+        title = if (!is.null(layout$title)) layout$title else "",
+        axes = self$extract_layer_axes(plot, layout)
       )
     },
     needs_reordering = function() {

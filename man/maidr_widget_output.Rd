@@ -2,14 +2,14 @@
 % Please edit documentation in R/maidr_widget.R
 \name{maidr_widget_output}
 \alias{maidr_widget_output}
-\title{MAIDR Widget Output for Shiny UI}
+\title{MAIDR Widget Output for Shiny UI (Internal Alternative)}
 \usage{
 maidr_widget_output(output_id, width = "100\%", height = "400px")
 }
 \arguments{
 \item{output_id}{The output variable to read the widget from}
 
-\item{width}{The width of the widget (default: "100%")}
+\item{width}{The width of the widget (default: "100percent")}
 
 \item{height}{The height of the widget (default: "400px")}
 }
@@ -17,13 +17,8 @@ maidr_widget_output(output_id, width = "100\%", height = "400px")
 A Shiny widget output function for use in UI
 }
 \description{
-Creates a Shiny output function for MAIDR widgets.
-This function should be used in the UI part of a Shiny application.
+Internal alternative Shiny UI function. This provides the same functionality
+as maidr_output() but is no longer recommended for direct use.
+Use maidr_output() and render_maidr() instead for better consistency.
 }
-\examples{
-\dontrun{
-  # In Shiny UI
-  library(shiny)
-  ui <- fluidPage(maidr_widget_output("plot"))
-}
-}
+\keyword{internal}

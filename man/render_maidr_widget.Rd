@@ -2,7 +2,7 @@
 % Please edit documentation in R/maidr_widget.R
 \name{render_maidr_widget}
 \alias{render_maidr_widget}
-\title{Render MAIDR Widget in Shiny Server}
+\title{Render MAIDR Widget in Shiny Server (Internal Alternative)}
 \usage{
 render_maidr_widget(expr, env = parent.frame(), quoted = FALSE)
 }
@@ -17,18 +17,8 @@ render_maidr_widget(expr, env = parent.frame(), quoted = FALSE)
 A Shiny render function for use in server
 }
 \description{
-Creates a Shiny render function for MAIDR widgets.
-This function should be used in the server part of a Shiny application.
+Internal alternative Shiny server function. This provides the same functionality
+as render_maidr() but is no longer recommended for direct use.
+Use maidr_output() and render_maidr() instead for better consistency.
 }
-\examples{
-\dontrun{
-  # In Shiny server
-  library(shiny)
-  library(ggplot2)
-  server <- function(input, output) {
-    output$plot <- render_maidr_widget({
-      ggplot(mtcars, aes(x = factor(cyl), y = mpg)) + geom_bar(stat = "identity")
-    })
-  }
-}
-}
+\keyword{internal}

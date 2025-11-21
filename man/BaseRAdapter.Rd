@@ -25,7 +25,7 @@ to intercept Base R plotting calls and detect plot types.
 \keyword{the}
 \keyword{this}
 \section{Super class}{
-\code{maidr::SystemAdapter} -> \code{BaseRAdapter}
+\code{\link[maidr:SystemAdapter]{maidr::SystemAdapter}} -> \code{BaseRAdapter}
 }
 \section{Methods}{
 \subsection{Public methods}{

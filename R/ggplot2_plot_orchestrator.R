@@ -161,11 +161,25 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     extract_layout = function() {
       built <- ggplot2::ggplot_build(private$.plot)
 
+      # Extract x label: try labels$x first, fall back to mapping
+      x_label <- private$.plot$labels$x
+      if (is.null(x_label) && !is.null(private$.plot$mapping$x)) {
+        x_label <- rlang::as_name(private$.plot$mapping$x)
+      }
+      if (is.null(x_label)) x_label <- ""
+
+      # Extract y label: try labels$y first, fall back to mapping
+      y_label <- private$.plot$labels$y
+      if (is.null(y_label) && !is.null(private$.plot$mapping$y)) {
+        y_label <- rlang::as_name(private$.plot$mapping$y)
+      }
+      if (is.null(y_label)) y_label <- ""
+
       layout <- list(
         title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
         axes = list(
-          x = if (!is.null(private$.plot$labels$x)) private$.plot$labels$x else "",
-          y = if (!is.null(private$.plot$labels$y)) private$.plot$labels$y else ""
+          x = x_label,
+          y = y_label
         )
       )
 

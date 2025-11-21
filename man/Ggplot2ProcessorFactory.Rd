@@ -23,7 +23,7 @@ ggplot2 layer processors and wraps them in the new unified interface.
 \keyword{the}
 \keyword{type}
 \section{Super class}{
-\code{maidr::ProcessorFactory} -> \code{Ggplot2ProcessorFactory}
+\code{\link[maidr:ProcessorFactory]{maidr::ProcessorFactory}} -> \code{Ggplot2ProcessorFactory}
 }
 \section{Methods}{
 \subsection{Public methods}{

@@ -10,7 +10,9 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
     process = function(plot, layout, gt = NULL) {
       list(
         data = list(),
-        selectors = list()
+        selectors = list(),
+        title = if (!is.null(layout$title)) layout$title else "",
+        axes = self$extract_layer_axes(plot, layout)
       )
     },
     extract_data = function(plot, built = NULL) {

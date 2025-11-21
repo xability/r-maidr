@@ -21,7 +21,9 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
       list(
         data = data,
-        selectors = selectors
+        selectors = selectors,
+        title = if (!is.null(layout$title)) layout$title else "",
+        axes = self$extract_layer_axes(plot, layout)
       )
     },
     needs_reordering = function() {

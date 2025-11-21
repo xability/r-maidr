@@ -7,7 +7,7 @@
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
 #' @param ... Additional arguments passed to internal functions
-#' @returns Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
+#' @return Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
 #' @examples
 #' # ggplot2 example
 #' library(ggplot2)
@@ -22,6 +22,8 @@
 #'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
 #'   maidr::show()
 #' }
+#' @importFrom R6 R6Class
+#' @importFrom ggplotify as.grob
 #' @export
 show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
   device_id <- grDevices::dev.cur()
@@ -93,7 +95,7 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param ... Additional arguments passed to internal functions
-#' @returns The file path where the HTML was saved (invisibly)
+#' @return The file path where the HTML was saved (invisibly)
 #' @examples
 #' # ggplot2 example
 #' library(ggplot2)

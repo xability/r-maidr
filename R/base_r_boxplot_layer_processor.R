@@ -26,7 +26,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         title = title,
         axes = axes,
         orientation = orientation,
-        dom_mapping = list(iqrDirection = iqr_direction)
+        domMapping = list(iqrDirection = iqr_direction)
       )
     },
     extract_data = function(layer_info) {

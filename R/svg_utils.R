@@ -2,6 +2,11 @@
 #'
 #' This file contains common utilities for SVG manipulation, maidr data
 #' injection, and HTML generation that work for all plot types.
+#'
+#' @importFrom grid grid.newpage grid.draw
+#' @importFrom gridSVG grid.export
+#' @importFrom stats setNames
+NULL
 
 #' Create enhanced SVG with maidr data
 #' @param gt A gtable object
@@ -11,8 +16,6 @@
 #' @keywords internal
 create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_file <- tempfile(fileext = ".svg")
-  library(grid)
-  library(gridSVG)
 
   # Use default rendering (no viewport changes)
   grid.newpage()

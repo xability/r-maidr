@@ -2,14 +2,14 @@
 % Please edit documentation in R/shiny.R
 \name{maidr_output}
 \alias{maidr_output}
-\title{MAIDR Shiny Connector}
+\title{MAIDR Output Container for Shiny UI}
 \usage{
 maidr_output(output_id, width = "100\%", height = "400px")
 }
 \arguments{
 \item{output_id}{The output variable to read the plot from}
 
-\item{width}{The width of the plot container (default: "100%")}
+\item{width}{The width of the plot container (default: "100percent")}
 
 \item{height}{The height of the plot container (default: "400px")}
 }
@@ -17,11 +17,6 @@ maidr_output(output_id, width = "100\%", height = "400px")
 A Shiny widget output function for use in UI
 }
 \description{
-This file contains the Shiny integration functions for MAIDR plots.
-It provides the interface between MAIDR and Shiny applications.
-MAIDR Output Container for Shiny UI
-}
-\details{
 Creates a Shiny output container for MAIDR widgets using htmlwidgets.
 This provides automatic dependency injection and robust JavaScript initialization.
 }

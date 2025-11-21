@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{create_enhanced_svg}
 \alias{create_enhanced_svg}
-\title{Common SVG and HTML utilities}
+\title{Create enhanced SVG with maidr data}
 \usage{
 create_enhanced_svg(gt, maidr_data, ...)
 }
@@ -17,8 +17,6 @@ create_enhanced_svg(gt, maidr_data, ...)
 Character vector of SVG content
 }
 \description{
-This file contains common utilities for SVG manipulation, maidr data
-injection, and HTML generation that work for all plot types.
 Create enhanced SVG with maidr data
 }
 \keyword{internal}

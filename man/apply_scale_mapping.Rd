@@ -19,12 +19,4 @@ In faceted plots, ggplot2 converts categorical x-values to numeric positions
 (1, 2, 3, ...) for efficiency. This function converts them back to the original
 category labels using the scale mapping.
 }
-\examples{
-# Example scale mapping
-scale_mapping <- c("1" = "A", "2" = "B", "3" = "C")
-numeric_values <- c(1, 2, 3, 1, 2)
-apply_scale_mapping(numeric_values, scale_mapping)
-# Returns: c("A", "B", "C", "A", "B")
-
-}
 \keyword{internal}

@@ -21,14 +21,8 @@ maidr_widget(plot, width = NULL, height = NULL, element_id = NULL, ...)
 An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 }
 \description{
-Creates an interactive MAIDR widget from a ggplot object using htmlwidgets.
-This provides automatic dependency injection and robust JavaScript initialization.
+Internal function that creates an interactive MAIDR widget from a ggplot object.
+This is called internally by render_maidr() and should not be called directly.
+Use maidr_output() and render_maidr() for Shiny integration instead.
 }
-\examples{
-library(ggplot2)
-p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) + geom_bar(stat = "identity")
-\dontrun{
-  widget <- maidr::maidr_widget(p)
-  widget
-}
-}
+\keyword{internal}

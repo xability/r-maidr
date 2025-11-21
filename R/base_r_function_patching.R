@@ -93,16 +93,9 @@ wrap_s3_generics <- function() {
       # Log the call
       log_plot_call_to_device("lines", this_call, args, device_id)
 
-      # Dispatch to appropriate method
-      if (inherits(x, "smooth.spline")) {
-        graphics::lines.smooth.spline(x, ...)
-      } else if (is.list(x) && all(c("x", "y") %in% names(x))) {
-        # Handle loess.smooth results
-        graphics::lines.default(x$x, x$y, ...)
-      } else {
-        # Default method
-        graphics::lines.default(x, ...)
-      }
+      # Call the original lines function and let S3 dispatch handle it
+      original_lines <- .maidr_patching_env$.saved_graphics_fns[["lines"]]
+      original_lines(x, ...)
     }
 
     # Assign to global environment

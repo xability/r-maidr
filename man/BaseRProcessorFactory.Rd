@@ -24,7 +24,7 @@ processors for Base R plot types based on recorded plot calls.
 \keyword{the}
 \keyword{type}
 \section{Super class}{
-\code{maidr::ProcessorFactory} -> \code{BaseRProcessorFactory}
+\code{\link[maidr:ProcessorFactory]{maidr::ProcessorFactory}} -> \code{BaseRProcessorFactory}
 }
 \section{Methods}{
 \subsection{Public methods}{

@@ -24,7 +24,7 @@ ggplot2 functionality to work with the new extensible architecture.
 \keyword{the}
 \keyword{this}
 \section{Super class}{
-\code{maidr::SystemAdapter} -> \code{Ggplot2Adapter}
+\code{\link[maidr:SystemAdapter]{maidr::SystemAdapter}} -> \code{Ggplot2Adapter}
 }
 \section{Methods}{
 \subsection{Public methods}{

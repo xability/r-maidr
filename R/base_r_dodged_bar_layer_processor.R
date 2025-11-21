@@ -19,7 +19,7 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
         type = "dodged_bar",
         title = title,
         axes = axes,
-        dom_mapping = list(groupDirection = "forward")
+        domMapping = list(groupDirection = "forward")
       )
     },
     extract_data = function(layer_info) {
@@ -28,13 +28,22 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       height_matrix <- args[[1]]
 
       col_names <- args$names.arg
-      row_names <- rownames(height_matrix)
+      row_names <- NULL
+
+      # Check legend.text: use it only if it's a character vector, not TRUE/FALSE
+      if (!is.null(args$legend.text) && is.character(args$legend.text)) {
+        row_names <- args$legend.text
+      }
 
       if (is.null(col_names)) {
         col_names <- colnames(height_matrix)
         if (is.null(col_names)) {
           col_names <- seq_len(ncol(height_matrix))
         }
+      }
+
+      if (is.null(row_names)) {
+        row_names <- rownames(height_matrix)
       }
 
       if (is.null(row_names)) {

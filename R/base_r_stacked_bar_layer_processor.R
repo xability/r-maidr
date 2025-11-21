@@ -32,7 +32,7 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
         type = "stacked_bar",
         title = title,
         axes = axes,
-        dom_mapping = list(groupDirection = "forward")
+        domMapping = list(groupDirection = "forward")
       )
     },
     needs_reordering = function() {
@@ -56,12 +56,26 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
       }
 
       # Use current row/col names (SortingPatcher already ordered them)
-      type_names <- rownames(height)
+      type_names <- NULL
+
+      # Check legend.text: use it only if it's a character vector, not TRUE/FALSE
+      if (!is.null(args$legend.text) && is.character(args$legend.text)) {
+        type_names <- args$legend.text
+      }
+
+      if (is.null(type_names)) {
+        type_names <- rownames(height)
+      }
+
       if (is.null(type_names)) {
         type_names <- as.character(seq_len(nrow(height)))
       }
 
-      category_names <- colnames(height)
+      category_names <- args$names.arg
+
+      if (is.null(category_names)) {
+        category_names <- colnames(height)
+      }
       if (is.null(category_names)) {
         category_names <- as.character(seq_len(ncol(height)))
       }

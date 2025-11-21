@@ -17,14 +17,6 @@ NULL
 #' @param numeric_values Vector of numeric x positions from built plot data
 #' @param scale_mapping Named vector mapping positions to labels (e.g., c("1" = "A", "2" = "B"))
 #' @return Vector of category labels
-#'
-#' @examples
-#' # Example scale mapping
-#' scale_mapping <- c("1" = "A", "2" = "B", "3" = "C")
-#' numeric_values <- c(1, 2, 3, 1, 2)
-#' apply_scale_mapping(numeric_values, scale_mapping)
-#' # Returns: c("A", "B", "C", "A", "B")
-#'
 #' @keywords internal
 apply_scale_mapping <- function(numeric_values, scale_mapping) {
   if (is.null(scale_mapping)) {
@@ -52,19 +44,6 @@ apply_scale_mapping <- function(numeric_values, scale_mapping) {
 #'
 #' @param built Built plot data from ggplot2::ggplot_build()
 #' @return Named vector for scale mapping, or NULL if no mapping available
-#'
-#' @examples
-#' library(ggplot2)
-#' data <- data.frame(
-#'   category = c("A", "B", "C"),
-#'   value = c(1, 2, 3)
-#' )
-#' p <- ggplot(data, aes(x = category, y = value)) +
-#'   geom_bar(stat = "identity")
-#' built <- ggplot2::ggplot_build(p)
-#' scale_mapping <- extract_scale_mapping(built)
-#' # Returns: c("1" = "A", "2" = "B", "3" = "C")
-#'
 #' @keywords internal
 extract_scale_mapping <- function(built) {
   if (is.null(built$layout$panel_scales_x)) {

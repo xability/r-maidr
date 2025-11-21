@@ -129,6 +129,30 @@ extract_patchwork_leaves <- function(node) {
   list()
 }
 
+#' Extract layout from a single leaf ggplot
+#' @param leaf_plot The ggplot object
+#' @return Layout with title and axes
+extract_leaf_plot_layout <- function(leaf_plot) {
+  # Extract x label: try labels$x first, fall back to mapping
+  x_label <- leaf_plot$labels$x
+  if (is.null(x_label) && !is.null(leaf_plot$mapping$x)) {
+    x_label <- rlang::as_name(leaf_plot$mapping$x)
+  }
+  if (is.null(x_label)) x_label <- ""
+
+  # Extract y label: try labels$y first, fall back to mapping
+  y_label <- leaf_plot$labels$y
+  if (is.null(y_label) && !is.null(leaf_plot$mapping$y)) {
+    y_label <- rlang::as_name(leaf_plot$mapping$y)
+  }
+  if (is.null(y_label)) y_label <- ""
+
+  list(
+    title = if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else "",
+    axes = list(x = x_label, y = y_label)
+  )
+}
+
 #' Process a single patchwork panel
 #' @param leaf_plot The leaf ggplot object
 #' @param panel_name Panel name from gtable
@@ -140,6 +164,9 @@ extract_patchwork_leaves <- function(node) {
 #' @return Processed panel data
 process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col, layout, gtable) {
   subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", row, "-", col)
+
+  # Extract layout from leaf plot (has its own title and axes)
+  leaf_layout <- extract_leaf_plot_layout(leaf_plot)
 
   layers <- list()
   for (layer_idx in seq_along(leaf_plot$layers)) {
@@ -168,7 +195,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
 
       result <- processor$process(
         leaf_plot,
-        layout,
+        leaf_layout,
         built = ggplot2::ggplot_build(leaf_plot),
         gt = gtable,
         scale_mapping = NULL,

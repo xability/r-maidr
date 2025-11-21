@@ -29,7 +29,7 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         type = "heat",
         title = title,
         axes = axes,
-        dom_mapping = list(order = "row") # Explicit row-major DOM mapping
+        domMapping = list(order = "row") # Explicit row-major DOM mapping
       )
     },
     extract_data = function(layer_info) {

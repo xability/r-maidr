@@ -1,22 +1,19 @@
+#' @importFrom htmlwidgets createWidget sizingPolicy shinyWidgetOutput shinyRenderWidget
+NULL
+
 #' Create MAIDR htmlwidget
 #'
-#' Creates an interactive MAIDR widget from a ggplot object using htmlwidgets.
-#' This provides automatic dependency injection and robust JavaScript initialization.
+#' Internal function that creates an interactive MAIDR widget from a ggplot object.
+#' This is called internally by render_maidr() and should not be called directly.
+#' Use maidr_output() and render_maidr() for Shiny integration instead.
 #'
 #' @param plot A ggplot object to render as an interactive MAIDR widget
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
 #' @param ... Additional arguments passed to create_maidr_html()
-#' @returns An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
-#' @examples
-#' library(ggplot2)
-#' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) + geom_bar(stat = "identity")
-#' \dontrun{
-#'   widget <- maidr::maidr_widget(p)
-#'   widget
-#' }
-#' @export
+#' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
+#' @keywords internal
 maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, ...) {
   if (!inherits(plot, "ggplot")) {
     stop("Input must be a ggplot object.")
@@ -56,47 +53,32 @@ maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, .
   )
 }
 
-#' MAIDR Widget Output for Shiny UI
+#' MAIDR Widget Output for Shiny UI (Internal Alternative)
 #'
-#' Creates a Shiny output function for MAIDR widgets.
-#' This function should be used in the UI part of a Shiny application.
+#' Internal alternative Shiny UI function. This provides the same functionality
+#' as maidr_output() but is no longer recommended for direct use.
+#' Use maidr_output() and render_maidr() instead for better consistency.
 #'
 #' @param output_id The output variable to read the widget from
-#' @param width The width of the widget (default: "100%")
+#' @param width The width of the widget (default: "100percent")
 #' @param height The height of the widget (default: "400px")
-#' @returns A Shiny widget output function for use in UI
-#' @examples
-#' \dontrun{
-#'   # In Shiny UI
-#'   library(shiny)
-#'   ui <- fluidPage(maidr_widget_output("plot"))
-#' }
-#' @export
+#' @return A Shiny widget output function for use in UI
+#' @keywords internal
 maidr_widget_output <- function(output_id, width = "100%", height = "400px") {
   htmlwidgets::shinyWidgetOutput(output_id, "maidr", width, height)
 }
 
-#' Render MAIDR Widget in Shiny Server
+#' Render MAIDR Widget in Shiny Server (Internal Alternative)
 #'
-#' Creates a Shiny render function for MAIDR widgets.
-#' This function should be used in the server part of a Shiny application.
+#' Internal alternative Shiny server function. This provides the same functionality
+#' as render_maidr() but is no longer recommended for direct use.
+#' Use maidr_output() and render_maidr() instead for better consistency.
 #'
 #' @param expr An expression that returns a ggplot object
 #' @param env The environment in which to evaluate expr
 #' @param quoted Is expr a quoted expression
-#' @returns A Shiny render function for use in server
-#' @examples
-#' \dontrun{
-#'   # In Shiny server
-#'   library(shiny)
-#'   library(ggplot2)
-#'   server <- function(input, output) {
-#'     output$plot <- render_maidr_widget({
-#'       ggplot(mtcars, aes(x = factor(cyl), y = mpg)) + geom_bar(stat = "identity")
-#'     })
-#'   }
-#' }
-#' @export
+#' @return A Shiny render function for use in server
+#' @keywords internal
 render_maidr_widget <- function(expr, env = parent.frame(), quoted = FALSE) {
   htmlwidgets::shinyRenderWidget(expr, maidr_widget_output, env, quoted)
 }

@@ -34,6 +34,7 @@ interface that all layer processors must implement.
 \item \href{#method-LayerProcessor-get_layer_index}{\code{LayerProcessor$get_layer_index()}}
 \item \href{#method-LayerProcessor-set_last_result}{\code{LayerProcessor$set_last_result()}}
 \item \href{#method-LayerProcessor-get_last_result}{\code{LayerProcessor$get_last_result()}}
+\item \href{#method-LayerProcessor-extract_layer_axes}{\code{LayerProcessor$extract_layer_axes()}}
 \item \href{#method-LayerProcessor-apply_scale_mapping}{\code{LayerProcessor$apply_scale_mapping()}}
 \item \href{#method-LayerProcessor-clone}{\code{LayerProcessor$clone()}}
 }
@@ -226,6 +227,28 @@ Get the last processed result
 
 \subsection{Returns}{
 The last result
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-extract_layer_axes"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-extract_layer_axes}{}}}
+\subsection{Method \code{extract_layer_axes()}}{
+Extract axes labels for this specific layer
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot object}
+
+\item{\code{layout}}{Global layout with fallback axes}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List with x and y axis labels
 }
 }
 \if{html}{\out{<hr>}}

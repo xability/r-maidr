@@ -18,7 +18,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \keyword{the}
 \keyword{with}
 \section{Super class}{
-\code{maidr::LayerProcessor} -> \code{Ggplot2LineLayerProcessor}
+\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -58,6 +58,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
 <details><summary>Inherited methods</summary>
 <ul>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>

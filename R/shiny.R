@@ -2,6 +2,9 @@
 #'
 #' This file contains the Shiny integration functions for MAIDR plots.
 #' It provides the interface between MAIDR and Shiny applications.
+#'
+#' @importFrom shiny installExprFunction
+NULL
 
 #' MAIDR Output Container for Shiny UI
 #'
@@ -9,9 +12,9 @@
 #' This provides automatic dependency injection and robust JavaScript initialization.
 #'
 #' @param output_id The output variable to read the plot from
-#' @param width The width of the plot container (default: "100%")
+#' @param width The width of the plot container (default: "100percent")
 #' @param height The height of the plot container (default: "400px")
-#' @returns A Shiny widget output function for use in UI
+#' @return A Shiny widget output function for use in UI
 #' @examples
 #' \dontrun{
 #'   library(shiny)
@@ -30,7 +33,7 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #' @param expr An expression that returns a ggplot object
 #' @param env The environment in which to evaluate expr
 #' @param quoted Is expr a quoted expression
-#' @returns A Shiny render function for use in server
+#' @return A Shiny render function for use in server
 #' @examples
 #' \dontrun{
 #'   library(shiny)
