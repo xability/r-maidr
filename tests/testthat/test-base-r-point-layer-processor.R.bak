@@ -1,0 +1,482 @@
+# Comprehensive tests for BaseRPointLayerProcessor
+# Testing Base R scatter plot processing, data extraction, and selector generation
+
+# ==============================================================================
+# Tier 1: Initialization & Core Methods
+# ==============================================================================
+
+test_that("BaseRPointLayerProcessor initializes correctly", {
+  layer_info <- list(index = 1)
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+
+  expect_processor_r6(processor, "BaseRPointLayerProcessor")
+  testthat::expect_equal(processor$get_layer_index(), 1)
+})
+
+test_that("BaseRPointLayerProcessor extract_data() works with basic points", {
+  # Create mock layer_info
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3, 4, 5),
+        y = c(2, 4, 6, 8, 10)
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  testthat::expect_type(data, "list")
+  testthat::expect_equal(length(data), 5)
+
+  # Check first point
+  testthat::expect_equal(data[[1]]$x, 1)
+  testthat::expect_equal(data[[1]]$y, 2)
+})
+
+test_that("BaseRPointLayerProcessor extract_data() handles colors", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3),
+        y = c(4, 5, 6),
+        col = c("red", "blue", "green")
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  testthat::expect_equal(length(data), 3)
+  testthat::expect_equal(data[[1]]$color, "red")
+  testthat::expect_equal(data[[2]]$color, "blue")
+  testthat::expect_equal(data[[3]]$color, "green")
+})
+
+test_that("BaseRPointLayerProcessor process() integrates correctly", {
+  create_test_base_r_point()
+  device_id <- grDevices::dev.cur()
+
+  # Get layer info from device storage
+  calls <- maidr:::get_device_calls(device_id)
+  layer_info <- list(
+    index = 1,
+    group_index = 1,
+    plot_call = calls[[1]]
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+
+  # Create grob tree
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  result <- processor$process(NULL, NULL, NULL, gt, NULL, NULL, NULL, NULL, layer_info)
+
+  expect_processor_output(result)
+  testthat::expect_equal(result$type, "point")
+
+  clear_base_r_state()
+})
+
+# ==============================================================================
+# Tier 2: Edge Cases
+# ==============================================================================
+
+test_that("BaseRPointLayerProcessor handles single point", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = 5, y = 10)
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  testthat::expect_equal(length(data), 1)
+  testthat::expect_equal(data[[1]]$x, 5)
+  testthat::expect_equal(data[[1]]$y, 10)
+})
+
+test_that("BaseRPointLayerProcessor handles NULL layer_info", {
+  processor <- maidr:::BaseRPointLayerProcessor$new(list(index = 1))
+
+  data <- processor$extract_data(NULL)
+  testthat::expect_type(data, "list")
+  testthat::expect_equal(length(data), 0)
+})
+
+test_that("BaseRPointLayerProcessor handles mismatched x and y lengths", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3, 4, 5),
+        y = c(10, 20, 30)  # Shorter
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  # Should use minimum length
+  testthat::expect_equal(length(data), 3)
+})
+
+test_that("BaseRPointLayerProcessor handles single color for multiple points", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3),
+        y = c(4, 5, 6),
+        col = "blue"  # Single color
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  # All points should have the same color
+  testthat::expect_equal(data[[1]]$color, "blue")
+  testthat::expect_equal(data[[2]]$color, "blue")
+  testthat::expect_equal(data[[3]]$color, "blue")
+})
+
+test_that("BaseRPointLayerProcessor handles missing x or y", {
+  layer_info_no_x <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(y = c(1, 2, 3))
+    )
+  )
+
+  layer_info_no_y <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = c(1, 2, 3))
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(list(index = 1))
+
+  data1 <- processor$extract_data(layer_info_no_x)
+  data2 <- processor$extract_data(layer_info_no_y)
+
+  testthat::expect_equal(length(data1), 0)
+  testthat::expect_equal(length(data2), 0)
+})
+
+# ==============================================================================
+# Tier 3: Integration Tests
+# ==============================================================================
+
+test_that("BaseRPointLayerProcessor needs_reordering() returns FALSE", {
+  processor <- maidr:::BaseRPointLayerProcessor$new(list(index = 1))
+  testthat::expect_false(processor$needs_reordering())
+})
+
+test_that("BaseRPointLayerProcessor extract_axis_titles() works", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3),
+        y = c(4, 5, 6),
+        xlab = "X Axis",
+        ylab = "Y Axis"
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  testthat::expect_type(axes, "list")
+  testthat::expect_equal(axes$x, "X Axis")
+  testthat::expect_equal(axes$y, "Y Axis")
+})
+
+test_that("BaseRPointLayerProcessor extract_axis_titles() handles defaults", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = c(1, 2), y = c(3, 4))
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  testthat::expect_equal(axes$x, "")
+  testthat::expect_equal(axes$y, "")
+})
+
+test_that("BaseRPointLayerProcessor extract_main_title() works", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3),
+        y = c(4, 5, 6),
+        main = "Test Scatter Plot"
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  title <- processor$extract_main_title(layer_info)
+
+  testthat::expect_equal(title, "Test Scatter Plot")
+})
+
+test_that("BaseRPointLayerProcessor extract_main_title() handles no title", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = c(1, 2), y = c(3, 4))
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  title <- processor$extract_main_title(layer_info)
+
+  testthat::expect_equal(title, "")
+})
+
+# ==============================================================================
+# Tier 4: Point-Specific Logic
+# ==============================================================================
+
+test_that("BaseRPointLayerProcessor generates selectors with group_index", {
+  create_test_base_r_point()
+  device_id <- grDevices::dev.cur()
+
+  calls <- maidr:::get_device_calls(device_id)
+  layer_info <- list(
+    index = 1,
+    group_index = 1,
+    plot_call = calls[[1]]
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  selectors <- processor$generate_selectors(layer_info, gt)
+
+  testthat::expect_type(selectors, "list")
+  testthat::expect_true(length(selectors) > 0)
+  testthat::expect_match(selectors[[1]], "use")
+
+  clear_base_r_state()
+})
+
+test_that("BaseRPointLayerProcessor generates fallback selector when grob not found", {
+  layer_info <- list(
+    index = 1,
+    group_index = 5,  # Non-existent group
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = c(1, 2), y = c(3, 4))
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+
+  # Create minimal grob tree without points
+  create_test_base_r_barplot()
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  selectors <- processor$generate_selectors(layer_info, gt)
+
+  testthat::expect_type(selectors, "list")
+  testthat::expect_match(selectors[[1]], "graphics-plot-5-points")
+
+  clear_base_r_state()
+})
+
+test_that("BaseRPointLayerProcessor handles NULL gt parameter", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = c(1, 2), y = c(3, 4))
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  selectors <- processor$generate_selectors(layer_info, NULL)
+
+  testthat::expect_type(selectors, "list")
+  testthat::expect_equal(length(selectors), 0)
+})
+
+test_that("BaseRPointLayerProcessor uses layer index when group_index not available", {
+  layer_info <- list(
+    index = 2,  # No group_index
+    plot_call = list(
+      function_name = "plot",
+      args = list(x = c(1, 2), y = c(3, 4))
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+
+  create_test_base_r_barplot()
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  selectors <- processor$generate_selectors(layer_info, gt)
+
+  # Should use layer index (2) when group_index is NULL
+  testthat::expect_type(selectors, "list")
+
+  clear_base_r_state()
+})
+
+test_that("BaseRPointLayerProcessor escapes dots in selectors", {
+  create_test_base_r_point()
+  device_id <- grDevices::dev.cur()
+
+  calls <- maidr:::get_device_calls(device_id)
+  layer_info <- list(
+    index = 1,
+    group_index = 1,
+    plot_call = calls[[1]]
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  selectors <- processor$generate_selectors(layer_info, gt)
+
+  # Selector should have escaped dots
+  testthat::expect_match(selectors[[1]], "\\\\\\.")
+
+  clear_base_r_state()
+})
+
+test_that("BaseRPointLayerProcessor handles points() function", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "points",  # points() instead of plot()
+      args = list(
+        x = c(5, 6, 7),
+        y = c(8, 9, 10)
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  testthat::expect_equal(length(data), 3)
+  testthat::expect_equal(data[[1]]$x, 5)
+  testthat::expect_equal(data[[1]]$y, 8)
+})
+
+test_that("BaseRPointLayerProcessor color handling with partial vector", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3, 4, 5),
+        y = c(2, 4, 6, 8, 10),
+        col = c("red", "blue")  # Partial color vector
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  data <- processor$extract_data(layer_info)
+
+  # First two points should have colors
+  testthat::expect_equal(data[[1]]$color, "red")
+  testthat::expect_equal(data[[2]]$color, "blue")
+
+  # Points 3-5 should not have color field (or handle appropriately)
+  testthat::expect_false("color" %in% names(data[[3]]))
+})
+
+# ==============================================================================
+# Integration with Full Pipeline
+# ==============================================================================
+
+test_that("BaseRPointLayerProcessor works in full pipeline", {
+  create_test_base_r_point()
+  device_id <- grDevices::dev.cur()
+
+  calls <- maidr:::get_device_calls(device_id)
+  layer_info <- list(
+    index = 1,
+    group_index = 1,
+    plot_call = calls[[1]]
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  result <- processor$process(NULL, NULL, NULL, gt, NULL, NULL, NULL, NULL, layer_info)
+
+  # Validate full result
+  expect_processor_output(result)
+  testthat::expect_equal(result$type, "point")
+  testthat::expect_true("axes" %in% names(result))
+  testthat::expect_true("title" %in% names(result))
+
+  # Validate data format
+  expect_maidr_data_format(result$data, "point")
+
+  clear_base_r_state()
+})
+
+test_that("BaseRPointLayerProcessor extracts all metadata correctly", {
+  # Create plot with all metadata
+  plot(
+    1:5,
+    c(2, 4, 6, 8, 10),
+    main = "Complete Test",
+    xlab = "X Values",
+    ylab = "Y Values",
+    col = "red"
+  )
+
+  device_id <- grDevices::dev.cur()
+  calls <- maidr:::get_device_calls(device_id)
+
+  layer_info <- list(
+    index = 1,
+    group_index = 1,
+    plot_call = calls[[1]]
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  gt <- grid::grid.ls(print = FALSE, viewports = FALSE, grobs = TRUE, fullNames = TRUE)
+
+  result <- processor$process(NULL, NULL, NULL, gt, NULL, NULL, NULL, NULL, layer_info)
+
+  testthat::expect_equal(result$title, "Complete Test")
+  testthat::expect_equal(result$axes$x, "X Values")
+  testthat::expect_equal(result$axes$y, "Y Values")
+  testthat::expect_equal(result$data[[1]]$color, "red")
+
+  clear_base_r_state()
+})
