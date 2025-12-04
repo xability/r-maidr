@@ -26,8 +26,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
 
       # Map plot types to existing processor classes
       # Only support the plot types that the adapter can detect
-      switch(
-        plot_type,
+      switch(plot_type,
         "bar" = Ggplot2BarLayerProcessor$new(layer_info),
         "dodged_bar" = Ggplot2DodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = Ggplot2StackedBarProcessor$new(layer_info),

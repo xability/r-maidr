@@ -28,12 +28,12 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 \dontrun{
-  maidr::show(p)
+maidr::show(p)
 }
 
 # Base R example
 \dontrun{
-  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-  maidr::show()
+barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+maidr::show()
 }
 }

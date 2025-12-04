@@ -343,7 +343,7 @@ test_that("BaseRSmoothLayerProcessor data points have correct structure", {
   testthat::expect_type(points, "list")
 
   # Each point should have x and y
-  for (point in points[1:10]) {  # Check first 10 points
+  for (point in points[1:10]) { # Check first 10 points
     testthat::expect_type(point, "list")
     testthat::expect_true("x" %in% names(point))
     testthat::expect_true("y" %in% names(point))

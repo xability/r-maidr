@@ -7,20 +7,23 @@
 An R6 class
 }
 \description{
+System Adapter Base Class
+
+System Adapter Base Class
+}
+\details{
 Abstract base class for adapting different plotting systems to the unified
 maidr interface. Each plotting system (ggplot2, base R, lattice, etc.) should
 have its own adapter implementation.
 }
-\keyword{"base_r",}
-\keyword{"ggplot2",}
-\keyword{"lattice")}
-\keyword{(e.g.,}
-\keyword{Initialize}
-\keyword{System}
-\keyword{adapter}
 \keyword{internal}
-\keyword{name}
-\keyword{the}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{system_name}}{Name of the plotting system}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -34,6 +37,7 @@ have its own adapter implementation.
 \if{html}{\out{<a id="method-SystemAdapter-new"></a>}}
 \if{latex}{\out{\hypertarget{method-SystemAdapter-new}{}}}
 \subsection{Method \code{new()}}{
+Initialize the adapter
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SystemAdapter$new(system_name)}\if{html}{\out{</div>}}
 }

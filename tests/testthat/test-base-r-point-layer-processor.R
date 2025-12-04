@@ -125,7 +125,7 @@ test_that("BaseRPointLayerProcessor handles mismatched x and y lengths", {
       function_name = "plot",
       args = list(
         x = c(1, 2, 3, 4, 5),
-        y = c(10, 20, 30)  # Shorter
+        y = c(10, 20, 30) # Shorter
       )
     )
   )
@@ -145,7 +145,7 @@ test_that("BaseRPointLayerProcessor handles single color for multiple points", {
       args = list(
         x = c(1, 2, 3),
         y = c(4, 5, 6),
-        col = "blue"  # Single color
+        col = "blue" # Single color
       )
     )
   )
@@ -297,7 +297,7 @@ test_that("BaseRPointLayerProcessor handles points() function", {
   layer_info <- list(
     index = 1,
     plot_call = list(
-      function_name = "points",  # points() instead of plot()
+      function_name = "points", # points() instead of plot()
       args = list(
         x = c(5, 6, 7),
         y = c(8, 9, 10)
@@ -321,7 +321,7 @@ test_that("BaseRPointLayerProcessor color handling with partial vector", {
       args = list(
         x = c(1, 2, 3, 4, 5),
         y = c(2, 4, 6, 8, 10),
-        col = c("red", "blue")  # Partial color vector
+        col = c("red", "blue") # Partial color vector
       )
     )
   )

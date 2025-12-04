@@ -7,16 +7,14 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
   "Ggplot2BarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(
-      plot,
-      layout,
-      built = NULL,
-      gt = NULL,
-      scale_mapping = NULL,
-      grob_id = NULL,
-      panel_id = NULL,
-      panel_ctx = NULL
-    ) {
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
       list(

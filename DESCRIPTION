@@ -2,7 +2,10 @@ Package: maidr
 Type: Package
 Title: Multimodal Access and Interactive Data Representation
 Version: 0.1.0
-Authors@R: person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cre"))
+Authors@R: c(
+    person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = "aut"),
+    person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = c("aut", "cre"))
+    )
 Description: Provides accessible, interactive visualizations through the MAIDR
     (Multimodal Access and Interactive Data Representation) system. Converts
     ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard
@@ -10,7 +13,7 @@ Description: Provides accessible, interactive visualizations through the MAIDR
     bar charts, histograms, line plots, scatter plots, box plots, heat maps,
     and other common visualizations. Enables data exploration for users with
     visual impairments through multiple sensory modalities.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Imports:
@@ -32,7 +35,8 @@ Suggests:
     goodpractice,
     cyclocomp,
     knitr,
-    rmarkdown
+    rmarkdown,
+    patchwork
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr

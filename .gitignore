@@ -1,2 +1,17 @@
 CLAUDE.md
 docs/
+
+# R artifacts
+Rplots.pdf
+*.bak
+
+# RStudio files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Package build artifacts
+*.tar.gz
+*.Rcheck/
+.claude/

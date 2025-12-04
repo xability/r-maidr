@@ -25,8 +25,7 @@ BaseRProcessorFactory <- R6::R6Class(
       }
 
       # Map plot types to Base R processor classes
-      switch(
-        plot_type,
+      switch(plot_type,
         "bar" = BaseRBarplotLayerProcessor$new(layer_info),
         "dodged_bar" = BaseRDodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = BaseRStackedBarLayerProcessor$new(layer_info),

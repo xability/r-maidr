@@ -79,15 +79,14 @@ get_facet_groups <- function(panel_info, built) {
 #' @param gtable Gtable object
 #' @return Processed panel data
 process_facet_panel <- function(
-  plot,
-  panel_info,
-  panel_data,
-  facet_groups,
-  gtable_panel_name,
-  built,
-  layout,
-  gtable
-) {
+    plot,
+    panel_info,
+    panel_data,
+    facet_groups,
+    gtable_panel_name,
+    built,
+    layout,
+    gtable) {
   layer_results <- list()
 
   for (layer_idx in seq_along(plot$layers)) {

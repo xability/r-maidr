@@ -20,8 +20,8 @@ test_that("BaseRLineLayerProcessor extract_data() works with single line", {
     plot_call = list(
       function_name = "plot",
       args = list(
-        c(1, 2, 3, 4, 5),  # x
-        c(2, 4, 6, 8, 10)  # y
+        c(1, 2, 3, 4, 5), # x
+        c(2, 4, 6, 8, 10) # y
       )
     )
   )
@@ -30,8 +30,8 @@ test_that("BaseRLineLayerProcessor extract_data() works with single line", {
   data <- processor$extract_data(layer_info)
 
   testthat::expect_type(data, "list")
-  testthat::expect_equal(length(data), 1)  # Single series
-  testthat::expect_equal(length(data[[1]]), 5)  # 5 points
+  testthat::expect_equal(length(data), 1) # Single series
+  testthat::expect_equal(length(data[[1]]), 5) # 5 points
 
   testthat::expect_equal(data[[1]][[1]]$x, "1")
   testthat::expect_equal(data[[1]][[1]]$y, 2)
@@ -55,8 +55,8 @@ test_that("BaseRLineLayerProcessor extract_data() works with multiline", {
   processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
   data <- processor$extract_data(layer_info)
 
-  testthat::expect_equal(length(data), 2)  # Two series
-  testthat::expect_equal(length(data[[1]]), 3)  # 3 points per series
+  testthat::expect_equal(length(data), 2) # Two series
+  testthat::expect_equal(length(data[[1]]), 3) # 3 points per series
 
   # Check fill field
   testthat::expect_true("fill" %in% names(data[[1]][[1]]))
@@ -112,8 +112,8 @@ test_that("BaseRLineLayerProcessor handles mismatched x and y lengths", {
     plot_call = list(
       function_name = "plot",
       args = list(
-        c(1, 2, 3, 4, 5),  # 5 elements
-        c(10, 20, 30)      # 3 elements
+        c(1, 2, 3, 4, 5), # 5 elements
+        c(10, 20, 30) # 3 elements
       )
     )
   )
@@ -247,9 +247,9 @@ test_that("BaseRLineLayerProcessor extract_single_line_data() returns correct st
 
   result <- processor$extract_single_line_data(x, y)
 
-  testthat::expect_equal(length(result), 1)  # Single series
-  testthat::expect_equal(length(result[[1]]), 4)  # 4 points
-  testthat::expect_false("fill" %in% names(result[[1]][[1]]))  # No fill for single line
+  testthat::expect_equal(length(result), 1) # Single series
+  testthat::expect_equal(length(result[[1]]), 4) # 4 points
+  testthat::expect_false("fill" %in% names(result[[1]][[1]])) # No fill for single line
 })
 
 test_that("BaseRLineLayerProcessor extract_multiline_data() handles multiple columns", {
@@ -261,7 +261,7 @@ test_that("BaseRLineLayerProcessor extract_multiline_data() handles multiple col
 
   result <- processor$extract_multiline_data(x, y_matrix)
 
-  testthat::expect_equal(length(result), 3)  # Three series
+  testthat::expect_equal(length(result), 3) # Three series
   testthat::expect_equal(result[[1]][[1]]$fill, "A")
   testthat::expect_equal(result[[2]][[1]]$fill, "B")
   testthat::expect_equal(result[[3]][[1]]$fill, "C")
@@ -286,7 +286,7 @@ test_that("BaseRLineLayerProcessor extract_abline_data() with lm object", {
   data <- processor$extract_abline_data(layer_info)
 
   testthat::expect_equal(length(data), 1)
-  testthat::expect_equal(length(data[[1]]), 2)  # abline has 2 endpoints
+  testthat::expect_equal(length(data[[1]]), 2) # abline has 2 endpoints
   testthat::expect_true("x" %in% names(data[[1]][[1]]))
   testthat::expect_true("y" %in% names(data[[1]][[1]]))
 })
@@ -295,7 +295,7 @@ test_that("BaseRLineLayerProcessor extract_abline_data() with a and b parameters
   layer_info <- list(
     index = 1,
     function_name = "abline",
-    plot_call = list(args = list(a = 0, b = 2)),  # y = 2x
+    plot_call = list(args = list(a = 0, b = 2)), # y = 2x
     group = list(
       high_call = list(args = list(c(1, 2, 3), c(2, 4, 6)))
     )
@@ -356,8 +356,8 @@ test_that("BaseRLineLayerProcessor get_x_range_from_group() calculates with padd
 
   testthat::expect_length(x_range, 2)
   # Should have padding (5% on each side)
-  testthat::expect_lt(x_range[1], 10)  # Min with padding < 10
-  testthat::expect_gt(x_range[2], 30)  # Max with padding > 30
+  testthat::expect_lt(x_range[1], 10) # Min with padding < 10
+  testthat::expect_gt(x_range[2], 30) # Max with padding > 30
 })
 
 test_that("BaseRLineLayerProcessor get_x_range_from_group() handles NULL group", {

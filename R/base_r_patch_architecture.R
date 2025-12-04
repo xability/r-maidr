@@ -11,7 +11,6 @@ BaseRPatcher <- R6::R6Class(
     can_patch = function(function_name, args) {
       stop("Abstract method - must be implemented by subclass")
     },
-
     apply_patch = function(function_name, args) {
       stop("Abstract method - must be implemented by subclass")
     },

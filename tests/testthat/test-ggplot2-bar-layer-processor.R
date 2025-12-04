@@ -302,7 +302,7 @@ test_that("Ggplot2BarLayerProcessor extracts data with layer mapping", {
   data <- processor$extract_data(p)
 
   testthat::expect_equal(length(data), 3)
-  testthat::expect_equal(data[[1]]$x, "Blue")  # Alphabetical order
+  testthat::expect_equal(data[[1]]$x, "Blue") # Alphabetical order
   testthat::expect_equal(data[[2]]$x, "Green")
   testthat::expect_equal(data[[3]]$x, "Red")
 })

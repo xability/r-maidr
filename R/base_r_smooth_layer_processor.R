@@ -10,17 +10,15 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
   "BaseRSmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(
-      plot,
-      layout,
-      built = NULL,
-      gt = NULL,
-      scale_mapping = NULL,
-      grob_id = NULL,
-      panel_id = NULL,
-      panel_ctx = NULL,
-      layer_info = NULL
-    ) {
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL,
+                       layer_info = NULL) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
       axes <- self$extract_axis_titles(layer_info)

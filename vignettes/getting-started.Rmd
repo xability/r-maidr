@@ -219,11 +219,11 @@ show(p)
 ## Getting Help
 
 - Run `?maidr::show` for function documentation
-- Visit GitHub issues: [r-maidr-prototype/issues](https://github.com/xability/r-maidr-prototype/issues)
+- Visit GitHub issues: [maidr/issues](https://github.com/xability/maidr/issues)
 - Read the full documentation: `help(package = "maidr")`
 
 ## Learn More
 
-- **Accessibility standards**: [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- **Accessibility standards**: [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG22/quickref/?versions=2.1)
 - **MAIDR website**: More examples and tutorials
 - **Research papers**: Understanding multimodal data representation

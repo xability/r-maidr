@@ -10,10 +10,10 @@
 SystemAdapter <- R6::R6Class(
   "SystemAdapter",
   public = list(
-    #' System name (e.g., "ggplot2", "base_r", "lattice")
+    #' @field system_name Name of the plotting system
     system_name = NULL,
 
-    #' Initialize the adapter
+    #' @description Initialize the adapter
     #' @param system_name Name of the plotting system
     initialize = function(system_name) {
       self$system_name <- system_name

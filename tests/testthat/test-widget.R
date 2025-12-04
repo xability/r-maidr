@@ -165,9 +165,12 @@ test_that("render_maidr() works with environment parameter", {
   env <- new.env()
   env$my_plot <- create_test_ggplot_bar()
 
-  render_fn <- render_maidr({
-    my_plot
-  }, env = env)
+  render_fn <- render_maidr(
+    {
+      my_plot
+    },
+    env = env
+  )
 
   testthat::expect_type(render_fn, "closure")
 })

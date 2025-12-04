@@ -23,7 +23,7 @@ test_that("BaseRHeatmapLayerProcessor extract_data() works with matrix", {
     index = 1,
     plot_call = list(
       function_name = "image",
-      args = structure(list(test_matrix), names = "")  # First arg is unnamed matrix
+      args = structure(list(test_matrix), names = "") # First arg is unnamed matrix
     )
   )
 
@@ -132,7 +132,7 @@ test_that("BaseRHeatmapLayerProcessor handles non-matrix input", {
     index = 1,
     plot_call = list(
       function_name = "image",
-      args = list(c(1, 2, 3, 4))  # Vector, not matrix
+      args = list(c(1, 2, 3, 4)) # Vector, not matrix
     )
   )
 
@@ -210,7 +210,7 @@ test_that("BaseRHeatmapLayerProcessor extract_axis_titles() works", {
   testthat::expect_type(axes, "list")
   testthat::expect_equal(axes$x, "Columns")
   testthat::expect_equal(axes$y, "Rows")
-  testthat::expect_equal(axes$fill, "value")  # Default fill label
+  testthat::expect_equal(axes$fill, "value") # Default fill label
 })
 
 test_that("BaseRHeatmapLayerProcessor extract_axis_titles() handles defaults", {

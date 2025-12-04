@@ -14,13 +14,13 @@
 #' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
 #'   geom_bar(stat = "identity")
 #' \dontrun{
-#'   maidr::show(p)
+#' maidr::show(p)
 #' }
 #'
 #' # Base R example
 #' \dontrun{
-#'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-#'   maidr::show()
+#' barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+#' maidr::show()
 #' }
 #' @importFrom R6 R6Class
 #' @importFrom ggplotify as.grob
@@ -102,13 +102,13 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 #' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
 #'   geom_bar(stat = "identity")
 #' \dontrun{
-#'   maidr::save_html(p, "myplot.html")
+#' maidr::save_html(p, "myplot.html")
 #' }
 #'
 #' # Base R example
 #' \dontrun{
-#'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-#'   maidr::save_html(file = "barplot.html")
+#' barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+#' maidr::save_html(file = "barplot.html")
 #' }
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", ...) {

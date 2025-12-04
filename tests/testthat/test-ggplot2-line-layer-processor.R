@@ -26,8 +26,8 @@ test_that("Ggplot2LineLayerProcessor extract_data() works with single line", {
   data <- processor$extract_data(p, built)
 
   testthat::expect_type(data, "list")
-  testthat::expect_equal(length(data), 1)  # Single line series
-  testthat::expect_equal(length(data[[1]]), 5)  # 5 points
+  testthat::expect_equal(length(data), 1) # Single line series
+  testthat::expect_equal(length(data[[1]]), 5) # 5 points
 
   # Check first point structure
   testthat::expect_equal(data[[1]][[1]]$x, "1")
@@ -51,8 +51,8 @@ test_that("Ggplot2LineLayerProcessor extract_data() works with multiline", {
   data <- processor$extract_data(p, built)
 
   testthat::expect_type(data, "list")
-  testthat::expect_equal(length(data), 2)  # Two line series
-  testthat::expect_equal(length(data[[1]]), 5)  # 5 points per series
+  testthat::expect_equal(length(data), 2) # Two line series
+  testthat::expect_equal(length(data[[1]]), 5) # 5 points per series
 
   # Check fill field exists (group name)
   testthat::expect_true("fill" %in% names(data[[1]][[1]]))
@@ -254,13 +254,13 @@ test_that("Ggplot2LineLayerProcessor extract_single_line_data() returns correct 
 
   result <- processor$extract_single_line_data(layer_data)
 
-  testthat::expect_equal(length(result), 1)  # Single series
-  testthat::expect_equal(length(result[[1]]), 4)  # 4 points
+  testthat::expect_equal(length(result), 1) # Single series
+  testthat::expect_equal(length(result[[1]]), 4) # 4 points
 
   # Check structure of first point
   testthat::expect_true("x" %in% names(result[[1]][[1]]))
   testthat::expect_true("y" %in% names(result[[1]][[1]]))
-  testthat::expect_false("fill" %in% names(result[[1]][[1]]))  # No fill for single line
+  testthat::expect_false("fill" %in% names(result[[1]][[1]])) # No fill for single line
 })
 
 test_that("Ggplot2LineLayerProcessor extract_multiline_data() handles multiple groups", {
@@ -280,8 +280,8 @@ test_that("Ggplot2LineLayerProcessor extract_multiline_data() handles multiple g
 
   result <- processor$extract_multiline_data(layer_data, p)
 
-  testthat::expect_equal(length(result), 3)  # Three series
-  testthat::expect_equal(length(result[[1]]), 3)  # 3 points per series
+  testthat::expect_equal(length(result), 3) # Three series
+  testthat::expect_equal(length(result[[1]]), 3) # 3 points per series
 
   # Check fill field contains series names
   testthat::expect_equal(result[[1]][[1]]$fill, "A")

@@ -22,7 +22,7 @@ This provides automatic dependency injection and robust JavaScript initializatio
 }
 \examples{
 \dontrun{
-  library(shiny)
-  ui <- fluidPage(maidr_output("myplot"))
+library(shiny)
+ui <- fluidPage(maidr_output("myplot"))
 }
 }

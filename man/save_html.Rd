@@ -26,12 +26,12 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 \dontrun{
-  maidr::save_html(p, "myplot.html")
+maidr::save_html(p, "myplot.html")
 }
 
 # Base R example
 \dontrun{
-  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-  maidr::save_html(file = "barplot.html")
+barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+maidr::save_html(file = "barplot.html")
 }
 }

@@ -43,11 +43,12 @@ p <- ggplot(bar_data, aes(x = Category, y = Value)) +
 show(p)
 
 # Base R equivalent
-barplot(bar_data$Value, 
-        names.arg = bar_data$Category,
-        col = "steelblue",
-        main = "Simple Bar Chart")
-show()  # Note: No arguments for Base R plots
+barplot(bar_data$Value,
+  names.arg = bar_data$Category,
+  col = "steelblue",
+  main = "Simple Bar Chart"
+)
+show() # Note: No arguments for Base R plots
 ```
 
 ### Dodged Bar Chart
@@ -72,12 +73,13 @@ show(p)
 
 # Base R equivalent
 matrix_data <- matrix(c(10, 15, 20, 25, 30, 35), nrow = 2)
-barplot(matrix_data, 
-        beside = TRUE,  # Creates dodged effect
-        names.arg = c("A", "B", "C"),
-        col = c("steelblue", "coral"),
-        legend = c("Type1", "Type2"),
-        main = "Dodged Bar Chart")
+barplot(matrix_data,
+  beside = TRUE, # Creates dodged effect
+  names.arg = c("A", "B", "C"),
+  col = c("steelblue", "coral"),
+  legend = c("Type1", "Type2"),
+  main = "Dodged Bar Chart"
+)
 show()
 ```
 
@@ -103,12 +105,13 @@ show(p)
 
 # Base R equivalent
 matrix_data <- matrix(c(10, 15, 20, 25, 30, 35), nrow = 2)
-barplot(matrix_data, 
-        beside = FALSE,  # Creates stacked effect
-        names.arg = c("A", "B", "C"),
-        col = c("steelblue", "coral"),
-        legend = c("Type1", "Type2"),
-        main = "Stacked Bar Chart")
+barplot(matrix_data,
+  beside = FALSE, # Creates stacked effect
+  names.arg = c("A", "B", "C"),
+  col = c("steelblue", "coral"),
+  legend = c("Type1", "Type2"),
+  main = "Stacked Bar Chart"
+)
 show()
 ```
 
@@ -130,12 +133,13 @@ show(p)
 
 # Base R equivalent
 hist(rnorm(1000, mean = 0, sd = 1),
-     breaks = 30,
-     col = "skyblue",
-     border = "black",
-     main = "Histogram",
-     xlab = "Values",
-     ylab = "Frequency")
+  breaks = 30,
+  col = "skyblue",
+  border = "black",
+  main = "Histogram",
+  xlab = "Values",
+  ylab = "Frequency"
+)
 show()
 ```
 
@@ -163,9 +167,10 @@ show(p)
 x <- rnorm(50)
 y <- rnorm(50)
 plot(x, y,
-     pch = 19,
-     col = rainbow(3)[as.numeric(factor(sample(c("A", "B", "C"), 50, replace = TRUE)))],
-     main = "Scatter Plot")
+  pch = 19,
+  col = rainbow(3)[as.numeric(factor(sample(c("A", "B", "C"), 50, replace = TRUE)))],
+  main = "Scatter Plot"
+)
 show()
 ```
 
@@ -207,9 +212,9 @@ library(ggplot2)
 multiline_data <- data.frame(
   x = rep(1:10, 3),
   y = c(
-    c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4),  # Series 1
-    c(1, 3, 5, 2, 4, 6, 8, 7, 5, 3),  # Series 2
-    c(3, 1, 4, 6, 5, 2, 4, 5, 7, 6)   # Series 3
+    c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4), # Series 1
+    c(1, 3, 5, 2, 4, 6, 8, 7, 5, 3), # Series 2
+    c(3, 1, 4, 6, 5, 2, 4, 5, 7, 6) # Series 3
   ),
   series = rep(c("A", "B", "C"), each = 10)
 )
@@ -256,11 +261,12 @@ p_vert <- ggplot(iris, aes(x = Species, y = Petal.Length)) +
 show(p_vert)
 
 # Base R equivalent
-boxplot(Petal.Length ~ Species, 
-        data = iris,
-        col = "lightblue",
-        main = "Boxplot - Petal Length by Species",
-        horizontal = TRUE)
+boxplot(Petal.Length ~ Species,
+  data = iris,
+  col = "lightblue",
+  main = "Boxplot - Petal Length by Species",
+  horizontal = TRUE
+)
 show()
 ```
 
@@ -287,10 +293,11 @@ show(p)
 
 # Base R equivalent
 matrix_data <- matrix(c(1, 2, 3, 4), nrow = 2)
-image(matrix_data, 
-      col = heat.colors(10),
-      main = "Heatmap",
-      axes = FALSE)
+image(matrix_data,
+  col = heat.colors(10),
+  main = "Heatmap",
+  axes = FALSE
+)
 axis(1, at = seq(0, 1, length.out = 2), labels = c("A", "B"))
 axis(2, at = seq(0, 1, length.out = 2), labels = c("1", "2"))
 show()
@@ -314,10 +321,11 @@ show(p)
 
 # Base R equivalent
 values <- rnorm(1000, mean = 0, sd = 1)
-plot(density(values), 
-     col = "blue",
-     lwd = 2,
-     main = "Density Plot")
+plot(density(values),
+  col = "blue",
+  lwd = 2,
+  main = "Density Plot"
+)
 polygon(density(values), col = rgb(0.678, 0.847, 0.902, 0.5))
 show()
 ```
@@ -337,7 +345,7 @@ facet_data <- data.frame(
 
 p <- ggplot(facet_data, aes(x = x, y = y)) +
   geom_bar(stat = "identity", fill = "steelblue") +
-  facet_wrap(~ group, ncol = 2) +
+  facet_wrap(~group, ncol = 2) +
   labs(title = "Faceted Bar Plot") +
   theme_minimal()
 

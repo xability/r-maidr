@@ -40,7 +40,7 @@ p_bar <- ggplot(bar_data, aes(x = Category, y = Value)) +
 
 html_file_bar <- file.path(output_dir, "example_bar_plot_ggplot2.html")
 result_bar <- save_html(p_bar, file = html_file_bar)
-cat("Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
+cat("Bar plot:", if (file.exists(html_file_bar)) "✓" else "✗", "\n")
 
 # Test 2: Dodged bar plot
 cat("\n=== TEST 2: Dodged Bar Plot ===\n")
@@ -56,7 +56,7 @@ p_dodged <- ggplot(dodged_data, aes(x = Category, y = Value, fill = Type)) +
 
 html_file_dodged <- file.path(output_dir, "example_dodged_bar_plot_ggplot2.html")
 result_dodged <- save_html(p_dodged, file = html_file_dodged)
-cat("Dodged bar plot:", if(file.exists(html_file_dodged)) "✓" else "✗", "\n")
+cat("Dodged bar plot:", if (file.exists(html_file_dodged)) "✓" else "✗", "\n")
 
 # Test 3: Stacked bar plot
 cat("\n=== TEST 3: Stacked Bar Plot ===\n")
@@ -72,7 +72,7 @@ p_stacked <- ggplot(stacked_data, aes(x = Category, y = Value, fill = Type)) +
 
 html_file_stacked <- file.path(output_dir, "example_stacked_bar_plot_ggplot2.html")
 result_stacked <- save_html(p_stacked, file = html_file_stacked)
-cat("Stacked bar plot:", if(file.exists(html_file_stacked)) "✓" else "✗", "\n")
+cat("Stacked bar plot:", if (file.exists(html_file_stacked)) "✓" else "✗", "\n")
 
 # Test 4: Histogram
 cat("\n=== TEST 4: Histogram ===\n")
@@ -86,7 +86,7 @@ p_hist <- ggplot(hist_data, aes(x = values)) +
 
 html_file_hist <- file.path(output_dir, "example_histogram_ggplot2.html")
 result_hist <- save_html(p_hist, file = html_file_hist)
-cat("Histogram:", if(file.exists(html_file_hist)) "✓" else "✗", "\n")
+cat("Histogram:", if (file.exists(html_file_hist)) "✓" else "✗", "\n")
 
 # Test 5: Smooth plot
 cat("\n=== TEST 5: Smooth Plot ===\n")
@@ -100,7 +100,7 @@ p_smooth <- ggplot(smooth_data, aes(x = x)) +
 
 html_file_smooth <- file.path(output_dir, "example_smooth_plot_ggplot2.html")
 result_smooth <- save_html(p_smooth, file = html_file_smooth)
-cat("Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
+cat("Smooth plot:", if (file.exists(html_file_smooth)) "✓" else "✗", "\n")
 
 # Test 6: Single Line plot
 cat("\n=== TEST 6: Single Line Plot ===\n")
@@ -116,12 +116,12 @@ p_line <- ggplot(line_data, aes(x = x, y = y)) +
 
 html_file_line <- file.path(output_dir, "example_line_plot_ggplot2.html")
 result_line <- save_html(p_line, file = html_file_line)
-cat("Single line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
+cat("Single line plot:", if (file.exists(html_file_line)) "✓" else "✗", "\n")
 
 # Test 7: Multiline plot (3 series with 10 points each)
 cat("\n=== TEST 7: Multiline Plot (3 Series with 10 Points) ===\n")
 # Create data with 10 points for each of 3 series
-set.seed(123)  # For reproducible data
+set.seed(123) # For reproducible data
 x <- 1:10
 y1 <- c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
 y2 <- c(1, 3, 5, 2, 4, 6, 8, 7, 5, 3)
@@ -137,7 +137,7 @@ p_multiline <- ggplot(multiline_data, aes(x = x, y = y, color = series)) +
   geom_line(linewidth = 1) +
   labs(
     title = "Multiline Plot Test (3 Series with 10 Points)",
-    x = "X values", 
+    x = "X values",
     y = "Y values",
     color = "Series"
   ) +
@@ -146,14 +146,14 @@ p_multiline <- ggplot(multiline_data, aes(x = x, y = y, color = series)) +
 
 html_file_multiline <- file.path(output_dir, "example_multiline_plot_ggplot2.html")
 result_multiline <- save_html(p_multiline, file = html_file_multiline)
-cat("Multiline plot (3 series with 10 points):", if(file.exists(html_file_multiline)) "✓" else "✗", "\n")
+cat("Multiline plot (3 series with 10 points):", if (file.exists(html_file_multiline)) "✓" else "✗", "\n")
 
 # Test 8: Histogram with Density Curve (Iris Dataset)
 cat("\n=== TEST 8: Histogram with Density Curve ===\n")
 
 # Create sample data equivalent to iris petal lengths
 set.seed(123)
-petal_lengths <- rnorm(150, mean = 3.8, sd = 1.8)  # Approximate iris petal length distribution
+petal_lengths <- rnorm(150, mean = 3.8, sd = 1.8) # Approximate iris petal length distribution
 petal_data <- data.frame(petal_length = petal_lengths)
 
 # Create histogram with density curve (equivalent to seaborn histplot with kde=True)
@@ -169,7 +169,7 @@ p_hist_density <- ggplot(petal_data, aes(x = petal_length)) +
 
 html_file_hist_density <- file.path(output_dir, "example_histogram_density_ggplot2.html")
 result_hist_density <- save_html(p_hist_density, file = html_file_hist_density)
-cat("Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
+cat("Histogram with density curve:", if (file.exists(html_file_hist_density)) "✓" else "✗", "\n")
 
 # Test 9: Heatmap with labels
 cat("\n=== TEST 9: Heatmap with Labels ===\n")
@@ -179,22 +179,24 @@ heatmap_data <- data.frame(
   z = c(4, 3, 2, 1)
 )
 
-p_heatmap_labels <- ggplot(heatmap_data, aes(x = x, y = y, fill = z)) + 
+p_heatmap_labels <- ggplot(heatmap_data, aes(x = x, y = y, fill = z)) +
   geom_tile() +
   geom_text(aes(label = z), color = "white", size = 4) +
   labs(title = "Heatmap with Labels Test")
 
 html_file_heatmap_labels <- file.path(output_dir, "example_heatmap_with_labels_ggplot2.html")
 result_heatmap_labels <- save_html(p_heatmap_labels, file = html_file_heatmap_labels)
-cat("Heatmap with labels:", if(file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
+cat("Heatmap with labels:", if (file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
 
 # Test 10: Point/Scatter plot with multiple y values per x
 cat("\n=== TEST 10: Point/Scatter Plot with Multiple Y Values per X ===\n")
 # Create data with multiple y values for single x value
 set.seed(123)
-x_values <- rep(1:5, each = 3)  # 3 measurements per x value
-y_values <- c(rnorm(3, 10, 1), rnorm(3, 15, 2), rnorm(3, 12, 1.5),
-              rnorm(3, 18, 1.8), rnorm(3, 14, 0.8))
+x_values <- rep(1:5, each = 3) # 3 measurements per x value
+y_values <- c(
+  rnorm(3, 10, 1), rnorm(3, 15, 2), rnorm(3, 12, 1.5),
+  rnorm(3, 18, 1.8), rnorm(3, 14, 0.8)
+)
 groups <- rep(c("A", "B", "C"), times = 5)
 
 point_data <- data.frame(
@@ -217,7 +219,7 @@ p_point <- ggplot(point_data, aes(x = x, y = y, color = group)) +
 
 html_file_point <- file.path(output_dir, "example_point_plot_ggplot2.html")
 result_point <- save_html(p_point, file = html_file_point)
-cat("Point/Scatter plot (multiple y per x):", if(file.exists(html_file_point)) "✓" else "✗", "\n")
+cat("Point/Scatter plot (multiple y per x):", if (file.exists(html_file_point)) "✓" else "✗", "\n")
 
 # Test 11: Multi-layer plot (Bar + Line)
 cat("\n=== TEST 11: Multi-Layer Plot (Bar + Line) ===\n")
@@ -248,7 +250,7 @@ p_dual_axis <- ggplot(dual_plot_data, aes(x = x)) +
 
 html_file_dual_axis <- file.path(output_dir, "example_dual_axis_plot_ggplot2.html")
 result_dual_axis <- save_html(p_dual_axis, file = html_file_dual_axis)
-cat("Multi-layer plot (bar + line):", if(file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
+cat("Multi-layer plot (bar + line):", if (file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
 
 # Summary
 cat("\n=== TEST 12: Boxplot (Horizontal) ===\n")
@@ -267,7 +269,7 @@ p_box <- ggplot(iris_data, aes(x = Petal.Length, y = Species)) +
 
 html_file_box <- file.path(output_dir, "example_boxplot_horizontal_ggplot2.html")
 result_box <- save_html(p_box, file = html_file_box)
-cat("Boxplot (horizontal):", if(file.exists(html_file_box)) "✓" else "✗", "\n")
+cat("Boxplot (horizontal):", if (file.exists(html_file_box)) "✓" else "✗", "\n")
 
 # Test 13: Faceted Bar Plot
 cat("\n=== TEST 13: Faceted Bar Plot ===\n")
@@ -281,12 +283,12 @@ facet_bar_data <- data.frame(
     runif(5, 1, 36),
     runif(5, 1, 42)
   ),
-  group = rep(c('Group 1', 'Group 2', 'Group 3', 'Group 4'), each = 5)
+  group = rep(c("Group 1", "Group 2", "Group 3", "Group 4"), each = 5)
 )
 
 p_facet_bar <- ggplot(facet_bar_data, aes(x = x, y = y)) +
   geom_bar(stat = "identity", fill = "steelblue") +
-  facet_wrap(~ group, ncol = 2) +
+  facet_wrap(~group, ncol = 2) +
   labs(
     title = "Faceted Bar Plot Test",
     x = "Categories",
@@ -296,7 +298,7 @@ p_facet_bar <- ggplot(facet_bar_data, aes(x = x, y = y)) +
 
 html_file_facet_bar <- file.path(output_dir, "example_facet_bar_plot_ggplot2.html")
 result_facet_bar <- save_html(p_facet_bar, file = html_file_facet_bar)
-cat("Faceted bar plot:", if(file.exists(html_file_facet_bar)) "✓" else "✗", "\n")
+cat("Faceted bar plot:", if (file.exists(html_file_facet_bar)) "✓" else "✗", "\n")
 
 # Test 14: Faceted Point Plot
 cat("\n=== TEST 14: Faceted Point Plot ===\n")
@@ -310,12 +312,12 @@ facet_point_data <- data.frame(
     runif(5, 1, 36),
     runif(5, 1, 42)
   ),
-  group = rep(c('Group 1', 'Group 2', 'Group 3', 'Group 4'), each = 5)
+  group = rep(c("Group 1", "Group 2", "Group 3", "Group 4"), each = 5)
 )
 
 p_facet_point <- ggplot(facet_point_data, aes(x = x, y = y)) +
   geom_point(size = 3, color = "steelblue") +
-  facet_wrap(~ group, ncol = 2) +
+  facet_wrap(~group, ncol = 2) +
   labs(
     title = "Faceted Point Plot Test",
     x = "X Values",
@@ -325,7 +327,7 @@ p_facet_point <- ggplot(facet_point_data, aes(x = x, y = y)) +
 
 html_file_facet_point <- file.path(output_dir, "example_facet_point_plot_ggplot2.html")
 result_facet_point <- save_html(p_facet_point, file = html_file_facet_point)
-cat("Faceted point plot:", if(file.exists(html_file_facet_point)) "✓" else "✗", "\n")
+cat("Faceted point plot:", if (file.exists(html_file_facet_point)) "✓" else "✗", "\n")
 
 # Test 15: Faceted Line Plot
 cat("\n=== TEST 15: Faceted Line Plot ===\n")
@@ -339,12 +341,12 @@ facet_line_data <- data.frame(
     runif(5, 1, 36),
     runif(5, 1, 42)
   ),
-  group = rep(c('Group 1', 'Group 2', 'Group 3', 'Group 4'), each = 5)
+  group = rep(c("Group 1", "Group 2", "Group 3", "Group 4"), each = 5)
 )
 
 p_facet_line <- ggplot(facet_line_data, aes(x = x, y = y)) +
   geom_line(color = "steelblue", linewidth = 1.5) +
-  facet_wrap(~ group, ncol = 2) +
+  facet_wrap(~group, ncol = 2) +
   labs(
     title = "Faceted Line Plot Test",
     x = "X Values",
@@ -354,7 +356,7 @@ p_facet_line <- ggplot(facet_line_data, aes(x = x, y = y)) +
 
 html_file_facet_line <- file.path(output_dir, "example_facet_line_plot_ggplot2.html")
 result_facet_line <- save_html(p_facet_line, file = html_file_facet_line)
-cat("Faceted line plot:", if(file.exists(html_file_facet_line)) "✓" else "✗", "\n")
+cat("Faceted line plot:", if (file.exists(html_file_facet_line)) "✓" else "✗", "\n")
 
 # Test 16: Patchwork 2x2 (Line + Bar + Bar2 + Random Line)
 cat("\n=== TEST 16: Patchwork 2x2 (Line + Bar + Bar2 + Random Line) ===\n")
@@ -402,22 +404,22 @@ cat("Patchwork 2x2 (line+bar+bar2+line):", if (file.exists(html_file_patchwork_2
 
 cat("\n=== SUMMARY ===\n")
 cat("Generated HTML files in output/ directory:\n")
-cat("- Bar plot:", if(file.exists(html_file_bar)) "✓" else "✗", "\n")
-cat("- Dodged bar plot:", if(file.exists(html_file_dodged)) "✓" else "✗", "\n")
-cat("- Stacked bar plot:", if(file.exists(html_file_stacked)) "✓" else "✗", "\n")
-cat("- Histogram:", if(file.exists(html_file_hist)) "✓" else "✗", "\n")
-cat("- Smooth plot:", if(file.exists(html_file_smooth)) "✓" else "✗", "\n")
-cat("- Single line plot:", if(file.exists(html_file_line)) "✓" else "✗", "\n")
-cat("- Multiline plot (3 series with 10 points):", if(file.exists(html_file_multiline)) "✓" else "✗", "\n")
-cat("- Histogram with density curve:", if(file.exists(html_file_hist_density)) "✓" else "✗", "\n")
-cat("- Heatmap with labels:", if(file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
-cat("- Point/Scatter plot (multiple y per x):", if(file.exists(html_file_point)) "✓" else "✗", "\n")
-cat("- Multi-layer plot (bar + line):", if(file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
-cat("- Boxplot (horizontal):", if(file.exists(html_file_box)) "✓" else "✗", "\n")
-cat("- Faceted bar plot:", if(file.exists(html_file_facet_bar)) "✓" else "✗", "\n")
-cat("- Faceted point plot:", if(file.exists(html_file_facet_point)) "✓" else "✗", "\n")
-cat("- Faceted line plot:", if(file.exists(html_file_facet_line)) "✓" else "✗", "\n")
-cat("- Patchwork 2x2 (line+bar+bar2+line):", if(file.exists(html_file_patchwork_2x2)) "✓" else "✗", "\n")
+cat("- Bar plot:", if (file.exists(html_file_bar)) "✓" else "✗", "\n")
+cat("- Dodged bar plot:", if (file.exists(html_file_dodged)) "✓" else "✗", "\n")
+cat("- Stacked bar plot:", if (file.exists(html_file_stacked)) "✓" else "✗", "\n")
+cat("- Histogram:", if (file.exists(html_file_hist)) "✓" else "✗", "\n")
+cat("- Smooth plot:", if (file.exists(html_file_smooth)) "✓" else "✗", "\n")
+cat("- Single line plot:", if (file.exists(html_file_line)) "✓" else "✗", "\n")
+cat("- Multiline plot (3 series with 10 points):", if (file.exists(html_file_multiline)) "✓" else "✗", "\n")
+cat("- Histogram with density curve:", if (file.exists(html_file_hist_density)) "✓" else "✗", "\n")
+cat("- Heatmap with labels:", if (file.exists(html_file_heatmap_labels)) "✓" else "✗", "\n")
+cat("- Point/Scatter plot (multiple y per x):", if (file.exists(html_file_point)) "✓" else "✗", "\n")
+cat("- Multi-layer plot (bar + line):", if (file.exists(html_file_dual_axis)) "✓" else "✗", "\n")
+cat("- Boxplot (horizontal):", if (file.exists(html_file_box)) "✓" else "✗", "\n")
+cat("- Faceted bar plot:", if (file.exists(html_file_facet_bar)) "✓" else "✗", "\n")
+cat("- Faceted point plot:", if (file.exists(html_file_facet_point)) "✓" else "✗", "\n")
+cat("- Faceted line plot:", if (file.exists(html_file_facet_line)) "✓" else "✗", "\n")
+cat("- Patchwork 2x2 (line+bar+bar2+line):", if (file.exists(html_file_patchwork_2x2)) "✓" else "✗", "\n")
 
 cat("\nAll examples completed successfully!\n")
-cat("Check the output/ directory for interactive HTML files.\n") 
+cat("Check the output/ directory for interactive HTML files.\n")

@@ -100,12 +100,11 @@ generate_robust_css_selector <- function(grob_name, svg_element) {
 #' @param max_elements Optional limit on number of elements to target
 #' @return A robust CSS selector string, or NULL if element not found
 generate_robust_selector <- function(
-  grob,
-  element_type,
-  svg_element,
-  plot_index = NULL,
-  max_elements = NULL
-) {
+    grob,
+    element_type,
+    svg_element,
+    plot_index = NULL,
+    max_elements = NULL) {
   container_name <- find_graphics_plot_grob(grob, element_type, plot_index = plot_index)
 
   if (!is.null(container_name)) {

@@ -17,16 +17,14 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
-    process = function(
-      plot,
-      layout,
-      built = NULL,
-      gt = NULL,
-      scale_mapping = NULL,
-      grob_id = NULL,
-      panel_id = NULL,
-      panel_ctx = NULL
-    ) {
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
       extracted_data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)

@@ -29,15 +29,13 @@ LayerProcessor <- R6::R6Class(
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
     #' @return List with data and selectors
-    process = function(
-      plot,
-      layout,
-      built = NULL,
-      gt = NULL,
-      scale_mapping = NULL,
-      grob_id = NULL,
-      panel_ctx = NULL
-    ) {
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_ctx = NULL) {
       stop("process() method must be implemented by subclasses", call. = FALSE)
     },
 
@@ -106,22 +104,25 @@ LayerProcessor <- R6::R6Class(
 
       # Helper to extract variable name from potentially complex expressions
       extract_var_name <- function(mapping_expr) {
-        tryCatch({
-          # Try simple conversion first
-          rlang::as_name(mapping_expr)
-        }, error = function(e) {
-          # If that fails, try to extract the first symbol from the expression
-          expr <- rlang::quo_get_expr(mapping_expr)
-          if (is.call(expr) && length(expr) > 1) {
-            # For expressions like line_values * scale_factor, extract first symbol
-            first_arg <- expr[[2]]
-            if (is.symbol(first_arg)) {
-              return(as.character(first_arg))
+        tryCatch(
+          {
+            # Try simple conversion first
+            rlang::as_name(mapping_expr)
+          },
+          error = function(e) {
+            # If that fails, try to extract the first symbol from the expression
+            expr <- rlang::quo_get_expr(mapping_expr)
+            if (is.call(expr) && length(expr) > 1) {
+              # For expressions like line_values * scale_factor, extract first symbol
+              first_arg <- expr[[2]]
+              if (is.symbol(first_arg)) {
+                return(as.character(first_arg))
+              }
             }
+            # If all else fails, return NULL to use fallback
+            NULL
           }
-          # If all else fails, return NULL to use fallback
-          NULL
-        })
+        )
       }
 
       # Try to get layer-specific mapping

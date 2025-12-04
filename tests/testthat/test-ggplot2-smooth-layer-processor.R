@@ -19,7 +19,7 @@ test_that("Ggplot2SmoothLayerProcessor extract_data() works with geom_smooth", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_smooth()
-  layer_info <- list(index = 2)  # smooth is second layer after geom_point
+  layer_info <- list(index = 2) # smooth is second layer after geom_point
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   data <- processor$extract_data(p)
@@ -41,7 +41,7 @@ test_that("Ggplot2SmoothLayerProcessor generate_selectors() works", {
   p <- create_test_ggplot_smooth()
   gt <- ggplot2::ggplotGrob(p)
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   selectors <- processor$generate_selectors(p, gt)
@@ -60,7 +60,7 @@ test_that("Ggplot2SmoothLayerProcessor process() integrates correctly", {
   gt <- ggplot2::ggplotGrob(p)
   layout <- built$layout
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   result <- processor$process(p, layout, built, gt)
@@ -81,7 +81,7 @@ test_that("Ggplot2SmoothLayerProcessor handles minimal smooth data", {
     ggplot2::geom_point() +
     ggplot2::geom_smooth(method = "lm", se = FALSE)
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   data <- processor$extract_data(p)
@@ -113,7 +113,7 @@ test_that("Ggplot2SmoothLayerProcessor handles NULL gt parameter", {
 
   p <- create_test_ggplot_smooth()
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   selectors <- processor$generate_selectors(p, NULL)
@@ -182,7 +182,7 @@ test_that("Ggplot2SmoothLayerProcessor axes extraction works via process()", {
   gt <- ggplot2::ggplotGrob(p)
   layout <- built$layout
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   result <- processor$process(p, layout, built, gt)
@@ -248,7 +248,7 @@ test_that("Ggplot2SmoothLayerProcessor polyline collection is recursive", {
   p <- create_test_ggplot_smooth()
   gt <- ggplot2::ggplotGrob(p)
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   selectors <- processor$generate_selectors(p, gt)
@@ -286,7 +286,7 @@ test_that("Ggplot2SmoothLayerProcessor escapes dots in selector", {
   p <- create_test_ggplot_smooth()
   gt <- ggplot2::ggplotGrob(p)
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   selectors <- processor$generate_selectors(p, gt)
@@ -299,7 +299,7 @@ test_that("Ggplot2SmoothLayerProcessor data points have correct structure", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_smooth()
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   data <- processor$extract_data(p)
@@ -347,7 +347,7 @@ test_that("Ggplot2SmoothLayerProcessor works in full pipeline", {
 
   p <- create_test_ggplot_smooth()
 
-  layer_info <- list(index = 2)  # smooth is second layer
+  layer_info <- list(index = 2) # smooth is second layer
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
   built <- ggplot2::ggplot_build(p)

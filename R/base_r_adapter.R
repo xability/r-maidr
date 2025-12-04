@@ -41,8 +41,7 @@ BaseRAdapter <- R6::R6Class(
       args <- layer$args
 
       # HIGH-level function detection
-      layer_type <- switch(
-        function_name,
+      layer_type <- switch(function_name,
         "barplot" = {
           if (self$is_dodged_barplot(args)) {
             "dodged_bar"
@@ -81,8 +80,7 @@ BaseRAdapter <- R6::R6Class(
       }
 
       # LOW-level function detection (NEW)
-      layer_type <- switch(
-        function_name,
+      layer_type <- switch(function_name,
         "lines" = {
           first_arg <- args[[1]]
           if (!is.null(first_arg)) {
