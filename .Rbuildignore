@@ -8,6 +8,8 @@
 ^\.claude$
 ^air\.toml$
 ^docs$
+^dev-docs$
+^claude_docs$
 ^output$
 ^inst/output$
 ^Rplots\.pdf$
@@ -15,3 +17,7 @@
 ^README\.Rmd$
 ^LICENSE\.md$
 ^lintr_fix\.sh$
+^cran-comments\.md$
+^_pkgdown\.yml$
+^pkgdown$
+^\.github$

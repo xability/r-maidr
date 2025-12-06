@@ -1,9 +1,11 @@
-CLAUDE.md
-docs/
+# macOS
+.DS_Store
 
 # R artifacts
 Rplots.pdf
 *.bak
+*.tar.gz
+*.Rcheck/
 
 # RStudio files
 .Rproj.user
@@ -11,7 +13,13 @@ Rplots.pdf
 .RData
 .Ruserdata
 
-# Package build artifacts
-*.tar.gz
-*.Rcheck/
+# IDE/Editor settings
 .claude/
+.vscode/
+
+# Development docs
+claude_docs/
+dev-docs/
+
+# pkgdown output
+docs/

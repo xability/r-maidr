@@ -1,0 +1,45 @@
+url: http://xabilitylab.ischool.illinois.edu/r-maidr/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+  components:
+    articles:
+      text: Articles
+      menu:
+        - text: Getting Started
+          href: articles/getting-started.html
+        - text: Supported Plot Types
+          href: articles/plot-types.html
+        - text: Shiny Integration
+          href: articles/shiny-integration.html
+
+reference:
+  - title: Main functions
+    desc: Primary user-facing functions for creating accessible plots
+    contents:
+      - show
+      - save_html
+
+  - title: Shiny integration
+    desc: Functions for using maidr in Shiny applications
+    contents:
+      - render_maidr
+      - maidr_output
+
+  - title: Internal utilities
+    desc: Internal functions for package developers
+    contents:
+      - starts_with("combine_")
+      - starts_with("extract_")
+      - starts_with("find_")
+      - starts_with("generate_")
+      - starts_with("get_")
+      - starts_with("map_")
+      - starts_with("organize_")
+      - starts_with("process_")
