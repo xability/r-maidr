@@ -382,4 +382,4 @@ show(combined)
   Integration](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/shiny-integration.md)** -
   Use in interactive apps
 - **Package documentation** - Run
-  [`help(package = "maidr")`](https://rdrr.io/pkg/maidr/man)
+  [`help(package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference)
