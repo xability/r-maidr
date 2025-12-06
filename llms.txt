@@ -1,0 +1,166 @@
+# maidr
+
+## Overview
+
+maidr (Multimodal Access and Interactive Data Representation) makes data
+visualizations accessible to users with visual impairments. It converts
+ggplot2 and Base R plots into interactive, accessible HTML/SVG formats
+with keyboard navigation, screen reader support, and sonification.
+
+The package provides two main functions:
+
+- [`show()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md)
+  displays an interactive accessible plot in RStudio Viewer or browser
+- [`save_html()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/save_html.md)
+  exports a plot as a standalone HTML file
+
+## Installation
+
+``` r
+# Install from CRAN (coming soon)
+install.packages("maidr")
+
+# Or install development version from GitHub
+pak::pak("xability/r-maidr")
+
+# Alternative: using pacman (auto-installs if missing)
+pacman::p_load_gh("xability/r-maidr")
+```
+
+## Usage
+
+### ggplot2
+
+``` r
+library(maidr)
+library(ggplot2)
+
+p <- ggplot(mpg, aes(x = class)) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Vehicle Classes", x = "Class", y = "Count")
+
+# Display interactive accessible plot
+show(p)
+
+# Or save to file
+save_html(p, "vehicle_classes.html")
+```
+
+### Base R
+
+``` r
+library(maidr)
+
+# Create plot first
+barplot(
+  table(mtcars$cyl),
+  main = "Cars by Cylinder Count",
+  xlab = "Cylinders",
+  ylab = "Count"
+)
+
+# Then call show() without arguments
+show()
+```
+
+## Supported plot types
+
+maidr supports common visualization types in both ggplot2 and Base R:
+
+- Bar charts (simple, grouped, stacked)
+- Histograms
+- Scatter plots
+- Line plots
+- Box plots
+- Heatmaps
+
+## Accessibility features
+
+- **Keyboard navigation** - explore data points using arrow keys
+- **Screen reader support** - full ARIA labels and live announcements
+- **Sonification** - hear data patterns through sound
+- **Text descriptions** - automatic statistical summaries
+
+## Getting help
+
+- Report bugs or request features at [GitHub
+  Issues](https://github.com/xability/r-maidr/issues)
+- Read the documentation at the [package
+  website](http://xabilitylab.ischool.illinois.edu/r-maidr/)
+
+## Learning more
+
+- [`vignette("getting-started", package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/getting-started.md)
+  for an introduction
+- [`vignette("plot-types", package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)
+  for supported visualizations
+- [`vignette("shiny-integration", package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/shiny-integration.md)
+  for Shiny apps
+
+# Package index
+
+## Main functions
+
+Primary user-facing functions for creating accessible plots
+
+- [`show()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md)
+  : Display Interactive MAIDR Plot
+- [`save_html()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/save_html.md)
+  : Save Interactive Plot as HTML File
+
+## Shiny integration
+
+Functions for using maidr in Shiny applications
+
+- [`render_maidr()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/render_maidr.md)
+  : Render MAIDR Plot in Shiny Server
+- [`maidr_output()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md)
+  : MAIDR Output Container for Shiny UI
+
+## Internal utilities
+
+Internal functions for package developers
+
+- [`combine_facet_layer_data()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/combine_facet_layer_data.md)
+  : Combine data from multiple layers in facet processing
+- [`combine_facet_layer_selectors()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/combine_facet_layer_selectors.md)
+  : Combine selectors from multiple layers in facet processing
+- [`extract_leaf_plot_layout()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/extract_leaf_plot_layout.md)
+  : Extract layout from a single leaf ggplot
+- [`extract_patchwork_leaves()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/extract_patchwork_leaves.md)
+  : Recursively extract leaf ggplots in visual order
+- [`find_children_by_type()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/find_children_by_type.md)
+  : Find children matching a type pattern
+- [`find_graphics_plot_grob()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/find_graphics_plot_grob.md)
+  : Utility functions for robust selector generation in Base R plots
+- [`find_panel_grob()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/find_panel_grob.md)
+  : Find the panel grob in a grob tree
+- [`find_patchwork_panels()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/find_patchwork_panels.md)
+  : Discover panels via gtable layout rows named '^panel-\<num\>' or
+  '^panel-\<row\>-\<col\>' Returns a data.frame with panel_index, name,
+  t, l, row, col
+- [`generate_robust_css_selector()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/generate_robust_css_selector.md)
+  : Generate robust CSS selector from grob name
+- [`generate_robust_selector()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/generate_robust_selector.md)
+  : Generate robust selector for any element type
+- [`get_facet_groups()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/get_facet_groups.md)
+  : Get facet group information for a panel
+- [`map_visual_to_dom_panel()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/map_visual_to_dom_panel.md)
+  : Map visual panel position to DOM panel name
+- [`organize_facet_grid()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/organize_facet_grid.md)
+  : Organize subplots into 2D grid structure
+- [`process_facet_panel()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/process_facet_panel.md)
+  : Process a single facet panel
+- [`process_patchwork_panel()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/process_patchwork_panel.md)
+  : Process a single patchwork panel
+
+# Articles
+
+### All vignettes
+
+- [Getting Started with
+  MAIDR](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/getting-started.md):
+- [Supported Plot Types in
+  MAIDR](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md):
+- [Using MAIDR in Shiny
+  Applications](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/shiny-integration.md):

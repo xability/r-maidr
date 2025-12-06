@@ -1,0 +1,434 @@
+# Using MAIDR in Shiny Applications
+
+## Overview
+
+MAIDR integrates seamlessly with Shiny applications, allowing you to
+create accessible, interactive data visualizations in web apps. This
+vignette shows how to use MAIDR’s Shiny functions to build accessible
+dashboards.
+
+## Shiny Integration Functions
+
+MAIDR provides two functions for Shiny integration:
+
+1.  **[`maidr_output()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md)** -
+    UI function to create output container
+2.  **[`render_maidr()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/render_maidr.md)** -
+    Server function to render plots
+
+These functions work together to display accessible MAIDR plots in your
+Shiny app.
+
+## Basic Shiny App Example
+
+Here’s a complete minimal Shiny app using MAIDR:
+
+``` r
+library(shiny)
+library(ggplot2)
+library(maidr)
+
+# Define UI
+ui <- fluidPage(
+  titlePanel("MAIDR in Shiny - Basic Example"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("plot_type",
+        "Choose Plot Type:",
+        choices = c("Bar Chart", "Histogram", "Scatter")
+      ),
+      br(),
+      p("The plot on the right is fully accessible with keyboard navigation and screen reader support.")
+    ),
+    mainPanel(
+      h3("Interactive Accessible Plot"),
+      maidr_output("accessible_plot", height = "500px")
+    )
+  )
+)
+
+# Define Server
+server <- function(input, output) {
+  output$accessible_plot <- render_maidr({
+    if (input$plot_type == "Bar Chart") {
+      # Bar chart
+      bar_data <- data.frame(
+        Category = c("A", "B", "C", "D"),
+        Value = c(25, 40, 30, 35)
+      )
+      ggplot(bar_data, aes(x = Category, y = Value)) +
+        geom_bar(stat = "identity", fill = "steelblue") +
+        labs(title = "Sample Bar Chart") +
+        theme_minimal()
+    } else if (input$plot_type == "Histogram") {
+      # Histogram
+      hist_data <- data.frame(values = rnorm(500, mean = 100, sd = 15))
+      ggplot(hist_data, aes(x = values)) +
+        geom_histogram(bins = 30, fill = "coral", color = "black") +
+        labs(title = "Sample Histogram", x = "Values", y = "Frequency") +
+        theme_minimal()
+    } else {
+      # Scatter plot
+      scatter_data <- data.frame(
+        x = rnorm(50),
+        y = rnorm(50),
+        group = sample(c("Group A", "Group B"), 50, replace = TRUE)
+      )
+      ggplot(scatter_data, aes(x = x, y = y, color = group)) +
+        geom_point(size = 3, alpha = 0.7) +
+        labs(title = "Sample Scatter Plot") +
+        theme_minimal()
+    }
+  })
+}
+
+# Run the app
+shinyApp(ui = ui, server = server)
+```
+
+## Interactive Dashboard Example
+
+Here’s a more comprehensive dashboard with multiple plots:
+
+``` r
+library(shiny)
+library(shinydashboard)
+library(ggplot2)
+library(maidr)
+
+# Define UI
+ui <- dashboardPage(
+  dashboardHeader(title = "MAIDR Dashboard"),
+  dashboardSidebar(
+    sidebarMenu(
+      menuItem("Bar Charts", tabName = "bar", icon = icon("chart-bar")),
+      menuItem("Statistical Plots", tabName = "stats", icon = icon("chart-line")),
+      menuItem("Scatter Plots", tabName = "scatter", icon = icon("circle"))
+    )
+  ),
+  dashboardBody(
+    tabItems(
+      # Bar charts tab
+      tabItem(
+        tabName = "bar",
+        fluidRow(
+          box(
+            title = "Product Sales",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            maidr_output("bar_plot", height = "400px")
+          ),
+          box(
+            title = "Regional Comparison",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            maidr_output("dodged_bar_plot", height = "400px")
+          )
+        )
+      ),
+
+      # Statistical plots tab
+      tabItem(
+        tabName = "stats",
+        fluidRow(
+          box(
+            title = "Distribution",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            maidr_output("histogram_plot", height = "400px")
+          ),
+          box(
+            title = "Box Plot Comparison",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            maidr_output("boxplot_plot", height = "400px")
+          )
+        )
+      ),
+
+      # Scatter plots tab
+      tabItem(
+        tabName = "scatter",
+        fluidRow(
+          box(
+            title = "Correlation Analysis",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            maidr_output("scatter_plot", height = "500px")
+          )
+        )
+      )
+    )
+  )
+)
+
+# Define Server
+server <- function(input, output) {
+  # Bar plot
+  output$bar_plot <- render_maidr({
+    sales_data <- data.frame(
+      Product = c("A", "B", "C", "D", "E"),
+      Sales = c(150, 230, 180, 290, 210)
+    )
+
+    ggplot(sales_data, aes(x = Product, y = Sales)) +
+      geom_bar(stat = "identity", fill = "steelblue") +
+      labs(title = "Product Sales", x = "Product", y = "Sales Amount") +
+      theme_minimal()
+  })
+
+  # Dodged bar plot
+  output$dodged_bar_plot <- render_maidr({
+    regional_data <- data.frame(
+      Region = rep(c("North", "South", "East"), each = 2),
+      Quarter = rep(c("Q1", "Q2"), 3),
+      Sales = c(100, 120, 150, 180, 90, 110)
+    )
+
+    ggplot(regional_data, aes(x = Region, y = Sales, fill = Quarter)) +
+      geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+      labs(title = "Regional Sales Comparison") +
+      theme_minimal()
+  })
+
+  # Histogram
+  output$histogram_plot <- render_maidr({
+    hist_data <- data.frame(values = rnorm(1000, mean = 100, sd = 15))
+
+    ggplot(hist_data, aes(x = values)) +
+      geom_histogram(bins = 30, fill = "coral", color = "black") +
+      labs(title = "Score Distribution", x = "Score", y = "Frequency") +
+      theme_minimal()
+  })
+
+  # Boxplot
+  output$boxplot_plot <- render_maidr({
+    ggplot(iris, aes(x = Species, y = Petal.Length)) +
+      geom_boxplot(fill = "lightblue", alpha = 0.7) +
+      labs(title = "Petal Length by Species") +
+      theme_minimal()
+  })
+
+  # Scatter plot
+  output$scatter_plot <- render_maidr({
+    scatter_data <- data.frame(
+      height = rnorm(100, 170, 10),
+      weight = rnorm(100, 70, 8),
+      gender = sample(c("Male", "Female"), 100, replace = TRUE)
+    )
+
+    ggplot(scatter_data, aes(x = height, y = weight, color = gender)) +
+      geom_point(size = 3, alpha = 0.7) +
+      labs(
+        title = "Height vs Weight Analysis",
+        x = "Height (cm)",
+        y = "Weight (kg)"
+      ) +
+      theme_minimal()
+  })
+}
+
+# Run the app
+shinyApp(ui = ui, server = server)
+```
+
+## Reactive Data Example
+
+MAIDR works seamlessly with Shiny’s reactive programming:
+
+``` r
+library(shiny)
+library(ggplot2)
+library(maidr)
+
+ui <- fluidPage(
+  titlePanel("Reactive MAIDR Plot"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("n_points",
+        "Number of Points:",
+        min = 10,
+        max = 200,
+        value = 50
+      ),
+      selectInput("distribution",
+        "Distribution:",
+        choices = c("Normal", "Uniform", "Exponential")
+      )
+    ),
+    mainPanel(
+      maidr_output("reactive_plot", height = "500px")
+    )
+  )
+)
+
+server <- function(input, output) {
+  # Reactive data generation
+  plot_data <- reactive({
+    set.seed(123) # For reproducibility
+
+    if (input$distribution == "Normal") {
+      data.frame(x = rnorm(input$n_points))
+    } else if (input$distribution == "Uniform") {
+      data.frame(x = runif(input$n_points, -3, 3))
+    } else {
+      data.frame(x = rexp(input$n_points, rate = 1) - 1)
+    }
+  })
+
+  # Render plot
+  output$reactive_plot <- render_maidr({
+    ggplot(plot_data(), aes(x = x)) +
+      geom_histogram(bins = 30, fill = "skyblue", color = "black") +
+      labs(
+        title = paste(input$distribution, "Distribution"),
+        subtitle = paste("n =", input$n_points),
+        x = "Value",
+        y = "Frequency"
+      ) +
+      theme_minimal()
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+## Accessibility Features in Shiny
+
+When using MAIDR in Shiny, your plots automatically include:
+
+### 1. Keyboard Navigation
+
+- Users can Tab to reach the plot
+- Arrow keys navigate through data points
+- Screen readers announce values
+
+### 2. ARIA Labels
+
+- Plot containers have descriptive labels
+- Data points are announced properly
+- Navigation state is communicated
+
+### 3. High Contrast Support
+
+- Plots work with high contrast modes
+- Focus indicators are visible
+- Color choices remain accessible
+
+## Best Practices
+
+### 1. Set Appropriate Heights
+
+``` r
+# Good: Explicit height
+maidr_output("plot1", height = "500px")
+
+# Also good: Responsive height
+maidr_output("plot2", height = "auto")
+```
+
+### 2. Add Descriptive Context
+
+``` r
+fluidRow(
+  box(
+    title = "Sales Trend Analysis",
+    status = "primary",
+    maidr_output("sales_plot"),
+    hr(),
+    p("This plot shows monthly sales trends. Use arrow keys to navigate through months.")
+  )
+)
+```
+
+### 3. Test with Keyboard Only
+
+- Ensure all interactive elements are reachable
+- Test Tab navigation order
+- Verify plot navigation works
+
+### 4. Provide Alternative Text
+
+``` r
+output$my_plot <- render_maidr({
+  p <- ggplot(data, aes(x, y)) +
+    geom_bar(stat = "identity") +
+    labs(
+      title = "Clear, Descriptive Title",
+      subtitle = "Additional context about the data",
+      x = "X-axis label with units",
+      y = "Y-axis label with units"
+    )
+  p
+})
+```
+
+## Performance Considerations
+
+For large Shiny apps with many plots:
+
+1.  **Use [`isolate()`](https://rdrr.io/pkg/shiny/man/isolate.html) for
+    non-essential reactivity**
+2.  **Cache expensive computations with
+    [`reactive()`](https://rdrr.io/pkg/shiny/man/reactive.html)**
+3.  **Consider plot complexity** - simpler plots load faster
+4.  **Test with real data sizes**
+
+## Complete Example Application
+
+See the complete MAIDR dashboard example in:
+
+``` r
+system.file("examples", "maidr_dashboard.R", package = "maidr")
+```
+
+This example demonstrates: - Multiple plot types - Sidebar navigation -
+Accessibility features - Responsive layout - Professional styling
+
+## Deployment
+
+When deploying Shiny apps with MAIDR:
+
+1.  **Ensure all dependencies are installed**
+2.  **Test accessibility in production**
+3.  **Monitor performance**
+4.  **Provide user documentation**
+
+## Troubleshooting
+
+### Common Issues
+
+**Plot doesn’t appear:** - Check that ggplot object is returned from
+[`render_maidr()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/render_maidr.md) -
+Verify output ID matches between UI and server
+
+**Keyboard navigation not working:** - Ensure plot container is
+visible - Check browser console for JavaScript errors
+
+**Screen reader issues:** - Test with multiple screen readers - Verify
+ARIA labels are present
+
+## Learn More
+
+- **[Getting
+  Started](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/getting-started.md)** -
+  MAIDR basics
+- **[Plot
+  Types](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)** -
+  All supported visualizations
+- **Shiny documentation** - [shiny.posit.co](https://shiny.posit.co/)
+- **Accessibility guidelines** - [WCAG
+  2.1](https://www.w3.org/WAI/WCAG22/quickref/?versions=2.1)
+
+## Getting Help
+
+- GitHub issues:
+  [maidr/issues](https://github.com/xability/maidr/issues)
+- Package documentation:
+  [`?maidr::maidr_output`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md)
+- Posit Community: [forum.posit.co](https://forum.posit.co/)

@@ -1,0 +1,11 @@
+pandoc: 3.1.11
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  getting-started: getting-started.html
+  plot-types: plot-types.html
+  shiny-integration: shiny-integration.html
+last_built: 2025-12-06T18:07Z
+urls:
+  reference: http://xabilitylab.ischool.illinois.edu/r-maidr/reference
+  article: http://xabilitylab.ischool.illinois.edu/r-maidr/articles
