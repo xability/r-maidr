@@ -209,10 +209,11 @@ test_that("save_html() requires existing parent directory", {
     unlink(test_subdir, recursive = TRUE)
   }
 
+
   # save_html does NOT create parent directories automatically
+  # Note: Error message is OS/locale-dependent, so we just check that an error occurs
   testthat::expect_error(
-    save_html(p, file = test_file),
-    "No such file or directory"
+    save_html(p, file = test_file)
   )
 
   # Cleanup
