@@ -26,6 +26,12 @@ reference:
       - show
       - save_html
 
+  - title: RMarkdown integration
+    desc: Functions for enabling accessible plots in RMarkdown documents
+    contents:
+      - maidr_on
+      - maidr_off
+
   - title: Shiny integration
     desc: Functions for using maidr in Shiny applications
     contents:
