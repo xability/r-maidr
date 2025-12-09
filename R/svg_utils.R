@@ -149,12 +149,35 @@ display_html_file <- function(file) {
 #' Generates a complete standalone HTML document with MAIDR.js that can be
 #' embedded in an iframe for isolation. Each iframe gets its own JavaScript
 #' context, avoiding MAIDR.js singleton pattern issues with multiple plots.
+#' Auto-detects internet availability: uses CDN if online, inline local if offline.
 #'
 #' @param svg_content Character vector of SVG content with maidr-data attribute
 #' @return Character string of complete HTML document
 #' @keywords internal
 create_standalone_html <- function(svg_content) {
   svg_html <- paste(svg_content, collapse = "\n")
+
+  # Auto-detect: use CDN if internet available, otherwise inline local content
+  use_cdn <- curl::has_internet()
+
+  if (use_cdn) {
+    # CDN links - smaller HTML, relies on internet at view time
+    css_tag <- sprintf(
+      '<link rel="stylesheet" href="%s/maidr.css">',
+      maidr_cdn_url()
+    )
+    js_tag <- sprintf(
+      '<script src="%s/maidr.js"></script>',
+      maidr_cdn_url()
+    )
+  } else {
+    # Inline local content - works offline, larger HTML
+    assets <- maidr_local_assets()
+    css_content <- paste(readLines(assets$css, warn = FALSE), collapse = "\n")
+    js_content <- paste(readLines(assets$js, warn = FALSE), collapse = "\n")
+    css_tag <- sprintf("<style>\n%s\n</style>", css_content)
+    js_tag <- sprintf("<script>\n%s\n</script>", js_content)
+  }
 
   # Create a complete standalone HTML document
   # CSS prevents layout shifts from focus outlines and MAIDR UI elements
@@ -164,7 +187,7 @@ create_standalone_html <- function(svg_content) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MAIDR Plot</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maidr@latest/dist/maidr_style.css">
+  %s
   <style>
     html, body {
       margin: 0;
@@ -203,9 +226,9 @@ create_standalone_html <- function(svg_content) {
 </head>
 <body>
   %s
-  <script src="https://cdn.jsdelivr.net/npm/maidr@latest/dist/maidr.js"></script>
+  %s
 </body>
-</html>', svg_html)
+</html>', css_tag, svg_html, js_tag)
 
   html
 }

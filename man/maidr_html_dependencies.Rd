@@ -2,14 +2,17 @@
 % Please edit documentation in R/html_dependencies.R
 \name{maidr_html_dependencies}
 \alias{maidr_html_dependencies}
-\title{Register JS/CSS dependencies for maidr from CDN}
+\title{Register JS/CSS dependencies for maidr with auto-detection}
 \usage{
 maidr_html_dependencies()
 }
 \value{
-A list of htmlDependency objects for maidr.js and maidr_style.css
+A list containing one htmlDependency object
 }
 \description{
-Internal function to create HTML dependencies for MAIDR JavaScript and CSS files.
+Creates HTML dependencies for MAIDR JavaScript and CSS files.
+Automatically detects internet availability:
+- If internet is available: uses CDN (smaller HTML, better caching)
+- If offline: uses local bundled files (works without internet)
 }
 \keyword{internal}

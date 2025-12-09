@@ -165,16 +165,8 @@ create_maidr_widget_internal <- function(plot = NULL) {
   # Get SVG content using existing infrastructure
   svg_content <- create_maidr_html(plot, shiny = TRUE)
 
-  # Define dependencies
-  maidr_deps <- list(
-    htmltools::htmlDependency(
-      name = "maidr-js",
-      version = "1.0.0",
-      src = c(href = "https://cdn.jsdelivr.net/npm/maidr@latest/dist"),
-      script = "maidr.js",
-      stylesheet = "maidr_style.css"
-    )
-  )
+  # Use centralized MAIDR dependencies (local files with CDN fallback)
+  maidr_deps <- maidr_html_dependencies()
 
   htmlwidgets::createWidget(
     name = "maidr",

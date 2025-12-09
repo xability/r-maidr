@@ -1,7 +1,6 @@
 dependencies:
-  - name: maidr-js
-    version: 1.0.0
-    src: 
-      href: https://cdn.jsdelivr.net/npm/maidr@latest/dist
+  - name: maidr
+    version: 3.39.0
+    src: htmlwidgets/lib/maidr-3.39.0
     script: maidr.js
-    stylesheet: maidr_style.css
+    stylesheet: maidr.css
