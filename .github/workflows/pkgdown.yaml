@@ -30,13 +30,13 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Remove stale lockfile
-        run: rm -f .github/pkg.lock
-
+      # cache-version: increment to invalidate stale package caches when
+      # CRAN binary URLs change (rare, ~1-2x per year)
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+          cache-version: 2
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
