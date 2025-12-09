@@ -82,25 +82,25 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 
       # Determine x, y, and fill column names
       x_col <- if (!is.null(layer_mapping$x)) {
-        rlang::as_name(layer_mapping$x)
+        rlang::as_label(layer_mapping$x)
       } else if (!is.null(plot_mapping$x)) {
-        rlang::as_name(plot_mapping$x)
+        rlang::as_label(plot_mapping$x)
       } else {
         names(original_data)[1]
       }
 
       y_col <- if (!is.null(layer_mapping$y)) {
-        rlang::as_name(layer_mapping$y)
+        rlang::as_label(layer_mapping$y)
       } else if (!is.null(plot_mapping$y)) {
-        rlang::as_name(plot_mapping$y)
+        rlang::as_label(plot_mapping$y)
       } else {
         names(original_data)[2]
       }
 
       fill_col <- if (!is.null(layer_mapping$fill)) {
-        rlang::as_name(layer_mapping$fill)
+        rlang::as_label(layer_mapping$fill)
       } else if (!is.null(plot_mapping$fill)) {
-        rlang::as_name(plot_mapping$fill)
+        rlang::as_label(plot_mapping$fill)
       } else {
         names(original_data)[3]
       }

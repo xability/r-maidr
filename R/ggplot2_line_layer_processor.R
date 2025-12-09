@@ -69,9 +69,9 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
           x_col <- NULL
           if (!is.null(layer_mapping$x)) {
-            x_col <- rlang::as_name(layer_mapping$x)
+            x_col <- rlang::as_label(layer_mapping$x)
           } else if (!is.null(plot_mapping$x)) {
-            x_col <- rlang::as_name(plot_mapping$x)
+            x_col <- rlang::as_label(plot_mapping$x)
           }
 
           # For faceted plots, we need to get the x values for this specific panel
@@ -182,20 +182,20 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
       if (!is.null(layer_mapping)) {
         if (!is.null(layer_mapping$colour)) {
-          return(rlang::as_name(layer_mapping$colour))
+          return(rlang::as_label(layer_mapping$colour))
         }
         if (!is.null(layer_mapping$color)) {
-          return(rlang::as_name(layer_mapping$color))
+          return(rlang::as_label(layer_mapping$color))
         }
       }
 
       plot_mapping <- plot$mapping
       if (!is.null(plot_mapping)) {
         if (!is.null(plot_mapping$colour)) {
-          return(rlang::as_name(plot_mapping$colour))
+          return(rlang::as_label(plot_mapping$colour))
         }
         if (!is.null(plot_mapping$color)) {
-          return(rlang::as_name(plot_mapping$color))
+          return(rlang::as_label(plot_mapping$color))
         }
       }
 

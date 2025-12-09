@@ -136,14 +136,14 @@ extract_leaf_plot_layout <- function(leaf_plot) {
   # Extract x label: try labels$x first, fall back to mapping
   x_label <- leaf_plot$labels$x
   if (is.null(x_label) && !is.null(leaf_plot$mapping$x)) {
-    x_label <- rlang::as_name(leaf_plot$mapping$x)
+    x_label <- rlang::as_label(leaf_plot$mapping$x)
   }
   if (is.null(x_label)) x_label <- ""
 
   # Extract y label: try labels$y first, fall back to mapping
   y_label <- leaf_plot$labels$y
   if (is.null(y_label) && !is.null(leaf_plot$mapping$y)) {
-    y_label <- rlang::as_name(leaf_plot$mapping$y)
+    y_label <- rlang::as_label(leaf_plot$mapping$y)
   }
   if (is.null(y_label)) y_label <- ""
 

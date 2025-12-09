@@ -60,7 +60,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       } else {
         # Try to get from mapping
         if (!is.null(plot$mapping$x)) {
-          x_label <- rlang::as_name(plot$mapping$x)
+          x_label <- rlang::as_label(plot$mapping$x)
         }
       }
 
@@ -71,7 +71,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       } else {
         # Try to get from mapping
         if (!is.null(plot$mapping$y)) {
-          y_label <- rlang::as_name(plot$mapping$y)
+          y_label <- rlang::as_label(plot$mapping$y)
         }
       }
 
@@ -107,9 +107,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
           x_col <- NULL
           if (!is.null(layer_mapping$x)) {
-            x_col <- rlang::as_name(layer_mapping$x)
+            x_col <- rlang::as_label(layer_mapping$x)
           } else if (!is.null(plot_mapping$x)) {
-            x_col <- rlang::as_name(plot_mapping$x)
+            x_col <- rlang::as_label(plot_mapping$x)
           }
 
           # For faceted plots, we need to get the x values for this specific panel
@@ -141,30 +141,30 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
       # Determine x, y column names
       x_col <- if (!is.null(layer_mapping$x)) {
-        rlang::as_name(layer_mapping$x)
+        rlang::as_label(layer_mapping$x)
       } else if (!is.null(plot_mapping$x)) {
-        rlang::as_name(plot_mapping$x)
+        rlang::as_label(plot_mapping$x)
       } else {
         names(original_data)[1]
       }
 
       y_col <- if (!is.null(layer_mapping$y)) {
-        rlang::as_name(layer_mapping$y)
+        rlang::as_label(layer_mapping$y)
       } else if (!is.null(plot_mapping$y)) {
-        rlang::as_name(plot_mapping$y)
+        rlang::as_label(plot_mapping$y)
       } else {
         names(original_data)[2]
       }
 
       # Determine color column name
       color_col <- if (!is.null(layer_mapping$colour)) {
-        rlang::as_name(layer_mapping$colour)
+        rlang::as_label(layer_mapping$colour)
       } else if (!is.null(layer_mapping$color)) {
-        rlang::as_name(layer_mapping$color)
+        rlang::as_label(layer_mapping$color)
       } else if (!is.null(plot_mapping$colour)) {
-        rlang::as_name(plot_mapping$colour)
+        rlang::as_label(plot_mapping$colour)
       } else if (!is.null(plot_mapping$color)) {
-        rlang::as_name(plot_mapping$color)
+        rlang::as_label(plot_mapping$color)
       } else {
         NULL
       }

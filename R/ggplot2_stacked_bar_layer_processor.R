@@ -47,7 +47,7 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         if (is.call(expr) && expr[[1]] == "factor") {
           as.character(expr[[2]])
         } else {
-          rlang::as_name(expr)
+          rlang::as_label(expr)
         }
       }
 
@@ -59,9 +59,9 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
     extract_data = function(plot, built = NULL) {
       original_data <- plot$data
       plot_mapping <- plot$mapping
-      x_col <- rlang::as_name(plot_mapping$x)
-      y_col <- rlang::as_name(plot_mapping$y)
-      fill_col <- rlang::as_name(plot_mapping$fill)
+      x_col <- rlang::as_label(plot_mapping$x)
+      y_col <- rlang::as_label(plot_mapping$y)
+      fill_col <- rlang::as_label(plot_mapping$fill)
 
       built_data <- ggplot2::ggplot_build(plot)
       if (length(built_data$data) > 0) {

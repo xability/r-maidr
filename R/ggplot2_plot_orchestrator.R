@@ -138,8 +138,19 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         }
       }
 
+      # Suppress native R graphics window by using a null PDF device
+      # This ensures only the HTML output is displayed
+      current_dev <- grDevices::dev.cur()
+      null_pdf <- tempfile(fileext = ".pdf")
+      grDevices::pdf(null_pdf, width = 7, height = 5)
+
       built_final <- ggplot2::ggplot_build(plot_for_render)
       gt_final <- ggplot2::ggplotGrob(plot_for_render)
+
+      # Close null device and restore previous device
+      grDevices::dev.off()
+      if (current_dev > 1) grDevices::dev.set(current_dev)
+      unlink(null_pdf)
       private$.gtable <- gt_final
 
       layer_results <- list()
@@ -164,14 +175,14 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # Extract x label: try labels$x first, fall back to mapping
       x_label <- private$.plot$labels$x
       if (is.null(x_label) && !is.null(private$.plot$mapping$x)) {
-        x_label <- rlang::as_name(private$.plot$mapping$x)
+        x_label <- rlang::as_label(private$.plot$mapping$x)
       }
       if (is.null(x_label)) x_label <- ""
 
       # Extract y label: try labels$y first, fall back to mapping
       y_label <- private$.plot$labels$y
       if (is.null(y_label) && !is.null(private$.plot$mapping$y)) {
-        y_label <- rlang::as_name(private$.plot$mapping$y)
+        y_label <- rlang::as_label(private$.plot$mapping$y)
       }
       if (is.null(y_label)) y_label <- ""
 
@@ -245,7 +256,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # All plot types use the same unified structure
       # The combined_data already has the correct format for each plot type
       list(
-        id = paste0("maidr-plot-", as.integer(Sys.time())),
+        id = paste0("maidr-plot-", generate_unique_id()),
         subplots = private$.combined_data
       )
     },
@@ -287,10 +298,20 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     process_faceted_plot = function() {
       private$.layout <- self$extract_layout()
 
+      # Suppress native R graphics window by using a null PDF device
+      current_dev <- grDevices::dev.cur()
+      null_pdf <- tempfile(fileext = ".pdf")
+      grDevices::pdf(null_pdf, width = 7, height = 5)
+
       private$.gtable <- ggplot2::ggplotGrob(private$.plot)
 
       # Built plot data
       built <- ggplot2::ggplot_build(private$.plot)
+
+      # Close null device and restore previous device
+      grDevices::dev.off()
+      if (current_dev > 1) grDevices::dev.set(current_dev)
+      unlink(null_pdf)
 
       # Use utility function to process faceted plot
       private$.combined_data <- process_faceted_plot_data(
@@ -311,11 +332,21 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         axes = list()
       )
 
+      # Suppress native R graphics window by using a null PDF device
+      current_dev <- grDevices::dev.cur()
+      null_pdf <- tempfile(fileext = ".pdf")
+      grDevices::pdf(null_pdf, width = 7, height = 5)
+
       if (requireNamespace("patchwork", quietly = TRUE)) {
         private$.gtable <- patchwork::patchworkGrob(private$.plot)
       } else {
         private$.gtable <- ggplot2::ggplotGrob(ggplot2::ggplot())
       }
+
+      # Close null device and restore previous device
+      grDevices::dev.off()
+      if (current_dev > 1) grDevices::dev.set(current_dev)
+      unlink(null_pdf)
 
       # Use utility function to process patchwork plot
       private$.combined_data <- process_patchwork_plot_data(

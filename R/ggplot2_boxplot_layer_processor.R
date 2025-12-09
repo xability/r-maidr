@@ -345,7 +345,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
 
       # If y is mapped and x is not explicitly continuous, check y data
       if (!is.null(layer_mapping$y) && is.null(layer_mapping$x)) {
-        y_var_name <- rlang::as_name(layer_mapping$y)
+        y_var_name <- rlang::as_label(layer_mapping$y)
         y_data <- plot$data[[y_var_name]]
         if (is.factor(y_data) || is.character(y_data) || length(unique(y_data)) <= 10) {
           return("horz")
@@ -354,7 +354,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
 
       # If x is mapped and y is not explicitly continuous, check x data
       if (!is.null(layer_mapping$x) && is.null(layer_mapping$y)) {
-        x_var_name <- rlang::as_name(layer_mapping$x)
+        x_var_name <- rlang::as_label(layer_mapping$x)
         x_data <- plot$data[[x_var_name]]
         if (is.factor(x_data) || is.character(x_data) || length(unique(x_data)) <= 10) {
           return("vert")

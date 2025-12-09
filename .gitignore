@@ -23,3 +23,5 @@ dev-docs/
 
 # pkgdown output
 docs/
+/doc/
+/Meta/

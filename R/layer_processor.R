@@ -107,7 +107,7 @@ LayerProcessor <- R6::R6Class(
         tryCatch(
           {
             # Try simple conversion first
-            rlang::as_name(mapping_expr)
+            rlang::as_label(mapping_expr)
           },
           error = function(e) {
             # If that fails, try to extract the first symbol from the expression

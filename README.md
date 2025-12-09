@@ -65,14 +65,29 @@ show()
 
 ## Supported plot types
 
-maidr supports common visualization types in both ggplot2 and Base R:
+maidr supports a wide range of visualization types in both ggplot2 and Base R:
 
-- Bar charts (simple, grouped, stacked)
-- Histograms
-- Scatter plots
-- Line plots
-- Box plots
-- Heatmaps
+### Basic Plot Types
+| Plot Type | ggplot2 | Base R |
+|-----------|---------|--------|
+| Bar charts | `geom_bar()`, `geom_col()` | `barplot()` |
+| Grouped/Dodged bars | `position = "dodge"` | `beside = TRUE` |
+| Stacked bars | `position = "stack"` | `beside = FALSE` |
+| Histograms | `geom_histogram()` | `hist()` |
+| Scatter plots | `geom_point()` | `plot()` |
+| Line plots | `geom_line()` | `plot(type = "l")`, `lines()` |
+| Box plots | `geom_boxplot()` | `boxplot()` |
+| Heatmaps | `geom_tile()` | `image()` |
+| Density/Smooth | `geom_smooth()`, `geom_density()` | `lines(density())` |
+
+### Advanced Plot Types
+| Plot Type | ggplot2 | Base R |
+|-----------|---------|--------|
+| Faceted plots | `facet_wrap()`, `facet_grid()` | `par(mfrow/mfcol)` + loops |
+| Multi-panel layouts | `patchwork` package | `par(mfrow)`, `par(mfcol)` |
+| Multi-layered plots | Multiple `geom_*` layers | Sequential plot calls |
+
+See `vignette("plot-types")` for detailed examples of each plot type.
 
 ## Accessibility features
 
