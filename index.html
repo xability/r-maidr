@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Multimodal Access and Interactive Data Representation">
-<meta name="description" content="Provides accessible, interactive visualizations through the MAIDR (Multimodal Access and Interactive Data Representation) system. Converts ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification capabilities. Supports bar charts, histograms, line plots, scatter plots, box plots, heat maps, and other common visualizations. Enables data exploration for users with visual impairments through multiple sensory modalities.">
-<meta property="og:description" content="Provides accessible, interactive visualizations through the MAIDR (Multimodal Access and Interactive Data Representation) system. Converts ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification capabilities. Supports bar charts, histograms, line plots, scatter plots, box plots, heat maps, and other common visualizations. Enables data exploration for users with visual impairments through multiple sensory modalities.">
+<meta name="description" content="Provides accessible, interactive visualizations through the MAIDR (Multimodal Access and Interactive Data Representation) system. Converts ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification capabilities. Supports bar charts (simple, grouped, stacked), histograms, line plots, scatter plots, box plots, heat maps, density/smooth curves, faceted plots, multi-panel layouts (including patchwork), and multi-layered plot combinations. Enables data exploration for users with visual impairments through multiple sensory modalities.">
+<meta property="og:description" content="Provides accessible, interactive visualizations through the MAIDR (Multimodal Access and Interactive Data Representation) system. Converts ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification capabilities. Supports bar charts (simple, grouped, stacked), histograms, line plots, scatter plots, box plots, heat maps, density/smooth curves, faceted plots, multi-panel layouts (including patchwork), and multi-layered plot combinations. Enables data exploration for users with visual impairments through multiple sensory modalities.">
 <meta property="og:image" content="http://xabilitylab.ischool.illinois.edu/r-maidr/logo.svg">
 </head>
 <body>
@@ -133,15 +133,116 @@
 <div class="section level2">
 <h2 id="supported-plot-types">Supported plot types<a class="anchor" aria-label="anchor" href="#supported-plot-types"></a>
 </h2>
-<p>maidr supports common visualization types in both ggplot2 and Base R:</p>
-<ul>
-<li>Bar charts (simple, grouped, stacked)</li>
-<li>Histograms</li>
-<li>Scatter plots</li>
-<li>Line plots</li>
-<li>Box plots</li>
-<li>Heatmaps</li>
-</ul>
+<p>maidr supports a wide range of visualization types in both ggplot2 and Base R:</p>
+<div class="section level3">
+<h3 id="basic-plot-types">Basic Plot Types<a class="anchor" aria-label="anchor" href="#basic-plot-types"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="39%">
+<col width="32%">
+<col width="28%">
+</colgroup>
+<thead><tr class="header">
+<th>Plot Type</th>
+<th>ggplot2</th>
+<th>Base R</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Bar charts</td>
+<td>
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col()</a></code>
+</td>
+<td><code><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot()</a></code></td>
+</tr>
+<tr class="even">
+<td>Grouped/Dodged bars</td>
+<td><code>position = "dodge"</code></td>
+<td><code>beside = TRUE</code></td>
+</tr>
+<tr class="odd">
+<td>Stacked bars</td>
+<td><code>position = "stack"</code></td>
+<td><code>beside = FALSE</code></td>
+</tr>
+<tr class="even">
+<td>Histograms</td>
+<td><code><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram()</a></code></td>
+<td><code><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist()</a></code></td>
+</tr>
+<tr class="odd">
+<td>Scatter plots</td>
+<td><code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code></td>
+<td><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code></td>
+</tr>
+<tr class="even">
+<td>Line plots</td>
+<td><code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code></td>
+<td>
+<code>plot(type = "l")</code>, <code><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines()</a></code>
+</td>
+</tr>
+<tr class="odd">
+<td>Box plots</td>
+<td><code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot()</a></code></td>
+<td><code><a href="https://rdrr.io/r/graphics/boxplot.html" class="external-link">boxplot()</a></code></td>
+</tr>
+<tr class="even">
+<td>Heatmaps</td>
+<td><code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code></td>
+<td><code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image()</a></code></td>
+</tr>
+<tr class="odd">
+<td>Density/Smooth</td>
+<td>
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code>
+</td>
+<td><code>lines(density())</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
+<h3 id="advanced-plot-types">Advanced Plot Types<a class="anchor" aria-label="anchor" href="#advanced-plot-types"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="39%">
+<col width="32%">
+<col width="28%">
+</colgroup>
+<thead><tr class="header">
+<th>Plot Type</th>
+<th>ggplot2</th>
+<th>Base R</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Faceted plots</td>
+<td>
+<code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid()</a></code>
+</td>
+<td>
+<code>par(mfrow/mfcol)</code> + loops</td>
+</tr>
+<tr class="even">
+<td>Multi-panel layouts</td>
+<td>
+<code>patchwork</code> package</td>
+<td>
+<code>par(mfrow)</code>, <code>par(mfcol)</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Multi-layered plots</td>
+<td>Multiple <code>geom_*</code> layers</td>
+<td>Sequential plot calls</td>
+</tr>
+</tbody>
+</table>
+<p>See <code><a href="articles/plot-types.html">vignette("plot-types")</a></code> for detailed examples of each plot type.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="accessibility-features">Accessibility features<a class="anchor" aria-label="anchor" href="#accessibility-features"></a>

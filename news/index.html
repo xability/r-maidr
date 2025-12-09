@@ -52,27 +52,40 @@
 <div class="section level3">
 <h3 id="supported-plot-types-0-1-0">Supported Plot Types<a class="anchor" aria-label="anchor" href="#supported-plot-types-0-1-0"></a></h3>
 <div class="section level4">
-<h4 id="ggplot2-0-1-0">ggplot2<a class="anchor" aria-label="anchor" href="#ggplot2-0-1-0"></a></h4>
+<h4 id="ggplot2---basic-0-1-0">ggplot2 - Basic<a class="anchor" aria-label="anchor" href="#ggplot2---basic-0-1-0"></a></h4>
 <ul><li>Bar charts (<code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col()</a></code>)</li>
-<li>Grouped/dodged bar charts</li>
-<li>Stacked bar charts</li>
+<li>Grouped/dodged bar charts (<code>position = "dodge"</code>)</li>
+<li>Stacked bar charts (<code>position = "stack"</code>)</li>
 <li>Histograms (<code><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram()</a></code>)</li>
 <li>Line plots (<code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code>)</li>
 <li>Scatter plots (<code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code>)</li>
 <li>Box plots (<code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot()</a></code>)</li>
 <li>Heatmaps (<code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code>)</li>
-<li>Smooth curves (<code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code>)</li>
+<li>Smooth/density curves (<code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="base-r-0-1-0">Base R<a class="anchor" aria-label="anchor" href="#base-r-0-1-0"></a></h4>
+<h4 id="ggplot2---advanced-0-1-0">ggplot2 - Advanced<a class="anchor" aria-label="anchor" href="#ggplot2---advanced-0-1-0"></a></h4>
+<ul><li>Faceted plots (<code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid()</a></code>)</li>
+<li>Multi-panel layouts with patchwork package</li>
+<li>Multi-layered plots (e.g., histogram + density, scatter + smooth)</li>
+</ul></div>
+<div class="section level4">
+<h4 id="base-r---basic-0-1-0">Base R - Basic<a class="anchor" aria-label="anchor" href="#base-r---basic-0-1-0"></a></h4>
 <ul><li>Bar plots (<code><a href="https://rdrr.io/r/graphics/barplot.html" class="external-link">barplot()</a></code>)</li>
-<li>Grouped and stacked bar plots</li>
+<li>Grouped bar plots (<code>beside = TRUE</code>)</li>
+<li>Stacked bar plots (<code>beside = FALSE</code>)</li>
 <li>Histograms (<code><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist()</a></code>)</li>
 <li>Line plots (<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> with <code>type = "l"</code>, <code><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines()</a></code>)</li>
 <li>Scatter plots (<code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>)</li>
 <li>Box plots (<code><a href="https://rdrr.io/r/graphics/boxplot.html" class="external-link">boxplot()</a></code>)</li>
 <li>Heatmaps (<code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image()</a></code>)</li>
-<li>Multi-panel plots (<code>par(mfrow)</code>, <code>par(mfcol)</code>)</li>
+<li>Density curves (<code>lines(density())</code>)</li>
+</ul></div>
+<div class="section level4">
+<h4 id="base-r---advanced-0-1-0">Base R - Advanced<a class="anchor" aria-label="anchor" href="#base-r---advanced-0-1-0"></a></h4>
+<ul><li>Multi-panel plots (<code>par(mfrow)</code>, <code>par(mfcol)</code>)</li>
+<li>Faceted-style plots (using <code><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par()</a></code> with loops)</li>
+<li>Multi-layered plots (sequential plotting calls)</li>
 </ul></div>
 </div>
 <div class="section level3">

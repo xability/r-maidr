@@ -65,14 +65,34 @@ show()
 
 ## Supported plot types
 
-maidr supports common visualization types in both ggplot2 and Base R:
+maidr supports a wide range of visualization types in both ggplot2 and
+Base R:
 
-- Bar charts (simple, grouped, stacked)
-- Histograms
-- Scatter plots
-- Line plots
-- Box plots
-- Heatmaps
+### Basic Plot Types
+
+| Plot Type           | ggplot2                                                                                                                                                    | Base R                                                                 |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| Bar charts          | [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html), [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)               | [`barplot()`](https://rdrr.io/r/graphics/barplot.html)                 |
+| Grouped/Dodged bars | `position = "dodge"`                                                                                                                                       | `beside = TRUE`                                                        |
+| Stacked bars        | `position = "stack"`                                                                                                                                       | `beside = FALSE`                                                       |
+| Histograms          | [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html)                                                                          | [`hist()`](https://rdrr.io/r/graphics/hist.html)                       |
+| Scatter plots       | [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)                                                                                  | [`plot()`](https://rdrr.io/r/graphics/plot.default.html)               |
+| Line plots          | [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)                                                                                    | `plot(type = "l")`, [`lines()`](https://rdrr.io/r/graphics/lines.html) |
+| Box plots           | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html)                                                                              | [`boxplot()`](https://rdrr.io/r/graphics/boxplot.html)                 |
+| Heatmaps            | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)                                                                                    | [`image()`](https://rdrr.io/r/graphics/image.html)                     |
+| Density/Smooth      | [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html), [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) | `lines(density())`                                                     |
+
+### Advanced Plot Types
+
+| Plot Type           | ggplot2                                                                                                                                              | Base R                     |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
+| Faceted plots       | [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html), [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html) | `par(mfrow/mfcol)` + loops |
+| Multi-panel layouts | `patchwork` package                                                                                                                                  | `par(mfrow)`, `par(mfcol)` |
+| Multi-layered plots | Multiple `geom_*` layers                                                                                                                             | Sequential plot calls      |
+
+See
+[`vignette("plot-types")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)
+for detailed examples of each plot type.
 
 ## Accessibility features
 

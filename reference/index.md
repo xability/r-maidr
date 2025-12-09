@@ -9,6 +9,15 @@ Primary user-facing functions for creating accessible plots
 - [`save_html()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/save_html.md)
   : Save Interactive Plot as HTML File
 
+## RMarkdown integration
+
+Functions for enabling accessible plots in RMarkdown documents
+
+- [`maidr_on()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_on.md)
+  : Enable MAIDR Rendering in RMarkdown
+- [`maidr_off()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_off.md)
+  : Disable MAIDR Rendering in RMarkdown
+
 ## Shiny integration
 
 Functions for using maidr in Shiny applications

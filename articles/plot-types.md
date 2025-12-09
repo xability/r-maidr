@@ -321,7 +321,7 @@ show()
 library(maidr)
 library(ggplot2)
 
-# Faceted bar plot
+# ggplot2 - Faceted bar plot
 facet_data <- data.frame(
   x = rep(1:5, 4),
   y = runif(20, 1, 100),
@@ -335,9 +335,20 @@ p <- ggplot(facet_data, aes(x = x, y = y)) +
   theme_minimal()
 
 show(p)
+
+# ggplot2 - facet_grid example
+p_grid <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point() +
+  facet_grid(cyl ~ gear) +
+  labs(title = "Facet Grid: Cylinders vs Gears") +
+  theme_minimal()
+
+show(p_grid)
 ```
 
-## Multi-Panel Layouts (Patchwork)
+## Multi-Panel Layouts
+
+### ggplot2 with Patchwork
 
 ``` r
 library(maidr)
@@ -355,23 +366,158 @@ p2 <- ggplot(data.frame(x = c("A", "B", "C"), y = c(10, 20, 15)), aes(x, y)) +
   labs(title = "Bar Plot") +
   theme_minimal()
 
-# Combine with patchwork
+# Combine with patchwork (side by side)
 combined <- p1 + p2
 show(combined)
+
+# 2x2 layout
+p3 <- ggplot(mtcars, aes(x = mpg)) +
+  geom_histogram(fill = "lightgreen", bins = 10) +
+  theme_minimal()
+
+p4 <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_boxplot(fill = "lavender") +
+  theme_minimal()
+
+combined_2x2 <- (p1 + p2) / (p3 + p4)
+show(combined_2x2)
+```
+
+### Base R with par(mfrow/mfcol)
+
+``` r
+library(maidr)
+
+# 2x2 multi-panel layout using par(mfrow)
+par(mfrow = c(2, 2))
+
+# Panel 1: Bar plot
+barplot(c(10, 20, 15, 25),
+  names.arg = c("A", "B", "C", "D"),
+  col = "steelblue", main = "Bar Plot"
+)
+
+# Panel 2: Histogram
+hist(rnorm(100), col = "coral", main = "Histogram")
+
+# Panel 3: Scatter plot
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19, col = "darkgreen",
+  main = "Scatter Plot", xlab = "Weight", ylab = "MPG"
+)
+
+# Panel 4: Line plot
+x <- 1:10
+y <- cumsum(rnorm(10))
+plot(x, y, type = "l", col = "purple", lwd = 2, main = "Line Plot")
+
+show()
+
+# Reset to single panel
+par(mfrow = c(1, 1))
+```
+
+## Multi-Layered Plots
+
+Multi-layered plots combine multiple visualization types in a single
+plot.
+
+### ggplot2 Multi-Layer Examples
+
+``` r
+library(maidr)
+library(ggplot2)
+
+# Histogram with density overlay
+p_hist_density <- ggplot(mtcars, aes(x = mpg)) +
+  geom_histogram(aes(y = after_stat(density)),
+    bins = 15,
+    fill = "lightblue", color = "white"
+  ) +
+  geom_density(color = "red", linewidth = 1.2) +
+  labs(title = "Histogram with Density Curve") +
+  theme_minimal()
+
+show(p_hist_density)
+
+# Scatter plot with smooth line
+p_scatter_smooth <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(color = "steelblue", size = 3) +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  labs(title = "Scatter Plot with Linear Regression") +
+  theme_minimal()
+
+show(p_scatter_smooth)
+
+# Bar plot with line overlay
+combo_data <- data.frame(
+  month = month.abb[1:6],
+  sales = c(100, 120, 90, 150, 130, 160),
+  target = c(110, 110, 110, 140, 140, 140)
+)
+
+p_bar_line <- ggplot(combo_data, aes(x = month)) +
+  geom_bar(aes(y = sales), stat = "identity", fill = "steelblue", alpha = 0.7) +
+  geom_line(aes(y = target, group = 1), color = "red", linewidth = 1.5) +
+  geom_point(aes(y = target), color = "red", size = 3) +
+  labs(title = "Sales vs Target", y = "Value") +
+  theme_minimal()
+
+show(p_bar_line)
+```
+
+### Base R Multi-Layer Examples
+
+``` r
+library(maidr)
+
+# Histogram with density curve
+hist(mtcars$mpg,
+  breaks = 15, freq = FALSE,
+  col = "lightblue", border = "white",
+  main = "Histogram with Density Curve",
+  xlab = "Miles per Gallon"
+)
+lines(density(mtcars$mpg), col = "red", lwd = 2)
+show()
+
+# Scatter plot with regression line
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19, col = "steelblue",
+  main = "Scatter Plot with Regression Line",
+  xlab = "Weight", ylab = "MPG"
+)
+abline(lm(mpg ~ wt, data = mtcars), col = "red", lwd = 2)
+show()
+
+# Scatter plot with LOESS smooth
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19, col = "darkgreen",
+  main = "Scatter Plot with LOESS Smooth",
+  xlab = "Weight", ylab = "MPG"
+)
+loess_fit <- loess(mpg ~ wt, data = mtcars)
+wt_seq <- seq(min(mtcars$wt), max(mtcars$wt), length.out = 100)
+lines(wt_seq, predict(loess_fit, data.frame(wt = wt_seq)),
+  col = "red", lwd = 2
+)
+show()
 ```
 
 ## When to Use Each Plot Type
 
-| Plot Type        | Best For                        | Example Use Case       |
-|------------------|---------------------------------|------------------------|
-| **Bar Chart**    | Comparing categories            | Sales by product       |
-| **Histogram**    | Showing distributions           | Test score frequencies |
-| **Scatter Plot** | Relationships between variables | Height vs weight       |
-| **Line Plot**    | Trends over time/order          | Stock prices           |
-| **Box Plot**     | Distribution comparison         | Salary by department   |
-| **Heatmap**      | Matrix relationships            | Correlation matrices   |
-| **Density**      | Smooth distributions            | Probability density    |
-| **Faceted**      | Comparing subgroups             | Regional sales trends  |
+| Plot Type         | Best For                        | Example Use Case            |
+|-------------------|---------------------------------|-----------------------------|
+| **Bar Chart**     | Comparing categories            | Sales by product            |
+| **Histogram**     | Showing distributions           | Test score frequencies      |
+| **Scatter Plot**  | Relationships between variables | Height vs weight            |
+| **Line Plot**     | Trends over time/order          | Stock prices                |
+| **Box Plot**      | Distribution comparison         | Salary by department        |
+| **Heatmap**       | Matrix relationships            | Correlation matrices        |
+| **Density**       | Smooth distributions            | Probability density         |
+| **Faceted**       | Comparing subgroups             | Regional sales trends       |
+| **Multi-Panel**   | Multiple related views          | Dashboard layouts           |
+| **Multi-Layered** | Combining visualizations        | Histogram + density overlay |
 
 ## Next Steps
 
