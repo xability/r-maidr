@@ -36,7 +36,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: true
+          use-public-rspm: ${{ runner.os != 'macOS' }}
 
       # cache-version: increment to invalidate stale package caches when
       # CRAN binary URLs change (rare, ~1-2x per year)
