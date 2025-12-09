@@ -95,7 +95,8 @@ wrap_s3_generics <- function() {
 
       # Call the original lines function and let S3 dispatch handle it
       original_lines <- .maidr_patching_env$.saved_graphics_fns[["lines"]]
-      original_lines(x, ...)
+      result <- original_lines(x, ...)
+      invisible(result)
     }
 
     # Assign to global environment
@@ -130,7 +131,8 @@ wrap_s3_generics <- function() {
       log_plot_call_to_device("points", this_call, args, device_id)
 
       # Call the default method
-      graphics::points.default(x, ...)
+      result <- graphics::points.default(x, ...)
+      invisible(result)
     }
 
     # Assign to global environment
@@ -146,9 +148,9 @@ wrap_s3_generics <- function() {
 #' @return Original function or NULL if not found
 #' @keywords internal
 find_original_function <- function(function_name) {
-  # Try global environment first
-  if (exists(function_name, envir = .GlobalEnv, inherits = TRUE)) {
-    return(get(function_name, mode = "function", inherits = TRUE))
+  # FIRST: Check if we already have the original saved (prevents double-wrapping)
+  if (!is.null(.maidr_patching_env$.saved_graphics_fns[[function_name]])) {
+    return(.maidr_patching_env$.saved_graphics_fns[[function_name]])
   }
 
   # Try graphics namespace
@@ -203,7 +205,9 @@ create_function_wrapper <- function(function_name, original_function) {
       device_id <- grDevices::dev.cur()
       log_plot_call_to_device(FNAME, this_call, args_list, device_id)
 
-      result
+      # Return invisibly to prevent auto-printing in knitr
+      # Users can still capture the result with assignment
+      invisible(result)
     },
     list(FNAME = function_name, ORIG = original_function)
   ))
@@ -228,7 +232,8 @@ create_barplot_wrapper <- function(original_function) {
     device_id <- grDevices::dev.cur()
     log_plot_call_to_device("barplot", this_call, args, device_id)
 
-    result
+    # Return invisibly to prevent auto-printing in knitr
+    invisible(result)
   }
 
   wrapper

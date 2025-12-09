@@ -31,11 +31,13 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       plot_mapping <- plot$mapping
       layer_mapping <- plot$layers[[self$get_layer_index()]]$mapping
       x_col <- NULL
+      # Use as_label to handle complex expressions like factor(cyl)
       if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
-        x_col <- rlang::as_name(layer_mapping$x)
+        x_col <- rlang::as_label(layer_mapping$x)
       } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
-        x_col <- rlang::as_name(plot_mapping$x)
+        x_col <- rlang::as_label(plot_mapping$x)
       }
+      # Only reorder if x_col is a simple column name that exists in data
       if (!is.null(x_col) && x_col %in% names(data)) {
         data[order(data[[x_col]]), , drop = FALSE]
       } else {
@@ -66,9 +68,9 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
           x_col <- NULL
           if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
-            x_col <- rlang::as_name(layer_mapping$x)
+            x_col <- rlang::as_label(layer_mapping$x)
           } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
-            x_col <- rlang::as_name(plot_mapping$x)
+            x_col <- rlang::as_label(plot_mapping$x)
           }
 
           # For faceted plots, we need to get the x values for this specific panel
@@ -91,9 +93,9 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
         x_col <- NULL
         if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
-          x_col <- rlang::as_name(layer_mapping$x)
+          x_col <- rlang::as_label(layer_mapping$x)
         } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
-          x_col <- rlang::as_name(plot_mapping$x)
+          x_col <- rlang::as_label(plot_mapping$x)
         }
 
         original_data <- plot$data

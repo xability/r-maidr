@@ -12,13 +12,16 @@ Description: Provides accessible, interactive visualizations through the MAIDR
     (Multimodal Access and Interactive Data Representation) system. Converts
     ggplot2 and Base R plots into accessible HTML/SVG formats with keyboard
     navigation, screen reader support, and sonification capabilities. Supports
-    bar charts, histograms, line plots, scatter plots, box plots, heat maps,
-    and other common visualizations. Enables data exploration for users with
-    visual impairments through multiple sensory modalities.
+    bar charts (simple, grouped, stacked), histograms, line plots, scatter plots,
+    box plots, heat maps, density/smooth curves, faceted plots, multi-panel
+    layouts (including patchwork), and multi-layered plot combinations. Enables
+    data exploration for users with visual impairments through multiple sensory
+    modalities.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Imports:
+    base64enc,
     ggplot2,
     ggplotify,
     grid,

@@ -1,20 +1,29 @@
-// Trigger MAIDR's initialization by dispatching a DOM event
-function triggerMaidrRescan() {
-  // Try to trigger MAIDR's main function by dispatching a custom event
-  // that MAIDR might be listening for
-  const event = new CustomEvent('maidr-rescan', {
-    detail: { timestamp: Date.now() }
-  });
-  document.dispatchEvent(event);
-  
-  // Also try to trigger by simulating DOMContentLoaded if MAIDR is listening
-  const domEvent = new Event('DOMContentLoaded', {
-    bubbles: true,
-    cancelable: true
-  });
-  document.dispatchEvent(domEvent);
-  
-  console.log('Triggered MAIDR rescan events');
+// Track widget count for coordinated initialization
+let maidrWidgetCount = 0;
+let maidrInitTimeout = null;
+
+function triggerMaidrInit() {
+  maidrWidgetCount++;
+
+  // Clear any pending initialization
+  if (maidrInitTimeout) {
+    clearTimeout(maidrInitTimeout);
+  }
+
+  // Wait for all widgets to render, then check if MAIDR needs initialization
+  maidrInitTimeout = setTimeout(function() {
+    // Check if MAIDR library is loaded and has an init function
+    if (typeof window.maidr !== 'undefined' && typeof window.maidr.init === 'function') {
+      // MAIDR has a public init API - use it
+      window.maidr.init();
+      console.log('Called maidr.init() for ' + maidrWidgetCount + ' widgets');
+    } else {
+      // MAIDR should auto-initialize - no action needed
+      // The maidr-data attributes are already in the DOM
+      console.log('MAIDR auto-initialization expected for ' + maidrWidgetCount + ' widgets');
+    }
+    maidrWidgetCount = 0;
+  }, 300);
 }
 
 HTMLWidgets.widget({
@@ -30,9 +39,9 @@ HTMLWidgets.widget({
             // Insert SVG content
             el.innerHTML = x.svg_content;
             
-            // Trigger MAIDR rescan after a short delay to ensure DOM is updated
+            // Notify that widget is ready (coordinates with other widgets)
             setTimeout(function() {
-              triggerMaidrRescan();
+              triggerMaidrInit();
             }, 100);
                      
             console.log('MAIDR widget rendered with SVG content');

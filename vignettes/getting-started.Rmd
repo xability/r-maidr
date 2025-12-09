@@ -126,9 +126,29 @@ Plots can be heard through:
 - Volume changes
 - Different tones for different series
 
+## Supported Plot Types
+
+MAIDR supports a comprehensive range of visualizations:
+
+### Basic Plot Types
+- Bar charts (simple, grouped/dodged, stacked)
+- Histograms
+- Scatter plots
+- Line plots (single and multi-line)
+- Box plots
+- Heatmaps
+- Density/smooth curves
+
+### Advanced Plot Types
+- **Faceted plots** - `facet_wrap()` and `facet_grid()` in ggplot2
+- **Multi-panel layouts** - patchwork for ggplot2, `par(mfrow/mfcol)` for Base R
+- **Multi-layered plots** - Combine multiple geoms (e.g., histogram + density)
+
+See the **[Supported Plot Types](plot-types.html)** vignette for detailed examples of each.
+
 ## Next Steps
 
-- **[Supported Plot Types](plot-types.html)** - See all available plot types
+- **[Supported Plot Types](plot-types.html)** - See all available plot types with code examples
 - **[Shiny Integration](shiny-integration.html)** - Use MAIDR in Shiny apps
 - **Package documentation** - Run `?maidr::show` for function details
 

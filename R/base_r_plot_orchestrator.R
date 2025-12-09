@@ -307,7 +307,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         # For Base R, create single plot structure
         single_subplot <- list(
-          id = paste0("maidr-subplot-", as.integer(Sys.time())),
+          id = paste0("maidr-subplot-", generate_unique_id()),
           layers = combined_data
         )
         private$.combined_data <- list(list(single_subplot))
@@ -318,7 +318,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     generate_maidr_data = function() {
       # Base R plots use the same unified structure as ggplot2
       list(
-        id = paste0("maidr-plot-", as.integer(Sys.time())),
+        id = paste0("maidr-plot-", generate_unique_id()),
         subplots = private$.combined_data
       )
     },
@@ -341,6 +341,20 @@ BaseRPlotOrchestrator <- R6::R6Class(
       if (length(private$.plot_groups) == 0) {
         return(NULL)
       }
+
+      # Suppress native R graphics window by using a null PDF device
+      # This ensures only the HTML output is displayed
+      current_dev <- grDevices::dev.cur()
+      null_pdf <- tempfile(fileext = ".pdf")
+      grDevices::pdf(null_pdf, width = 7, height = 5)
+      on.exit(
+        {
+          grDevices::dev.off()
+          if (current_dev > 1) grDevices::dev.set(current_dev)
+          unlink(null_pdf)
+        },
+        add = TRUE
+      )
 
       panel_config <- detect_panel_configuration(private$.device_id)
 

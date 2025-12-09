@@ -8,6 +8,26 @@
 #' @importFrom stats setNames
 NULL
 
+# Counter for unique ID generation
+.maidr_id_counter <- new.env(parent = emptyenv())
+.maidr_id_counter$value <- 0L
+
+#' Generate a unique ID for MAIDR plots
+#'
+#' Creates a unique identifier combining timestamp and counter to ensure
+#' uniqueness even when multiple plots are created within the same second.
+#'
+#' @return Character string with unique ID
+#' @keywords internal
+generate_unique_id <- function() {
+  .maidr_id_counter$value <- .maidr_id_counter$value + 1L
+  paste0(
+    as.integer(Sys.time()) * 1000 + .maidr_id_counter$value,
+    "-",
+    sample.int(9999, 1)
+  )
+}
+
 #' Create enhanced SVG with maidr data
 #' @param gt A gtable object
 #' @param maidr_data The maidr-data structure
@@ -17,7 +37,24 @@ NULL
 create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_file <- tempfile(fileext = ".svg")
 
-  # Use default rendering (no viewport changes)
+
+  # Save current device
+
+  current_dev <- grDevices::dev.cur()
+
+  # Use a null/invisible PDF device for rendering to avoid side effects
+  pdf_file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(pdf_file, width = 7, height = 5)
+  on.exit(
+    {
+      grDevices::dev.off()
+      if (current_dev > 1) grDevices::dev.set(current_dev)
+      unlink(pdf_file)
+    },
+    add = TRUE
+  )
+
+  # Render to the invisible device
   grid.newpage()
   grid.draw(gt)
 
@@ -105,4 +142,104 @@ display_html_file <- function(file) {
   } else {
     utils::browseURL(file)
   }
+}
+
+#' Create self-contained HTML for iframe embedding
+#'
+#' Generates a complete standalone HTML document with MAIDR.js that can be
+#' embedded in an iframe for isolation. Each iframe gets its own JavaScript
+#' context, avoiding MAIDR.js singleton pattern issues with multiple plots.
+#'
+#' @param svg_content Character vector of SVG content with maidr-data attribute
+#' @return Character string of complete HTML document
+#' @keywords internal
+create_standalone_html <- function(svg_content) {
+  svg_html <- paste(svg_content, collapse = "\n")
+
+  # Create a complete standalone HTML document
+  # CSS prevents layout shifts from focus outlines and MAIDR UI elements
+  html <- sprintf('<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAIDR Plot</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maidr@latest/dist/maidr_style.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%%;
+      height: 100%%;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    svg {
+      max-width: 100%%;
+      height: auto;
+      display: block;
+    }
+    /* Prevent focus outlines from causing layout shifts */
+    *:focus {
+      outline-offset: -2px !important;
+    }
+    svg:focus, svg:focus-visible {
+      outline: 2px solid #0066cc !important;
+      outline-offset: -2px !important;
+    }
+    /* Ensure MAIDR containers do not shift layout */
+    figure, article {
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  %s
+  <script src="https://cdn.jsdelivr.net/npm/maidr@latest/dist/maidr.js"></script>
+</body>
+</html>', svg_html)
+
+  html
+}
+
+#' Create iframe HTML tag for isolated MAIDR plot
+#'
+#' Creates an iframe element with base64-encoded src containing the complete MAIDR plot.
+#' Uses data URI with base64 encoding to avoid quote escaping issues with JSON.
+#' This isolates each plot in its own document/JavaScript context.
+#'
+#' @param svg_content Character vector of SVG content with maidr-data attribute
+#' @param width Width of the iframe (default: "100\%")
+#' @param height Height of the iframe (default: "450px")
+#' @param plot_id Unique identifier for the plot
+#' @return Character string of iframe HTML
+#' @keywords internal
+create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", plot_id = NULL) {
+  if (is.null(plot_id)) {
+    plot_id <- generate_unique_id()
+  }
+
+  standalone_html <- create_standalone_html(svg_content)
+
+  # Use base64 encoding to avoid quote escaping issues with JSON in maidr-data
+  html_base64 <- base64enc::base64encode(charToRaw(standalone_html))
+  data_uri <- paste0("data:text/html;base64,", html_base64)
+
+  iframe_html <- sprintf(
+    '<iframe id="maidr-iframe-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" title="Accessible MAIDR Plot" aria-label="Interactive accessible chart"></iframe>',
+    plot_id,
+    data_uri,
+    width,
+    height
+  )
+
+  iframe_html
 }

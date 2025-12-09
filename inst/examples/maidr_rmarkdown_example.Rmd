@@ -1,0 +1,144 @@
+---
+title: "MAIDR RMarkdown Integration Example"
+subtitle: "Accessible Data Visualizations"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(maidr)
+library(ggplot2)
+maidr_on()
+```
+
+## Overview
+
+This document demonstrates the MAIDR package's RMarkdown integration for creating accessible, interactive visualizations. Each plot is automatically converted to an accessible format with:
+
+- Keyboard navigation
+- Screen reader support
+- Sonification (audio feedback)
+- Braille display support
+
+---
+
+## ggplot2 Visualizations
+
+### Bar Chart
+
+```{r ggplot-bar}
+ggplot(mtcars, aes(x = factor(cyl))) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Count of Cars by Cylinder", x = "Cylinders", y = "Count") +
+  theme_minimal()
+```
+
+### Histogram
+
+```{r ggplot-hist}
+ggplot(mtcars, aes(x = mpg)) +
+  geom_histogram(bins = 10, fill = "coral", color = "white") +
+  labs(title = "Distribution of MPG", x = "Miles per Gallon", y = "Frequency") +
+  theme_minimal()
+```
+
+### Scatter Plot
+
+```{r ggplot-scatter}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(color = "darkgreen", size = 3) +
+  labs(title = "Weight vs MPG", x = "Weight (1000 lbs)", y = "Miles per Gallon") +
+  theme_minimal()
+```
+
+### Line Plot
+
+```{r ggplot-line}
+df <- data.frame(
+  year = 2015:2024,
+  sales = c(100, 120, 135, 150, 180, 200, 190, 220, 250, 280)
+)
+ggplot(df, aes(x = year, y = sales)) +
+  geom_line(color = "purple", linewidth = 1.5) +
+  geom_point(color = "purple", size = 3) +
+  labs(title = "Annual Sales Trend", x = "Year", y = "Sales (units)") +
+  theme_minimal()
+```
+
+---
+
+## Base R Visualizations
+
+### Bar Chart
+
+```{r base-barplot}
+barplot(
+  c(25, 40, 30, 35),
+  names.arg = c("Q1", "Q2", "Q3", "Q4"),
+  main = "Quarterly Revenue",
+  xlab = "Quarter",
+  ylab = "Revenue ($M)",
+  col = "steelblue"
+)
+```
+
+### Histogram
+
+```{r base-hist}
+hist(
+  mtcars$mpg,
+  breaks = 10,
+  main = "Distribution of MPG",
+  xlab = "Miles per Gallon",
+  ylab = "Frequency",
+  col = "lightgreen"
+)
+```
+
+### Scatter Plot
+
+```{r base-scatter}
+plot(
+  mtcars$wt, mtcars$mpg,
+  main = "Weight vs MPG",
+  xlab = "Weight (1000 lbs)",
+  ylab = "Miles per Gallon",
+  pch = 19,
+  col = "darkblue"
+)
+```
+
+### Box Plot
+
+```{r base-boxplot}
+boxplot(
+  mpg ~ cyl, data = mtcars,
+  main = "MPG by Cylinder Count",
+  xlab = "Number of Cylinders",
+  ylab = "Miles per Gallon",
+  col = c("lightblue", "lightgreen", "lightyellow")
+)
+```
+
+---
+
+## Keyboard Navigation Guide
+
+Once a plot is focused, use the following keys:
+
+| Key | Action |
+|-----|--------|
+| Arrow keys | Navigate through data points |
+| B | Toggle Braille mode |
+| T | Toggle Text mode |
+| S | Toggle Sonification |
+| R | Toggle Review mode |
+| H | Open Help menu |
+
+---
+
+## Session Info
+
+```{r session-info, echo=FALSE}
+sessionInfo()
+```

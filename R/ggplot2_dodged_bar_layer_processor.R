@@ -28,22 +28,22 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       x_col <- y_col <- fill_col <- NULL
       if (!is.null(layer_mapping)) {
         if (!is.null(layer_mapping$x)) {
-          x_col <- rlang::as_name(layer_mapping$x)
+          x_col <- rlang::as_label(layer_mapping$x)
         }
         if (!is.null(layer_mapping$y)) {
-          y_col <- rlang::as_name(layer_mapping$y)
+          y_col <- rlang::as_label(layer_mapping$y)
         }
-        if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_name(layer_mapping$fill)
+        if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_label(layer_mapping$fill)
       }
       if (!is.null(plot_mapping)) {
         if (is.null(x_col) && !is.null(plot_mapping$x)) {
-          x_col <- rlang::as_name(plot_mapping$x)
+          x_col <- rlang::as_label(plot_mapping$x)
         }
         if (is.null(y_col) && !is.null(plot_mapping$y)) {
-          y_col <- rlang::as_name(plot_mapping$y)
+          y_col <- rlang::as_label(plot_mapping$y)
         }
         if (is.null(fill_col) && !is.null(plot_mapping$fill)) {
-          fill_col <- rlang::as_name(plot_mapping$fill)
+          fill_col <- rlang::as_label(plot_mapping$fill)
         }
       }
       if (
@@ -71,22 +71,22 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
 
       if (!is.null(layer_mapping)) {
         if (!is.null(layer_mapping$x)) {
-          x_col <- rlang::as_name(layer_mapping$x)
+          x_col <- rlang::as_label(layer_mapping$x)
         }
         if (!is.null(layer_mapping$y)) {
-          y_col <- rlang::as_name(layer_mapping$y)
+          y_col <- rlang::as_label(layer_mapping$y)
         }
-        if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_name(layer_mapping$fill)
+        if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_label(layer_mapping$fill)
       }
       if (!is.null(plot_mapping)) {
         if (is.null(x_col) && !is.null(plot_mapping$x)) {
-          x_col <- rlang::as_name(plot_mapping$x)
+          x_col <- rlang::as_label(plot_mapping$x)
         }
         if (is.null(y_col) && !is.null(plot_mapping$y)) {
-          y_col <- rlang::as_name(plot_mapping$y)
+          y_col <- rlang::as_label(plot_mapping$y)
         }
         if (is.null(fill_col) && !is.null(plot_mapping$fill)) {
-          fill_col <- rlang::as_name(plot_mapping$fill)
+          fill_col <- rlang::as_label(plot_mapping$fill)
         }
       }
 
