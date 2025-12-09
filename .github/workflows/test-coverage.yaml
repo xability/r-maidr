@@ -3,8 +3,6 @@
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
 
 name: test-coverage
 
@@ -27,7 +25,7 @@ jobs:
         with:
           extra-packages: any::covr, any::xml2
           needs: coverage
-          lockfile: false
+          cache-version: 2
 
       - name: Test coverage
         run: |
