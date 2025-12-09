@@ -3,8 +3,6 @@
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
 
 name: R-CMD-check
 
@@ -44,7 +42,7 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          lockfile: false
+          cache-version: 2
 
       - uses: r-lib/actions/check-r-package@v2
         with:
