@@ -102,6 +102,7 @@ is_maidr_on <- function() {
 #'
 #' Converts ggplot objects to MAIDR widgets for accessible rendering in RMarkdown.
 #' Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
+#' Automatically falls back to image rendering for unsupported plot types.
 #'
 #' @param x A ggplot object
 #' @param options Chunk options from knitr
@@ -109,15 +110,29 @@ is_maidr_on <- function() {
 #' @return A knit_asis object containing the iframe HTML
 #' @keywords internal
 knit_print.ggplot <- function(x, options = list(), ...) {
-  # Get SVG content using existing infrastructure
-  svg_content <- create_maidr_html(x, shiny = TRUE)
+  # Get content using existing infrastructure
+  # This returns either SVG (for supported plots) or fallback HTML (for unsupported)
+  content <- create_maidr_html(x, shiny = TRUE)
 
-  # Create iframe with isolated MAIDR context
-  iframe_html <- create_maidr_iframe(
-    svg_content = svg_content,
-    width = "100%",
-    height = "450px"
-  )
+  # Check if this is fallback content (contains <img> tag indicating image fallback)
+  content_str <- as.character(content)
+  is_fallback <- grepl("<img\\s+src=", content_str)
+
+  if (is_fallback) {
+    # For fallback images, create a simple iframe without MAIDR.js
+    iframe_html <- create_fallback_iframe(
+      html_content = content_str,
+      width = "100%",
+      height = "450px"
+    )
+  } else {
+    # For normal MAIDR plots, use the full iframe with MAIDR.js
+    iframe_html <- create_maidr_iframe(
+      svg_content = content,
+      width = "100%",
+      height = "450px"
+    )
+  }
 
   # Return as raw HTML
   knitr::asis_output(iframe_html)
@@ -193,6 +208,7 @@ create_maidr_widget_internal <- function(plot = NULL) {
 #'
 #' Intercepts Base R plot output and converts to MAIDR iframe.
 #' Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
+#' Automatically falls back to image rendering for unsupported plot types.
 #' This replaces knitr's default plot hook when maidr_on() is called.
 #'
 #' @param x The plot file path from knitr
@@ -204,18 +220,32 @@ maidr_plot_hook <- function(x, options) {
 
   # Check if we have captured Base R calls
   if (has_device_calls(device_id)) {
-    # Get SVG content from captured Base R plot
-    svg_content <- create_maidr_html(plot = NULL, shiny = TRUE)
+    # Get content from captured Base R plot
+    # This returns either SVG (for supported plots) or fallback HTML (for unsupported)
+    content <- create_maidr_html(plot = NULL, shiny = TRUE)
 
     # Clear the device storage
     clear_device_storage(device_id)
 
-    # Create iframe with isolated MAIDR context
-    iframe_html <- create_maidr_iframe(
-      svg_content = svg_content,
-      width = "100%",
-      height = "450px"
-    )
+    # Check if this is fallback content (contains <img> tag indicating image fallback)
+    content_str <- as.character(content)
+    is_fallback <- grepl("<img\\s+src=", content_str)
+
+    if (is_fallback) {
+      # For fallback images, create a simple iframe without MAIDR.js
+      iframe_html <- create_fallback_iframe(
+        html_content = content_str,
+        width = "100%",
+        height = "450px"
+      )
+    } else {
+      # For normal MAIDR plots, use the full iframe with MAIDR.js
+      iframe_html <- create_maidr_iframe(
+        svg_content = content,
+        width = "100%",
+        height = "450px"
+      )
+    }
 
     # Return as raw HTML
     return(iframe_html)

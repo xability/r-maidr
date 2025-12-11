@@ -479,6 +479,30 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
 
       NULL
+    },
+
+    #' @description Check if any layers are unsupported (unknown type)
+    #' @return Logical indicating if there are unsupported layers
+    has_unsupported_layers = function() {
+      if (length(private$.layers) == 0) {
+        return(FALSE)
+      }
+
+      any(sapply(private$.layers, function(layer) {
+        isTRUE(layer$type == "unknown")
+      }))
+    },
+
+    #' @description Determine if the plot should fall back to image rendering
+    #' @return Logical indicating if fallback should be used
+    should_fallback = function() {
+      # Check if fallback is enabled globally
+      if (!is_fallback_enabled()) {
+        return(FALSE)
+      }
+
+      # Check if we have unsupported layers
+      self$has_unsupported_layers()
     }
   )
 )

@@ -38,7 +38,7 @@ Handles unsupported layer types gracefully by returning empty data
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$process(plot, layout, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
 }
 
 }

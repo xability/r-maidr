@@ -266,3 +266,70 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
 
   iframe_html
 }
+
+#' Create iframe HTML tag for fallback static image
+#'
+#' Creates an iframe element with base64-encoded src containing a static image.
+#' Used when plots contain unsupported layers and fall back to PNG rendering.
+#' Unlike create_maidr_iframe, this does not include MAIDR.js dependencies.
+#'
+#' @param html_content Character string of HTML content (with img tag)
+#' @param width Width of the iframe (default: "100\%")
+#' @param height Height of the iframe (default: "450px")
+#' @param plot_id Unique identifier for the plot
+#' @return Character string of iframe HTML
+#' @keywords internal
+create_fallback_iframe <- function(html_content, width = "100%", height = "450px", plot_id = NULL) {
+  if (is.null(plot_id)) {
+    plot_id <- generate_unique_id()
+  }
+
+  # Create a simple standalone HTML document for the fallback image
+  standalone_html <- sprintf(
+    '<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plot (Fallback)</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%%;
+      height: 100%%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      box-sizing: border-box;
+    }
+    img {
+      max-width: 100%%;
+      max-height: 100%%;
+      height: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  %s
+</body>
+</html>',
+    html_content
+  )
+
+  # Use base64 encoding for the iframe src
+  html_base64 <- base64enc::base64encode(charToRaw(standalone_html))
+  data_uri <- paste0("data:text/html;base64,", html_base64)
+
+  iframe_html <- sprintf(
+    '<iframe id="maidr-fallback-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto;" title="Plot (static image - contains unsupported elements)" aria-label="Static plot image"></iframe>',
+    plot_id,
+    data_uri,
+    width,
+    height
+  )
+
+  iframe_html
+}
