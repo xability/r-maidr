@@ -72,6 +72,18 @@ create_maidr_html <- function(plot, shiny = FALSE, ...) {
 
   orchestrator <- adapter$create_orchestrator(plot)
 
+  # Check if we should fall back to image rendering
+  if (orchestrator$should_fallback()) {
+    if (is_fallback_warning_enabled()) {
+      warning(
+        "Plot contains unsupported elements. ",
+        "Rendering as static image instead of interactive MAIDR plot.",
+        call. = FALSE
+      )
+    }
+    return(create_fallback_html(plot, shiny = shiny, ...))
+  }
+
   gt <- orchestrator$get_gtable()
 
   # All plot types now use the unified orchestrator data generation

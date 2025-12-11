@@ -81,6 +81,8 @@ the results into a comprehensive interactive plot.
 \item \href{#method-Ggplot2PlotOrchestrator-is_faceted_plot}{\code{Ggplot2PlotOrchestrator$is_faceted_plot()}}
 \item \href{#method-Ggplot2PlotOrchestrator-process_faceted_plot}{\code{Ggplot2PlotOrchestrator$process_faceted_plot()}}
 \item \href{#method-Ggplot2PlotOrchestrator-process_patchwork_plot}{\code{Ggplot2PlotOrchestrator$process_patchwork_plot()}}
+\item \href{#method-Ggplot2PlotOrchestrator-has_unsupported_layers}{\code{Ggplot2PlotOrchestrator$has_unsupported_layers()}}
+\item \href{#method-Ggplot2PlotOrchestrator-should_fallback}{\code{Ggplot2PlotOrchestrator$should_fallback()}}
 \item \href{#method-Ggplot2PlotOrchestrator-clone}{\code{Ggplot2PlotOrchestrator$clone()}}
 }
 }
@@ -288,6 +290,32 @@ Process a patchwork multipanel plot using utility functions
 
 \subsection{Returns}{
 NULL (sets internal state)
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-has_unsupported_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-has_unsupported_layers}{}}}
+\subsection{Method \code{has_unsupported_layers()}}{
+Check if any layers are unsupported (unknown type)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PlotOrchestrator$has_unsupported_layers()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical indicating if there are unsupported layers
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-should_fallback"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-should_fallback}{}}}
+\subsection{Method \code{should_fallback()}}{
+Determine if the plot should fall back to image rendering
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PlotOrchestrator$should_fallback()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical indicating if fallback should be used
 }
 }
 \if{html}{\out{<hr>}}

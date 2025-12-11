@@ -52,9 +52,9 @@ test_that("maidr_widget() widget has correct dependencies", {
   testthat::expect_true("dependencies" %in% names(widget))
   testthat::expect_type(widget$dependencies, "list")
 
-  # Check for maidr-js dependency
+  # Check for maidr dependency
   dep_names <- sapply(widget$dependencies, function(d) d$name)
-  testthat::expect_true("maidr-js" %in% dep_names)
+  testthat::expect_true("maidr" %in% dep_names)
 })
 
 test_that("maidr_widget() respects width and height parameters", {
@@ -239,8 +239,8 @@ test_that("widget dependencies include CSS", {
 
   deps <- widget$dependencies
 
-  # Find maidr-js dependency
-  maidr_dep <- Find(function(d) d$name == "maidr-js", deps)
+  # Find maidr dependency
+  maidr_dep <- Find(function(d) d$name == "maidr", deps)
 
   testthat::expect_false(is.null(maidr_dep))
   testthat::expect_true("stylesheet" %in% names(maidr_dep))
@@ -254,8 +254,8 @@ test_that("widget dependencies include JavaScript", {
 
   deps <- widget$dependencies
 
-  # Find maidr-js dependency
-  maidr_dep <- Find(function(d) d$name == "maidr-js", deps)
+  # Find maidr dependency
+  maidr_dep <- Find(function(d) d$name == "maidr", deps)
 
   testthat::expect_false(is.null(maidr_dep))
   testthat::expect_true("script" %in% names(maidr_dep))

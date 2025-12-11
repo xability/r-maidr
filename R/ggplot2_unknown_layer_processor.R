@@ -7,7 +7,7 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
   "Ggplot2UnknownLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, gt = NULL) {
+    process = function(plot, layout, built = NULL, gt = NULL) {
       list(
         data = list(),
         selectors = list(),

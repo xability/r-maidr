@@ -19,5 +19,6 @@ A knit_asis object containing the iframe HTML
 \description{
 Converts ggplot objects to MAIDR widgets for accessible rendering in RMarkdown.
 Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
+Automatically falls back to image rendering for unsupported plot types.
 }
 \keyword{internal}

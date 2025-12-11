@@ -4,6 +4,11 @@
 \alias{BaseRPlotOrchestrator}
 \title{Base R Plot Orchestrator Class}
 \description{
+Base R Plot Orchestrator Class
+
+Base R Plot Orchestrator Class
+}
+\details{
 This class orchestrates the detection and processing of multiple layers
 in Base R plots. It analyzes each recorded plot call individually and combines
 the results into a comprehensive interactive plot.
@@ -73,6 +78,8 @@ the results into a comprehensive interactive plot.
 \item \href{#method-BaseRPlotOrchestrator-get_plot_calls}{\code{BaseRPlotOrchestrator$get_plot_calls()}}
 \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
 \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
+\item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
+\item \href{#method-BaseRPlotOrchestrator-should_fallback}{\code{BaseRPlotOrchestrator$should_fallback()}}
 \item \href{#method-BaseRPlotOrchestrator-clone}{\code{BaseRPlotOrchestrator$clone()}}
 }
 }
@@ -242,6 +249,32 @@ Layer processor instance
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_grob_for_layer(layer_index)}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-has_unsupported_layers}{}}}
+\subsection{Method \code{has_unsupported_layers()}}{
+Check if any layers are unsupported (unknown type)
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$has_unsupported_layers()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical indicating if there are unsupported layers
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-should_fallback"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-should_fallback}{}}}
+\subsection{Method \code{should_fallback()}}{
+Determine if the plot should fall back to image rendering
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$should_fallback()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical indicating if fallback should be used
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-clone"></a>}}
