@@ -3,9 +3,6 @@
 
 library(maidr)
 
-# Use null device to prevent graphics window from opening
-pdf(NULL)
-
 # Use iris dataset
 data(iris)
 
@@ -21,6 +18,3 @@ boxplot(Petal.Length ~ Species,
 
 # Display with MAIDR accessibility features
 show()
-
-# Close the null device
-dev.off()

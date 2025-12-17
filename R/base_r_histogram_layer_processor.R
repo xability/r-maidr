@@ -42,7 +42,8 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
         hist_params$probability <- args$probability
       }
 
-      hist_obj <- suppressWarnings(do.call(hist, c(list(hist_data), hist_params)))
+      # Use graphics::hist directly to avoid calling the wrapped version
+      hist_obj <- suppressWarnings(do.call(graphics::hist, c(list(hist_data), hist_params)))
 
       breaks <- hist_obj$breaks
       counts <- hist_obj$counts

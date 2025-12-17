@@ -14,11 +14,12 @@ knit_print.ggplot(x, options = list(), ...)
 \item{...}{Additional arguments (ignored)}
 }
 \value{
-A knit_asis object containing the iframe HTML
+A knit_asis object containing the iframe HTML or inline image
 }
 \description{
 Converts ggplot objects to MAIDR widgets for accessible rendering in RMarkdown.
 Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-Automatically falls back to image rendering for unsupported plot types.
+Automatically falls back to image rendering for unsupported plot types or
+non-HTML output formats (PDF, EPUB).
 }
 \keyword{internal}

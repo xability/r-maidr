@@ -10,10 +10,9 @@ line_data <- data.frame(
   sales = c(120, 150, 180, 200, 220, 250, 230, 210, 190, 170, 160, 180)
 )
 
-# Create line plot
+# Create line plot (single layer)
 p <- ggplot(line_data, aes(x = month, y = sales)) +
   geom_line(color = "steelblue", linewidth = 1.5) +
-  geom_point(color = "steelblue", size = 3) +
   scale_x_continuous(breaks = 1:12, labels = month.abb) +
   labs(
     title = "Monthly Sales Trend",

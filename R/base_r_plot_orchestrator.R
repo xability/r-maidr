@@ -77,23 +77,22 @@ BaseRPlotOrchestrator <- R6::R6Class(
             low_call <- group$low_calls[[low_idx]]
             low_layer_type <- private$.adapter$detect_layer_type(low_call)
 
-            # Only create layer if we can identify its type
-            if (low_layer_type != "unknown") {
-              layer_counter <- layer_counter + 1
+            # Include ALL low-level calls, including "unknown" ones
+            # This allows has_unsupported_layers() to detect them and trigger fallback
+            layer_counter <- layer_counter + 1
 
-              private$.layers[[layer_counter]] <- list(
-                index = layer_counter,
-                type = low_layer_type,
-                function_name = low_call$function_name,
-                args = low_call$args,
-                call_expr = low_call$call_expr,
-                plot_call = low_call,
-                group = group,
-                group_index = group_idx,
-                source = "LOW",
-                low_call_index = low_idx
-              )
-            }
+            private$.layers[[layer_counter]] <- list(
+              index = layer_counter,
+              type = low_layer_type,
+              function_name = low_call$function_name,
+              args = low_call$args,
+              call_expr = low_call$call_expr,
+              plot_call = low_call,
+              group = group,
+              group_index = group_idx,
+              source = "LOW",
+              low_call_index = low_idx
+            )
           }
         }
       }
@@ -118,15 +117,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
       layer_info
     },
     create_layer_processors = function() {
-      private$.layer_processors <- list()
+      # Pre-allocate list to avoid sparse list issues
+      # In R, list[[i]] <- NULL deletes instead of setting NULL
+      n_layers <- length(private$.layers)
+      private$.layer_processors <- vector("list", n_layers)
 
       for (i in seq_along(private$.layers)) {
         layer_info <- private$.layers[[i]]
-        # Skip layers that don't need processing
+        # Only create processors for known types; unknown stays NULL (pre-allocated)
         if (layer_info$type != "unknown") {
           processor <- self$create_layer_processor(layer_info)
           private$.layer_processors[[i]] <- processor
         }
+        # Unknown types keep their pre-allocated NULL value
       }
     },
     create_layer_processor = function(layer_info) {
@@ -151,9 +154,15 @@ BaseRPlotOrchestrator <- R6::R6Class(
     process_layers = function() {
       private$.layout <- self$extract_layout()
 
-      layer_results <- list()
-      for (i in seq_along(private$.layer_processors)) {
+      layer_results <- vector("list", length(private$.layers))
+      for (i in seq_along(private$.layers)) {
         processor <- private$.layer_processors[[i]]
+
+        # Skip layers without processors (unknown types)
+        # layer_results is pre-allocated so NULL is already set
+        if (is.null(processor)) {
+          next
+        }
 
         layer_grob <- self$get_grob_for_layer(i)
 
@@ -207,6 +216,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # Map layers to panels based on their group index
         for (i in seq_along(layer_results)) {
           result <- layer_results[[i]]
+          # Skip NULL results (from unknown/unsupported layers)
+          if (is.null(result)) {
+            next
+          }
           layer_info <- private$.layers[[i]]
           group_idx <- layer_info$group_index
 
@@ -270,6 +283,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         for (i in seq_along(layer_results)) {
           result <- layer_results[[i]]
+          # Skip NULL results (from unknown/unsupported layers)
+          if (is.null(result)) {
+            next
+          }
 
           layer_type <- result$type
           if (is.null(layer_type) || length(layer_type) == 0) {
@@ -377,7 +394,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
             cat("DEBUG: Panel config:", panel_config$nrows, "x", panel_config$ncols, "\n")
           }
 
-          # Replay all plot groups
+          # Replay all plot groups using ORIGINAL (unwrapped) functions
+          # to prevent logging new calls during replay
           for (i in seq_along(private$.plot_groups)) {
             group <- private$.plot_groups[[i]]
 
@@ -385,11 +403,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
               cat("DEBUG: Replaying group", i, "-", group$high_call$function_name, "\n")
             }
 
-            invisible(do.call(group$high_call$function_name, group$high_call$args))
+            orig_fn <- get_original_function(group$high_call$function_name)
+            invisible(do.call(orig_fn, group$high_call$args))
 
             if (length(group$low_calls) > 0) {
               for (low_call in group$low_calls) {
-                invisible(do.call(low_call$function_name, low_call$args))
+                orig_low_fn <- get_original_function(low_call$function_name)
+                invisible(do.call(orig_low_fn, low_call$args))
               }
             }
           }
@@ -418,12 +438,15 @@ BaseRPlotOrchestrator <- R6::R6Class(
           high_call <- group$high_call
           low_calls <- group$low_calls
 
+          # Use ORIGINAL (unwrapped) functions to prevent logging new calls
           plot_func <- function() {
-            invisible(do.call(high_call$function_name, high_call$args))
+            orig_fn <- get_original_function(high_call$function_name)
+            invisible(do.call(orig_fn, high_call$args))
 
             if (length(low_calls) > 0) {
               for (low_call in low_calls) {
-                invisible(do.call(low_call$function_name, low_call$args))
+                orig_low_fn <- get_original_function(low_call$function_name)
+                invisible(do.call(orig_low_fn, low_call$args))
               }
             }
           }
@@ -481,15 +504,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
       NULL
     },
 
-    #' @description Check if any layers are unsupported (unknown type)
+    #' @description Check if any HIGH-level layers are unsupported (unknown type)
     #' @return Logical indicating if there are unsupported layers
     has_unsupported_layers = function() {
       if (length(private$.layers) == 0) {
         return(FALSE)
       }
 
+      # Only check HIGH-level layers for unsupported types
+      # LOW-level unknown calls (axis, title, etc.) are fine - just ignored
       any(sapply(private$.layers, function(layer) {
-        isTRUE(layer$type == "unknown")
+        is_high_level <- isTRUE(layer$source == "HIGH")
+        is_unknown <- isTRUE(layer$type == "unknown")
+        is_high_level && is_unknown
       }))
     },
 

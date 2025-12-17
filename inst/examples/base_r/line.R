@@ -3,32 +3,21 @@
 
 library(maidr)
 
-# Use null device to prevent graphics window from opening
-pdf(NULL)
+# Sample time series data with string x-axis labels
+x_labels <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+y <- c(5, 7, 3, 8, 6, 9, 4)
 
-# Sample time series data
-months <- 1:12
-sales <- c(120, 150, 180, 200, 220, 250, 230, 210, 190, 170, 160, 180)
-
-# Create line plot
-plot(months, sales,
+# Create line plot with string x-axis
+plot(seq_along(x_labels), y,
   type = "l",
-  main = "Monthly Sales Trend",
-  xlab = "Month",
-  ylab = "Sales ($)",
+  main = "Weekly Sales Trend",
+  xlab = "Day of Week",
+  ylab = "Sales (thousands)",
   col = "steelblue",
   lwd = 2,
   xaxt = "n"
 )
-
-# Add x-axis with month labels
-axis(1, at = 1:12, labels = month.abb)
-
-# Add points
-points(months, sales, pch = 19, col = "steelblue")
+axis(1, at = seq_along(x_labels), labels = x_labels)
 
 # Display with MAIDR accessibility features
 show()
-
-# Close the null device
-dev.off()

@@ -42,9 +42,10 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       args_no_plot$plot <- FALSE
 
       # Safely call boxplot() to get stats structure
+      # Use graphics::boxplot directly to avoid calling the wrapped version
       stats_obj <- tryCatch(
         {
-          do.call(boxplot, args_no_plot)
+          do.call(graphics::boxplot, args_no_plot)
         },
         error = function(e) {
           NULL
@@ -113,9 +114,10 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         plot_call <- self$layer_info$plot_call
         args <- plot_call$args
         args$plot <- FALSE
+        # Use graphics::boxplot directly to avoid calling the wrapped version
         stats_obj <- tryCatch(
           {
-            do.call(boxplot, args)
+            do.call(graphics::boxplot, args)
           },
           error = function(e) NULL
         )

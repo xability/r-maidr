@@ -3,9 +3,6 @@
 
 library(maidr)
 
-# Use null device to prevent graphics window from opening
-pdf(NULL)
-
 # Create sample correlation-like matrix
 heat_matrix <- matrix(
   c(
@@ -29,11 +26,10 @@ heatmap(heat_matrix,
   col = colors,
   scale = "none",
   main = "Correlation Heatmap",
+  xlab = "Variables",
+  ylab = "Variables",
   margins = c(6, 6)
 )
 
 # Display with MAIDR accessibility features
 show()
-
-# Close the null device
-dev.off()

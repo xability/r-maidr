@@ -1,0 +1,174 @@
+---
+title: "MAIDR Output Formats Test"
+subtitle: "Testing HTML, PDF, and EPUB Output"
+author: "MAIDR Package"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+  pdf_document:
+    toc: true
+  bookdown::epub_book:
+    toc: true
+    stylesheet: "../css/epub-styles.css"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = TRUE,
+  message = FALSE,
+  fig.align = "center",
+  out.width = "80%",
+  fig.width = 6,
+  fig.height = 4
+)
+library(maidr)
+library(ggplot2)
+maidr_on()
+```
+
+# Supported Plot Types
+
+These plots are fully supported by MAIDR and will render as interactive accessible visualizations in HTML output.
+
+## ggplot2 Bar Chart (Supported)
+
+```{r ggplot-bar}
+ggplot(mtcars, aes(x = factor(cyl))) +
+  geom_bar(fill = "steelblue") +
+  labs(title = "Cars by Cylinder Count", x = "Cylinders", y = "Count") +
+  theme_minimal()
+```
+
+## ggplot2 Scatter Plot (Supported)
+
+```{r ggplot-scatter}
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(color = "darkgreen", size = 3) +
+  labs(title = "Weight vs MPG", x = "Weight", y = "MPG") +
+  theme_minimal()
+```
+
+## ggplot2 Line Plot (Supported)
+
+```{r ggplot-line}
+df <- data.frame(
+  year = 2018:2024,
+  value = c(100, 120, 115, 140, 160, 155, 180)
+)
+ggplot(df, aes(x = year, y = value)) +
+  geom_line(color = "purple", linewidth = 1.2) +
+  geom_point(color = "purple", size = 2) +
+  labs(title = "Trend Over Time", x = "Year", y = "Value") +
+  theme_minimal()
+```
+
+## Base R Bar Chart (Supported)
+
+```{r base-bar}
+barplot(
+  c(25, 40, 30, 35),
+  names.arg = c("Q1", "Q2", "Q3", "Q4"),
+  main = "Quarterly Results",
+  xlab = "Quarter",
+  ylab = "Value",
+  col = "coral"
+)
+```
+
+## Base R Histogram (Supported)
+
+```{r base-hist}
+hist(
+  mtcars$mpg,
+  breaks = 8,
+  main = "MPG Distribution",
+  xlab = "Miles per Gallon",
+  col = "lightblue"
+)
+```
+
+## Base R Box Plot (Supported)
+
+```{r base-box}
+boxplot(
+  mpg ~ cyl, data = mtcars,
+  main = "MPG by Cylinders",
+  xlab = "Cylinders",
+  ylab = "MPG",
+  col = c("lightgreen", "lightyellow", "lightpink")
+)
+```
+
+---
+
+# Unsupported Plot Types
+
+These plots are NOT fully supported by MAIDR and will render as static images.
+
+## ggplot2 Segment (Unsupported)
+
+```{r ggplot-segment}
+ggplot(mtcars, aes(x = wt, xend = wt + 0.3, y = mpg, yend = mpg + 1)) +
+  geom_segment(color = "blue", arrow = arrow(length = unit(0.2, "cm"))) +
+  labs(title = "Segment Plot (Unsupported)", x = "Weight", y = "MPG") +
+  theme_minimal()
+```
+
+## ggplot2 Polygon (Unsupported)
+
+```{r ggplot-polygon}
+polygon_data <- data.frame(
+  x = c(1, 2, 3, 2.5, 1.5),
+  y = c(1, 1.5, 1, 2, 2)
+)
+ggplot(polygon_data, aes(x = x, y = y)) +
+  geom_polygon(fill = "lightblue", color = "darkblue") +
+  labs(title = "Polygon Plot (Unsupported)") +
+  theme_minimal()
+```
+
+## Base R Pie Chart (Unsupported)
+
+```{r base-pie}
+pie(
+  c(30, 25, 20, 15, 10),
+  labels = c("A", "B", "C", "D", "E"),
+  main = "Pie Chart (Unsupported)",
+  col = rainbow(5)
+)
+```
+
+## Base R Pairs Plot (Unsupported)
+
+```{r base-pairs}
+pairs(
+  mtcars[, c("mpg", "wt", "hp")],
+  main = "Pairs Plot (Unsupported)"
+)
+```
+
+---
+
+# Summary
+
+| Plot Type | ggplot2 | Base R |
+|-----------|---------|--------|
+| Bar | Supported | Supported |
+| Histogram | Supported | Supported |
+| Scatter | Supported | Supported |
+| Line | Supported | Supported |
+| Box | Supported | Supported |
+| Pie | N/A | Unsupported |
+| Segment | Unsupported | N/A |
+| Polygon | Unsupported | N/A |
+| Pairs | N/A | Unsupported |
+
+---
+
+# Session Info
+
+```{r session-info, echo=FALSE}
+sessionInfo()
+```

@@ -254,7 +254,7 @@ Layer processor instance
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-has_unsupported_layers}{}}}
 \subsection{Method \code{has_unsupported_layers()}}{
-Check if any layers are unsupported (unknown type)
+Check if any HIGH-level layers are unsupported (unknown type)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$has_unsupported_layers()}\if{html}{\out{</div>}}
 }

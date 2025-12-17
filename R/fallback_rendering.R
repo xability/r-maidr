@@ -20,7 +20,7 @@ NULL
 #' @return Base64-encoded image data URI string
 #' @keywords internal
 create_fallback_image <- function(plot = NULL, format = "png",
-                                   width = 7, height = 5, res = 150) {
+                                  width = 7, height = 5, res = 150) {
   # Create temporary file
 
   temp_file <- tempfile(fileext = paste0(".", format))
@@ -159,7 +159,7 @@ replay_base_r_plot <- function(device_id) {
 #' @return HTML content string or htmltools object
 #' @keywords internal
 create_fallback_html <- function(plot = NULL, shiny = FALSE,
-                                  format = "png", width = 7, height = 5) {
+                                 format = "png", width = 7, height = 5) {
   # Generate the fallback image
   img_data_uri <- create_fallback_image(
     plot = plot,

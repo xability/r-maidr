@@ -106,7 +106,7 @@ BaseRAdapter <- R6::R6Class(
         },
         "points" = "point",
         "abline" = "line",
-        "polygon" = "polygon",
+        "polygon" = "unknown", # Decorative element, triggers fallback if present
         "unknown"
       )
 

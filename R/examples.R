@@ -55,7 +55,7 @@ run_example <- function(example = NULL, type = c("ggplot2", "base_r")) {
 
   # If no example specified, list all available
 
-if (is.null(example)) {
+  if (is.null(example)) {
     cat("Available MAIDR examples:\n\n")
 
     cat("ggplot2 examples:\n")
@@ -104,8 +104,12 @@ if (is.null(example)) {
   example_file <- file.path(examples_dir, paste0(example, ".R"))
   cat(sprintf("Running %s example: %s\n", type, example))
 
-  # Source the example file
-  source(example_file, local = new.env())
+  # Clear any leftover device storage from previous runs to prevent call accumulation
+  clear_all_device_storage()
+
+  # Source the example file in global environment
+  # This ensures wrapped Base R functions are found for MAIDR patching
+  source(example_file, local = FALSE)
 
   invisible(NULL)
 }

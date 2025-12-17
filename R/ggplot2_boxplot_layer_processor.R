@@ -27,12 +27,17 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         y = if (!is.null(layout$axes$y)) layout$axes$y else "y"
       )
 
+      # Determine IQR direction for MAIDR.js highlighting
+      # For vertical boxplots, Q1 is at bottom, Q3 at top (reversed in screen coords)
+      iqr_direction <- if (orientation == "vert") "reverse" else "forward"
+
       list(
         data = extracted_data,
         selectors = selectors,
         axes = axes,
         orientation = orientation,
-        type = "box"
+        type = "box",
+        domMapping = list(iqrDirection = iqr_direction)
       )
     },
 
@@ -50,17 +55,24 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
 
       boxplot_data <- list()
 
+      # Determine orientation first to know which columns to use
+      orientation <- self$determine_orientation(plot)
+
       for (i in seq_len(nrow(layer_data))) {
         row <- layer_data[i, ]
 
+        # Use correct column names based on orientation
+        # For vertical boxplots: stats are in ymin, lower, middle, upper, ymax
+        # For horizontal boxplots: stats are also in ymin, lower, middle, upper, ymax
+        # (ggplot2 stores stats consistently, xmin/xmax are just positioning)
         stats <- list(
-          min = row$xmin, # Min of data (including outliers)
-          max = row$xmax, # Max of data (including outliers)
-          q1 = row$xlower, # Lower quartile (Q1) - box start
-          q3 = row$xupper, # Upper quartile (Q3) - box end
-          q2 = row$xmiddle, # Median (Q2) - box middle
-          fill = as.character(row$y), # Y values as category codes (mapped later)
-          y_value = row$y # Store the numeric y value for mapping
+          min = row$ymin, # Min whisker
+          max = row$ymax, # Max whisker
+          q1 = row$lower, # Lower quartile (Q1) - box start
+          q3 = row$upper, # Upper quartile (Q3) - box end
+          q2 = row$middle, # Median (Q2) - box middle
+          fill = if (orientation == "horz") as.character(row$y) else as.character(row$x),
+          y_value = if (orientation == "horz") row$y else row$x
         )
 
         # Handle outliers - they are stored as "c(value1, value2)" strings
@@ -247,8 +259,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
               vals <- suppressWarnings(as.numeric(strsplit(txt, ", ")[[1]]))
               vals <- vals[!is.na(vals)]
               if (length(vals) > 0) {
-                lower_n <- sum(vals < row$xmin)
-                upper_n <- sum(vals > row$xmax)
+                # Compare against whisker values (ymin/ymax), not box position (xmin/xmax)
+                lower_n <- sum(vals < row$ymin)
+                upper_n <- sum(vals > row$ymax)
               }
             }
           }

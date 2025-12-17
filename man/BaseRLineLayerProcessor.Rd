@@ -6,7 +6,15 @@
 \description{
 Processes Base R line plot layers based on recorded plot calls
 }
+\keyword{Get}
+\keyword{LOW-level}
+\keyword{axis}
+\keyword{axis()}
+\keyword{calls}
+\keyword{custom}
+\keyword{from}
 \keyword{internal}
+\keyword{labels}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRLineLayerProcessor}
 }
@@ -16,6 +24,7 @@ Processes Base R line plot layers based on recorded plot calls
 \item \href{#method-BaseRLineLayerProcessor-process}{\code{BaseRLineLayerProcessor$process()}}
 \item \href{#method-BaseRLineLayerProcessor-needs_reordering}{\code{BaseRLineLayerProcessor$needs_reordering()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_data}{\code{BaseRLineLayerProcessor$extract_data()}}
+\item \href{#method-BaseRLineLayerProcessor-get_axis_labels}{\code{BaseRLineLayerProcessor$get_axis_labels()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_single_line_data}{\code{BaseRLineLayerProcessor$extract_single_line_data()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_multiline_data}{\code{BaseRLineLayerProcessor$extract_multiline_data()}}
 \item \href{#method-BaseRLineLayerProcessor-extract_axis_titles}{\code{BaseRLineLayerProcessor$extract_axis_titles()}}
@@ -80,11 +89,32 @@ Processes Base R line plot layers based on recorded plot calls
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_axis_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_axis_labels}{}}}
+\subsection{Method \code{get_axis_labels()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$get_axis_labels(layer_info, axis_side = 1)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{layer_info}}{Layer information containing group data}
+
+\item{\code{axis_side}}{Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of labels or NULL if not found
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_single_line_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_single_line_data}{}}}
 \subsection{Method \code{extract_single_line_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$extract_single_line_data(x, y)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$extract_single_line_data(x, y, x_labels = NULL)}\if{html}{\out{</div>}}
 }
 
 }
@@ -93,7 +123,7 @@ Processes Base R line plot layers based on recorded plot calls
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_multiline_data}{}}}
 \subsection{Method \code{extract_multiline_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$extract_multiline_data(x, y_matrix)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$extract_multiline_data(x, y_matrix, x_labels = NULL)}\if{html}{\out{</div>}}
 }
 
 }

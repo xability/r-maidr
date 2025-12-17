@@ -3,9 +3,6 @@
 
 library(maidr)
 
-# Use null device to prevent graphics window from opening
-pdf(NULL)
-
 # Sample data for stacked comparison
 revenue_matrix <- matrix(
   c(
@@ -31,6 +28,3 @@ barplot(revenue_matrix,
 
 # Display with MAIDR accessibility features
 show()
-
-# Close the null device
-dev.off()

@@ -21,7 +21,6 @@ multiline_data <- data.frame(
 # Create multi-line plot
 p <- ggplot(multiline_data, aes(x = month, y = value, color = series)) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 2) +
   scale_x_continuous(breaks = 1:12, labels = month.abb) +
   labs(
     title = "Monthly Sales by Product",

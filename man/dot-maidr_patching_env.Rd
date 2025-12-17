@@ -5,7 +5,7 @@
 \alias{.maidr_patching_env}
 \title{Base R Function Patching System}
 \format{
-An object of class \code{environment} of length 1.
+An object of class \code{environment} of length 3.
 }
 \usage{
 .maidr_patching_env

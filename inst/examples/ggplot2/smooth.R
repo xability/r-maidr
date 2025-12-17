@@ -1,5 +1,5 @@
-# MAIDR Example: Density/Smooth Plot (ggplot2)
-# Demonstrates accessible density plot with keyboard navigation
+# MAIDR Example: Smooth/Regression Plot (ggplot2)
+# Demonstrates accessible scatter plot with smooth line
 
 library(maidr)
 library(ggplot2)
@@ -7,20 +7,19 @@ library(ggplot2)
 # Generate sample data
 set.seed(42)
 smooth_data <- data.frame(
-  value = c(rnorm(200, mean = 30, sd = 5), rnorm(150, mean = 50, sd = 8)),
-  group = c(rep("Group A", 200), rep("Group B", 150))
+  x = 1:50,
+  y = 2 * (1:50) + rnorm(50, sd = 10)
 )
 
-# Create density plot
-p <- ggplot(smooth_data, aes(x = value, fill = group)) +
-  geom_density(alpha = 0.5) +
+# Create scatter plot with smooth line
+p <- ggplot(smooth_data, aes(x = x, y = y)) +
+  geom_point(color = "steelblue", size = 2) +
+  geom_smooth(method = "loess", color = "red", se = FALSE) +
   labs(
-    title = "Distribution Comparison",
-    x = "Value",
-    y = "Density",
-    fill = "Group"
+    title = "Scatter Plot with Smooth Line",
+    x = "X Values",
+    y = "Y Values"
   ) +
-  scale_fill_brewer(palette = "Set2") +
   theme_minimal()
 
 # Display with MAIDR accessibility features
