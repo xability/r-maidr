@@ -102,37 +102,43 @@ is_maidr_on <- function() {
 #'
 #' Converts ggplot objects to MAIDR widgets for accessible rendering in RMarkdown.
 #' Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-#' Automatically falls back to image rendering for unsupported plot types.
+#' Automatically falls back to image rendering for unsupported plot types or
+#' non-HTML output formats (PDF, EPUB).
 #'
 #' @param x A ggplot object
 #' @param options Chunk options from knitr
 #' @param ... Additional arguments (ignored)
-#' @return A knit_asis object containing the iframe HTML
+#' @return A knit_asis object containing the iframe HTML or inline image
 #' @keywords internal
 knit_print.ggplot <- function(x, options = list(), ...) {
-  # Get content using existing infrastructure
-  # This returns either SVG (for supported plots) or fallback HTML (for unsupported)
-  content <- create_maidr_html(x, shiny = TRUE)
-
-  # Check if this is fallback content (contains <img> tag indicating image fallback)
-  content_str <- as.character(content)
-  is_fallback <- grepl("<img\\s+src=", content_str)
-
-  if (is_fallback) {
-    # For fallback images, create a simple iframe without MAIDR.js
-    iframe_html <- create_fallback_iframe(
-      html_content = content_str,
-      width = "100%",
-      height = "450px"
-    )
-  } else {
-    # For normal MAIDR plots, use the full iframe with MAIDR.js
-    iframe_html <- create_maidr_iframe(
-      svg_content = content,
-      width = "100%",
-      height = "450px"
-    )
+  # Check output format - only use iframes for HTML output
+  if (!is_html_output()) {
+    # For PDF/EPUB/LaTeX: let knitr handle the plot natively
+    # Print the plot and use default knit_print behavior
+    print(x)
+    return(invisible(NULL))
   }
+
+  # Create orchestrator ONCE and reuse it
+  registry <- get_global_registry()
+  adapter <- registry$get_adapter("ggplot2")
+  orchestrator <- adapter$create_orchestrator(x)
+
+  if (orchestrator$should_fallback()) {
+    # For fallback/unsupported plots in HTML: use inline image (no iframe needed)
+    img_html <- create_inline_image(x)
+    return(knitr::asis_output(img_html))
+  }
+
+  # Get content using the SAME orchestrator (avoid creating another)
+  content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
+
+  # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
+  iframe_html <- create_maidr_iframe(
+    svg_content = content,
+    width = "100%",
+    height = "450px"
+  )
 
   # Return as raw HTML
   knitr::asis_output(iframe_html)
@@ -208,7 +214,8 @@ create_maidr_widget_internal <- function(plot = NULL) {
 #'
 #' Intercepts Base R plot output and converts to MAIDR iframe.
 #' Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-#' Automatically falls back to image rendering for unsupported plot types.
+#' Automatically falls back to image rendering for unsupported plot types or
+#' non-HTML output formats (PDF, EPUB).
 #' This replaces knitr's default plot hook when maidr_on() is called.
 #'
 #' @param x The plot file path from knitr
@@ -220,32 +227,38 @@ maidr_plot_hook <- function(x, options) {
 
   # Check if we have captured Base R calls
   if (has_device_calls(device_id)) {
-    # Get content from captured Base R plot
-    # This returns either SVG (for supported plots) or fallback HTML (for unsupported)
-    content <- create_maidr_html(plot = NULL, shiny = TRUE)
+    # Check output format - only use iframes for HTML output
+    if (!is_html_output()) {
+      # For PDF/EPUB/LaTeX: use default knitr handling
+      # Clear storage but use standard image output
+      clear_device_storage(device_id)
+      return(knitr::hook_plot_md(x, options))
+    }
+
+    # Create orchestrator ONCE and reuse it
+    registry <- get_global_registry()
+    adapter <- registry$get_adapter("base_r")
+    orchestrator <- adapter$create_orchestrator(NULL)
+
+    if (orchestrator$should_fallback()) {
+      # For fallback/unsupported plots in HTML: use inline image (no iframe needed)
+      img_html <- create_inline_image(plot = NULL)
+      clear_device_storage(device_id)
+      return(img_html)
+    }
+
+    # Get content using the SAME orchestrator (avoid creating another)
+    content <- create_maidr_html(plot = NULL, shiny = TRUE, orchestrator = orchestrator)
 
     # Clear the device storage
     clear_device_storage(device_id)
 
-    # Check if this is fallback content (contains <img> tag indicating image fallback)
-    content_str <- as.character(content)
-    is_fallback <- grepl("<img\\s+src=", content_str)
-
-    if (is_fallback) {
-      # For fallback images, create a simple iframe without MAIDR.js
-      iframe_html <- create_fallback_iframe(
-        html_content = content_str,
-        width = "100%",
-        height = "450px"
-      )
-    } else {
-      # For normal MAIDR plots, use the full iframe with MAIDR.js
-      iframe_html <- create_maidr_iframe(
-        svg_content = content,
-        width = "100%",
-        height = "450px"
-      )
-    }
+    # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
+    iframe_html <- create_maidr_iframe(
+      svg_content = content,
+      width = "100%",
+      height = "450px"
+    )
 
     # Return as raw HTML
     return(iframe_html)
@@ -265,3 +278,58 @@ maidr_plot_hook <- function(x, options) {
 .maidr_knitr_state <- new.env(parent = emptyenv())
 .maidr_knitr_state$enabled <- FALSE
 .maidr_knitr_state$original_plot_hook <- NULL
+
+#' Check if current knitr output format is HTML
+#'
+#' Detects whether the current RMarkdown document is being rendered to HTML
+#' format (html_document, bookdown, etc.) vs non-HTML formats (pdf, epub, etc.)
+#'
+#' @return TRUE if rendering to HTML, FALSE otherwise
+#' @keywords internal
+is_html_output <- function() {
+  # Use knitr's built-in detection if available
+
+  if (requireNamespace("knitr", quietly = TRUE)) {
+    # knitr::is_html_output() checks the current output format
+    if (exists("is_html_output", where = asNamespace("knitr"))) {
+      return(knitr::is_html_output())
+    }
+
+    # Fallback: check pandoc output format
+    pandoc_to <- knitr::opts_knit$get("rmarkdown.pandoc.to")
+    if (!is.null(pandoc_to)) {
+      html_formats <- c("html", "html4", "html5", "revealjs", "s5", "slideous", "slidy")
+      return(pandoc_to %in% html_formats || grepl("^html", pandoc_to))
+    }
+  }
+
+  # Default to TRUE (assume HTML) if we can't detect
+
+  TRUE
+}
+
+#' Create inline image HTML for non-iframe rendering
+#'
+#' Creates a simple img tag for fallback/non-HTML output.
+#' Used when we don't need iframe isolation (unsupported plots in HTML,
+#' or any plot in PDF/EPUB output).
+#'
+#' @param plot A ggplot object or NULL for Base R
+#' @param width Width for the image container
+#' @param height Height for the image container
+#' @return Character string of HTML with img tag
+#' @keywords internal
+create_inline_image <- function(plot = NULL, width = "100%", height = "auto") {
+  # Generate PNG image
+  img_data <- create_fallback_image(plot, format = "png")
+
+  # Create simple inline image HTML
+  img_html <- sprintf(
+    '<div style="text-align: center; width: %s;"><img src="%s" alt="Plot" style="max-width: 100%%; height: %s;" /></div>',
+    width,
+    img_data,
+    height
+  )
+
+  img_html
+}

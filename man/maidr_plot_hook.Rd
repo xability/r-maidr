@@ -17,7 +17,8 @@ HTML string for the plot
 \description{
 Intercepts Base R plot output and converts to MAIDR iframe.
 Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-Automatically falls back to image rendering for unsupported plot types.
+Automatically falls back to image rendering for unsupported plot types or
+non-HTML output formats (PDF, EPUB).
 This replaces knitr's default plot hook when maidr_on() is called.
 }
 \keyword{internal}

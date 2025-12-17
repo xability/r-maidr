@@ -3,9 +3,6 @@
 
 library(maidr)
 
-# Use null device to prevent graphics window from opening
-pdf(NULL)
-
 # Generate sample data
 set.seed(42)
 x <- runif(50, 0, 100)
@@ -31,6 +28,3 @@ legend("topright",
 
 # Display with MAIDR accessibility features
 show()
-
-# Close the null device
-dev.off()

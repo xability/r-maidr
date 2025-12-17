@@ -3,9 +3,6 @@
 
 library(maidr)
 
-# Use null device to prevent graphics window from opening
-pdf(NULL)
-
 # Sample data for grouped comparison
 sales_matrix <- matrix(
   c(150, 180, 200, 220, 130, 160, 170, 190),
@@ -27,6 +24,3 @@ barplot(sales_matrix,
 
 # Display with MAIDR accessibility features
 show()
-
-# Close the null device
-dev.off()

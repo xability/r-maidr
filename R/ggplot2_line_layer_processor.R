@@ -96,6 +96,43 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         }
       }
 
+      # Map numeric x positions to axis labels for categorical x-axis
+      panel_params <- built$layout$panel_params[[1]]
+      if (!is.null(panel_params$x)) {
+        x_labels <- NULL
+        x_breaks <- NULL
+
+        # Try to get labels via get_labels() method (works for both discrete and continuous scales)
+        tryCatch(
+          {
+            if (!is.null(panel_params$x$get_labels)) {
+              x_labels <- as.character(panel_params$x$get_labels())
+            }
+            if (!is.null(panel_params$x$breaks)) {
+              x_breaks <- panel_params$x$breaks
+            }
+          },
+          error = function(e) NULL
+        )
+
+        # Only map if we have both labels and breaks, and labels are different from breaks
+        if (!is.null(x_labels) && length(x_labels) > 0 &&
+          !is.null(x_breaks) && length(x_breaks) == length(x_labels)) {
+          # Create a mapping from break values to labels
+          x_positions <- layer_data$x
+          mapped_x <- sapply(x_positions, function(pos) {
+            # Find which break this position matches
+            idx <- which(abs(x_breaks - pos) < 0.001)
+            if (length(idx) > 0 && idx[1] <= length(x_labels)) {
+              x_labels[idx[1]]
+            } else {
+              as.character(pos)
+            }
+          })
+          layer_data$x <- mapped_x
+        }
+      }
+
       if ("group" %in% names(layer_data)) {
         unique_groups <- unique(layer_data$group)
         # Only treat as multiline if we have more than one group and not just the default -1

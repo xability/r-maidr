@@ -49,30 +49,65 @@ BaseRLineLayerProcessor <- R6::R6Class(
       x <- args[[1]]
       y <- args[[2]]
 
+      # Check for custom axis labels from axis() calls
+      x_labels <- self$get_axis_labels(layer_info, axis_side = 1)
+
       is_multiline <- is.matrix(y) || (is.array(y) && length(dim(y)) == 2)
 
       if (is_multiline) {
-        self$extract_multiline_data(x, y)
+        self$extract_multiline_data(x, y, x_labels)
       } else {
-        self$extract_single_line_data(x, y)
+        self$extract_single_line_data(x, y, x_labels)
       }
     },
-    extract_single_line_data = function(x, y) {
+    #' Get custom axis labels from axis() LOW-level calls
+    #' @param layer_info Layer information containing group data
+    #' @param axis_side Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
+    #' @return Character vector of labels or NULL if not found
+    get_axis_labels = function(layer_info, axis_side = 1) {
+      if (is.null(layer_info$group)) {
+        return(NULL)
+      }
+
+      low_calls <- layer_info$group$low_calls
+      if (is.null(low_calls) || length(low_calls) == 0) {
+        return(NULL)
+      }
+
+      # Search for axis() call with matching side and labels
+      for (call in low_calls) {
+        if (call$function_name == "axis") {
+          call_args <- call$args
+          # First argument is the side (1=bottom, 2=left, etc.)
+          side <- call_args[[1]]
+          if (!is.null(side) && side == axis_side && !is.null(call_args$labels)) {
+            return(as.character(call_args$labels))
+          }
+        }
+      }
+
+      NULL
+    },
+    extract_single_line_data = function(x, y, x_labels = NULL) {
       data_points <- list()
 
       # Ensure x and y are same length
       n <- min(length(x), length(y))
 
+      # Use custom axis labels if available, otherwise use x values
+      use_labels <- !is.null(x_labels) && length(x_labels) >= n
+
       for (i in 1:n) {
+        x_value <- if (use_labels) x_labels[i] else as.character(x[i])
         data_points[[i]] <- list(
-          x = as.character(x[i]),
+          x = x_value,
           y = as.numeric(y[i])
         )
       }
 
       list(data_points)
     },
-    extract_multiline_data = function(x, y_matrix) {
+    extract_multiline_data = function(x, y_matrix, x_labels = NULL) {
       series_names <- colnames(y_matrix)
       if (is.null(series_names)) {
         series_names <- paste0("Col", seq_len(ncol(y_matrix)))
@@ -90,9 +125,13 @@ BaseRLineLayerProcessor <- R6::R6Class(
         # Ensure x and y are same length
         n <- min(length(x), length(series_y))
 
+        # Use custom axis labels if available, otherwise use x values
+        use_labels <- !is.null(x_labels) && length(x_labels) >= n
+
         for (i in 1:n) {
+          x_value <- if (use_labels) x_labels[i] else as.character(x[i])
           series_points[[i]] <- list(
-            x = as.character(x[i]),
+            x = x_value,
             y = as.numeric(series_y[i]),
             fill = as.character(series_name)
           )

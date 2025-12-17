@@ -116,7 +116,8 @@ test_that("Ggplot2LineLayerProcessor handles single point line", {
   data <- processor$extract_data(p)
 
   testthat::expect_equal(length(data[[1]]), 1)
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  # Single-point plots use ggplot2's auto-generated scale with decimal formatting
+  testthat::expect_equal(data[[1]][[1]]$x, "1.000")
   testthat::expect_equal(data[[1]][[1]]$y, 5)
 })
 
