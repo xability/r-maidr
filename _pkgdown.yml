@@ -38,6 +38,13 @@ reference:
       - render_maidr
       - maidr_output
 
+  - title: Configuration and utilities
+    desc: Functions for configuring MAIDR behavior and running examples
+    contents:
+      - maidr_set_fallback
+      - maidr_get_fallback
+      - run_example
+
   - title: Internal utilities
     desc: Internal functions for package developers
     contents:
