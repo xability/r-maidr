@@ -9,7 +9,7 @@ An R6 class inheriting from SystemAdapter
 
 ## Super class
 
-[`maidr::SystemAdapter`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/SystemAdapter.md)
+[`maidr::SystemAdapter`](https://r.maidr.ai/reference/SystemAdapter.md)
 -\> `Ggplot2Adapter`
 
 ## Methods

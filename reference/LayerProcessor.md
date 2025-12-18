@@ -288,7 +288,7 @@ List with x and y axis labels
 
 ------------------------------------------------------------------------
 
-### Method [`apply_scale_mapping()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/apply_scale_mapping.md)
+### Method [`apply_scale_mapping()`](https://r.maidr.ai/reference/apply_scale_mapping.md)
 
 Apply scale mapping to numeric values
 

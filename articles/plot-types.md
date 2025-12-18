@@ -522,10 +522,10 @@ show()
 ## Next Steps
 
 - **[Getting
-  Started](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/getting-started.md)** -
-  Learn the basics
+  Started](https://r.maidr.ai/articles/getting-started.md)** - Learn the
+  basics
 - **[Shiny
-  Integration](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/shiny-integration.md)** -
-  Use in interactive apps
+  Integration](https://r.maidr.ai/articles/shiny-integration.md)** - Use
+  in interactive apps
 - **Package documentation** - Run
   [`help(package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference)

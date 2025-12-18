@@ -11,9 +11,9 @@ dashboards.
 
 MAIDR provides two functions for Shiny integration:
 
-1.  **[`maidr_output()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md)** -
+1.  **[`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md)** -
     UI function to create output container
-2.  **[`render_maidr()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/render_maidr.md)** -
+2.  **[`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md)** -
     Server function to render plots
 
 These functions work together to display accessible MAIDR plots in your
@@ -404,7 +404,7 @@ When deploying Shiny apps with MAIDR:
 ### Common Issues
 
 **Plot doesn’t appear:** - Check that ggplot object is returned from
-[`render_maidr()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/render_maidr.md) -
+[`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) -
 Verify output ID matches between UI and server
 
 **Keyboard navigation not working:** - Ensure plot container is
@@ -416,11 +416,10 @@ ARIA labels are present
 ## Learn More
 
 - **[Getting
-  Started](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/getting-started.md)** -
-  MAIDR basics
-- **[Plot
-  Types](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)** -
-  All supported visualizations
+  Started](https://r.maidr.ai/articles/getting-started.md)** - MAIDR
+  basics
+- **[Plot Types](https://r.maidr.ai/articles/plot-types.md)** - All
+  supported visualizations
 - **Shiny documentation** - [shiny.posit.co](https://shiny.posit.co/)
 - **Accessibility guidelines** - [WCAG
   2.1](https://www.w3.org/WAI/WCAG22/quickref/?versions=2.1)
@@ -430,5 +429,5 @@ ARIA labels are present
 - GitHub issues:
   [maidr/issues](https://github.com/xability/maidr/issues)
 - Package documentation:
-  [`?maidr::maidr_output`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md)
+  [`?maidr::maidr_output`](https://r.maidr.ai/reference/maidr_output.md)
 - Posit Community: [forum.posit.co](https://forum.posit.co/)

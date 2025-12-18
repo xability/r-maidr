@@ -234,7 +234,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method [`get_plot_calls()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/get_plot_calls.md)
+### Method [`get_plot_calls()`](https://r.maidr.ai/reference/get_plot_calls.md)
 
 #### Usage
 

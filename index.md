@@ -9,10 +9,10 @@ with keyboard navigation, screen reader support, and sonification.
 
 The package provides two main functions:
 
-- [`show()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md)
-  displays an interactive accessible plot in RStudio Viewer or browser
-- [`save_html()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/save_html.md)
-  exports a plot as a standalone HTML file
+- [`show()`](https://r.maidr.ai/reference/show.md) displays an
+  interactive accessible plot in RStudio Viewer or browser
+- [`save_html()`](https://r.maidr.ai/reference/save_html.md) exports a
+  plot as a standalone HTML file
 
 ## Installation
 
@@ -91,7 +91,7 @@ Base R:
 | Multi-layered plots | Multiple `geom_*` layers                                                                                                                             | Sequential plot calls      |
 
 See
-[`vignette("plot-types")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)
+[`vignette("plot-types")`](https://r.maidr.ai/articles/plot-types.md)
 for detailed examples of each plot type.
 
 ## Accessibility features
@@ -109,9 +109,9 @@ for detailed examples of each plot type.
 
 ## Learning more
 
-- [`vignette("getting-started", package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/getting-started.md)
+- [`vignette("getting-started", package = "maidr")`](https://r.maidr.ai/articles/getting-started.md)
   for an introduction
-- [`vignette("plot-types", package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)
+- [`vignette("plot-types", package = "maidr")`](https://r.maidr.ai/articles/plot-types.md)
   for supported visualizations
-- [`vignette("shiny-integration", package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/shiny-integration.md)
+- [`vignette("shiny-integration", package = "maidr")`](https://r.maidr.ai/articles/shiny-integration.md)
   for Shiny apps

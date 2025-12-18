@@ -9,7 +9,7 @@ An R6 class inheriting from ProcessorFactory
 
 ## Super class
 
-[`maidr::ProcessorFactory`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/ProcessorFactory.md)
+[`maidr::ProcessorFactory`](https://r.maidr.ai/reference/ProcessorFactory.md)
 -\> `BaseRProcessorFactory`
 
 ## Methods
@@ -34,7 +34,7 @@ An R6 class inheriting from ProcessorFactory
 
 Inherited methods
 
-- [`maidr::ProcessorFactory$supports_plot_type()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/ProcessorFactory.html#method-supports_plot_type)
+- [`maidr::ProcessorFactory$supports_plot_type()`](https://r.maidr.ai/reference/ProcessorFactory.html#method-supports_plot_type)
 
 ------------------------------------------------------------------------
 

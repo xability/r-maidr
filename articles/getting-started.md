@@ -28,9 +28,9 @@ devtools::install_github("xability/r-maidr-prototype")
 
 MAIDR works with two main functions:
 
-1.  **[`show()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md)** -
-    Display an interactive plot in RStudio Viewer or browser
-2.  **[`save_html()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/save_html.md)** -
+1.  **[`show()`](https://r.maidr.ai/reference/show.md)** - Display an
+    interactive plot in RStudio Viewer or browser
+2.  **[`save_html()`](https://r.maidr.ai/reference/save_html.md)** -
     Save a plot as a standalone HTML file
 
 ### Quick Example: ggplot2 Bar Chart
@@ -142,20 +142,20 @@ MAIDR supports a comprehensive range of visualizations:
   density)
 
 See the **[Supported Plot
-Types](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)**
-vignette for detailed examples of each.
+Types](https://r.maidr.ai/articles/plot-types.md)** vignette for
+detailed examples of each.
 
 ## Next Steps
 
 - **[Supported Plot
-  Types](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/plot-types.md)** -
-  See all available plot types with code examples
+  Types](https://r.maidr.ai/articles/plot-types.md)** - See all
+  available plot types with code examples
 - **[Shiny
-  Integration](http://xabilitylab.ischool.illinois.edu/r-maidr/articles/shiny-integration.md)** -
-  Use MAIDR in Shiny apps
+  Integration](https://r.maidr.ai/articles/shiny-integration.md)** - Use
+  MAIDR in Shiny apps
 - **Package documentation** - Run
-  [`?maidr::show`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md)
-  for function details
+  [`?maidr::show`](https://r.maidr.ai/reference/show.md) for function
+  details
 
 ## Example Gallery
 
@@ -243,9 +243,8 @@ show(p)
 
 ## Getting Help
 
-- Run
-  [`?maidr::show`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md)
-  for function documentation
+- Run [`?maidr::show`](https://r.maidr.ai/reference/show.md) for
+  function documentation
 - Visit GitHub issues:
   [maidr/issues](https://github.com/xability/maidr/issues)
 - Read the full documentation:

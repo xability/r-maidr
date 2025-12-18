@@ -6,14 +6,13 @@ Initial CRAN release.
 
 ### Features
 
-- [`show()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/show.md) -
-  Display interactive, accessible visualizations from ggplot2 or Base R
-  plots with keyboard navigation and screen reader support
-- [`save_html()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/save_html.md) -
-  Export accessible visualizations to standalone HTML files
-- [`render_maidr()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/render_maidr.md)
-  and
-  [`maidr_output()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md) -
+- [`show()`](https://r.maidr.ai/reference/show.md) - Display
+  interactive, accessible visualizations from ggplot2 or Base R plots
+  with keyboard navigation and screen reader support
+- [`save_html()`](https://r.maidr.ai/reference/save_html.md) - Export
+  accessible visualizations to standalone HTML files
+- [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) and
+  [`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md) -
   Shiny integration for interactive web applications
 
 ### Supported Plot Types

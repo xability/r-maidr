@@ -9,7 +9,7 @@ An R6 class inheriting from SystemAdapter
 
 ## Super class
 
-[`maidr::SystemAdapter`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/SystemAdapter.md)
+[`maidr::SystemAdapter`](https://r.maidr.ai/reference/SystemAdapter.md)
 -\> `BaseRAdapter`
 
 ## Methods
@@ -218,7 +218,7 @@ processing
 
 ------------------------------------------------------------------------
 
-### Method [`get_plot_calls()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/get_plot_calls.md)
+### Method [`get_plot_calls()`](https://r.maidr.ai/reference/get_plot_calls.md)
 
 #### Usage
 
@@ -236,7 +236,7 @@ List of recorded plot calls Clear recorded plot calls (for cleanup)
 
 ------------------------------------------------------------------------
 
-### Method [`clear_plot_calls()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/clear_plot_calls.md)
+### Method [`clear_plot_calls()`](https://r.maidr.ai/reference/clear_plot_calls.md)
 
 #### Usage
 
