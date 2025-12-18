@@ -44,7 +44,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_maidr_html</span><span class="op">(</span><span class="va">plot</span>, shiny <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_maidr_html</span><span class="op">(</span><span class="va">plot</span>, shiny <span class="op">=</span> <span class="cn">FALSE</span>, orchestrator <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -57,6 +57,10 @@
 
 <dt id="arg-shiny">shiny<a class="anchor" aria-label="anchor" href="#arg-shiny"></a></dt>
 <dd><p>If TRUE, returns just the SVG content instead of full HTML document</p></dd>
+
+
+<dt id="arg-orchestrator">orchestrator<a class="anchor" aria-label="anchor" href="#arg-orchestrator"></a></dt>
+<dd><p>Optional pre-created orchestrator to reuse (avoids double creation)</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

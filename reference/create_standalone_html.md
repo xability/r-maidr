@@ -3,6 +3,8 @@
 Generates a complete standalone HTML document with MAIDR.js that can be
 embedded in an iframe for isolation. Each iframe gets its own JavaScript
 context, avoiding MAIDR.js singleton pattern issues with multiple plots.
+Auto-detects internet availability: uses CDN if online, inline local if
+offline.
 
 ## Usage
 

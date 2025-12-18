@@ -134,6 +134,8 @@ the results into a comprehensive interactive plot.</p>
 <li><p><a href="#method-Ggplot2PlotOrchestrator-is_faceted_plot"><code>Ggplot2PlotOrchestrator$is_faceted_plot()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PlotOrchestrator-process_faceted_plot"><code>Ggplot2PlotOrchestrator$process_faceted_plot()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PlotOrchestrator-process_patchwork_plot"><code>Ggplot2PlotOrchestrator$process_patchwork_plot()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PlotOrchestrator-has_unsupported_layers"><code>Ggplot2PlotOrchestrator$has_unsupported_layers()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PlotOrchestrator-should_fallback"><code>Ggplot2PlotOrchestrator$should_fallback()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PlotOrchestrator-clone"><code>Ggplot2PlotOrchestrator$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Ggplot2PlotOrchestrator-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -339,10 +341,34 @@ the results into a comprehensive interactive plot.</p>
 <p>NULL (sets internal state)</p>
 </div>
 
+</div><p></p><hr><a id="method-Ggplot2PlotOrchestrator-has_unsupported_layers"></a><div class="section">
+<h3 id="method-has-unsupported-layers-">Method <code>has_unsupported_layers()</code><a class="anchor" aria-label="anchor" href="#method-has-unsupported-layers-"></a></h3>
+<p>Check if any layers are unsupported (unknown type)</p><div class="section">
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>Logical indicating if there are unsupported layers</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2PlotOrchestrator-should_fallback"></a><div class="section">
+<h3 id="method-should-fallback-">Method <code>should_fallback()</code><a class="anchor" aria-label="anchor" href="#method-should-fallback-"></a></h3>
+<p>Determine if the plot should fall back to image rendering</p><div class="section">
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Logical indicating if fallback should be used</p>
+</div>
+
 </div><p></p><hr><a id="method-Ggplot2PlotOrchestrator-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

@@ -2,7 +2,8 @@
 
 Converts ggplot objects to MAIDR widgets for accessible rendering in
 RMarkdown. Uses iframe-based isolation to ensure each plot has its own
-MAIDR.js context.
+MAIDR.js context. Automatically falls back to image rendering for
+unsupported plot types or non-HTML output formats (PDF, EPUB).
 
 ## Usage
 
@@ -26,4 +27,4 @@ knit_print.ggplot(x, options = list(), ...)
 
 ## Value
 
-A knit_asis object containing the iframe HTML
+A knit_asis object containing the iframe HTML or inline image

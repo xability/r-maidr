@@ -17,6 +17,8 @@ Processes Base R line plot layers based on recorded plot calls
 
 - [`BaseRLineLayerProcessor$extract_data()`](#method-BaseRLineLayerProcessor-extract_data)
 
+- [`BaseRLineLayerProcessor$get_axis_labels()`](#method-BaseRLineLayerProcessor-get_axis_labels)
+
 - [`BaseRLineLayerProcessor$extract_single_line_data()`](#method-BaseRLineLayerProcessor-extract_single_line_data)
 
 - [`BaseRLineLayerProcessor$extract_multiline_data()`](#method-BaseRLineLayerProcessor-extract_multiline_data)
@@ -85,11 +87,33 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
+### Method `get_axis_labels()`
+
+#### Usage
+
+    BaseRLineLayerProcessor$get_axis_labels(layer_info, axis_side = 1)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information containing group data
+
+- `axis_side`:
+
+  Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
+
+#### Returns
+
+Character vector of labels or NULL if not found
+
+------------------------------------------------------------------------
+
 ### Method `extract_single_line_data()`
 
 #### Usage
 
-    BaseRLineLayerProcessor$extract_single_line_data(x, y)
+    BaseRLineLayerProcessor$extract_single_line_data(x, y, x_labels = NULL)
 
 ------------------------------------------------------------------------
 
@@ -97,7 +121,7 @@ Inherited methods
 
 #### Usage
 
-    BaseRLineLayerProcessor$extract_multiline_data(x, y_matrix)
+    BaseRLineLayerProcessor$extract_multiline_data(x, y_matrix, x_labels = NULL)
 
 ------------------------------------------------------------------------
 

@@ -106,6 +106,10 @@ the results into a comprehensive interactive plot.
 
 - [`Ggplot2PlotOrchestrator$process_patchwork_plot()`](#method-Ggplot2PlotOrchestrator-process_patchwork_plot)
 
+- [`Ggplot2PlotOrchestrator$has_unsupported_layers()`](#method-Ggplot2PlotOrchestrator-has_unsupported_layers)
+
+- [`Ggplot2PlotOrchestrator$should_fallback()`](#method-Ggplot2PlotOrchestrator-should_fallback)
+
 - [`Ggplot2PlotOrchestrator$clone()`](#method-Ggplot2PlotOrchestrator-clone)
 
 ------------------------------------------------------------------------
@@ -301,6 +305,34 @@ Process a patchwork multipanel plot using utility functions
 #### Returns
 
 NULL (sets internal state)
+
+------------------------------------------------------------------------
+
+### Method `has_unsupported_layers()`
+
+Check if any layers are unsupported (unknown type)
+
+#### Usage
+
+    Ggplot2PlotOrchestrator$has_unsupported_layers()
+
+#### Returns
+
+Logical indicating if there are unsupported layers
+
+------------------------------------------------------------------------
+
+### Method `should_fallback()`
+
+Determine if the plot should fall back to image rendering
+
+#### Usage
+
+    Ggplot2PlotOrchestrator$should_fallback()
+
+#### Returns
+
+Logical indicating if fallback should be used
 
 ------------------------------------------------------------------------
 

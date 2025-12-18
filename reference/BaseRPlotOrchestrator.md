@@ -1,5 +1,11 @@
 # Base R Plot Orchestrator Class
 
+Base R Plot Orchestrator Class
+
+Base R Plot Orchestrator Class
+
+## Details
+
 This class orchestrates the detection and processing of multiple layers
 in Base R plots. It analyzes each recorded plot call individually and
 combines the results into a comprehensive interactive plot.
@@ -93,6 +99,10 @@ combines the results into a comprehensive interactive plot.
 - [`BaseRPlotOrchestrator$get_gtable()`](#method-BaseRPlotOrchestrator-get_gtable)
 
 - [`BaseRPlotOrchestrator$get_grob_for_layer()`](#method-BaseRPlotOrchestrator-get_grob_for_layer)
+
+- [`BaseRPlotOrchestrator$has_unsupported_layers()`](#method-BaseRPlotOrchestrator-has_unsupported_layers)
+
+- [`BaseRPlotOrchestrator$should_fallback()`](#method-BaseRPlotOrchestrator-should_fallback)
 
 - [`BaseRPlotOrchestrator$clone()`](#method-BaseRPlotOrchestrator-clone)
 
@@ -245,6 +255,34 @@ Layer processor instance
 #### Usage
 
     BaseRPlotOrchestrator$get_grob_for_layer(layer_index)
+
+------------------------------------------------------------------------
+
+### Method `has_unsupported_layers()`
+
+Check if any HIGH-level layers are unsupported (unknown type)
+
+#### Usage
+
+    BaseRPlotOrchestrator$has_unsupported_layers()
+
+#### Returns
+
+Logical indicating if there are unsupported layers
+
+------------------------------------------------------------------------
+
+### Method `should_fallback()`
+
+Determine if the plot should fall back to image rendering
+
+#### Usage
+
+    BaseRPlotOrchestrator$should_fallback()
+
+#### Returns
+
+Logical indicating if fallback should be used
 
 ------------------------------------------------------------------------
 

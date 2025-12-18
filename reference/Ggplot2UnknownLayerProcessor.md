@@ -36,7 +36,7 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2UnknownLayerProcessor$process(plot, layout, gt = NULL)
+    Ggplot2UnknownLayerProcessor$process(plot, layout, built = NULL, gt = NULL)
 
 ------------------------------------------------------------------------
 

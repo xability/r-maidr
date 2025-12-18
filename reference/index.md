@@ -27,6 +27,17 @@ Functions for using maidr in Shiny applications
 - [`maidr_output()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_output.md)
   : MAIDR Output Container for Shiny UI
 
+## Configuration and utilities
+
+Functions for configuring MAIDR behavior and running examples
+
+- [`maidr_set_fallback()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_set_fallback.md)
+  : Configure MAIDR Fallback Behavior
+- [`maidr_get_fallback()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/maidr_get_fallback.md)
+  : Get Current MAIDR Fallback Settings
+- [`run_example()`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference/run_example.md)
+  : Run MAIDR Example Plots
+
 ## Internal utilities
 
 Internal functions for package developers

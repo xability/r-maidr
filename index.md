@@ -105,8 +105,7 @@ for detailed examples of each plot type.
 
 - Report bugs or request features at [GitHub
   Issues](https://github.com/xability/r-maidr/issues)
-- Read the documentation at the [package
-  website](http://xabilitylab.ischool.illinois.edu/r-maidr/)
+- Read the documentation at the [package website](https://r.maidr.ai/)
 
 ## Learning more
 
