@@ -2,17 +2,14 @@
 % Please edit documentation in R/html_dependencies.R
 \name{maidr_cdn_url}
 \alias{maidr_cdn_url}
-\title{Get the MAIDR CDN base URL for a specific version}
+\title{Get the MAIDR CDN base URL}
 \usage{
-maidr_cdn_url(version = MAIDR_VERSION)
-}
-\arguments{
-\item{version}{MAIDR version string (default: bundled version)}
+maidr_cdn_url()
 }
 \value{
 CDN URL string
 }
 \description{
-Get the MAIDR CDN base URL for a specific version
+Uses @latest to always fetch the most recent version from CDN.
 }
 \keyword{internal}

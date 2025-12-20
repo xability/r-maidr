@@ -335,7 +335,7 @@ ui <- dashboardPage(
               div(
                 class = "plot-container",
                 `aria-label` = "Interactive bar plot showing categorical data",
-                maidrOutput("bar_plot", height = "auto")
+                maidr_output("bar_plot", height = "auto")
               )
             )
           ),
@@ -361,7 +361,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("dodged_bar_plot", height = "auto")
+                maidr_output("dodged_bar_plot", height = "auto")
               )
             )
           ),
@@ -387,7 +387,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("stacked_bar_plot", height = "auto")
+                maidr_output("stacked_bar_plot", height = "auto")
               )
             )
           ),
@@ -413,7 +413,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("point_plot", height = "auto")
+                maidr_output("point_plot", height = "auto")
               )
             )
           ),
@@ -441,7 +441,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("histogram_plot", height = "auto")
+                maidr_output("histogram_plot", height = "auto")
               )
             )
           ),
@@ -467,7 +467,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("hist_density_plot", height = "auto")
+                maidr_output("hist_density_plot", height = "auto")
               )
             )
           ),
@@ -493,7 +493,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("boxplot_plot", height = "auto")
+                maidr_output("boxplot_plot", height = "auto")
               )
             )
           ),
@@ -519,7 +519,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("smooth_plot", height = "auto")
+                maidr_output("smooth_plot", height = "auto")
               )
             )
           ),
@@ -547,7 +547,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("line_plot", height = "auto")
+                maidr_output("line_plot", height = "auto")
               )
             )
           ),
@@ -573,7 +573,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("multiline_plot", height = "auto")
+                maidr_output("multiline_plot", height = "auto")
               )
             )
           ),
@@ -599,7 +599,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("dual_axis_plot", height = "auto")
+                maidr_output("dual_axis_plot", height = "auto")
               )
             )
           ),
@@ -625,7 +625,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("heatmap_plot", height = "auto")
+                maidr_output("heatmap_plot", height = "auto")
               )
             )
           ),
@@ -653,7 +653,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("facet_bar_plot", height = "auto")
+                maidr_output("facet_bar_plot", height = "auto")
               )
             )
           ),
@@ -679,7 +679,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("facet_point_plot", height = "auto")
+                maidr_output("facet_point_plot", height = "auto")
               )
             )
           ),
@@ -705,7 +705,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("facet_line_plot", height = "auto")
+                maidr_output("facet_line_plot", height = "auto")
               )
             )
           ),
@@ -733,7 +733,7 @@ ui <- dashboardPage(
               width = 12,
               div(
                 class = "plot-container",
-                maidrOutput("patchwork_2x2_plot", height = "auto")
+                maidr_output("patchwork_2x2_plot", height = "auto")
               )
             )
           ),
@@ -844,7 +844,7 @@ server <- function(input, output, session) {
 
   # Bar Plot
   cat("=== DEFINING OUTPUT$bar_plot ===\n")
-  output$bar_plot <- renderMaidr({
+  output$bar_plot <- render_maidr({
     cat("=== BAR PLOT RENDERING START ===\n")
 
     tryCatch(
@@ -866,7 +866,7 @@ server <- function(input, output, session) {
         cat("Plot class:", class(p), "\n")
         cat("Plot inherits ggplot:", inherits(p, "ggplot"), "\n")
 
-        cat("About to return plot to renderMaidr...\n")
+        cat("About to return plot to render_maidr...\n")
         return(p)
       },
       error = function(e) {
@@ -886,7 +886,7 @@ server <- function(input, output, session) {
   })
 
   # Dodged Bar Plot
-  output$dodged_bar_plot <- renderMaidr({
+  output$dodged_bar_plot <- render_maidr({
     dodged_data <- data.frame(
       Category = rep(c("A", "B", "C"), each = 2),
       Type = rep(c("Type1", "Type2"), 3),
@@ -901,7 +901,7 @@ server <- function(input, output, session) {
   })
 
   # Stacked Bar Plot
-  output$stacked_bar_plot <- renderMaidr({
+  output$stacked_bar_plot <- render_maidr({
     stacked_data <- data.frame(
       Category = rep(c("A", "B", "C"), each = 2),
       Type = rep(c("Type1", "Type2"), 3),
@@ -916,7 +916,7 @@ server <- function(input, output, session) {
   })
 
   # Point/Scatter Plot
-  output$point_plot <- renderMaidr({
+  output$point_plot <- render_maidr({
     set.seed(123)
     x_values <- rep(1:5, each = 3)
     y_values <- c(
@@ -942,7 +942,7 @@ server <- function(input, output, session) {
   # === STATISTICAL PLOTS ===
 
   # Histogram
-  output$histogram_plot <- renderMaidr({
+  output$histogram_plot <- render_maidr({
     hist_data <- data.frame(
       values = rnorm(100, mean = 0, sd = 1)
     )
@@ -954,7 +954,7 @@ server <- function(input, output, session) {
   })
 
   # Histogram with Density
-  output$hist_density_plot <- renderMaidr({
+  output$hist_density_plot <- render_maidr({
     set.seed(123)
     petal_lengths <- rnorm(150, mean = 3.8, sd = 1.8)
     petal_data <- data.frame(petal_length = petal_lengths)
@@ -967,7 +967,7 @@ server <- function(input, output, session) {
   })
 
   # Boxplot
-  output$boxplot_plot <- renderMaidr({
+  output$boxplot_plot <- render_maidr({
     iris_data <- datasets::iris
 
     ggplot(iris_data, aes(x = Petal.Length, y = Species)) +
@@ -977,7 +977,7 @@ server <- function(input, output, session) {
   })
 
   # Smooth Plot
-  output$smooth_plot <- renderMaidr({
+  output$smooth_plot <- render_maidr({
     smooth_data <- data.frame(
       x = rnorm(100, mean = 0, sd = 1)
     )
@@ -991,7 +991,7 @@ server <- function(input, output, session) {
   # === ADVANCED PLOTS ===
 
   # Line Plot
-  output$line_plot <- renderMaidr({
+  output$line_plot <- render_maidr({
     line_data <- data.frame(
       x = 1:10,
       y = c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
@@ -1004,7 +1004,7 @@ server <- function(input, output, session) {
   })
 
   # Multiline Plot
-  output$multiline_plot <- renderMaidr({
+  output$multiline_plot <- render_maidr({
     set.seed(123)
     x <- 1:10
     y1 <- c(2, 4, 1, 5, 3, 7, 6, 8, 9, 4)
@@ -1025,7 +1025,7 @@ server <- function(input, output, session) {
   })
 
   # Dual Axis Plot
-  output$dual_axis_plot <- renderMaidr({
+  output$dual_axis_plot <- render_maidr({
     x_dual <- 0:4
     bar_data_dual <- c(3, 5, 2, 7, 3)
     line_data_dual <- c(10, 8, 12, 14, 9)
@@ -1054,7 +1054,7 @@ server <- function(input, output, session) {
   })
 
   # Heatmap
-  output$heatmap_plot <- renderMaidr({
+  output$heatmap_plot <- render_maidr({
     heatmap_data <- data.frame(
       x = c("B", "A", "B", "A"),
       y = c("2", "2", "1", "1"),
@@ -1071,7 +1071,7 @@ server <- function(input, output, session) {
   # === FACETED PLOTS ===
 
   # Faceted Bar Plot
-  output$facet_bar_plot <- renderMaidr({
+  output$facet_bar_plot <- render_maidr({
     set.seed(42)
     facet_bar_data <- data.frame(
       x = rep(1:5, 4),
@@ -1092,7 +1092,7 @@ server <- function(input, output, session) {
   })
 
   # Faceted Point Plot
-  output$facet_point_plot <- renderMaidr({
+  output$facet_point_plot <- render_maidr({
     set.seed(42)
     facet_point_data <- data.frame(
       x = rep(1:5, 4),
@@ -1113,7 +1113,7 @@ server <- function(input, output, session) {
   })
 
   # Faceted Line Plot
-  output$facet_line_plot <- renderMaidr({
+  output$facet_line_plot <- render_maidr({
     set.seed(42)
     facet_line_data <- data.frame(
       x = rep(1:5, 4),
@@ -1136,7 +1136,7 @@ server <- function(input, output, session) {
   # === MULTI-PANEL PLOTS ===
 
   # Patchwork 2x2
-  output$patchwork_2x2_plot <- renderMaidr({
+  output$patchwork_2x2_plot <- render_maidr({
     set.seed(99)
     line_df_pw <- data.frame(x = 1:8, y = c(2, 4, 1, 5, 3, 7, 6, 8))
     pw_line <- ggplot(line_df_pw, aes(x, y)) +

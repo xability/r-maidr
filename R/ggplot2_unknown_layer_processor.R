@@ -7,7 +7,13 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
   "Ggplot2UnknownLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL) {
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_ctx = NULL) {
       list(
         data = list(),
         selectors = list(),
@@ -15,10 +21,10 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
         axes = self$extract_layer_axes(plot, layout)
       )
     },
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, scale_mapping = NULL) {
       list()
     },
-    generate_selectors = function(plot, gt = NULL) {
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
       list()
     }
   )

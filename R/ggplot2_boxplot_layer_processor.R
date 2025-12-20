@@ -55,25 +55,39 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
 
       boxplot_data <- list()
 
-      # Determine orientation first to know which columns to use
-      orientation <- self$determine_orientation(plot)
+      # Determine orientation from flipped_aes column
+      # flipped_aes = TRUE means horizontal boxplot (x = continuous, y = categorical)
+      # flipped_aes = FALSE means vertical boxplot (x = categorical, y = continuous)
+      is_horizontal <- isTRUE(layer_data$flipped_aes[1])
+      orientation <- if (is_horizontal) "horz" else "vert"
 
       for (i in seq_len(nrow(layer_data))) {
         row <- layer_data[i, ]
 
         # Use correct column names based on orientation
-        # For vertical boxplots: stats are in ymin, lower, middle, upper, ymax
-        # For horizontal boxplots: stats are also in ymin, lower, middle, upper, ymax
-        # (ggplot2 stores stats consistently, xmin/xmax are just positioning)
-        stats <- list(
-          min = row$ymin, # Min whisker
-          max = row$ymax, # Max whisker
-          q1 = row$lower, # Lower quartile (Q1) - box start
-          q3 = row$upper, # Upper quartile (Q3) - box end
-          q2 = row$middle, # Median (Q2) - box middle
-          fill = if (orientation == "horz") as.character(row$y) else as.character(row$x),
-          y_value = if (orientation == "horz") row$y else row$x
-        )
+        # For horizontal boxplots (flipped_aes=TRUE): xmin, xlower, xmiddle, xupper, xmax
+        # For vertical boxplots (flipped_aes=FALSE): ymin, lower, middle, upper, ymax
+        if (is_horizontal) {
+          stats <- list(
+            min = row$xmin,
+            max = row$xmax,
+            q1 = row$xlower,
+            q3 = row$xupper,
+            q2 = row$xmiddle,
+            fill = as.character(row$y),
+            y_value = row$y
+          )
+        } else {
+          stats <- list(
+            min = row$ymin,
+            max = row$ymax,
+            q1 = row$lower,
+            q3 = row$upper,
+            q2 = row$middle,
+            fill = as.character(row$x),
+            y_value = row$x
+          )
+        }
 
         # Handle outliers - they are stored as "c(value1, value2)" strings
         outliers_str <- as.character(row$outliers)
@@ -232,6 +246,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       built <- ggplot2::ggplot_build(plot)
       layer_data <- built$data[[self$layer_info$index]]
 
+      # Determine orientation for correct whisker column access
+      is_horizontal <- isTRUE(layer_data$flipped_aes[1])
+
       selectors <- vector("list", length(per_box_ids))
       for (i in seq_along(per_box_ids)) {
         box_id <- per_box_ids[i]
@@ -259,9 +276,14 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
               vals <- suppressWarnings(as.numeric(strsplit(txt, ", ")[[1]]))
               vals <- vals[!is.na(vals)]
               if (length(vals) > 0) {
-                # Compare against whisker values (ymin/ymax), not box position (xmin/xmax)
-                lower_n <- sum(vals < row$ymin)
-                upper_n <- sum(vals > row$ymax)
+                # Compare against correct whisker columns based on orientation
+                if (is_horizontal) {
+                  lower_n <- sum(vals < row$xmin)
+                  upper_n <- sum(vals > row$xmax)
+                } else {
+                  lower_n <- sum(vals < row$ymin)
+                  upper_n <- sum(vals > row$ymax)
+                }
               }
             }
           }
@@ -336,42 +358,20 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       built <- ggplot2::ggplot_build(plot)
       layer_data <- built$data[[self$layer_info$index]]
 
-      # For horizontal boxplots, y contains numeric codes (1, 2, 3, etc.)
-      # For vertical boxplots, y is empty or contains the continuous values
-      if ("y" %in% names(layer_data)) {
-        y_values <- layer_data$y
-        if (length(y_values) > 0 && all(y_values %in% 1:10)) {
-          # y contains small integers (1, 2, 3, etc.) - likely categorical codes
+      # Use flipped_aes column which ggplot2 sets reliably
+      # flipped_aes = TRUE means horizontal boxplot
+      if ("flipped_aes" %in% names(layer_data)) {
+        if (isTRUE(layer_data$flipped_aes[1])) {
           return("horz")
-        }
-      }
-
-      if ("x" %in% names(layer_data)) {
-        x_values <- layer_data$x
-        if (length(x_values) > 0 && all(x_values %in% 1:10)) {
-          # x contains small integers - likely categorical codes for vertical boxplot
+        } else {
           return("vert")
         }
       }
 
-      layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
-
-      # If y is mapped and x is not explicitly continuous, check y data
-      if (!is.null(layer_mapping$y) && is.null(layer_mapping$x)) {
-        y_var_name <- rlang::as_label(layer_mapping$y)
-        y_data <- plot$data[[y_var_name]]
-        if (is.factor(y_data) || is.character(y_data) || length(unique(y_data)) <= 10) {
-          return("horz")
-        }
-      }
-
-      # If x is mapped and y is not explicitly continuous, check x data
-      if (!is.null(layer_mapping$x) && is.null(layer_mapping$y)) {
-        x_var_name <- rlang::as_label(layer_mapping$x)
-        x_data <- plot$data[[x_var_name]]
-        if (is.factor(x_data) || is.character(x_data) || length(unique(x_data)) <= 10) {
-          return("vert")
-        }
+      # Fallback: check column names
+      # Horizontal boxplots have xlower, xmiddle, xupper columns
+      if ("xlower" %in% names(layer_data)) {
+        return("horz")
       }
 
       # Default to vertical

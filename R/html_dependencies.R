@@ -3,13 +3,14 @@
 #' @keywords internal
 MAIDR_VERSION <- "3.39.0"
 
-#' Get the MAIDR CDN base URL for a specific version
+#' Get the MAIDR CDN base URL
 #'
-#' @param version MAIDR version string (default: bundled version)
+#' Uses @latest to always fetch the most recent version from CDN.
+#'
 #' @return CDN URL string
 #' @keywords internal
-maidr_cdn_url <- function(version = MAIDR_VERSION) {
-  sprintf("https://cdn.jsdelivr.net/npm/maidr@%s/dist", version)
+maidr_cdn_url <- function() {
+  "https://cdn.jsdelivr.net/npm/maidr@latest/dist"
 }
 
 #' Register JS/CSS dependencies for maidr with auto-detection

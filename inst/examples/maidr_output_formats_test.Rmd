@@ -23,7 +23,8 @@ knitr::opts_chunk$set(
   fig.width = 6,
   fig.height = 4
 )
-library(maidr)
+# Use load_all for development testing; switch to library(maidr) for installed package
+devtools::load_all()
 library(ggplot2)
 maidr_on()
 ```

@@ -92,9 +92,12 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         layer_mapping <- plot$layers[[layer_index]]$mapping
 
         x_col <- NULL
+        x_expr <- NULL
         if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
+          x_expr <- layer_mapping$x
           x_col <- rlang::as_label(layer_mapping$x)
         } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
+          x_expr <- plot_mapping$x
           x_col <- rlang::as_label(plot_mapping$x)
         }
 
@@ -105,8 +108,43 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
           ordered_idx <- order(original_data[[x_col]])
           x_values <- original_data[[x_col]][ordered_idx]
         } else {
-          ordered_idx <- seq_len(nrow(original_data))
-          x_values <- original_data[[1]]
+          # x_col might be an expression like "factor(cyl)" - try to extract base column
+          # or use scale labels from built plot
+          x_values <- NULL
+
+          # First, try to get labels from the x scale in the built plot
+          if (!is.null(built)) {
+            # Get x scale labels from panel_params
+            panel_params <- built$layout$panel_params[[1]]
+            if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
+              scale_labels <- panel_params$x$get_labels()
+              if (length(scale_labels) > 0) {
+                x_values <- scale_labels
+              }
+            } else if (!is.null(panel_params$x.labels)) {
+              x_values <- panel_params$x.labels
+            }
+          }
+
+          # If scale labels not available, try to extract column from expression
+          if (is.null(x_values) && !is.null(x_expr)) {
+            # Try to extract column name from expressions like factor(cyl), as.factor(x)
+            expr_str <- rlang::as_label(x_expr)
+            # Match patterns like factor(col), as.factor(col), as.character(col)
+            match <- regmatches(expr_str, regexec("^(?:factor|as\\.factor|as\\.character)\\(([^)]+)\\)$", expr_str, perl = TRUE))
+            if (length(match[[1]]) > 1) {
+              base_col <- match[[1]][2]
+              if (base_col %in% names(original_data)) {
+                x_values <- unique(original_data[[base_col]])
+                x_values <- sort(x_values)
+              }
+            }
+          }
+
+          # Fallback: use row indices
+          if (is.null(x_values)) {
+            x_values <- seq_len(nrow(built_data))
+          }
         }
       }
 

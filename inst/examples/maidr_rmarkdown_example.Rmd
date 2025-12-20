@@ -6,7 +6,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(maidr)
+# Use load_all for development testing; switch to library(maidr) for installed package
+devtools::load_all()
 library(ggplot2)
 maidr_on()
 ```

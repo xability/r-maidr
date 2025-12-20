@@ -38,7 +38,15 @@ Handles unsupported layer types gracefully by returning empty data
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -47,7 +55,11 @@ Handles unsupported layer types gracefully by returning empty data
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$extract_data(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$extract_data(
+  plot,
+  built = NULL,
+  scale_mapping = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -56,7 +68,12 @@ Handles unsupported layer types gracefully by returning empty data
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$generate_selectors(plot, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2UnknownLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  grob_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

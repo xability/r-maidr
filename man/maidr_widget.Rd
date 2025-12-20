@@ -25,4 +25,9 @@ Internal function that creates an interactive MAIDR widget from a ggplot object.
 This is called internally by render_maidr() and should not be called directly.
 Use maidr_output() and render_maidr() for Shiny integration instead.
 }
+\details{
+Uses iframe-based isolation to ensure MAIDR.js initializes properly.
+Each widget gets its own isolated JavaScript context where MAIDR.js
+can discover and initialize the SVG with maidr-data attribute.
+}
 \keyword{internal}
