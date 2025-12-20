@@ -181,6 +181,7 @@ create_standalone_html <- function(svg_content) {
 
   # Create a complete standalone HTML document
   # CSS prevents layout shifts from focus outlines and MAIDR UI elements
+  # Includes postMessage-based height reporting for dynamic iframe sizing
   html <- sprintf('<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -193,8 +194,7 @@ create_standalone_html <- function(svg_content) {
       margin: 0;
       padding: 0;
       width: 100%%;
-      height: 100%%;
-      overflow: hidden;
+      overflow: visible;
       box-sizing: border-box;
     }
     body {
@@ -202,6 +202,7 @@ create_standalone_html <- function(svg_content) {
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
+      padding-bottom: 10px;
     }
     svg {
       max-width: 100%%;
@@ -227,6 +228,65 @@ create_standalone_html <- function(svg_content) {
 <body>
   %s
   %s
+  <script>
+    // Dynamic height reporting via postMessage for iframe auto-sizing
+    (function() {
+      var lastHeight = 0;
+
+      function reportHeight() {
+        // Calculate total content height including any MAIDR-added elements
+        var height = document.body.scrollHeight;
+        // Add small buffer for padding
+        height = Math.max(height, 100) + 20;
+
+        // Only send if height changed significantly (avoid message spam)
+        if (Math.abs(height - lastHeight) > 5) {
+          lastHeight = height;
+          try {
+            window.parent.postMessage({
+              type: "maidr-iframe-height",
+              height: height
+            }, "*");
+          } catch(e) {
+            // Ignore cross-origin errors
+          }
+        }
+      }
+
+      // Report initial height after page loads
+      if (document.readyState === "complete") {
+        setTimeout(reportHeight, 100);
+      } else {
+        window.addEventListener("load", function() {
+          setTimeout(reportHeight, 100);
+        });
+      }
+
+      // Watch for DOM changes (MAIDR.js adds instruction div dynamically)
+      var observer = new MutationObserver(function(mutations) {
+        // Debounce: wait a bit for all changes to complete
+        setTimeout(reportHeight, 50);
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        characterData: true
+      });
+
+      // Also report on window resize
+      window.addEventListener("resize", reportHeight);
+
+      // Report periodically for first few seconds to catch late MAIDR init
+      var checks = 0;
+      var interval = setInterval(function() {
+        reportHeight();
+        checks++;
+        if (checks > 20) clearInterval(interval);
+      }, 250);
+    })();
+  </script>
 </body>
 </html>', css_tag, svg_html, js_tag)
 

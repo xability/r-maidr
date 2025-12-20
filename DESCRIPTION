@@ -6,7 +6,7 @@ Authors@R: c(
     person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cph")),
     person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = c("aut", "cre"))
     )
-URL: https://github.com/xability/r-maidr, http://xabilitylab.ischool.illinois.edu/r-maidr/
+URL: https://github.com/xability/r-maidr, https://r.maidr.ai/
 BugReports: https://github.com/xability/r-maidr/issues
 Description: Provides accessible, interactive visualizations through the MAIDR
     (Multimodal Access and Interactive Data Representation) system. Converts

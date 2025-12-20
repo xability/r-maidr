@@ -7,6 +7,10 @@ NULL
 #' This is called internally by render_maidr() and should not be called directly.
 #' Use maidr_output() and render_maidr() for Shiny integration instead.
 #'
+#' Uses iframe-based isolation to ensure MAIDR.js initializes properly.
+#' Each widget gets its own isolated JavaScript context where MAIDR.js
+#' can discover and initialize the SVG with maidr-data attribute.
+#'
 #' @param plot A ggplot object to render as an interactive MAIDR widget
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
@@ -21,26 +25,37 @@ maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, .
 
   svg_content <- create_maidr_html(plot, shiny = TRUE, ...)
 
-  # Use centralized MAIDR dependencies (local files with CDN fallback)
-  maidr_deps <- maidr_html_dependencies()
+  # Create iframe HTML with embedded MAIDR.js
 
+  # This ensures MAIDR.js initializes in its own context and properly
+  # discovers the SVG with maidr-data attribute
+  # Use explicit pixel height since percentage height requires parent height
+
+  iframe_html <- create_maidr_iframe(
+    svg_content = svg_content,
+    width = "100%",
+    height = "400px",
+    plot_id = element_id
+  )
+
+  # Create widget with iframe content (no MAIDR dependencies needed -
+  # they are embedded in the iframe)
   htmlwidgets::createWidget(
     name = "maidr",
-    x = list(svg_content = as.character(svg_content)),
+    x = list(iframe_content = iframe_html),
     width = width,
     height = height,
     elementId = element_id,
-    dependencies = maidr_deps,
     sizingPolicy = htmlwidgets::sizingPolicy(
       browser.fill = TRUE,
       browser.padding = 0,
       defaultWidth = "100%",
-      defaultHeight = "auto",
+      defaultHeight = "400px",
       viewer.fill = FALSE,
       viewer.padding = 5,
       knitr.figure = FALSE,
       knitr.defaultWidth = "100%",
-      knitr.defaultHeight = "auto"
+      knitr.defaultHeight = "400px"
     )
   )
 }

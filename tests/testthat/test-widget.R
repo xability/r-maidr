@@ -32,7 +32,7 @@ test_that("maidr_widget() creates valid htmlwidget for line plot", {
   expect_valid_maidr_widget(widget)
 })
 
-test_that("maidr_widget() widget contains SVG content", {
+test_that("maidr_widget() widget contains iframe content", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_bar()
@@ -40,21 +40,21 @@ test_that("maidr_widget() widget contains SVG content", {
 
   testthat::expect_true("x" %in% names(widget))
   testthat::expect_type(widget$x, "list")
-  testthat::expect_true("svg_content" %in% names(widget$x))
+  # With iframe-based approach, we use iframe_content instead of svg_content
+  testthat::expect_true("iframe_content" %in% names(widget$x))
 })
 
-test_that("maidr_widget() widget has correct dependencies", {
+test_that("maidr_widget() widget has correct structure", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_bar()
   widget <- maidr_widget(p)
 
+  # With iframe-based approach, dependencies are bundled inside the iframe
+  # so we check for the widget binding dependency instead
   testthat::expect_true("dependencies" %in% names(widget))
-  testthat::expect_type(widget$dependencies, "list")
-
-  # Check for maidr dependency
-  dep_names <- sapply(widget$dependencies, function(d) d$name)
-  testthat::expect_true("maidr" %in% dep_names)
+  # Dependencies may be NULL or list with iframe approach
+  testthat::expect_true(is.null(widget$dependencies) || is.list(widget$dependencies))
 })
 
 test_that("maidr_widget() respects width and height parameters", {
@@ -231,35 +231,19 @@ test_that("widget has sizing policy", {
   testthat::expect_type(widget$sizingPolicy, "list")
 })
 
-test_that("widget dependencies include CSS", {
+test_that("widget iframe uses data URL with embedded content", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_bar()
   widget <- maidr_widget(p)
 
-  deps <- widget$dependencies
+  # With iframe-based approach, CSS and JS are bundled inside a base64-encoded data URL
 
-  # Find maidr dependency
-  maidr_dep <- Find(function(d) d$name == "maidr", deps)
+  iframe_content <- widget$x$iframe_content
 
-  testthat::expect_false(is.null(maidr_dep))
-  testthat::expect_true("stylesheet" %in% names(maidr_dep))
-})
-
-test_that("widget dependencies include JavaScript", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  p <- create_test_ggplot_bar()
-  widget <- maidr_widget(p)
-
-  deps <- widget$dependencies
-
-  # Find maidr dependency
-  maidr_dep <- Find(function(d) d$name == "maidr", deps)
-
-  testthat::expect_false(is.null(maidr_dep))
-  testthat::expect_true("script" %in% names(maidr_dep))
-  testthat::expect_equal(maidr_dep$script, "maidr.js")
+  # The iframe content should be an iframe tag with data URL src
+  testthat::expect_match(iframe_content, "<iframe", fixed = TRUE)
+  testthat::expect_match(iframe_content, "src=\"data:text/html;base64,", fixed = TRUE)
 })
 
 # ==============================================================================
@@ -274,13 +258,16 @@ test_that("widget uses create_maidr_html() internally", {
   # Get HTML from create_maidr_html
   html_direct <- maidr:::create_maidr_html(p, shiny = TRUE)
 
-  # Get HTML from widget
+  # Get HTML from widget (iframe-based approach)
   widget <- maidr_widget(p)
-  html_from_widget <- widget$x$svg_content
+  iframe_content <- widget$x$iframe_content
 
-  # Both should contain SVG
+  # Direct HTML should contain SVG
   testthat::expect_match(as.character(html_direct), "<svg")
-  testthat::expect_match(as.character(html_from_widget), "<svg")
+
+
+  # iframe_content should contain the iframe tag with embedded content
+  testthat::expect_match(iframe_content, "<iframe", fixed = TRUE)
 })
 
 # ==============================================================================
