@@ -36,7 +36,15 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2UnknownLayerProcessor$process(plot, layout, built = NULL, gt = NULL)
+    Ggplot2UnknownLayerProcessor$process(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -44,7 +52,11 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2UnknownLayerProcessor$extract_data(plot, built = NULL)
+    Ggplot2UnknownLayerProcessor$extract_data(
+      plot,
+      built = NULL,
+      scale_mapping = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -52,7 +64,12 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2UnknownLayerProcessor$generate_selectors(plot, gt = NULL)
+    Ggplot2UnknownLayerProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      grob_id = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 

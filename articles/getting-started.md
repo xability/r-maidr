@@ -248,7 +248,7 @@ show(p)
 - Visit GitHub issues:
   [maidr/issues](https://github.com/xability/maidr/issues)
 - Read the full documentation:
-  [`help(package = "maidr")`](http://xabilitylab.ischool.illinois.edu/r-maidr/reference)
+  [`help(package = "maidr")`](https://r.maidr.ai/reference)
 
 ## Learn More
 

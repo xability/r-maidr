@@ -39,3 +39,9 @@ maidr_widget(plot, width = NULL, height = NULL, element_id = NULL, ...)
 
 An htmlwidget object that can be displayed in RStudio, Shiny, or saved
 as HTML
+
+## Details
+
+Uses iframe-based isolation to ensure MAIDR.js initializes properly.
+Each widget gets its own isolated JavaScript context where MAIDR.js can
+discover and initialize the SVG with maidr-data attribute.

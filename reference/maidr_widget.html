@@ -81,6 +81,12 @@ Use maidr_output() and render_maidr() for Shiny integration instead.</p>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Uses iframe-based isolation to ensure MAIDR.js initializes properly.
+Each widget gets its own isolated JavaScript context where MAIDR.js
+can discover and initialize the SVG with maidr-data attribute.</p>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
