@@ -1,3 +1,9 @@
+## Resubmission
+
+This is a resubmission. Changes made based on CRAN feedback:
+
+* Single-quoted 'ggplot2' in DESCRIPTION as requested.
+
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note
@@ -13,20 +19,24 @@
     assign(function_name, original_function, envir = .GlobalEnv)
 
   **Explanation**: These global environment assignments are intentional and
-  necessary for the package's core functionality. The maidr package needs to
-  intercept Base R plotting functions (barplot, hist, plot, lines, points,
-  boxplot, image) to capture their arguments and graphical output. This
-  interception mechanism:
+  necessary for the package's accessibility functionality:
 
-  1. Temporarily wraps the original functions during a plotting session
-  2. Captures the function calls and their arguments
-  3. Restores the original functions after processing
+  1. **Why patching is needed**: Unlike 'ggplot2' (which returns plot objects
+     suitable for S3 method dispatch), Base R graphics functions like `barplot()`,
+     `hist()`, and `boxplot()` are imperative - they draw directly to the graphics
+     device and don't return plot objects. This makes traditional S3 print method
+     overriding infeasible.
 
-  This approach is similar to how other R packages implement function
+  2. **User control**: The patching is fully opt-in via `maidr_on()` and
+     reversible via `maidr_off()`. Original functions are preserved and restored.
 
-  interception (e.g., devtools, testthat). The modifications are always
-  cleaned up after use, ensuring no persistent changes to the user's
-  environment.
+  3. **Safe fallback**: Unsupported plot types automatically fall back to R's
+     native graphics rendering with a warning.
+
+  4. **Accessibility purpose**: maidr enables blind and visually impaired users
+     to explore data visualizations through keyboard navigation, sonification,
+     and screen reader support. Minimizing required code changes reduces barriers
+     for these users.
 
 ## Test environments
 
