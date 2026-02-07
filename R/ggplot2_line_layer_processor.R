@@ -120,16 +120,30 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           !is.null(x_breaks) && length(x_breaks) == length(x_labels)) {
           # Create a mapping from break values to labels
           x_positions <- layer_data$x
-          mapped_x <- sapply(x_positions, function(pos) {
-            # Find which break this position matches
-            idx <- which(abs(x_breaks - pos) < 0.001)
-            if (length(idx) > 0 && idx[1] <= length(x_labels)) {
-              x_labels[idx[1]]
-            } else {
-              as.character(pos)
-            }
-          })
-          layer_data$x <- mapped_x
+          # Only do numeric matching if both x_breaks and positions are numeric
+          if (is.numeric(x_breaks) && is.numeric(x_positions)) {
+            mapped_x <- sapply(x_positions, function(pos) {
+              # Find which break this position matches
+              idx <- which(abs(x_breaks - pos) < 0.001)
+              if (length(idx) > 0 && idx[1] <= length(x_labels)) {
+                x_labels[idx[1]]
+              } else {
+                as.character(pos)
+              }
+            })
+            layer_data$x <- mapped_x
+          } else if (is.numeric(x_positions) && length(x_labels) > 0) {
+            # For categorical scales, use integer position to index labels
+            mapped_x <- sapply(x_positions, function(pos) {
+              idx <- as.integer(round(pos))
+              if (idx >= 1 && idx <= length(x_labels)) {
+                x_labels[idx]
+              } else {
+                as.character(pos)
+              }
+            })
+            layer_data$x <- mapped_x
+          }
         }
       }
 
