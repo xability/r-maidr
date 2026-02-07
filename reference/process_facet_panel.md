@@ -13,7 +13,8 @@ process_facet_panel(
   gtable_panel_name,
   built,
   layout,
-  gtable
+  gtable,
+  format_config = NULL
 )
 ```
 
@@ -50,6 +51,10 @@ process_facet_panel(
 - gtable:
 
   Gtable object
+
+- format_config:
+
+  Optional format configuration from maidr label functions
 
 ## Value
 

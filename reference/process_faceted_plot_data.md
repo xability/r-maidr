@@ -7,7 +7,7 @@ plots in a unified way.
 ## Usage
 
 ``` r
-process_faceted_plot_data(plot, layout, built, gtable)
+process_faceted_plot_data(plot, layout, built, gtable, format_config = NULL)
 ```
 
 ## Arguments
@@ -27,6 +27,10 @@ process_faceted_plot_data(plot, layout, built, gtable)
 - gtable:
 
   Gtable object
+
+- format_config:
+
+  Optional format configuration from maidr label functions
 
 ## Value
 
