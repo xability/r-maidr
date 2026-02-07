@@ -121,8 +121,17 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
             x_values <- unique(panel_data[[x_col]])
             x_values <- sort(x_values)
 
-            # Map layer_data$x indices to actual x values
-            layer_data$x <- x_values[layer_data$x]
+            # Only map indices for discrete scales (where x values are integer indices 1, 2, 3, etc.)
+            # For continuous scales, layer_data$x already contains the actual numeric values
+            x_looks_like_indices <- all(layer_data$x == floor(layer_data$x)) &&
+              min(layer_data$x) >= 1 &&
+              max(layer_data$x) <= length(x_values) &&
+              !is.numeric(plot$data[[x_col]])
+
+            if (x_looks_like_indices) {
+              layer_data$x <- x_values[layer_data$x]
+            }
+            # For continuous scales, keep layer_data$x as-is (already numeric values)
           } else {
             # Fallback: use layer_data$x but convert to character
             layer_data$x <- as.character(layer_data$x)

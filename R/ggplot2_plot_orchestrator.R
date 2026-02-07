@@ -22,7 +22,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     .combined_selectors = list(),
     .layout = NULL,
     .gtable = NULL,
-    .adapter = NULL
+    .adapter = NULL,
+    .format_config = NULL
   ),
   public = list(
     initialize = function(plot) {
@@ -153,6 +154,9 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       unlink(null_pdf)
       private$.gtable <- gt_final
 
+      # Extract format configuration from scale label functions (maidr:: label wrappers)
+      private$.format_config <- extract_format_config(built_final)
+
       layer_results <- list()
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
@@ -208,13 +212,19 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
           layer_type <- private$.adapter$detect_layer_type(layer, private$.plot)
         }
 
+        # Build axes with optional format config
+        layer_axes <- result$axes
+        if (!is.null(private$.format_config)) {
+          layer_axes$format <- private$.format_config
+        }
+
         layer_obj <- list(
           id = i,
           selectors = result$selectors,
           type = layer_type,
           data = result$data,
           title = result$title,
-          axes = result$axes
+          axes = layer_axes
         )
 
         # Preserve all other fields from the processor result (like orientation, etc.)
@@ -298,27 +308,54 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     process_faceted_plot = function() {
       private$.layout <- self$extract_layout()
 
+      # Create layer processors to access reorder functions
+      self$detect_layers()
+      self$create_layer_processors()
+
+      # Reorder data before rendering (same as process_layers does for normal plots)
+      # This ensures grob tree order matches data order within each facet panel
+      plot_for_render <- private$.plot
+      for (i in seq_along(private$.layer_processors)) {
+        processor <- private$.layer_processors[[i]]
+        if (isTRUE(processor$needs_reordering())) {
+          if (
+            is.data.frame(plot_for_render$data) &&
+              nrow(plot_for_render$data) > 0 &&
+              ncol(plot_for_render$data) > 0
+          ) {
+            reordered <- processor$reorder_layer_data(plot_for_render$data, plot_for_render)
+            if (is.data.frame(reordered) && nrow(reordered) > 0 && ncol(reordered) > 0) {
+              plot_for_render$data <- reordered
+            }
+          }
+        }
+      }
+
       # Suppress native R graphics window by using a null PDF device
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
       grDevices::pdf(null_pdf, width = 7, height = 5)
 
-      private$.gtable <- ggplot2::ggplotGrob(private$.plot)
+      private$.gtable <- ggplot2::ggplotGrob(plot_for_render)
 
-      # Built plot data
-      built <- ggplot2::ggplot_build(private$.plot)
+      # Built plot data (use reordered plot)
+      built <- ggplot2::ggplot_build(plot_for_render)
 
       # Close null device and restore previous device
       grDevices::dev.off()
       if (current_dev > 1) grDevices::dev.set(current_dev)
       unlink(null_pdf)
 
-      # Use utility function to process faceted plot
+      # Extract format configuration from scale label functions
+      private$.format_config <- extract_format_config(built)
+
+      # Use utility function to process faceted plot (use reordered plot)
       private$.combined_data <- process_faceted_plot_data(
-        private$.plot,
+        plot_for_render,
         private$.layout,
         built,
-        private$.gtable
+        private$.gtable,
+        format_config = private$.format_config
       )
       private$.combined_selectors <- list()
     },

@@ -11,8 +11,9 @@
 #' @param layout Layout information
 #' @param built Built plot data
 #' @param gtable Gtable object
+#' @param format_config Optional format configuration from maidr label functions
 #' @return List with organized subplot data in 2D grid format
-process_faceted_plot_data <- function(plot, layout, built, gtable) {
+process_faceted_plot_data <- function(plot, layout, built, gtable, format_config = NULL) {
   panel_layout <- built$layout$layout
 
   subplots <- list()
@@ -36,7 +37,8 @@ process_faceted_plot_data <- function(plot, layout, built, gtable) {
       gtable_panel_name,
       built,
       layout,
-      gtable
+      gtable,
+      format_config
     )
     subplots[[i]] <- subplot_data
   }
@@ -77,6 +79,7 @@ get_facet_groups <- function(panel_info, built) {
 #' @param built Built plot data
 #' @param layout Layout information
 #' @param gtable Gtable object
+#' @param format_config Optional format configuration from maidr label functions
 #' @return Processed panel data
 process_facet_panel <- function(
     plot,
@@ -86,7 +89,8 @@ process_facet_panel <- function(
     gtable_panel_name,
     built,
     layout,
-    gtable) {
+    gtable,
+    format_config = NULL) {
   layer_results <- list()
 
   for (layer_idx in seq_along(plot$layers)) {
@@ -153,6 +157,11 @@ process_facet_panel <- function(
       x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
       y = if (!is.null(plot$labels$y)) plot$labels$y else ""
     )
+
+    # Add format config to axes if available
+    if (!is.null(format_config)) {
+      axes$format <- format_config
+    }
 
     layer <- list(
       id = layer_id,

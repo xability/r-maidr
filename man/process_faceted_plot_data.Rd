@@ -4,7 +4,7 @@
 \alias{process_faceted_plot_data}
 \title{Facet Processing Utilities}
 \usage{
-process_faceted_plot_data(plot, layout, built, gtable)
+process_faceted_plot_data(plot, layout, built, gtable, format_config = NULL)
 }
 \arguments{
 \item{plot}{The faceted ggplot2 object}
@@ -14,6 +14,8 @@ process_faceted_plot_data(plot, layout, built, gtable)
 \item{built}{Built plot data}
 
 \item{gtable}{Gtable object}
+
+\item{format_config}{Optional format configuration from maidr label functions}
 }
 \value{
 List with organized subplot data in 2D grid format

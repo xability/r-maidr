@@ -12,7 +12,8 @@ process_facet_panel(
   gtable_panel_name,
   built,
   layout,
-  gtable
+  gtable,
+  format_config = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ process_facet_panel(
 \item{layout}{Layout information}
 
 \item{gtable}{Gtable object}
+
+\item{format_config}{Optional format configuration from maidr label functions}
 }
 \value{
 Processed panel data
