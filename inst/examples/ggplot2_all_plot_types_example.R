@@ -38,7 +38,13 @@ bar_data <- data.frame(
 p_bar <- ggplot(bar_data, aes(x = Category, y = Revenue)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   scale_y_continuous(labels = scales::label_dollar(accuracy = 0.01)) +
-  labs(title = "Product Revenue", x = "Product", y = "Revenue (USD)")
+  labs(
+    title = "Product Revenue",
+    subtitle = "Quarterly sales by product line",
+    caption = "Source: Internal sales database, Q4 2024",
+    x = "Product",
+    y = "Revenue (USD)"
+  )
 
 html_file_bar <- file.path(output_dir, "example_bar_plot_ggplot2.html")
 result_bar <- save_html(p_bar, file = html_file_bar)
@@ -146,6 +152,8 @@ p_multiline <- ggplot(multiline_data, aes(x = Week, y = Growth, color = Strategy
   scale_y_continuous(labels = scales::label_percent(accuracy = 0.1)) +
   labs(
     title = "Growth Rate by Strategy",
+    subtitle = "Comparison of three investment strategies over 10 weeks",
+    caption = "Source: Simulated portfolio data",
     x = "Week",
     y = "Cumulative Growth",
     color = "Strategy"
@@ -254,6 +262,8 @@ p_box <- ggplot(iris_data, aes(x = Petal.Length, y = Species)) +
   scale_x_continuous(labels = scales::label_number(accuracy = 0.1)) +
   labs(
     title = "Petal Length by Species from Iris Dataset",
+    subtitle = "Distribution of petal measurements across three species",
+    caption = "Source: Fisher's Iris dataset (1936)",
     x = "Petal Length (cm)",
     y = "Species"
   ) +

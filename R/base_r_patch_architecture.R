@@ -167,12 +167,11 @@ PatchManager <- R6::R6Class(
   )
 )
 
-# Global patch manager instance
-global_patch_manager <- NULL
-
+# Patch manager accessor - uses package-private .maidr_patching_env storage
+# instead of .GlobalEnv or <<- super-assignment for CRAN compliance
 get_patch_manager <- function() {
-  if (is.null(global_patch_manager)) {
-    global_patch_manager <<- PatchManager$new()
+  if (is.null(.maidr_patching_env$patch_manager)) {
+    .maidr_patching_env$patch_manager <- PatchManager$new()
   }
-  global_patch_manager
+  .maidr_patching_env$patch_manager
 }

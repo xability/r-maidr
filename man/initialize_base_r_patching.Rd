@@ -19,4 +19,10 @@ This function sets up the function patching system by wrapping Base R
 plotting functions (HIGH, LOW, and LAYOUT levels).
 It should be called before any Base R plotting commands.
 }
+\details{
+Wrappers are installed once into the package namespace during .onLoad
+(when the namespace is still open). Subsequent calls just activate the
+patching flag; wrappers check this flag to decide whether to record calls
+or simply pass through to the original function.
+}
 \keyword{internal}

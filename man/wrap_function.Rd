@@ -13,6 +13,8 @@ wrap_function(function_name)
 TRUE if successful, FALSE otherwise
 }
 \description{
-Wrap a single function
+This is only called during .onLoad when the namespace is still open.
+The wrapper checks is_patching_enabled() at runtime to decide whether
+to record calls or pass through.
 }
 \keyword{internal}

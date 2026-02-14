@@ -228,15 +228,57 @@ BaseRPlotOrchestrator <- R6::R6Class(
     },
 
     extract_layout = function() {
-      # For Base R, we extract layout from the recorded plot calls
-      # This is a simplified version - in practice, we might need to
-      # analyze the plot calls more carefully to extract titles, axis labels, etc.
+      # Extract layout from the recorded HIGH-level plot calls
+      # We scan all plot groups for main, sub, xlab, ylab arguments
+      title <- ""
+      subtitle <- NULL
+      x_label <- ""
+      y_label <- ""
+
+      for (group in private$.plot_groups) {
+        high_call <- group$high_call
+        args <- high_call$args
+
+        if (!is.null(args$main) && nzchar(args$main)) {
+          title <- args$main
+        }
+        if (!is.null(args$sub) && nzchar(args$sub)) {
+          subtitle <- args$sub
+        }
+        if (!is.null(args$xlab) && nzchar(args$xlab)) {
+          x_label <- args$xlab
+        }
+        if (!is.null(args$ylab) && nzchar(args$ylab)) {
+          y_label <- args$ylab
+        }
+
+        # Also check low-level title() calls which can set main/sub
+        for (low_call in group$low_calls) {
+          if (low_call$function_name == "title") {
+            low_args <- low_call$args
+            if (!is.null(low_args$main) && nzchar(low_args$main)) {
+              title <- low_args$main
+            }
+            if (!is.null(low_args$sub) && nzchar(low_args$sub)) {
+              subtitle <- low_args$sub
+            }
+            if (!is.null(low_args$xlab) && nzchar(low_args$xlab)) {
+              x_label <- low_args$xlab
+            }
+            if (!is.null(low_args$ylab) && nzchar(low_args$ylab)) {
+              y_label <- low_args$ylab
+            }
+          }
+        }
+      }
 
       layout <- list(
-        title = "", # TODO: Extract from plot calls
+        title = title,
+        subtitle = subtitle,
+        caption = NULL, # Base R has no native caption concept
         axes = list(
-          x = "", # TODO: Extract from plot calls
-          y = "" # TODO: Extract from plot calls
+          x = x_label,
+          y = y_label
         )
       )
 
@@ -393,10 +435,25 @@ BaseRPlotOrchestrator <- R6::R6Class(
     },
     generate_maidr_data = function() {
       # Base R plots use the same unified structure as ggplot2
-      list(
+      # title, subtitle, caption are figure-level (root of the Maidr object)
+      # Only include keys when they have non-empty string values;
+      # R NULL serializes as {} in jsonlite, so we must omit them entirely.
+      maidr_obj <- list(
         id = paste0("maidr-plot-", generate_unique_id()),
         subplots = private$.combined_data
       )
+
+      if (!is.null(private$.layout$title) && nzchar(private$.layout$title)) {
+        maidr_obj$title <- private$.layout$title
+      }
+      if (!is.null(private$.layout$subtitle) && nzchar(private$.layout$subtitle)) {
+        maidr_obj$subtitle <- private$.layout$subtitle
+      }
+      if (!is.null(private$.layout$caption) && nzchar(private$.layout$caption)) {
+        maidr_obj$caption <- private$.layout$caption
+      }
+
+      maidr_obj
     },
     get_layout = function() {
       private$.layout

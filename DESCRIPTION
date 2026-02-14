@@ -1,17 +1,17 @@
 Package: maidr
 Type: Package
 Title: Multimodal Access and Interactive Data Representation
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cph")),
     person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = c("aut", "cre"))
     )
 URL: https://github.com/xability/r-maidr, https://r.maidr.ai/
 BugReports: https://github.com/xability/r-maidr/issues
-Description: Provides accessible, interactive visualizations through the MAIDR
+Description: Provides accessible, interactive visualizations through the 'MAIDR'
     (Multimodal Access and Interactive Data Representation) system. Converts
     'ggplot2' and Base R plots into accessible HTML/SVG formats with keyboard
-    navigation, screen reader support, and sonification capabilities. Supports
+    navigation, screen reader support, and 'sonification' capabilities. Supports
     bar charts (simple, grouped, stacked), histograms, line plots, scatter plots,
     box plots, heat maps, density/smooth curves, faceted plots, multi-panel
     layouts (including patchwork), and multi-layered plot combinations. Enables

@@ -25,6 +25,7 @@ bar_values <- c(30, 25, 15, 10)
 barplot(bar_values,
   names.arg = c("A", "B", "C", "D"),
   main = "Simple Base R Bar Plot",
+  sub = "Sample bar chart with four categories",
   xlab = "Categories",
   ylab = "Values",
   col = "lightblue",
@@ -118,6 +119,7 @@ hist_data <- rnorm(100, mean = 0, sd = 1)
 
 h <- hist(hist_data,
   main = "Base R Histogram",
+  sub = "Normal distribution (mean=0, sd=1)",
   xlab = "Values",
   ylab = "Frequency",
   col = "steelblue",
@@ -369,6 +371,7 @@ colors <- rep(c("red", "green", "blue"), times = 5)
 plot(x_values, y_values,
   col = colors,
   main = "Base R Scatter Plot (Multiple Y per X)",
+  sub = "Three groups with repeated measurements",
   xlab = "X Values",
   ylab = "Y Values",
   pch = 19,

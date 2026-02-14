@@ -192,6 +192,16 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       layout <- list(
         title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
+        subtitle = if (!is.null(private$.plot$labels$subtitle)) {
+          private$.plot$labels$subtitle
+        } else {
+          NULL
+        },
+        caption = if (!is.null(private$.plot$labels$caption)) {
+          private$.plot$labels$caption
+        } else {
+          NULL
+        },
         axes = list(
           x = x_label,
           y = y_label
@@ -265,10 +275,25 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     generate_maidr_data = function() {
       # All plot types use the same unified structure
       # The combined_data already has the correct format for each plot type
-      list(
+      # title, subtitle, caption are figure-level (root of the Maidr object)
+      # Only include keys when they have non-empty string values;
+      # R NULL serializes as {} in jsonlite, so we must omit them entirely.
+      maidr_obj <- list(
         id = paste0("maidr-plot-", generate_unique_id()),
         subplots = private$.combined_data
       )
+
+      if (!is.null(private$.layout$title) && nzchar(private$.layout$title)) {
+        maidr_obj$title <- private$.layout$title
+      }
+      if (!is.null(private$.layout$subtitle) && nzchar(private$.layout$subtitle)) {
+        maidr_obj$subtitle <- private$.layout$subtitle
+      }
+      if (!is.null(private$.layout$caption) && nzchar(private$.layout$caption)) {
+        maidr_obj$caption <- private$.layout$caption
+      }
+
+      maidr_obj
     },
     get_gtable = function() {
       private$.gtable
@@ -366,6 +391,16 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # Minimal layout information
       private$.layout <- list(
         title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
+        subtitle = if (!is.null(private$.plot$labels$subtitle)) {
+          private$.plot$labels$subtitle
+        } else {
+          NULL
+        },
+        caption = if (!is.null(private$.plot$labels$caption)) {
+          private$.plot$labels$caption
+        } else {
+          NULL
+        },
         axes = list()
       )
 

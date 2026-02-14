@@ -244,7 +244,7 @@ accuracy_to_decimals <- function(accuracy) {
 #' Maps common currency symbols to their ISO 4217 codes for use in
 #' JavaScript's Intl.NumberFormat.
 #'
-#' @param prefix Currency symbol (e.g., "$", "\u20ac", "\u00a3")
+#' @param prefix Currency symbol (e.g., "$", the Euro sign, the Pound sign)
 #' @return ISO 4217 currency code (e.g., "USD", "EUR", "GBP")
 #' @keywords internal
 prefix_to_currency_code <- function(prefix) {
