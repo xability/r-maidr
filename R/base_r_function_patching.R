@@ -348,6 +348,11 @@ create_function_wrapper <- function(function_name, original_function) {
     return(create_barplot_wrapper(original_function))
   }
 
+  # Special handling for axis to capture scales:: format config
+  if (function_name == "axis") {
+    return(create_axis_wrapper(original_function))
+  }
+
   wrapper <- eval(substitute(
     function(...) {
       this_call <- match.call()
@@ -396,6 +401,83 @@ create_barplot_wrapper <- function(original_function) {
   }
 
   wrapper
+}
+
+#' Create enhanced wrapper for axis to capture scales:: format config
+#'
+#' This wrapper intercepts axis() calls and checks if the labels argument
+#' is a scales:: label function (closure). If so, it extracts the format
+#' configuration before applying the function to get the actual labels.
+#'
+#' @param original_function Original axis function
+#' @return Enhanced wrapped function
+#' @keywords internal
+create_axis_wrapper <- function(original_function) {
+  wrapper <- function(side, at = NULL, labels = TRUE, ...) {
+    this_call <- match.call()
+
+    # Check if labels is a function (scales:: label function)
+    format_config <- NULL
+    actual_labels <- labels
+
+    if (is.function(labels)) {
+      # Extract format config from scales:: closure
+      format_config <- extract_from_scales_closure(labels)
+
+      # Apply the function to get actual string labels
+      if (!is.null(at)) {
+        actual_labels <- labels(at)
+      } else {
+        # If no 'at' provided, let axis() handle it with TRUE
+        actual_labels <- TRUE
+      }
+    }
+
+    # Build args for logging - use actual_labels (resolved strings) for replay
+    # This ensures grob generation works correctly when replaying axis() calls
+    args <- list(side = side, at = at, labels = actual_labels, ...)
+
+    # Store format config in the args for later extraction
+    if (!is.null(format_config)) {
+      args$.maidr_format_config <- format_config
+      args$.maidr_axis_side <- side  # 1=bottom, 2=left, 3=top, 4=right
+    }
+
+    # Ensure a device is open to suppress default graphics window
+    ensure_maidr_device()
+
+    # Call original axis with actual labels (strings, not function)
+    result <- original_function(side, at = at, labels = actual_labels, ...)
+
+    device_id <- grDevices::dev.cur()
+    log_plot_call_to_device("axis", this_call, args, device_id)
+
+    invisible(result)
+  }
+
+  wrapper
+}
+
+#' Clean MAIDR internal arguments from args list
+#'
+#' Removes internal arguments (starting with .maidr_) from an args list
+#' before passing to original functions during replay.
+#'
+#' @param args List of arguments
+#' @return Cleaned args list without .maidr_* entries
+#' @keywords internal
+clean_maidr_args <- function(args) {
+  if (is.null(args) || length(args) == 0) {
+    return(args)
+  }
+
+  # Remove args that start with .maidr_
+  maidr_args <- grepl("^\\.maidr_", names(args))
+  if (any(maidr_args)) {
+    args <- args[!maidr_args]
+  }
+
+  args
 }
 
 #' Apply modular patches to barplot arguments
