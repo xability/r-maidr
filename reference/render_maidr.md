@@ -31,14 +31,14 @@ A Shiny render function for use in server
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-library(shiny)
-library(ggplot2)
-server <- function(input, output) {
-  output$myplot <- render_maidr({
-    ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
-      geom_bar(stat = "identity")
-  })
+if (interactive()) {
+  library(shiny)
+  library(ggplot2)
+  server <- function(input, output) {
+    output$myplot <- render_maidr({
+      ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+        geom_bar(stat = "identity")
+    })
+  }
 }
-} # }
 ```

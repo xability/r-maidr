@@ -31,8 +31,8 @@ A Shiny widget output function for use in UI
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-library(shiny)
-ui <- fluidPage(maidr_output("myplot"))
-} # }
+if (interactive()) {
+  library(shiny)
+  ui <- fluidPage(maidr_output("myplot"))
+}
 ```

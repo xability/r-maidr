@@ -9,7 +9,7 @@ Base R Plot Orchestrator Class"><meta property="og:image" content="https://r.mai
 
     <a class="navbar-brand me-2" href="../index.html">maidr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,6 +121,7 @@ the results into a comprehensive interactive plot.</p>
 <li><p><a href="#method-BaseRPlotOrchestrator-create_layer_processor"><code>BaseRPlotOrchestrator$create_layer_processor()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-create_unified_layer_processor"><code>BaseRPlotOrchestrator$create_unified_layer_processor()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-process_layers"><code>BaseRPlotOrchestrator$process_layers()</code></a></p></li>
+<li><p><a href="#method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls"><code>BaseRPlotOrchestrator$extract_format_config_from_axis_calls()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-extract_layout"><code>BaseRPlotOrchestrator$extract_layout()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-combine_layer_results"><code>BaseRPlotOrchestrator$combine_layer_results()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-generate_maidr_data"><code>BaseRPlotOrchestrator$generate_maidr_data()</code></a></p></li>
@@ -201,7 +202,10 @@ the results into a comprehensive interactive plot.</p>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Layer processor instance</p>
+<p>Layer processor instance
+Extract Format Configuration from axis() Calls</p>
+<p>Scans logged axis() calls for format config stored by the axis wrapper.
+The wrapper stores .maidr_format_config when labels is a scales:: function.</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRPlotOrchestrator-process_layers"></a><div class="section">
@@ -213,11 +217,24 @@ the results into a comprehensive interactive plot.</p>
 </div>
 
 
+</div><p></p><hr><a id="method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls"></a><div class="section">
+<h3 id="method-extract-format-config-from-axis-calls-">Method <code>extract_format_config_from_axis_calls()</code><a class="anchor" aria-label="anchor" href="#method-extract-format-config-from-axis-calls-"></a></h3>
+
+<div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">extract_format_config_from_axis_calls</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>A list with x and/or y format configurations, or NULL</p>
+</div>
+
 </div><p></p><hr><a id="method-BaseRPlotOrchestrator-extract_layout"></a><div class="section">
 <h3 id="method-extract-layout-">Method <code>extract_layout()</code><a class="anchor" aria-label="anchor" href="#method-extract-layout-"></a></h3>
 
 <div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">extract_layout</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -226,7 +243,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-combine-layer-results-">Method <code>combine_layer_results()</code><a class="anchor" aria-label="anchor" href="#method-combine-layer-results-"></a></h3>
 
 <div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">combine_layer_results</span><span class="op">(</span><span class="va">layer_results</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -235,7 +252,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-generate-maidr-data-">Method <code>generate_maidr_data()</code><a class="anchor" aria-label="anchor" href="#method-generate-maidr-data-"></a></h3>
 
 <div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">generate_maidr_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -244,7 +261,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-layout-">Method <code>get_layout()</code><a class="anchor" aria-label="anchor" href="#method-get-layout-"></a></h3>
 
 <div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_layout</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -253,7 +270,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-combined-data-">Method <code>get_combined_data()</code><a class="anchor" aria-label="anchor" href="#method-get-combined-data-"></a></h3>
 
 <div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_combined_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -262,7 +279,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-layer-processors-">Method <code>get_layer_processors()</code><a class="anchor" aria-label="anchor" href="#method-get-layer-processors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_layer_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -271,7 +288,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-layers-">Method <code>get_layers()</code><a class="anchor" aria-label="anchor" href="#method-get-layers-"></a></h3>
 
 <div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -280,7 +297,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-plot-calls-">Method <code><a href="get_plot_calls.html">get_plot_calls()</a></code><a class="anchor" aria-label="anchor" href="#method-get-plot-calls-"></a></h3>
 
 <div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_plot_calls</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -289,7 +306,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-gtable-">Method <code>get_gtable()</code><a class="anchor" aria-label="anchor" href="#method-get-gtable-"></a></h3>
 
 <div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_gtable</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -298,7 +315,7 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="method-get-grob-for-layer-">Method <code>get_grob_for_layer()</code><a class="anchor" aria-label="anchor" href="#method-get-grob-for-layer-"></a></h3>
 
 <div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_grob_for_layer</span><span class="op">(</span><span class="va">layer_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -306,31 +323,31 @@ the results into a comprehensive interactive plot.</p>
 </div><p></p><hr><a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a><div class="section">
 <h3 id="method-has-unsupported-layers-">Method <code>has_unsupported_layers()</code><a class="anchor" aria-label="anchor" href="#method-has-unsupported-layers-"></a></h3>
 <p>Check if any HIGH-level layers are unsupported (unknown type)</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>Logical indicating if there are unsupported layers</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRPlotOrchestrator-should_fallback"></a><div class="section">
 <h3 id="method-should-fallback-">Method <code>should_fallback()</code><a class="anchor" aria-label="anchor" href="#method-should-fallback-"></a></h3>
 <p>Determine if the plot should fall back to image rendering</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>Logical indicating if fallback should be used</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRPlotOrchestrator-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

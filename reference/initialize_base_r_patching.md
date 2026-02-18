@@ -23,3 +23,10 @@ initialize_base_r_patching(include_low = TRUE, include_layout = TRUE)
 ## Value
 
 NULL (invisible)
+
+## Details
+
+Wrappers are installed once into the package namespace during .onLoad
+(when the namespace is still open). Subsequent calls just activate the
+patching flag; wrappers check this flag to decide whether to record
+calls or simply pass through to the original function.

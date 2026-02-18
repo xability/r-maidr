@@ -11,7 +11,7 @@ images instead of failing or returning empty data."><meta property="og:image" co
 
     <a class="navbar-brand me-2" href="../index.html">maidr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -83,7 +83,14 @@ when falling back to image rendering.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Save current settings and restore on exit</span></span></span>
+<span class="r-in"><span><span class="va">old_settings</span> <span class="op">&lt;-</span> <span class="fu"><a href="maidr_get_fallback.html">maidr_get_fallback</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu">maidr_set_fallback</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  enabled <span class="op">=</span> <span class="va">old_settings</span><span class="op">$</span><span class="va">enabled</span>,</span></span>
+<span class="r-in"><span>  format <span class="op">=</span> <span class="va">old_settings</span><span class="op">$</span><span class="va">format</span>,</span></span>
+<span class="r-in"><span>  warning <span class="op">=</span> <span class="va">old_settings</span><span class="op">$</span><span class="va">warning</span></span></span>
+<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Disable fallback (unsupported plots will have empty data)</span></span></span>
 <span class="r-in"><span><span class="fu">maidr_set_fallback</span><span class="op">(</span>enabled <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -95,7 +102,6 @@ when falling back to image rendering.</p></dd>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Configure multiple options</span></span></span>
 <span class="r-in"><span><span class="fu">maidr_set_fallback</span><span class="op">(</span>enabled <span class="op">=</span> <span class="cn">TRUE</span>, format <span class="op">=</span> <span class="st">"png"</span>, warning <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

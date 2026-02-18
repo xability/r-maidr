@@ -47,12 +47,14 @@
 <url><loc>https://r.maidr.ai/reference/apply_scale_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_format_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/classify_function.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/clean_maidr_args.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/clear_all_device_storage.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/clear_device_storage.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/clear_plot_calls.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/close_maidr_temp_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_selectors.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/create_axis_wrapper.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_barplot_wrapper.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_enhanced_svg.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_fallback_html.html</loc></url>
@@ -126,6 +128,7 @@
 <url><loc>https://r.maidr.ai/reference/is_maidr_temp_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_multipanel_active.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_patching_active.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_patching_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>

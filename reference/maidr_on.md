@@ -22,7 +22,7 @@ Invisible TRUE on success
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 # In RMarkdown setup chunk:
 library(maidr)
 maidr_on()
@@ -32,6 +32,8 @@ library(ggplot2)
 ggplot(mtcars, aes(x = factor(cyl))) +
   geom_bar()
 
+
 barplot(table(mtcars$cyl))
-} # }
+
+# }
 ```

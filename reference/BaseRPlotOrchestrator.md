@@ -80,6 +80,8 @@ combines the results into a comprehensive interactive plot.
 
 - [`BaseRPlotOrchestrator$process_layers()`](#method-BaseRPlotOrchestrator-process_layers)
 
+- [`BaseRPlotOrchestrator$extract_format_config_from_axis_calls()`](#method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls)
+
 - [`BaseRPlotOrchestrator$extract_layout()`](#method-BaseRPlotOrchestrator-extract_layout)
 
 - [`BaseRPlotOrchestrator$combine_layer_results()`](#method-BaseRPlotOrchestrator-combine_layer_results)
@@ -166,7 +168,11 @@ combines the results into a comprehensive interactive plot.
 
 #### Returns
 
-Layer processor instance
+Layer processor instance Extract Format Configuration from axis() Calls
+
+Scans logged axis() calls for format config stored by the axis wrapper.
+The wrapper stores .maidr_format_config when labels is a scales::
+function.
 
 ------------------------------------------------------------------------
 
@@ -175,6 +181,18 @@ Layer processor instance
 #### Usage
 
     BaseRPlotOrchestrator$process_layers()
+
+------------------------------------------------------------------------
+
+### Method `extract_format_config_from_axis_calls()`
+
+#### Usage
+
+    BaseRPlotOrchestrator$extract_format_config_from_axis_calls()
+
+#### Returns
+
+A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">maidr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,21 @@
       <small>Source: <a href="https://github.com/xability/r-maidr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.1" id="maidr-011">maidr 0.1.1<a class="anchor" aria-label="anchor" href="#maidr-011"></a></h2>
+<p>Resubmission after CRAN archival. Fixes CRAN policy compliance issues.</p>
+<div class="section level3">
+<h3 id="bug-fixes-0-1-1">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-1-1"></a></h3>
+<ul><li>Removed all <code>assign(..., envir = .GlobalEnv)</code> calls that violated CRAN policy. Base R function wrappers are now installed into the package namespace during <code>.onLoad</code> and controlled via an active/inactive flag, eliminating any modification of the user’s global environment.</li>
+<li>Removed <code><a href="https://rdrr.io/r/base/attach.html" class="external-link">attach()</a></code> usage that produced R CMD check NOTE.</li>
+<li>Fixed Rd documentation warning caused by unicode escape sequences in <code>prefix_to_currency_code</code> parameter documentation.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="enhancements-0-1-1">Enhancements<a class="anchor" aria-label="anchor" href="#enhancements-0-1-1"></a></h3>
+<ul><li>Added subtitle and caption support to the MAIDR payload for both ‘ggplot2’ and Base R plots.</li>
+<li>Added <code>scales</code> formatting support for Base R axis labels (currency, percent, comma, scientific notation).</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="maidr-010">maidr 0.1.0<a class="anchor" aria-label="anchor" href="#maidr-010"></a></h2>
 <p>Initial CRAN release.</p>

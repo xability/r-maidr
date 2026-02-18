@@ -34,13 +34,13 @@ The file path where the HTML was saved (invisibly)
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
-if (FALSE) { # \dontrun{
-maidr::save_html(p, "myplot.html")
-} # }
+# \donttest{
+maidr::save_html(p, tempfile(fileext = ".html"))
+# }
 
-# Base R example
-if (FALSE) { # \dontrun{
-barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-maidr::save_html(file = "barplot.html")
-} # }
+# Base R example (requires interactive session for function patching)
+if (interactive()) {
+  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+  maidr::save_html(file = tempfile(fileext = ".html"))
+}
 ```

@@ -1,7 +1,9 @@
 # Restore original functions
 
-This function restores the original Base R plotting functions. It should
-be called when patching is no longer needed.
+Deactivates patching by flipping the active flag. Wrappers remain in the
+namespace but act as pass-through (calling the original function
+directly). This avoids modifying the locked namespace or the search
+path.
 
 ## Usage
 

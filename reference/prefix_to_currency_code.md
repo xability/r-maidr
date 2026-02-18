@@ -13,7 +13,7 @@ prefix_to_currency_code(prefix)
 
 - prefix:
 
-  Currency symbol (e.g., "\$", "", "3")
+  Currency symbol (e.g., "\$", the Euro sign, the Pound sign)
 
 ## Value
 

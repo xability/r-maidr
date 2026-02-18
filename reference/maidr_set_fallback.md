@@ -38,7 +38,14 @@ Invisibly returns a list of the previous settings.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# Save current settings and restore on exit
+old_settings <- maidr_get_fallback()
+on.exit(maidr_set_fallback(
+  enabled = old_settings$enabled,
+  format = old_settings$format,
+  warning = old_settings$warning
+))
+
 # Disable fallback (unsupported plots will have empty data)
 maidr_set_fallback(enabled = FALSE)
 
@@ -50,5 +57,4 @@ maidr_set_fallback(warning = FALSE)
 
 # Configure multiple options
 maidr_set_fallback(enabled = TRUE, format = "png", warning = TRUE)
-} # }
 ```

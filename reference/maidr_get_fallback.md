@@ -25,9 +25,16 @@ A list with the current fallback settings:
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
 # Get current settings
 settings <- maidr_get_fallback()
 print(settings)
-} # }
+#> $enabled
+#> [1] TRUE
+#> 
+#> $format
+#> [1] "png"
+#> 
+#> $warning
+#> [1] TRUE
+#> 
 ```

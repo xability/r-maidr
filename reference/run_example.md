@@ -42,10 +42,41 @@ including keyboard navigation and screen reader support.
 ## Examples
 
 ``` r
-if (interactive()) {
-  # List all available examples
-  run_example()
+# List all available examples
+run_example()
+#> Available MAIDR examples:
+#> ggplot2 examples:
+#>   - bar
+#>   - boxplot
+#>   - dodged_bar
+#>   - faceted
+#>   - heatmap
+#>   - histogram
+#>   - line
+#>   - multiline
+#>   - patchwork
+#>   - scatter
+#>   - smooth
+#>   - stacked_bar
+#> 
+#> base_r examples:
+#>   - bar
+#>   - boxplot
+#>   - dodged_bar
+#>   - faceted_point
+#>   - heatmap
+#>   - histogram
+#>   - line
+#>   - multiline
+#>   - scatter
+#>   - smooth
+#>   - stacked_bar
+#> 
+#> Usage:
+#>   run_example("bar")                 # Run ggplot2 bar chart
+#>   run_example("histogram", "base_r") # Run Base R histogram
 
+if (interactive()) {
   # Run ggplot2 bar chart example
   run_example("bar")
 
