@@ -30,10 +30,10 @@ in your default web browser with full MAIDR accessibility features
 including keyboard navigation and screen reader support.
 }
 \examples{
-if (interactive()) {
-  # List all available examples
-  run_example()
+# List all available examples
+run_example()
 
+if (interactive()) {
   # Run ggplot2 bar chart example
   run_example("bar")
 

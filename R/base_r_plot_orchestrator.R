@@ -24,7 +24,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .combined_selectors = list(),
     .layout = NULL,
     .adapter = NULL,
-    .grob_list = list()
+    .grob_list = list(),
+    .format_config = NULL
   ),
   public = list(
     initialize = function(device_id = grDevices::dev.cur()) {
@@ -154,6 +155,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     process_layers = function() {
       private$.layout <- self$extract_layout()
 
+      # Extract format config from axis() calls
+      private$.format_config <- self$extract_format_config_from_axis_calls()
+
       layer_results <- vector("list", length(private$.layers))
       for (i in seq_along(private$.layers)) {
         processor <- private$.layer_processors[[i]]
@@ -181,16 +185,100 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       self$combine_layer_results(layer_results)
     },
+
+    #' Extract Format Configuration from axis() Calls
+    #'
+    #' Scans logged axis() calls for format config stored by the axis wrapper.
+    #' The wrapper stores .maidr_format_config when labels is a scales:: function.
+    #'
+    #' @return A list with x and/or y format configurations, or NULL
+    extract_format_config_from_axis_calls = function() {
+      config <- list()
+
+      # Scan all plot groups for axis() calls
+      for (group in private$.plot_groups) {
+        # Check low-level calls for axis()
+        if (length(group$low_calls) > 0) {
+          for (low_call in group$low_calls) {
+            if (low_call$function_name == "axis") {
+              args <- low_call$args
+
+              # Check if this axis() call has format config
+              if (!is.null(args$.maidr_format_config)) {
+                format_config <- args$.maidr_format_config
+                side <- args$.maidr_axis_side
+
+                # Map axis side to x/y: 1=bottom (x), 2=left (y), 3=top, 4=right
+                if (side == 1 || side == 3) {
+                  config$x <- format_config
+                } else if (side == 2 || side == 4) {
+                  config$y <- format_config
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (length(config) == 0) {
+        return(NULL)
+      }
+
+      config
+    },
+
     extract_layout = function() {
-      # For Base R, we extract layout from the recorded plot calls
-      # This is a simplified version - in practice, we might need to
-      # analyze the plot calls more carefully to extract titles, axis labels, etc.
+      # Extract layout from the recorded HIGH-level plot calls
+      # We scan all plot groups for main, sub, xlab, ylab arguments
+      title <- ""
+      subtitle <- NULL
+      x_label <- ""
+      y_label <- ""
+
+      for (group in private$.plot_groups) {
+        high_call <- group$high_call
+        args <- high_call$args
+
+        if (!is.null(args$main) && nzchar(args$main)) {
+          title <- args$main
+        }
+        if (!is.null(args$sub) && nzchar(args$sub)) {
+          subtitle <- args$sub
+        }
+        if (!is.null(args$xlab) && nzchar(args$xlab)) {
+          x_label <- args$xlab
+        }
+        if (!is.null(args$ylab) && nzchar(args$ylab)) {
+          y_label <- args$ylab
+        }
+
+        # Also check low-level title() calls which can set main/sub
+        for (low_call in group$low_calls) {
+          if (low_call$function_name == "title") {
+            low_args <- low_call$args
+            if (!is.null(low_args$main) && nzchar(low_args$main)) {
+              title <- low_args$main
+            }
+            if (!is.null(low_args$sub) && nzchar(low_args$sub)) {
+              subtitle <- low_args$sub
+            }
+            if (!is.null(low_args$xlab) && nzchar(low_args$xlab)) {
+              x_label <- low_args$xlab
+            }
+            if (!is.null(low_args$ylab) && nzchar(low_args$ylab)) {
+              y_label <- low_args$ylab
+            }
+          }
+        }
+      }
 
       layout <- list(
-        title = "", # TODO: Extract from plot calls
+        title = title,
+        subtitle = subtitle,
+        caption = NULL, # Base R has no native caption concept
         axes = list(
-          x = "", # TODO: Extract from plot calls
-          y = "" # TODO: Extract from plot calls
+          x = x_label,
+          y = y_label
         )
       )
 
@@ -243,13 +331,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
+          # Build axes with optional format config
+          layer_axes <- if (!is.null(result$axes)) result$axes else list(x = "", y = "")
+          if (!is.null(private$.format_config)) {
+            layer_axes$format <- private$.format_config
+          }
+
           layer_obj <- list(
             id = paste0("maidr-layer-", i),
             selectors = result$selectors,
             type = layer_type,
             data = result$data,
             title = if (!is.null(result$title)) result$title else "",
-            axes = if (!is.null(result$axes)) result$axes else list(x = "", y = "")
+            axes = layer_axes
           )
 
           if (!is.null(result$labels) && length(result$labels) > 0) {
@@ -294,13 +388,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
+          # Build axes with optional format config
+          layer_axes <- result$axes
+          if (!is.null(private$.format_config)) {
+            layer_axes$format <- private$.format_config
+          }
+
           layer_obj <- list(
             id = i,
             selectors = result$selectors,
             type = layer_type,
             data = result$data,
             title = result$title,
-            axes = result$axes
+            axes = layer_axes
           )
 
           # Preserve all other fields from the processor result
@@ -314,7 +414,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_obj$labels <- result$labels
           }
 
-          combined_data[[i]] <- layer_obj
+          # Use append to avoid sparse list (no NULL gaps from skipped layers)
+          combined_data <- append(combined_data, list(layer_obj))
         }
 
         combined_selectors <- list()
@@ -334,10 +435,25 @@ BaseRPlotOrchestrator <- R6::R6Class(
     },
     generate_maidr_data = function() {
       # Base R plots use the same unified structure as ggplot2
-      list(
+      # title, subtitle, caption are figure-level (root of the Maidr object)
+      # Only include keys when they have non-empty string values;
+      # R NULL serializes as {} in jsonlite, so we must omit them entirely.
+      maidr_obj <- list(
         id = paste0("maidr-plot-", generate_unique_id()),
         subplots = private$.combined_data
       )
+
+      if (!is.null(private$.layout$title) && nzchar(private$.layout$title)) {
+        maidr_obj$title <- private$.layout$title
+      }
+      if (!is.null(private$.layout$subtitle) && nzchar(private$.layout$subtitle)) {
+        maidr_obj$subtitle <- private$.layout$subtitle
+      }
+      if (!is.null(private$.layout$caption) && nzchar(private$.layout$caption)) {
+        maidr_obj$caption <- private$.layout$caption
+      }
+
+      maidr_obj
     },
     get_layout = function() {
       private$.layout
@@ -382,6 +498,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
       ) {
         # Multipanel case - create composite grob
         composite_func <- function() {
+          oldpar <- graphics::par(no.readonly = TRUE)
+          on.exit(graphics::par(oldpar), add = TRUE)
           if (panel_config$type == "mfrow") {
             graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "mfcol") {
@@ -390,8 +508,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Debug logging
           if (getOption("maidr.debug", FALSE)) {
-            cat("DEBUG: Replaying", length(private$.plot_groups), "plot groups\n")
-            cat("DEBUG: Panel config:", panel_config$nrows, "x", panel_config$ncols, "\n")
+            message("DEBUG: Replaying ", length(private$.plot_groups), " plot groups")
+            message("DEBUG: Panel config: ", panel_config$nrows, " x ", panel_config$ncols)
           }
 
           # Replay all plot groups using ORIGINAL (unwrapped) functions
@@ -400,16 +518,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
             group <- private$.plot_groups[[i]]
 
             if (getOption("maidr.debug", FALSE)) {
-              cat("DEBUG: Replaying group", i, "-", group$high_call$function_name, "\n")
+              message("DEBUG: Replaying group ", i, " - ", group$high_call$function_name)
             }
 
             orig_fn <- get_original_function(group$high_call$function_name)
-            invisible(do.call(orig_fn, group$high_call$args))
+            invisible(do.call(orig_fn, clean_maidr_args(group$high_call$args)))
 
             if (length(group$low_calls) > 0) {
               for (low_call in group$low_calls) {
                 orig_low_fn <- get_original_function(low_call$function_name)
-                invisible(do.call(orig_low_fn, low_call$args))
+                invisible(do.call(orig_low_fn, clean_maidr_args(low_call$args)))
               }
             }
           }
@@ -441,12 +559,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
           # Use ORIGINAL (unwrapped) functions to prevent logging new calls
           plot_func <- function() {
             orig_fn <- get_original_function(high_call$function_name)
-            invisible(do.call(orig_fn, high_call$args))
+            invisible(do.call(orig_fn, clean_maidr_args(high_call$args)))
 
             if (length(low_calls) > 0) {
               for (low_call in low_calls) {
                 orig_low_fn <- get_original_function(low_call$function_name)
-                invisible(do.call(orig_low_fn, low_call$args))
+                invisible(do.call(orig_low_fn, clean_maidr_args(low_call$args)))
               }
             }
           }

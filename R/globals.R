@@ -19,6 +19,7 @@ if (getRversion() >= "2.15.1") {
 # These are defined and used within the package but not exported
 utils::globalVariables(c(
   "classify_function",
+  "clean_maidr_args",
   "get_functions_by_class",
   "on_high_level_call",
   "on_layout_call",

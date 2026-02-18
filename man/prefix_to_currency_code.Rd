@@ -7,7 +7,7 @@
 prefix_to_currency_code(prefix)
 }
 \arguments{
-\item{prefix}{Currency symbol (e.g., "$", "\u20ac", "\u00a3")}
+\item{prefix}{Currency symbol (e.g., "$", the Euro sign, the Pound sign)}
 }
 \value{
 ISO 4217 currency code (e.g., "USD", "EUR", "GBP")

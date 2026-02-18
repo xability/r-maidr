@@ -20,10 +20,10 @@
 #' including keyboard navigation and screen reader support.
 #'
 #' @examples
-#' if (interactive()) {
-#'   # List all available examples
-#'   run_example()
+#' # List all available examples
+#' run_example()
 #'
+#' if (interactive()) {
 #'   # Run ggplot2 bar chart example
 #'   run_example("bar")
 #'
@@ -56,37 +56,37 @@ run_example <- function(example = NULL, type = c("ggplot2", "base_r")) {
   # If no example specified, list all available
 
   if (is.null(example)) {
-    cat("Available MAIDR examples:\n\n")
+    message("Available MAIDR examples:\n")
 
-    cat("ggplot2 examples:\n")
+    message("ggplot2 examples:")
     ggplot2_dir <- system.file("examples", "ggplot2", package = "maidr")
     if (ggplot2_dir != "") {
       ggplot2_examples <- sub("\\.R$", "", list.files(ggplot2_dir, pattern = "\\.R$"))
       if (length(ggplot2_examples) > 0) {
         for (ex in ggplot2_examples) {
-          cat("  -", ex, "\n")
+          message("  - ", ex)
         }
       } else {
-        cat("  (no examples found)\n")
+        message("  (no examples found)")
       }
     }
 
-    cat("\nbase_r examples:\n")
+    message("\nbase_r examples:")
     base_r_dir <- system.file("examples", "base_r", package = "maidr")
     if (base_r_dir != "") {
       base_r_examples <- sub("\\.R$", "", list.files(base_r_dir, pattern = "\\.R$"))
       if (length(base_r_examples) > 0) {
         for (ex in base_r_examples) {
-          cat("  -", ex, "\n")
+          message("  - ", ex)
         }
       } else {
-        cat("  (no examples found)\n")
+        message("  (no examples found)")
       }
     }
 
-    cat("\nUsage:\n")
-    cat("  run_example(\"bar\")                 # Run ggplot2 bar chart\n")
-    cat("  run_example(\"histogram\", \"base_r\") # Run Base R histogram\n")
+    message("\nUsage:")
+    message("  run_example(\"bar\")                 # Run ggplot2 bar chart")
+    message("  run_example(\"histogram\", \"base_r\") # Run Base R histogram")
 
     return(invisible(NULL))
   }
@@ -102,7 +102,7 @@ run_example <- function(example = NULL, type = c("ggplot2", "base_r")) {
 
   # Run the example
   example_file <- file.path(examples_dir, paste0(example, ".R"))
-  cat(sprintf("Running %s example: %s\n", type, example))
+  message(sprintf("Running %s example: %s", type, example))
 
   # Clear any leftover device storage from previous runs to prevent call accumulation
   clear_all_device_storage()

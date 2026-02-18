@@ -10,7 +10,8 @@ restore_original_functions()
 NULL (invisible)
 }
 \description{
-This function restores the original Base R plotting functions.
-It should be called when patching is no longer needed.
+Deactivates patching by flipping the active flag. Wrappers remain in the
+namespace but act as pass-through (calling the original function directly).
+This avoids modifying the locked namespace or the search path.
 }
 \keyword{internal}

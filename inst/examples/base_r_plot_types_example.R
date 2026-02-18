@@ -21,14 +21,20 @@ if (!dir.exists(output_dir)) {
 cat("=== Base R Bar Plot Example ===\n")
 
 # Create a Base R barplot
-barplot(c(30, 25, 15, 10),
+bar_values <- c(30, 25, 15, 10)
+barplot(bar_values,
   names.arg = c("A", "B", "C", "D"),
   main = "Simple Base R Bar Plot",
+  sub = "Sample bar chart with four categories",
   xlab = "Categories",
   ylab = "Values",
   col = "lightblue",
-  border = "black"
+  border = "black",
+  yaxt = "n"
 )
+
+# Add y-axis with comma formatting
+axis(2, at = pretty(range(bar_values)), labels = scales::label_comma())
 
 # Generate interactive HTML
 html_file <- file.path(output_dir, "example_bar_plot_base_r.html")
@@ -58,8 +64,12 @@ barplot(test_matrix,
   main = "Base R Dodged Bar Plot",
   xlab = "Categories",
   ylab = "Values",
-  border = "black"
+  border = "black",
+  yaxt = "n"
 )
+
+# Add y-axis with comma formatting
+axis(2, at = pretty(range(test_matrix)), labels = scales::label_comma())
 
 # Generate interactive HTML
 dodged_html_file <- file.path(output_dir, "example_dodged_bar_plot_base_r.html")
@@ -87,8 +97,12 @@ barplot(stacked_matrix,
   main = "Base R Stacked Bar Plot",
   xlab = "Category",
   ylab = "Value",
-  border = "black"
+  border = "black",
+  yaxt = "n"
 )
+
+# Add y-axis with comma formatting
+axis(2, at = pretty(c(0, colSums(stacked_matrix))), labels = scales::label_comma())
 
 # Generate interactive HTML
 stacked_html_file <- file.path(output_dir, "example_stacked_bar_plot_base_r.html")
@@ -103,13 +117,18 @@ cat("\n=== Base R Histogram Example ===\n")
 set.seed(123)
 hist_data <- rnorm(100, mean = 0, sd = 1)
 
-hist(hist_data,
+h <- hist(hist_data,
   main = "Base R Histogram",
+  sub = "Normal distribution (mean=0, sd=1)",
   xlab = "Values",
   ylab = "Frequency",
   col = "steelblue",
-  border = "black"
+  border = "black",
+  yaxt = "n"
 )
+
+# Add y-axis with integer formatting for frequency counts
+axis(2, at = pretty(c(0, max(h$counts))), labels = scales::label_number(accuracy = 1))
 
 # Generate interactive HTML
 hist_html_file <- file.path(output_dir, "example_histogram_base_r.html")
@@ -124,13 +143,18 @@ cat("\n=== Base R Density/Smooth Plot Example ===\n")
 set.seed(456)
 density_data <- rnorm(100, mean = 0, sd = 1)
 
-plot(density(density_data),
+dens <- density(density_data)
+plot(dens,
   main = "Base R Density Plot",
   xlab = "Value",
   ylab = "Density",
   col = "darkblue",
-  lwd = 2
+  lwd = 2,
+  yaxt = "n"
 )
+
+# Add y-axis with decimal formatting for density values
+axis(2, at = pretty(c(0, max(dens$y))), labels = scales::label_number(accuracy = 0.001))
 
 # Generate interactive HTML
 density_html_file <- file.path(output_dir, "example_density_plot_base_r.html")
@@ -152,10 +176,15 @@ hist(data,
   ylab = "Density",
   col = "lightblue",
   border = "white",
-  breaks = 15
+  breaks = 15,
+  yaxt = "n"
 )
 
-lines(density(data),
+# Add y-axis with decimal formatting for density values
+dens_data <- density(data)
+axis(2, at = pretty(c(0, max(dens_data$y))), labels = scales::label_number(accuracy = 0.01))
+
+lines(dens_data,
   col = "darkred",
   lwd = 3
 )
@@ -179,8 +208,12 @@ plot(x, y,
   xlab = "X values",
   ylab = "Y values",
   col = "steelblue",
-  lwd = 2
+  lwd = 2,
+  yaxt = "n"
 )
+
+# Add y-axis with decimal formatting
+axis(2, at = pretty(range(y)), labels = scales::label_number(accuracy = 0.1))
 
 # Generate interactive HTML
 line_html_file <- file.path(output_dir, "example_line_plot_base_r.html")
@@ -208,8 +241,12 @@ matplot(x, y_matrix,
   ylab = "Sales",
   col = c("red", "green", "blue"),
   lty = 1,
-  lwd = 2
+  lwd = 2,
+  yaxt = "n"
 )
+
+# Add y-axis with comma formatting for sales values
+axis(2, at = pretty(range(y_matrix)), labels = scales::label_comma())
 
 legend("topright",
   legend = colnames(y_matrix),
@@ -273,8 +310,13 @@ boxplot(boxplot_data,
   main = "Base R Vertical Boxplot",
   xlab = "Group",
   ylab = "Value",
-  border = "black"
+  border = "black",
+  yaxt = "n"
 )
+
+# Add y-axis with 2 decimal precision
+all_values <- unlist(boxplot_data)
+axis(2, at = pretty(range(all_values)), labels = scales::label_number(accuracy = 0.01))
 
 # Generate interactive HTML
 vertical_boxplot_html_file <- file.path(output_dir, "example_boxplot_vertical_base_r.html")
@@ -299,8 +341,13 @@ boxplot(boxplot_data_h,
   main = "Base R Horizontal Boxplot",
   xlab = "Value",
   ylab = "Category",
-  border = "black"
+  border = "black",
+  xaxt = "n"
 )
+
+# Add x-axis with 2 decimal precision (values are on x-axis for horizontal boxplot)
+all_values_h <- unlist(boxplot_data_h)
+axis(1, at = pretty(range(all_values_h)), labels = scales::label_number(accuracy = 0.01))
 
 # Generate interactive HTML
 horizontal_boxplot_html_file <- file.path(output_dir, "example_boxplot_horizontal_base_r.html")
@@ -324,10 +371,15 @@ colors <- rep(c("red", "green", "blue"), times = 5)
 plot(x_values, y_values,
   col = colors,
   main = "Base R Scatter Plot (Multiple Y per X)",
+  sub = "Three groups with repeated measurements",
   xlab = "X Values",
   ylab = "Y Values",
-  pch = 19
+  pch = 19,
+  yaxt = "n"
 )
+
+# Add y-axis with decimal formatting
+axis(2, at = pretty(range(y_values)), labels = scales::label_number(accuracy = 0.1))
 
 # Generate interactive HTML
 scatter_html_file <- file.path(output_dir, "example_scatter_plot_base_r.html")
@@ -348,8 +400,12 @@ plot(x, y,
   xlab = "X Variable",
   ylab = "Y Variable",
   pch = 19,
-  col = "darkblue"
+  col = "darkblue",
+  yaxt = "n"
 )
+
+# Add y-axis with decimal formatting
+axis(2, at = pretty(range(y)), labels = scales::label_number(accuracy = 0.1))
 
 # Add linear regression line using abline
 model <- lm(y ~ x)
@@ -374,8 +430,12 @@ plot(x, y,
   xlab = "X Variable",
   ylab = "Y Variable",
   pch = 16,
-  col = "darkgreen"
+  col = "darkgreen",
+  yaxt = "n"
 )
+
+# Add y-axis with decimal formatting
+axis(2, at = pretty(range(y)), labels = scales::label_number(accuracy = 0.1))
 
 # Add LOESS smooth curve using lines and predict
 lo <- loess(y ~ x, span = 0.5)
@@ -449,7 +509,7 @@ save_html(file = multipanel_2x2_html_file)
 cat("✓ Base R multipanel 2x2 (mfrow) example completed\n")
 cat("Generated:", multipanel_2x2_html_file, "\n")
 
-dev.off()
+if (grDevices::dev.cur() > 1) dev.off()
 
 cat("\n=== Base R Multipanel 2x2 (MFCOL) Example ===\n")
 
@@ -511,7 +571,7 @@ save_html(file = multipanel_2x2_mfcol_html_file)
 cat("✓ Base R multipanel 2x2 (mfcol) example completed\n")
 cat("Generated:", multipanel_2x2_mfcol_html_file, "\n")
 
-dev.off()
+if (grDevices::dev.cur() > 1) dev.off()
 
 cat("\n=== Base R Multipanel 3x2 Example ===\n")
 
@@ -596,4 +656,60 @@ save_html(file = facet_multilayer_html_file)
 cat("✓ Base R facet multi-layer plot (1x3) example completed\n")
 cat("Generated:", facet_multilayer_html_file, "\n")
 
-dev.off()
+if (grDevices::dev.cur() > 1) dev.off()
+
+cat("\n=== Base R Bar Plot with scales:: Formatting Example ===\n")
+
+# Example: Bar plot with scales::label_dollar for y-axis
+# This demonstrates format extraction from scales:: closure
+
+# Revenue data in dollars
+revenue <- c(5000, 12000, 8500, 15000, 9500)
+names(revenue) <- c("Product A", "Product B", "Product C", "Product D", "Product E")
+
+# Create barplot without y-axis (we'll add it manually with custom formatting)
+bp <- barplot(revenue,
+  main = "Product Revenue",
+  xlab = "Product",
+  ylab = "Revenue (USD)",
+  col = "steelblue",
+  border = "black",
+  yaxt = "n" # Suppress default y-axis
+)
+
+# Add custom y-axis with scales::label_dollar formatting
+# The axis() wrapper will detect the scales:: function and extract format config
+axis(2, at = pretty(range(revenue)), labels = scales::label_dollar())
+
+# Generate interactive HTML
+format_html_file <- file.path(output_dir, "example_bar_plot_scales_format_base_r.html")
+save_html(file = format_html_file)
+
+cat("✓ Base R bar plot with scales:: formatting example completed\n")
+cat("Generated:", format_html_file, "\n")
+
+cat("\n=== Base R Bar Plot with scales:: Percent Formatting Example ===\n")
+
+# Example: Bar plot with scales::label_percent for y-axis
+percentages <- c(0.15, 0.25, 0.35, 0.18, 0.07)
+names(percentages) <- c("Category A", "Category B", "Category C", "Category D", "Category E")
+
+# Create barplot without y-axis
+bp2 <- barplot(percentages,
+  main = "Market Share by Category",
+  xlab = "Category",
+  ylab = "Market Share",
+  col = "coral",
+  border = "black",
+  yaxt = "n"
+)
+
+# Add custom y-axis with scales::label_percent formatting
+axis(2, at = pretty(range(percentages)), labels = scales::label_percent(accuracy = 1))
+
+# Generate interactive HTML
+percent_format_html_file <- file.path(output_dir, "example_bar_plot_percent_format_base_r.html")
+save_html(file = percent_format_html_file)
+
+cat("✓ Base R bar plot with scales:: percent formatting example completed\n")
+cat("Generated:", percent_format_html_file, "\n")

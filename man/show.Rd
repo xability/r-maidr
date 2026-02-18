@@ -27,13 +27,13 @@ using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
-\dontrun{
+\donttest{
 maidr::show(p)
 }
 
-# Base R example
-\dontrun{
-barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-maidr::show()
+# Base R example (requires interactive session for function patching)
+if (interactive()) {
+  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+  maidr::show()
 }
 }

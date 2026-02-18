@@ -68,6 +68,7 @@ the results into a comprehensive interactive plot.
 \item \href{#method-BaseRPlotOrchestrator-create_layer_processor}{\code{BaseRPlotOrchestrator$create_layer_processor()}}
 \item \href{#method-BaseRPlotOrchestrator-create_unified_layer_processor}{\code{BaseRPlotOrchestrator$create_unified_layer_processor()}}
 \item \href{#method-BaseRPlotOrchestrator-process_layers}{\code{BaseRPlotOrchestrator$process_layers()}}
+\item \href{#method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls}{\code{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}}
 \item \href{#method-BaseRPlotOrchestrator-extract_layout}{\code{BaseRPlotOrchestrator$extract_layout()}}
 \item \href{#method-BaseRPlotOrchestrator-combine_layer_results}{\code{BaseRPlotOrchestrator$combine_layer_results()}}
 \item \href{#method-BaseRPlotOrchestrator-generate_maidr_data}{\code{BaseRPlotOrchestrator$generate_maidr_data()}}
@@ -149,6 +150,10 @@ the results into a comprehensive interactive plot.
 }
 \subsection{Returns}{
 Layer processor instance
+Extract Format Configuration from axis() Calls
+
+Scans logged axis() calls for format config stored by the axis wrapper.
+The wrapper stores .maidr_format_config when labels is a scales:: function.
 }
 }
 \if{html}{\out{<hr>}}
@@ -159,6 +164,18 @@ Layer processor instance
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$process_layers()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls}{}}}
+\subsection{Method \code{extract_format_config_from_axis_calls()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A list with x and/or y format configurations, or NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-extract_layout"></a>}}

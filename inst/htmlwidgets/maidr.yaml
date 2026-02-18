@@ -1,6 +1,6 @@
 dependencies:
   - name: maidr
-    version: 3.39.0
-    src: htmlwidgets/lib/maidr-3.39.0
+    version: 3.50.0
+    src: htmlwidgets/lib/maidr-3.50.0
     script: maidr.js
     stylesheet: maidr.css

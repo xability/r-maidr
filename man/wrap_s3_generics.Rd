@@ -7,6 +7,7 @@
 wrap_s3_generics()
 }
 \description{
-Special handling for S3 generics that can't be traced normally
+Special handling for S3 generics that can't be traced normally.
+Only called once during .onLoad when namespace is still open.
 }
 \keyword{internal}

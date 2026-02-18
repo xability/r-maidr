@@ -15,7 +15,7 @@ in RMarkdown documents. When enabled, plots are automatically converted
 to interactive MAIDR widgets with keyboard navigation and screen reader support.
 }
 \examples{
-\dontrun{
+\donttest{
 # In RMarkdown setup chunk:
 library(maidr)
 maidr_on()

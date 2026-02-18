@@ -1,5 +1,4 @@
 # Utility functions for grob manipulation
-library(grid)
 
 #' Find the panel grob in a grob tree
 #' @param grob_tree The grob tree to search

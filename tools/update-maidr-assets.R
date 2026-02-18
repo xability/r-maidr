@@ -6,7 +6,7 @@
 #'
 #' Usage:
 #'   Rscript tools/update-maidr-assets.R           # Uses latest version
-#'   Rscript tools/update-maidr-assets.R 3.39.0    # Uses specific version
+#'   Rscript tools/update-maidr-assets.R 3.50.0    # Uses specific version
 #'
 #' After running this script, you must:
 #' 1. Update MAIDR_VERSION in R/html_dependencies.R
