@@ -21,14 +21,14 @@ Creates a Shiny render function for MAIDR widgets using htmlwidgets.
 This provides automatic dependency injection and robust JavaScript initialization.
 }
 \examples{
-\dontrun{
-library(shiny)
-library(ggplot2)
-server <- function(input, output) {
-  output$myplot <- render_maidr({
-    ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
-      geom_bar(stat = "identity")
-  })
-}
+if (interactive()) {
+  library(shiny)
+  library(ggplot2)
+  server <- function(input, output) {
+    output$myplot <- render_maidr({
+      ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+        geom_bar(stat = "identity")
+    })
+  }
 }
 }

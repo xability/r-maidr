@@ -13,14 +13,14 @@
 #' library(ggplot2)
 #' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
 #'   geom_bar(stat = "identity")
-#' \dontrun{
+#' \donttest{
 #' maidr::show(p)
 #' }
 #'
-#' # Base R example
-#' \dontrun{
-#' barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-#' maidr::show()
+#' # Base R example (requires interactive session for function patching)
+#' if (interactive()) {
+#'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+#'   maidr::show()
 #' }
 #' @importFrom R6 R6Class
 #' @importFrom ggplotify as.grob
@@ -150,14 +150,14 @@ create_maidr_html <- function(plot, shiny = FALSE, orchestrator = NULL, ...) {
 #' library(ggplot2)
 #' p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
 #'   geom_bar(stat = "identity")
-#' \dontrun{
-#' maidr::save_html(p, "myplot.html")
+#' \donttest{
+#' maidr::save_html(p, tempfile(fileext = ".html"))
 #' }
 #'
-#' # Base R example
-#' \dontrun{
-#' barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-#' maidr::save_html(file = "barplot.html")
+#' # Base R example (requires interactive session for function patching)
+#' if (interactive()) {
+#'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+#'   maidr::save_html(file = tempfile(fileext = ".html"))
 #' }
 #' @export
 save_html <- function(plot = NULL, file = "plot.html", ...) {

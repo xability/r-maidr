@@ -1,17 +1,38 @@
 ## Resubmission
 
-This package was archived on CRAN due to an R CMD check NOTE about
-`assign(..., envir = .GlobalEnv)` in `base_r_function_patching.R`.
+This is a resubmission addressing all reviewer comments from the previous
+submission. The following changes were made:
 
-In this resubmission (0.1.1) I have:
+### Reviewer comment 1: DESCRIPTION references
+* Added a project reference to the Description field using the required
+  format with angle brackets and no space after `https:`:
+  `<https://maidr.ai/>`
 
-* Completely removed all `.GlobalEnv` assignments. Base R function wrappers
-  are now installed into the package namespace during `.onLoad()` (when the
-  namespace is still open) and controlled via an active/inactive flag.
-  `maidr_on()` activates recording; `maidr_off()` deactivates it. No
-  modification of the user's global environment occurs at any point.
-* Removed `attach()` usage (which also produced a NOTE).
-* Fixed Rd documentation warning from unicode escape sequences.
+### Reviewer comment 2: Replace \dontrun{} with \donttest{}
+* Removed all `\dontrun{}` wrappers across the entire package (9 occurrences
+  in 4 source files, 7 generated .Rd files).
+* Examples executable in < 5 sec are now unwrapped (e.g., `maidr_get_fallback()`,
+  `maidr_set_fallback()`, `run_example()` with no arguments).
+* Slow or side-effect-producing examples use `\donttest{}` (e.g., `show()`,
+  `save_html()`, `maidr_on()`).
+* Shiny functions (`maidr_output()`, `render_maidr()`) use `if (interactive())`
+  as they are inherently interactive.
+* Base R examples that require function patching (only active in interactive
+  sessions) use `if (interactive())`.
+
+### Reviewer comment 3: Replace if(interactive()){} in run_example.Rd
+* `run_example()` with no arguments (lists available examples) now runs
+  unwrapped during R CMD check since it only prints text and completes
+  in < 1 sec.
+* Only the browser-opening calls (`run_example("bar")`, etc.) remain in
+  `if (interactive())` since they source scripts that call `show()` which
+  opens a browser.
+
+### Reviewer comment 4: Restore par() with on.exit() in base_r_plot_orchestrator.R
+* Added `oldpar <- graphics::par(no.readonly = TRUE)` followed immediately
+  by `on.exit(graphics::par(oldpar), add = TRUE)` before any `par()`
+  modifications in the `composite_func` closure within `get_gtable()`.
+
 
 ## R CMD check results
 

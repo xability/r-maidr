@@ -498,6 +498,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
       ) {
         # Multipanel case - create composite grob
         composite_func <- function() {
+          oldpar <- graphics::par(no.readonly = TRUE)
+          on.exit(graphics::par(oldpar), add = TRUE)
           if (panel_config$type == "mfrow") {
             graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "mfcol") {
@@ -506,8 +508,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Debug logging
           if (getOption("maidr.debug", FALSE)) {
-            cat("DEBUG: Replaying", length(private$.plot_groups), "plot groups\n")
-            cat("DEBUG: Panel config:", panel_config$nrows, "x", panel_config$ncols, "\n")
+            message("DEBUG: Replaying ", length(private$.plot_groups), " plot groups")
+            message("DEBUG: Panel config: ", panel_config$nrows, " x ", panel_config$ncols)
           }
 
           # Replay all plot groups using ORIGINAL (unwrapped) functions
@@ -516,7 +518,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
             group <- private$.plot_groups[[i]]
 
             if (getOption("maidr.debug", FALSE)) {
-              cat("DEBUG: Replaying group", i, "-", group$high_call$function_name, "\n")
+              message("DEBUG: Replaying group ", i, " - ", group$high_call$function_name)
             }
 
             orig_fn <- get_original_function(group$high_call$function_name)

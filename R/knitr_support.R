@@ -6,7 +6,7 @@
 #'
 #' @return Invisible TRUE on success
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # In RMarkdown setup chunk:
 #' library(maidr)
 #' maidr_on()

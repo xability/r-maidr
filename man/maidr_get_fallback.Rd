@@ -18,11 +18,9 @@ A list with the current fallback settings:
 Retrieves the current fallback configuration for MAIDR.
 }
 \examples{
-\dontrun{
 # Get current settings
 settings <- maidr_get_fallback()
 print(settings)
-}
 
 }
 \seealso{

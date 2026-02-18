@@ -21,8 +21,8 @@ Creates a Shiny output container for MAIDR widgets using htmlwidgets.
 This provides automatic dependency injection and robust JavaScript initialization.
 }
 \examples{
-\dontrun{
-library(shiny)
-ui <- fluidPage(maidr_output("myplot"))
+if (interactive()) {
+  library(shiny)
+  ui <- fluidPage(maidr_output("myplot"))
 }
 }

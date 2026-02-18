@@ -16,9 +16,9 @@ NULL
 #' @param height The height of the plot container (default: "400px")
 #' @return A Shiny widget output function for use in UI
 #' @examples
-#' \dontrun{
-#' library(shiny)
-#' ui <- fluidPage(maidr_output("myplot"))
+#' if (interactive()) {
+#'   library(shiny)
+#'   ui <- fluidPage(maidr_output("myplot"))
 #' }
 #' @export
 maidr_output <- function(output_id, width = "100%", height = "400px") {
@@ -35,15 +35,15 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #' @param quoted Is expr a quoted expression
 #' @return A Shiny render function for use in server
 #' @examples
-#' \dontrun{
-#' library(shiny)
-#' library(ggplot2)
-#' server <- function(input, output) {
-#'   output$myplot <- render_maidr({
-#'     ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
-#'       geom_bar(stat = "identity")
-#'   })
-#' }
+#' if (interactive()) {
+#'   library(shiny)
+#'   library(ggplot2)
+#'   server <- function(input, output) {
+#'     output$myplot <- render_maidr({
+#'       ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+#'         geom_bar(stat = "identity")
+#'     })
+#'   }
 #' }
 #' @export
 render_maidr <- function(expr, env = parent.frame(), quoted = FALSE) {
