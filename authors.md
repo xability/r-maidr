@@ -9,7 +9,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/xability/r-maidr/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/xability/r-maidr/blob/v0.1.2/DESCRIPTION)
 
 Seo J, Kalaiselvan N (2026). *maidr: Multimodal Access and Interactive
 Data Representation*. R package version 0.1.2,
