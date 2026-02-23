@@ -17,7 +17,7 @@ The package provides two main functions:
 ## Installation
 
 ``` r
-# Install from CRAN (coming soon)
+# Install from CRAN
 install.packages("maidr")
 
 # Or install development version from GitHub
