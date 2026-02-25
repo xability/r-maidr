@@ -1,6 +1,8 @@
-# Disable MAIDR Rendering in RMarkdown
+# Disable MAIDR Plot Interception
 
 Disables automatic MAIDR rendering and restores normal plot behavior.
+After calling this, Base R plots display in the standard graphics window
+and ggplot2 objects render with the default ggplot2 method.
 
 ## Usage
 

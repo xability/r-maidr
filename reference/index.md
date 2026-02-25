@@ -14,9 +14,9 @@ Primary user-facing functions for creating accessible plots
 Functions for enabling accessible plots in RMarkdown documents
 
 - [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) : Enable
-  MAIDR Rendering in RMarkdown
+  MAIDR Plot Interception
 - [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) : Disable
-  MAIDR Rendering in RMarkdown
+  MAIDR Plot Interception
 
 ## Shiny integration
 

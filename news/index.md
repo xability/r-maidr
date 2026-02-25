@@ -70,23 +70,29 @@ Initial CRAN release.
 
 #### Base R - Basic
 
-- Bar plots ([`barplot()`](https://rdrr.io/r/graphics/barplot.html))
+- Bar plots
+  ([`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md))
 - Grouped bar plots (`beside = TRUE`)
 - Stacked bar plots (`beside = FALSE`)
-- Histograms ([`hist()`](https://rdrr.io/r/graphics/hist.html))
-- Line plots ([`plot()`](https://rdrr.io/r/graphics/plot.default.html)
-  with `type = "l"`, [`lines()`](https://rdrr.io/r/graphics/lines.html))
+- Histograms
+  ([`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md))
+- Line plots
+  ([`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) with
+  `type = "l"`,
+  [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md))
 - Scatter plots
-  ([`plot()`](https://rdrr.io/r/graphics/plot.default.html))
-- Box plots ([`boxplot()`](https://rdrr.io/r/graphics/boxplot.html))
-- Heatmaps ([`image()`](https://rdrr.io/r/graphics/image.html))
+  ([`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md))
+- Box plots
+  ([`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md))
+- Heatmaps
+  ([`image()`](https://r.maidr.ai/reference/base-r-wrappers.md))
 - Density curves (`lines(density())`)
 
 #### Base R - Advanced
 
 - Multi-panel plots (`par(mfrow)`, `par(mfcol)`)
 - Faceted-style plots (using
-  [`par()`](https://rdrr.io/r/graphics/par.html) with loops)
+  [`par()`](https://r.maidr.ai/reference/base-r-wrappers.md) with loops)
 - Multi-layered plots (sequential plotting calls)
 
 ### Accessibility Features
