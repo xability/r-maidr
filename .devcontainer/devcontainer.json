@@ -1,0 +1,41 @@
+{
+  "name": "r-maidr",
+  "image": "ghcr.io/rocker-org/devcontainer/r-ver:4",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/rocker-org/devcontainer-features/r-packages:1": {
+      "packages": "devtools,testthat,lintr,styler,roxygen2,covr,rcmdcheck,knitr,rmarkdown,pkgdown,goodpractice,cyclocomp,patchwork,remotes",
+      "installSystemRequirements": true
+    },
+    "ghcr.io/rocker-org/devcontainer-features/r-dependent-packages:latest": {},
+    "ghcr.io/rocker-org/devcontainer-features/r-history:1": {},
+    "ghcr.io/rocker-org/devcontainer-features/pandoc:latest": {}
+  },
+
+  "containerEnv": {
+    "R_KEEP_PKG_SOURCE": "yes",
+    "NOT_CRAN": "true"
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "r.rterm.linux": "/usr/local/bin/radian",
+        "r.bracketedPaste": true,
+        "r.plot.useHttpgd": true
+      },
+      "extensions": [
+        "REditorSupport.r",
+        "RDebugger.r-debugger",
+        "github.copilot",
+        "github.copilot-chat",
+        "github.vscode-github-actions",
+        "eamodio.gitlens",
+        "quarto.quarto"
+      ]
+    }
+  },
+
+  "postCreateCommand": "R -e 'devtools::install_deps(dependencies = TRUE)'"
+}
