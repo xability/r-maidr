@@ -2,7 +2,7 @@
 % Please edit documentation in R/knitr_support.R
 \name{maidr_off}
 \alias{maidr_off}
-\title{Disable MAIDR Rendering in RMarkdown}
+\title{Disable MAIDR Plot Interception}
 \usage{
 maidr_off()
 }
@@ -11,6 +11,8 @@ Invisible TRUE on success
 }
 \description{
 Disables automatic MAIDR rendering and restores normal plot behavior.
+After calling this, Base R plots display in the standard graphics window
+and ggplot2 objects render with the default ggplot2 method.
 }
 \seealso{
 [maidr_on()] to enable MAIDR rendering

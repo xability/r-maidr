@@ -2,7 +2,7 @@
 % Please edit documentation in R/knitr_support.R
 \name{maidr_on}
 \alias{maidr_on}
-\title{Enable MAIDR Rendering in RMarkdown}
+\title{Enable MAIDR Plot Interception}
 \usage{
 maidr_on()
 }
@@ -10,14 +10,16 @@ maidr_on()
 Invisible TRUE on success
 }
 \description{
-Enables automatic accessible rendering of ggplot2 and Base R plots
-in RMarkdown documents. When enabled, plots are automatically converted
-to interactive MAIDR widgets with keyboard navigation and screen reader support.
+Enables automatic accessible rendering of ggplot2 and Base R plots.
+In interactive sessions, plots are displayed in the MAIDR interactive viewer.
+In RMarkdown documents, plots are converted to accessible MAIDR widgets
+with keyboard navigation and screen reader support.
 }
 \examples{
 \donttest{
-# In RMarkdown setup chunk:
 library(maidr)
+
+# Enable interception (on by default after library(maidr))
 maidr_on()
 
 # Now all plots render as accessible MAIDR widgets

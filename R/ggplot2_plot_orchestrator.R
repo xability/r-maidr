@@ -176,32 +176,41 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     extract_layout = function() {
       built <- ggplot2::ggplot_build(private$.plot)
 
-      # Extract x label: try labels$x first, fall back to mapping
-      x_label <- private$.plot$labels$x
+      # Use built$plot$labels (post-build) which includes stat-generated labels
+      # like "count" for geom_bar(). In ggplot2 v4, the pre-build plot$labels
+      # may be empty; labels are only resolved after ggplot_build().
+      built_labels <- built$plot$labels
+
+      # Extract x label: try built labels first, then user labels, then mapping
+      x_label <- built_labels$x
+      if (is.null(x_label)) x_label <- private$.plot$labels$x
       if (is.null(x_label) && !is.null(private$.plot$mapping$x)) {
         x_label <- rlang::as_label(private$.plot$mapping$x)
       }
       if (is.null(x_label)) x_label <- ""
 
-      # Extract y label: try labels$y first, fall back to mapping
-      y_label <- private$.plot$labels$y
+      # Extract y label: try built labels first, then user labels, then mapping
+      y_label <- built_labels$y
+      if (is.null(y_label)) y_label <- private$.plot$labels$y
       if (is.null(y_label) && !is.null(private$.plot$mapping$y)) {
         y_label <- rlang::as_label(private$.plot$mapping$y)
       }
       if (is.null(y_label)) y_label <- ""
 
+      # Extract title/subtitle/caption from built labels (includes user labs())
+      plot_title <- built_labels$title
+      if (is.null(plot_title)) plot_title <- private$.plot$labels$title
+
+      plot_subtitle <- built_labels$subtitle
+      if (is.null(plot_subtitle)) plot_subtitle <- private$.plot$labels$subtitle
+
+      plot_caption <- built_labels$caption
+      if (is.null(plot_caption)) plot_caption <- private$.plot$labels$caption
+
       layout <- list(
-        title = if (!is.null(private$.plot$labels$title)) private$.plot$labels$title else "",
-        subtitle = if (!is.null(private$.plot$labels$subtitle)) {
-          private$.plot$labels$subtitle
-        } else {
-          NULL
-        },
-        caption = if (!is.null(private$.plot$labels$caption)) {
-          private$.plot$labels$caption
-        } else {
-          NULL
-        },
+        title = if (!is.null(plot_title)) plot_title else "",
+        subtitle = if (!is.null(plot_subtitle)) plot_subtitle else NULL,
+        caption = if (!is.null(plot_caption)) plot_caption else NULL,
         axes = list(
           x = x_label,
           y = y_label

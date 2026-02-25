@@ -1,14 +1,16 @@
-#' Enable MAIDR Rendering in RMarkdown
+#' Enable MAIDR Plot Interception
 #'
-#' Enables automatic accessible rendering of ggplot2 and Base R plots
-#' in RMarkdown documents. When enabled, plots are automatically converted
-#' to interactive MAIDR widgets with keyboard navigation and screen reader support.
+#' Enables automatic accessible rendering of ggplot2 and Base R plots.
+#' In interactive sessions, plots are displayed in the MAIDR interactive viewer.
+#' In RMarkdown documents, plots are converted to accessible MAIDR widgets
+#' with keyboard navigation and screen reader support.
 #'
 #' @return Invisible TRUE on success
 #' @examples
 #' \donttest{
-#' # In RMarkdown setup chunk:
 #' library(maidr)
+#'
+#' # Enable interception (on by default after library(maidr))
 #' maidr_on()
 #'
 #' # Now all plots render as accessible MAIDR widgets
@@ -21,43 +23,62 @@
 #' @seealso [maidr_off()] to disable MAIDR rendering
 #' @export
 maidr_on <- function() {
-  # Check if knitr is available
-  if (!requireNamespace("knitr", quietly = TRUE)) {
-    stop("knitr package is required for RMarkdown integration")
-  }
+  # Enable options
+  options(maidr.enabled = TRUE)
+  options(maidr.base_r = TRUE)
+  options(maidr.ggplot2 = TRUE)
 
   # Enable Base R function patching
   initialize_base_r_patching()
 
-  # Register knit_print method for ggplot
-  registerS3method(
-    "knit_print",
-    "ggplot",
-    knit_print.ggplot,
-    envir = asNamespace("knitr")
+  # Register custom print.ggplot for interactive sessions
+  tryCatch(
+    register_ggplot2_print_method(),
+    error = function(e) NULL
   )
 
-  # Register knit_print methods to suppress return value printing
-  # for plotting functions that return visible objects
-  registerS3method(
-    "knit_print",
-    "histogram",
-    knit_print.histogram,
-    envir = asNamespace("knitr")
-  )
+  # If knitr is available, also register knitr hooks (for RMarkdown)
+  if (requireNamespace("knitr", quietly = TRUE)) {
+    # Register knit_print method for ggplot (S3 class name)
+    registerS3method(
+      "knit_print",
+      "ggplot",
+      knit_print.ggplot,
+      envir = asNamespace("knitr")
+    )
 
-  registerS3method(
-    "knit_print",
-    "density",
-    knit_print.density,
-    envir = asNamespace("knitr")
-  )
+    # Also register for S7 class name used in ggplot2 v4+
+    tryCatch(
+      registerS3method(
+        "knit_print",
+        "ggplot2::ggplot",
+        knit_print.ggplot,
+        envir = asNamespace("knitr")
+      ),
+      error = function(e) NULL
+    )
 
-  # Store original plot hook
-  .maidr_knitr_state$original_plot_hook <- knitr::knit_hooks$get("plot")
+    # Register knit_print methods to suppress return value printing
+    registerS3method(
+      "knit_print",
+      "histogram",
+      knit_print.histogram,
+      envir = asNamespace("knitr")
+    )
 
-  # Override the plot hook to intercept Base R plots
-  knitr::knit_hooks$set(plot = maidr_plot_hook)
+    registerS3method(
+      "knit_print",
+      "density",
+      knit_print.density,
+      envir = asNamespace("knitr")
+    )
+
+    # Store original plot hook
+    .maidr_knitr_state$original_plot_hook <- knitr::knit_hooks$get("plot")
+
+    # Override the plot hook to intercept Base R plots
+    knitr::knit_hooks$set(plot = maidr_plot_hook)
+  }
 
   # Store state
   .maidr_knitr_state$enabled <- TRUE
@@ -65,20 +86,39 @@ maidr_on <- function() {
   invisible(TRUE)
 }
 
-#' Disable MAIDR Rendering in RMarkdown
+#' Disable MAIDR Plot Interception
 #'
 #' Disables automatic MAIDR rendering and restores normal plot behavior.
+#' After calling this, Base R plots display in the standard graphics window
+#' and ggplot2 objects render with the default ggplot2 method.
 #'
 #' @return Invisible TRUE on success
 #' @seealso [maidr_on()] to enable MAIDR rendering
 #' @export
 maidr_off <- function() {
-  # Restore original Base R functions
+  # Disable options
+  options(maidr.enabled = FALSE)
+
+  # Deactivate Base R patching (wrappers pass through to originals)
   restore_original_functions()
 
-  # Reset knitr hooks
+  # Cancel any pending auto-show callbacks
+  cancel_auto_show()
+
+  # Close any lingering maidr temp device to avoid stale device state
+  tryCatch(
+    close_maidr_temp_device(),
+    error = function(e) NULL
+  )
+
+  # Restore original print.ggplot method
+  tryCatch(
+    restore_ggplot2_print_method(),
+    error = function(e) NULL
+  )
+
+  # Reset knitr hooks if applicable
   if (requireNamespace("knitr", quietly = TRUE)) {
-    # Restore original plot hook
     if (!is.null(.maidr_knitr_state$original_plot_hook)) {
       knitr::knit_hooks$set(plot = .maidr_knitr_state$original_plot_hook)
     }
