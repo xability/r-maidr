@@ -12,6 +12,52 @@
 .maidr_patching_env$.temp_device_file <- NULL
 .maidr_patching_env$.temp_device_id <- NULL
 .maidr_patching_env$.patching_active <- FALSE
+.maidr_patching_env$.auto_show_callback_id <- NULL
+
+#' Schedule auto-show after the current top-level expression completes
+#'
+#' Uses R's task callback mechanism. When a HIGH-level plot function is called,
+#' this schedules `show()` to run after the expression finishes. If another
+#' HIGH-level function is called in the same expression, the previous callback
+#' is replaced (only one auto-show fires per expression).
+#'
+#' @keywords internal
+schedule_auto_show <- function() {
+  # Cancel any existing callback
+  cancel_auto_show()
+
+  # Register a one-shot task callback
+  callback_id <- addTaskCallback(function(expr, value, ok, visible) {
+    .maidr_patching_env$.auto_show_callback_id <- NULL
+    tryCatch(
+      maidr::show(plot = NULL),
+      error = function(e) {
+        # Silently ignore errors (e.g., if device was already closed)
+        NULL
+      }
+    )
+    # Return FALSE to remove the callback after it fires once
+    FALSE
+  }, name = "maidr_auto_show")
+
+  .maidr_patching_env$.auto_show_callback_id <- callback_id
+
+  invisible(NULL)
+}
+
+#' Cancel a pending auto-show callback
+#'
+#' @keywords internal
+cancel_auto_show <- function() {
+  if (!is.null(.maidr_patching_env$.auto_show_callback_id)) {
+    tryCatch(
+      removeTaskCallback(.maidr_patching_env$.auto_show_callback_id),
+      error = function(e) NULL
+    )
+    .maidr_patching_env$.auto_show_callback_id <- NULL
+  }
+  invisible(NULL)
+}
 
 #' Check if Base R patching is currently active
 #'
@@ -21,7 +67,7 @@
 #' @return TRUE if patching is active
 #' @keywords internal
 is_patching_enabled <- function() {
-  isTRUE(.maidr_patching_env$.patching_active)
+  isTRUE(.maidr_patching_env$.patching_active) && is_base_r_enabled()
 }
 
 #' Open a temporary device to suppress default graphics window
@@ -241,6 +287,17 @@ wrap_function <- function(function_name) {
     }
   )
 
+  # Also update the package environment on the search path (if attached).
+  # This ensures library(maidr) users get the wrapper, not the stub export.
+  pkg_env_name <- "package:maidr"
+  if (pkg_env_name %in% search()) {
+    pkg_env <- as.environment(pkg_env_name)
+    tryCatch(
+      assign(function_name, wrapper, envir = pkg_env),
+      error = function(e) NULL
+    )
+  }
+
   invisible(TRUE)
 }
 
@@ -287,6 +344,16 @@ wrap_s3_generics <- function() {
     error = function(e) NULL  # Already installed during .onLoad
   )
 
+  # Also update the package environment on the search path (if attached)
+  pkg_env_name <- "package:maidr"
+  if (pkg_env_name %in% search()) {
+    pkg_env <- as.environment(pkg_env_name)
+    tryCatch(
+      assign("lines", lines_wrapper, envir = pkg_env),
+      error = function(e) NULL
+    )
+  }
+
   # Wrap points() function
   if (is.null(.maidr_patching_env$.saved_graphics_fns[["points"]])) {
     .maidr_patching_env$.saved_graphics_fns[["points"]] <- graphics::points
@@ -319,6 +386,15 @@ wrap_s3_generics <- function() {
     assign("points", points_wrapper, envir = ns),
     error = function(e) NULL  # Already installed during .onLoad
   )
+
+  # Also update the package environment on the search path (if attached)
+  if (pkg_env_name %in% search()) {
+    pkg_env <- as.environment(pkg_env_name)
+    tryCatch(
+      assign("points", points_wrapper, envir = pkg_env),
+      error = function(e) NULL
+    )
+  }
 
   invisible(TRUE)
 }
@@ -381,6 +457,8 @@ create_function_wrapper <- function(function_name, original_function) {
     return(create_axis_wrapper(original_function))
   }
 
+  is_high <- is_high_level_function(function_name)
+
   wrapper <- eval(substitute(
     function(...) {
       # If patching is disabled, pass through to original function
@@ -403,7 +481,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # Users can still capture the result with assignment
       invisible(result)
     },
-    list(FNAME = function_name, ORIG = original_function)
+    list(FNAME = function_name, ORIG = original_function, IS_HIGH = is_high)
   ))
 
   wrapper

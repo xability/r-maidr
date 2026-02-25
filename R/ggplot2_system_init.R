@@ -23,8 +23,11 @@ initialize_ggplot2_system <- function() {
   invisible(NULL)
 }
 
-# Auto-initialize ggplot2 system when package is loaded
+# Auto-initialize systems when package is loaded
 .onLoad <- function(libname, pkgname) {
+  # Set default options (respects user's .Rprofile settings)
+  initialize_maidr_options()
+
   tryCatch(
     {
       initialize_ggplot2_system()
@@ -43,7 +46,9 @@ initialize_ggplot2_system <- function() {
     }
   )
 
-  # Auto-start Base R patching
+  # Install Base R wrappers (always, so exports exist).
+  # Whether they intercept or pass through is controlled by
+  # is_patching_enabled() which checks the runtime options.
   tryCatch(
     {
       initialize_base_r_patching()
@@ -51,5 +56,31 @@ initialize_ggplot2_system <- function() {
     error = function(e) {
       warning("Failed to initialize Base R patching: ", e$message)
     }
+  )
+
+  # Register custom print.ggplot method for interactive auto-display
+  tryCatch(
+    {
+      register_ggplot2_print_method()
+    },
+    error = function(e) {
+      # Not critical — ggplot2 may not be installed
+      NULL
+    }
+  )
+}
+
+# Show startup message when package is attached via library()
+.onAttach <- function(libname, pkgname) {
+  if (!isTRUE(getOption("maidr.startup_message", TRUE))) {
+    return(invisible(NULL))
+  }
+
+  packageStartupMessage(
+    "maidr ", utils::packageVersion(pkgname), " loaded\n",
+    "- Plots are displayed in the maidr interactive viewer by default\n",
+    "- Use maidr_off() to disable interception\n",
+    "- Use options(maidr.enabled = FALSE) to disable permanently\n",
+    "- See ?maidr_off for more details"
   )
 }
