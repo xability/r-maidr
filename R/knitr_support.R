@@ -24,7 +24,7 @@
 #' @export
 maidr_on <- function() {
   # Enable options
-  options(maidr.enabled = TRUE)
+  options(maidr.auto_show = TRUE)
   options(maidr.base_r = TRUE)
   options(maidr.ggplot2 = TRUE)
 
@@ -97,7 +97,7 @@ maidr_on <- function() {
 #' @export
 maidr_off <- function() {
   # Disable options
-  options(maidr.enabled = FALSE)
+  options(maidr.auto_show = FALSE)
 
   # Deactivate Base R patching (wrappers pass through to originals)
   restore_original_functions()

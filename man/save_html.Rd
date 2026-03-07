@@ -21,12 +21,20 @@ Save a ggplot2 or Base R plot as a standalone HTML file with interactive
 MAIDR accessibility features.
 }
 \examples{
-# ggplot2 example
+# ggplot2 bar chart
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 \donttest{
 maidr::save_html(p, tempfile(fileext = ".html"))
+}
+
+# ggplot2 violin plot
+p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_violin(fill = "lightblue", alpha = 0.7) +
+  labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
+\donttest{
+maidr::save_html(p_violin, tempfile(fileext = ".html"))
 }
 
 # Base R example (requires interactive session for function patching)

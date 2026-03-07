@@ -23,12 +23,20 @@ Display a ggplot2 or Base R plot as an interactive, accessible visualization
 using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 }
 \examples{
-# ggplot2 example
+# ggplot2 bar chart
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 \donttest{
 maidr::show(p)
+}
+
+# ggplot2 violin plot
+p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_violin(fill = "lightblue", alpha = 0.7) +
+  labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
+\donttest{
+maidr::show(p_violin)
 }
 
 # Base R example (requires interactive session for function patching)

@@ -273,8 +273,42 @@ html_file_box <- file.path(output_dir, "example_boxplot_horizontal_ggplot2.html"
 result_box <- save_html(p_box, file = html_file_box)
 cat("Boxplot (horizontal, number):", if (file.exists(html_file_box)) "OK" else "FAIL", "\n")
 
-# Test 13: Faceted Bar Plot with COMMA formatting
-cat("\n=== TEST 13: Faceted Bar Plot (Comma Formatting) ===\n")
+# Test 13: Violin plot (vertical)
+cat("\n=== TEST 13: Violin Plot (Vertical) ===\n")
+
+p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_violin(fill = "lightblue", alpha = 0.7) +
+  labs(
+    title = "MPG Distribution by Cylinder Count",
+    subtitle = "Violin plot showing density and box-summary statistics",
+    x = "Cylinders",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+html_file_violin <- file.path(output_dir, "example_violin_plot_ggplot2.html")
+result_violin <- save_html(p_violin, file = html_file_violin)
+cat("Violin plot (vertical):", if (file.exists(html_file_violin)) "OK" else "FAIL", "\n")
+
+# Test 14: Violin plot (horizontal)
+cat("\n=== TEST 14: Violin Plot (Horizontal) ===\n")
+
+p_violin_horz <- ggplot(iris, aes(x = Sepal.Length, y = Species)) +
+  geom_violin(fill = "lightgreen", alpha = 0.7) +
+  labs(
+    title = "Sepal Length Distribution by Species",
+    subtitle = "Horizontal violin plot",
+    x = "Sepal Length (cm)",
+    y = "Species"
+  ) +
+  theme_minimal()
+
+html_file_violin_horz <- file.path(output_dir, "example_violin_horizontal_ggplot2.html")
+result_violin_horz <- save_html(p_violin_horz, file = html_file_violin_horz)
+cat("Violin plot (horizontal):", if (file.exists(html_file_violin_horz)) "OK" else "FAIL", "\n")
+
+# Test 15: Faceted Bar Plot with COMMA formatting
+cat("\n=== TEST 15: Faceted Bar Plot (Comma Formatting) ===\n")
 set.seed(42)
 facet_bar_data <- data.frame(
   Month = rep(c("Jan", "Feb", "Mar", "Apr", "May"), 4),
@@ -302,8 +336,8 @@ html_file_facet_bar <- file.path(output_dir, "example_facet_bar_plot_ggplot2.htm
 result_facet_bar <- save_html(p_facet_bar, file = html_file_facet_bar)
 cat("Faceted bar plot (comma):", if (file.exists(html_file_facet_bar)) "OK" else "FAIL", "\n")
 
-# Test 14: Faceted Point Plot with FIXED formatting
-cat("\n=== TEST 14: Faceted Point Plot (Fixed Decimals) ===\n")
+# Test 16: Faceted Point Plot with FIXED formatting
+cat("\n=== TEST 16: Faceted Point Plot (Fixed Decimals) ===\n")
 set.seed(42)
 facet_point_data <- data.frame(
   x = rep(seq(0.5, 2.5, by = 0.5), 4),
@@ -332,8 +366,8 @@ html_file_facet_point <- file.path(output_dir, "example_facet_point_plot_ggplot2
 result_facet_point <- save_html(p_facet_point, file = html_file_facet_point)
 cat("Faceted point plot (fixed):", if (file.exists(html_file_facet_point)) "OK" else "FAIL", "\n")
 
-# Test 15: Faceted Line Plot with PERCENT formatting
-cat("\n=== TEST 15: Faceted Line Plot (Percent Formatting) ===\n")
+# Test 17: Faceted Line Plot with PERCENT formatting
+cat("\n=== TEST 17: Faceted Line Plot (Percent Formatting) ===\n")
 set.seed(42)
 facet_line_data <- data.frame(
   Week = rep(1:5, 4),
@@ -361,8 +395,8 @@ html_file_facet_line <- file.path(output_dir, "example_facet_line_plot_ggplot2.h
 result_facet_line <- save_html(p_facet_line, file = html_file_facet_line)
 cat("Faceted line plot (percent):", if (file.exists(html_file_facet_line)) "OK" else "FAIL", "\n")
 
-# Test 16: Patchwork 2x2 with MIXED formatting
-cat("\n=== TEST 16: Patchwork 2x2 (Mixed Formatting Types) ===\n")
+# Test 18: Patchwork 2x2 with MIXED formatting
+cat("\n=== TEST 18: Patchwork 2x2 (Mixed Formatting Types) ===\n")
 
 # Build component plots with different formatting
 set.seed(99)
@@ -427,6 +461,8 @@ cat("- Heatmap with labels:", if (file.exists(html_file_heatmap_labels)) "OK" el
 cat("- Point/Scatter plot (scientific):", if (file.exists(html_file_point)) "OK" else "FAIL", "\n")
 cat("- Multi-layer plot (currency K):", if (file.exists(html_file_dual_axis)) "OK" else "FAIL", "\n")
 cat("- Boxplot (horizontal, number):", if (file.exists(html_file_box)) "OK" else "FAIL", "\n")
+cat("- Violin plot (vertical):", if (file.exists(html_file_violin)) "OK" else "FAIL", "\n")
+cat("- Violin plot (horizontal):", if (file.exists(html_file_violin_horz)) "OK" else "FAIL", "\n")
 cat("- Faceted bar plot (comma):", if (file.exists(html_file_facet_bar)) "OK" else "FAIL", "\n")
 cat("- Faceted point plot (fixed):", if (file.exists(html_file_facet_point)) "OK" else "FAIL", "\n")
 cat("- Faceted line plot (percent):", if (file.exists(html_file_facet_line)) "OK" else "FAIL", "\n")

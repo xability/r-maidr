@@ -9,7 +9,7 @@ Configure MAIDR interception and display behavior using R's options system.
 \section{Available Options}{
 
 \describe{
-  \item{\code{maidr.enabled}}{Logical. Master switch for all MAIDR interception.
+  \item{\code{maidr.auto_show}}{Logical. Master switch for all MAIDR interception.
     When FALSE, all plotting functions behave as standard R. Default: TRUE.}
   \item{\code{maidr.base_r}}{Logical. Enable Base R plot interception.
     When TRUE, Base R plots are captured and displayed in the MAIDR viewer.
@@ -30,7 +30,7 @@ Options can be set in your \code{.Rprofile} to persist across sessions:
 options(maidr.ggplot2 = FALSE)
 
 # Disable all interception
-options(maidr.enabled = FALSE)
+options(maidr.auto_show = FALSE)
 
 # Suppress startup message
 options(maidr.startup_message = FALSE)

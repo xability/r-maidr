@@ -72,6 +72,19 @@ create_test_ggplot_boxplot <- function() {
     ggplot2::labs(title = "Test Boxplot")
 }
 
+#' Create a simple ggplot2 violin plot for testing
+#' @return A ggplot2 violin plot object
+create_test_ggplot_violin <- function() {
+  testthat::skip_if_not_installed("ggplot2")
+
+  ggplot2::ggplot(
+    datasets::mtcars,
+    ggplot2::aes(x = factor(cyl), y = mpg)
+  ) +
+    ggplot2::geom_violin() +
+    ggplot2::labs(title = "Test Violin", x = "Cylinders", y = "MPG")
+}
+
 # ============================================================================
 # Base R Test Plot Generators
 # ============================================================================
