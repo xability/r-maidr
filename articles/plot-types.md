@@ -255,6 +255,46 @@ boxplot(Petal.Length ~ Species,
 show()
 ```
 
+## Violin Plots
+
+Violin plots combine kernel density estimation (KDE) curves with
+box-summary statistics, providing a richer view of data distribution
+than box plots alone. MAIDR renders violin plots as two navigable
+layers: a **violin_box** layer (min, Q1, median, Q3, max) and a
+**violin_kde** layer (density curve).
+
+> **Note:** Violin plots are a ggplot2-only feature; there is no Base R
+> equivalent.
+
+``` r
+library(maidr)
+library(ggplot2)
+
+# ggplot2 - Vertical violin plot
+p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_violin(fill = "lightblue", alpha = 0.7) +
+  labs(
+    title = "MPG Distribution by Cylinder Count",
+    x = "Cylinders",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+show(p)
+
+# ggplot2 - Horizontal violin plot
+p_horz <- ggplot(iris, aes(x = Sepal.Length, y = Species)) +
+  geom_violin(fill = "lightgreen", alpha = 0.7) +
+  labs(
+    title = "Sepal Length Distribution by Species",
+    x = "Sepal Length (cm)",
+    y = "Species"
+  ) +
+  theme_minimal()
+
+show(p_horz)
+```
+
 ## Heatmaps
 
 ``` r
@@ -513,6 +553,7 @@ show()
 | **Scatter Plot**  | Relationships between variables | Height vs weight            |
 | **Line Plot**     | Trends over time/order          | Stock prices                |
 | **Box Plot**      | Distribution comparison         | Salary by department        |
+| **Violin Plot**   | Distribution shape comparison   | Gene expression by group    |
 | **Heatmap**       | Matrix relationships            | Correlation matrices        |
 | **Density**       | Smooth distributions            | Probability density         |
 | **Faceted**       | Comparing subgroups             | Regional sales trends       |

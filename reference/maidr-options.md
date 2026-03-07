@@ -5,7 +5,7 @@ system.
 
 ## Available Options
 
-- `maidr.enabled`:
+- `maidr.auto_show`:
 
   Logical. Master switch for all MAIDR interception. When FALSE, all
   plotting functions behave as standard R. Default: TRUE.
@@ -33,7 +33,7 @@ Options can be set in your `.Rprofile` to persist across sessions:
     options(maidr.ggplot2 = FALSE)
 
     # Disable all interception
-    options(maidr.enabled = FALSE)
+    options(maidr.auto_show = FALSE)
 
     # Suppress startup message
     options(maidr.startup_message = FALSE)

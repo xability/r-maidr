@@ -1,5 +1,40 @@
 # Changelog
 
+## maidr 0.2.0
+
+### New Features
+
+- Added violin plot support for ‘ggplot2’
+  ([`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html)),
+  including both vertical and horizontal orientations.
+- Violin plots produce two interactive layers: a box-summary layer
+  (`violin_box`) with min, Q1, median, Q3, max highlights, and a KDE
+  density-curve layer (`violin_kde`) with navigable density points.
+- Added Ramer-Douglas-Peucker (RDP) curve simplification to reduce KDE
+  density points to ~30 per violin while preserving shape fidelity.
+- SVG coordinate injection for violin KDE points enables accurate
+  highlight positioning in the maidr frontend.
+
+### Enhancements
+
+- Renamed option `maidr.enabled` to `maidr.auto_show` for clarity.
+- Added `domMapping.iqrDirection` support for violin box layers,
+  aligning with the existing box plot pattern for correct Q1/Q3
+  highlighting under gridSVG Y-flip transforms.
+- Added plot augmentation API (`augment_plot()`, `needs_augmentation()`)
+  to the `LayerProcessor` base class, enabling processors to inject
+  additional geom layers before rendering.
+- Added multi-layer expansion in the orchestrator for plot types that
+  produce more than one maidr layer from a single geom.
+
+### Documentation
+
+- Added violin plot examples to
+  [`show()`](https://r.maidr.ai/reference/show.md),
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md), vignettes,
+  and example scripts.
+- Updated DESCRIPTION to list violin plots as a supported type.
+
 ## maidr 0.1.1
 
 Resubmission after CRAN archival. Fixes CRAN policy compliance issues.

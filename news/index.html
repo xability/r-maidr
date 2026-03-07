@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">maidr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,28 @@
       <small>Source: <a href="https://github.com/xability/r-maidr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="maidr-020">maidr 0.2.0<a class="anchor" aria-label="anchor" href="#maidr-020"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-2-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-2-0"></a></h3>
+<ul><li>Added violin plot support for ‘ggplot2’ (<code><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin()</a></code>), including both vertical and horizontal orientations.</li>
+<li>Violin plots produce two interactive layers: a box-summary layer (<code>violin_box</code>) with min, Q1, median, Q3, max highlights, and a KDE density-curve layer (<code>violin_kde</code>) with navigable density points.</li>
+<li>Added Ramer-Douglas-Peucker (RDP) curve simplification to reduce KDE density points to ~30 per violin while preserving shape fidelity.</li>
+<li>SVG coordinate injection for violin KDE points enables accurate highlight positioning in the maidr frontend.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="enhancements-0-2-0">Enhancements<a class="anchor" aria-label="anchor" href="#enhancements-0-2-0"></a></h3>
+<ul><li>Renamed option <code>maidr.enabled</code> to <code>maidr.auto_show</code> for clarity.</li>
+<li>Added <code>domMapping.iqrDirection</code> support for violin box layers, aligning with the existing box plot pattern for correct Q1/Q3 highlighting under gridSVG Y-flip transforms.</li>
+<li>Added plot augmentation API (<code>augment_plot()</code>, <code>needs_augmentation()</code>) to the <code>LayerProcessor</code> base class, enabling processors to inject additional geom layers before rendering.</li>
+<li>Added multi-layer expansion in the orchestrator for plot types that produce more than one maidr layer from a single geom.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h3>
+<ul><li>Added violin plot examples to <code><a href="../reference/show.html">show()</a></code>, <code><a href="../reference/save_html.html">save_html()</a></code>, vignettes, and example scripts.</li>
+<li>Updated DESCRIPTION to list violin plots as a supported type.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="maidr-011">maidr 0.1.1<a class="anchor" aria-label="anchor" href="#maidr-011"></a></h2>
 <p>Resubmission after CRAN archival. Fixes CRAN policy compliance issues.</p>

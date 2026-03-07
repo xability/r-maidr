@@ -35,6 +35,10 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$reorder_layer_data()`](#method-LayerProcessor-reorder_layer_data)
 
+- [`LayerProcessor$augment_plot()`](#method-LayerProcessor-augment_plot)
+
+- [`LayerProcessor$needs_augmentation()`](#method-LayerProcessor-needs_augmentation)
+
 - [`LayerProcessor$get_layer_index()`](#method-LayerProcessor-get_layer_index)
 
 - [`LayerProcessor$set_last_result()`](#method-LayerProcessor-set_last_result)
@@ -217,6 +221,44 @@ Reorder layer data (OPTIONAL - default: no-op)
 #### Returns
 
 Reordered data
+
+------------------------------------------------------------------------
+
+### Method `augment_plot()`
+
+Augment the plot before building (OPTIONAL - default: no-op)
+
+Called by the orchestrator before ggplot_build/ggplotGrob. Allows a
+processor to inject additional geom layers (e.g., a boxplot inside a
+violin) so they appear in the SVG and can be targeted by selectors.
+
+#### Usage
+
+    LayerProcessor$augment_plot(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object to augment
+
+#### Returns
+
+The (possibly augmented) ggplot2 object
+
+------------------------------------------------------------------------
+
+### Method `needs_augmentation()`
+
+Check if this processor needs to augment the plot
+
+#### Usage
+
+    LayerProcessor$needs_augmentation()
+
+#### Returns
+
+Logical
 
 ------------------------------------------------------------------------
 

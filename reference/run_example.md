@@ -58,6 +58,7 @@ run_example()
 #>   - scatter
 #>   - smooth
 #>   - stacked_bar
+#>   - violin
 #> 
 #> base_r examples:
 #>   - bar

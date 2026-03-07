@@ -16,11 +16,16 @@ The package provides two main functions:
 
 ## Installation
 
-``` r
-# Install from CRAN
-install.packages("maidr")
+Install the stable release from CRAN:
 
-# Or install development version from GitHub
+``` r
+install.packages("maidr")
+```
+
+Or install the development version from GitHub:
+
+``` r
+# Using pak (recommended)
 pak::pak("xability/r-maidr")
 
 # Alternative: using pacman (auto-installs if missing)
@@ -80,6 +85,7 @@ Base R:
 | Line plots          | [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)                                                                                    | `plot(type = "l")`, [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Box plots           | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html)                                                                              | [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)                   |
 | Heatmaps            | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)                                                                                    | [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md)                     |
+| Violin plots        | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html)                                                                                | —                                                                                |
 | Density/Smooth      | [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html), [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) | `lines(density())`                                                               |
 
 ### Advanced Plot Types
