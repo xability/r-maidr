@@ -37,14 +37,16 @@ generate_unique_id <- function() {
 create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_file <- tempfile(fileext = ".svg")
 
-
   # Save current device
-
   current_dev <- grDevices::dev.cur()
+
+  # Device dimensions (must match the PDF device)
+  dev_width <- 7   # inches
+  dev_height <- 5  # inches
 
   # Use a null/invisible PDF device for rendering to avoid side effects
   pdf_file <- tempfile(fileext = ".pdf")
-  grDevices::pdf(pdf_file, width = 7, height = 5)
+  grDevices::pdf(pdf_file, width = dev_width, height = dev_height)
   on.exit(
     {
       grDevices::dev.off()
@@ -58,6 +60,12 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   grid.newpage()
   grid.draw(gt)
 
+  # Inject svg_x/svg_y coordinates into violin_kde layers while we have
+
+  # access to the grid viewports (must happen after grid.draw but before
+  # closing the device)
+  maidr_data <- inject_violin_kde_svg_coords(gt, maidr_data)
+
   # Export to SVG
   grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
 
@@ -65,6 +73,146 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_content <- add_maidr_data_to_svg(svg_content, maidr_data)
 
   svg_content
+}
+
+#' Inject svg_x/svg_y coordinates into violin_kde layer data
+#'
+#' After `grid.draw(gt)` has been called on a PDF device, this function
+#' navigates to the panel viewport, maps data coordinates to SVG points,
+#' and injects `svg_x`/`svg_y` into each ViolinKdePoint.  Temporary
+#' metadata fields (`.panel_x_range`, `.panel_y_range`, `.is_horizontal`,
+#' `data_left_x`, `data_right_x`, `data_y`) are stripped from the output.
+#'
+#' @param gt The gtable object (used to find the panel viewport name)
+#' @param maidr_data The maidr-data structure (modified in place)
+#' @return Updated maidr_data with svg_x/svg_y injected
+#' @keywords internal
+inject_violin_kde_svg_coords <- function(gt, maidr_data) {
+  # Find violin_kde layers in the maidr_data structure
+  if (is.null(maidr_data$subplots)) return(maidr_data)
+
+  # Find the panel viewport name from the gtable layout
+  panel_idx <- which(gt$layout$name == "panel")
+  if (length(panel_idx) == 0) return(maidr_data)
+  panel_layout <- gt$layout[panel_idx[1], ]
+  vp_name <- sprintf(
+    "panel.%d-%d-%d-%d",
+    panel_layout$t, panel_layout$l, panel_layout$b, panel_layout$r
+  )
+
+  # Navigate to the panel viewport to get device coordinate mapping
+  tryCatch(
+    grid::downViewport(vp_name),
+    error = function(e) {
+      return(maidr_data)
+    }
+  )
+
+  # Get absolute device position of panel corners (inches from device origin)
+  loc0 <- grid::deviceLoc(grid::unit(0, "npc"), grid::unit(0, "npc"))
+  loc1 <- grid::deviceLoc(grid::unit(1, "npc"), grid::unit(1, "npc"))
+  dx0 <- as.numeric(loc0$x)
+  dy0 <- as.numeric(loc0$y)
+  dx1 <- as.numeric(loc1$x)
+  dy1 <- as.numeric(loc1$y)
+
+  grid::upViewport(0)
+
+  # Walk subplots looking for violin_kde layers
+  for (row_idx in seq_along(maidr_data$subplots)) {
+    row <- maidr_data$subplots[[row_idx]]
+    for (cell_idx in seq_along(row)) {
+      cell <- row[[cell_idx]]
+      if (is.null(cell$layers)) next
+
+      for (layer_idx in seq_along(cell$layers)) {
+        layer <- cell$layers[[layer_idx]]
+        if (!identical(layer$type, "violin_kde")) next
+        if (is.null(layer$.panel_x_range) || is.null(layer$.panel_y_range)) next
+
+        x_range <- layer$.panel_x_range
+        y_range <- layer$.panel_y_range
+        is_horizontal <- isTRUE(layer$.is_horizontal)
+
+        # Inject svg_x/svg_y into each KDE point
+        for (group_idx in seq_along(layer$data)) {
+          points <- layer$data[[group_idx]]
+          is_left <- TRUE  # Points alternate: left, right, left, right ...
+
+          for (pt_idx in seq_along(points)) {
+            pt <- points[[pt_idx]]
+            if (is.null(pt$data_left_x) || is.null(pt$data_y)) next
+
+            # Determine which data x to use (left or right edge)
+            if (is_left) {
+              data_x <- pt$data_left_x
+            } else {
+              data_x <- pt$data_right_x
+            }
+            data_y <- pt$data_y
+
+            # For horizontal violins, the axes are swapped:
+            # data_left_x/data_right_x are on the y-axis (category),
+            # data_y is on the x-axis (value)
+            if (is_horizontal) {
+              # Horizontal: category axis = y, value axis = x
+              # data_x is actually in the y-axis range, data_y in x-axis range
+              npc_x <- (data_y - x_range[1]) / (x_range[2] - x_range[1])
+              npc_y <- (data_x - y_range[1]) / (y_range[2] - y_range[1])
+            } else {
+              npc_x <- (data_x - x_range[1]) / (x_range[2] - x_range[1])
+              npc_y <- (data_y - y_range[1]) / (y_range[2] - y_range[1])
+            }
+
+            dev_x <- dx0 + npc_x * (dx1 - dx0)
+            dev_y <- dy0 + npc_y * (dy1 - dy0)
+
+            # gridSVG uses translate(0, height) scale(1, -1), so SVG coords
+            # are device points without Y inversion
+            pt$svg_x <- round(dev_x * 72, 2)
+            pt$svg_y <- round(dev_y * 72, 2)
+
+            # Strip temporary fields
+            pt$data_left_x <- NULL
+            pt$data_right_x <- NULL
+            pt$data_y <- NULL
+
+            points[[pt_idx]] <- pt
+            is_left <- !is_left
+          }
+          # Sort points along the value axis for smooth keyboard navigation.
+          # ViolinKdeTrace uses point order directly as the navigation order.
+          #   Vertical:   value axis = Y → sort by svg_y (bottom-to-top)
+          #   Horizontal: value axis = X → sort by svg_x (left-to-right)
+          sort_vals <- if (is_horizontal) {
+            vapply(points, function(p) {
+              if (!is.null(p$svg_x)) p$svg_x else NA_real_
+            }, numeric(1))
+          } else {
+            vapply(points, function(p) {
+              if (!is.null(p$svg_y)) p$svg_y else NA_real_
+            }, numeric(1))
+          }
+          if (!all(is.na(sort_vals))) {
+            layer$data[[group_idx]] <- points[order(sort_vals)]
+          } else {
+            layer$data[[group_idx]] <- points
+          }
+        }
+
+        # Strip layer-level metadata
+        layer$.panel_x_range <- NULL
+        layer$.panel_y_range <- NULL
+        layer$.is_horizontal <- NULL
+
+        cell$layers[[layer_idx]] <- layer
+      }
+      row[[cell_idx]] <- cell
+    }
+    maidr_data$subplots[[row_idx]] <- row
+  }
+
+  maidr_data
 }
 
 #' Add maidr-data to SVG using proper XML manipulation

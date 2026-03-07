@@ -139,6 +139,14 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         }
       }
 
+      # Allow processors to augment the plot (e.g., violin injects boxplot)
+      for (i in seq_along(private$.layer_processors)) {
+        processor <- private$.layer_processors[[i]]
+        if (!is.null(processor) && isTRUE(processor$needs_augmentation())) {
+          plot_for_render <- processor$augment_plot(plot_for_render)
+        }
+      }
+
       # Suppress native R graphics window by using a null PDF device
       # This ensures only the HTML output is displayed
       current_dev <- grDevices::dev.cur()
@@ -222,8 +230,44 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     combine_layer_results = function(layer_results) {
       combined_data <- list()
 
+      layer_counter <- 0
       for (i in seq_along(layer_results)) {
         result <- layer_results[[i]]
+
+        # --- Multi-layer expansion (e.g. violin → violin_box + violin_kde) ---
+        if (isTRUE(result$multi_layer) && !is.null(result$layers)) {
+          for (sub in result$layers) {
+            layer_counter <- layer_counter + 1
+            sub_axes <- sub$axes
+            if (!is.null(private$.format_config)) {
+              sub_axes$format <- private$.format_config
+            }
+            layer_obj <- list(
+              id = layer_counter,
+              selectors = sub$selectors,
+              type = sub$type,
+              data = sub$data,
+              title = sub$title,
+              axes = sub_axes
+            )
+            for (field_name in names(sub)) {
+              if (!field_name %in% c(
+                "selectors", "data", "title", "axes",
+                "labels", "multi_layer", "layers"
+              )) {
+                layer_obj[[field_name]] <- sub[[field_name]]
+              }
+            }
+            if (!is.null(sub$labels) && length(sub$labels) > 0) {
+              layer_obj$labels <- sub$labels
+            }
+            combined_data[[layer_counter]] <- layer_obj
+          }
+          next
+        }
+
+        # --- Normal single-layer result ---
+        layer_counter <- layer_counter + 1
 
         layer_type <- result$type
         if (is.null(layer_type) || length(layer_type) == 0) {
@@ -238,7 +282,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         }
 
         layer_obj <- list(
-          id = i,
+          id = layer_counter,
           selectors = result$selectors,
           type = layer_type,
           data = result$data,
@@ -257,7 +301,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
           layer_obj$labels <- result$labels
         }
 
-        combined_data[[i]] <- layer_obj
+        combined_data[[layer_counter]] <- layer_obj
       }
 
       combined_selectors <- list()

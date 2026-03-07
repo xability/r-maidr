@@ -72,6 +72,24 @@ LayerProcessor <- R6::R6Class(
       data
     },
 
+    #' @description Augment the plot before building (OPTIONAL - default: no-op)
+    #'
+    #' Called by the orchestrator before ggplot_build/ggplotGrob. Allows a
+    #' processor to inject additional geom layers (e.g., a boxplot inside a
+    #' violin) so they appear in the SVG and can be targeted by selectors.
+    #'
+    #' @param plot The ggplot2 object to augment
+    #' @return The (possibly augmented) ggplot2 object
+    augment_plot = function(plot) {
+      plot
+    },
+
+    #' @description Check if this processor needs to augment the plot
+    #' @return Logical
+    needs_augmentation = function() {
+      FALSE
+    },
+
     #' @description Get layer index
     #' @return Layer index
     get_layer_index = function() {

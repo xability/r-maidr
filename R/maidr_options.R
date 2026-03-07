@@ -4,7 +4,7 @@
 #'
 #' @section Available Options:
 #' \describe{
-#'   \item{\code{maidr.enabled}}{Logical. Master switch for all MAIDR interception.
+#'   \item{\code{maidr.auto_show}}{Logical. Master switch for all MAIDR interception.
 #'     When FALSE, all plotting functions behave as standard R. Default: TRUE.}
 #'   \item{\code{maidr.base_r}}{Logical. Enable Base R plot interception.
 #'     When TRUE, Base R plots are captured and displayed in the MAIDR viewer.
@@ -23,7 +23,7 @@
 #' options(maidr.ggplot2 = FALSE)
 #'
 #' # Disable all interception
-#' options(maidr.enabled = FALSE)
+#' options(maidr.auto_show = FALSE)
 #'
 #' # Suppress startup message
 #' options(maidr.startup_message = FALSE)
@@ -41,7 +41,7 @@ NULL
 #' @keywords internal
 initialize_maidr_options <- function() {
   defaults <- list(
-    maidr.enabled = TRUE,
+    maidr.auto_show = TRUE,
     maidr.base_r = TRUE,
     maidr.ggplot2 = TRUE,
     maidr.startup_message = TRUE,
@@ -63,7 +63,7 @@ initialize_maidr_options <- function() {
 #' @return TRUE if the master switch is on
 #' @keywords internal
 is_maidr_enabled <- function() {
-  isTRUE(getOption("maidr.enabled", TRUE))
+  isTRUE(getOption("maidr.auto_show", TRUE))
 }
 
 #' Check if Base R interception is enabled

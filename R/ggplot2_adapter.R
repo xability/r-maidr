@@ -76,6 +76,10 @@ Ggplot2Adapter <- R6::R6Class(
         return("box")
       }
 
+      if (geom_class == "GeomViolin") {
+        return("violin")
+      }
+
       if (geom_class == "GeomText") {
         return("skip")
       }

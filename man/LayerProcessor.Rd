@@ -31,6 +31,8 @@ interface that all layer processors must implement.
 \item \href{#method-LayerProcessor-generate_selectors}{\code{LayerProcessor$generate_selectors()}}
 \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
 \item \href{#method-LayerProcessor-reorder_layer_data}{\code{LayerProcessor$reorder_layer_data()}}
+\item \href{#method-LayerProcessor-augment_plot}{\code{LayerProcessor$augment_plot()}}
+\item \href{#method-LayerProcessor-needs_augmentation}{\code{LayerProcessor$needs_augmentation()}}
 \item \href{#method-LayerProcessor-get_layer_index}{\code{LayerProcessor$get_layer_index()}}
 \item \href{#method-LayerProcessor-set_last_result}{\code{LayerProcessor$set_last_result()}}
 \item \href{#method-LayerProcessor-get_last_result}{\code{LayerProcessor$get_last_result()}}
@@ -184,6 +186,43 @@ Reorder layer data (OPTIONAL - default: no-op)
 }
 \subsection{Returns}{
 Reordered data
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-augment_plot"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-augment_plot}{}}}
+\subsection{Method \code{augment_plot()}}{
+Augment the plot before building (OPTIONAL - default: no-op)
+
+Called by the orchestrator before ggplot_build/ggplotGrob. Allows a
+processor to inject additional geom layers (e.g., a boxplot inside a
+violin) so they appear in the SVG and can be targeted by selectors.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$augment_plot(plot)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object to augment}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The (possibly augmented) ggplot2 object
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-needs_augmentation"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-needs_augmentation}{}}}
+\subsection{Method \code{needs_augmentation()}}{
+Check if this processor needs to augment the plot
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$needs_augmentation()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical
 }
 }
 \if{html}{\out{<hr>}}

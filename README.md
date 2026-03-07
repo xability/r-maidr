@@ -16,11 +16,16 @@ The package provides two main functions:
 
 ## Installation
 
-``` r
-# Install from CRAN
-install.packages("maidr")
+Install the stable release from CRAN:
 
-# Or install development version from GitHub
+``` r
+install.packages("maidr")
+```
+
+Or install the development version from GitHub:
+
+``` r
+# Using pak (recommended)
 pak::pak("xability/r-maidr")
 
 # Alternative: using pacman (auto-installs if missing)
@@ -78,6 +83,7 @@ maidr supports a wide range of visualization types in both ggplot2 and Base R:
 | Line plots | `geom_line()` | `plot(type = "l")`, `lines()` |
 | Box plots | `geom_boxplot()` | `boxplot()` |
 | Heatmaps | `geom_tile()` | `image()` |
+| Violin plots | `geom_violin()` | — |
 | Density/Smooth | `geom_smooth()`, `geom_density()` | `lines(density())` |
 
 ### Advanced Plot Types

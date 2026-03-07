@@ -6,6 +6,7 @@
 ^\.styler\.R$
 ^\.vscode$
 ^\.claude$
+^\.devcontainer$
 ^air\.toml$
 ^docs$
 ^dev-docs$
