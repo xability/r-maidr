@@ -2,6 +2,8 @@
 
 ## maidr 0.2.0
 
+CRAN release: 2026-03-07
+
 ### New Features
 
 - Added violin plot support for ‘ggplot2’
