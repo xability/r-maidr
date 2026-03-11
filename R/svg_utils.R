@@ -465,7 +465,7 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
   data_uri <- paste0("data:text/html;base64,", html_base64)
 
   iframe_html <- sprintf(
-    '<iframe id="maidr-iframe-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" tabindex="0" title="Accessible MAIDR Plot" aria-label="Interactive accessible chart"></iframe>',
+    '<iframe id="maidr-iframe-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" role="img" tabindex="0" title="Accessible MAIDR Plot" aria-label="Interactive accessible chart"></iframe>',
     plot_id,
     data_uri,
     width,
@@ -532,7 +532,7 @@ create_fallback_iframe <- function(html_content, width = "100%", height = "450px
   data_uri <- paste0("data:text/html;base64,", html_base64)
 
   iframe_html <- sprintf(
-    '<iframe id="maidr-fallback-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto;" tabindex="0" title="Plot (static image - contains unsupported elements)" aria-label="Static plot image"></iframe>',
+    '<iframe id="maidr-fallback-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto;" role="img" tabindex="0" title="Plot (static image - contains unsupported elements)" aria-label="Static plot image"></iframe>',
     plot_id,
     data_uri,
     width,
