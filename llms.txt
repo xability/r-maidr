@@ -115,8 +115,8 @@ See `vignette("plot-types")` for detailed examples of each plot type.
 
 - [`vignette("getting-started", package = "maidr")`](https://r.maidr.ai/articles/getting-started.md)
   for an introduction
-- [`vignette("plot-types", package = "maidr")`](https://r.maidr.ai/articles/plot-types.html)
-  for supported visualizations
+- `vignette("plot-types", package = "maidr")` for supported
+  visualizations
 - [`vignette("shiny-integration", package = "maidr")`](https://r.maidr.ai/articles/shiny-integration.md)
   for Shiny apps
 
