@@ -1,9 +1,5 @@
 ---
 title: "Examples"
-vignette: >
-  %\VignetteIndexEntry{Examples}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
 execute:
   echo: true
   warning: false
