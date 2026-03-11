@@ -1,9 +1,9 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://r.maidr.ai/404.html</loc></url>
 <url><loc>https://r.maidr.ai/LICENSE.html</loc></url>
+<url><loc>https://r.maidr.ai/articles/examples.html</loc></url>
 <url><loc>https://r.maidr.ai/articles/getting-started.html</loc></url>
 <url><loc>https://r.maidr.ai/articles/index.html</loc></url>
-<url><loc>https://r.maidr.ai/articles/plot-types.html</loc></url>
 <url><loc>https://r.maidr.ai/articles/shiny-integration.html</loc></url>
 <url><loc>https://r.maidr.ai/authors.html</loc></url>
 <url><loc>https://r.maidr.ai/index.html</loc></url>

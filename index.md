@@ -96,9 +96,7 @@ Base R:
 | Multi-panel layouts | `patchwork` package                                                                                                                                  | `par(mfrow)`, `par(mfcol)` |
 | Multi-layered plots | Multiple `geom_*` layers                                                                                                                             | Sequential plot calls      |
 
-See
-[`vignette("plot-types")`](https://r.maidr.ai/articles/plot-types.md)
-for detailed examples of each plot type.
+See `vignette("plot-types")` for detailed examples of each plot type.
 
 ## Accessibility features
 
@@ -117,7 +115,7 @@ for detailed examples of each plot type.
 
 - [`vignette("getting-started", package = "maidr")`](https://r.maidr.ai/articles/getting-started.md)
   for an introduction
-- [`vignette("plot-types", package = "maidr")`](https://r.maidr.ai/articles/plot-types.md)
+- [`vignette("plot-types", package = "maidr")`](https://r.maidr.ai/articles/plot-types.html)
   for supported visualizations
 - [`vignette("shiny-integration", package = "maidr")`](https://r.maidr.ai/articles/shiny-integration.md)
   for Shiny apps

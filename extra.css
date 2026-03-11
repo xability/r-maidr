@@ -1,0 +1,15 @@
+/* Accessibility: de-emphasize auto-linked function names in code blocks.
+   Links are removed from Tab order by extra.js; this CSS removes the visual
+   underline so they do not look like primary navigation targets.
+   They remain clickable by mouse and show an underline on hover. */
+pre code a,
+pre.sourceCode a {
+  text-decoration: none;
+  cursor: default;
+}
+
+pre code a:hover,
+pre.sourceCode a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
