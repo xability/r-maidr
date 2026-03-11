@@ -149,8 +149,8 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
       if ("group" %in% names(layer_data)) {
         unique_groups <- unique(layer_data$group)
-        # Only treat as multiline if we have more than one group and not just the default -1
-        if (length(unique_groups) > 1 || (length(unique_groups) == 1 && unique_groups[1] != -1)) {
+        # Only treat as multiline if we have more than one group
+        if (length(unique_groups) > 1) {
           # Multiline plot - group by series
           series_data <- self$extract_multiline_data(layer_data, plot)
           return(series_data)

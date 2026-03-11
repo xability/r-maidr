@@ -25,4 +25,5 @@
 ^doc$
 ^Meta$
 ^CRAN-SUBMISSION$
+^vignettes/_quarto\.yml$
 \.DS_Store$

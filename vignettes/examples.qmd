@@ -1,0 +1,766 @@
+---
+title: "Examples"
+vignette: >
+  %\VignetteIndexEntry{Examples}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include = FALSE}
+library(maidr)
+library(ggplot2)
+maidr_on()
+set.seed(42)
+```
+
+Making accessible data representation with **maidr** is easy and
+straightforward. If you already have data visualization code using
+**ggplot2** or **Base R**, you can make your plots accessible with maidr
+in just a few lines of code.
+
+Simply load the maidr package and call `maidr_on()`. When plots are
+printed in a document, maidr will automatically generate accessible
+versions. You can then interact with the accessible versions using
+keyboard shortcuts (refer to the table below).
+
+| Key | Action |
+|:---:|--------|
+| **Left / Right** | Navigate between data points |
+| **B** | Toggle braille mode |
+| **T** | Toggle text mode |
+| **S** | Toggle sonification (hear the data) |
+| **R** | Toggle review mode |
+
+## When to Use Each Plot Type
+
+| Plot Type | Best For | Example Use Case |
+|-----------|----------|------------------|
+| **Bar Chart** | Comparing categories | Sales by product |
+| **Histogram** | Showing distributions | Test score frequencies |
+| **Scatter Plot** | Relationships between variables | Height vs weight |
+| **Line Plot** | Trends over time/order | Stock prices |
+| **Box Plot** | Distribution comparison | Salary by department |
+| **Violin Plot** | Distribution shape comparison | Gene expression by group |
+| **Heatmap** | Matrix relationships | Correlation matrices |
+| **Density** | Smooth distributions | Probability density |
+| **Faceted** | Comparing subgroups | Regional sales trends |
+| **Multi-Panel** | Multiple related views | Dashboard layouts |
+| **Multi-Layered** | Combining visualizations | Histogram + density overlay |
+
+---
+
+## Bar Plots
+
+### Simple Bar Chart
+
+A simple bar chart compares values across categories. Each bar
+represents one category with its height proportional to its value.
+
+#### ggplot2
+
+```{r}
+bar_data <- data.frame(
+  Product = c("Laptop", "Tablet", "Phone", "Monitor"),
+  Sales = c(150, 230, 180, 290)
+)
+
+p <- ggplot(bar_data, aes(x = Product, y = Sales)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(
+    title = "Product Sales by Category",
+    x = "Product",
+    y = "Sales (units)"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+products <- c("Laptop", "Tablet", "Phone", "Monitor")
+sales <- c(150, 230, 180, 290)
+
+barplot(sales,
+  names.arg = products,
+  col = "steelblue",
+  main = "Product Sales by Category",
+  xlab = "Product",
+  ylab = "Sales (units)"
+)
+```
+
+### Dodged / Grouped Bar Chart
+
+A dodged bar chart places bars for each sub-group side by side, making
+it easy to compare values within and across categories.
+
+#### ggplot2
+
+```{r}
+dodged_data <- data.frame(
+  Region = rep(c("North", "South", "East"), each = 2),
+  Quarter = rep(c("Q1", "Q2"), 3),
+  Revenue = c(120, 150, 200, 180, 160, 210)
+)
+
+p <- ggplot(dodged_data, aes(x = Region, y = Revenue, fill = Quarter)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+  labs(title = "Quarterly Revenue by Region") +
+  scale_fill_manual(values = c("steelblue", "coral")) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+revenue_matrix <- matrix(c(120, 150, 200, 180, 160, 210), nrow = 2)
+rownames(revenue_matrix) <- c("Q1", "Q2")
+barplot(revenue_matrix,
+  beside = TRUE,
+  names.arg = c("North", "South", "East"),
+  col = c("steelblue", "coral"),
+  legend.text = rownames(revenue_matrix),
+  main = "Quarterly Revenue by Region",
+  xlab = "Region",
+  ylab = "Revenue"
+)
+```
+
+### Stacked Bar Chart
+
+A stacked bar chart layers sub-groups on top of each other within each
+category, showing both individual contributions and the total.
+
+#### ggplot2
+
+```{r}
+stacked_data <- data.frame(
+  Year = rep(c("2022", "2023", "2024"), each = 3),
+  Source = rep(c("Solar", "Wind", "Hydro"), 3),
+  Output = c(40, 30, 50, 55, 45, 48, 70, 60, 52)
+)
+
+p <- ggplot(stacked_data, aes(x = Year, y = Output, fill = Source)) +
+  geom_bar(stat = "identity", position = position_stack()) +
+  labs(
+    title = "Renewable Energy Output by Source",
+    y = "Output (GWh)"
+  ) +
+  scale_fill_manual(values = c("#2ecc71", "#3498db", "#9b59b6")) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+energy_matrix <- matrix(
+  c(40, 30, 50, 55, 45, 48, 70, 60, 52),
+  nrow = 3
+)
+rownames(energy_matrix) <- c("Solar", "Wind", "Hydro")
+barplot(energy_matrix,
+  beside = FALSE,
+  names.arg = c("2022", "2023", "2024"),
+  col = c("#2ecc71", "#3498db", "#9b59b6"),
+  legend.text = rownames(energy_matrix),
+  main = "Renewable Energy Output by Source",
+  xlab = "Year",
+  ylab = "Output (GWh)"
+)
+```
+
+---
+
+## Histogram
+
+A histogram shows the frequency distribution of a continuous variable by
+grouping values into bins. The height of each bar indicates how many
+observations fall within that range.
+
+#### ggplot2
+
+```{r}
+exam_scores <- data.frame(score = c(
+  rnorm(500, mean = 72, sd = 10),
+  rnorm(500, mean = 85, sd = 8)
+))
+
+p <- ggplot(exam_scores, aes(x = score)) +
+  geom_histogram(bins = 25, fill = "skyblue", color = "white") +
+  labs(
+    title = "Distribution of Exam Scores",
+    x = "Score",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+scores <- c(rnorm(500, mean = 72, sd = 10), rnorm(500, mean = 85, sd = 8))
+hist(scores,
+  breaks = 25,
+  col = "skyblue",
+  border = "white",
+  main = "Distribution of Exam Scores",
+  xlab = "Score",
+  ylab = "Frequency"
+)
+```
+
+---
+
+## Scatter Plot
+
+A scatter plot displays the relationship between two continuous
+variables. Each point represents one observation, and color can encode a
+third categorical variable.
+
+#### ggplot2
+
+```{r}
+car_data <- data.frame(
+  weight = mtcars$wt,
+  mpg = mtcars$mpg,
+  cylinders = factor(mtcars$cyl)
+)
+
+p <- ggplot(car_data, aes(x = weight, y = mpg, color = cylinders)) +
+  geom_point(size = 3, alpha = 0.8) +
+  labs(
+    title = "Fuel Efficiency vs Vehicle Weight",
+    x = "Weight (1000 lbs)",
+    y = "Miles per Gallon",
+    color = "Cylinders"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+colors <- c("4" = "steelblue", "6" = "coral", "8" = "forestgreen")
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19,
+  col = colors[as.character(mtcars$cyl)],
+  main = "Fuel Efficiency vs Vehicle Weight",
+  xlab = "Weight (1000 lbs)",
+  ylab = "Miles per Gallon"
+)
+legend("topright",
+  legend = c("4 cyl", "6 cyl", "8 cyl"),
+  col = colors, pch = 19
+)
+```
+
+---
+
+## Line Plots
+
+### Single Line
+
+A line plot connects ordered data points, making it ideal for showing
+trends over time or sequential categories.
+
+#### ggplot2
+
+```{r}
+temp_data <- data.frame(
+  Month = factor(month.abb, levels = month.abb),
+  Temperature = c(2, 4, 10, 15, 20, 25, 28, 27, 22, 15, 8, 3)
+)
+
+p <- ggplot(temp_data, aes(x = Month, y = Temperature, group = 1)) +
+  geom_line(color = "tomato", linewidth = 1.2) +
+  labs(
+    title = "Average Monthly Temperature",
+    y = "Temperature (C)"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+months <- 1:12
+temps <- c(2, 4, 10, 15, 20, 25, 28, 27, 22, 15, 8, 3)
+plot(months, temps,
+  type = "l", col = "tomato", lwd = 2,
+  main = "Average Monthly Temperature",
+  xlab = "Month", ylab = "Temperature (C)",
+  xaxt = "n"
+)
+axis(1, at = 1:12, labels = month.abb)
+```
+
+### Multiple Lines
+
+A multi-line plot overlays several series on the same axes, enabling
+direct comparison of trends across groups.
+
+#### ggplot2
+
+```{r}
+multi_line <- data.frame(
+  Year = rep(2015:2024, 3),
+  Users = c(
+    10, 15, 22, 35, 50, 72, 95, 120, 150, 180,
+    8, 12, 18, 25, 38, 55, 70, 88, 110, 135,
+    5, 8, 14, 20, 30, 42, 58, 75, 95, 118
+  ),
+  Platform = rep(c("Mobile", "Desktop", "Tablet"), each = 10)
+)
+
+p <- ggplot(multi_line, aes(x = Year, y = Users, color = Platform)) +
+  geom_line(linewidth = 1.2) +
+  labs(
+    title = "Platform Users Over Time",
+    y = "Users (millions)"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+years <- 2015:2024
+users <- cbind(
+  Mobile  = c(10, 15, 22, 35, 50, 72, 95, 120, 150, 180),
+  Desktop = c(8, 12, 18, 25, 38, 55, 70, 88, 110, 135),
+  Tablet  = c(5, 8, 14, 20, 30, 42, 58, 75, 95, 118)
+)
+
+matplot(years, users,
+  type = "l", lwd = 2,
+  col = c("steelblue", "coral", "forestgreen"),
+  lty = 1,
+  main = "Platform Users Over Time",
+  xlab = "Year", ylab = "Users (millions)"
+)
+legend("topleft",
+  legend = colnames(users),
+  col = c("steelblue", "coral", "forestgreen"),
+  lwd = 2
+)
+```
+
+---
+
+## Box Plot
+
+A box plot summarizes a distribution using its five-number summary:
+minimum, first quartile (Q1), median (Q2), third quartile (Q3), and
+maximum. Outliers appear as individual points.
+
+#### ggplot2
+
+```{r}
+p <- ggplot(iris, aes(x = Species, y = Sepal.Length)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.7) +
+  labs(
+    title = "Sepal Length by Iris Species",
+    x = "Species",
+    y = "Sepal Length (cm)"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+boxplot(Sepal.Length ~ Species,
+  data = iris,
+  col = "lightblue",
+  main = "Sepal Length by Iris Species",
+  xlab = "Species",
+  ylab = "Sepal Length (cm)"
+)
+```
+
+---
+
+## Violin Plot
+
+A violin plot combines kernel density estimation (KDE) curves with
+box-summary statistics, providing a richer view of the data distribution
+than a box plot alone. MAIDR renders each violin as two navigable
+layers: a **box** layer (min, Q1, median, Q3, max) and a **KDE** layer
+(density curve).
+
+> **Note:** Violin plots are a ggplot2-only feature.
+
+```{r}
+p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_violin(fill = "lightblue", alpha = 0.7) +
+  labs(
+    title = "MPG Distribution by Cylinder Count",
+    x = "Cylinders",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+p
+```
+
+---
+
+## Heat Map
+
+A heatmap uses color intensity to represent values in a two-dimensional
+matrix. It is useful for spotting patterns, clusters, and outliers
+across two categorical dimensions.
+
+#### ggplot2
+
+```{r}
+heatmap_data <- expand.grid(
+  Day = c("Mon", "Tue", "Wed", "Thu", "Fri"),
+  Hour = c("9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm")
+)
+heatmap_data$Visitors <- c(
+  20, 35, 50, 45, 30,
+  25, 40, 60, 55, 35,
+  30, 55, 75, 70, 45,
+  40, 65, 90, 85, 60,
+  35, 50, 70, 65, 40,
+  30, 45, 60, 55, 38,
+  25, 40, 55, 50, 32,
+  15, 30, 40, 35, 22
+)
+
+p <- ggplot(heatmap_data, aes(x = Day, y = Hour, fill = Visitors)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "#f7fbff", high = "#08306b") +
+  labs(title = "Website Visitors by Day and Hour") +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+visitors <- matrix(
+  c(
+    20, 35, 50, 45, 30,
+    25, 40, 60, 55, 35,
+    30, 55, 75, 70, 45,
+    40, 65, 90, 85, 60,
+    35, 50, 70, 65, 40,
+    30, 45, 60, 55, 38,
+    25, 40, 55, 50, 32,
+    15, 30, 40, 35, 22
+  ),
+  nrow = 5
+)
+image(visitors,
+  col = hcl.colors(20, "Blues"),
+  main = "Website Visitors by Day and Hour",
+  xlab = "Day",
+  ylab = "Hour",
+  axes = FALSE
+)
+axis(1,
+  at = seq(0, 1, length.out = 5),
+  labels = c("Mon", "Tue", "Wed", "Thu", "Fri")
+)
+axis(2,
+  at = seq(0, 1, length.out = 8),
+  labels = c("9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm")
+)
+```
+
+---
+
+## KDE (Kernel Density Estimation) Plots
+
+A density curve shows the estimated probability distribution of a
+continuous variable. It provides a smooth alternative to histograms for
+understanding the shape of data.
+
+#### ggplot2
+
+```{r}
+density_values <- data.frame(value = c(
+  rnorm(400, mean = 25, sd = 5),
+  rnorm(600, mean = 40, sd = 8)
+))
+
+p <- ggplot(density_values, aes(x = value)) +
+  geom_density(fill = "lightblue", alpha = 0.5, color = "steelblue") +
+  labs(
+    title = "Age Distribution of Survey Respondents",
+    x = "Age",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+ages <- c(rnorm(400, mean = 25, sd = 5), rnorm(600, mean = 40, sd = 8))
+d <- density(ages)
+plot(d,
+  col = "steelblue", lwd = 2,
+  main = "Age Distribution of Survey Respondents",
+  xlab = "Age",
+  ylab = "Density"
+)
+polygon(d, col = rgb(0.678, 0.847, 0.902, 0.5), border = "steelblue")
+```
+
+---
+
+## Regression Plots
+
+A scatter plot with a fitted regression line shows the relationship
+between two variables along with the best-fit model.
+
+#### ggplot2
+
+```{r}
+p <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(color = "steelblue", size = 3) +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  labs(
+    title = "Weight vs MPG with Linear Fit",
+    x = "Weight (1000 lbs)",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19, col = "steelblue",
+  main = "Weight vs MPG with Linear Fit",
+  xlab = "Weight (1000 lbs)", ylab = "Miles per Gallon"
+)
+abline(lm(mpg ~ wt, data = mtcars), col = "red", lwd = 2)
+```
+
+---
+
+## Multi-Layered Plots
+
+Multi-layered plots combine multiple visualization types in a single
+chart. For example, a histogram overlaid with a density curve, or a bar
+chart with a line overlay.
+
+### Histogram with Density Overlay
+
+#### ggplot2
+
+```{r}
+p <- ggplot(mtcars, aes(x = mpg)) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    bins = 15, fill = "lightblue", color = "white"
+  ) +
+  geom_density(color = "red", linewidth = 1.2) +
+  labs(title = "MPG: Histogram with Density Curve") +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+hist(mtcars$mpg,
+  breaks = 15, freq = FALSE,
+  col = "lightblue", border = "white",
+  main = "MPG: Histogram with Density Curve",
+  xlab = "Miles per Gallon",
+  ylab = "Density"
+)
+lines(density(mtcars$mpg), col = "red", lwd = 2)
+```
+
+### Bar Chart with Line Overlay
+
+#### ggplot2
+
+```{r}
+combo_data <- data.frame(
+  month = factor(month.abb[1:6], levels = month.abb[1:6]),
+  sales = c(100, 120, 90, 150, 130, 160),
+  target = c(110, 110, 110, 140, 140, 140)
+)
+
+p <- ggplot(combo_data, aes(x = month)) +
+  geom_bar(aes(y = sales), stat = "identity", fill = "steelblue", alpha = 0.7) +
+  geom_line(aes(y = target, group = 1), color = "red", linewidth = 1.5) +
+  labs(title = "Monthly Sales vs Target", y = "Value") +
+  theme_minimal()
+
+p
+```
+
+---
+
+## Multi-Panel Plots (Multiple Subplots)
+
+Multi-panel layouts arrange several independent plots in a grid. This is
+useful for dashboards or comparing different views of the same dataset.
+
+#### ggplot2 (patchwork)
+
+```{r}
+library(patchwork)
+
+# Line plot with currency formatting
+line_df <- data.frame(
+  Month = 1:8,
+  Revenue = c(2500, 4200, 3100, 5500, 4300, 6700, 5600, 7800)
+)
+pw_line <- ggplot(line_df, aes(Month, Revenue)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  labs(title = "Monthly Revenue", x = "Month", y = "Revenue") +
+  theme_minimal()
+
+# Bar plot with rates
+bar_df1 <- data.frame(
+  Category = c("A", "B", "C", "D", "E"),
+  Rate = c(0.15, 0.22, 0.18, 0.28, 0.17)
+)
+pw_bar1 <- ggplot(bar_df1, aes(Category, Rate)) +
+  geom_bar(stat = "identity", fill = "forestgreen", alpha = 0.7) +
+  labs(title = "Conversion Rates", x = "Category", y = "Rate") +
+  theme_minimal()
+
+# Bar plot with large numbers
+bar_df2 <- data.frame(
+  Category = c("A", "B", "C", "D", "E"),
+  Count = c(125000, 98000, 145000, 112000, 88000)
+)
+pw_bar2 <- ggplot(bar_df2, aes(Category, Count)) +
+  geom_bar(stat = "identity", fill = "royalblue", alpha = 0.7) +
+  labs(title = "User Counts", x = "Category", y = "Count") +
+  theme_minimal()
+
+# Line plot with exponential growth
+line_df2 <- data.frame(
+  x = 1:8,
+  y = 10^(seq(3, 6.5, length.out = 8))
+)
+pw_line2 <- ggplot(line_df2, aes(x, y)) +
+  geom_line(color = "tomato", linewidth = 1) +
+  labs(title = "Exponential Growth", x = "Time", y = "Value") +
+  theme_minimal()
+
+combined <- (pw_line + pw_bar1 + pw_bar2 + pw_line2) +
+  plot_layout(ncol = 2)
+combined
+```
+
+#### Base R (par)
+
+```{r}
+par(mfrow = c(2, 2))
+
+barplot(table(mtcars$cyl),
+  col = "steelblue",
+  main = "Cars by Cylinder Count",
+  xlab = "Cylinders"
+)
+
+hist(mtcars$mpg,
+  breaks = 12, col = "coral", border = "white",
+  main = "MPG Distribution", xlab = "MPG"
+)
+
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19, col = "forestgreen",
+  main = "MPG vs Weight",
+  xlab = "Weight (1000 lbs)", ylab = "MPG"
+)
+
+boxplot(hp ~ gear,
+  data = mtcars, col = "plum",
+  main = "Horsepower by Gear Count",
+  xlab = "Gears", ylab = "Horsepower"
+)
+invisible(par(mfrow = c(1, 1)))
+```
+
+---
+
+## Facet Plots
+
+Faceted plots split data into a grid of subplots by one or more grouping
+variables. Each panel shows the same type of chart for a different
+subset of the data. This is a ggplot2-only feature using `facet_wrap()`
+or `facet_grid()`.
+
+### facet_wrap
+
+```{r}
+facet_data <- data.frame(
+  x = rep(c("A", "B", "C", "D"), 4),
+  y = c(
+    30, 25, 35, 20,
+    45, 30, 25, 40,
+    20, 35, 30, 45,
+    35, 40, 20, 30
+  ),
+  panel = rep(c("Group 1", "Group 2", "Group 3", "Group 4"), each = 4)
+)
+
+p <- ggplot(facet_data, aes(x = x, y = y)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  facet_wrap(~panel, ncol = 2) +
+  labs(title = "Sales by Category Across Groups", x = "Category", y = "Sales") +
+  theme_minimal()
+
+p
+```
+
+### facet_grid
+
+```{r}
+p <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(size = 2, color = "steelblue") +
+  facet_grid(vs ~ am,
+    labeller = labeller(
+      vs = c("0" = "V-engine", "1" = "Straight"),
+      am = c("0" = "Automatic", "1" = "Manual")
+    )
+  ) +
+  labs(
+    title = "MPG vs Weight by Engine Type and Transmission",
+    x = "Weight (1000 lbs)",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+p
+```
