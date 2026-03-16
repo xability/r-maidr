@@ -1,3 +1,60 @@
+// Cookie consent configuration (orestbida/cookieconsent v3)
+// Gates GA4 and MS Clarity under the "analytics" category.
+window.addEventListener('DOMContentLoaded', function () {
+  if (typeof CookieConsent !== 'undefined') {
+    CookieConsent.run({
+      guiOptions: {
+        consentModal: {
+          layout: 'box inline',
+          position: 'bottom right',
+        },
+      },
+      categories: {
+        necessary: {
+          enabled: true,
+          readOnly: true,
+        },
+        analytics: {},
+      },
+      language: {
+        default: 'en',
+        translations: {
+          en: {
+            consentModal: {
+              title: 'We use cookies',
+              description:
+                'This site uses cookies to help us understand how it is used. You can choose to accept or decline analytics cookies.',
+              acceptAllBtn: 'Accept all',
+              acceptNecessaryBtn: 'Reject all',
+              showPreferencesBtn: 'Manage preferences',
+            },
+            preferencesModal: {
+              title: 'Cookie preferences',
+              acceptAllBtn: 'Accept all',
+              acceptNecessaryBtn: 'Reject all',
+              savePreferencesBtn: 'Save preferences',
+              sections: [
+                {
+                  title: 'Necessary cookies',
+                  description:
+                    'These cookies are essential for the site to function properly.',
+                  linkedCategory: 'necessary',
+                },
+                {
+                  title: 'Analytics cookies',
+                  description:
+                    'These cookies help us understand how visitors interact with the site via Google Analytics and Microsoft Clarity.',
+                  linkedCategory: 'analytics',
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+  }
+});
+
 // Accessibility fix: improve keyboard navigation per WCAG 2.4.3 (Focus Order)
 // - Remove auto-linked function names from Tab order inside code blocks
 // - Ensure all MAIDR plot iframes are keyboard-focusable
