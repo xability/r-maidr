@@ -25,13 +25,13 @@ window.addEventListener('DOMContentLoaded', function () {
               description:
                 'This site uses cookies to help us understand how it is used. You can choose to accept or decline analytics cookies.',
               acceptAllBtn: 'Accept all',
-              acceptNecessaryBtn: 'Reject all',
+              acceptNecessaryBtn: 'Accept necessary only',
               showPreferencesBtn: 'Manage preferences',
             },
             preferencesModal: {
               title: 'Cookie preferences',
               acceptAllBtn: 'Accept all',
-              acceptNecessaryBtn: 'Reject all',
+              acceptNecessaryBtn: 'Accept necessary only',
               savePreferencesBtn: 'Save preferences',
               sections: [
                 {
