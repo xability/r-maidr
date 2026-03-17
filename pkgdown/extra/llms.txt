@@ -1,0 +1,16 @@
+# maidr
+
+> maidr (Multimodal Access and Interactive Data Representation) is an R package that makes ggplot2 and Base R data visualizations accessible to users with visual impairments through keyboard navigation, screen reader support, and sonification.
+
+maidr converts standard R plots into interactive HTML/SVG formats. It supports bar charts, histograms, scatter plots, line plots, box plots, violin plots, heatmaps, density curves, faceted plots, multi-panel layouts, and multi-layered combinations. It integrates with RMarkdown and Shiny applications.
+
+## Documentation
+- [Getting Started](https://r.maidr.ai/articles/getting-started.html): Installation and basic workflow
+- [Examples](https://r.maidr.ai/articles/examples.html): All supported plot types with code
+- [Shiny Integration](https://r.maidr.ai/articles/shiny-integration.html): Using maidr in Shiny apps
+- [Function Reference](https://r.maidr.ai/reference/index.html): Complete API documentation
+
+## Optional
+- [News / Changelog](https://r.maidr.ai/news/index.html): Version history
+- [GitHub](https://github.com/xability/r-maidr): Source code
+- [CRAN](https://cran.r-project.org/package=maidr): CRAN package page

@@ -1,10 +1,40 @@
 url: https://r.maidr.ai/
 
+home:
+  title: "maidr - Accessible Data Visualizations for R"
+  description: >
+    Make ggplot2 and Base R plots accessible with keyboard navigation,
+    screen reader support, and sonification. The maidr R package converts
+    data visualizations into interactive, multimodal formats for blind
+    and low-vision users.
+
 template:
   bootstrap: 5
   bootswatch: flatly
+  opengraph:
+    twitter:
+      creator: "@jooyoungseo"
+      card: summary_large_image
   includes:
     in_header: |
+      <script>document.documentElement.setAttribute('lang', 'en');</script>
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "maidr",
+        "description": "R package for multimodal accessible data visualization with keyboard navigation, screen reader support, and sonification",
+        "url": "https://r.maidr.ai/",
+        "codeRepository": "https://github.com/xability/r-maidr",
+        "programmingLanguage": "R",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "author": {
+          "@type": "Organization",
+          "name": "(x)Ability Design Lab",
+          "url": "https://xability.github.io/"
+        }
+      }
+      </script>
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous">
       <script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script>
       <script type="text/plain" data-category="analytics">
