@@ -5,8 +5,8 @@ template:
   bootswatch: flatly
   includes:
     in_header: |
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css">
-      <script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js"></script>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous">
+      <script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script>
       <script type="text/plain" data-category="analytics">
         (function(){
           var s=document.createElement('script');
@@ -15,6 +15,7 @@ template:
           document.head.appendChild(s);
           window.dataLayer=window.dataLayer||[];
           function gtag(){dataLayer.push(arguments);}
+          window.gtag=gtag;
           gtag('js',new Date());
           gtag('config','G-0Q5XSD4Q3P');
         })();
