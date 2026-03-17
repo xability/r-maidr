@@ -3,7 +3,7 @@
 namespace but act as pass-through (calling the original function directly).
 This avoids modifying the locked namespace or the search path."><meta property="og:description" content="Deactivates patching by flipping the active flag. Wrappers remain in the
 namespace but act as pass-through (calling the original function directly).
-This avoids modifying the locked namespace or the search path."><meta property="og:image" content="https://r.maidr.ai/logo.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js"></script><script type="text/plain" data-category="analytics">
+This avoids modifying the locked namespace or the search path."><meta property="og:image" content="https://r.maidr.ai/logo.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -11,6 +11,7 @@ This avoids modifying the locked namespace or the search path."><meta property="
     document.head.appendChild(s);
     window.dataLayer=window.dataLayer||[];
     function gtag(){dataLayer.push(arguments);}
+    window.gtag=gtag;
     gtag('js',new Date());
     gtag('config','G-0Q5XSD4Q3P');
   })();

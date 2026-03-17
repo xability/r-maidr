@@ -5,7 +5,7 @@ Automatically detects internet availability:
 - If offline: uses local bundled files (works without internet)"><meta property="og:description" content="Creates HTML dependencies for MAIDR JavaScript and CSS files.
 Automatically detects internet availability:
 - If internet is available: uses CDN (smaller HTML, better caching)
-- If offline: uses local bundled files (works without internet)"><meta property="og:image" content="https://r.maidr.ai/logo.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js"></script><script type="text/plain" data-category="analytics">
+- If offline: uses local bundled files (works without internet)"><meta property="og:image" content="https://r.maidr.ai/logo.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -13,6 +13,7 @@ Automatically detects internet availability:
     document.head.appendChild(s);
     window.dataLayer=window.dataLayer||[];
     function gtag(){dataLayer.push(arguments);}
+    window.gtag=gtag;
     gtag('js',new Date());
     gtag('config','G-0Q5XSD4Q3P');
   })();

@@ -5,7 +5,7 @@ Automatically falls back to image rendering for unsupported plot types or
 non-HTML output formats (PDF, EPUB)."><meta property="og:description" content="Converts ggplot objects to MAIDR widgets for accessible rendering in RMarkdown.
 Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
 Automatically falls back to image rendering for unsupported plot types or
-non-HTML output formats (PDF, EPUB)."><meta property="og:image" content="https://r.maidr.ai/logo.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js"></script><script type="text/plain" data-category="analytics">
+non-HTML output formats (PDF, EPUB)."><meta property="og:image" content="https://r.maidr.ai/logo.svg"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -13,6 +13,7 @@ non-HTML output formats (PDF, EPUB)."><meta property="og:image" content="https:/
     document.head.appendChild(s);
     window.dataLayer=window.dataLayer||[];
     function gtag(){dataLayer.push(arguments);}
+    window.gtag=gtag;
     gtag('js',new Date());
     gtag('config','G-0Q5XSD4Q3P');
   })();
