@@ -11,11 +11,11 @@ template:
   bootswatch: flatly
   opengraph:
     image:
-      src: man/figures/logo.svg
+      src: https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg
       alt: "maidr hex sticker logo - accessible data visualization for R"
     twitter:
       creator: "@seo_jooyoung"
-      card: summary_large_image
+      card: summary
   includes:
     in_header: |
       <script>document.documentElement.setAttribute('lang', 'en');</script>
