@@ -1,10 +1,98 @@
 url: https://r.maidr.ai/
+lang: en
+
+home:
+  title: "maidr - Accessible ggplot2 & R Plots with Sonification"
+  description: >-
+    maidr makes ggplot2 and Base R plots accessible with keyboard navigation,
+    screen reader support, and sonification for blind and low-vision users.
 
 template:
   bootstrap: 5
   bootswatch: flatly
+  opengraph:
+    image:
+      src: https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg
+      alt: "maidr hex sticker logo - accessible data visualization for R"
+    twitter:
+      creator: "@seo_jooyoung"
+      card: summary
   includes:
     in_header: |
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "maidr",
+        "alternateName": "Multimodal Access and Interactive Data Representation",
+        "description": "R package that makes ggplot2 and Base R plots accessible through keyboard navigation, screen reader support, and sonification for blind and low-vision users.",
+        "url": "https://r.maidr.ai/",
+        "codeRepository": "https://github.com/xability/r-maidr",
+        "downloadUrl": "https://cran.r-project.org/package=maidr",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Windows, macOS, Linux",
+        "programmingLanguage": "R",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "isAccessibleForFree": true,
+        "keywords": ["accessibility", "data visualization", "ggplot2", "R package", "screen reader", "sonification", "keyboard navigation", "blind", "low-vision"],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "sameAs": [
+          "https://github.com/xability/r-maidr",
+          "https://cran.r-project.org/package=maidr",
+          "https://maidr.ai/"
+        ],
+        "author": [
+          {
+            "@type": "Person",
+            "name": "JooYoung Seo",
+            "url": "https://jooyoungseo.github.io",
+            "jobTitle": "Assistant Professor",
+            "affiliation": {
+              "@type": "Organization",
+              "name": "School of Information Sciences, University of Illinois Urbana-Champaign"
+            },
+            "sameAs": [
+              "https://scholar.google.com/citations?user=c0x8E5YAAAAJ&hl=en",
+              "https://www.linkedin.com/in/jooyoungseo",
+              "https://github.com/jooyoungseo",
+              "https://ischool.illinois.edu/people/jooyoung-seo"
+            ]
+          },
+          {
+            "@type": "Person",
+            "name": "Niranjan Kalaiselvan",
+            "sameAs": ["https://github.com/nk46"]
+          }
+        ],
+        "publisher": {
+          "@type": "Organization",
+          "name": "(x)Ability Design Lab",
+          "url": "https://xabilitylab.ischool.illinois.edu/",
+          "sameAs": [
+            "https://github.com/xability",
+            "https://xabilitylab.ischool.illinois.edu/"
+          ]
+        },
+        "softwareHelp": {
+          "@type": "WebPage",
+          "url": "https://r.maidr.ai/articles/"
+        }
+      }
+      </script>
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "maidr R Package Documentation",
+        "url": "https://r.maidr.ai/",
+        "inLanguage": "en",
+        "publisher": {
+          "@type": "Organization",
+          "name": "(x)Ability Design Lab",
+          "url": "https://xabilitylab.ischool.illinois.edu/"
+        }
+      }
+      </script>
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous">
       <script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script>
       <script type="text/plain" data-category="analytics">
