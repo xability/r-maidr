@@ -29,7 +29,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
-      axes <- self$extract_axes_labels(plot, built)
+      axes <- self$extract_axes_labels(plot, built, panel_id)
 
       # For point plots, data is directly the array of points
       data <- extracted_data
@@ -41,15 +41,22 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' Extract axis labels from the plot
+    #' Extract axis information from the plot
+    #'
+    #' Returns per-axis objects with label and optional grid navigation fields
+    #' (min, max, tickStep). Grid fields are only included when they can be
+    #' successfully extracted from the built plot scales.
+    #'
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
-    #' @return List with x and y axis labels
-    extract_axes_labels = function(plot, built = NULL) {
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return List with x and y per-axis objects
+    extract_axes_labels = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
 
+      # --- Extract labels ---
       x_label <- ""
       y_label <- ""
 
@@ -58,7 +65,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       } else if (!is.null(plot$labels$x)) {
         x_label <- plot$labels$x
       } else {
-        # Try to get from mapping
         if (!is.null(plot$mapping$x)) {
           x_label <- rlang::as_label(plot$mapping$x)
         }
@@ -69,13 +75,113 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       } else if (!is.null(plot$labels$y)) {
         y_label <- plot$labels$y
       } else {
-        # Try to get from mapping
         if (!is.null(plot$mapping$y)) {
           y_label <- rlang::as_label(plot$mapping$y)
         }
       }
 
-      list(x = x_label, y = y_label)
+      # Build per-axis objects (always include label)
+      x_axis <- list(label = x_label)
+      y_axis <- list(label = y_label)
+
+      # --- Optionally extract grid navigation fields (min, max, tickStep) ---
+      x_grid <- self$extract_axis_grid_info(built, "x", panel_id)
+      y_grid <- self$extract_axis_grid_info(built, "y", panel_id)
+
+      if (!is.null(x_grid)) {
+        x_axis$min <- x_grid$min
+        x_axis$max <- x_grid$max
+        x_axis$tickStep <- x_grid$tickStep
+      }
+
+      if (!is.null(y_grid)) {
+        y_axis$min <- y_grid$min
+        y_axis$max <- y_grid$max
+        y_axis$tickStep <- y_grid$tickStep
+      }
+
+      list(x = x_axis, y = y_axis)
+    },
+
+    #' Extract grid navigation info (min, max, tickStep) for a single axis
+    #'
+    #' Attempts to extract range and tick interval from the built plot's
+    #' panel parameters. Returns NULL if any required value cannot be
+    #' determined, allowing graceful fallback to non-grid scatter navigation.
+    #'
+    #' @param built Built plot data
+    #' @param axis Character, either "x" or "y"
+    #' @param panel_id Panel index for faceted plots (optional, defaults to 1)
+    #' @return List with min, max, tickStep or NULL if extraction fails
+    extract_axis_grid_info = function(built, axis = "x", panel_id = NULL) {
+      tryCatch(
+        {
+          panel_idx <- if (!is.null(panel_id)) as.integer(panel_id) else 1L
+          panel_params <- built$layout$panel_params[[panel_idx]]
+
+          if (is.null(panel_params)) {
+            return(NULL)
+          }
+
+          pp_axis <- panel_params[[axis]]
+          if (is.null(pp_axis)) {
+            return(NULL)
+          }
+
+          # Extract range from continuous_range
+          axis_range <- pp_axis$continuous_range
+          if (is.null(axis_range) || length(axis_range) < 2) {
+            return(NULL)
+          }
+
+          axis_min <- axis_range[1]
+          axis_max <- axis_range[2]
+
+          # Extract breaks to compute tickStep
+          axis_breaks <- pp_axis$breaks
+          if (is.null(axis_breaks) || length(axis_breaks) < 2) {
+            # Try alternative: get_breaks() from panel_scales
+            scale_obj <- if (axis == "x") {
+              built$layout$panel_scales_x[[panel_idx]]
+            } else {
+              built$layout$panel_scales_y[[panel_idx]]
+            }
+            if (!is.null(scale_obj)) {
+              axis_breaks <- tryCatch(scale_obj$get_breaks(), error = function(e) NULL)
+            }
+          }
+
+          if (is.null(axis_breaks) || length(axis_breaks) < 2) {
+            return(NULL)
+          }
+
+          # Remove NAs from breaks
+          axis_breaks <- axis_breaks[!is.na(axis_breaks)]
+          if (length(axis_breaks) < 2) {
+            return(NULL)
+          }
+
+          # Sort breaks and compute tickStep from first interval
+          axis_breaks <- sort(axis_breaks)
+          tick_step <- diff(axis_breaks)[1]
+
+          # Validate: all values must be finite and sensible
+          if (!is.finite(axis_min) || !is.finite(axis_max) || !is.finite(tick_step)) {
+            return(NULL)
+          }
+          if (axis_min >= axis_max) {
+            return(NULL)
+          }
+          if (tick_step <= 0 || tick_step > (axis_max - axis_min)) {
+            return(NULL)
+          }
+
+          list(min = axis_min, max = axis_max, tickStep = tick_step)
+        },
+        error = function(e) {
+          NULL
+        }
+      )
     },
 
     #' Extract data from point layer

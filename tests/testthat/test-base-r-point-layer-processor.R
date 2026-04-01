@@ -84,8 +84,8 @@ test_that("BaseRPointLayerProcessor process() returns correct type", {
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "point")
   testthat::expect_equal(result$title, "Test")
-  testthat::expect_equal(result$axes$x, "X")
-  testthat::expect_equal(result$axes$y, "Y")
+  testthat::expect_equal(result$axes$x$label, "X")
+  testthat::expect_equal(result$axes$y$label, "Y")
   testthat::expect_equal(length(result$data), 3)
 })
 
@@ -215,8 +215,8 @@ test_that("BaseRPointLayerProcessor extract_axis_titles() works", {
   axes <- processor$extract_axis_titles(layer_info)
 
   testthat::expect_type(axes, "list")
-  testthat::expect_equal(axes$x, "X Axis")
-  testthat::expect_equal(axes$y, "Y Axis")
+  testthat::expect_equal(axes$x$label, "X Axis")
+  testthat::expect_equal(axes$y$label, "Y Axis")
 })
 
 test_that("BaseRPointLayerProcessor extract_axis_titles() handles defaults", {
@@ -231,8 +231,8 @@ test_that("BaseRPointLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x, "")
-  testthat::expect_equal(axes$y, "")
+  testthat::expect_equal(axes$x$label, "")
+  testthat::expect_equal(axes$y$label, "")
 })
 
 test_that("BaseRPointLayerProcessor extract_main_title() works", {
@@ -371,6 +371,104 @@ test_that("BaseRPointLayerProcessor extracts all metadata correctly", {
 
   # Test axes extraction
   axes <- processor$extract_axis_titles(layer_info)
-  testthat::expect_equal(axes$x, "X Values")
-  testthat::expect_equal(axes$y, "Y Values")
+  testthat::expect_equal(axes$x$label, "X Values")
+  testthat::expect_equal(axes$y$label, "Y Values")
+})
+
+# ==============================================================================
+# Tier 5: Grid Navigation Info (min, max, tickStep)
+# ==============================================================================
+
+test_that("BaseRPointLayerProcessor extract_axis_titles() includes grid info", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3, 4, 5),
+        y = c(10, 20, 30, 40, 50),
+        xlab = "X",
+        ylab = "Y"
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  # Labels should always be present
+  testthat::expect_equal(axes$x$label, "X")
+  testthat::expect_equal(axes$y$label, "Y")
+
+  # Grid fields should be present for numeric data
+  testthat::expect_true(!is.null(axes$x$min))
+  testthat::expect_true(!is.null(axes$x$max))
+  testthat::expect_true(!is.null(axes$x$tickStep))
+  testthat::expect_true(!is.null(axes$y$min))
+  testthat::expect_true(!is.null(axes$y$max))
+  testthat::expect_true(!is.null(axes$y$tickStep))
+
+  # Validate constraints
+  testthat::expect_true(axes$x$min < axes$x$max)
+  testthat::expect_true(axes$y$min < axes$y$max)
+  testthat::expect_true(axes$x$tickStep > 0)
+  testthat::expect_true(axes$y$tickStep > 0)
+})
+
+test_that("BaseRPointLayerProcessor grid info respects xlim/ylim", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c(1, 2, 3, 4, 5),
+        y = c(10, 20, 30, 40, 50),
+        xlim = c(0, 10),
+        ylim = c(0, 100)
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  # Range should match xlim/ylim
+  testthat::expect_equal(axes$x$min, 0)
+  testthat::expect_equal(axes$x$max, 10)
+  testthat::expect_equal(axes$y$min, 0)
+  testthat::expect_equal(axes$y$max, 100)
+})
+
+test_that("BaseRPointLayerProcessor grid info omitted for non-numeric data", {
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "plot",
+      args = list(
+        x = c("a", "b", "c"),
+        y = c("d", "e", "f"),
+        xlab = "Cat X",
+        ylab = "Cat Y"
+      )
+    )
+  )
+
+  processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  # Labels present, but no grid fields for non-numeric data
+  testthat::expect_equal(axes$x$label, "Cat X")
+  testthat::expect_equal(axes$y$label, "Cat Y")
+  testthat::expect_null(axes$x$min)
+  testthat::expect_null(axes$y$min)
+})
+
+test_that("BaseRPointLayerProcessor grid info omitted for NULL data", {
+  processor <- maidr:::BaseRPointLayerProcessor$new(list(index = 1))
+  axes <- processor$extract_axis_titles(NULL)
+
+  testthat::expect_equal(axes$x$label, "")
+  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_null(axes$x$min)
+  testthat::expect_null(axes$y$min)
 })
