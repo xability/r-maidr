@@ -76,15 +76,15 @@ BaseRPointLayerProcessor <- R6::R6Class(
 
       data_points
     },
-    #' Extract axis information from Base R plot call
-    #'
-    #' Returns per-axis objects with label and optional grid navigation fields
-    #' (min, max, tickStep). Grid fields are derived from xlim/ylim args or
-    #' data range, and tick intervals via pretty(). Only included when
-    #' extraction succeeds.
-    #'
-    #' @param layer_info Layer information with recorded plot call
-    #' @return List with x and y per-axis objects
+    # Extract axis information from Base R plot call
+    #
+    # Returns per-axis objects with label and optional grid navigation fields
+    # (min, max, tickStep). Grid fields are derived from xlim/ylim args or
+    # data range, and tick intervals via pretty(). Only included when
+    # extraction succeeds.
+    #
+    # @param layer_info Layer information with recorded plot call
+    # @return List with x and y per-axis objects
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(list(
@@ -125,14 +125,14 @@ BaseRPointLayerProcessor <- R6::R6Class(
       list(x = x_axis, y = y_axis)
     },
 
-    #' Extract grid navigation info for a Base R axis
-    #'
-    #' Computes min, max from xlim/ylim or data range, and tickStep from
-    #' pretty() tick positions. Returns NULL if extraction fails.
-    #'
-    #' @param data Numeric vector of data values
-    #' @param lim Optional axis limits (xlim or ylim)
-    #' @return List with min, max, tickStep or NULL
+    # Extract grid navigation info for a Base R axis
+    #
+    # Computes min, max from xlim/ylim or data range, and tickStep from
+    # pretty() tick positions. Returns NULL if extraction fails.
+    #
+    # @param data Numeric vector of data values
+    # @param lim Optional axis limits (xlim or ylim)
+    # @return List with min, max, tickStep or NULL
     extract_base_r_axis_grid_info = function(data, lim = NULL) {
       tryCatch(
         {

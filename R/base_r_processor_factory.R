@@ -86,7 +86,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "BaseRHistogramLayerProcessor",
         "BaseRBoxplotLayerProcessor",
         "BaseRUnknownLayerProcessor"
-        # TODO: Add other processor classes as they are implemented
+        # Additional processor classes can be registered here as needed
       )
 
       available <- sapply(processor_classes, self$is_processor_available)

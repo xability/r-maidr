@@ -20,6 +20,7 @@ for individual points in the SVG structure.
 \itemize{
 \item \href{#method-Ggplot2PointLayerProcessor-process}{\code{Ggplot2PointLayerProcessor$process()}}
 \item \href{#method-Ggplot2PointLayerProcessor-extract_axes_labels}{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}
+\item \href{#method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}
 \item \href{#method-Ggplot2PointLayerProcessor-extract_data}{\code{Ggplot2PointLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2PointLayerProcessor-generate_selectors}{\code{Ggplot2PointLayerProcessor$generate_selectors()}}
 \item \href{#method-Ggplot2PointLayerProcessor-find_panel_grob}{\code{Ggplot2PointLayerProcessor$find_panel_grob()}}
@@ -81,7 +82,11 @@ for individual points in the SVG structure.
 }
 \subsection{Returns}{
 List with data and selectors
-Extract axis labels from the plot
+Extract axis information from the plot
+
+Returns per-axis objects with label and optional grid navigation fields
+(min, max, tickStep). Grid fields are only included when they can be
+successfully extracted from the built plot scales.
 }
 }
 \if{html}{\out{<hr>}}
@@ -89,7 +94,11 @@ Extract axis labels from the plot
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_axes_labels}{}}}
 \subsection{Method \code{extract_axes_labels()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axes_labels(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axes_labels(
+  plot,
+  built = NULL,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -98,11 +107,45 @@ Extract axis labels from the plot
 \item{\code{plot}}{The ggplot2 object}
 
 \item{\code{built}}{Built plot data (optional)}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List with x and y axis labels
+List with x and y per-axis objects
+Extract grid navigation info (min, max, tickStep) for a single axis
+
+Attempts to extract range and tick interval from the built plot's
+panel parameters. Returns NULL if any required value cannot be
+determined, allowing graceful fallback to non-grid scatter navigation.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_axis_grid_info"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{}}}
+\subsection{Method \code{extract_axis_grid_info()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axis_grid_info(
+  built,
+  axis = "x",
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+
+\item{\code{axis}}{Character, either "x" or "y"}
+
+\item{\code{panel_id}}{Panel index for faceted plots (optional, defaults to 1)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List with min, max, tickStep or NULL if extraction fails
 Extract data from point layer
 }
 }

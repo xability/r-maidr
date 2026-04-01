@@ -91,6 +91,18 @@ run_example <- function(example = NULL, type = c("ggplot2", "base_r")) {
     return(invisible(NULL))
   }
 
+  # Check that we're in interactive mode before running examples
+  # This ensures examples don't execute in automated testing or package checks
+  if (!interactive()) {
+    warning(
+      "run_example() is designed for interactive use only.\n",
+      "Examples modify the global environment and require a browser/viewer.\n",
+      "To see available examples, call run_example() without arguments.",
+      call. = FALSE
+    )
+    return(invisible(NULL))
+  }
+
   # Check if example exists
   if (!example %in% available_examples) {
     stop(

@@ -1,5 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^.*\.Rcheck$
 ^\.git$
 ^\.gitignore$
 ^\.lintr$
@@ -26,5 +27,6 @@
 ^Meta$
 ^CRAN-SUBMISSION$
 ^vignettes/_quarto\.yml$
+^vignettes/\.quarto$
 ^vignettes/articles$
 \.DS_Store$

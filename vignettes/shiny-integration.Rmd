@@ -428,7 +428,7 @@ When deploying Shiny apps with MAIDR:
 ## Learn More
 
 - **[Getting Started](getting-started.html)** - MAIDR basics
-- **[Plot Types](plot-types.html)** - All supported visualizations
+- **Run examples** - Try `maidr::run_example()` to see all supported plot types
 - **Shiny documentation** - [shiny.posit.co](https://shiny.posit.co/)
 - **Accessibility guidelines** - [WCAG 2.1](https://www.w3.org/WAI/WCAG22/quickref/?versions=2.1)
 

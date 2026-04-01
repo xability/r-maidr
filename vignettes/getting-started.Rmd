@@ -144,13 +144,11 @@ MAIDR supports a comprehensive range of visualizations:
 - **Multi-panel layouts** - patchwork for ggplot2, `par(mfrow/mfcol)` for Base R
 - **Multi-layered plots** - Combine multiple geoms (e.g., histogram + density)
 
-See the **[Supported Plot Types](plot-types.html)** vignette for detailed examples of each.
-
 ## Next Steps
 
-- **[Supported Plot Types](plot-types.html)** - See all available plot types with code examples
 - **[Shiny Integration](shiny-integration.html)** - Use MAIDR in Shiny apps
 - **Package documentation** - Run `?maidr::show` for function details
+- **Run examples** - Try `maidr::run_example()` to see all available plot types
 
 ## Example Gallery
 

@@ -17,6 +17,7 @@ Processes Base R scatter plot layers based on recorded plot calls
 \item \href{#method-BaseRPointLayerProcessor-needs_reordering}{\code{BaseRPointLayerProcessor$needs_reordering()}}
 \item \href{#method-BaseRPointLayerProcessor-extract_data}{\code{BaseRPointLayerProcessor$extract_data()}}
 \item \href{#method-BaseRPointLayerProcessor-extract_axis_titles}{\code{BaseRPointLayerProcessor$extract_axis_titles()}}
+\item \href{#method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info}{\code{BaseRPointLayerProcessor$extract_base_r_axis_grid_info()}}
 \item \href{#method-BaseRPointLayerProcessor-extract_main_title}{\code{BaseRPointLayerProcessor$extract_main_title()}}
 \item \href{#method-BaseRPointLayerProcessor-generate_selectors}{\code{BaseRPointLayerProcessor$generate_selectors()}}
 \item \href{#method-BaseRPointLayerProcessor-clone}{\code{BaseRPointLayerProcessor$clone()}}
@@ -80,6 +81,15 @@ Processes Base R scatter plot layers based on recorded plot calls
 \subsection{Method \code{extract_axis_titles()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPointLayerProcessor$extract_axis_titles(layer_info)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info}{}}}
+\subsection{Method \code{extract_base_r_axis_grid_info()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPointLayerProcessor$extract_base_r_axis_grid_info(data, lim = NULL)}\if{html}{\out{</div>}}
 }
 
 }

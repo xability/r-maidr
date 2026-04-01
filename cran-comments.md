@@ -1,14 +1,14 @@
 ## New submission
 
-This is a minor release (0.2.0) adding violin plot support.
+This is a minor release (0.3.0) adding scatter plot grid navigation support and updating the bundled MAIDR JavaScript library.
 
 ### Key changes
 
-* Added violin plot support for 'ggplot2' (`geom_violin()`), including both
-  vertical and horizontal orientations, with box-summary and KDE density layers.
-* Added RDP curve simplification and SVG coordinate injection for violin KDE.
-* Renamed option `maidr.enabled` to `maidr.auto_show` for clarity.
-* Added violin plot examples to documentation and vignettes.
+* Added scatter plot grid navigation support for improved accessibility and efficient data exploration.
+* Updated bundled MAIDR JavaScript library from v3.55.2 to v3.59.0.
+* Improved package documentation with package-level documentation.
+* Enhanced code quality and CRAN compliance (removed LazyData field, added R version dependency).
+* Minor bug fixes and improvements.
 
 ## R CMD check results
 
