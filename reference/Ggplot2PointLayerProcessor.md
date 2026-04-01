@@ -16,6 +16,8 @@ generate selectors for individual points in the SVG structure.
 
 - [`Ggplot2PointLayerProcessor$extract_axes_labels()`](#method-Ggplot2PointLayerProcessor-extract_axes_labels)
 
+- [`Ggplot2PointLayerProcessor$extract_axis_grid_info()`](#method-Ggplot2PointLayerProcessor-extract_axis_grid_info)
+
 - [`Ggplot2PointLayerProcessor$extract_data()`](#method-Ggplot2PointLayerProcessor-extract_data)
 
 - [`Ggplot2PointLayerProcessor$generate_selectors()`](#method-Ggplot2PointLayerProcessor-generate_selectors)
@@ -88,7 +90,11 @@ Inherited methods
 
 #### Returns
 
-List with data and selectors Extract axis labels from the plot
+List with data and selectors Extract axis information from the plot
+
+Returns per-axis objects with label and optional grid navigation fields
+(min, max, tickStep). Grid fields are only included when they can be
+successfully extracted from the built plot scales.
 
 ------------------------------------------------------------------------
 
@@ -96,7 +102,11 @@ List with data and selectors Extract axis labels from the plot
 
 #### Usage
 
-    Ggplot2PointLayerProcessor$extract_axes_labels(plot, built = NULL)
+    Ggplot2PointLayerProcessor$extract_axes_labels(
+      plot,
+      built = NULL,
+      panel_id = NULL
+    )
 
 #### Arguments
 
@@ -108,9 +118,49 @@ List with data and selectors Extract axis labels from the plot
 
   Built plot data (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 #### Returns
 
-List with x and y axis labels Extract data from point layer
+List with x and y per-axis objects Extract grid navigation info (min,
+max, tickStep) for a single axis
+
+Attempts to extract range and tick interval from the built plot's panel
+parameters. Returns NULL if any required value cannot be determined,
+allowing graceful fallback to non-grid scatter navigation.
+
+------------------------------------------------------------------------
+
+### Method `extract_axis_grid_info()`
+
+#### Usage
+
+    Ggplot2PointLayerProcessor$extract_axis_grid_info(
+      built,
+      axis = "x",
+      panel_id = NULL
+    )
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `axis`:
+
+  Character, either "x" or "y"
+
+- `panel_id`:
+
+  Panel index for faceted plots (optional, defaults to 1)
+
+#### Returns
+
+List with min, max, tickStep or NULL if extraction fails Extract data
+from point layer
 
 ------------------------------------------------------------------------
 

@@ -99,7 +99,7 @@ for individual points in the SVG structure."><meta property="og:image" content="
 
     <a class="navbar-brand me-2" href="../index.html">maidr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -148,6 +148,7 @@ for individual points in the SVG structure.</p>
 
 <ul><li><p><a href="#method-Ggplot2PointLayerProcessor-process"><code>Ggplot2PointLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-extract_axes_labels"><code>Ggplot2PointLayerProcessor$extract_axes_labels()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PointLayerProcessor-extract_axis_grid_info"><code>Ggplot2PointLayerProcessor$extract_axis_grid_info()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-extract_data"><code>Ggplot2PointLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-generate_selectors"><code>Ggplot2PointLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PointLayerProcessor-find_panel_grob"><code>Ggplot2PointLayerProcessor$find_panel_grob()</code></a></p></li>
@@ -215,7 +216,10 @@ for individual points in the SVG structure.</p>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>List with data and selectors
-Extract axis labels from the plot</p>
+Extract axis information from the plot</p>
+<p>Returns per-axis objects with label and optional grid navigation fields
+(min, max, tickStep). Grid fields are only included when they can be
+successfully extracted from the built plot scales.</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-extract_axes_labels"></a><div class="section">
@@ -223,7 +227,11 @@ Extract axis labels from the plot</p>
 
 <div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_axes_labels</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_axes_labels</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -236,11 +244,52 @@ Extract axis labels from the plot</p>
 <dd><p>Built plot data (optional)</p></dd>
 
 
+<dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>List with x and y axis labels
+<p>List with x and y per-axis objects
+Extract grid navigation info (min, max, tickStep) for a single axis</p>
+<p>Attempts to extract range and tick interval from the built plot's
+panel parameters. Returns NULL if any required value cannot be
+determined, allowing graceful fallback to non-grid scatter navigation.</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-extract_axis_grid_info"></a><div class="section">
+<h3 id="method-extract-axis-grid-info-">Method <code>extract_axis_grid_info()</code><a class="anchor" aria-label="anchor" href="#method-extract-axis-grid-info-"></a></h3>
+
+<div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_grid_info</span><span class="op">(</span></span>
+<span>  <span class="va">built</span>,</span>
+<span>  axis <span class="op">=</span> <span class="st">"x"</span>,</span>
+<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+
+<dt><code>axis</code></dt>
+<dd><p>Character, either "x" or "y"</p></dd>
+
+
+<dt><code>panel_id</code></dt>
+<dd><p>Panel index for faceted plots (optional, defaults to 1)</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>List with min, max, tickStep or NULL if extraction fails
 Extract data from point layer</p>
 </div>
 
@@ -248,7 +297,7 @@ Extract data from point layer</p>
 <h3 id="method-extract-data-">Method <code>extract_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-data-"></a></h3>
 
 <div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -258,7 +307,7 @@ Extract data from point layer</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -278,7 +327,7 @@ Extract data from point layer</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>List with points array and color information
 Generate selectors for point elements</p>
 </div>
@@ -287,7 +336,7 @@ Generate selectors for point elements</p>
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -297,7 +346,7 @@ Generate selectors for point elements</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -313,7 +362,7 @@ Generate selectors for point elements</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>List of selectors
 Find the main panel grob</p>
 </div>
@@ -322,12 +371,12 @@ Find the main panel grob</p>
 <h3 id="method-find-panel-grob-">Method <code><a href="find_panel_grob.html">find_panel_grob()</a></code><a class="anchor" aria-label="anchor" href="#method-find-panel-grob-"></a></h3>
 
 <div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">find_panel_grob</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>gt</code></dt>
 <dd><p>The gtable to search</p></dd>
 
@@ -335,7 +384,7 @@ Find the main panel grob</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>The panel grob or NULL
 Find children by type pattern</p>
 </div>
@@ -344,12 +393,12 @@ Find children by type pattern</p>
 <h3 id="method-find-children-by-type-">Method <code><a href="find_children_by_type.html">find_children_by_type()</a></code><a class="anchor" aria-label="anchor" href="#method-find-children-by-type-"></a></h3>
 
 <div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">find_children_by_type</span><span class="op">(</span><span class="va">grob</span>, <span class="va">type_pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>The grob to search</p></dd>
 
@@ -361,19 +410,19 @@ Find children by type pattern</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>List of matching children</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

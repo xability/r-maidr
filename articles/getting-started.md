@@ -141,21 +141,17 @@ MAIDR supports a comprehensive range of visualizations:
 - **Multi-layered plots** - Combine multiple geoms (e.g., histogram +
   density)
 
-See the **[Supported Plot
-Types](https://r.maidr.ai/articles/plot-types.md)** vignette for
-detailed examples of each.
-
 ## Next Steps
 
-- **[Supported Plot
-  Types](https://r.maidr.ai/articles/plot-types.md)** - See all
-  available plot types with code examples
 - **[Shiny
   Integration](https://r.maidr.ai/articles/shiny-integration.md)** - Use
   MAIDR in Shiny apps
 - **Package documentation** - Run
   [`?maidr::show`](https://r.maidr.ai/reference/show.md) for function
   details
+- **Run examples** - Try
+  [`maidr::run_example()`](https://r.maidr.ai/reference/run_example.md)
+  to see all available plot types
 
 ## Example Gallery
 

@@ -418,8 +418,9 @@ ARIA labels are present
 - **[Getting
   Started](https://r.maidr.ai/articles/getting-started.md)** - MAIDR
   basics
-- **[Plot Types](https://r.maidr.ai/articles/plot-types.md)** - All
-  supported visualizations
+- **Run examples** - Try
+  [`maidr::run_example()`](https://r.maidr.ai/reference/run_example.md)
+  to see all supported plot types
 - **Shiny documentation** - [shiny.posit.co](https://shiny.posit.co/)
 - **Accessibility guidelines** - [WCAG
   2.1](https://www.w3.org/WAI/WCAG22/quickref/?versions=2.1)
