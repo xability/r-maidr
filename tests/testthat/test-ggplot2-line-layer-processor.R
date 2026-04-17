@@ -54,10 +54,10 @@ test_that("Ggplot2LineLayerProcessor extract_data() works with multiline", {
   testthat::expect_equal(length(data), 2) # Two line series
   testthat::expect_equal(length(data[[1]]), 5) # 5 points per series
 
-  # Check fill field exists (group name)
-  testthat::expect_true("fill" %in% names(data[[1]][[1]]))
-  testthat::expect_equal(data[[1]][[1]]$fill, "A")
-  testthat::expect_equal(data[[2]][[1]]$fill, "B")
+  # Check z field exists (group name)
+  testthat::expect_true("z" %in% names(data[[1]][[1]]))
+  testthat::expect_equal(data[[1]][[1]]$z, "A")
+  testthat::expect_equal(data[[2]][[1]]$z, "B")
 })
 
 test_that("Ggplot2LineLayerProcessor process() returns correct structure", {
@@ -160,7 +160,7 @@ test_that("Ggplot2LineLayerProcessor handles group -1 (default)", {
   # Should return single series (not multiline)
   testthat::expect_equal(length(data), 1)
   # First point should not have 'fill' field
-  testthat::expect_false("fill" %in% names(data[[1]][[1]]))
+  testthat::expect_false("z" %in% names(data[[1]][[1]]))
 })
 
 # ==============================================================================
@@ -261,7 +261,7 @@ test_that("Ggplot2LineLayerProcessor extract_single_line_data() returns correct 
   # Check structure of first point
   testthat::expect_true("x" %in% names(result[[1]][[1]]))
   testthat::expect_true("y" %in% names(result[[1]][[1]]))
-  testthat::expect_false("fill" %in% names(result[[1]][[1]])) # No fill for single line
+  testthat::expect_false("z" %in% names(result[[1]][[1]])) # No z for single line
 })
 
 test_that("Ggplot2LineLayerProcessor extract_multiline_data() handles multiple groups", {
@@ -285,9 +285,9 @@ test_that("Ggplot2LineLayerProcessor extract_multiline_data() handles multiple g
   testthat::expect_equal(length(result[[1]]), 3) # 3 points per series
 
   # Check fill field contains series names
-  testthat::expect_equal(result[[1]][[1]]$fill, "A")
-  testthat::expect_equal(result[[2]][[1]]$fill, "B")
-  testthat::expect_equal(result[[3]][[1]]$fill, "C")
+  testthat::expect_equal(result[[1]][[1]]$z, "A")
+  testthat::expect_equal(result[[2]][[1]]$z, "B")
+  testthat::expect_equal(result[[3]][[1]]$z, "C")
 })
 
 test_that("Ggplot2LineLayerProcessor multiline fallback to group numbers", {
@@ -309,7 +309,7 @@ test_that("Ggplot2LineLayerProcessor multiline fallback to group numbers", {
 
   testthat::expect_equal(length(result), 2)
   # Should use fallback "Series N" naming
-  testthat::expect_match(result[[1]][[1]]$fill, "Series")
+  testthat::expect_match(result[[1]][[1]]$z, "Series")
 })
 
 test_that("Ggplot2LineLayerProcessor handles NULL gt in generate_selectors", {
@@ -397,7 +397,7 @@ test_that("Ggplot2LineLayerProcessor multiline detection works correctly", {
   processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
 
   data_single <- processor$extract_data(p_single)
-  testthat::expect_false("fill" %in% names(data_single[[1]][[1]]))
+  testthat::expect_false("z" %in% names(data_single[[1]][[1]]))
 
   # Multiline (multiple groups)
   df_multi <- data.frame(
@@ -409,7 +409,7 @@ test_that("Ggplot2LineLayerProcessor multiline detection works correctly", {
     ggplot2::geom_line()
 
   data_multi <- processor$extract_data(p_multi)
-  testthat::expect_true("fill" %in% names(data_multi[[1]][[1]]))
+  testthat::expect_true("z" %in% names(data_multi[[1]][[1]]))
   testthat::expect_equal(length(data_multi), 2)
 })
 

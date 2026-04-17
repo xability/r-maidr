@@ -133,7 +133,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
           series_points[[i]] <- list(
             x = x_value,
             y = as.numeric(series_y[i]),
-            fill = as.character(series_name)
+            z = as.character(series_name)
           )
         }
 

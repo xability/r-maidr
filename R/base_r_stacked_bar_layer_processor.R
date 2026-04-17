@@ -1,7 +1,7 @@
 #' Base R Stacked Bar Layer Processor
 #'
 #' Processes Base R stacked bar plot layers intercepted via the patching
-#' system. Assumes sorting by x (columns) and then fill (rows) has already been
+#' system. Assumes sorting by x (columns) and then z (rows) has already been
 #' applied by the `SortingPatcher`.
 #'
 #' @keywords internal
@@ -83,7 +83,7 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
           list(
             x = as.character(category_names[c]),
             y = as.numeric(height[r, c]),
-            fill = as.character(type_names[r])
+            z = as.character(type_names[r])
           )
         })
       })

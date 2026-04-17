@@ -199,7 +199,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           point <- list(
             x = as.character(series_points$x[i]),
             y = series_points$y[i],
-            fill = series_name
+            z = series_name
           )
           points[[i]] <- point
         }

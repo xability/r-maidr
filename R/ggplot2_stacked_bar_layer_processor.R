@@ -32,7 +32,7 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         }
       }
       if (!is.null(fill_label)) {
-        axes$fill <- fill_label
+        axes$z <- fill_label
       }
 
       list(
@@ -140,7 +140,7 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
             list(
               x = as.character(group_data[[x_col]][i]),
               y = group_data[[y_col]][i],
-              fill = as.character(fill_value)
+              z = as.character(fill_value)
             )
           })
         })
@@ -214,7 +214,7 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
             list(
               x = as.character(x_name),
               y = y_val,
-              fill = as.character(fill_label)
+              z = as.character(fill_label)
             )
           })
         })

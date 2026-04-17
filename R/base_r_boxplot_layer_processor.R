@@ -86,7 +86,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
           q2 = med_v,
           q3 = q3_v,
           max = max_w,
-          fill = group_names[[i]],
+          z = group_names[[i]],
           lowerOutliers = lower_outliers,
           upperOutliers = upper_outliers
         )

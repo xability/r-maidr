@@ -18,7 +18,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       axes <- list(
         x = "x",
         y = "y",
-        fill = fill_label
+        z = fill_label
       )
 
       list(

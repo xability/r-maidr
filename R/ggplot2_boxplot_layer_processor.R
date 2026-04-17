@@ -74,7 +74,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
             q1 = row$xlower,
             q3 = row$xupper,
             q2 = row$xmiddle,
-            fill = as.character(row$y),
+            z = as.character(row$y),
             y_value = row$y
           )
         } else {
@@ -84,7 +84,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
             q1 = row$lower,
             q3 = row$upper,
             q2 = row$middle,
-            fill = as.character(row$x),
+            z = as.character(row$x),
             y_value = row$x
           )
         }
@@ -415,7 +415,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         for (i in seq_along(boxplot_data)) {
           idx <- suppressWarnings(as.integer(round(codes[i])))
           if (!is.na(idx) && idx >= 1 && idx <= length(labels)) {
-            boxplot_data[[i]]$fill <- as.character(labels[idx])
+            boxplot_data[[i]]$z <- as.character(labels[idx])
           }
         }
       }

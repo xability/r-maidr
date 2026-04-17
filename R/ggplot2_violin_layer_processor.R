@@ -219,7 +219,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         upper_outliers <- as.list(sort(group_vals[group_vals > upper_fence]))
 
         box_data[[i]] <- list(
-          fill = fill_label,
+          z = fill_label,
           lowerOutliers = lower_outliers,
           min = unname(whisker_min),
           q1 = unname(qs[[2]]),
