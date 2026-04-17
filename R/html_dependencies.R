@@ -16,15 +16,37 @@ maidr_cdn_url <- function() {
 #' Register JS/CSS dependencies for maidr with auto-detection
 #'
 #' Creates HTML dependencies for MAIDR JavaScript and CSS files.
-#' Automatically detects internet availability:
-#' - If internet is available: uses CDN (smaller HTML, better caching)
-#' - If offline: uses local bundled files (works without internet)
+#' Behavior is controlled by the `maidr.use_bundled` option:
+#' - If `TRUE`: Always use local bundled files (works offline, reproducible)
+#' - If `FALSE`: Always use CDN (requires internet)
+#' - If `NULL` (default): Auto-detect based on internet availability
 #'
 #' @return A list containing one htmlDependency object
 #' @keywords internal
+#' @examples
+#' \dontrun{
+#' # Force bundled version (offline mode)
+#' options(maidr.use_bundled = TRUE)
+#'
+#' # Force CDN version
+#' options(maidr.use_bundled = FALSE)
+#'
+#' # Auto-detect (default)
+#' options(maidr.use_bundled = NULL)
+#' }
 maidr_html_dependencies <- function() {
-  # Auto-detect: use CDN if internet available, otherwise local files
-  use_cdn <- curl::has_internet()
+
+  # Check user preference, fallback to auto-detect
+
+  use_bundled <- getOption("maidr.use_bundled", default = NULL)
+
+  if (is.null(use_bundled)) {
+    # Auto-detect: use CDN if internet available, otherwise local files
+    use_cdn <- curl::has_internet()
+  } else {
+    # Respect user preference
+    use_cdn <- !use_bundled
+  }
 
   if (use_cdn) {
     # CDN dependency - smaller HTML, relies on internet
