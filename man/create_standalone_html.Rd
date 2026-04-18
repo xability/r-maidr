@@ -4,10 +4,13 @@
 \alias{create_standalone_html}
 \title{Create self-contained HTML for iframe embedding}
 \usage{
-create_standalone_html(svg_content)
+create_standalone_html(svg_content, use_cdn = NULL)
 }
 \arguments{
 \item{svg_content}{Character vector of SVG content with maidr-data attribute}
+
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.}
 }
 \value{
 Character string of complete HTML document
@@ -16,6 +19,5 @@ Character string of complete HTML document
 Generates a complete standalone HTML document with MAIDR.js that can be
 embedded in an iframe for isolation. Each iframe gets its own JavaScript
 context, avoiding MAIDR.js singleton pattern issues with multiple plots.
-Auto-detects internet availability: uses CDN if online, inline local if offline.
 }
 \keyword{internal}

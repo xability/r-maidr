@@ -4,10 +4,13 @@
 \alias{create_html_document}
 \title{Create HTML document with dependencies}
 \usage{
-create_html_document(svg_content)
+create_html_document(svg_content, use_cdn = NULL)
 }
 \arguments{
 \item{svg_content}{Character vector of SVG content}
+
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.}
 }
 \value{
 An htmltools HTML document object

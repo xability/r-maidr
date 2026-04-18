@@ -102,6 +102,19 @@ See `vignette("plot-types")` for detailed examples of each plot type.
 - **Sonification** - hear data patterns through sound
 - **Text descriptions** - automatic statistical summaries
 
+## Offline support
+
+By default, maidr auto-detects internet availability and loads the MAIDR.js library from a CDN. Use the `use_cdn` parameter for explicit control:
+
+``` r
+# Force CDN (requires internet)
+show(p, use_cdn = TRUE)
+
+# Force bundled files (works offline)
+show(p, use_cdn = FALSE)
+save_html(p, "plot.html", use_cdn = FALSE)
+```
+
 ## Getting help
 
 - Report bugs or request features at [GitHub Issues](https://github.com/xability/r-maidr/issues)

@@ -8,7 +8,8 @@ create_maidr_iframe(
   svg_content,
   width = "100\%",
   height = "450px",
-  plot_id = NULL
+  plot_id = NULL,
+  use_cdn = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ create_maidr_iframe(
 \item{height}{Height of the iframe (default: "450px")}
 
 \item{plot_id}{Unique identifier for the plot}
+
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.}
 }
 \value{
 Character string of iframe HTML

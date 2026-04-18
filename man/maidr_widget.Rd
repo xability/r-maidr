@@ -4,10 +4,20 @@
 \alias{maidr_widget}
 \title{Create MAIDR htmlwidget}
 \usage{
-maidr_widget(plot, width = NULL, height = NULL, element_id = NULL, ...)
+maidr_widget(
+  plot,
+  use_cdn = NULL,
+  width = NULL,
+  height = NULL,
+  element_id = NULL,
+  ...
+)
 }
 \arguments{
 \item{plot}{A ggplot object to render as an interactive MAIDR widget}
+
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.}
 
 \item{width}{The width of the widget in pixels or CSS units (default: NULL for auto-sizing)}
 
