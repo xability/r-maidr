@@ -242,9 +242,11 @@ add_maidr_data_to_svg <- function(svg_content, maidr_data) {
 
 #' Create HTML document with dependencies
 #' @param svg_content Character vector of SVG content
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+#'   If `NULL` (default), auto-detect based on internet availability.
 #' @return An htmltools HTML document object
 #' @keywords internal
-create_html_document <- function(svg_content) {
+create_html_document <- function(svg_content, use_cdn = NULL) {
   html_doc <- htmltools::tags$html(
     htmltools::tags$head(),
     htmltools::tags$body(
@@ -254,7 +256,7 @@ create_html_document <- function(svg_content) {
 
   html_doc <- htmltools::attachDependencies(
     html_doc,
-    maidr_html_dependencies()
+    maidr_html_dependencies(use_cdn = use_cdn)
   )
 
   html_doc
@@ -297,16 +299,19 @@ display_html_file <- function(file) {
 #' Generates a complete standalone HTML document with MAIDR.js that can be
 #' embedded in an iframe for isolation. Each iframe gets its own JavaScript
 #' context, avoiding MAIDR.js singleton pattern issues with multiple plots.
-#' Auto-detects internet availability: uses CDN if online, inline local if offline.
 #'
 #' @param svg_content Character vector of SVG content with maidr-data attribute
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+#'   If `NULL` (default), auto-detect based on internet availability.
 #' @return Character string of complete HTML document
 #' @keywords internal
-create_standalone_html <- function(svg_content) {
+create_standalone_html <- function(svg_content, use_cdn = NULL) {
   svg_html <- paste(svg_content, collapse = "\n")
 
-  # Auto-detect: use CDN if internet available, otherwise inline local content
-  use_cdn <- curl::has_internet()
+  # Auto-detect if not specified
+  if (is.null(use_cdn)) {
+    use_cdn <- curl::has_internet()
+  }
 
   if (use_cdn) {
     # CDN links - smaller HTML, relies on internet at view time
@@ -451,14 +456,16 @@ create_standalone_html <- function(svg_content) {
 #' @param width Width of the iframe (default: "100\%")
 #' @param height Height of the iframe (default: "450px")
 #' @param plot_id Unique identifier for the plot
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+#'   If `NULL` (default), auto-detect based on internet availability.
 #' @return Character string of iframe HTML
 #' @keywords internal
-create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", plot_id = NULL) {
+create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", plot_id = NULL, use_cdn = NULL) {
   if (is.null(plot_id)) {
     plot_id <- generate_unique_id()
   }
 
-  standalone_html <- create_standalone_html(svg_content)
+  standalone_html <- create_standalone_html(svg_content, use_cdn = use_cdn)
 
   # Use base64 encoding to avoid quote escaping issues with JSON in maidr-data
   html_base64 <- base64enc::base64encode(charToRaw(standalone_html))

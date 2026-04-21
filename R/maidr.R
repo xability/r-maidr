@@ -4,6 +4,12 @@
 #' using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 #'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
+#' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
+#'   \itemize{
+#'     \item \code{TRUE}: Use CDN (requires internet)
+#'     \item \code{FALSE}: Use local bundled files (works offline)
+#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'   }
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
 #' @param ... Additional arguments passed to internal functions
@@ -33,7 +39,7 @@
 #' @importFrom R6 R6Class
 #' @importFrom ggplotify as.grob
 #' @export
-show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
+show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...) {
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
 
@@ -77,18 +83,18 @@ show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
   }
 
   if (as_widget) {
-    result <- maidr_widget(plot, ...)
+    result <- maidr_widget(plot, use_cdn = use_cdn, ...)
     if (is_base_r) close_maidr_temp_device()
     return(result)
   }
 
   if (shiny) {
-    result <- create_maidr_html(plot, shiny = TRUE, ...)
+    result <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)
     if (is_base_r) close_maidr_temp_device()
     return(result)
   }
 
-  html_doc <- create_maidr_html(plot, ...)
+  html_doc <- create_maidr_html(plot, use_cdn = use_cdn, ...)
 
   if (is_base_r) {
     clear_device_storage(device_id)
@@ -103,12 +109,14 @@ show <- function(plot = NULL, shiny = FALSE, as_widget = FALSE, ...) {
 
 #' Create HTML document with maidr enhancements using the orchestrator
 #' @param plot A ggplot2 object
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+#'   If `NULL` (default), auto-detect based on internet availability.
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param orchestrator Optional pre-created orchestrator to reuse (avoids double creation)
 #' @param ... Additional arguments passed to internal functions
 #' @return An htmltools HTML document object or SVG content
 #' @keywords internal
-create_maidr_html <- function(plot, shiny = FALSE, orchestrator = NULL, ...) {
+create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator = NULL, ...) {
   # Use provided orchestrator or create a new one
   if (is.null(orchestrator)) {
     registry <- get_global_registry()
@@ -140,7 +148,7 @@ create_maidr_html <- function(plot, shiny = FALSE, orchestrator = NULL, ...) {
     return(htmltools::HTML(paste(svg_content, collapse = "\n")))
   }
 
-  html_doc <- create_html_document(svg_content)
+  html_doc <- create_html_document(svg_content, use_cdn = use_cdn)
   html_doc
 }
 
@@ -151,6 +159,12 @@ create_maidr_html <- function(plot, shiny = FALSE, orchestrator = NULL, ...) {
 #'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
+#' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
+#'   \itemize{
+#'     \item \code{TRUE}: Use CDN (requires internet)
+#'     \item \code{FALSE}: Use local bundled files (works offline)
+#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'   }
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)
 #' @examples
@@ -176,7 +190,7 @@ create_maidr_html <- function(plot, shiny = FALSE, orchestrator = NULL, ...) {
 #'   maidr::save_html(file = tempfile(fileext = ".html"))
 #' }
 #' @export
-save_html <- function(plot = NULL, file = "plot.html", ...) {
+save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL, ...) {
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
 
@@ -189,7 +203,7 @@ save_html <- function(plot = NULL, file = "plot.html", ...) {
     }
   }
 
-  html_doc <- create_maidr_html(plot, ...)
+  html_doc <- create_maidr_html(plot, use_cdn = use_cdn, ...)
 
   if (is_base_r) {
     clear_device_storage(device_id)

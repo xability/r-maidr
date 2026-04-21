@@ -67,7 +67,7 @@ test_that("Ggplot2HeatmapLayerProcessor process() integrates correctly", {
   testthat::expect_type(result$axes, "list")
   testthat::expect_true("x" %in% names(result$axes))
   testthat::expect_true("y" %in% names(result$axes))
-  testthat::expect_true("fill" %in% names(result$axes))
+  testthat::expect_true("z" %in% names(result$axes))
 })
 
 # ==============================================================================
@@ -212,7 +212,7 @@ test_that("Ggplot2HeatmapLayerProcessor axes extraction works", {
 
   testthat::expect_equal(result$axes$x, "x")
   testthat::expect_equal(result$axes$y, "y")
-  testthat::expect_equal(result$axes$fill, "z")
+  testthat::expect_equal(result$axes$z, "z")
 })
 
 # ==============================================================================

@@ -98,6 +98,42 @@ barplot(
 show()
 ```
 
+## Offline vs CDN Usage
+
+By default, MAIDR auto-detects internet availability and loads the MAIDR.js library from a CDN when online. You can control this behavior with the `use_cdn` parameter:
+
+```{r use-cdn-example}
+library(maidr)
+library(ggplot2)
+
+p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_bar(stat = "identity")
+
+# Auto-detect (default) - uses CDN if internet available
+show(p)
+
+# Force CDN (requires internet when viewing)
+show(p, use_cdn = TRUE)
+
+# Force bundled/local files (works offline)
+show(p, use_cdn = FALSE)
+```
+
+The same parameter works with `save_html()`:
+
+```{r save-html-cdn}
+# Save with CDN links (smaller file, needs internet to view)
+save_html(p, "plot_cdn.html", use_cdn = TRUE)
+
+# Save with bundled files (larger file, works offline)
+save_html(p, "plot_offline.html", use_cdn = FALSE)
+```
+
+**When to use `use_cdn = FALSE`:**
+- Creating portable HTML files for offline viewing
+- Sharing files with users who may not have internet access
+- Ensuring reproducibility with a specific MAIDR.js version
+
 ## Exploring Accessible Plots
 
 When you open a MAIDR plot, you can explore it using:

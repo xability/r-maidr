@@ -32,7 +32,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         }
       }
       if (!is.null(fill_label)) {
-        axes$fill <- fill_label
+        axes$z <- fill_label
       }
 
       list(
@@ -127,7 +127,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
           list(
             x = as.character(fill_data[i, x_col]),
             y = fill_data[i, y_col],
-            fill = as.character(fill_data[i, fill_col])
+            z = as.character(fill_data[i, fill_col])
           )
         })
       })

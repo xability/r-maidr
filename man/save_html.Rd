@@ -4,12 +4,19 @@
 \alias{save_html}
 \title{Save Interactive Plot as HTML File}
 \usage{
-save_html(plot = NULL, file = "plot.html", ...)
+save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 }
 \arguments{
 \item{plot}{A ggplot2 object or NULL for Base R auto-detection}
 
 \item{file}{File path where to save the HTML file (e.g., "plot.html")}
+
+\item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:
+\itemize{
+  \item \code{TRUE}: Use CDN (requires internet)
+  \item \code{FALSE}: Use local bundled files (works offline)
+  \item \code{NULL} (default): Auto-detect based on internet availability
+}}
 
 \item{...}{Additional arguments passed to internal functions}
 }

@@ -58,10 +58,10 @@ test_that("BaseRLineLayerProcessor extract_data() works with multiline", {
   testthat::expect_equal(length(data), 2) # Two series
   testthat::expect_equal(length(data[[1]]), 3) # 3 points per series
 
-  # Check fill field
-  testthat::expect_true("fill" %in% names(data[[1]][[1]]))
-  testthat::expect_equal(data[[1]][[1]]$fill, "SeriesA")
-  testthat::expect_equal(data[[2]][[1]]$fill, "SeriesB")
+  # Check z field
+  testthat::expect_true("z" %in% names(data[[1]][[1]]))
+  testthat::expect_equal(data[[1]][[1]]$z, "SeriesA")
+  testthat::expect_equal(data[[2]][[1]]$z, "SeriesB")
 })
 
 test_that("BaseRLineLayerProcessor process() returns correct structure", {
@@ -140,8 +140,8 @@ test_that("BaseRLineLayerProcessor handles matrix without column names", {
   data <- processor$extract_data(layer_info)
 
   # Should generate default names
-  testthat::expect_match(data[[1]][[1]]$fill, "Col")
-  testthat::expect_match(data[[2]][[1]]$fill, "Col")
+  testthat::expect_match(data[[1]][[1]]$z, "Col")
+  testthat::expect_match(data[[2]][[1]]$z, "Col")
 })
 
 test_that("BaseRLineLayerProcessor handles single point line", {
@@ -249,7 +249,7 @@ test_that("BaseRLineLayerProcessor extract_single_line_data() returns correct st
 
   testthat::expect_equal(length(result), 1) # Single series
   testthat::expect_equal(length(result[[1]]), 4) # 4 points
-  testthat::expect_false("fill" %in% names(result[[1]][[1]])) # No fill for single line
+  testthat::expect_false("z" %in% names(result[[1]][[1]])) # No z for single line
 })
 
 test_that("BaseRLineLayerProcessor extract_multiline_data() handles multiple columns", {
@@ -262,9 +262,9 @@ test_that("BaseRLineLayerProcessor extract_multiline_data() handles multiple col
   result <- processor$extract_multiline_data(x, y_matrix)
 
   testthat::expect_equal(length(result), 3) # Three series
-  testthat::expect_equal(result[[1]][[1]]$fill, "A")
-  testthat::expect_equal(result[[2]][[1]]$fill, "B")
-  testthat::expect_equal(result[[3]][[1]]$fill, "C")
+  testthat::expect_equal(result[[1]][[1]]$z, "A")
+  testthat::expect_equal(result[[2]][[1]]$z, "B")
+  testthat::expect_equal(result[[3]][[1]]$z, "C")
 })
 
 test_that("BaseRLineLayerProcessor extract_abline_data() with lm object", {

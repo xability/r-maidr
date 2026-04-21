@@ -4,10 +4,17 @@
 \alias{show}
 \title{Display Interactive MAIDR Plot}
 \usage{
-show(plot = NULL, shiny = FALSE, as_widget = FALSE, ...)
+show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 }
 \arguments{
 \item{plot}{A ggplot2 object or NULL for Base R auto-detection}
+
+\item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:
+\itemize{
+  \item \code{TRUE}: Use CDN (requires internet)
+  \item \code{FALSE}: Use local bundled files (works offline)
+  \item \code{NULL} (default): Auto-detect based on internet availability
+}}
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}
 

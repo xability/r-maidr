@@ -71,7 +71,7 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
           series_data[[j]] <- list(
             x = category_name, # x-axis value (category)
             y = height_matrix[original_index, original_col_index], # y-value
-            fill = series_name # fill/series value
+            z = series_name # z/series value
           )
         }
 

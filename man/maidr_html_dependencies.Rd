@@ -4,15 +4,20 @@
 \alias{maidr_html_dependencies}
 \title{Register JS/CSS dependencies for maidr with auto-detection}
 \usage{
-maidr_html_dependencies()
+maidr_html_dependencies(use_cdn = NULL)
+}
+\arguments{
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.}
 }
 \value{
 A list containing one htmlDependency object
 }
 \description{
 Creates HTML dependencies for MAIDR JavaScript and CSS files.
-Automatically detects internet availability:
-- If internet is available: uses CDN (smaller HTML, better caching)
-- If offline: uses local bundled files (works without internet)
+Behavior is controlled by the `use_cdn` parameter:
+- If `TRUE`: Use CDN (requires internet)
+- If `FALSE`: Use local bundled files (works offline)
+- If `NULL` (default): Auto-detect based on internet availability
 }
 \keyword{internal}

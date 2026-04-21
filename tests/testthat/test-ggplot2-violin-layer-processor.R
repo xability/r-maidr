@@ -102,7 +102,7 @@ test_that("extract_box_data returns correct structure", {
 
   # Each entry should have required BoxPoint fields
   for (bp in box_data) {
-    testthat::expect_true("fill" %in% names(bp))
+    testthat::expect_true("z" %in% names(bp))
     testthat::expect_true("lowerOutliers" %in% names(bp))
     testthat::expect_true("min" %in% names(bp))
     testthat::expect_true("q1" %in% names(bp))
@@ -134,8 +134,8 @@ test_that("extract_box_data maps category labels correctly", {
   box_data <- processor$extract_box_data(p, built)
 
   # mtcars$cyl has 3 levels: 4, 6, 8
-  fill_labels <- vapply(box_data, function(bp) bp$fill, character(1))
-  testthat::expect_setequal(fill_labels, c("4", "6", "8"))
+  z_labels <- vapply(box_data, function(bp) bp$z, character(1))
+  testthat::expect_setequal(z_labels, c("4", "6", "8"))
 })
 
 # ==============================================================================
@@ -193,8 +193,8 @@ test_that("kde_data x labels match box_data fill labels", {
   # The x labels in KDE should match the fill labels in box
   for (i in seq_along(kde_data)) {
     kde_x <- kde_data[[i]][[1]]$x
-    box_fill <- box_data[[i]]$fill
-    testthat::expect_equal(kde_x, box_fill)
+    box_z <- box_data[[i]]$z
+    testthat::expect_equal(kde_x, box_z)
   }
 })
 

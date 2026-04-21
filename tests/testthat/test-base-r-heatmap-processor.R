@@ -260,7 +260,7 @@ test_that("extract_axis_titles returns defaults for NULL layer_info", {
 
   testthat::expect_equal(result$x, "")
   testthat::expect_equal(result$y, "")
-  testthat::expect_equal(result$fill, "")
+  testthat::expect_equal(result$z, "")
 })
 
 test_that("extract_axis_titles extracts xlab and ylab", {
@@ -271,7 +271,7 @@ test_that("extract_axis_titles extracts xlab and ylab", {
 
   testthat::expect_equal(result$x, "X Axis")
   testthat::expect_equal(result$y, "Y Axis")
-  testthat::expect_equal(result$fill, "value")
+  testthat::expect_equal(result$z, "value")
 })
 
 test_that("extract_axis_titles uses defaults when labels missing", {

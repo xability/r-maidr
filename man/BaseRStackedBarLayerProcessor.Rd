@@ -5,7 +5,7 @@
 \title{Base R Stacked Bar Layer Processor}
 \description{
 Processes Base R stacked bar plot layers intercepted via the patching
-system. Assumes sorting by x (columns) and then fill (rows) has already been
+system. Assumes sorting by x (columns) and then z (rows) has already been
 applied by the `SortingPatcher`.
 }
 \keyword{internal}

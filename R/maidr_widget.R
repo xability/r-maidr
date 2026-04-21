@@ -12,18 +12,20 @@ NULL
 #' can discover and initialize the SVG with maidr-data attribute.
 #'
 #' @param plot A ggplot object to render as an interactive MAIDR widget
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+#'   If `NULL` (default), auto-detect based on internet availability.
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
 #' @param ... Additional arguments passed to create_maidr_html()
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 #' @keywords internal
-maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, ...) {
+maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, element_id = NULL, ...) {
   if (!inherits(plot, "ggplot")) {
     stop("Input must be a ggplot object.")
   }
 
-  svg_content <- create_maidr_html(plot, shiny = TRUE, ...)
+  svg_content <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)
 
   # Create iframe HTML with embedded MAIDR.js
 
@@ -35,7 +37,8 @@ maidr_widget <- function(plot, width = NULL, height = NULL, element_id = NULL, .
     svg_content = svg_content,
     width = "100%",
     height = "400px",
-    plot_id = element_id
+    plot_id = element_id,
+    use_cdn = use_cdn
   )
 
   # Create widget with iframe content (no MAIDR dependencies needed -

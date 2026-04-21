@@ -4,10 +4,19 @@
 \alias{create_maidr_html}
 \title{Create HTML document with maidr enhancements using the orchestrator}
 \usage{
-create_maidr_html(plot, shiny = FALSE, orchestrator = NULL, ...)
+create_maidr_html(
+  plot,
+  use_cdn = NULL,
+  shiny = FALSE,
+  orchestrator = NULL,
+  ...
+)
 }
 \arguments{
 \item{plot}{A ggplot2 object}
+
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.}
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}
 
