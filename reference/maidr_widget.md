@@ -8,7 +8,14 @@ integration instead.
 ## Usage
 
 ``` r
-maidr_widget(plot, width = NULL, height = NULL, element_id = NULL, ...)
+maidr_widget(
+  plot,
+  use_cdn = NULL,
+  width = NULL,
+  height = NULL,
+  element_id = NULL,
+  ...
+)
 ```
 
 ## Arguments
@@ -16,6 +23,11 @@ maidr_widget(plot, width = NULL, height = NULL, element_id = NULL, ...)
 - plot:
 
   A ggplot object to render as an interactive MAIDR widget
+
+- use_cdn:
+
+  Logical. If \`TRUE\`, use CDN. If \`FALSE\`, use bundled files. If
+  \`NULL\` (default), auto-detect based on internet availability.
 
 - width:
 

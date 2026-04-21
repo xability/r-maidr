@@ -128,7 +128,7 @@ Use maidr_output() and render_maidr() for Shiny integration instead."><meta prop
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Create MAIDR htmlwidget</h1>
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.3.0/R/maidr_widget.R" class="external-link"><code>R/maidr_widget.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/R/maidr_widget.R" class="external-link"><code>R/maidr_widget.R</code></a></small>
       <div class="d-none name"><code>maidr_widget.Rd</code></div>
     </div>
 
@@ -140,7 +140,14 @@ Use maidr_output() and render_maidr() for Shiny integration instead.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maidr_widget</span><span class="op">(</span><span class="va">plot</span>, width <span class="op">=</span> <span class="cn">NULL</span>, height <span class="op">=</span> <span class="cn">NULL</span>, element_id <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">maidr_widget</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  use_cdn <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  element_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -149,6 +156,11 @@ Use maidr_output() and render_maidr() for Shiny integration instead.</p>
 
 <dl><dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
 <dd><p>A ggplot object to render as an interactive MAIDR widget</p></dd>
+
+
+<dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
+<dd><p>Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.</p></dd>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>

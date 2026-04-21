@@ -12,7 +12,8 @@ create_maidr_iframe(
   svg_content,
   width = "100%",
   height = "450px",
-  plot_id = NULL
+  plot_id = NULL,
+  use_cdn = NULL
 )
 ```
 
@@ -33,6 +34,11 @@ create_maidr_iframe(
 - plot_id:
 
   Unique identifier for the plot
+
+- use_cdn:
+
+  Logical. If \`TRUE\`, use CDN. If \`FALSE\`, use bundled files. If
+  \`NULL\` (default), auto-detect based on internet availability.
 
 ## Value
 

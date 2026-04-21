@@ -7,7 +7,7 @@ Representation) system.
 ## Usage
 
 ``` r
-show(plot = NULL, shiny = FALSE, as_widget = FALSE, ...)
+show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 ```
 
 ## Arguments
@@ -15,6 +15,16 @@ show(plot = NULL, shiny = FALSE, as_widget = FALSE, ...)
 - plot:
 
   A ggplot2 object or NULL for Base R auto-detection
+
+- use_cdn:
+
+  Logical. Controls where MAIDR.js is loaded from:
+
+  - `TRUE`: Use CDN (requires internet)
+
+  - `FALSE`: Use local bundled files (works offline)
+
+  - `NULL` (default): Auto-detect based on internet availability
 
 - shiny:
 

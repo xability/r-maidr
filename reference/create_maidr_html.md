@@ -5,7 +5,13 @@ Create HTML document with maidr enhancements using the orchestrator
 ## Usage
 
 ``` r
-create_maidr_html(plot, shiny = FALSE, orchestrator = NULL, ...)
+create_maidr_html(
+  plot,
+  use_cdn = NULL,
+  shiny = FALSE,
+  orchestrator = NULL,
+  ...
+)
 ```
 
 ## Arguments
@@ -13,6 +19,11 @@ create_maidr_html(plot, shiny = FALSE, orchestrator = NULL, ...)
 - plot:
 
   A ggplot2 object
+
+- use_cdn:
+
+  Logical. If \`TRUE\`, use CDN. If \`FALSE\`, use bundled files. If
+  \`NULL\` (default), auto-detect based on internet availability.
 
 - shiny:
 

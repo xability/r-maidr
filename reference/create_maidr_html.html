@@ -124,7 +124,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Create HTML document with maidr enhancements using the orchestrator</h1>
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.3.0/R/maidr.R" class="external-link"><code>R/maidr.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/R/maidr.R" class="external-link"><code>R/maidr.R</code></a></small>
       <div class="d-none name"><code>create_maidr_html.Rd</code></div>
     </div>
 
@@ -134,7 +134,13 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_maidr_html</span><span class="op">(</span><span class="va">plot</span>, shiny <span class="op">=</span> <span class="cn">FALSE</span>, orchestrator <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_maidr_html</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  use_cdn <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  shiny <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  orchestrator <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -143,6 +149,11 @@
 
 <dl><dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
 <dd><p>A ggplot2 object</p></dd>
+
+
+<dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
+<dd><p>Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.</p></dd>
 
 
 <dt id="arg-shiny">shiny<a class="anchor" aria-label="anchor" href="#arg-shiny"></a></dt>

@@ -6,7 +6,7 @@ MAIDR accessibility features.
 ## Usage
 
 ``` r
-save_html(plot = NULL, file = "plot.html", ...)
+save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 ```
 
 ## Arguments
@@ -18,6 +18,16 @@ save_html(plot = NULL, file = "plot.html", ...)
 - file:
 
   File path where to save the HTML file (e.g., "plot.html")
+
+- use_cdn:
+
+  Logical. Controls where MAIDR.js is loaded from:
+
+  - `TRUE`: Use CDN (requires internet)
+
+  - `FALSE`: Use local bundled files (works offline)
+
+  - `NULL` (default): Auto-detect based on internet availability
 
 - ...:
 

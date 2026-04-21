@@ -362,6 +362,18 @@
 </ul>
 </div>
 <div class="section level2">
+<h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
+</h2>
+<p>By default, maidr auto-detects internet availability and loads the MAIDR.js library from a CDN. Use the <code>use_cdn</code> parameter for explicit control:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Force CDN (requires internet)</span></span>
+<span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Force bundled files (works offline)</span></span>
+<span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="getting-help">Getting help<a class="anchor" aria-label="anchor" href="#getting-help"></a>
 </h2>
 <ul>

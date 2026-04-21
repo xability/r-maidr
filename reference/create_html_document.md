@@ -5,7 +5,7 @@ Create HTML document with dependencies
 ## Usage
 
 ``` r
-create_html_document(svg_content)
+create_html_document(svg_content, use_cdn = NULL)
 ```
 
 ## Arguments
@@ -13,6 +13,11 @@ create_html_document(svg_content)
 - svg_content:
 
   Character vector of SVG content
+
+- use_cdn:
+
+  Logical. If \`TRUE\`, use CDN. If \`FALSE\`, use bundled files. If
+  \`NULL\` (default), auto-detect based on internet availability.
 
 ## Value
 

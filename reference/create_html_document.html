@@ -124,7 +124,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Create HTML document with dependencies</h1>
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.3.0/R/svg_utils.R" class="external-link"><code>R/svg_utils.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/R/svg_utils.R" class="external-link"><code>R/svg_utils.R</code></a></small>
       <div class="d-none name"><code>create_html_document.Rd</code></div>
     </div>
 
@@ -134,7 +134,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_html_document</span><span class="op">(</span><span class="va">svg_content</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_html_document</span><span class="op">(</span><span class="va">svg_content</span>, use_cdn <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -143,6 +143,11 @@
 
 <dl><dt id="arg-svg-content">svg_content<a class="anchor" aria-label="anchor" href="#arg-svg-content"></a></dt>
 <dd><p>Character vector of SVG content</p></dd>
+
+
+<dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
+<dd><p>Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
+If `NULL` (default), auto-detect based on internet availability.</p></dd>
 
 </dl></div>
     <div class="section level2">
