@@ -22,9 +22,9 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       # Determine orientation
       orientation <- self$determine_orientation(plot)
 
-      axes <- list(
-        x = if (!is.null(layout$axes$x)) layout$axes$x else "x",
-        y = if (!is.null(layout$axes$y)) layout$axes$y else "y"
+      axes <- build_axes(
+        x = extract_axis_label(layout$axes$x, default = "x"),
+        y = extract_axis_label(layout$axes$y, default = "y")
       )
 
       # Determine IQR direction for MAIDR.js highlighting

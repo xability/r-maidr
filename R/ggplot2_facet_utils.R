@@ -153,15 +153,17 @@ process_facet_panel <- function(
       facet_title <- paste(facet_groups, collapse = " & ")
     }
 
-    axes <- list(
+    axes <- build_axes(
       x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
       y = if (!is.null(plot$labels$y)) plot$labels$y else ""
     )
 
-    # Add format config to axes if available
+    # Add format config to x axis if available (per-axis nested schema)
     if (!is.null(format_config)) {
-      axes$format <- format_config
+      axes <- attach_axis_format(axes, "x", format_config)
     }
+
+    validate_axes(axes, context = "facet subplot")
 
     layer <- list(
       id = layer_id,

@@ -210,9 +210,9 @@ test_that("Ggplot2HeatmapLayerProcessor axes extraction works", {
 
   result <- processor$process(p, layout, built, gt)
 
-  testthat::expect_equal(result$axes$x, "x")
-  testthat::expect_equal(result$axes$y, "y")
-  testthat::expect_equal(result$axes$z, "z")
+  testthat::expect_equal(result$axes$x$label, "x")
+  testthat::expect_equal(result$axes$y$label, "y")
+  testthat::expect_equal(result$axes$z$label, "z")
 })
 
 # ==============================================================================

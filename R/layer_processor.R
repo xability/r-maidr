@@ -110,15 +110,23 @@ LayerProcessor <- R6::R6Class(
     },
 
     #' @description Extract axes labels for this specific layer
+    #'
+    #' Returns axes in the canonical per-axis object schema:
+    #' \code{list(x = list(label = "..."), y = list(label = "..."))}.
+    #'
+    #' Bare strings, top-level \code{format}/\code{min}/\code{max}/\code{tickStep}/
+    #' \code{fill}/\code{level}, and any non-\{x,y,z\} keys are NOT permitted.
+    #'
     #' @param plot The ggplot object
     #' @param layout Global layout with fallback axes
-    #' @return List with x and y axis labels
+    #' @return Named list with \code{x} and \code{y} AxisConfig objects
     extract_layer_axes = function(plot, layout) {
       layer_index <- self$get_layer_index()
 
-      # Start with layout axes as fallback
-      x_label <- if (!is.null(layout$axes$x)) layout$axes$x else ""
-      y_label <- if (!is.null(layout$axes$y)) layout$axes$y else ""
+      # Start with layout axes as fallback. Layout may already carry the new
+      # AxisConfig shape, a legacy bare string, or be NULL.
+      x_label <- extract_axis_label(layout$axes$x, default = "")
+      y_label <- extract_axis_label(layout$axes$y, default = "")
 
       # Helper to extract variable name from potentially complex expressions
       extract_var_name <- function(mapping_expr) {
@@ -164,7 +172,10 @@ LayerProcessor <- R6::R6Class(
         }
       }
 
-      list(x = x_label, y = y_label)
+      list(
+        x = list(label = x_label),
+        y = list(label = y_label)
+      )
     },
 
     #' @description Apply scale mapping to numeric values

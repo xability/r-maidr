@@ -273,6 +273,12 @@ The last result
 \if{latex}{\out{\hypertarget{method-LayerProcessor-extract_layer_axes}{}}}
 \subsection{Method \code{extract_layer_axes()}}{
 Extract axes labels for this specific layer
+
+Returns axes in the canonical per-axis object schema:
+\code{list(x = list(label = "..."), y = list(label = "..."))}.
+
+Bare strings, top-level \code{format}/\code{min}/\code{max}/\code{tickStep}/
+\code{fill}/\code{level}, and any non-\{x,y,z\} keys are NOT permitted.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
 }
@@ -287,7 +293,7 @@ Extract axes labels for this specific layer
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List with x and y axis labels
+Named list with \code{x} and \code{y} AxisConfig objects
 }
 }
 \if{html}{\out{<hr>}}

@@ -233,8 +233,8 @@ test_that("LayerProcessor extract_layer_axes() extracts layer-specific mapping",
 
   result <- processor$extract_layer_axes(p, layout)
 
-  testthat::expect_equal(result$x, "disp")
-  testthat::expect_equal(result$y, "hp")
+  testthat::expect_equal(result$x$label, "disp")
+  testthat::expect_equal(result$y$label, "hp")
 })
 
 # ==============================================================================

@@ -15,7 +15,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       fill_label <- extracted_data$fill_label
       data <- extracted_data[names(extracted_data) != "fill_label"]
 
-      axes <- list(
+      axes <- build_axes(
         x = "x",
         y = "y",
         z = fill_label

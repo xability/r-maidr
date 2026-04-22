@@ -295,8 +295,8 @@ test_that("process() returns multi_layer result with two layers", {
   testthat::expect_equal(result$layers[[2]]$orientation, "vert")
 
   # Both layers should have the same axes
-  testthat::expect_equal(result$layers[[1]]$axes$x, "Cylinders")
-  testthat::expect_equal(result$layers[[2]]$axes$x, "Cylinders")
+  testthat::expect_equal(result$layers[[1]]$axes$x$label, "Cylinders")
+  testthat::expect_equal(result$layers[[2]]$axes$x$label, "Cylinders")
 })
 
 # ==============================================================================

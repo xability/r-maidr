@@ -115,8 +115,8 @@ test_that("extract_leaf_plot_layout extracts labels", {
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$title, "Test Title")
-  testthat::expect_equal(result$axes$x, "X Label")
-  testthat::expect_equal(result$axes$y, "Y Label")
+  testthat::expect_equal(result$axes$x$label, "X Label")
+  testthat::expect_equal(result$axes$y$label, "Y Label")
 })
 
 test_that("extract_leaf_plot_layout handles missing labels", {
@@ -142,8 +142,8 @@ test_that("extract_leaf_plot_layout falls back to mapping for axes", {
   result <- maidr:::extract_leaf_plot_layout(p)
 
   # Should extract from mapping
-  testthat::expect_equal(result$axes$x, "mpg")
-  testthat::expect_equal(result$axes$y, "wt")
+  testthat::expect_equal(result$axes$x$label, "mpg")
+  testthat::expect_equal(result$axes$y$label, "wt")
 })
 
 test_that("extract_leaf_plot_layout returns empty string for missing title", {

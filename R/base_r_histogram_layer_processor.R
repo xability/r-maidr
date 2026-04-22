@@ -131,7 +131,7 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
     },
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
-        return(list(x = "", y = ""))
+        return(build_axes(x = "", y = ""))
       }
 
       plot_call <- layer_info$plot_call
@@ -140,7 +140,7 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       x_title <- if (!is.null(args$xlab)) args$xlab else ""
       y_title <- if (!is.null(args$ylab)) args$ylab else ""
 
-      list(x = x_title, y = y_title)
+      build_axes(x = x_title, y = y_title)
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

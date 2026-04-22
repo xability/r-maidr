@@ -258,9 +258,9 @@ test_that("extract_axis_titles returns defaults for NULL layer_info", {
 
   result <- processor$extract_axis_titles(NULL)
 
-  testthat::expect_equal(result$x, "")
-  testthat::expect_equal(result$y, "")
-  testthat::expect_equal(result$z, "")
+  testthat::expect_equal(result$x$label, "")
+  testthat::expect_equal(result$y$label, "")
+  testthat::expect_equal(result$z$label, "")
 })
 
 test_that("extract_axis_titles extracts xlab and ylab", {
@@ -269,9 +269,9 @@ test_that("extract_axis_titles extracts xlab and ylab", {
 
   result <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(result$x, "X Axis")
-  testthat::expect_equal(result$y, "Y Axis")
-  testthat::expect_equal(result$z, "value")
+  testthat::expect_equal(result$x$label, "X Axis")
+  testthat::expect_equal(result$y$label, "Y Axis")
+  testthat::expect_equal(result$z$label, "value")
 })
 
 test_that("extract_axis_titles uses defaults when labels missing", {
@@ -280,8 +280,8 @@ test_that("extract_axis_titles uses defaults when labels missing", {
 
   result <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(result$x, "")
-  testthat::expect_equal(result$y, "")
+  testthat::expect_equal(result$x$label, "")
+  testthat::expect_equal(result$y$label, "")
 })
 
 # ==============================================================================
@@ -386,8 +386,8 @@ test_that("Heatmap processor works with real heatmap call", {
 
   testthat::expect_equal(result$type, "heat")
   testthat::expect_equal(result$title, "Gene Expression")
-  testthat::expect_equal(result$axes$x, "Samples")
-  testthat::expect_equal(result$axes$y, "Genes")
+  testthat::expect_equal(result$axes$x$label, "Samples")
+  testthat::expect_equal(result$axes$y$label, "Genes")
   testthat::expect_equal(length(result$data$x), 3)
   testthat::expect_equal(length(result$data$y), 2)
 

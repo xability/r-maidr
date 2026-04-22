@@ -88,8 +88,8 @@ test_that("BaseRLineLayerProcessor process() returns correct structure", {
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "line")
   testthat::expect_equal(result$title, "Test Line")
-  testthat::expect_equal(result$axes$x, "X Axis")
-  testthat::expect_equal(result$axes$y, "Y Axis")
+  testthat::expect_equal(result$axes$x$label, "X Axis")
+  testthat::expect_equal(result$axes$y$label, "Y Axis")
   testthat::expect_equal(length(result$data), 1)
 })
 
@@ -185,8 +185,8 @@ test_that("BaseRLineLayerProcessor extract_axis_titles() works", {
   processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x, "Time")
-  testthat::expect_equal(axes$y, "Value")
+  testthat::expect_equal(axes$x$label, "Time")
+  testthat::expect_equal(axes$y$label, "Value")
 })
 
 test_that("BaseRLineLayerProcessor extract_axis_titles() handles defaults", {
@@ -199,8 +199,8 @@ test_that("BaseRLineLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x, "")
-  testthat::expect_equal(axes$y, "")
+  testthat::expect_equal(axes$x$label, "")
+  testthat::expect_equal(axes$y$label, "")
 })
 
 test_that("BaseRLineLayerProcessor extract_main_title() works", {
@@ -401,8 +401,8 @@ test_that("BaseRLineLayerProcessor extract_axis_titles() from high_call for low-
   processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x, "X from High")
-  testthat::expect_equal(axes$y, "Y from High")
+  testthat::expect_equal(axes$x$label, "X from High")
+  testthat::expect_equal(axes$y$label, "Y from High")
 })
 
 test_that("BaseRLineLayerProcessor extract_main_title() from high_call for abline", {
@@ -483,8 +483,8 @@ test_that("BaseRLineLayerProcessor extracts all metadata correctly", {
 
   # Test axes
   axes <- processor$extract_axis_titles(layer_info)
-  testthat::expect_equal(axes$x, "X Values")
-  testthat::expect_equal(axes$y, "Y Values")
+  testthat::expect_equal(axes$x$label, "X Values")
+  testthat::expect_equal(axes$y$label, "Y Values")
 })
 
 # Selector tests with grob tree skipped - tested at orchestrator level
