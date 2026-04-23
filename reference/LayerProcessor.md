@@ -310,6 +310,12 @@ The last result
 
 Extract axes labels for this specific layer
 
+Returns axes in the canonical per-axis object schema:
+`list(x = list(label = "..."), y = list(label = "..."))`.
+
+Bare strings, top-level `format`/`min`/`max`/`tickStep`/ `fill`/`level`,
+and any non-{x,y,z} keys are NOT permitted.
+
 #### Usage
 
     LayerProcessor$extract_layer_axes(plot, layout)
@@ -326,7 +332,7 @@ Extract axes labels for this specific layer
 
 #### Returns
 
-List with x and y axis labels
+Named list with `x` and `y` AxisConfig objects
 
 ------------------------------------------------------------------------
 

@@ -419,7 +419,11 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 
 </div><p></p><hr><a id="method-LayerProcessor-extract_layer_axes"></a><div class="section">
 <h3 id="method-extract-layer-axes-">Method <code>extract_layer_axes()</code><a class="anchor" aria-label="anchor" href="#method-extract-layer-axes-"></a></h3>
-<p>Extract axes labels for this specific layer</p><div class="section">
+<p>Extract axes labels for this specific layer</p>
+<p>Returns axes in the canonical per-axis object schema:
+<code>list(x = list(label = "..."), y = list(label = "..."))</code>.</p>
+<p>Bare strings, top-level <code>format</code>/<code>min</code>/<code>max</code>/<code>tickStep</code>/
+<code>fill</code>/<code>level</code>, and any non-{x,y,z} keys are NOT permitted.</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">extract_layer_axes</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layout</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -438,7 +442,7 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 </div>
 <div class="section">
 <h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
-<p>List with x and y axis labels</p>
+<p>Named list with <code>x</code> and <code>y</code> AxisConfig objects</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-apply_scale_mapping"></a><div class="section">

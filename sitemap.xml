@@ -46,7 +46,11 @@
 <url><loc>https://r.maidr.ai/reference/apply_barplot_patches.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/apply_barplot_sorting.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/apply_scale_mapping.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/as_axis_config.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/attach_axis_format.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/axes_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base-r-wrappers.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/build_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_format_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/cancel_auto_show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/classify_function.html</loc></url>
@@ -80,6 +84,7 @@
 <url><loc>https://r.maidr.ai/reference/dot-maidr_patching_env.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/ensure_maidr_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_axis_format.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/extract_axis_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_format_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_from_scales_closure.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_leaf_plot_layout.html</loc></url>
@@ -188,6 +193,7 @@
 <url><loc>https://r.maidr.ai/reference/show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/simplify_curve.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/update_device_state.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/validate_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/wrap_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/wrap_s3_generics.html</loc></url>
 </urlset>
