@@ -313,10 +313,10 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
     },
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
-        return(list(x = "", y = ""))
+        return(build_axes(x = "", y = ""))
       }
       args <- layer_info$plot_call$args
-      list(
+      build_axes(
         x = if (!is.null(args$xlab)) args$xlab else "",
         y = if (!is.null(args$ylab)) args$ylab else ""
       )

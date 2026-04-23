@@ -64,8 +64,8 @@ test_that("BaseRSmoothLayerProcessor process() returns correct structure", {
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "smooth")
   testthat::expect_equal(result$title, "Test Smooth")
-  testthat::expect_equal(result$axes$x, "X Axis")
-  testthat::expect_equal(result$axes$y, "Density")
+  testthat::expect_equal(result$axes$x$label, "X Axis")
+  testthat::expect_equal(result$axes$y$label, "Density")
   testthat::expect_equal(length(result$data), 1)
   testthat::expect_true(length(result$data[[1]]) > 0)
 })
@@ -170,8 +170,8 @@ test_that("BaseRSmoothLayerProcessor extract_axis_titles() works", {
   axes <- processor$extract_axis_titles(layer_info)
 
   testthat::expect_type(axes, "list")
-  testthat::expect_equal(axes$x, "Value")
-  testthat::expect_equal(axes$y, "Density")
+  testthat::expect_equal(axes$x$label, "Value")
+  testthat::expect_equal(axes$y$label, "Density")
 })
 
 test_that("BaseRSmoothLayerProcessor extract_axis_titles() handles defaults", {
@@ -186,8 +186,8 @@ test_that("BaseRSmoothLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRSmoothLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x, "")
-  testthat::expect_equal(axes$y, "")
+  testthat::expect_equal(axes$x$label, "")
+  testthat::expect_equal(axes$y$label, "")
 })
 
 test_that("BaseRSmoothLayerProcessor extract_main_title() works", {
@@ -401,8 +401,8 @@ test_that("BaseRSmoothLayerProcessor extracts all metadata correctly", {
 
   # Test axes extraction
   axes <- processor$extract_axis_titles(layer_info)
-  testthat::expect_equal(axes$x, "X Label")
-  testthat::expect_equal(axes$y, "Y Label")
+  testthat::expect_equal(axes$x$label, "X Label")
+  testthat::expect_equal(axes$y$label, "Y Label")
 })
 
 # Selector tests skipped - tested at orchestrator level

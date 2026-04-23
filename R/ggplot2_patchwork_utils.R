@@ -149,7 +149,7 @@ extract_leaf_plot_layout <- function(leaf_plot) {
 
   list(
     title = if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else "",
-    axes = list(x = x_label, y = y_label)
+    axes = build_axes(x = x_label, y = y_label)
   )
 }
 
@@ -218,7 +218,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           axes = if (!is.null(result$axes)) {
             result$axes
           } else {
-            list(
+            build_axes(
               x = if (!is.null(leaf_plot$labels$x)) leaf_plot$labels$x else "",
               y = if (!is.null(leaf_plot$labels$y)) leaf_plot$labels$y else ""
             )

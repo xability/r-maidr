@@ -276,10 +276,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         title = title,
         subtitle = subtitle,
         caption = NULL, # Base R has no native caption concept
-        axes = list(
-          x = x_label,
-          y = y_label
-        )
+        axes = build_axes(x = x_label, y = y_label)
       )
 
       layout
@@ -331,11 +328,21 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
-          # Build axes with optional format config
-          layer_axes <- if (!is.null(result$axes)) result$axes else list(x = "", y = "")
-          if (!is.null(private$.format_config)) {
-            layer_axes$format <- private$.format_config
+          # Build axes with optional format config (nested per-axis)
+          layer_axes <- if (!is.null(result$axes)) {
+            result$axes
+          } else {
+            build_axes(x = "", y = "")
           }
+          if (!is.null(private$.format_config)) {
+            layer_axes <- attach_axis_format(
+              layer_axes, "x", private$.format_config$x
+            )
+            layer_axes <- attach_axis_format(
+              layer_axes, "y", private$.format_config$y
+            )
+          }
+          validate_axes(layer_axes, context = "base_r orchestrator (multipanel)")
 
           layer_obj <- list(
             id = paste0("maidr-layer-", i),
@@ -388,11 +395,17 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
-          # Build axes with optional format config
+          # Build axes with optional format config (nested per-axis)
           layer_axes <- result$axes
           if (!is.null(private$.format_config)) {
-            layer_axes$format <- private$.format_config
+            layer_axes <- attach_axis_format(
+              layer_axes, "x", private$.format_config$x
+            )
+            layer_axes <- attach_axis_format(
+              layer_axes, "y", private$.format_config$y
+            )
           }
+          validate_axes(layer_axes, context = "base_r orchestrator")
 
           layer_obj <- list(
             id = i,

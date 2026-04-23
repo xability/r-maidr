@@ -79,8 +79,8 @@ test_that("Ggplot2LineLayerProcessor process() returns correct structure", {
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$title, "Test Line")
-  testthat::expect_equal(result$axes$x, "X Axis")
-  testthat::expect_equal(result$axes$y, "Y Axis")
+  testthat::expect_equal(result$axes$x$label, "X Axis")
+  testthat::expect_equal(result$axes$y$label, "Y Axis")
   testthat::expect_equal(length(result$data), 1)
   testthat::expect_equal(length(result$data[[1]]), 3)
 })
@@ -180,8 +180,8 @@ test_that("Ggplot2LineLayerProcessor extract_layer_axes() works", {
   axes <- processor$extract_layer_axes(p, layout)
 
   testthat::expect_type(axes, "list")
-  testthat::expect_equal(axes$x, "Time")
-  testthat::expect_equal(axes$y, "Value")
+  testthat::expect_equal(axes$x$label, "Time")
+  testthat::expect_equal(axes$y$label, "Value")
 })
 
 test_that("Ggplot2LineLayerProcessor needs_reordering() returns FALSE", {
@@ -436,8 +436,8 @@ test_that("Ggplot2LineLayerProcessor extracts all metadata correctly", {
   testthat::expect_equal(result$title, "Complete Line")
 
   # Test axes
-  testthat::expect_equal(result$axes$x, "X Values")
-  testthat::expect_equal(result$axes$y, "Y Values")
+  testthat::expect_equal(result$axes$x$label, "X Values")
+  testthat::expect_equal(result$axes$y$label, "Y Values")
 })
 
 # Selector tests with grob tree skipped - tested at orchestrator level

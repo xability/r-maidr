@@ -163,7 +163,7 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
     },
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
-        return(list(x = "", y = "", z = ""))
+        return(build_axes(x = "", y = "", z = ""))
       }
 
       plot_call <- layer_info$plot_call
@@ -175,7 +175,7 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       # Use a reasonable default label for the color scale
       z_title <- "value"
 
-      list(x = x_title, y = y_title, z = z_title)
+      build_axes(x = x_title, y = y_title, z = z_title)
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

@@ -23,7 +23,7 @@ BaseRUnknownLayerProcessor <- R6::R6Class(
         selectors = selectors,
         type = "unknown",
         title = "Unknown Plot Type",
-        axes = list(x = "X", y = "Y")
+        axes = build_axes(x = "X", y = "Y")
       )
     },
     needs_reordering = function() {

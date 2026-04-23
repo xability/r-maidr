@@ -54,8 +54,8 @@ test_that("Ggplot2BarLayerProcessor process() returns correct structure", {
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$title, "Test Bar")
-  testthat::expect_equal(result$axes$x, "Category")
-  testthat::expect_equal(result$axes$y, "Value")
+  testthat::expect_equal(result$axes$x$label, "Category")
+  testthat::expect_equal(result$axes$y$label, "Value")
   testthat::expect_equal(length(result$data), 2)
 })
 
@@ -205,8 +205,8 @@ test_that("Ggplot2BarLayerProcessor extract_layer_axes() works", {
   axes <- processor$extract_layer_axes(p, layout)
 
   testthat::expect_type(axes, "list")
-  testthat::expect_equal(axes$x, "Items")
-  testthat::expect_equal(axes$y, "Count")
+  testthat::expect_equal(axes$x$label, "Items")
+  testthat::expect_equal(axes$y$label, "Count")
 })
 
 # ==============================================================================
@@ -349,8 +349,8 @@ test_that("Ggplot2BarLayerProcessor extracts all metadata correctly", {
   testthat::expect_equal(result$title, "Complete Bar")
 
   # Test axes
-  testthat::expect_equal(result$axes$x, "Month")
-  testthat::expect_equal(result$axes$y, "Sales")
+  testthat::expect_equal(result$axes$x$label, "Month")
+  testthat::expect_equal(result$axes$y$label, "Sales")
 })
 
 # Selector tests with grob tree skipped - tested at orchestrator level

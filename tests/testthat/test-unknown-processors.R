@@ -282,8 +282,8 @@ test_that("BaseRUnknownLayerProcessor process returns default axes", {
   )
 
   testthat::expect_type(result$axes, "list")
-  testthat::expect_equal(result$axes$x, "X")
-  testthat::expect_equal(result$axes$y, "Y")
+  testthat::expect_equal(result$axes$x$label, "X")
+  testthat::expect_equal(result$axes$y$label, "Y")
 })
 
 test_that("BaseRUnknownLayerProcessor process returns empty data", {

@@ -69,9 +69,9 @@ test_that("BaseRHeatmapLayerProcessor process() returns correct structure", {
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "heat")
   testthat::expect_equal(result$title, "Test Heatmap")
-  testthat::expect_equal(result$axes$x, "X Axis")
-  testthat::expect_equal(result$axes$y, "Y Axis")
-  testthat::expect_equal(result$axes$z, "value")
+  testthat::expect_equal(result$axes$x$label, "X Axis")
+  testthat::expect_equal(result$axes$y$label, "Y Axis")
+  testthat::expect_equal(result$axes$z$label, "value")
   testthat::expect_equal(result$domMapping$order, "row")
   testthat::expect_equal(length(result$data$points), 2)
 })
@@ -208,9 +208,9 @@ test_that("BaseRHeatmapLayerProcessor extract_axis_titles() works", {
   axes <- processor$extract_axis_titles(layer_info)
 
   testthat::expect_type(axes, "list")
-  testthat::expect_equal(axes$x, "Columns")
-  testthat::expect_equal(axes$y, "Rows")
-  testthat::expect_equal(axes$z, "value") # Default z label
+  testthat::expect_equal(axes$x$label, "Columns")
+  testthat::expect_equal(axes$y$label, "Rows")
+  testthat::expect_equal(axes$z$label, "value") # Default z label
 })
 
 test_that("BaseRHeatmapLayerProcessor extract_axis_titles() handles defaults", {
@@ -225,9 +225,9 @@ test_that("BaseRHeatmapLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRHeatmapLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x, "")
-  testthat::expect_equal(axes$y, "")
-  testthat::expect_equal(axes$z, "value")
+  testthat::expect_equal(axes$x$label, "")
+  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_equal(axes$z$label, "value")
 })
 
 test_that("BaseRHeatmapLayerProcessor extract_main_title() works", {
@@ -412,9 +412,9 @@ test_that("BaseRHeatmapLayerProcessor extracts all metadata correctly", {
 
   # Test axes extraction
   axes <- processor$extract_axis_titles(layer_info)
-  testthat::expect_equal(axes$x, "X Label")
-  testthat::expect_equal(axes$y, "Y Label")
-  testthat::expect_equal(axes$z, "value")
+  testthat::expect_equal(axes$x$label, "X Label")
+  testthat::expect_equal(axes$y$label, "Y Label")
+  testthat::expect_equal(axes$z$label, "value")
 })
 
 # Selector tests skipped - tested at orchestrator level
