@@ -87,7 +87,11 @@ open_maidr_temp_device <- function() {
   }
 
   temp_file <- tempfile(fileext = ".pdf")
-  grDevices::pdf(temp_file, width = 7, height = 7)
+  # Match the gridSVG export device size (R/svg_utils.R) so that grobs
+  # drawn here are not resampled into a different aspect ratio. A
+  # mismatch causes chartSeries title/date bracket to be clipped and
+  # x-axis tick labels (month/year) to overlap on export.
+  grDevices::pdf(temp_file, width = 7, height = 5)
   device_id <- grDevices::dev.cur()
 
   .maidr_patching_env$.temp_device_file <- temp_file
@@ -229,21 +233,28 @@ get_original_function <- function(function_name) {
 #' @return NULL (invisible)
 #' @keywords internal
 initialize_base_r_patching <- function(include_low = TRUE, include_layout = TRUE) {
-  # Only install wrappers if not already done (first call from .onLoad)
-  if (length(.maidr_patching_env$.saved_graphics_fns) == 0) {
-    fns_to_wrap <- get_functions_by_class("HIGH")
+  fns_to_wrap <- get_functions_by_class("HIGH")
 
-    if (include_low) {
-      fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LOW"))
-    }
+  if (include_low) {
+    fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LOW"))
+  }
 
-    if (include_layout) {
-      fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LAYOUT"))
-    }
+  if (include_layout) {
+    fns_to_wrap <- c(fns_to_wrap, get_functions_by_class("LAYOUT"))
+  }
 
-    lapply(fns_to_wrap, wrap_function)
+  # Wrap each function. wrap_function() is idempotent: if the original
+  # has already been saved, find_original_function() returns it and we
+  # simply re-install the wrapper (no-op for sealed namespaces).
+  # Functions whose original is not yet available (e.g. chartSeries when
+  # quantmod has not been attached) silently skip and may be wrapped on
+  # a later call (e.g. via a packageEvent hook for quantmod).
+  lapply(fns_to_wrap, wrap_function)
 
-    # Special handling for S3 generics (lines, points)
+  # Special handling for S3 generics (lines, points) — only the first
+  # call actually installs them (gated on .saved_graphics_fns).
+  if (is.null(.maidr_patching_env$.saved_graphics_fns[["lines"]]) ||
+      is.null(.maidr_patching_env$.saved_graphics_fns[["points"]])) {
     wrap_s3_generics()
   }
 
@@ -435,6 +446,18 @@ find_original_function <- function(function_name) {
   )
   if (!is.null(orig)) {
     return(orig)
+  }
+
+  # Try quantmod namespace (only if quantmod is loaded). chartSeries
+  # is the only HIGH function we currently expect from quantmod.
+  if ("quantmod" %in% loadedNamespaces()) {
+    orig <- tryCatch(
+      get(function_name, envir = asNamespace("quantmod")),
+      error = function(e) NULL
+    )
+    if (!is.null(orig)) {
+      return(orig)
+    }
   }
 
   NULL

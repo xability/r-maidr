@@ -37,6 +37,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "point" = Ggplot2PointLayerProcessor$new(layer_info),
         "box" = Ggplot2BoxplotLayerProcessor$new(layer_info),
         "violin" = Ggplot2ViolinLayerProcessor$new(layer_info),
+        "candlestick" = Ggplot2CandlestickProcessor$new(layer_info),
         # For unknown types, use the generic processor
         Ggplot2UnknownLayerProcessor$new(layer_info)
       )
@@ -57,6 +58,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "point",
         "box",
         "violin",
+        "candlestick",
         "unknown"
       )
     },
@@ -87,6 +89,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "Ggplot2SmoothLayerProcessor",
         "Ggplot2BoxplotLayerProcessor",
         "Ggplot2ViolinLayerProcessor",
+        "Ggplot2CandlestickProcessor",
         "Ggplot2HeatmapLayerProcessor",
         "Ggplot2UnknownLayerProcessor"
       )

@@ -84,7 +84,15 @@ maidr supports a wide range of visualization types in both ggplot2 and Base R:
 | Box plots | `geom_boxplot()` | `boxplot()` |
 | Heatmaps | `geom_tile()` | `image()` |
 | Violin plots | `geom_violin()` | — |
+| Candlestick (OHLC) | `tidyquant::geom_candlestick()` (+ `geom_ma()`, + patchwork volume) | `quantmod::chartSeries()` (OHLC-only; no TA / no volume) |
 | Density/Smooth | `geom_smooth()`, `geom_density()` | `lines(density())` |
+
+Note: Volume bars and moving-average overlays for candlestick charts are
+supported only on the ggplot2 + {tidyquant} + {patchwork} path. On the
+Base R path, `quantmod::chartSeries()` `TA` overlays (`addVo()`,
+`addSMA()`, `addEMA()`) — and the default `TA` whenever the input `xts`
+carries a `Volume` column — fall back to native (non-accessible)
+graphics with a one-time advisory.
 
 ### Advanced Plot Types
 | Plot Type | ggplot2 | Base R |

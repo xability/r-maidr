@@ -41,6 +41,33 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       )
     },
 
+    #' Extract axes labels for line layers, with a special case for
+    #' moving-average geoms (e.g. `tidyquant::geom_ma`).
+    #'
+    #' By default the parent `LayerProcessor$extract_layer_axes()` reads the
+    #' y-label from the layer's aesthetic mapping. For a moving-average
+    #' overlay typically written as `geom_ma(aes(y = close), ma_fun = SMA, ...)`,
+    #' this yields the literal input-column name `"close"`, which is misleading:
+    #' the value being plotted (and announced during navigation) is the moving
+    #' average of `close`, not `close` itself. We detect `GeomMA` (the class of
+    #' tidyquant's geom_ma layer) and override the y-label accordingly. Plain
+    #' `geom_line` / `geom_smooth` overlays are untouched.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @return list(x = list(label = ...), y = list(label = ...))
+    extract_layer_axes = function(plot, layout) {
+      axes <- super$extract_layer_axes(plot, layout)
+
+      layer_index <- self$get_layer_index()
+      layer <- plot$layers[[layer_index]]
+      if (!is.null(layer) && inherits(layer$geom, "GeomMA")) {
+        axes$y$label <- "Moving Average"
+      }
+
+      axes
+    },
+
     #' Extract data from line layer (single or multiline)
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
@@ -158,7 +185,65 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       }
 
       # Single line plot - maintain backward compatibility
-      return(self$extract_single_line_data(layer_data))
+      return(self$extract_single_line_data(layer_data, plot))
+    },
+
+    #' @description Format an x-axis value as character.
+    #'
+    #' Date / POSIXct / POSIXlt values are formatted via `format()` so that a
+    #' `Date` column emits ISO date strings (e.g. "2024-01-02") rather than
+    #' the underlying numeric days-since-epoch representation produced by
+    #' `ggplot_build()`. All other types use `as.character()`. Mirrors
+    #' `Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers
+    #' from the same Date column align string-wise.
+    format_x_value = function(x) {
+      if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
+        return(format(x))
+      }
+      as.character(x)
+    },
+
+    #' @description Recover the original (untransformed) x column for a layer.
+    #'
+    #' `ggplot_build()` transforms Date / POSIXct columns into numeric
+    #' days-since-epoch on `built$data[[i]]$x`. To emit ISO strings we need
+    #' the original column from `plot$data` (or the layer's own `data`).
+    #'
+    #' Returns the per-row vector of x values aligned to `built_data` if a
+    #' simple column reference is found and the lengths match, otherwise
+    #' NULL.
+    get_original_x_column = function(plot, built_data) {
+      layer_index <- self$layer_info$index
+      layer <- plot$layers[[layer_index]]
+
+      x_expr <- NULL
+      if (!is.null(layer$mapping) && !is.null(layer$mapping$x)) {
+        x_expr <- layer$mapping$x
+      } else if (!is.null(plot$mapping) && !is.null(plot$mapping$x)) {
+        x_expr <- plot$mapping$x
+      }
+      if (is.null(x_expr)) {
+        return(NULL)
+      }
+      x_col <- rlang::as_label(x_expr)
+
+      candidates <- list()
+      if (!is.null(layer$data) && is.data.frame(layer$data) &&
+        x_col %in% names(layer$data)) {
+        candidates[[length(candidates) + 1L]] <- layer$data
+      }
+      if (!is.null(plot$data) && is.data.frame(plot$data) &&
+        x_col %in% names(plot$data)) {
+        candidates[[length(candidates) + 1L]] <- plot$data
+      }
+
+      for (src in candidates) {
+        col <- src[[x_col]]
+        if (length(col) == nrow(built_data)) {
+          return(col)
+        }
+      }
+      NULL
     },
 
     #' Extract data for multiple line series
@@ -178,12 +263,30 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         unique_categories <- paste0("Series ", unique_groups)
       }
 
-      # Split built data by group
+      # Recover original (Date/POSIXct-typed) x column when available so we
+      # emit ISO date strings rather than numeric days-since-epoch.
+      orig_x <- self$get_original_x_column(plot, layer_data)
+
+      # Split built data by group, preserving row indices for orig_x lookup.
+      layer_data$.row_idx <- seq_len(nrow(layer_data))
       series_groups <- split(layer_data, layer_data$group)
 
       series_data <- list()
       for (group_num in names(series_groups)) {
         series_points <- series_groups[[group_num]]
+
+        # Drop rows whose y is NA. The corresponding gridSVG polyline only
+        # contains coordinates for non-NA points (e.g. the warm-up period of
+        # a moving-average overlay is omitted from the rendered polyline),
+        # so emitting placeholder null rows here would make
+        # `data.length > polyline.points.length` and shift the MAIDR JS
+        # highlight-to-point index mapping by the number of leading NAs.
+        if ("y" %in% names(series_points)) {
+          series_points <- series_points[!is.na(series_points$y), , drop = FALSE]
+        }
+        if (nrow(series_points) == 0) {
+          next
+        }
 
         # Map group number to category name (following BarLayerProcessor pattern)
         group_idx <- as.numeric(group_num)
@@ -196,9 +299,16 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
         points <- list()
         for (i in seq_len(nrow(series_points))) {
+          if (!is.null(orig_x)) {
+            row_i <- series_points$.row_idx[i]
+            x_val <- self$format_x_value(orig_x[row_i])
+          } else {
+            x_val <- self$format_x_value(series_points$x[i])
+          }
+          y_val <- series_points$y[i]
           point <- list(
-            x = as.character(series_points$x[i]),
-            y = series_points$y[i],
+            x = x_val,
+            y = y_val,
             z = series_name
           )
           points[[i]] <- point
@@ -213,14 +323,39 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' Extract data for single line (backward compatibility)
     #' @param layer_data The built layer data
     #' @return List containing single series data
-    extract_single_line_data = function(layer_data) {
+    extract_single_line_data = function(layer_data, plot = NULL) {
+      # Recover original (Date/POSIXct-typed) x column when available.
+      orig_x <- NULL
+      if (!is.null(plot)) {
+        orig_x <- self$get_original_x_column(plot, layer_data)
+      }
+
+      # Determine which rows have a non-NA y. The rendered polyline only
+      # contains coordinates for non-NA y points; emitting NA-y rows would
+      # break the MAIDR JS index alignment between polyline.points and
+      # data[] (see `extract_multiline_data()` for the same rationale).
+      if ("y" %in% names(layer_data)) {
+        keep <- !is.na(layer_data$y)
+      } else {
+        keep <- rep(TRUE, nrow(layer_data))
+      }
+
       points <- list()
       for (i in seq_len(nrow(layer_data))) {
+        if (!keep[i]) {
+          next
+        }
+        x_val <- if (!is.null(orig_x)) {
+          self$format_x_value(orig_x[i])
+        } else {
+          self$format_x_value(layer_data$x[i])
+        }
+        y_val <- layer_data$y[i]
         point <- list(
-          x = as.character(layer_data$x[i]),
-          y = layer_data$y[i]
+          x = x_val,
+          y = y_val
         )
-        points[[i]] <- point
+        points[[length(points) + 1L]] <- point
       }
 
       list(points)
@@ -292,11 +427,25 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           return(list())
         }
 
-        # If multiple, use all containers as separate series; otherwise inspect .1.N children
+        # Each separate geom_line / geom_ma layer renders as its own
+        # GRID.polyline grob in the panel. Target the polyline at this
+        # layer's line-layer position so merge_line_layers gets one unique
+        # selector per series (matching JS's selectors.length === data.length
+        # precondition).
+        line_layer_position <- self$line_layer_position(plot)
+        if (length(poly_ids) > 1L &&
+          !is.null(line_layer_position) &&
+          line_layer_position <= length(poly_ids)) {
+          pid <- poly_ids[line_layer_position]
+          base_id <- gsub("^GRID\\.polyline\\.", "", pid)
+          escaped <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
+          return(list(paste0("#", escaped)))
+        }
+
+        # Fallback for single-polyline panels.
         selectors <- list()
         for (pid in poly_ids) {
           base_id <- gsub("^GRID\\.polyline\\.", "", pid)
-          # We don't know num series exactly here; target the container (works for single series)
           escaped <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
           selectors[[length(selectors) + 1]] <- paste0("#", escaped)
         }
@@ -314,26 +463,44 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           gt <- ggplot2::ggplotGrob(plot)
         }
 
-        main_polyline_grob <- self$find_main_polyline_grob(gt)
-
-        if (is.null(main_polyline_grob)) {
+        all_polyline_grobs <- self$find_all_polyline_grobs(gt)
+        if (length(all_polyline_grobs) == 0) {
           return(list())
         }
 
-        grob_name <- main_polyline_grob$name
-        base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
+        # Locate the polyline grob that corresponds to *this* line layer by
+        # counting line-typed layers up to and including the current one in
+        # the plot's layer list. This lets merge_line_layers collapse
+        # candlestick + N geom_ma overlays into a multi-series layer with one
+        # unique selector per series.
+        line_layer_position <- self$line_layer_position(plot)
 
         built <- ggplot2::ggplot_build(plot)
         layer_data <- built$data[[self$layer_info$index]]
 
-        if ("group" %in% names(layer_data)) {
-          # Multiline plot - use the actual structure: GRID.polyline.61.1.1, .2, .3
-          num_series <- length(unique(layer_data$group))
-          return(self$generate_multiline_selectors(base_id, num_series))
-        } else {
-          # Single line plot
+        # If multiple separate polylines exist (one per geom_line/geom_ma
+        # layer), target the polyline at this layer's line-layer position.
+        if (length(all_polyline_grobs) > 1L &&
+          !is.null(line_layer_position) &&
+          line_layer_position <= length(all_polyline_grobs)) {
+          grob_name <- all_polyline_grobs[[line_layer_position]]$name
+          base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
           return(self$generate_single_line_selector(base_id))
         }
+
+        # Otherwise fall through to the original first-polyline path: one
+        # geom_line whose grouping aesthetic produces N sub-polylines.
+        main_polyline_grob <- all_polyline_grobs[[1]]
+        grob_name <- main_polyline_grob$name
+        base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
+
+        if ("group" %in% names(layer_data)) {
+          num_series <- length(unique(layer_data$group))
+          if (num_series > 1L) {
+            return(self$generate_multiline_selectors(base_id, num_series))
+          }
+        }
+        return(self$generate_single_line_selector(base_id))
       }
     },
 
@@ -362,6 +529,59 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
       selector <- paste0("#", escaped_id)
       list(selector)
+    },
+
+    #' Find all polyline parent grobs (GRID.polyline.XX) in the panel.
+    #' @keywords internal
+    find_all_polyline_grobs = function(gt) {
+      panel_index <- which(gt$layout$name == "panel")
+      if (length(panel_index) == 0) {
+        return(list())
+      }
+      panel_grob <- gt$grobs[[panel_index]]
+      if (!inherits(panel_grob, "gTree")) {
+        return(list())
+      }
+
+      out <- list()
+      collect <- function(grob) {
+        if (!is.null(grob$name) && grepl("^GRID\\.polyline\\.\\d+$", grob$name)) {
+          out[[length(out) + 1L]] <<- grob
+        }
+        if (inherits(grob, "gList")) {
+          for (i in seq_along(grob)) collect(grob[[i]])
+        }
+        if (inherits(grob, "gTree")) {
+          for (i in seq_along(grob$children)) collect(grob$children[[i]])
+        }
+      }
+      collect(panel_grob)
+      out
+    },
+
+    #' Position (1-based) of this layer among line-typed layers in `plot`.
+    #' Returns NULL if the registry-based detection fails.
+    #' @keywords internal
+    line_layer_position = function(plot) {
+      tryCatch(
+        {
+          registry <- get_global_registry()
+          adapter <- registry$get_adapter("ggplot2")
+          my_idx <- self$layer_info$index
+          pos <- 0L
+          for (i in seq_along(plot$layers)) {
+            tp <- adapter$detect_layer_type(plot$layers[[i]], plot)
+            if (identical(tp, "line")) {
+              pos <- pos + 1L
+              if (i == my_idx) {
+                return(pos)
+              }
+            }
+          }
+          NULL
+        },
+        error = function(e) NULL
+      )
     },
 
     #' Find the main polyline grob (GRID.polyline.XX)

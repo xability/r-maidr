@@ -6,6 +6,51 @@
 #' @format An R6 class inheriting from SystemAdapter
 #' @keywords internal
 
+# Environment used to suppress repeat warnings within a single session.
+.maidr_chartseries_ta_warned <- new.env(parent = emptyenv())
+.maidr_chartseries_ta_warned$value <- FALSE
+
+#' Emit a one-time warning when quantmod::chartSeries() is called with a
+#' non-NULL `TA` argument (e.g. `TA = "addVo()"`).
+#'
+#' The gridSVG export pipeline used to convert chartSeries' multi-panel
+#' base graphics output into an accessible HTML SVG mis-handles the volume
+#' sub-panel, producing rects with negative y coordinates that overlap the
+#' date-label band. Because gridSVG is unmaintained, maidr falls back to
+#' native (non-accessible) rendering for these calls and surfaces a
+#' one-time advisory pointing users to the ggplot2 + tidyquant + patchwork
+#' alternative which renders correctly via maidr's ggplot2 path.
+#'
+#' @return Invisibly NULL.
+#' @keywords internal
+warn_chartseries_ta_unsupported <- function() {
+  if (isTRUE(.maidr_chartseries_ta_warned$value)) {
+    return(invisible(NULL))
+  }
+  .maidr_chartseries_ta_warned$value <- TRUE
+  rlang::warn(
+    c(
+      paste0(
+        "quantmod::chartSeries() with a `TA` argument (e.g. ",
+        "`TA = \"addVo()\"`) is not supported by maidr's accessible ",
+        "HTML pipeline; the volume sub-panel does not export reliably ",
+        "from the underlying gridSVG bridge."
+      ),
+      i = paste0(
+        "Falling back to native (non-accessible) graphics for this plot."
+      ),
+      i = paste0(
+        "For accessible price + volume charts use ggplot2 + ",
+        "tidyquant::geom_candlestick() + patchwork instead."
+      )
+    ),
+    class = "maidr_chartseries_ta_unsupported",
+    .frequency = "once",
+    .frequency_id = "maidr_chartseries_ta_unsupported"
+  )
+  invisible(NULL)
+}
+
 BaseRAdapter <- R6::R6Class(
   "BaseRAdapter",
   inherit = SystemAdapter,
@@ -72,6 +117,47 @@ BaseRAdapter <- R6::R6Class(
         "heatmap" = "heat",
         "contour" = "contour",
         "matplot" = "line",
+        # quantmod::chartSeries() candlestick path. The `type` argument
+        # defaults to "auto"; we accept the call as candlestick only when
+        # the user explicitly requests it (matching the MVP scope).
+        # Other types (bars / line / matchsticks) are deferred.
+        # Technical analysis overlays via the `TA` argument (e.g.
+        # `addVo()`) are also unsupported: the gridSVG export pipeline
+        # (chartSeries -> ggplotify::as.grob -> gridGraphics::grid.echo
+        # -> gridSVG::grid.export) mis-handles the multi-panel volume
+        # sub-plot, producing volume <rect>s with negative y coordinates
+        # that spill into the date-label band. gridSVG is unmaintained
+        # (last CRAN release 2017); a proper fix would require either
+        # patching gridSVG or rewriting the export pipeline. We return
+        # "unknown" (which triggers maidr's standard fallback to native
+        # graphics) and emit a one-time warning steering users to the
+        # working ggplot2 + tidyquant + patchwork path for accessible
+        # price+volume charts.
+        "chartSeries" = {
+          ct <- args$type
+          ta <- args$TA
+          ta_in_args <- "TA" %in% names(args)
+          x <- args[[1]]
+          # quantmod::chartSeries() default `TA` auto-adds addVo() when
+          # the input has a Volume column. Treat that implicit case the
+          # same as an explicit TA: warn + fall back to native graphics.
+          has_default_vo <- !ta_in_args &&
+            !is.null(x) &&
+            requireNamespace("quantmod", quietly = TRUE) &&
+            tryCatch(isTRUE(quantmod::has.Vo(x)),
+                     error = function(e) FALSE)
+          ta_explicit_unsupported <- ta_in_args &&
+            !is.null(ta) && !identical(ta, FALSE) &&
+            !identical(ta, "") && !identical(ta, NA)
+          if (is.null(ct) || !identical(as.character(ct)[1], "candlesticks")) {
+            "unknown"
+          } else if (ta_explicit_unsupported || has_default_vo) {
+            warn_chartseries_ta_unsupported()
+            "unknown"
+          } else {
+            "candlestick"
+          }
+        },
         NULL
       )
 

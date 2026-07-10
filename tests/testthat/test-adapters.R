@@ -481,6 +481,141 @@ test_that("BaseRAdapter detect_layer_type returns unknown for NULL", {
   testthat::expect_equal(layer_type, "unknown")
 })
 
+# ------------------------------------------------------------------------------
+# BaseRAdapter - quantmod::chartSeries() detection
+# ------------------------------------------------------------------------------
+
+test_that("BaseRAdapter detect_layer_type returns 'candlestick' for plain chartSeries", {
+  adapter <- maidr:::BaseRAdapter$new()
+  layer <- list(
+    function_name = "chartSeries",
+    args = list(type = "candlesticks")
+  )
+  testthat::expect_equal(adapter$detect_layer_type(layer), "candlestick")
+})
+
+test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries without 'candlesticks'", {
+  adapter <- maidr:::BaseRAdapter$new()
+  layer <- list(
+    function_name = "chartSeries",
+    args = list(type = "line")
+  )
+  testthat::expect_equal(adapter$detect_layer_type(layer), "unknown")
+})
+
+test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with TA='addVo()' and warns", {
+  # Reset the one-time warning latch so this test sees the emission.
+  # Access the internal env via asNamespace() (load_all-safe).
+  warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
+  warn_env$value <- FALSE
+  # Also clear rlang's onceonly cache for this id, otherwise the
+  # `.frequency = "once"` guard will suppress the emission within the
+  # same R session.
+  rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  on.exit({
+    warn_env$value <- FALSE
+    rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  }, add = TRUE)
+
+  adapter <- maidr:::BaseRAdapter$new()
+  layer <- list(
+    function_name = "chartSeries",
+    args = list(type = "candlesticks", TA = "addVo()")
+  )
+  testthat::expect_warning(
+    res <- adapter$detect_layer_type(layer),
+    class = "maidr_chartseries_ta_unsupported"
+  )
+  testthat::expect_equal(res, "unknown")
+})
+
+test_that("BaseRAdapter detect_layer_type accepts chartSeries with TA=NULL (no fallback)", {
+  warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
+  warn_env$value <- FALSE
+  on.exit(warn_env$value <- FALSE, add = TRUE)
+
+  adapter <- maidr:::BaseRAdapter$new()
+  layer <- list(
+    function_name = "chartSeries",
+    args = list(type = "candlesticks", TA = NULL)
+  )
+  testthat::expect_equal(adapter$detect_layer_type(layer), "candlestick")
+})
+
+test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with Volume column and default TA", {
+  testthat::skip_if_not_installed("quantmod")
+  testthat::skip_if_not_installed("xts")
+
+  warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
+  warn_env$value <- FALSE
+  rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  on.exit({
+    warn_env$value <- FALSE
+    rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  }, add = TRUE)
+
+  # xts with Volume column, mimicking the user's typical chartSeries() call
+  # WITHOUT an explicit TA arg. quantmod auto-adds addVo() in that case.
+  tst <- xts::xts(
+    cbind(
+      Open   = c(101.371, 101.918, 105.285, 102.531),
+      High   = c(102.041, 104.310, 106.018, 103.300),
+      Low    = c(100.879, 101.500, 104.500, 101.900),
+      Close  = c(101.918, 104.310, 102.531, 103.214),
+      Volume = c(100, 150, 200, 180)
+    ),
+    order.by = as.Date(c(
+      "2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15"
+    ))
+  )
+  colnames(tst) <- c(
+    "TST.Open", "TST.High", "TST.Low", "TST.Close", "TST.Volume"
+  )
+
+  adapter <- maidr:::BaseRAdapter$new()
+  layer <- list(
+    function_name = "chartSeries",
+    args = list(tst, type = "candlesticks")  # NB: no TA in args
+  )
+  testthat::expect_warning(
+    res <- adapter$detect_layer_type(layer),
+    class = "maidr_chartseries_ta_unsupported"
+  )
+  testthat::expect_equal(res, "unknown")
+})
+
+test_that("BaseRAdapter detect_layer_type accepts chartSeries with Volume column and explicit TA=NULL", {
+  testthat::skip_if_not_installed("quantmod")
+  testthat::skip_if_not_installed("xts")
+
+  warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
+  warn_env$value <- FALSE
+  on.exit(warn_env$value <- FALSE, add = TRUE)
+
+  tst <- xts::xts(
+    cbind(
+      Open   = c(101.371, 101.918, 105.285, 102.531),
+      High   = c(102.041, 104.310, 106.018, 103.300),
+      Low    = c(100.879, 101.500, 104.500, 101.900),
+      Close  = c(101.918, 104.310, 102.531, 103.214),
+      Volume = c(100, 150, 200, 180)
+    ),
+    order.by = as.Date(c(
+      "2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15"
+    ))
+  )
+  colnames(tst) <- c(
+    "TST.Open", "TST.High", "TST.Low", "TST.Close", "TST.Volume"
+  )
+
+  adapter <- maidr:::BaseRAdapter$new()
+  layer <- list(
+    function_name = "chartSeries",
+    args = list(tst, type = "candlesticks", TA = NULL)
+  )
+  testthat::expect_equal(adapter$detect_layer_type(layer), "candlestick")
+})
+
 # ==============================================================================
 # BaseRAdapter - Barplot Type Detection Tests
 # ==============================================================================

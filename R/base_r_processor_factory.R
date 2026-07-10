@@ -36,6 +36,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
         "contour" = BaseRUnknownLayerProcessor$new(layer_info),
+        "candlestick" = BaseRCandlestickLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
         BaseRUnknownLayerProcessor$new(layer_info)
       )
@@ -56,6 +57,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "box",
         "heat",
         "contour",
+        "candlestick",
         "unknown"
       )
     },
@@ -85,6 +87,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "BaseRPointLayerProcessor",
         "BaseRHistogramLayerProcessor",
         "BaseRBoxplotLayerProcessor",
+        "BaseRCandlestickLayerProcessor",
         "BaseRUnknownLayerProcessor"
         # Additional processor classes can be registered here as needed
       )

@@ -4,18 +4,43 @@
 \alias{Ggplot2LineLayerProcessor}
 \title{Final Line Layer Processor - Uses Actual SVG Structure}
 \description{
+Final Line Layer Processor - Uses Actual SVG Structure
+
+Final Line Layer Processor - Uses Actual SVG Structure
+}
+\details{
 Processes line plot layers using the actual gridSVG structure discovered:
 - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
 - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
 }
+\keyword{(1-based)}
+\keyword{(GRID.polyline.XX)}
+\keyword{Find}
+\keyword{NULL}
+\keyword{Position}
 \keyword{Process}
+\keyword{Returns}
 \keyword{SVG}
+\keyword{`plot`.}
 \keyword{actual}
+\keyword{among}
+\keyword{detection}
+\keyword{fails.}
+\keyword{grob}
+\keyword{if}
+\keyword{in}
 \keyword{internal}
 \keyword{layer}
+\keyword{layers}
 \keyword{line}
+\keyword{line-typed}
+\keyword{main}
+\keyword{of}
+\keyword{polyline}
+\keyword{registry-based}
 \keyword{structure}
 \keyword{the}
+\keyword{this}
 \keyword{with}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
@@ -42,13 +67,18 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Ggplot2LineLayerProcessor-process}{\code{Ggplot2LineLayerProcessor$process()}}
+\item \href{#method-Ggplot2LineLayerProcessor-extract_layer_axes}{\code{Ggplot2LineLayerProcessor$extract_layer_axes()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_data}{\code{Ggplot2LineLayerProcessor$extract_data()}}
+\item \href{#method-Ggplot2LineLayerProcessor-format_x_value}{\code{Ggplot2LineLayerProcessor$format_x_value()}}
+\item \href{#method-Ggplot2LineLayerProcessor-get_original_x_column}{\code{Ggplot2LineLayerProcessor$get_original_x_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_multiline_data}{\code{Ggplot2LineLayerProcessor$extract_multiline_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_single_line_data}{\code{Ggplot2LineLayerProcessor$extract_single_line_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_group_column}{\code{Ggplot2LineLayerProcessor$get_group_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_selectors}{\code{Ggplot2LineLayerProcessor$generate_selectors()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{\code{Ggplot2LineLayerProcessor$generate_multiline_selectors()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_single_line_selector}{\code{Ggplot2LineLayerProcessor$generate_single_line_selector()}}
+\item \href{#method-Ggplot2LineLayerProcessor-find_all_polyline_grobs}{\code{Ggplot2LineLayerProcessor$find_all_polyline_grobs()}}
+\item \href{#method-Ggplot2LineLayerProcessor-line_layer_position}{\code{Ggplot2LineLayerProcessor$line_layer_position()}}
 \item \href{#method-Ggplot2LineLayerProcessor-find_main_polyline_grob}{\code{Ggplot2LineLayerProcessor$find_main_polyline_grob()}}
 \item \href{#method-Ggplot2LineLayerProcessor-needs_reordering}{\code{Ggplot2LineLayerProcessor$needs_reordering()}}
 \item \href{#method-Ggplot2LineLayerProcessor-clone}{\code{Ggplot2LineLayerProcessor$clone()}}
@@ -59,7 +89,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
 <ul>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
@@ -107,6 +136,38 @@ Processes line plot layers using the actual gridSVG structure discovered:
 }
 \subsection{Returns}{
 List with data and selectors
+Extract axes labels for line layers, with a special case for
+moving-average geoms (e.g. `tidyquant::geom_ma`).
+
+By default the parent `LayerProcessor$extract_layer_axes()` reads the
+y-label from the layer's aesthetic mapping. For a moving-average
+overlay typically written as `geom_ma(aes(y = close), ma_fun = SMA, ...)`,
+this yields the literal input-column name `"close"`, which is misleading:
+the value being plotted (and announced during navigation) is the moving
+average of `close`, not `close` itself. We detect `GeomMA` (the class of
+tidyquant's geom_ma layer) and override the y-label accordingly. Plain
+`geom_line` / `geom_smooth` overlays are untouched.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_layer_axes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_layer_axes}{}}}
+\subsection{Method \code{extract_layer_axes()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{layout}}{Layout information}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+list(x = list(label = ...), y = list(label = ...))
 Extract data from line layer (single or multiline)
 }
 }
@@ -138,8 +199,43 @@ Extract data from line layer (single or multiline)
 }
 \subsection{Returns}{
 List of arrays, each containing series data points
-Extract data for multiple line series
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-format_x_value"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-format_x_value}{}}}
+\subsection{Method \code{format_x_value()}}{
+Format an x-axis value as character.
+
+Date / POSIXct / POSIXlt values are formatted via `format()` so that a
+`Date` column emits ISO date strings (e.g. "2024-01-02") rather than
+the underlying numeric days-since-epoch representation produced by
+`ggplot_build()`. All other types use `as.character()`. Mirrors
+`Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers
+from the same Date column align string-wise.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_original_x_column"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_original_x_column}{}}}
+\subsection{Method \code{get_original_x_column()}}{
+Recover the original (untransformed) x column for a layer.
+
+`ggplot_build()` transforms Date / POSIXct columns into numeric
+days-since-epoch on `built$data[[i]]$x`. To emit ISO strings we need
+the original column from `plot$data` (or the layer's own `data`).
+
+Returns the per-row vector of x values aligned to `built_data` if a
+simple column reference is found and the lengths match, otherwise
+NULL.
+Extract data for multiple line series
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_original_x_column(plot, built_data)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_multiline_data"></a>}}
@@ -168,7 +264,7 @@ Extract data for single line (backward compatibility)
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_single_line_data}{}}}
 \subsection{Method \code{extract_single_line_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_single_line_data(layer_data)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_single_line_data(layer_data, plot = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -271,8 +367,26 @@ Generate selector for single line plot
 }
 \subsection{Returns}{
 List with single selector
-Find the main polyline grob (GRID.polyline.XX)
+Find all polyline parent grobs (GRID.polyline.XX) in the panel.
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_all_polyline_grobs"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-find_all_polyline_grobs}{}}}
+\subsection{Method \code{find_all_polyline_grobs()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$find_all_polyline_grobs(gt)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-line_layer_position}{}}}
+\subsection{Method \code{line_layer_position()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_main_polyline_grob"></a>}}

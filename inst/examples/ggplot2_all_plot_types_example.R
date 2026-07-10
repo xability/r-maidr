@@ -8,6 +8,9 @@
 library(ggplot2)
 library(devtools)
 library(patchwork)
+# tidyquant is required for candlestick examples (Tests 19-20).
+# Install with: install.packages("tidyquant")
+suppressPackageStartupMessages(library(tidyquant))
 
 # Load the maidr package
 # Get the directory where this script is located
@@ -446,6 +449,94 @@ html_file_patchwork_2x2 <- file.path(output_dir, "example_patchwork_2x2_ggplot2.
 result_patchwork_2x2 <- save_html(pw_2x2, file = html_file_patchwork_2x2)
 cat("Patchwork 2x2 (mixed formatting):", if (file.exists(html_file_patchwork_2x2)) "OK" else "FAIL", "\n")
 
+# Test 19: Candlestick (OHLC) plot via tidyquant::geom_candlestick()
+# Each candle is exposed as a single navigable element with
+# open / high / low / close + computed trend (Bull / Bear / Neutral) and
+# volatility (high - low) fields.
+cat("\n=== TEST 19: Candlestick Plot (OHLC, ggplot2 + tidyquant) ===\n")
+ohlc_simple <- data.frame(
+  date  = as.Date(c("2023-01-02", "2023-01-03", "2023-01-04", "2023-01-05")),
+  open  = c(100, 105, 110, 108),
+  high  = c(115, 108, 112, 110),
+  low   = c(95, 102, 105, 100),
+  # Bull, Bear, Bull, Neutral
+  close = c(110, 103, 111, 108)
+)
+
+p_candle <- ggplot(
+  ohlc_simple,
+  aes(x = date, open = open, high = high, low = low, close = close)
+) +
+  geom_candlestick(
+    colour_up = "darkgreen", colour_down = "red",
+    fill_up = "darkgreen", fill_down = "red"
+  ) +
+  labs(
+    title = "Sample OHLC Candlestick",
+    subtitle = "Four trading days",
+    x = "Date",
+    y = "Price"
+  ) +
+  theme_minimal()
+
+html_file_candle <- file.path(output_dir, "example_candlestick_ggplot2.html")
+result_candle <- save_html(p_candle, file = html_file_candle)
+cat("Candlestick plot (OHLC):", if (file.exists(html_file_candle)) "OK" else "FAIL", "\n")
+
+# Test 20: Candlestick + 2 moving averages (geom_ma) + volume bar panel
+# (patchwork). This exercises the full accessible price + MA + volume
+# pipeline. MAIDR collapses the two geom_ma layers into a single
+# multi-series line layer and stacks the candlestick + bar + line on a
+# single subplot navigable from the keyboard.
+cat("\n=== TEST 20: Candlestick + 5/10-day SMA + Volume (patchwork) ===\n")
+set.seed(42)
+n_days <- 20
+cs_dates  <- seq(as.Date("2024-01-02"), by = "day", length.out = n_days)
+cs_opens  <- 100 + cumsum(rnorm(n_days, 0, 1.5))
+cs_closes <- cs_opens + rnorm(n_days, 0, 1.2)
+cs_highs  <- pmax(cs_opens, cs_closes) + abs(rnorm(n_days, 1, 0.5))
+cs_lows   <- pmin(cs_opens, cs_closes) - abs(rnorm(n_days, 1, 0.5))
+cs_vols   <- as.integer(runif(n_days, 1e5, 5e5))
+
+ohlcv <- data.frame(
+  date   = cs_dates,
+  open   = round(cs_opens, 2),
+  high   = round(cs_highs, 2),
+  low    = round(cs_lows, 2),
+  close  = round(cs_closes, 2),
+  volume = cs_vols
+)
+
+p_price <- ggplot(
+  ohlcv,
+  aes(x = date, open = open, high = high, low = low, close = close)
+) +
+  geom_candlestick(
+    colour_up = "darkgreen", colour_down = "red",
+    fill_up = "darkgreen", fill_down = "red"
+  ) +
+  geom_ma(aes(y = close), ma_fun = SMA, n = 5,
+          colour = "blue", linetype = "dashed", linewidth = 0.8) +
+  geom_ma(aes(y = close), ma_fun = SMA, n = 10,
+          colour = "orange", linetype = "dotted", linewidth = 0.8) +
+  labs(title = "OHLC with 5- and 10-day SMA", x = NULL, y = "Price") +
+  theme_minimal()
+
+p_volume <- ggplot(ohlcv, aes(x = date, y = volume)) +
+  geom_col(fill = "steelblue", alpha = 0.7) +
+  labs(x = "Date", y = "Volume") +
+  theme_minimal()
+
+p_candle_ma_vol <- p_price / p_volume +
+  plot_layout(heights = c(3, 1), axes = "collect_x")
+
+html_file_candle_ma_vol <- file.path(
+  output_dir, "example_candlestick_ma_volume_ggplot2.html"
+)
+result_candle_ma_vol <- save_html(p_candle_ma_vol, file = html_file_candle_ma_vol)
+cat("Candlestick + MA + volume:",
+    if (file.exists(html_file_candle_ma_vol)) "OK" else "FAIL", "\n")
+
 
 cat("\n=== SUMMARY ===\n")
 cat("Generated HTML files in output/ directory:\n")
@@ -467,6 +558,8 @@ cat("- Faceted bar plot (comma):", if (file.exists(html_file_facet_bar)) "OK" el
 cat("- Faceted point plot (fixed):", if (file.exists(html_file_facet_point)) "OK" else "FAIL", "\n")
 cat("- Faceted line plot (percent):", if (file.exists(html_file_facet_line)) "OK" else "FAIL", "\n")
 cat("- Patchwork 2x2 (mixed formatting):", if (file.exists(html_file_patchwork_2x2)) "OK" else "FAIL", "\n")
+cat("- Candlestick plot (OHLC):", if (file.exists(html_file_candle)) "OK" else "FAIL", "\n")
+cat("- Candlestick + MA + volume:", if (file.exists(html_file_candle_ma_vol)) "OK" else "FAIL", "\n")
 
 cat("\n=== FORMATTING TYPES DEMONSTRATED ===\n")
 cat("- label_dollar(): Currency formatting (e.g., $1,500.50)\n")

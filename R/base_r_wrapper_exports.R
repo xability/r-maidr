@@ -96,6 +96,19 @@ pairs <- function(...) graphics::pairs(...)
 #' @export
 coplot <- function(...) graphics::coplot(...)
 
+#' @rdname base-r-wrappers
+#' @export
+chartSeries <- function(...) {
+  if (!requireNamespace("quantmod", quietly = TRUE)) {
+    stop(
+      "Package 'quantmod' is required for chartSeries(). ",
+      "Please install it via install.packages('quantmod').",
+      call. = FALSE
+    )
+  }
+  quantmod::chartSeries(...)
+}
+
 # --- LOW-level drawing functions ---
 
 #' @rdname base-r-wrappers

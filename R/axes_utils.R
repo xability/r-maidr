@@ -1,27 +1,13 @@
 #' Canonical Axes Schema Helpers
 #'
 #' Utilities for constructing and validating the canonical per-axis
-#' \code{axes} object emitted by the MAIDR payload. The schema is:
-#' \preformatted{
-#'   axes: {
-#'     x?: AxisConfig,
-#'     y?: AxisConfig,
-#'     z?: AxisConfig
-#'   }
-#'
-#'   AxisConfig: {
-#'     label?:    string,
-#'     min?:      number,
-#'     max?:      number,
-#'     tickStep?: number,
-#'     format?:   AxisFormat
-#'   }
-#' }
-#'
-#' Only \code{x}, \code{y}, \code{z} keys are permitted at the top level of
-#' \code{axes}. The legacy flat form (bare string labels, top-level
-#' \code{format}/\code{min}/\code{max}/\code{tickStep}/\code{fill}/\code{level})
-#' has been removed with no deprecation path.
+#' \code{axes} object emitted by the MAIDR payload. Only \code{x}, \code{y},
+#' and \code{z} keys are permitted at the top level of \code{axes}; each maps
+#' to an \code{AxisConfig} list with optional \code{label} (string),
+#' \code{min}, \code{max}, \code{tickStep} (numbers), and \code{format} (an
+#' \code{AxisFormat} list). The legacy flat form (bare string labels and
+#' top-level format/min/max/tickStep/fill/level) has been removed with no
+#' deprecation path.
 #'
 #' @name axes_utils
 #' @keywords internal

@@ -4,9 +4,13 @@
 \alias{axes_utils}
 \title{Canonical Axes Schema Helpers}
 \description{
-
-}
-\details{
-
+Utilities for constructing and validating the canonical per-axis
+\code{axes} object emitted by the MAIDR payload. Only \code{x}, \code{y},
+and \code{z} keys are permitted at the top level of \code{axes}; each maps
+to an \code{AxisConfig} list with optional \code{label} (string),
+\code{min}, \code{max}, \code{tickStep} (numbers), and \code{format} (an
+\code{AxisFormat} list). The legacy flat form (bare string labels and
+top-level format/min/max/tickStep/fill/level) has been removed with no
+deprecation path.
 }
 \keyword{internal}

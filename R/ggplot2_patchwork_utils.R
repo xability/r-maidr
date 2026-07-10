@@ -53,6 +53,12 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
     grid[[row]][[col]] <- subplot_data
   }
 
+  # Canonical financial-chart pattern: candlestick over a volume-only bar
+  # panel (via patchwork) collapses to a single subplot with up to three
+  # layers (candlestick, bar, line) so the JS frontend announces it as one
+  # plot containing N layers, matching py-maidr.
+  grid <- merge_candlestick_volume_panels(grid)
+
   grid
 }
 
@@ -181,6 +187,13 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     adapter <- registry$get_adapter(system_name)
 
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
+
+    # Layers tagged "skip" (e.g. tidyquant's wick layer, which is folded
+    # into the candlestick body layer) must not produce a maidr layer.
+    if (identical(layer_type, "skip")) {
+      next
+    }
+
     processor <- factory$create_processor(layer_type, layer_info)
 
     if (!is.null(processor)) {
@@ -231,8 +244,286 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     }
   }
 
-  list(
+  panel <- list(
     id = subplot_id,
     layers = layers
   )
+
+  # Multiple line layers in one panel (e.g. several geom_ma overlays on a
+  # candlestick) should be merged into a single multi-series line layer so
+  # the JS frontend announces them as one "multiline" layer (matching
+  # py-maidr's behaviour) rather than N separate layers.
+  collapse_lines_to_multiseries(panel)
+}
+
+# ==============================================================================
+# Panel-merging helpers (candlestick + volume + MA multilines)
+# ==============================================================================
+#
+# These helpers post-process the patchwork subplot grid so that the canonical
+# financial-chart pattern produces a single accessible subplot with up to
+# three layers (candlestick, bar, line) instead of two separate subplots.
+# Volume y-values are also embedded into candlestick data points so the
+# description table mirrors py-maidr's CandlestickPoint.volume field.
+
+#' Does a panel contain a layer of the given type?
+#' @param panel A processed patchwork panel (with `$layers`)
+#' @param type Layer type string ("candlestick", "bar", "line", ...)
+#' @return Logical
+#' @keywords internal
+panel_has_layer_of_type <- function(panel, type) {
+  if (is.null(panel) || is.null(panel$layers) || length(panel$layers) == 0) {
+    return(FALSE)
+  }
+  types <- vapply(panel$layers, function(l) {
+    if (!is.null(l$type)) l$type else NA_character_
+  }, character(1))
+  any(types == type, na.rm = TRUE)
+}
+
+#' Return the (first) layer in `panel` whose type matches `type`
+#' @keywords internal
+panel_layer_of_type <- function(panel, type) {
+  if (is.null(panel) || is.null(panel$layers)) {
+    return(NULL)
+  }
+  for (l in panel$layers) {
+    if (!is.null(l$type) && identical(l$type, type)) {
+      return(l)
+    }
+  }
+  NULL
+}
+
+#' Is this panel a volume-only bar panel (single bar layer, no other layers)?
+#' @keywords internal
+is_volume_only_bar_panel <- function(panel) {
+  if (is.null(panel) || is.null(panel$layers) || length(panel$layers) != 1L) {
+    return(FALSE)
+  }
+  identical(panel$layers[[1]]$type, "bar")
+}
+
+#' Collapse multiple "line" layer entries in a single panel into one
+#' multi-series line layer entry. Other layers are left untouched.
+#'
+#' The first line layer's id, title, and axes are preserved; data and
+#' selectors are concatenated across all line layers.
+#'
+#' @param panel A processed panel list with $id and $layers
+#' @return Panel with line layers merged
+#' @keywords internal
+collapse_lines_to_multiseries <- function(panel) {
+  if (is.null(panel) || is.null(panel$layers) || length(panel$layers) < 2) {
+    return(panel)
+  }
+
+  layers <- panel$layers
+  is_line <- vapply(layers, function(l) {
+    isTRUE(identical(l$type, "line"))
+  }, logical(1))
+
+  if (sum(is_line) < 2L) {
+    return(panel)
+  }
+
+  line_layers <- layers[is_line]
+  merged_line <- merge_line_layers(line_layers)
+
+  # Rebuild layers list: keep non-line layers in their original order,
+  # insert the merged line layer at the position of the first line layer.
+  out <- list()
+  inserted <- FALSE
+  for (i in seq_along(layers)) {
+    if (is_line[i]) {
+      if (!inserted) {
+        out[[length(out) + 1L]] <- merged_line
+        inserted <- TRUE
+      }
+      # Skip subsequent line layers (they've been merged in).
+      next
+    }
+    out[[length(out) + 1L]] <- layers[[i]]
+  }
+
+  panel$layers <- out
+  panel
+}
+
+#' Combine a list of single-line layer entries into one multi-series line entry.
+#'
+#' Each input line layer's `data` is a list-of-series (typically length-1 for
+#' a single GeomLine/GeomMA). We concatenate all series across all layers.
+#'
+#' Selector handling: the line layer's selector generator (panel_ctx path in
+#' `Ggplot2LineLayerProcessor$generate_selectors`) discovers *all* polyline
+#' grobs in the panel, so when there are N line layers in the same panel
+#' each input layer's `selectors` list is the same length-N set. After
+#' merging we want exactly one selector per series (so the JS frontend
+#' precondition `selectors.length === data.length` holds). We therefore
+#' deduplicate selectors across input layers and trim/pad to the merged
+#' series count.
+#' @keywords internal
+merge_line_layers <- function(line_layers) {
+  first <- line_layers[[1]]
+
+  combined_data <- list()
+  all_selectors <- list()
+
+  for (l in line_layers) {
+    # `data` should already be a list of series. Be defensive: if it's a flat
+    # list of points (unwrapped single series), wrap it.
+    if (!is.null(l$data)) {
+      d <- l$data
+      if (length(d) > 0 && !is.null(d[[1]]) && !is.list(d[[1]][[1]])) {
+        # Looks like flat points -> wrap as single series
+        d <- list(d)
+      }
+      for (series in d) {
+        combined_data[[length(combined_data) + 1L]] <- series
+      }
+    }
+    if (!is.null(l$selectors)) {
+      sels <- l$selectors
+      if (!is.list(sels)) {
+        sels <- list(sels)
+      }
+      for (s in sels) {
+        all_selectors[[length(all_selectors) + 1L]] <- s
+      }
+    }
+  }
+
+  # Dedupe selectors (panel_ctx path returns the same set for each line layer
+  # in the panel), preserving discovery order.
+  seen <- character(0)
+  unique_selectors <- list()
+  for (s in all_selectors) {
+    key <- if (is.character(s)) s else paste0(unlist(s), collapse = "\u0001")
+    if (!(key %in% seen)) {
+      seen <- c(seen, key)
+      unique_selectors[[length(unique_selectors) + 1L]] <- s
+    }
+  }
+
+  # Trim to series count so selectors.length === data.length.
+  n_series <- length(combined_data)
+  if (length(unique_selectors) > n_series) {
+    unique_selectors <- unique_selectors[seq_len(n_series)]
+  }
+
+  list(
+    id = first$id,
+    type = "line",
+    title = first$title,
+    axes = first$axes,
+    data = combined_data,
+    selectors = unique_selectors
+  )
+}
+
+#' Embed volume y-values from a bar layer into the candlestick layer's data.
+#'
+#' Strategy:
+#'   1. If both layers have the same number of points, embed positionally.
+#'      This is the canonical case: patchwork stacks two panels driven by
+#'      the same date column, so the i-th candle and the i-th bar refer to
+#'      the same trading day even if the bar layer's x is formatted
+#'      differently from the candle's `value`.
+#'   2. Otherwise, fall back to string-matching the candle's `value` field
+#'      against the bar layer's `x` field.
+#' @keywords internal
+embed_volume_into_candle_data <- function(candle_layer, bar_layer) {
+  if (is.null(candle_layer$data) || length(candle_layer$data) == 0) {
+    return(candle_layer)
+  }
+  if (is.null(bar_layer$data) || length(bar_layer$data) == 0) {
+    return(candle_layer)
+  }
+
+  n_c <- length(candle_layer$data)
+  n_b <- length(bar_layer$data)
+
+  if (n_c == n_b) {
+    for (i in seq_len(n_c)) {
+      bar_pt <- bar_layer$data[[i]]
+      if (!is.null(bar_pt$y)) {
+        pt <- candle_layer$data[[i]]
+        pt$volume <- bar_pt$y
+        candle_layer$data[[i]] <- pt
+      }
+    }
+    return(candle_layer)
+  }
+
+  # Fallback: string-match by candle$value vs bar$x
+  bar_lookup <- new.env(hash = TRUE, parent = emptyenv())
+  for (pt in bar_layer$data) {
+    if (!is.null(pt$x) && !is.null(pt$y)) {
+      assign(as.character(pt$x), pt$y, envir = bar_lookup)
+    }
+  }
+
+  for (i in seq_along(candle_layer$data)) {
+    pt <- candle_layer$data[[i]]
+    if (!is.null(pt$value)) {
+      key <- as.character(pt$value)
+      if (exists(key, envir = bar_lookup, inherits = FALSE)) {
+        pt$volume <- get(key, envir = bar_lookup, inherits = FALSE)
+        candle_layer$data[[i]] <- pt
+      }
+    }
+  }
+
+  candle_layer
+}
+
+#' Post-process a 2D subplot grid: if the layout is candlestick over
+#' volume-only bar (2 rows x 1 col, sharing an x-axis), collapse to a single
+#' 1x1 subplot whose layers are candlestick (+ embedded volume), bar, and
+#' optional line (multi-series MAs).
+#' @keywords internal
+merge_candlestick_volume_panels <- function(grid) {
+  if (!is.list(grid) || length(grid) != 2L) {
+    return(grid)
+  }
+  if (!is.list(grid[[1]]) || !is.list(grid[[2]])) {
+    return(grid)
+  }
+  if (length(grid[[1]]) != 1L || length(grid[[2]]) != 1L) {
+    return(grid)
+  }
+
+  top <- grid[[1]][[1]]
+  bottom <- grid[[2]][[1]]
+
+  if (is.null(top) || is.null(bottom)) {
+    return(grid)
+  }
+  if (!panel_has_layer_of_type(top, "candlestick")) {
+    return(grid)
+  }
+  if (!is_volume_only_bar_panel(bottom)) {
+    return(grid)
+  }
+
+  candle <- panel_layer_of_type(top, "candlestick")
+  bar    <- bottom$layers[[1]]
+  line   <- panel_layer_of_type(top, "line")  # may be NULL
+
+  # Embed volume y-values into candlestick data points
+  candle <- embed_volume_into_candle_data(candle, bar)
+
+  merged_layers <- list(candle, bar)
+  if (!is.null(line)) {
+    merged_layers[[length(merged_layers) + 1L]] <- line
+  }
+
+  merged_panel <- list(
+    id = top$id,
+    layers = merged_layers
+  )
+
+  # Return a 1x1 grid
+  list(list(merged_panel))
 }

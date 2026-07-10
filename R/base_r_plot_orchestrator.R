@@ -381,11 +381,52 @@ BaseRPlotOrchestrator <- R6::R6Class(
       } else {
         # Single panel case - original logic
         combined_data <- list()
+        layer_counter <- 0
 
         for (i in seq_along(layer_results)) {
           result <- layer_results[[i]]
           # Skip NULL results (from unknown/unsupported layers)
           if (is.null(result)) {
+            next
+          }
+
+          # --- Multi-layer expansion (e.g. candlestick + addVo volume) ---
+          if (isTRUE(result$multi_layer) && !is.null(result$layers)) {
+            for (sub in result$layers) {
+              layer_counter <- layer_counter + 1
+              sub_axes <- sub$axes
+              if (!is.null(private$.format_config)) {
+                sub_axes <- attach_axis_format(
+                  sub_axes, "x", private$.format_config$x
+                )
+                sub_axes <- attach_axis_format(
+                  sub_axes, "y", private$.format_config$y
+                )
+              }
+              validate_axes(
+                sub_axes, context = "base_r orchestrator (multi-layer)"
+              )
+              layer_obj <- list(
+                id = layer_counter,
+                selectors = sub$selectors,
+                type = sub$type,
+                data = sub$data,
+                title = if (!is.null(sub$title)) sub$title else "",
+                axes = sub_axes
+              )
+              for (field_name in names(sub)) {
+                if (!field_name %in% c(
+                  "selectors", "data", "title", "axes",
+                  "labels", "multi_layer", "layers"
+                )) {
+                  layer_obj[[field_name]] <- sub[[field_name]]
+                }
+              }
+              if (!is.null(sub$labels) && length(sub$labels) > 0) {
+                layer_obj$labels <- sub$labels
+              }
+              combined_data <- append(combined_data, list(layer_obj))
+            }
             next
           }
 
@@ -407,8 +448,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
           }
           validate_axes(layer_axes, context = "base_r orchestrator")
 
+          layer_counter <- layer_counter + 1
           layer_obj <- list(
-            id = i,
+            id = layer_counter,
             selectors = result$selectors,
             type = layer_type,
             data = result$data,
@@ -489,10 +531,41 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
 
       # Suppress native R graphics window by using a null PDF device
-      # This ensures only the HTML output is displayed
+      # This ensures only the HTML output is displayed.
+      # chartSeries (candlestick) needs a wider canvas (10x5) because its
+      # title + bracketed date range and 2-row month/year tick labels
+      # require ~10 in to render without clipping/overlap. quantmod
+      # centers the title at ~10% of canvas width and the date bracket at
+      # ~91%; at 9 in long titles still clipped on the left and the
+      # bracket extended past the right edge. Bumping to 10 in clears
+      # both for realistic ticker/title lengths. (See quantmod GH issue
+      # #129 for the underlying upstream layout limitation.) We widen
+      # ONLY when a chartSeries call is present, leaving all other plot
+      # types' visual aspect ratio (7x5) unchanged.
+      has_chartseries <- any(vapply(
+        private$.plot_groups,
+        function(g) identical(g$high_call$function_name, "chartSeries"),
+        logical(1)
+      ))
+      # Enlarge BOTH dimensions for chartSeries plots so the
+      # right-side date-range header (e.g. "[2024-01-12/2024-01-15]")
+      # and the bottom x-axis date labels (e.g. "Jan 12 / 2024")
+      # fit inside the gridSVG viewBox. With 10x5 in (720x360 px),
+      # short-timeseries chartSeries layouts overhung by ~18px right
+      # and ~22px bottom -- clipped by SVG root's default
+      # overflow:hidden. Bumping to 12x6 in (864x432 px) gives the
+      # internal layout 144 more px horizontally and 72 more px
+      # vertically, comfortably absorbing both overhangs. We CANNOT
+      # work around this with CSS `overflow: visible` because
+      # chartSeries also draws volume <rect>s with intentionally-
+      # negative y coordinates that rely on root clipping. We widen
+      # ONLY when a chartSeries call is present, leaving all other
+      # plot types' visual aspect ratio (7x5) unchanged.
+      gt_width  <- if (has_chartseries) 12 else 7
+      gt_height <- if (has_chartseries)  6 else 5
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
-      grDevices::pdf(null_pdf, width = 7, height = 5)
+      grDevices::pdf(null_pdf, width = gt_width, height = gt_height)
       on.exit(
         {
           grDevices::dev.off()

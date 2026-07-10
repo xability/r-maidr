@@ -125,6 +125,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       plot_for_render <- private$.plot
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
+        if (is.null(processor)) next
         if (isTRUE(processor$needs_reordering())) {
           if (
             is.data.frame(plot_for_render$data) &&
@@ -168,6 +169,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       layer_results <- list()
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
+        if (is.null(processor)) next
 
         result <- processor$process(
           plot_for_render,
@@ -230,6 +232,9 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       layer_counter <- 0
       for (i in seq_along(layer_results)) {
         result <- layer_results[[i]]
+        # Skip layers that were filtered out (e.g. GeomLinerangeBC wick layer
+        # tagged "skip" by the adapter; the orchestrator leaves a NULL slot).
+        if (is.null(result)) next
 
         # --- Multi-layer expansion (e.g. violin → violin_box + violin_kde) ---
         if (isTRUE(result$multi_layer) && !is.null(result$layers)) {
@@ -315,6 +320,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       combined_selectors <- list()
       for (result in layer_results) {
+        if (is.null(result)) next
         combined_selectors <- c(combined_selectors, result$selectors)
       }
 
@@ -326,6 +332,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
           id = paste0("maidr-subplot-", as.integer(Sys.time())),
           layers = combined_data
         )
+        # Collapse multiple line layers (e.g. candlestick + several MAs)
+        # into one multi-series line layer so the JS frontend announces
+        # them as one multiline layer (matching py-maidr).
+        single_subplot <- collapse_lines_to_multiseries(single_subplot)
         private$.combined_data <- list(list(single_subplot))
       } else {
         # Faceted/patchwork plots already have the correct 2D grid format
@@ -404,6 +414,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       plot_for_render <- private$.plot
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
+        if (is.null(processor)) next
         if (isTRUE(processor$needs_reordering())) {
           if (
             is.data.frame(plot_for_render$data) &&
