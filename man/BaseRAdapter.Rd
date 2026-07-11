@@ -2,28 +2,15 @@
 % Please edit documentation in R/base_r_adapter.R
 \name{BaseRAdapter}
 \alias{BaseRAdapter}
-\title{Base R System Adapter}
-\format{
-An R6 class inheriting from SystemAdapter
-}
+\title{Initialize the Base R adapter
+Check if this adapter can handle a plot object}
 \description{
-Adapter for the Base R plotting system. This adapter uses function patching
-to intercept Base R plotting calls and detect plot types.
+Initialize the Base R adapter
+Check if this adapter can handle a plot object
+
+Initialize the Base R adapter
+Check if this adapter can handle a plot object
 }
-\keyword{Base}
-\keyword{Check}
-\keyword{Initialize}
-\keyword{R}
-\keyword{a}
-\keyword{adapter}
-\keyword{can}
-\keyword{handle}
-\keyword{if}
-\keyword{internal}
-\keyword{object}
-\keyword{plot}
-\keyword{the}
-\keyword{this}
 \section{Super class}{
 \code{\link[maidr:SystemAdapter]{maidr::SystemAdapter}} -> \code{BaseRAdapter}
 }

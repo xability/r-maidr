@@ -1,7 +1,7 @@
 Package: maidr
 Type: Package
 Title: Multimodal Access and Interactive Data Representation
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: c(
     person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cph")),
     person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = c("aut", "cre"))
@@ -13,7 +13,8 @@ Description: Provides accessible, interactive visualizations through the 'MAIDR'
     'ggplot2' and Base R plots into accessible HTML/SVG formats with keyboard
     navigation, screen reader support, and 'sonification' capabilities. Supports
     bar charts (simple, grouped, stacked), histograms, line plots, scatter plots,
-    box plots, violin plots, heat maps, density/smooth curves, faceted plots,
+    box plots, violin plots, candlestick (OHLC) charts, heat maps,
+    density/smooth curves, faceted plots,
     multi-panel layouts (including patchwork), and multi-layered plot combinations. Enables
     data exploration for users with visual impairments through multiple sensory
     modalities. For more details see the 'MAIDR' project
@@ -44,7 +45,12 @@ Suggests:
     knitr,
     rmarkdown,
     quarto,
-    patchwork
+    patchwork,
+    tidyquant,
+    quantmod,
+    TTR,
+    zoo,
+    xts
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr

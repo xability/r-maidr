@@ -29,7 +29,10 @@
     "mosaicplot",
     "assocplot",
     "pairs",
-    "coplot"
+    "coplot",
+    # quantmod entry point for OHLC / candlestick charts. Only chartSeries is
+    # wrapped in the MVP; candleChart / barChart / lineChart are deferred.
+    "chartSeries"
   ),
   LOW = c(
     "lines",

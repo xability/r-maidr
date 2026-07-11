@@ -33,8 +33,12 @@ MAIDR helps data scientists and researchers create inclusive visualizations that
 Install the development version from GitHub:
 
 ```{r install, eval=FALSE}
+# Install the released version from CRAN
+install.packages("maidr")
+
+# Or the development version from GitHub:
 # install.packages("devtools")
-devtools::install_github("xability/r-maidr-prototype")
+devtools::install_github("xability/r-maidr")
 ```
 
 ## Basic Workflow
@@ -172,8 +176,17 @@ MAIDR supports a comprehensive range of visualizations:
 - Scatter plots
 - Line plots (single and multi-line)
 - Box plots
+- Violin plots (ggplot2 only)
+- Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
+  `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
+  Base R via `quantmod::chartSeries()` (OHLC-only — TA overlays such as
+  `addVo()`, `addSMA()`, `addEMA()` are not supported and fall back to
+  native graphics)
 - Heatmaps
 - Density/smooth curves
+
+See the [Examples article](https://r.maidr.ai/articles/examples.html) for the full candlestick + MA + volume
+pipeline and the Base R support matrix.
 
 ### Advanced Plot Types
 - **Faceted plots** - `facet_wrap()` and `facet_grid()` in ggplot2

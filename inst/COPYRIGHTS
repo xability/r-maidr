@@ -1,0 +1,24 @@
+The bundled MAIDR web assets in inst/htmlwidgets/lib/maidr-*/ (maidr.js and
+maidr.css) are the compiled distribution of the MAIDR project
+(https://maidr.ai, MIT License) and embed the following third-party
+open-source components:
+
+- React (https://react.dev)
+  Copyright (c) Meta Platforms, Inc. and affiliates. MIT License.
+
+- KaTeX (https://katex.org)
+  Copyright (c) Khan Academy and contributors. MIT License.
+  (KaTeX provides math rendering in maidr.js. The KaTeX_* web fonts that are
+  normally embedded in maidr.css are stripped from the copy shipped with this
+  R package to reduce installed size; KaTeX math glyphs therefore fall back to
+  system fonts. See tools/trim-maidr-css.R.)
+
+- D3 (https://d3js.org)
+  Copyright (c) Mike Bostock. ISC License.
+
+- Tone.js (https://tonejs.github.io)
+  Copyright (c) Yotam Mann. MIT License.
+
+All bundled components are distributed under permissive (MIT / ISC) licenses
+that are compatible with this package's GPL (>= 3) license. The full upstream
+license texts are available from each project's repository.

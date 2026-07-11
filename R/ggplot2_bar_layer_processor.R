@@ -104,13 +104,41 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         original_data <- plot$data
 
         # For bar plots, the built_data has one row per bar (after stat computation).
-        # We need x labels that match built_data rows, not the raw data rows.
-        # Best source: x-axis scale labels from built plot (handles stat="count",
-        # factor() expressions, and explicit stat="identity" equally well).
+        # We need per-row x values that match built_data rows.
+        #
+        # Strategy (in priority order):
+        #   1. Read the original data column directly (preserves Date/POSIXct
+        #      typing, formatted to ISO strings by `format_x_value()`).
+        #   2. Extract the underlying column for wrapped expressions like
+        #      `factor(cyl)`.
+        #   3. Fall back to the x-scale's break labels from `panel_params`
+        #      (covers stat="count" with non-column x mappings).
+        #   4. Last resort: row indices.
+        #
+        # Note: `panel_params$x$get_labels()` returns formatted axis-tick
+        # labels (e.g. "Dec 25", "Jan 01" for Date axes). It must NOT be the
+        # primary path or per-row dates degrade to sparse axis-break labels.
         x_values <- NULL
 
-        # First, try to get labels from the x scale in the built plot
-        if (!is.null(built)) {
+        # 1. Primary: per-row x values from the original data column.
+        if (!is.null(x_col) && x_col %in% names(original_data)) {
+          x_values <- sort(unique(original_data[[x_col]]))
+        }
+
+        # 2. Extract column from expression like factor(cyl).
+        if (is.null(x_values) && !is.null(x_expr)) {
+          expr_str <- rlang::as_label(x_expr)
+          match <- regmatches(expr_str, regexec("^(?:factor|as\\.factor|as\\.character)\\(([^)]+)\\)$", expr_str, perl = TRUE))
+          if (length(match[[1]]) > 1) {
+            base_col <- match[[1]][2]
+            if (base_col %in% names(original_data)) {
+              x_values <- sort(unique(original_data[[base_col]]))
+            }
+          }
+        }
+
+        # 3. Fall back to x-scale break labels.
+        if (is.null(x_values) && !is.null(built)) {
           panel_params <- built$layout$panel_params[[1]]
           if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
             scale_labels <- panel_params$x$get_labels()
@@ -123,24 +151,7 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
           }
         }
 
-        # Fallback: try unique values from original data column
-        if (is.null(x_values) && !is.null(x_col) && x_col %in% names(original_data)) {
-          x_values <- sort(unique(original_data[[x_col]]))
-        }
-
-        # Fallback: try to extract column from expression like factor(cyl)
-        if (is.null(x_values) && !is.null(x_expr)) {
-          expr_str <- rlang::as_label(x_expr)
-          match <- regmatches(expr_str, regexec("^(?:factor|as\\.factor|as\\.character)\\(([^)]+)\\)$", expr_str, perl = TRUE))
-          if (length(match[[1]]) > 1) {
-            base_col <- match[[1]][2]
-            if (base_col %in% names(original_data)) {
-              x_values <- sort(unique(original_data[[base_col]]))
-            }
-          }
-        }
-
-        # Last resort: use row indices
+        # 4. Last resort: row indices.
         if (is.null(x_values)) {
           x_values <- seq_len(nrow(built_data))
         }
@@ -151,7 +162,7 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
       for (i in seq_len(n)) {
         point <- list(
-          x = as.character(x_values[i]),
+          x = self$format_x_value(x_values[i]),
           y = built_data$y[i]
         )
         data_points[[i]] <- point
@@ -169,6 +180,21 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
       data_points
     },
+
+    #' @description Format an x-axis value as character.
+    #'
+    #' Date / POSIXct / POSIXlt values are formatted via `format()` so that a
+    #' `Date` column emits ISO date strings ("2024-01-02") rather than the
+    #' default scale-tick labels ("Jan 02"). All other types use
+    #' `as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
+    #' so candle and bar layers from the same Date column align string-wise.
+    format_x_value = function(x) {
+      if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
+        return(format(x))
+      }
+      as.character(x)
+    },
+
     generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
       # Prefer panel-scoped selection when panel_ctx is provided
       if (!is.null(panel_ctx) && !is.null(gt)) {

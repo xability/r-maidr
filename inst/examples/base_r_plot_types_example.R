@@ -713,3 +713,72 @@ save_html(file = percent_format_html_file)
 
 cat("✓ Base R bar plot with scales:: percent formatting example completed\n")
 cat("Generated:", percent_format_html_file, "\n")
+
+cat("\n=== Base R Candlestick (quantmod::chartSeries, OHLC-only) Example ===\n")
+
+# ---------------------------------------------------------------------------
+# Base R candlestick support is provided via quantmod::chartSeries() with
+# type = "candlesticks". The xts/zoo input is validated by quantmod::has.OHLC()
+# and each row is emitted as a navigable CandlestickPoint with value (ISO
+# date), open, high, low, close, computed trend (Bull / Bear / Neutral) and
+# volatility (high - low) fields.
+#
+# SUPPORT MATRIX FOR BASE R CANDLESTICK (chartSeries):
+#   Plain OHLC candlestick . . . . . . . . . . . . . . . . . . SUPPORTED
+#   TA = "addVo()" (volume sub-panel) . . . . . . . . . . . NOT SUPPORTED
+#   TA = "addSMA()" / "addEMA()" (moving averages) . . . . . NOT SUPPORTED
+#   Default TA with Volume column (auto-adds addVo()) . . . NOT SUPPORTED
+#
+# When chartSeries() is called with an unsupported TA (explicit OR the
+# implicit default-TA-with-Volume case), maidr emits a one-time warning
+# and falls back to native (non-accessible) graphics for that call. The
+# underlying gridSVG export pipeline mis-handles chartSeries' multi-panel
+# volume sub-plot; gridSVG is unmaintained (last CRAN release 2017).
+#
+# For accessible price + volume + moving-average charts, use the
+# ggplot2 + tidyquant::geom_candlestick() + tidyquant::geom_ma() +
+# patchwork pipeline shown in inst/examples/ggplot2_all_plot_types_example.R
+# (Tests 19-20) instead.
+# ---------------------------------------------------------------------------
+
+if (
+  requireNamespace("quantmod", quietly = TRUE) &&
+    requireNamespace("xts", quietly = TRUE)
+) {
+  # OHLC-only xts (no Volume column) so quantmod's default TA is a no-op.
+  TST <- xts::xts(
+    cbind(
+      Open  = c(101.00, 102.00, 105.00, 103.50),
+      High  = c(102.50, 105.50, 105.80, 104.50),
+      Low   = c(100.50, 101.80, 103.00, 102.50),
+      Close = c(102.00, 105.00, 103.50, 104.00)
+    ),
+    order.by = as.Date(c(
+      "2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15"
+    ))
+  )
+  colnames(TST) <- c("TST.Open", "TST.High", "TST.Low", "TST.Close")
+
+  candle_html_file <- file.path(output_dir, "example_candlestick_base_r.html")
+  # Unqualified chartSeries() so maidr's exported wrapper intercepts and
+  # records the call; a quantmod:: prefix would bypass maidr's capture.
+  suppressWarnings(
+    chartSeries(
+      TST,
+      type = "candlesticks",
+      theme = "white",
+      name = "TST"
+    )
+  )
+  save_html(file = candle_html_file)
+
+  cat("\u2713 Base R candlestick (quantmod::chartSeries) example completed\n")
+  cat("Generated:", candle_html_file, "\n")
+} else {
+  cat(
+    "Skipping Base R candlestick example: ",
+    "the {quantmod} and/or {xts} packages are not installed.\n",
+    "  install.packages(c(\"quantmod\", \"xts\"))\n",
+    sep = ""
+  )
+}

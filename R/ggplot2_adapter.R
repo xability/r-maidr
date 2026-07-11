@@ -35,7 +35,10 @@ Ggplot2Adapter <- R6::R6Class(
       stat_class <- class(layer$stat)[1]
       position_class <- class(layer$position)[1]
 
-      if (geom_class %in% c("GeomLine", "GeomPath")) {
+      # GeomMA comes from tidyquant::geom_ma() and inherits from GeomLine.
+      # We treat it as a regular line layer so moving averages overlaid on
+      # a candlestick chart are detected and rendered alongside the candles.
+      if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
         return("line")
       }
       if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
@@ -78,6 +81,19 @@ Ggplot2Adapter <- R6::R6Class(
 
       if (geom_class == "GeomViolin") {
         return("violin")
+      }
+
+      # tidyquant::geom_candlestick() expands to two layers:
+      #   - GeomLinerangeBC / StatLinerangeBC : the high-low wicks
+      #   - GeomRectCS      / StatRectCS      : the open-close bodies
+      # The wick layer is folded into the candlestick layer, so we tag it
+      # as "skip" and let the body layer's processor reach back into the
+      # wick grobs to build wick selectors.
+      if (geom_class == "GeomLinerangeBC" || stat_class == "StatLinerangeBC") {
+        return("skip")
+      }
+      if (geom_class == "GeomRectCS" || stat_class == "StatRectCS") {
+        return("candlestick")
       }
 
       if (geom_class == "GeomText") {

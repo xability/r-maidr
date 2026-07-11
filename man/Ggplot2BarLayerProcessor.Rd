@@ -4,6 +4,11 @@
 \alias{Ggplot2BarLayerProcessor}
 \title{Bar Layer Processor}
 \description{
+Bar Layer Processor
+
+Bar Layer Processor
+}
+\details{
 Processes bar plot layers with complete logic included
 }
 \keyword{internal}
@@ -17,6 +22,7 @@ Processes bar plot layers with complete logic included
 \item \href{#method-Ggplot2BarLayerProcessor-needs_reordering}{\code{Ggplot2BarLayerProcessor$needs_reordering()}}
 \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
 \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
+\item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
 \item \href{#method-Ggplot2BarLayerProcessor-generate_selectors}{\code{Ggplot2BarLayerProcessor$generate_selectors()}}
 \item \href{#method-Ggplot2BarLayerProcessor-clone}{\code{Ggplot2BarLayerProcessor$clone()}}
 }
@@ -82,6 +88,22 @@ Processes bar plot layers with complete logic included
   scale_mapping = NULL,
   panel_id = NULL
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-format_x_value"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-format_x_value}{}}}
+\subsection{Method \code{format_x_value()}}{
+Format an x-axis value as character.
+
+Date / POSIXct / POSIXlt values are formatted via `format()` so that a
+`Date` column emits ISO date strings ("2024-01-02") rather than the
+default scale-tick labels ("Jan 02"). All other types use
+`as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
+so candle and bar layers from the same Date column align string-wise.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
 }
 
 }

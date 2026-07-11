@@ -23,6 +23,13 @@ initialize_ggplot2_system <- function() {
   invisible(NULL)
 }
 
+# Hook run when quantmod is loaded after maidr, so maidr can wrap quantmod's
+# HIGH-level chartSeries() and record candlestick calls. Named (not anonymous)
+# so .onUnload can remove exactly this hook on unload.
+.maidr_quantmod_onload_hook <- function(...) {
+  tryCatch(wrap_function("chartSeries"), error = function(e) NULL)
+}
+
 # Auto-initialize systems when package is loaded
 .onLoad <- function(libname, pkgname) {
   # Set default options (respects user's .Rprofile settings)
@@ -67,6 +74,35 @@ initialize_ggplot2_system <- function() {
       # Not critical — ggplot2 may not be installed
       NULL
     }
+  )
+
+  # Late-binding wrapper installation for optional Suggests packages.
+  # quantmod is in Suggests; if it is loaded AFTER maidr we still need
+  # to wrap its HIGH-level chartSeries() so user calls get recorded.
+  tryCatch(
+    setHook(
+      packageEvent("quantmod", "onLoad"),
+      .maidr_quantmod_onload_hook
+    ),
+    error = function(e) NULL
+  )
+}
+
+# Remove the quantmod onLoad hook installed in .onLoad so the package unloads
+# cleanly without leaving global session state behind (CRAN policy).
+.onUnload <- function(libpath) {
+  tryCatch(
+    {
+      ev <- packageEvent("quantmod", "onLoad")
+      hooks <- getHook(ev)
+      if (length(hooks)) {
+        keep <- !vapply(
+          hooks, identical, logical(1), .maidr_quantmod_onload_hook
+        )
+        setHook(ev, hooks[keep], action = "replace")
+      }
+    },
+    error = function(e) NULL
   )
 }
 

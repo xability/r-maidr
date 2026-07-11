@@ -116,8 +116,9 @@ test_that("Ggplot2LineLayerProcessor handles single point line", {
   data <- processor$extract_data(p)
 
   testthat::expect_equal(length(data[[1]]), 1)
-  # Single-point plots use ggplot2's auto-generated scale with decimal formatting
-  testthat::expect_equal(data[[1]][[1]]$x, "1.000")
+  # Reads x directly from the original plot$data column (integer 1)
+  # rather than ggplot2's scale-formatted decimal label.
+  testthat::expect_equal(data[[1]][[1]]$x, "1")
   testthat::expect_equal(data[[1]][[1]]$y, 5)
 })
 
@@ -441,3 +442,140 @@ test_that("Ggplot2LineLayerProcessor extracts all metadata correctly", {
 })
 
 # Selector tests with grob tree skipped - tested at orchestrator level
+
+# ==============================================================================
+# Tier 5: Date / POSIXct x-axis, NA y handling (multiline bug fixes)
+# ==============================================================================
+
+test_that("Ggplot2LineLayerProcessor emits ISO date strings for Date x-axis", {
+  df <- data.frame(
+    date = seq(as.Date("2024-01-02"), by = "day", length.out = 5),
+    y = c(1, 2, 3, 4, 5)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = date, y = y)) +
+    ggplot2::geom_line()
+
+  layer_info <- list(index = 1)
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data), 1L)
+  testthat::expect_equal(length(data[[1]]), 5L)
+  for (pt in data[[1]]) {
+    testthat::expect_match(pt$x, "^\\d{4}-\\d{2}-\\d{2}$")
+  }
+  testthat::expect_equal(data[[1]][[1]]$x, "2024-01-02")
+})
+
+test_that("Ggplot2LineLayerProcessor emits ISO date strings for POSIXct x-axis", {
+  df <- data.frame(
+    when = as.POSIXct("2024-01-02 09:30:00", tz = "UTC") + (0:4) * 3600,
+    y = c(1, 2, 3, 4, 5)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = when, y = y)) +
+    ggplot2::geom_line()
+
+  layer_info <- list(index = 1)
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data[[1]]), 5L)
+  # POSIXct format() returns timestamp string starting with the date
+  testthat::expect_match(data[[1]][[1]]$x, "^2024-01-02")
+})
+
+test_that("Ggplot2LineLayerProcessor drops NA y-rows (single line)", {
+  # NA y rows are dropped so that emitted data length matches the rendered
+  # gridSVG polyline's `points` attribute length. Otherwise the MAIDR JS
+  # frontend's polyline-path-parsing path maps row[i] to coord[i] and is
+  # shifted by the count of leading NAs.
+  df <- data.frame(x = 1:5, y = c(NA, 2, 3, NA, 5))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line()
+
+  layer_info <- list(index = 1)
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data[[1]]), 3L)
+  testthat::expect_equal(data[[1]][[1]]$y, 2)
+  testthat::expect_equal(data[[1]][[2]]$y, 3)
+  testthat::expect_equal(data[[1]][[3]]$y, 5)
+  for (pt in data[[1]]) {
+    testthat::expect_false(is.na(pt$y))
+  }
+})
+
+test_that("Ggplot2LineLayerProcessor drops NA y-rows in multiline series", {
+  df <- data.frame(
+    x = rep(1:4, 2),
+    y = c(NA, 2, NA, 4, 1, NA, 3, NA),
+    g = rep(c("A", "B"), each = 4)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = g)) +
+    ggplot2::geom_line()
+
+  layer_info <- list(index = 1)
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data), 2L)
+  # Series A had NAs at positions 1 and 3 -> only 2 surviving points.
+  testthat::expect_equal(length(data[[1]]), 2L)
+  testthat::expect_equal(data[[1]][[1]]$y, 2)
+  testthat::expect_equal(data[[1]][[2]]$y, 4)
+  # Series B had NAs at positions 2 and 4 -> only 2 surviving points.
+  testthat::expect_equal(length(data[[2]]), 2L)
+  testthat::expect_equal(data[[2]][[1]]$y, 1)
+  testthat::expect_equal(data[[2]][[2]]$y, 3)
+  for (series in data) for (pt in series) {
+    testthat::expect_false(is.na(pt$y))
+  }
+})
+
+test_that("Ggplot2LineLayerProcessor data length matches polyline points (SMA case)", {
+  # Mirrors the candlestick + geom_ma scenario: a moving-average overlay's
+  # warm-up period contributes leading NA y values. The emitted data length
+  # per series must equal the rendered polyline's coordinate count so the
+  # MAIDR JS highlight-to-point mapping aligns.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = rep(1:10, 2),
+    # Series A: 3 leading NAs (e.g. SMA-4); Series B: 5 leading NAs
+    y = c(rep(NA_real_, 3), 4:10, rep(NA_real_, 5), 6:10),
+    g = rep(c("A", "B"), each = 10)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = g)) +
+    ggplot2::geom_line()
+
+  layer_info <- list(index = 1)
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data[[1]]), 7L) # 10 - 3 leading NA
+  testthat::expect_equal(length(data[[2]]), 5L) # 10 - 5 leading NA
+})
+
+test_that("merge_line_layers dedupes selectors to match series count", {
+  # Two input line layers, each with 1 series and the same 2 selectors (the
+  # symptom of the panel-discovery path returning all panel polylines per
+  # layer). After merge: 2 data series and exactly 2 unique selectors.
+  layer_a <- list(
+    id = "a", type = "line", title = "", axes = NULL,
+    data = list(list(list(x = "1", y = 1))),
+    selectors = list("#sel.A", "#sel.B")
+  )
+  layer_b <- list(
+    id = "b", type = "line", title = "", axes = NULL,
+    data = list(list(list(x = "1", y = 2))),
+    selectors = list("#sel.A", "#sel.B")
+  )
+  merged <- maidr:::merge_line_layers(list(layer_a, layer_b))
+
+  testthat::expect_equal(merged$type, "line")
+  testthat::expect_equal(length(merged$data), 2L)
+  testthat::expect_equal(length(merged$selectors), 2L)
+  testthat::expect_equal(merged$selectors[[1]], "#sel.A")
+  testthat::expect_equal(merged$selectors[[2]], "#sel.B")
+})

@@ -354,3 +354,77 @@ test_that("Ggplot2BarLayerProcessor extracts all metadata correctly", {
 })
 
 # Selector tests with grob tree skipped - tested at orchestrator level
+
+# ==============================================================================
+# Date / POSIXct x-axis handling
+# ------------------------------------------------------------------------------
+# Regression tests for the bug where `panel_params$x$get_labels()` returned
+# sparse axis-break labels ("Dec 25", "Jan 01", ...) instead of per-row date
+# values. The processor must now emit ISO date strings sourced from the
+# original data column.
+# ==============================================================================
+
+test_that("Ggplot2BarLayerProcessor emits ISO date strings for Date x-axis", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    date = seq(as.Date("2024-01-02"), by = "day", length.out = 5),
+    volume = c(100, 200, 150, 300, 250)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = date, y = volume)) +
+    ggplot2::geom_col()
+
+  processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data), 5L)
+  testthat::expect_equal(data[[1]]$x, "2024-01-02")
+  testthat::expect_equal(data[[2]]$x, "2024-01-03")
+  testthat::expect_equal(data[[3]]$x, "2024-01-04")
+  testthat::expect_equal(data[[4]]$x, "2024-01-05")
+  testthat::expect_equal(data[[5]]$x, "2024-01-06")
+
+  # No point should accidentally pick up a scale-break label.
+  all_x <- vapply(data, function(pt) pt$x, character(1))
+  testthat::expect_false(any(grepl("^[A-Z][a-z]{2} \\d{2}$", all_x)))
+})
+
+test_that("Ggplot2BarLayerProcessor emits formatted timestamps for POSIXct x-axis", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    ts = as.POSIXct("2024-01-02 09:30:00", tz = "UTC") +
+      seq(0, by = 3600, length.out = 4),
+    y = 1:4
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = ts, y = y)) +
+    ggplot2::geom_col()
+
+  processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(p)
+
+  testthat::expect_equal(length(data), 4L)
+  # `format()` of a POSIXct returns "YYYY-MM-DD HH:MM:SS".
+  for (pt in data) {
+    testthat::expect_match(pt$x, "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$")
+  }
+})
+
+test_that("Ggplot2BarLayerProcessor preserves character x ordering", {
+  # Regression: factor / character x-axis must still sort alphabetically
+  # since `sort(unique(...))` is now the primary path.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    cat = c("Apple", "Banana", "Cherry"),
+    y   = c(3, 1, 2)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = cat, y = y)) +
+    ggplot2::geom_col()
+
+  processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(p)
+
+  xs <- vapply(data, function(pt) pt$x, character(1))
+  testthat::expect_equal(xs, c("Apple", "Banana", "Cherry"))
+})
