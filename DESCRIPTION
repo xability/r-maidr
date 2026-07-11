@@ -1,10 +1,10 @@
 Package: maidr
 Type: Package
 Title: Multimodal Access and Interactive Data Representation
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: c(
-    person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cph")),
-    person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = c("aut", "cre"))
+    person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cre", "cph")),
+    person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = "aut")
     )
 URL: https://github.com/xability/r-maidr, https://r.maidr.ai/
 BugReports: https://github.com/xability/r-maidr/issues

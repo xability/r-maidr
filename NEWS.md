@@ -1,3 +1,14 @@
+# maidr 0.4.1
+
+## Maintainer change
+
+* Maintainer changed from Niranjan Kalaiselvan (nk46@illinois.edu) to
+  JooYoung Seo (jseo1005@illinois.edu).
+
+## Other changes
+
+* Updated the bundled MAIDR JavaScript/CSS from v3.69.0 to v3.72.1.
+
 # maidr 0.4.0
 
 ## New Features
