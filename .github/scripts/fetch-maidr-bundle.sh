@@ -92,7 +92,9 @@ if [ -n "$INTEGRITY" ]; then
   fi
   echo "Verified tarball ${ALGO} integrity" >&2
 elif [ -n "$SHASUM" ]; then
-  ACTUAL=$(sha1sum "$TGZ" | awk '{print $1}')
+  # openssl rather than sha1sum: the latter is GNU coreutils and absent on
+  # stock macOS, and openssl is already required for the SRI path above.
+  ACTUAL=$(openssl dgst -sha1 "$TGZ" | awk '{print $NF}')
   if [ "$ACTUAL" != "$SHASUM" ]; then
     echo "Shasum check failed for maidr@$VERSION tarball" >&2
     exit 1

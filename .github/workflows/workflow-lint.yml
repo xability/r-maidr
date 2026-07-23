@@ -27,8 +27,10 @@ jobs:
 
       # actionlint validates the workflow YAML and shellchecks inline `run`
       # blocks, catching the class of shell/quoting bugs this automation
-      # is prone to.
+      # is prone to. Both the installer script and the release artifact it
+      # downloads are pinned to a tagged version so the bytes fetched here
+      # are reviewable and cannot change out from under the job.
       - name: actionlint
         run: |
-          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
           ./actionlint -color
