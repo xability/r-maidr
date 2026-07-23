@@ -1,0 +1,34 @@
+name: workflow-lint
+
+# The bundle-refresh automation in this repo is shell embedded in YAML — a
+# class of code that has historically hidden subtle quoting/logic bugs (see
+# xability/py-maidr#286 for the same hardening). ShellCheck covers the
+# standalone scripts and actionlint validates the workflow YAML, including
+# shellchecking inline `run` blocks.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions: read-all
+
+jobs:
+  workflow-lint:
+    name: Lint workflows and shell scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # shellcheck is pre-installed on the ubuntu-latest runner image.
+      - name: ShellCheck shell scripts
+        run: shellcheck .github/scripts/*.sh
+
+      # actionlint validates the workflow YAML and shellchecks inline `run`
+      # blocks, catching the class of shell/quoting bugs this automation
+      # is prone to.
+      - name: actionlint
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
