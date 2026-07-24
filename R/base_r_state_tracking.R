@@ -91,14 +91,18 @@ on_high_level_call <- function(device_id = grDevices::dev.cur(), call_index) {
 on_layout_call <- function(device_id = grDevices::dev.cur(), function_name, args) {
   state <- get_device_state(device_id)
 
-  if (function_name == "par" && !is.null(args$mfrow)) {
-    mfrow <- args$mfrow
+  if (
+    function_name == "par" &&
+      (!is.null(args[["mfrow"]]) || !is.null(args[["mfcol"]]))
+  ) {
+    layout_vec <- if (!is.null(args[["mfrow"]])) args[["mfrow"]] else args[["mfcol"]]
+    layout_type <- if (!is.null(args[["mfrow"]])) "mfrow" else "mfcol"
     state$panel_config <- list(
-      type = "mfrow",
-      nrows = mfrow[1],
-      ncols = mfrow[2],
+      type = layout_type,
+      nrows = layout_vec[1],
+      ncols = layout_vec[2],
       current_panel = 0,
-      total_panels = mfrow[1] * mfrow[2]
+      total_panels = layout_vec[1] * layout_vec[2]
     )
     state$layout_active <- TRUE
     state$current_plot_index <- 0
