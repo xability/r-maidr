@@ -20,8 +20,13 @@ visualizations that everyone can explore, regardless of visual ability.
 Install the development version from GitHub:
 
 ``` r
+
+# Install the released version from CRAN
+install.packages("maidr")
+
+# Or the development version from GitHub:
 # install.packages("devtools")
-devtools::install_github("xability/r-maidr-prototype")
+devtools::install_github("xability/r-maidr")
 ```
 
 ## Basic Workflow
@@ -36,6 +41,7 @@ MAIDR works with two main functions:
 ### Quick Example: ggplot2 Bar Chart
 
 ``` r
+
 library(maidr)
 library(ggplot2)
 
@@ -67,6 +73,7 @@ save_html(p, "sales_chart.html")
 MAIDR also works with Base R plotting functions:
 
 ``` r
+
 library(maidr)
 
 # Create a simple barplot
@@ -94,6 +101,7 @@ MAIDR.js library from a CDN when online. You can control this behavior
 with the `use_cdn` parameter:
 
 ``` r
+
 library(maidr)
 library(ggplot2)
 
@@ -114,6 +122,7 @@ The same parameter works with
 [`save_html()`](https://r.maidr.ai/reference/save_html.md):
 
 ``` r
+
 # Save with CDN links (smaller file, needs internet to view)
 save_html(p, "plot_cdn.html", use_cdn = TRUE)
 
@@ -164,8 +173,19 @@ MAIDR supports a comprehensive range of visualizations:
 - Scatter plots
 - Line plots (single and multi-line)
 - Box plots
+- Violin plots (ggplot2 only)
+- Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
+  `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
+  Base R via
+  [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)
+  (OHLC-only — TA overlays such as `addVo()`, `addSMA()`, `addEMA()` are
+  not supported and fall back to native graphics)
 - Heatmaps
 - Density/smooth curves
+
+See the [Examples article](https://r.maidr.ai/articles/examples.html)
+for the full candlestick + MA + volume pipeline and the Base R support
+matrix.
 
 ### Advanced Plot Types
 
@@ -196,6 +216,7 @@ MAIDR supports a comprehensive range of visualizations:
 ### Histogram
 
 ``` r
+
 library(maidr)
 library(ggplot2)
 
@@ -217,6 +238,7 @@ show(p)
 ### Scatter Plot
 
 ``` r
+
 library(maidr)
 library(ggplot2)
 
@@ -242,6 +264,7 @@ show(p)
 ### Line Plot
 
 ``` r
+
 library(maidr)
 library(ggplot2)
 

@@ -19,12 +19,14 @@ The package provides two main functions:
 Install the stable release from CRAN:
 
 ``` r
+
 install.packages("maidr")
 ```
 
 Or install the development version from GitHub:
 
 ``` r
+
 # Using pak (recommended)
 pak::pak("xability/r-maidr")
 
@@ -37,6 +39,7 @@ pacman::p_load_gh("xability/r-maidr")
 ### ggplot2
 
 ``` r
+
 library(maidr)
 library(ggplot2)
 
@@ -54,6 +57,7 @@ save_html(p, "vehicle_classes.html")
 ### Base R
 
 ``` r
+
 library(maidr)
 
 # Create plot first
@@ -75,26 +79,35 @@ Base R:
 
 ### Basic Plot Types
 
-| Plot Type           | ggplot2                                                                                                                                                    | Base R                                                                           |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| Bar charts          | [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html), [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)               | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)                   |
-| Grouped/Dodged bars | `position = "dodge"`                                                                                                                                       | `beside = TRUE`                                                                  |
-| Stacked bars        | `position = "stack"`                                                                                                                                       | `beside = FALSE`                                                                 |
-| Histograms          | [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html)                                                                          | [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md)                      |
-| Scatter plots       | [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)                                                                                  | [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)                      |
-| Line plots          | [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)                                                                                    | `plot(type = "l")`, [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| Box plots           | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html)                                                                              | [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)                   |
-| Heatmaps            | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)                                                                                    | [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md)                     |
-| Violin plots        | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html)                                                                                | —                                                                                |
-| Density/Smooth      | [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html), [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) | `lines(density())`                                                               |
+| Plot Type | ggplot2 | Base R |
+|----|----|----|
+| Bar charts | [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html), [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Grouped/Dodged bars | `position = "dodge"` | `beside = TRUE` |
+| Stacked bars | `position = "stack"` | `beside = FALSE` |
+| Histograms | [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html) | [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Scatter plots | [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html) | [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Line plots | [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html) | `plot(type = "l")`, [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Box plots | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html) | [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Heatmaps | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html) | [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Violin plots | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html) | — |
+| Candlestick (OHLC) | [`tidyquant::geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html) (+ `geom_ma()`, + patchwork volume) | [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html) (OHLC-only; no TA / no volume) |
+| Density/Smooth | [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html), [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) | `lines(density())` |
+
+Note: Volume bars and moving-average overlays for candlestick charts are
+supported only on the ggplot2 + {tidyquant} + {patchwork} path. On the
+Base R path,
+[`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)
+`TA` overlays (`addVo()`, `addSMA()`, `addEMA()`) — and the default `TA`
+whenever the input `xts` carries a `Volume` column — fall back to native
+(non-accessible) graphics with a one-time advisory.
 
 ### Advanced Plot Types
 
-| Plot Type           | ggplot2                                                                                                                                              | Base R                     |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
-| Faceted plots       | [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html), [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html) | `par(mfrow/mfcol)` + loops |
-| Multi-panel layouts | `patchwork` package                                                                                                                                  | `par(mfrow)`, `par(mfcol)` |
-| Multi-layered plots | Multiple `geom_*` layers                                                                                                                             | Sequential plot calls      |
+| Plot Type | ggplot2 | Base R |
+|----|----|----|
+| Faceted plots | [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html), [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html) | `par(mfrow/mfcol)` + loops |
+| Multi-panel layouts | `patchwork` package | `par(mfrow)`, `par(mfcol)` |
+| Multi-layered plots | Multiple `geom_*` layers | Sequential plot calls |
 
 See `vignette("plot-types")` for detailed examples of each plot type.
 
@@ -112,6 +125,7 @@ MAIDR.js library from a CDN. Use the `use_cdn` parameter for explicit
 control:
 
 ``` r
+
 # Force CDN (requires internet)
 show(p, use_cdn = TRUE)
 

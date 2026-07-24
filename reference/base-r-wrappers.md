@@ -48,9 +48,11 @@ pairs(...)
 
 coplot(...)
 
-lines(x, ...)
+chartSeries(...)
 
-points(x, ...)
+lines(...)
+
+points(...)
 
 text(...)
 

@@ -24,6 +24,7 @@ Shiny app.
 Here’s a complete minimal Shiny app using MAIDR:
 
 ``` r
+
 library(shiny)
 library(ggplot2)
 library(maidr)
@@ -91,6 +92,7 @@ shinyApp(ui = ui, server = server)
 Here’s a more comprehensive dashboard with multiple plots:
 
 ``` r
+
 library(shiny)
 library(shinydashboard)
 library(ggplot2)
@@ -242,6 +244,7 @@ shinyApp(ui = ui, server = server)
 MAIDR works seamlessly with Shiny’s reactive programming:
 
 ``` r
+
 library(shiny)
 library(ggplot2)
 library(maidr)
@@ -325,6 +328,7 @@ When using MAIDR in Shiny, your plots automatically include:
 ### 1. Set Appropriate Heights
 
 ``` r
+
 # Good: Explicit height
 maidr_output("plot1", height = "500px")
 
@@ -335,6 +339,7 @@ maidr_output("plot2", height = "auto")
 ### 2. Add Descriptive Context
 
 ``` r
+
 fluidRow(
   box(
     title = "Sales Trend Analysis",
@@ -355,6 +360,7 @@ fluidRow(
 ### 4. Provide Alternative Text
 
 ``` r
+
 output$my_plot <- render_maidr({
   p <- ggplot(data, aes(x, y)) +
     geom_bar(stat = "identity") +
@@ -384,6 +390,7 @@ For large Shiny apps with many plots:
 See the complete MAIDR dashboard example in:
 
 ``` r
+
 system.file("examples", "maidr_dashboard.R", package = "maidr")
 ```
 

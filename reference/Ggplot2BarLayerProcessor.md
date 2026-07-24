@@ -1,5 +1,11 @@
 # Bar Layer Processor
 
+Bar Layer Processor
+
+Bar Layer Processor
+
+## Details
+
 Processes bar plot layers with complete logic included
 
 ## Super class
@@ -18,6 +24,8 @@ Processes bar plot layers with complete logic included
 - [`Ggplot2BarLayerProcessor$reorder_layer_data()`](#method-Ggplot2BarLayerProcessor-reorder_layer_data)
 
 - [`Ggplot2BarLayerProcessor$extract_data()`](#method-Ggplot2BarLayerProcessor-extract_data)
+
+- [`Ggplot2BarLayerProcessor$format_x_value()`](#method-Ggplot2BarLayerProcessor-format_x_value)
 
 - [`Ggplot2BarLayerProcessor$generate_selectors()`](#method-Ggplot2BarLayerProcessor-generate_selectors)
 
@@ -79,6 +87,23 @@ Inherited methods
       scale_mapping = NULL,
       panel_id = NULL
     )
+
+------------------------------------------------------------------------
+
+### Method `format_x_value()`
+
+Format an x-axis value as character.
+
+Date / POSIXct / POSIXlt values are formatted via \`format()\` so that a
+\`Date\` column emits ISO date strings ("2024-01-02") rather than the
+default scale-tick labels ("Jan 02"). All other types use
+\`as.character()\`. Mirrors
+\`Ggplot2CandlestickProcessor\$format_x_value()\` so candle and bar
+layers from the same Date column align string-wise.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$format_x_value(x)
 
 ------------------------------------------------------------------------
 

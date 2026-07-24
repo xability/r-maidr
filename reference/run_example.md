@@ -48,6 +48,8 @@ run_example()
 #> ggplot2 examples:
 #>   - bar
 #>   - boxplot
+#>   - candlestick
+#>   - candlestick_with_ma_volume
 #>   - dodged_bar
 #>   - faceted
 #>   - heatmap

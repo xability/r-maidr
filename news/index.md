@@ -1,5 +1,28 @@
 # Changelog
 
+## maidr 0.4.0
+
+CRAN release: 2026-07-10
+
+### New Features
+
+- Added candlestick (OHLC) chart support for ‘ggplot2’ via the
+  ‘tidyquant’ package’s
+  [`geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html).
+  Each candle is exposed as a single navigable element with `open`,
+  `high`, `low`, `close`, optional `volume`, and computed `trend` (Bull
+  / Bear / Neutral) and `volatility` (high − low) fields.
+- Added Base R candlestick (OHLC) chart support via
+  `quantmod::chartSeries(x, type = "candlesticks")`. The xts/zoo input
+  is validated with
+  [`quantmod::has.OHLC()`](https://rdrr.io/pkg/quantmod/man/has.html)
+  and each row is emitted as a navigable `CandlestickPoint` with `value`
+  (ISO date), `open`, `high`, `low`, `close`, computed `trend` (Bull /
+  Bear / Neutral) and `volatility` (high − low) fields, plus optional
+  `volume` when
+  [`quantmod::has.Vo()`](https://rdrr.io/pkg/quantmod/man/has.html) is
+  `TRUE`.
+
 ## maidr 0.2.0
 
 CRAN release: 2026-03-07

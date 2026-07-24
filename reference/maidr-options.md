@@ -29,6 +29,7 @@ system.
 
 Options can be set in your `.Rprofile` to persist across sessions:
 
+
     # Disable ggplot2 interception by default
     options(maidr.ggplot2 = FALSE)
 

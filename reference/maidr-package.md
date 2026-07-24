@@ -126,6 +126,7 @@ The package integrates seamlessly with:
 
 To create your first accessible plot:
 
+
     library(maidr)
     library(ggplot2)
 
@@ -140,6 +141,7 @@ To create your first accessible plot:
     save_html(p, file = "my_plot.html")
 
 For Base R plots:
+
 
     library(maidr)
 

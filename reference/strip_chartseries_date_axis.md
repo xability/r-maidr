@@ -1,0 +1,45 @@
+# Strip the bottom axis line and tick marks from chartSeries candlestick SVG
+
+quantmod::chartSeries() emits a bottom date axis (axis line, tick marks,
+and "Jan 12 2024" labels) via gridSVG. The axis line and tick marks are
+drawn slightly off-center from the candles (gridSVG places ticks at
+evenly-spaced positions that do not always coincide with the candle
+centers), which reads as a visual misalignment. This helper removes the
+axis line and tick marks but preserves the date labels themselves so the
+chart still communicates which date each candle represents visually.
+Per-row date info is also encoded in the maidr-data JSON for the screen
+reader.
+
+## Usage
+
+``` r
+strip_chartseries_date_axis(svg_content, maidr_data)
+```
+
+## Arguments
+
+- svg_content:
+
+  Character vector of SVG lines
+
+- maidr_data:
+
+  The maidr-data structure (read-only; used to detect candlestick
+  layers)
+
+## Value
+
+Modified SVG content (character vector). If any guard fails, returns
+\`svg_content\` unchanged.
+
+## Details
+
+The relevant groups have IDs of the form
+\`graphics-plot-N-bottom-axis-(line\|ticks)-...\`; we match by substring
+with \`contains(@id, 'bottom-axis-(line\|ticks)-')\` and explicitly
+leave \`bottom-axis-labels-\` untouched.
+
+Safety: no-op when \`maidr_data\` contains no candlestick layers (ggplot
+candlestick / non-candlestick plots use different SVG IDs and are
+unaffected), when xml2 is unavailable, when SVG parsing fails, or when
+no matching groups are found.

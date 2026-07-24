@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="favicon.ico">
 <link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <script src="extra.js"></script><meta property="og:title" content="maidr - Accessible ggplot2 &amp; R Plots with Sonification">
@@ -125,7 +125,7 @@
 
     <a class="navbar-brand me-2" href="index.html">maidr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -241,62 +241,69 @@
 <col width="32%">
 <col width="28%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Plot Type</th>
 <th>ggplot2</th>
 <th>Base R</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Bar charts</td>
 <td>
 <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col()</a></code>
 </td>
 <td><code><a href="reference/base-r-wrappers.html">barplot()</a></code></td>
 </tr>
-<tr class="even">
+<tr>
 <td>Grouped/Dodged bars</td>
 <td><code>position = "dodge"</code></td>
 <td><code>beside = TRUE</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Stacked bars</td>
 <td><code>position = "stack"</code></td>
 <td><code>beside = FALSE</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td>Histograms</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram()</a></code></td>
 <td><code><a href="reference/base-r-wrappers.html">hist()</a></code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Scatter plots</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code></td>
 <td><code><a href="reference/base-r-wrappers.html">plot()</a></code></td>
 </tr>
-<tr class="even">
+<tr>
 <td>Line plots</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code></td>
 <td>
 <code>plot(type = "l")</code>, <code><a href="reference/base-r-wrappers.html">lines()</a></code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Box plots</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot()</a></code></td>
 <td><code><a href="reference/base-r-wrappers.html">boxplot()</a></code></td>
 </tr>
-<tr class="even">
+<tr>
 <td>Heatmaps</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code></td>
 <td><code><a href="reference/base-r-wrappers.html">image()</a></code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Violin plots</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin()</a></code></td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr>
+<td>Candlestick (OHLC)</td>
+<td>
+<code><a href="https://business-science.github.io/tidyquant/reference/geom_chart.html" class="external-link">tidyquant::geom_candlestick()</a></code> (+ <code>geom_ma()</code>, + patchwork volume)</td>
+<td>
+<code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code> (OHLC-only; no TA / no volume)</td>
+</tr>
+<tr>
 <td>Density/Smooth</td>
 <td>
 <code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code>
@@ -305,6 +312,7 @@
 </tr>
 </tbody>
 </table>
+<p>Note: Volume bars and moving-average overlays for candlestick charts are supported only on the ggplot2 + {tidyquant} + {patchwork} path. On the Base R path, <code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code> <code>TA</code> overlays (<code>addVo()</code>, <code>addSMA()</code>, <code>addEMA()</code>) — and the default <code>TA</code> whenever the input <code>xts</code> carries a <code>Volume</code> column — fall back to native (non-accessible) graphics with a one-time advisory.</p>
 </div>
 <div class="section level3">
 <h3 id="advanced-plot-types">Advanced Plot Types<a class="anchor" aria-label="anchor" href="#advanced-plot-types"></a>
@@ -315,13 +323,13 @@
 <col width="32%">
 <col width="28%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Plot Type</th>
 <th>ggplot2</th>
 <th>Base R</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Faceted plots</td>
 <td>
 <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid()</a></code>
@@ -329,7 +337,7 @@
 <td>
 <code>par(mfrow/mfcol)</code> + loops</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Multi-panel layouts</td>
 <td>
 <code>patchwork</code> package</td>
@@ -337,7 +345,7 @@
 <code>par(mfrow)</code>, <code>par(mfcol)</code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Multi-layered plots</td>
 <td>Multiple <code>geom_*</code> layers</td>
 <td>Sequential plot calls</td>
@@ -446,7 +454,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
