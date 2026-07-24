@@ -25,6 +25,8 @@
 ^_pkgdown\.yml$
 ^pkgdown$
 ^\.github$
+^\.releaserc\.json$
+^\.commitlintrc\.cjs$
 ^doc$
 ^Meta$
 ^CRAN-SUBMISSION$

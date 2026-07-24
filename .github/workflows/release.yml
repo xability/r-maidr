@@ -1,0 +1,141 @@
+name: Release
+
+# Automated version + changelog management for r-maidr, mirroring the
+# semantic-release pipelines already used by the sibling repositories:
+# py-maidr (python-semantic-release) and maidr (semantic-release).
+#
+# Conventional commits on ``main`` drive the whole release:
+#   feat            -> minor bump
+#   fix / perf      -> patch bump
+#   BREAKING CHANGE -> major bump
+#   anything else   -> no release
+#
+# When a release is due, semantic-release (configured in .releaserc.json):
+#   1. computes the next version from commits since the last ``v*`` tag,
+#   2. prepends a generated section to NEWS.md (R-style ``# maidr X.Y.Z``
+#      headings so pkgdown and utils::news() keep parsing it),
+#   3. rewrites the Version field in DESCRIPTION
+#      (.github/scripts/set-version.sh),
+#   4. commits DESCRIPTION + NEWS.md back to main, tags ``vX.Y.Z``, and
+#      publishes a GitHub release with the same notes.
+#
+# CRAN submission stays manual — CRAN has no submission API — but after
+# this workflow runs, main always carries a submission-ready Version and
+# NEWS.md, so a maintainer can build and submit whenever a CRAN release
+# is wanted.
+#
+# One-time bootstrap: semantic-release derives versions from Git tags and
+# this repository historically had none. Before the first automated
+# release, create a baseline tag matching the Version in DESCRIPTION on
+# the commit that introduced it, e.g.:
+#   git tag v0.4.0 <commit-sha> && git push origin v0.4.0
+# The guard step below fails loudly (instead of silently releasing 1.0.0)
+# until that tag exists, and on every run it also requires the newest
+# ``v*`` tag to match DESCRIPTION's Version, so an unrelated or stale tag
+# can never silently become the release baseline.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: R-CMD-check (release gate)
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+          cache-version: 2
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+
+  commit-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint commit messages
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          failOnWarnings: 'false'
+          commitDepth: 1
+
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    concurrency: push
+    needs: [check, commit-lint]
+    if: github.repository == 'xability/r-maidr'
+    permissions:
+      contents: write # push the release commit + tag, create the GitHub release
+      issues: write # comment on issues resolved by the release
+      pull-requests: write # comment on PRs included in the release
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Ensure release baseline matches DESCRIPTION
+        # Without any v* tag semantic-release treats the next release as
+        # the first ever and jumps straight to 1.0.0, and with a wrong or
+        # stale tag it would compute the next version from the wrong
+        # baseline. Refuse to run unless the newest v* tag agrees with the
+        # Version currently in DESCRIPTION — an invariant every automated
+        # release re-establishes, so a mismatch always means manual drift
+        # that needs a maintainer's attention.
+        run: |
+          CURRENT=$(sed -n 's/^Version: //p' DESCRIPTION)
+          LATEST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          if [ -z "${LATEST_TAG}" ]; then
+            echo "::error::No v* tag found. Create a baseline tag for the current version first, e.g.: git tag v${CURRENT} <commit-that-set-${CURRENT}> && git push origin v${CURRENT}"
+            exit 1
+          fi
+          if [ "${LATEST_TAG}" != "v${CURRENT}" ]; then
+            echo "::error::Newest tag ${LATEST_TAG} does not match DESCRIPTION Version ${CURRENT}. Re-align the baseline tag and DESCRIPTION before releasing."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # commit-analyzer, release-notes-generator, and github ship with
+        # semantic-release itself; only the extra plugins and the
+        # conventionalcommits preset need to be provided explicitly.
+        run: |
+          npx --yes \
+            --package semantic-release@24 \
+            --package @semantic-release/changelog@6 \
+            --package @semantic-release/exec@7 \
+            --package @semantic-release/git@10 \
+            --package conventional-changelog-conventionalcommits@8 \
+            semantic-release
