@@ -4,6 +4,11 @@
 \alias{BaseRHeatmapLayerProcessor}
 \title{Base R Heatmap Layer Processor}
 \description{
+Base R Heatmap Layer Processor
+
+Base R Heatmap Layer Processor
+}
+\details{
 Processes Base R heatmap layers using the heatmap() function
 }
 \keyword{internal}
@@ -15,6 +20,7 @@ Processes Base R heatmap layers using the heatmap() function
 \itemize{
 \item \href{#method-BaseRHeatmapLayerProcessor-process}{\code{BaseRHeatmapLayerProcessor$process()}}
 \item \href{#method-BaseRHeatmapLayerProcessor-extract_data}{\code{BaseRHeatmapLayerProcessor$extract_data()}}
+\item \href{#method-BaseRHeatmapLayerProcessor-compute_heatmap_ordering}{\code{BaseRHeatmapLayerProcessor$compute_heatmap_ordering()}}
 \item \href{#method-BaseRHeatmapLayerProcessor-generate_selectors}{\code{BaseRHeatmapLayerProcessor$generate_selectors()}}
 \item \href{#method-BaseRHeatmapLayerProcessor-find_image_rect_grobs}{\code{BaseRHeatmapLayerProcessor$find_image_rect_grobs()}}
 \item \href{#method-BaseRHeatmapLayerProcessor-generate_selectors_from_grob}{\code{BaseRHeatmapLayerProcessor$generate_selectors_from_grob()}}
@@ -68,11 +74,35 @@ Processes Base R heatmap layers using the heatmap() function
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-compute_heatmap_ordering"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-compute_heatmap_ordering}{}}}
+\subsection{Method \code{compute_heatmap_ordering()}}{
+Reproduce the row/column ordering heatmap() draws with
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRHeatmapLayerProcessor$compute_heatmap_ordering(args)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{args}}{Recorded heatmap() arguments}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List with rowInd/colInd, or NULL if unavailable
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHeatmapLayerProcessor$generate_selectors(layer_info, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BaseRHeatmapLayerProcessor$generate_selectors(
+  layer_info,
+  gt = NULL,
+  extracted_data = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

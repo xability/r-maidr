@@ -1,3 +1,102 @@
+# maidr (development version)
+
+## Bug Fixes
+
+* Base R: recorded plot calls now capture non-standard-evaluation arguments
+  safely, so `curve(sin(x))` and `plot(y ~ x, subset = ...)` no longer error
+  or record stale values; replay evaluates them in the original environment.
+* Base R: `hist(x, plot = FALSE)` / `boxplot(x, plot = FALSE)` are no longer
+  recorded as plot calls (previously they injected phantom layers into the
+  next render).
+* Base R: extracted bar data now always matches the rendered SVG order.
+  `barplot()` no longer re-sorts labels alphabetically out of sync with the
+  drawn bars, unnamed vectors keep call order, and the sorted arguments the
+  wrapper draws are also what gets recorded and replayed.
+* Base R: matrix `barplot()` without an explicit `beside` argument is now
+  correctly detected as stacked (barplot's default), not simple bars.
+* Base R: `legend.text` no longer contaminates stacked/dodged bar highlight
+  selectors with the legend's swatch rectangles.
+* Base R: `barplot(horiz = TRUE)` now emits `orientation = "horz"` with
+  value/label roles swapped so announcements and navigation are correct.
+* Base R: `heatmap()` now reproduces the dendrogram row/column reordering it
+  draws with, `image()` no longer transposes rows and columns, both accept
+  positional matrix arguments, and per-cell selectors fix the vertically
+  mirrored cell highlighting.
+* Base R: `hist()` recomputation now honours `right`, `include.lowest`, and
+  `nclass`, and probability/density histograms announce densities instead of
+  counts.
+* Base R: `plot(v, type = "l")`, `lines(v)`, and `plot(v)` single-vector
+  calls no longer crash or emit NA values; graphical parameters can no
+  longer be mistaken for data arguments.
+* Base R: box plot outlier highlights now follow the actual drawing order
+  instead of assuming lower outliers are drawn first.
+* Base R: multiline selectors are ordered numerically, so plots with ten or
+  more series map each series to the correct polyline.
+* Base R: multipanel handling fixes - `layout()`-based grids are treated as
+  multipanel, plots beyond the grid follow R's new-page behaviour, plots
+  drawn before the layout call are excluded, per-panel `axis()` format
+  configs stay per-panel, empty grid cells serialize as valid subplots, and
+  processor fields (orientation, domMapping) are preserved.
+* Base R: fallback replay to the native device now replays `par()`/
+  `layout()` calls in original order and strips maidr-internal arguments.
+* Base R: `title`/`subtitle` extraction no longer partial-matches unrelated
+  arguments (e.g. `subset`) and tolerates non-character values.
+* Base R: unsupported data-bearing overlays (`polygon()`, `rect()`,
+  `segments()`, ...) now trigger the documented fallback instead of being
+  silently dropped from the accessible output.
+* Base R: auto-show is now wired up - interactive Base R plots open in the
+  MAIDR viewer automatically as documented, instead of disappearing into a
+  hidden device until `show()` is called manually.
+* Base R: `chartSeries()` calls are now recorded even when 'quantmod' is
+  loaded after 'maidr'.
+* ggplot2: faceted box plots, violins, histograms, smooths, heatmaps, and
+  stacked/dodged bars no longer crash with "unused arguments"; extracted
+  data and selectors are now scoped to each facet panel.
+* ggplot2: nested patchwork layouts (e.g. `(p1 | p2) / p3`) no longer drop
+  panels from the accessible output.
+* ggplot2: histogram and smooth layers extract their own layer's data
+  instead of the first similarly-shaped layer in multi-layer plots.
+* ggplot2: scatter point colour/grouping values are emitted again.
+* ggplot2: heatmap axis mappings follow factor level order instead of
+  data-appearance order.
+* ggplot2: `maidr_off()` now really disables RMarkdown interception, PDF and
+  LaTeX output keep their figures, a second `maidr_on()` no longer risks
+  infinite hook recursion, and non-HTML output uses the original knitr plot
+  hook instead of hardcoding the markdown hook.
+* Shiny/widgets: `show(as_widget = TRUE)` and widget rendering now support
+  Base R plots, `render_maidr()` renders nothing (instead of erroring) for
+  NULL reactives, and device storage is cleared on the shiny/widget paths.
+* Rendering: maidr-data JSON keeps full numeric precision (previously values
+  were silently rounded to 4 decimal digits), `NA` handling is unchanged,
+  and non-ASCII text in iframes is UTF-8 safe on all locales.
+* Rendering: plot IDs no longer consume random numbers, preserving
+  `set.seed()` reproducibility of user scripts.
+* `maidr_set_fallback()` now keeps unspecified settings instead of silently
+  resetting them to defaults.
+* Scale label mapping keys labels by actual break positions, fixing
+  mislabeled categories with custom break subsets.
+
+## Enhancements
+
+* CDN assets are pinned to the bundled MAIDR.js version instead of
+  `@latest`, so the emitted schema and frontend can no longer drift apart.
+* Iframe height auto-resize now also works in RMarkdown documents (the
+  postMessage listener previously shipped only with the htmlwidgets
+  binding).
+
+## Performance
+
+* ggplot2 plots are built once per render instead of three times; the
+  faceted and patchwork paths reuse the built plot instead of rebuilding it
+  per layer.
+* Base R renders reuse the replayed gtable instead of re-replaying every
+  recorded call on each access.
+* Candlestick SVG post-processing parses the document once instead of five
+  times.
+* The multi-megabyte bundled JS/CSS assets are read once per session
+  instead of once per rendered plot, and offline detection no longer probes
+  the network per plot.
+
 # maidr 0.4.0
 
 ## New Features

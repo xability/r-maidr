@@ -40,7 +40,16 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -67,7 +76,7 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$extract_data(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
 }
 
 }
@@ -76,7 +85,11 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$generate_selectors(plot, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

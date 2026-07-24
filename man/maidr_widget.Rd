@@ -14,10 +14,10 @@ maidr_widget(
 )
 }
 \arguments{
-\item{plot}{A ggplot object to render as an interactive MAIDR widget}
+\item{plot}{A ggplot object, or NULL to auto-detect recorded Base R plots}
 
-\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-If `NULL` (default), auto-detect based on internet availability.}
+\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
+use bundled files.}
 
 \item{width}{The width of the widget in pixels or CSS units (default: NULL for auto-sizing)}
 

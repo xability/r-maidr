@@ -40,7 +40,16 @@ Processes histogram plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HistogramLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HistogramLayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -49,7 +58,11 @@ Processes histogram plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HistogramLayerProcessor$extract_data(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HistogramLayerProcessor$extract_data(
+  plot,
+  built = NULL,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -58,7 +71,11 @@ Processes histogram plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HistogramLayerProcessor$generate_selectors(plot, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HistogramLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
