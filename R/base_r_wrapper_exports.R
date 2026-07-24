@@ -106,7 +106,43 @@ chartSeries <- function(...) {
       call. = FALSE
     )
   }
-  quantmod::chartSeries(...)
+
+  # This stub cannot be replaced by wrap_function() when quantmod loads
+  # after maidr (the namespace is sealed by then), so it must be a full
+  # recording wrapper itself, resolving the original lazily.
+  if (is.null(.maidr_patching_env$.saved_graphics_fns[["chartSeries"]])) {
+    .maidr_patching_env$.saved_graphics_fns[["chartSeries"]] <-
+      quantmod::chartSeries
+  }
+
+  if (!is_patching_enabled()) {
+    return(quantmod::chartSeries(...))
+  }
+
+  this_call <- match.call()
+
+  ensure_maidr_device()
+
+  result <- quantmod::chartSeries(...)
+
+  args_list <- tryCatch(list(...), error = function(e) NULL)
+  call_env <- NULL
+  if (is.null(args_list)) {
+    args_list <- as.list(this_call)[-1L]
+    call_env <- parent.frame()
+  }
+
+  log_plot_call_to_device(
+    "chartSeries",
+    this_call,
+    args_list,
+    grDevices::dev.cur(),
+    call_env = call_env
+  )
+
+  maybe_schedule_auto_show()
+
+  invisible(result)
 }
 
 # --- LOW-level drawing functions ---

@@ -45,13 +45,16 @@ get_device_storage <- function(device_id = grDevices::dev.cur()) {
 #' @param call_expr The call expression
 #' @param args List of function arguments
 #' @param device_id Graphics device ID
+#' @param call_env Optional environment for replaying unevaluated (NSE)
+#'   arguments recorded in \code{args}
 #' @return NULL (invisible)
 #' @keywords internal
 log_plot_call_to_device <- function(
     function_name,
     call_expr,
     args,
-    device_id = grDevices::dev.cur()) {
+    device_id = grDevices::dev.cur(),
+    call_env = NULL) {
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
 
@@ -61,7 +64,8 @@ log_plot_call_to_device <- function(
     args = args,
     class_level = class_level,
     timestamp = Sys.time(),
-    device_id = device_id
+    device_id = device_id,
+    call_env = call_env
   )
 
   storage$calls <- append(storage$calls, list(call_entry))
