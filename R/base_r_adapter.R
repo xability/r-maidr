@@ -219,12 +219,14 @@ BaseRAdapter <- R6::R6Class(
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
       height <- args[[1]]
-      beside <- args$beside
+      beside <- args[["beside"]]
 
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # For matrices, beside = FALSE creates stacked bars
-      beside_false <- if (is.null(beside)) FALSE else !beside
+      # For matrices, beside = FALSE creates stacked bars - and FALSE is
+      # barplot()'s DEFAULT, so a matrix without an explicit `beside`
+      # argument is also stacked
+      beside_false <- if (is.null(beside)) TRUE else !isTRUE(beside)
 
       is_matrix && beside_false
     },

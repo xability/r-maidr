@@ -110,6 +110,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         1
       }
 
+      stats_obj <- NULL
       if (!is.null(self$layer_info) && !is.null(self$layer_info$plot_call)) {
         plot_call <- self$layer_info$plot_call
         args <- plot_call$args
@@ -126,6 +127,13 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       if (data_len <= 0) {
         return(list())
       }
+
+      # Per-group outlier values in DRAWING order: bxp() draws each
+      # group's outliers in their original data order, so nth-child
+      # positions must come from that order, not from a lower-then-upper
+      # assumption.
+      stats_out_vals <- if (!is.null(stats_obj$out)) stats_obj$out else numeric(0)
+      stats_out_groups <- if (!is.null(stats_obj$group)) stats_obj$group else integer(0)
 
       # If extracted_data is provided, use it for outlier counts
       if (is.null(data_to_use) && !is.null(self$layer_info$data)) {
@@ -252,29 +260,24 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         # Points group index follows pattern: 2 * svg_idx
         points_idx <- 2 * svg_idx
 
-        # Access the data that was extracted
-        lower_count <- 0
-        upper_count <- 0
-        if (!is.null(data_to_use) && length(data_to_use) >= i) {
-          box_data <- data_to_use[[i]]
-          lower_outliers_data <- if (!is.null(box_data$lowerOutliers)) {
-            box_data$lowerOutliers
-          } else {
-            list()
-          }
-          upper_outliers_data <- if (!is.null(box_data$upperOutliers)) {
-            box_data$upperOutliers
-          } else {
-            list()
-          }
-          lower_count <- length(lower_outliers_data)
-          upper_count <- length(upper_outliers_data)
+        # Outliers for this box in DRAWING (data) order. bxp() draws them
+        # unsorted, so the k-th <use> child is the k-th value of the
+        # group's outlier vector - which can interleave lower and upper
+        # outliers arbitrarily.
+        group_vals <- if (length(stats_out_groups) > 0) {
+          stats_out_vals[stats_out_groups == svg_idx]
+        } else {
+          numeric(0)
         }
+        box_min <- as.numeric(stats_obj$stats[1, svg_idx])
+        box_max <- as.numeric(stats_obj$stats[5, svg_idx])
+        lower_positions <- which(group_vals < box_min)
+        upper_positions <- which(group_vals > box_max)
 
-        lower_sel <- character(0)
-        upper_sel <- character(0)
+        lower_sel <- list()
+        upper_sel <- list()
 
-        if (lower_count > 0 || upper_count > 0) {
+        if (length(lower_positions) > 0 || length(upper_positions) > 0) {
           points_group <- paste0(
             "g#graphics-plot-",
             plot_index,
@@ -283,25 +286,23 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
             "\\.1 > use"
           )
 
-          if (lower_count > 0) {
-            # Select first N children for lower outliers
-            lower_sel <- paste0(points_group, ":nth-child(-n+", lower_count, ")")
-          }
-
-          if (upper_count > 0) {
-            # Select from (lower_count + 1)th child onward for upper outliers
-            start_idx <- lower_count + 1
-            upper_sel <- paste0(points_group, ":nth-child(n+", start_idx, ")")
-          }
+          # One selector per outlier, in the same order as the extracted
+          # data values, so the frontend pairs element k with value k.
+          lower_sel <- lapply(lower_positions, function(pos) {
+            paste0(points_group, ":nth-child(", pos, ")")
+          })
+          upper_sel <- lapply(upper_positions, function(pos) {
+            paste0(points_group, ":nth-child(", pos, ")")
+          })
         }
 
         selectors[[i]] <- list(
-          lowerOutliers = if (length(lower_sel) > 0) list(lower_sel) else list(),
+          lowerOutliers = lower_sel,
           min = min_sel,
           iq = iq_sel,
           q2 = q2_sel,
           max = max_sel,
-          upperOutliers = if (length(upper_sel) > 0) list(upper_sel) else list()
+          upperOutliers = upper_sel
         )
       }
 

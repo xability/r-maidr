@@ -30,16 +30,30 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      hist_data <- args[[1]]
-
-      # Pass the original parameters to ensure same binning as the plot
-      # Suppress warnings about unused probability parameter
-      hist_params <- list(plot = FALSE)
-      if (!is.null(args$breaks)) {
-        hist_params$breaks <- args$breaks
+      hist_data <- args[["x"]]
+      if (is.null(hist_data) && length(args) > 0) {
+        arg_names <- names(args)
+        unnamed <- if (is.null(arg_names)) {
+          seq_along(args)
+        } else {
+          which(!nzchar(arg_names))
+        }
+        if (length(unnamed) > 0) {
+          hist_data <- args[[unnamed[1]]]
+        }
       }
-      if (!is.null(args$probability)) {
-        hist_params$probability <- args$probability
+      if (is.null(hist_data)) {
+        return(list())
+      }
+
+      # Pass the original binning parameters so the recomputed histogram
+      # matches the plotted one (right/include.lowest change bin counts).
+      # Suppress warnings about parameters unused when plot = FALSE.
+      hist_params <- list(plot = FALSE)
+      for (param in c("breaks", "nclass", "right", "include.lowest")) {
+        if (!is.null(args[[param]])) {
+          hist_params[[param]] <- args[[param]]
+        }
       }
 
       # Use graphics::hist directly to avoid calling the wrapped version
@@ -49,15 +63,27 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
       counts <- hist_obj$counts
       mids <- hist_obj$mids
 
+      # The plotted y-axis shows counts only for frequency histograms;
+      # with freq = FALSE or probability = TRUE it shows densities.
+      # hist()'s own default is freq = TRUE only for equidistant breaks.
+      is_freq <- if (!is.null(args[["freq"]])) {
+        isTRUE(args[["freq"]])
+      } else if (!is.null(args[["probability"]])) {
+        !isTRUE(args[["probability"]])
+      } else {
+        isTRUE(hist_obj$equidist)
+      }
+      y_values <- if (is_freq) counts else hist_obj$density
+
       histogram_data <- list()
       for (i in seq_along(counts)) {
         histogram_data[[i]] <- list(
           x = mids[i],
-          y = counts[i],
+          y = y_values[i],
           xMin = breaks[i],
           xMax = breaks[i + 1],
           yMin = 0,
-          yMax = counts[i]
+          yMax = y_values[i]
         )
       }
 

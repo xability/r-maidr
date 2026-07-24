@@ -21,13 +21,31 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
-      list(
+      result <- list(
         data = data,
         selectors = selectors,
         type = "bar",
         title = title,
         axes = axes
       )
+
+      # barplot(horiz = TRUE): announce the value axis correctly and let
+      # the frontend swap navigation axes
+      if (self$is_horizontal(layer_info)) {
+        result$orientation <- "horz"
+      }
+
+      result
+    },
+
+    #' @description Check whether this barplot call used horiz = TRUE
+    #' @param layer_info Layer information
+    #' @return Logical
+    is_horizontal = function(layer_info) {
+      if (is.null(layer_info)) {
+        return(FALSE)
+      }
+      isTRUE(layer_info$plot_call$args[["horiz"]])
     },
     needs_reordering = function() {
       FALSE # Base R bar plots don't need reordering like ggplot2
@@ -64,20 +82,29 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
         # Ensure same length
         n <- min(length(height), length(labels))
 
-        data_df <- data.frame(
-          x = labels[1:n],
-          y = height[1:n],
-          stringsAsFactors = FALSE
-        )
-
-        sorted_indices <- order(data_df$x)
-        data_df <- data_df[sorted_indices, ]
-
-        for (i in seq_len(nrow(data_df))) {
-          data_points[[i]] <- list(
-            x = data_df$x[i],
-            y = data_df$y[i]
-          )
+        # Emit data in recorded-call order: the SVG is replayed from the
+        # recorded args, so its rects appear in exactly this order. Any
+        # re-sorting here (e.g. alphabetical) would misalign announced
+        # values and highlights with the drawn bars. (Named inputs are
+        # already sorted by the barplot wrapper's SortingPatcher before
+        # being recorded.)
+        #
+        # Horizontal bars swap the point roles: x carries the VALUE and
+        # y the category label (the frontend reads values from x when
+        # orientation = "horz").
+        horizontal <- self$is_horizontal(layer_info)
+        for (i in seq_len(n)) {
+          data_points[[i]] <- if (horizontal) {
+            list(
+              x = height[i],
+              y = labels[i]
+            )
+          } else {
+            list(
+              x = labels[i],
+              y = height[i]
+            )
+          }
         }
       }
 

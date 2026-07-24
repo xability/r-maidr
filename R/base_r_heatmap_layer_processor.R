@@ -17,7 +17,7 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL,
                        layer_info = NULL) {
       data <- self$extract_data(layer_info)
-      selectors <- self$generate_selectors(layer_info, gt)
+      selectors <- self$generate_selectors(layer_info, gt, data)
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
@@ -38,13 +38,42 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      heat_matrix <- NULL
-      if (length(args) > 0 && length(names(args)) > 0 && names(args)[1] == "") {
-        heat_matrix <- args[[1]]
+      # The matrix may arrive named (x = m) or positional (m); with only
+      # positional args names(args) is NULL, so check both forms.
+      heat_matrix <- args[["x"]]
+      if (is.null(heat_matrix) && length(args) > 0) {
+        arg_names <- names(args)
+        unnamed <- if (is.null(arg_names)) {
+          seq_along(args)
+        } else {
+          which(!nzchar(arg_names))
+        }
+        if (length(unnamed) > 0) {
+          heat_matrix <- args[[unnamed[1]]]
+        }
       }
 
       if (is.null(heat_matrix) || !is.matrix(heat_matrix)) {
         return(list(points = list(), x = character(0), y = character(0)))
+      }
+
+      function_name <- layer_info$function_name
+
+      if (identical(function_name, "heatmap")) {
+        # heatmap() reorders rows/columns by dendrogram (default Rowv/Colv)
+        # before drawing; extract the same ordering so announced values
+        # match the drawn cells.
+        ordering <- self$compute_heatmap_ordering(args)
+        if (!is.null(ordering)) {
+          heat_matrix <- heat_matrix[
+            ordering$rowInd, ordering$colInd,
+            drop = FALSE
+          ]
+        }
+      } else if (identical(function_name, "image")) {
+        # image(z) draws matrix ROWS along the x-axis and COLUMNS along
+        # the y-axis; transpose so the emitted grid matches the visual.
+        heat_matrix <- t(heat_matrix)
       }
 
       row_names <- rownames(heat_matrix)
@@ -58,9 +87,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       }
 
       # points is a 2D array where points[row][col] = value
-      # IMPORTANT: Base R heatmap() renders rows from bottom to top visually
-      # but DOM elements are created in row-major order matching visual layout
-      # We need to reverse to match the visual bottom-to-top order
+      # IMPORTANT: Base R heatmap()/image() render matrix row 1 at the
+      # BOTTOM of the y-axis, while the maidr grid lists rows top-down.
+      # We reverse to match the visual bottom-to-top order.
       points <- list()
       for (i in seq_len(nrow(heat_matrix))) {
         row_values <- list()
@@ -80,7 +109,35 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         y = as.list(row_names_reversed)
       )
     },
-    generate_selectors = function(layer_info, gt = NULL) {
+
+    #' @description Reproduce the row/column ordering heatmap() draws with
+    #' @param args Recorded heatmap() arguments
+    #' @return List with rowInd/colInd, or NULL if unavailable
+    compute_heatmap_ordering = function(args) {
+      result <- tryCatch(
+        {
+          null_pdf <- tempfile(fileext = ".pdf")
+          grDevices::pdf(null_pdf)
+          on.exit(
+            {
+              grDevices::dev.off()
+              unlink(null_pdf)
+            },
+            add = TRUE
+          )
+          # heatmap() has no plot = FALSE: run it on a throwaway device to
+          # obtain the exact rowInd/colInd it uses (invisibly returned).
+          do.call(stats::heatmap, clean_maidr_args(args))
+        },
+        error = function(e) NULL
+      )
+
+      if (is.null(result) || is.null(result$rowInd) || is.null(result$colInd)) {
+        return(NULL)
+      }
+      result
+    },
+    generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       if (is.null(gt)) {
         return(list())
       }
@@ -95,17 +152,40 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       # Search for image-rect grobs (heatmap creates image-rect patterns)
       selector <- self$generate_selectors_from_grob(gt, group_index)
 
-      if (length(selector) > 0 && selector != "") {
-        return(list(selector))
+      if (length(selector) == 0 || !nzchar(selector[1])) {
+        # Fallback container id when the grob search finds nothing
+        selector <- paste0(
+          "g#graphics-plot-",
+          group_index,
+          "-image-rect-1\\.1 > rect"
+        )
       }
 
-      # Fallback selector
-      main_selector <- paste0(
-        "g#graphics-plot-",
-        group_index,
-        "-image-rect-1\\.1 > rect"
-      )
-      list(main_selector)
+      # Preferred form: a per-cell selector grid. The frontend indexes
+      # grid[r][c] with logical row 0 = BOTTOM visual row, exactly the
+      # order gridSVG emits the image rects in (bottom-to-top,
+      # row-major). A bare container selector instead makes the frontend
+      # apply its own DOM-order heuristic, which assumes top-to-bottom
+      # rects and highlights the vertically mirrored cell.
+      n_rows <- length(extracted_data$points)
+      n_cols <- if (n_rows > 0) length(extracted_data$points[[1]]) else 0
+      if (n_rows > 0 && n_cols > 0) {
+        group_selector <- sub(" > rect$", "", selector[1])
+        grid <- vector("list", n_rows)
+        for (logical_row in seq_len(n_rows)) {
+          row_selectors <- vector("list", n_cols)
+          for (col in seq_len(n_cols)) {
+            child_index <- (logical_row - 1) * n_cols + col
+            row_selectors[[col]] <- paste0(
+              group_selector, " > rect:nth-child(", child_index, ")"
+            )
+          }
+          grid[[logical_row]] <- row_selectors
+        }
+        return(grid)
+      }
+
+      list(selector)
     },
     find_image_rect_grobs = function(grob, group_index) {
       names <- character(0)

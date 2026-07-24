@@ -180,12 +180,16 @@ test_that("BaseRPointLayerProcessor handles NULL or missing values", {
 
   processor <- maidr:::BaseRPointLayerProcessor$new(list(index = 1))
 
-  # Should return empty list for NULL values
+  # Should return empty list when x is NULL
   data1 <- processor$extract_data(layer_info_null_x)
-  data2 <- processor$extract_data(layer_info_null_y)
-
   testthat::expect_equal(length(data1), 0)
-  testthat::expect_equal(length(data2), 0)
+
+  # plot(x, NULL) plots values against their index in base R
+  # (xy.coords semantics), so data must be emitted the same way
+  data2 <- processor$extract_data(layer_info_null_y)
+  testthat::expect_equal(length(data2), 3)
+  testthat::expect_equal(data2[[2]]$x, 2)
+  testthat::expect_equal(data2[[2]]$y, 2)
 })
 
 # ==============================================================================

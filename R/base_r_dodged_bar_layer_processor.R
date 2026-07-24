@@ -53,29 +53,25 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       col_names <- as.character(col_names)
       row_names <- as.character(row_names)
 
-      sorted_series_names <- sort(row_names)
-
+      # Walk the matrix in its recorded order: the SVG is replayed from
+      # the recorded (already patch-sorted) args, so re-sorting here would
+      # desynchronize data from the drawn rects. This also avoids
+      # character-sorting numeric fallback labels ("10" before "2") and
+      # mismatches when legend.text order differs from rownames order.
       data_by_fill <- list()
 
-      for (i in seq_len(length(sorted_series_names))) {
-        series_name <- sorted_series_names[i]
-        original_index <- which(row_names == series_name)
+      for (i in seq_len(nrow(height_matrix))) {
         series_data <- list()
 
-        sorted_category_names <- sort(col_names)
-
-        for (j in seq_len(length(sorted_category_names))) {
-          category_name <- sorted_category_names[j]
-          original_col_index <- which(col_names == category_name)
-
+        for (j in seq_len(ncol(height_matrix))) {
           series_data[[j]] <- list(
-            x = category_name, # x-axis value (category)
-            y = height_matrix[original_index, original_col_index], # y-value
-            z = series_name # z/series value
+            x = col_names[j], # x-axis value (category)
+            y = as.numeric(height_matrix[i, j]), # y-value
+            z = row_names[i] # z/series value
           )
         }
 
-        data_by_fill[[length(data_by_fill) + 1]] <- series_data
+        data_by_fill[[i]] <- series_data
       }
 
       data_by_fill
@@ -136,20 +132,16 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
         return("")
       }
 
-      # Use the main container pattern - this is the working method
-      main_container_pattern <- paste0("graphics-plot-", call_index, "-rect-1")
-      main_containers <- rect_names[grepl(main_container_pattern, rect_names)]
-
-      if (length(main_containers) > 0) {
-        parent_containers <- main_containers[grepl("\\.1$", main_containers)]
-        if (length(parent_containers) > 0) {
-          escaped_parent <- gsub("\\.", "\\\\.", parent_containers[1])
-          return(paste0("#", escaped_parent, " rect"))
-        }
-      }
-
-      # Fallback to pattern-based selector
-      paste0("rect[id^='graphics-plot-", call_index, "-rect-1']")
+      # The data rects live in the FIRST rect group (barplot draws the
+      # bars before any legend rects). Order candidates by their trailing
+      # grob number and take the first; gridSVG appends ".1" to the grob
+      # name on export.
+      group_numbers <- suppressWarnings(
+        as.integer(sub(".*-([0-9]+)$", "\\1", rect_names))
+      )
+      main_container <- rect_names[order(group_numbers)][1]
+      escaped_parent <- gsub("\\.", "\\\\.", paste0(main_container, ".1"))
+      paste0("#", escaped_parent, " rect")
     },
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
