@@ -7,17 +7,50 @@
 Ggplot2BoxplotLayerProcessor <- R6::R6Class(
   "Ggplot2BoxplotLayerProcessor",
   inherit = LayerProcessor,
+  private = list(
+    .built_cache = NULL
+  ),
   public = list(
+    #' Get (and cache) the built plot data
+    #'
+    #' ggplot_build() is expensive; extract_data, generate_selectors,
+    #' determine_orientation, and map_categories_to_names all need it, so
+    #' build at most once per processor instance.
+    #' @param plot The ggplot2 object
+    #' @param built Optionally a pre-built plot to adopt
+    #' @return Built plot data
+    get_built = function(plot, built = NULL) {
+      if (!is.null(built)) {
+        private$.built_cache <- built
+      } else if (is.null(private$.built_cache)) {
+        private$.built_cache <- ggplot2::ggplot_build(plot)
+      }
+      private$.built_cache
+    },
+
     #' Process the boxplot layer
     #' @param plot The ggplot2 object
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selectors (optional)
     #' @return List with data and selectors
-    process = function(plot, layout, built = NULL, gt = NULL) {
-      extracted_data <- self$extract_data(plot, built)
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      built <- self$get_built(plot, built)
 
-      selectors <- self$generate_selectors(plot, gt)
+      extracted_data <- self$extract_data(plot, built, panel_id = panel_id)
+
+      selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx, panel_id = panel_id)
 
       # Determine orientation
       orientation <- self$determine_orientation(plot)
@@ -44,14 +77,17 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' Extract data from boxplot layer
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
+    #' @param panel_id Optional facet panel to restrict extraction to
     #' @return List with boxplot statistics for each category
-    extract_data = function(plot, built = NULL) {
-      if (is.null(built)) {
-        built <- ggplot2::ggplot_build(plot)
-      }
+    extract_data = function(plot, built = NULL, panel_id = NULL) {
+      built <- self$get_built(plot, built)
 
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]
+
+      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
+        layer_data <- layer_data[layer_data$PANEL == panel_id, , drop = FALSE]
+      }
 
       boxplot_data <- list()
 
@@ -144,18 +180,27 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' Generate selectors for boxplot elements
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
+    #' @param panel_ctx Panel context for panel-scoped selection (optional)
+    #' @param panel_id Optional facet panel to restrict outlier counts to
     #' @return List of selectors for each boxplot
-    generate_selectors = function(plot, gt = NULL) {
+    generate_selectors = function(plot, gt = NULL, panel_ctx = NULL, panel_id = NULL) {
       if (is.null(gt)) {
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      # Locate panel
-      panel_index <- which(gt$layout$name == "panel")
+      # Locate panel: with a panel context (facets), scope the search to
+      # that panel's grob; otherwise use the single "panel" grob
+      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+        panel_index <- which(
+          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
+        )
+      } else {
+        panel_index <- which(gt$layout$name == "panel")
+      }
       if (length(panel_index) == 0) {
         return(list())
       }
-      panel_grob <- gt$grobs[[panel_index]]
+      panel_grob <- gt$grobs[[panel_index[1]]]
       if (!inherits(panel_grob, "gTree")) {
         return(list())
       }
@@ -242,9 +287,12 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         per_box_ids <- setdiff(all_box, master_id)
       }
 
-      # Data for outlier counts
-      built <- ggplot2::ggplot_build(plot)
+      # Data for outlier counts (reuses the cached build)
+      built <- self$get_built(plot)
       layer_data <- built$data[[self$layer_info$index]]
+      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
+        layer_data <- layer_data[layer_data$PANEL == panel_id, , drop = FALSE]
+      }
 
       # Determine orientation for correct whisker column access
       is_horizontal <- isTRUE(layer_data$flipped_aes[1])
@@ -355,7 +403,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return "horz" or "vert"
     determine_orientation = function(plot) {
-      built <- ggplot2::ggplot_build(plot)
+      built <- self$get_built(plot)
       layer_data <- built$data[[self$layer_info$index]]
 
       # Use flipped_aes column which ggplot2 sets reliably
@@ -384,7 +432,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return Updated boxplot data with proper category names
     map_categories_to_names = function(boxplot_data, plot) {
-      built <- ggplot2::ggplot_build(plot)
+      built <- self$get_built(plot)
       panel_params <- built$layout$panel_params[[1]]
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]

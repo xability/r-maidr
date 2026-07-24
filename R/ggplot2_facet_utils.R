@@ -116,7 +116,8 @@ process_facet_panel <- function(
         row = panel_info$ROW,
         col = panel_info$COL,
         panel_id = panel_info$PANEL,
-        layer_index = layer_idx
+        layer_index = layer_idx,
+        facet_groups = facet_groups
       )
       result <- processor$process(
         plot,
@@ -136,11 +137,11 @@ process_facet_panel <- function(
   combined_data <- combine_facet_layer_data(layer_results)
   combined_selectors <- combine_facet_layer_selectors(layer_results)
 
-  subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", panel_info$PANEL)
+  subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", panel_info$PANEL)
 
   layers <- list()
   if (length(combined_data) > 0) {
-    layer_id <- paste0("maidr-layer-", as.integer(Sys.time()), "-", panel_info$PANEL)
+    layer_id <- paste0("maidr-layer-", generate_unique_id(), "-", panel_info$PANEL)
 
     # Determine layer type from the first layer processor
     registry <- get_global_registry()

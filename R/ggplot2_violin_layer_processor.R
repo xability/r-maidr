@@ -57,8 +57,28 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
-    #' @return List with multi_layer flag and layers
-    process = function(plot, layout, built = NULL, gt = NULL) {
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for faceted plots (optional)
+    #' @return List with multi_layer flag and layers, or NULL for facet panels
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      # Faceted violins are not yet supported interactively: the facet
+      # combiner cannot represent this processor's multi-layer
+      # (violin_box + violin_kde) result, and the KDE coordinate
+      # injection only knows the single-panel viewport. Skip cleanly so
+      # the plot still renders visually instead of crashing.
+      if (!is.null(panel_ctx) || !is.null(panel_id)) {
+        return(NULL)
+      }
+
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }

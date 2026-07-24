@@ -7,10 +7,17 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
   "Ggplot2DodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL) {
-      data <- self$extract_data(plot, built)
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      data <- self$extract_data(plot, built, panel_ctx = panel_ctx)
 
-      selectors <- self$generate_selectors(plot, gt)
+      selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       # Build axes including fill label for dodged bars
       axes <- self$extract_layer_axes(plot, layout)
@@ -82,7 +89,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
 
       data[order(x_ordered, fill_ordered), , drop = FALSE]
     },
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, panel_ctx = NULL) {
       if (!inherits(plot, "ggplot")) {
         stop("Input must be a ggplot object.")
       }
@@ -117,7 +124,23 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         stop("Could not determine required aesthetic mappings")
       }
 
-      data_by_fill <- split(plot$data, plot$data[[fill_col]])
+      source_data <- plot$data
+
+      # Facet path: restrict to this panel's facet group(s)
+      if (!is.null(panel_ctx) && length(panel_ctx$facet_groups) > 0) {
+        for (facet_var in names(panel_ctx$facet_groups)) {
+          if (facet_var %in% names(source_data)) {
+            source_data <- source_data[
+              as.character(source_data[[facet_var]]) ==
+                as.character(panel_ctx$facet_groups[[facet_var]]),
+              ,
+              drop = FALSE
+            ]
+          }
+        }
+      }
+
+      data_by_fill <- split(source_data, source_data[[fill_col]])
 
       lapply(names(data_by_fill), function(fill_name) {
         fill_data <- data_by_fill[[fill_name]]
@@ -132,12 +155,18 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         })
       })
     },
-    generate_selectors = function(plot, gt = NULL) {
+    generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      panel_index <- which(gt$layout$name == "panel")
+      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+        panel_index <- which(
+          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
+        )
+      } else {
+        panel_index <- which(gt$layout$name == "panel")
+      }
       if (length(panel_index) == 0) {
         layer_id <- self$get_layer_index()
         grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
@@ -145,7 +174,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         return(list(paste0("#", escaped_grob_id, " rect")))
       }
 
-      panel_grob <- gt$grobs[[panel_index]]
+      panel_grob <- gt$grobs[[panel_index[1]]]
 
       find_rect_names <- function(grob) {
         names <- character(0)
