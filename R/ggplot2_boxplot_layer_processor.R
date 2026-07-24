@@ -302,14 +302,18 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         box_id <- per_box_ids[i]
         box_sel <- list()
 
-        # Outliers
+        # Outliers: drawn in DATA order (the built `outliers` vector), so
+        # lower and upper outliers can interleave arbitrarily among the
+        # <use> children. Emit one nth-child selector per outlier at its
+        # actual drawing position; the frontend pairs element k with the
+        # k-th extracted data value.
         outlier_container <- find_desc_by_pattern(
           panel_grob,
           box_id,
           "geom_point\\.points"
         )
-        lower_n <- 0
-        upper_n <- 0
+        lower_positions <- integer(0)
+        upper_positions <- integer(0)
         if (!is.null(layer_data) && nrow(layer_data) >= i) {
           row <- layer_data[i, ]
           outliers_str <- as.character(row$outliers)
@@ -326,31 +330,29 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
               if (length(vals) > 0) {
                 # Compare against correct whisker columns based on orientation
                 if (is_horizontal) {
-                  lower_n <- sum(vals < row$xmin)
-                  upper_n <- sum(vals > row$xmax)
+                  lower_positions <- which(vals < row$xmin)
+                  upper_positions <- which(vals > row$xmax)
                 } else {
-                  lower_n <- sum(vals < row$ymin)
-                  upper_n <- sum(vals > row$ymax)
+                  lower_positions <- which(vals < row$ymin)
+                  upper_positions <- which(vals > row$ymax)
                 }
               }
             }
           }
         }
-        if (!is.null(outlier_container) && lower_n > 0) {
+        if (!is.null(outlier_container) && length(lower_positions) > 0) {
           oc <- with_suffix(outlier_container)
-          box_sel$lowerOutliers <- list(paste0("g#", esc(oc), " > use:nth-child(-n+", lower_n, ")"))
+          box_sel$lowerOutliers <- lapply(lower_positions, function(pos) {
+            paste0("g#", esc(oc), " > use:nth-child(", pos, ")")
+          })
         } else {
           box_sel$lowerOutliers <- list()
         }
-        if (!is.null(outlier_container) && upper_n > 0) {
+        if (!is.null(outlier_container) && length(upper_positions) > 0) {
           oc <- with_suffix(outlier_container)
-          box_sel$upperOutliers <- list(paste0(
-            "g#",
-            esc(oc),
-            " > use:nth-child(n+",
-            lower_n + 1,
-            ")"
-          ))
+          box_sel$upperOutliers <- lapply(upper_positions, function(pos) {
+            paste0("g#", esc(oc), " > use:nth-child(", pos, ")")
+          })
         } else {
           box_sel$upperOutliers <- list()
         }

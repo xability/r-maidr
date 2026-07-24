@@ -207,13 +207,14 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
           as.character(cat_pos)
         }
 
-        # Get values for this group from original data
+        # Get values for this group from original data. Column-first
+        # indexing: df[filter, col] on a tibble returns a 1-column tibble
+        # that as.numeric() cannot coerce.
         if (!is.null(cat_var) && !is.null(val_var) &&
               cat_var %in% names(original_data) &&
               val_var %in% names(original_data)) {
-          group_vals <- original_data[
-            as.character(original_data[[cat_var]]) == fill_label,
-            val_var
+          group_vals <- original_data[[val_var]][
+            as.character(original_data[[cat_var]]) == fill_label
           ]
           group_vals <- as.numeric(group_vals)
           group_vals <- group_vals[!is.na(group_vals)]

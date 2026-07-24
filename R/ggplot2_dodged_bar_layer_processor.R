@@ -120,7 +120,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         }
       }
 
-      if (is.null(x_col) || is.null(y_col) || is.null(fill_col)) {
+      if (is.null(x_col) || is.null(fill_col)) {
         stop("Could not determine required aesthetic mappings")
       }
 
@@ -140,17 +140,41 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         }
       }
 
+      # stat = "count" (no y aesthetic): one bar per (x, fill) combination
+      # with the row count as its value
+      if (is.null(y_col)) {
+        x_levels <- sort(unique(as.character(source_data[[x_col]])))
+        fill_levels <- sort(unique(as.character(source_data[[fill_col]])))
+        count_table <- table(
+          as.character(source_data[[x_col]]),
+          as.character(source_data[[fill_col]])
+        )
+
+        return(lapply(fill_levels, function(fill_name) {
+          lapply(x_levels, function(x_name) {
+            list(
+              x = x_name,
+              y = as.numeric(count_table[x_name, fill_name]),
+              z = fill_name
+            )
+          })
+        }))
+      }
+
       data_by_fill <- split(source_data, source_data[[fill_col]])
 
       lapply(names(data_by_fill), function(fill_name) {
         fill_data <- data_by_fill[[fill_name]]
         fill_data <- fill_data[order(fill_data[[x_col]]), ]
 
+        # Column-first indexing: `fill_data[i, y_col]` on a tibble returns
+        # a 1x1 tibble, which serializes as a nested array instead of a
+        # number
         lapply(seq_len(nrow(fill_data)), function(i) {
           list(
-            x = as.character(fill_data[i, x_col]),
-            y = fill_data[i, y_col],
-            z = as.character(fill_data[i, fill_col])
+            x = as.character(fill_data[[x_col]][i]),
+            y = as.numeric(fill_data[[y_col]][i]),
+            z = as.character(fill_data[[fill_col]][i])
           )
         })
       })

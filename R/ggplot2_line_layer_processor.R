@@ -101,17 +101,49 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
             x_col <- rlang::as_label(plot_mapping$x)
           }
 
-          # For faceted plots, we need to get the x values for this specific panel
-          if (!is.null(x_col) && x_col %in% names(plot$data)) {
-            panel_data <- plot$data
-            if ("PANEL" %in% names(panel_data)) {
-              panel_data <- panel_data[panel_data$PANEL == panel_id, ]
-            }
-            x_values <- unique(panel_data[[x_col]])
-            x_values <- sort(x_values)
+          # Map this panel's built x positions back to user-facing values.
+          # Built positions are only INDICES for discrete scales; for
+          # continuous/Date scales they are the numeric values themselves,
+          # so blind indexing (x_values[layer_data$x]) yields NA for every
+          # point.
+          original_values <- if (!is.null(x_col) && x_col %in% names(plot$data)) {
+            sort(unique(plot$data[[x_col]]))
+          } else {
+            NULL
+          }
 
-            # Map layer_data$x indices to actual x values
-            layer_data$x <- x_values[layer_data$x]
+          x_pos <- layer_data$x
+          n_values <- length(original_values)
+          looks_like_positions <- !is.null(original_values) &&
+            !is.numeric(original_values) &&
+            is.numeric(x_pos) &&
+            all(!is.na(x_pos)) &&
+            all(abs(x_pos - round(x_pos)) < 1e-6) &&
+            all(round(x_pos) >= 1 & round(x_pos) <= n_values)
+
+          if (looks_like_positions) {
+            # Discrete scale: positions index the (sorted) categories
+            layer_data$x <- as.character(original_values[round(x_pos)])
+          } else if (
+            !is.null(original_values) &&
+              is.numeric(x_pos) &&
+              !anyNA(suppressWarnings(as.numeric(original_values)))
+          ) {
+            # Continuous/Date scale: match numeric representations back to
+            # the original values so Dates format as dates, not day counts
+            numeric_repr <- round(as.numeric(original_values), 6)
+            match_idx <- match(round(as.numeric(x_pos), 6), numeric_repr)
+            mapped <- as.character(x_pos)
+            hit <- !is.na(match_idx)
+            matched_vals <- original_values[match_idx[hit]]
+            mapped[hit] <- if (
+              inherits(original_values, c("Date", "POSIXct", "POSIXlt"))
+            ) {
+              format(matched_vals)
+            } else {
+              as.character(matched_vals)
+            }
+            layer_data$x <- mapped
           } else {
             # Fallback: use layer_data$x but convert to character
             layer_data$x <- as.character(layer_data$x)

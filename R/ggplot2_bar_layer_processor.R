@@ -63,24 +63,36 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         if (!is.null(scale_mapping)) {
           x_values <- self$apply_scale_mapping(built_data$x, scale_mapping)
         } else {
-          plot_mapping <- plot$mapping
-          layer_mapping <- plot$layers[[layer_index]]$mapping
-
-          x_col <- NULL
-          if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
-            x_col <- rlang::as_label(layer_mapping$x)
-          } else if (!is.null(plot_mapping) && !is.null(plot_mapping$x)) {
-            x_col <- rlang::as_label(plot_mapping$x)
+          # Map this panel's built x positions through the panel's OWN
+          # x-scale labels. Reading categories from the whole dataset
+          # mislabels panels whose category set differs (free scales,
+          # missing levels), since plot$data has no PANEL column.
+          panel_number <- suppressWarnings(as.integer(as.character(panel_id)))
+          panel_params_list <- built$layout$panel_params
+          panel_params <- if (
+            !is.na(panel_number) &&
+              panel_number >= 1 &&
+              panel_number <= length(panel_params_list)
+          ) {
+            panel_params_list[[panel_number]]
+          } else {
+            panel_params_list[[1]]
           }
 
-          # For faceted plots, we need to get the x values for this specific panel
-          if (!is.null(x_col) && x_col %in% names(plot$data)) {
-            panel_data <- plot$data
-            if ("PANEL" %in% names(panel_data)) {
-              panel_data <- panel_data[panel_data$PANEL == panel_id, ]
-            }
-            x_values <- unique(panel_data[[x_col]])
-            x_values <- sort(x_values)
+          panel_labels <- NULL
+          if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
+            panel_labels <- panel_params$x$get_labels()
+          } else if (!is.null(panel_params$x.labels)) {
+            panel_labels <- panel_params$x.labels
+          }
+
+          if (!is.null(panel_labels) && is.numeric(built_data$x)) {
+            label_idx <- as.integer(round(built_data$x))
+            valid <- !is.na(label_idx) &
+              label_idx >= 1 &
+              label_idx <= length(panel_labels)
+            x_values <- as.character(built_data$x)
+            x_values[valid] <- as.character(panel_labels[label_idx[valid]])
           } else {
             # Fallback: use built_data$x but convert to character
             x_values <- as.character(built_data$x)
