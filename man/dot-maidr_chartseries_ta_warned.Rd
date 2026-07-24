@@ -3,15 +3,15 @@
 \docType{data}
 \name{.maidr_chartseries_ta_warned}
 \alias{.maidr_chartseries_ta_warned}
-\title{Base R System Adapter}
+\title{chartSeries TA Advisory Warning State}
 \format{
-An R6 class inheriting from SystemAdapter
+An object of class \code{environment} of length 1.
 }
 \usage{
 .maidr_chartseries_ta_warned
 }
 \description{
-Adapter for the Base R plotting system. This adapter uses function patching
-to intercept Base R plotting calls and detect plot types.
+Environment used to suppress repeat chartSeries \code{TA} advisory warnings
+within a single session.
 }
 \keyword{internal}
