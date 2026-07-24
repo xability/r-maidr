@@ -120,8 +120,6 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       processor
     },
     process_layers = function() {
-      private$.layout <- self$extract_layout()
-
       plot_for_render <- private$.plot
       for (i in seq_along(private$.layer_processors)) {
         processor <- private$.layer_processors[[i]]
@@ -148,20 +146,29 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         }
       }
 
-      # Suppress native R graphics window by using a null PDF device
-      # This ensures only the HTML output is displayed
+      # Suppress native R graphics window by using a null PDF device.
+      # This ensures only the HTML output is displayed. `finally` guards
+      # the device/tempfile cleanup against build errors.
+      # Build ONCE and derive the gtable from the built object:
+      # ggplotGrob() would re-run the whole ggplot_build() internally.
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
       grDevices::pdf(null_pdf, width = 7, height = 5)
+      built_final <- tryCatch(
+        {
+          built <- ggplot2::ggplot_build(plot_for_render)
+          private$.gtable <- ggplot2::ggplot_gtable(built)
+          built
+        },
+        finally = {
+          grDevices::dev.off()
+          if (current_dev > 1) grDevices::dev.set(current_dev)
+          unlink(null_pdf)
+        }
+      )
 
-      built_final <- ggplot2::ggplot_build(plot_for_render)
-      gt_final <- ggplot2::ggplotGrob(plot_for_render)
-
-      # Close null device and restore previous device
-      grDevices::dev.off()
-      if (current_dev > 1) grDevices::dev.set(current_dev)
-      unlink(null_pdf)
-      private$.gtable <- gt_final
+      # Reuse the build for layout labels instead of building again
+      private$.layout <- self$extract_layout(built_final)
 
       # Extract format configuration from scale label functions (maidr:: label wrappers)
       private$.format_config <- extract_format_config(built_final)
@@ -183,8 +190,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       self$combine_layer_results(layer_results)
     },
-    extract_layout = function() {
-      built <- ggplot2::ggplot_build(private$.plot)
+    extract_layout = function(built = NULL) {
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(private$.plot)
+      }
 
       # Use built$plot$labels (post-build) which includes stat-generated labels
       # like "count" for geom_bar(). In ggplot2 v4, the pre-build plot$labels
@@ -329,7 +338,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       if (!self$is_patchwork_plot() && !self$is_faceted_plot()) {
         # Single plot: create 1x1 grid
         single_subplot <- list(
-          id = paste0("maidr-subplot-", as.integer(Sys.time())),
+          id = paste0("maidr-subplot-", generate_unique_id()),
           layers = combined_data
         )
         # Collapse multiple line layers (e.g. candlestick + several MAs)
@@ -403,8 +412,6 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     #' @description Process a faceted plot using utility functions
     #' @return NULL (sets internal state)
     process_faceted_plot = function() {
-      private$.layout <- self$extract_layout()
-
       # Create layer processors to access reorder functions
       self$detect_layers()
       self$create_layer_processors()
@@ -429,20 +436,27 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         }
       }
 
-      # Suppress native R graphics window by using a null PDF device
+      # Suppress native R graphics window by using a null PDF device.
+      # Build ONCE and derive the gtable from the built object; `finally`
+      # guards cleanup against build errors.
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
       grDevices::pdf(null_pdf, width = 7, height = 5)
+      built <- tryCatch(
+        {
+          built_plot <- ggplot2::ggplot_build(plot_for_render)
+          private$.gtable <- ggplot2::ggplot_gtable(built_plot)
+          built_plot
+        },
+        finally = {
+          grDevices::dev.off()
+          if (current_dev > 1) grDevices::dev.set(current_dev)
+          unlink(null_pdf)
+        }
+      )
 
-      private$.gtable <- ggplot2::ggplotGrob(plot_for_render)
-
-      # Built plot data (use reordered plot)
-      built <- ggplot2::ggplot_build(plot_for_render)
-
-      # Close null device and restore previous device
-      grDevices::dev.off()
-      if (current_dev > 1) grDevices::dev.set(current_dev)
-      unlink(null_pdf)
+      # Reuse the build for layout labels instead of building again
+      private$.layout <- self$extract_layout(built)
 
       # Extract format configuration from scale label functions
       private$.format_config <- extract_format_config(built)
@@ -482,16 +496,21 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       null_pdf <- tempfile(fileext = ".pdf")
       grDevices::pdf(null_pdf, width = 7, height = 5)
 
-      if (requireNamespace("patchwork", quietly = TRUE)) {
-        private$.gtable <- patchwork::patchworkGrob(private$.plot)
-      } else {
-        private$.gtable <- ggplot2::ggplotGrob(ggplot2::ggplot())
-      }
-
-      # Close null device and restore previous device
-      grDevices::dev.off()
-      if (current_dev > 1) grDevices::dev.set(current_dev)
-      unlink(null_pdf)
+      tryCatch(
+        {
+          if (requireNamespace("patchwork", quietly = TRUE)) {
+            private$.gtable <- patchwork::patchworkGrob(private$.plot)
+          } else {
+            private$.gtable <- ggplot2::ggplotGrob(ggplot2::ggplot())
+          }
+        },
+        finally = {
+          # Close null device and restore previous device
+          grDevices::dev.off()
+          if (current_dev > 1) grDevices::dev.set(current_dev)
+          unlink(null_pdf)
+        }
+      )
 
       # Use utility function to process patchwork plot
       private$.combined_data <- process_patchwork_plot_data(

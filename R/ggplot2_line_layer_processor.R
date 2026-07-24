@@ -31,7 +31,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL) {
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
-      selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
+      selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx, built = built)
 
       list(
         data = data,
@@ -149,26 +149,24 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           x_positions <- layer_data$x
           # Only do numeric matching if both x_breaks and positions are numeric
           if (is.numeric(x_breaks) && is.numeric(x_positions)) {
-            mapped_x <- sapply(x_positions, function(pos) {
-              # Find which break this position matches
-              idx <- which(abs(x_breaks - pos) < 0.001)
-              if (length(idx) > 0 && idx[1] <= length(x_labels)) {
-                x_labels[idx[1]]
-              } else {
-                as.character(pos)
-              }
-            })
+            # Vectorized break matching: iterating over breaks (few) is
+            # O(breaks) vector operations instead of a per-point closure
+            match_idx <- rep(NA_integer_, length(x_positions))
+            for (break_i in seq_along(x_breaks)) {
+              hit <- is.na(match_idx) &
+                abs(x_positions - x_breaks[break_i]) < 0.001
+              match_idx[hit] <- break_i
+            }
+            mapped_x <- as.character(x_positions)
+            matched <- !is.na(match_idx)
+            mapped_x[matched] <- x_labels[match_idx[matched]]
             layer_data$x <- mapped_x
           } else if (is.numeric(x_positions) && length(x_labels) > 0) {
             # For categorical scales, use integer position to index labels
-            mapped_x <- sapply(x_positions, function(pos) {
-              idx <- as.integer(round(pos))
-              if (idx >= 1 && idx <= length(x_labels)) {
-                x_labels[idx]
-              } else {
-                as.character(pos)
-              }
-            })
+            idx <- as.integer(round(x_positions))
+            valid <- !is.na(idx) & idx >= 1 & idx <= length(x_labels)
+            mapped_x <- as.character(x_positions)
+            mapped_x[valid] <- x_labels[idx[valid]]
             layer_data$x <- mapped_x
           }
         }
@@ -394,7 +392,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param gt Gtable object (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @return List of selectors for each series
-    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL, built = NULL) {
       if (!is.null(panel_ctx) && !is.null(gt)) {
         pn <- panel_ctx$panel_name
         idx <- which(grepl(paste0("^", pn, "\\b"), gt$layout$name))
@@ -475,7 +473,11 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         # unique selector per series.
         line_layer_position <- self$line_layer_position(plot)
 
-        built <- ggplot2::ggplot_build(plot)
+        # Reuse the caller's build when supplied; rebuilding here would
+        # repeat the full ggplot_build per line layer
+        if (is.null(built)) {
+          built <- ggplot2::ggplot_build(plot)
+        }
         layer_data <- built$data[[self$layer_info$index]]
 
         # If multiple separate polylines exist (one per geom_line/geom_ma

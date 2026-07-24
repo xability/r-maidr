@@ -106,26 +106,37 @@ maidr_print_ggplot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
     return(original_print(x, newpage = newpage, vp = vp, ...))
   }
 
-  # Check if the plot is supported by MAIDR
-  supported <- tryCatch(
+  # Check if the plot is supported by MAIDR. Keep the orchestrator so the
+  # render below reuses it instead of re-running the whole pipeline.
+  orchestrator <- tryCatch(
     {
       registry <- get_global_registry()
       adapter <- registry$get_adapter("ggplot2")
-      orchestrator <- adapter$create_orchestrator(x)
-      !orchestrator$should_fallback()
+      adapter$create_orchestrator(x)
     },
-    error = function(e) {
-      FALSE
-    }
+    error = function(e) NULL
   )
+  supported <- !is.null(orchestrator) &&
+    !isTRUE(tryCatch(orchestrator$should_fallback(), error = function(e) TRUE))
 
   if (!supported) {
     # Unsupported plot — fall back to normal ggplot2 rendering
     return(original_print(x, newpage = newpage, vp = vp, ...))
   }
 
-  # Supported plot — render in MAIDR interactive viewer
-  maidr::show(x)
+  # Supported plot — render in MAIDR interactive viewer, reusing the
+  # orchestrator created for the support check
+  rendered <- tryCatch(
+    {
+      html_doc <- create_maidr_html(x, orchestrator = orchestrator)
+      display_html(html_doc)
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+  if (!rendered) {
+    return(original_print(x, newpage = newpage, vp = vp, ...))
+  }
 
   invisible(x)
 }

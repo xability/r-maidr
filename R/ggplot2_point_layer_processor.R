@@ -284,6 +284,22 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         NULL
       }
 
+      # The mapped grouping variable (e.g. "Species") only exists in the
+      # ORIGINAL data; built data carries the mapped hex codes in
+      # `colour`. Use the original column when rows align 1:1, otherwise
+      # fall back to the built hex values.
+      color_values <- NULL
+      if (!is.null(color_col)) {
+        if (
+          color_col %in% names(original_data) &&
+            nrow(original_data) == nrow(layer_data)
+        ) {
+          color_values <- as.character(original_data[[color_col]])
+        } else if ("colour" %in% names(layer_data)) {
+          color_values <- as.character(layer_data$colour)
+        }
+      }
+
       points <- list()
       for (i in seq_len(nrow(layer_data))) {
         point <- list(
@@ -291,8 +307,8 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
           y = layer_data$y[i]
         )
 
-        if (!is.null(color_col) && color_col %in% names(layer_data)) {
-          point$color <- as.character(layer_data[[color_col]][i])
+        if (!is.null(color_values)) {
+          point$color <- color_values[i]
         }
 
         points[[i]] <- point
