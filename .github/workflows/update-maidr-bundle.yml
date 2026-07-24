@@ -1,11 +1,33 @@
 name: Update MAIDR Bundle
 
+# Keeps the offline-bundled ``maidr.js`` / ``maidr.css`` under
+# ``inst/htmlwidgets/lib/`` in sync with the upstream npm release and
+# commits the refresh directly to ``main``.
+#
+# Unlike py-maidr — where the routine refresh happens inside the automated
+# release workflow so the bundle ships with each release — r-maidr has no
+# release pipeline to hook into (CRAN submissions are manual), so the
+# scheduled refresh here is what keeps ``main`` current: whatever is bundled
+# on ``main`` at submission time is what ships to CRAN. The download is
+# verified against the integrity hash published in the npm registry
+# metadata (see ``.github/scripts/fetch-maidr-bundle.sh``), so a tampered
+# CDN/registry response fails the job instead of landing on ``main``.
+#
+# The commit uses the ``chore:`` prefix so a bundle refresh reads as
+# maintenance, not a feature, in the history.
+
 on:
   schedule:
-    # Run daily at 9 AM UTC
+    # Run daily at 9 AM UTC so new npm releases land on ``main`` within
+    # 24 hours. The commit step below is a no-op when the bundle is
+    # already current, so the daily cadence adds no commit noise.
     - cron: '0 9 * * *'
   workflow_dispatch:
-    # Allow manual triggering
+    inputs:
+      maidr_version:
+        description: "Explicit maidr.js version (defaults to latest on npm)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -17,73 +39,31 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: 'release'
-
-      - name: Install R dependencies
+      - name: Resolve, download and verify bundled assets
+        id: bundle
+        env:
+          # Pass the dispatch input through the environment rather than
+          # interpolating ${{ ... }} into the script text, which would be a
+          # shell-injection surface in a job holding contents: write.
+          MAIDR_VERSION: ${{ github.event.inputs.maidr_version }}
         run: |
-          install.packages(c('jsonlite', 'rprojroot'))
-        shell: Rscript {0}
+          set -euo pipefail
+          # Resolve (or use the requested version), download, verify, and
+          # install the bundle via the shared script (also used by
+          # tools/update-maidr-assets.R for local refreshes). The script
+          # updates R/html_dependencies.R and inst/htmlwidgets/maidr.yaml
+          # to match the installed version.
+          VERSION=$(.github/scripts/fetch-maidr-bundle.sh "$MAIDR_VERSION")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Get latest MAIDR version from npm
-        id: npm-version
-        run: |
-          LATEST_VERSION=$(curl -s https://registry.npmjs.org/maidr/latest | jq -r '.version')
-          echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          echo "Latest MAIDR version: $LATEST_VERSION"
-
-      - name: Get current bundled version
-        id: current-version
-        run: |
-          CURRENT_VERSION=$(grep 'MAIDR_VERSION <-' R/html_dependencies.R | sed 's/.*"\(.*\)".*/\1/')
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Current bundled version: $CURRENT_VERSION"
-
-      - name: Check if update needed
-        id: check-update
-        run: |
-          if [ "${{ steps.npm-version.outputs.version }}" != "${{ steps.current-version.outputs.version }}" ]; then
-            echo "needs_update=true" >> $GITHUB_OUTPUT
-            echo "Update needed: ${{ steps.current-version.outputs.version }} -> ${{ steps.npm-version.outputs.version }}"
-          else
-            echo "needs_update=false" >> $GITHUB_OUTPUT
-            echo "Already up to date"
-          fi
-
-      - name: Download new MAIDR assets
-        if: steps.check-update.outputs.needs_update == 'true'
-        run: |
-          Rscript tools/update-maidr-assets.R ${{ steps.npm-version.outputs.version }}
-
-      - name: Update version in R code
-        if: steps.check-update.outputs.needs_update == 'true'
-        run: |
-          VERSION="${{ steps.npm-version.outputs.version }}"
-          OLD_VERSION="${{ steps.current-version.outputs.version }}"
-
-          # Update R/html_dependencies.R
-          sed -i 's/MAIDR_VERSION <- "[^"]*"/MAIDR_VERSION <- "'"$VERSION"'"/' R/html_dependencies.R
-          echo "Updated R/html_dependencies.R"
-
-          # Update inst/htmlwidgets/maidr.yaml
-          sed -i "s/version: .*/version: $VERSION/" inst/htmlwidgets/maidr.yaml
-          sed -i "s|src: htmlwidgets/lib/maidr-.*|src: htmlwidgets/lib/maidr-$VERSION|" inst/htmlwidgets/maidr.yaml
-          echo "Updated inst/htmlwidgets/maidr.yaml"
-
-          # Show changes
-          echo "=== Changes ==="
-          git diff --stat
-
-      - name: Commit and push changes
-        if: steps.check-update.outputs.needs_update == 'true'
+      - name: Commit updated bundle to main
+        # git-auto-commit-action is a no-op when the download produced no
+        # change, so an already-current bundle simply commits nothing.
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update MAIDR bundle to v${{ steps.npm-version.outputs.version }}"
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_message: "chore: update MAIDR bundle to v${{ steps.bundle.outputs.version }}"
+          commit_user_name: "xabilitylab"
+          commit_user_email: "187909674+xabilitylab@users.noreply.github.com"
+          commit_author: "xabilitylab <187909674+xabilitylab@users.noreply.github.com>"
           file_pattern: "R/html_dependencies.R inst/htmlwidgets/"
