@@ -4,12 +4,14 @@
 #' When fallback is enabled, unsupported plots are rendered as static
 #' images instead of failing or returning empty data.
 #'
-#' @param enabled Logical. If TRUE (default), unsupported plots fall back
-#'   to image rendering. If FALSE, unsupported layers return empty data.
-#' @param format Character. Image format for fallback: "png" (default),
-#'   "svg", or "jpeg".
-#' @param warning Logical. If TRUE (default), shows a warning message
-#'   when falling back to image rendering.
+#' @param enabled Logical. If TRUE, unsupported plots fall back to image
+#'   rendering. If FALSE, unsupported layers return empty data. If NULL
+#'   (default), the current setting is kept.
+#' @param format Character. Image format for fallback: "png", "svg", or
+#'   "jpeg". If NULL (default), the current setting is kept.
+#' @param warning Logical. If TRUE, shows a warning message when falling
+#'   back to image rendering. If NULL (default), the current setting is
+#'   kept.
 #'
 #' @return Invisibly returns a list of the previous settings.
 #'
@@ -36,7 +38,16 @@
 #'
 #' @seealso [maidr_get_fallback()] to retrieve current settings
 #' @export
-maidr_set_fallback <- function(enabled = TRUE, format = "png", warning = TRUE) {
+maidr_set_fallback <- function(enabled = NULL, format = NULL, warning = NULL) {
+  # Store previous settings
+  previous <- maidr_get_fallback()
+
+  # NULL means "keep the current setting" so partial updates like
+  # maidr_set_fallback(format = "svg") don't silently reset the others.
+  if (is.null(enabled)) enabled <- previous$enabled
+  if (is.null(format)) format <- previous$format
+  if (is.null(warning)) warning <- previous$warning
+
   # Validate inputs
   if (!is.logical(enabled) || length(enabled) != 1) {
     stop("'enabled' must be a single logical value")
@@ -50,9 +61,6 @@ maidr_set_fallback <- function(enabled = TRUE, format = "png", warning = TRUE) {
   if (!is.logical(warning) || length(warning) != 1) {
     stop("'warning' must be a single logical value")
   }
-
-  # Store previous settings
-  previous <- maidr_get_fallback()
 
   # Set new options
   options(

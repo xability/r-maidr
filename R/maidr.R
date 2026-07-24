@@ -52,6 +52,8 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
     }
   }
 
+  orchestrator <- NULL
+
   # Check for unsupported plots early - use native graphics fallback
   if (!shiny && !as_widget) {
     registry <- get_global_registry()
@@ -84,17 +86,30 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
 
   if (as_widget) {
     result <- maidr_widget(plot, use_cdn = use_cdn, ...)
-    if (is_base_r) close_maidr_temp_device()
+    if (is_base_r) {
+      clear_device_storage(device_id)
+      close_maidr_temp_device()
+    }
     return(result)
   }
 
   if (shiny) {
     result <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)
-    if (is_base_r) close_maidr_temp_device()
+    if (is_base_r) {
+      clear_device_storage(device_id)
+      close_maidr_temp_device()
+    }
     return(result)
   }
 
-  html_doc <- create_maidr_html(plot, use_cdn = use_cdn, ...)
+  # Reuse the orchestrator from the fallback check above: creating a new
+  # one would re-run the entire layer-processing pipeline.
+  html_doc <- create_maidr_html(
+    plot,
+    use_cdn = use_cdn,
+    orchestrator = orchestrator,
+    ...
+  )
 
   if (is_base_r) {
     clear_device_storage(device_id)

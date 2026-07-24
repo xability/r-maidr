@@ -11,9 +11,9 @@ NULL
 #' Each widget gets its own isolated JavaScript context where MAIDR.js
 #' can discover and initialize the SVG with maidr-data attribute.
 #'
-#' @param plot A ggplot object to render as an interactive MAIDR widget
-#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-#'   If `NULL` (default), auto-detect based on internet availability.
+#' @param plot A ggplot object, or NULL to auto-detect recorded Base R plots
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
+#'   use bundled files.
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
@@ -21,8 +21,16 @@ NULL
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 #' @keywords internal
 maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, element_id = NULL, ...) {
-  if (!inherits(plot, "ggplot")) {
-    stop("Input must be a ggplot object.")
+  # NULL means Base R auto-detection (recorded plot calls), mirroring show()
+  if (is.null(plot)) {
+    if (!is_patching_active() || !has_device_calls(grDevices::dev.cur())) {
+      stop(
+        "No Base R plots detected. Please create a plot first ",
+        "(e.g., barplot(), plot())."
+      )
+    }
+  } else if (!inherits(plot, "ggplot")) {
+    stop("Input must be a ggplot object or NULL (Base R auto-detection).")
   }
 
   svg_content <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)

@@ -73,8 +73,13 @@ maidr_on <- function() {
       envir = asNamespace("knitr")
     )
 
-    # Store original plot hook
-    .maidr_knitr_state$original_plot_hook <- knitr::knit_hooks$get("plot")
+    # Store original plot hook - but never our own hook: a second
+    # maidr_on() call would otherwise capture maidr_plot_hook as the
+    # "original", making the fallback path recurse into itself forever.
+    current_hook <- knitr::knit_hooks$get("plot")
+    if (!identical(current_hook, maidr_plot_hook)) {
+      .maidr_knitr_state$original_plot_hook <- current_hook
+    }
 
     # Override the plot hook to intercept Base R plots
     knitr::knit_hooks$set(plot = maidr_plot_hook)
@@ -151,11 +156,20 @@ is_maidr_on <- function() {
 #' @return A knit_asis object containing the iframe HTML or inline image
 #' @keywords internal
 knit_print.ggplot <- function(x, options = list(), ...) {
+  # registerS3method() cannot be undone, so honour maidr_off() here:
+  # render with the original ggplot2 print method when disabled.
+  if (!is_ggplot2_enabled()) {
+    print_ggplot_natively(x)
+    return(invisible(NULL))
+  }
+
   # Check output format - only use iframes for HTML output
   if (!is_html_output()) {
-    # For PDF/EPUB/LaTeX: let knitr handle the plot natively
-    # Print the plot and use default knit_print behavior
-    print(x)
+    # For PDF/EPUB/LaTeX: let knitr handle the plot natively. Use the
+    # ORIGINAL ggplot2 print method: plain print(x) would dispatch to
+    # maidr's own print.ggplot override and hijack the figure out of the
+    # document.
+    print_ggplot_natively(x)
     return(invisible(NULL))
   }
 
@@ -196,6 +210,11 @@ knit_print.ggplot <- function(x, options = list(), ...) {
 #' @return An invisible empty string
 #' @keywords internal
 knit_print.histogram <- function(x, options = list(), ...) {
+  # Only suppress while MAIDR interception is active; after maidr_off()
+  # the user expects the normal text representation back.
+  if (!is_maidr_enabled()) {
+    return(knitr::normal_print(x))
+  }
   # Return invisible empty output to suppress printing
   invisible(knitr::asis_output(""))
 }
@@ -212,7 +231,27 @@ knit_print.histogram <- function(x, options = list(), ...) {
 #' @return An invisible empty string
 #' @keywords internal
 knit_print.density <- function(x, options = list(), ...) {
+  # Only suppress while MAIDR interception is active; after maidr_off()
+  # the user expects the normal text representation back.
+  if (!is_maidr_enabled()) {
+    return(knitr::normal_print(x))
+  }
   invisible(knitr::asis_output(""))
+}
+
+#' Print a ggplot with the original (non-MAIDR) print method
+#'
+#' @param x A ggplot object
+#' @return NULL (invisible)
+#' @keywords internal
+print_ggplot_natively <- function(x) {
+  original_print <- .maidr_ggplot_state$original_print_ggplot
+  if (!is.null(original_print)) {
+    original_print(x)
+  } else {
+    print(x)
+  }
+  invisible(NULL)
 }
 
 #' Create MAIDR Widget for knitr (Internal)
@@ -265,14 +304,19 @@ create_maidr_widget_internal <- function(plot = NULL) {
 maidr_plot_hook <- function(x, options) {
   device_id <- grDevices::dev.cur()
 
+  # Honour maidr_off(): behave exactly like the original hook
+  if (!is_base_r_enabled()) {
+    return(call_original_plot_hook(x, options))
+  }
+
   # Check if we have captured Base R calls
   if (has_device_calls(device_id)) {
     # Check output format - only use iframes for HTML output
     if (!is_html_output()) {
-      # For PDF/EPUB/LaTeX: use default knitr handling
-      # Clear storage but use standard image output
+      # For PDF/EPUB/LaTeX: use the ORIGINAL hook, not hook_plot_md -
+      # markdown image syntax inside a .tex document breaks the figure
       clear_device_storage(device_id)
-      return(knitr::hook_plot_md(x, options))
+      return(call_original_plot_hook(x, options))
     }
 
     # Create orchestrator ONCE and reuse it
@@ -305,12 +349,22 @@ maidr_plot_hook <- function(x, options) {
   }
 
   # Fall back to original plot hook if no Base R calls captured
+  call_original_plot_hook(x, options)
+}
+
+#' Delegate to the stored original knitr plot hook
+#'
+#' Falls back to knitr's markdown hook only when no original was stored.
+#'
+#' @param x The plot file path from knitr
+#' @param options Chunk options
+#' @return The hook's output
+#' @keywords internal
+call_original_plot_hook <- function(x, options) {
   original_hook <- .maidr_knitr_state$original_plot_hook
   if (!is.null(original_hook) && is.function(original_hook)) {
     return(original_hook(x, options))
   }
-
-  # Default: return standard image tag
   knitr::hook_plot_md(x, options)
 }
 

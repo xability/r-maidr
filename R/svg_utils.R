@@ -21,10 +21,13 @@ NULL
 #' @keywords internal
 generate_unique_id <- function() {
   .maidr_id_counter$value <- .maidr_id_counter$value + 1L
+  # Process ID (not sample.int) for cross-session uniqueness: drawing a
+  # random number here would silently advance the user's RNG state and
+  # break set.seed() reproducibility of their scripts.
   paste0(
     as.integer(Sys.time()) * 1000 + .maidr_id_counter$value,
     "-",
-    sample.int(9999, 1)
+    Sys.getpid()
   )
 }
 
@@ -71,6 +74,7 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
       grDevices::dev.off()
       if (current_dev > 1) grDevices::dev.set(current_dev)
       unlink(pdf_file)
+      unlink(svg_file)
     },
     add = TRUE
   )
@@ -89,24 +93,39 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
 
   svg_content <- readLines(svg_file, warn = FALSE)
-  # Inject candlestick open/close virtual line elements before serializing
-  # the maidr-data attribute so that the bundled maidr JS can resolve
-  # `selectors.open` / `selectors.close` against real DOM nodes (bypassing
-  # its Y-axis-flip-unaware auto-derivation heuristic).
-  svg_content <- inject_candlestick_open_close(svg_content, maidr_data)
-  # Reposition quantmod chartSeries' bracketed date-range header so it
-  # right-aligns inside the viewBox (upstream quantmod #129). No-op for
-  # ggplot candlestick / non-candlestick plots.
-  svg_content <- adjust_chartseries_bracket(svg_content, maidr_data)
-  # Remove the misaligned bottom-axis line and tick marks from
-  # chartSeries candlestick output (date labels remain). No-op for
-  # ggplot candlesticks / non-candlestick plots.
-  svg_content <- strip_chartseries_date_axis(svg_content, maidr_data)
-  # Remove the right y-axis (line + ticks + price labels) from
-  # chartSeries candlestick output: on sparse OHLC the vertical
-  # axis line overlaps the rightmost candle. Price info remains
-  # in maidr-data JSON and is announced by the screen reader.
-  svg_content <- strip_chartseries_right_axis(svg_content, maidr_data)
+
+  # Candlestick post-processing + maidr-data injection. Parse the SVG
+  # ONCE and apply all transformations to the same xml2 document (which
+  # xml2 mutates in place); re-parsing between each step is O(document)
+  # per step and dominated rendering time for large charts.
+  if (has_candlestick && requireNamespace("xml2", quietly = TRUE)) {
+    svg_doc <- tryCatch(
+      xml2::read_xml(paste(svg_content, collapse = "\n")),
+      error = function(e) NULL
+    )
+    if (!is.null(svg_doc)) {
+      # Inject candlestick open/close virtual line elements before
+      # serializing the maidr-data attribute so that the bundled maidr JS
+      # can resolve `selectors.open` / `selectors.close` against real DOM
+      # nodes (bypassing its Y-axis-flip-unaware auto-derivation
+      # heuristic).
+      inject_candlestick_open_close_doc(svg_doc, maidr_data)
+      # Reposition quantmod chartSeries' bracketed date-range header so it
+      # right-aligns inside the viewBox (upstream quantmod #129).
+      adjust_chartseries_bracket_doc(svg_doc)
+      # Remove the misaligned bottom-axis line and tick marks from
+      # chartSeries candlestick output (date labels remain).
+      strip_chartseries_date_axis_doc(svg_doc)
+      # Remove the right y-axis line from chartSeries candlestick output:
+      # on sparse OHLC the vertical axis line overlaps the rightmost
+      # candle. Price info remains in maidr-data JSON and is announced by
+      # the screen reader.
+      strip_chartseries_right_axis_doc(svg_doc)
+      set_maidr_data_attr(svg_doc, maidr_data)
+      return(strsplit(as.character(svg_doc), "\n")[[1]])
+    }
+  }
+
   svg_content <- add_maidr_data_to_svg(svg_content, maidr_data)
 
   svg_content
@@ -128,22 +147,32 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
   # Find violin_kde layers in the maidr_data structure
   if (is.null(maidr_data$subplots)) return(maidr_data)
 
-  # Find the panel viewport name from the gtable layout
+  # Find the panel viewport name from the gtable layout. When the panel
+  # cannot be found (e.g. faceted layouts), still strip the internal
+  # metadata fields so they never leak into the emitted JSON.
   panel_idx <- which(gt$layout$name == "panel")
-  if (length(panel_idx) == 0) return(maidr_data)
+  if (length(panel_idx) == 0) {
+    return(strip_violin_kde_metadata(maidr_data))
+  }
   panel_layout <- gt$layout[panel_idx[1], ]
   vp_name <- sprintf(
     "panel.%d-%d-%d-%d",
     panel_layout$t, panel_layout$l, panel_layout$b, panel_layout$r
   )
 
-  # Navigate to the panel viewport to get device coordinate mapping
-  tryCatch(
-    grid::downViewport(vp_name),
-    error = function(e) {
-      return(maidr_data)
-    }
+  # Navigate to the panel viewport to get device coordinate mapping.
+  # NOTE: return() inside a tryCatch handler only exits the handler, so
+  # the success flag must be checked explicitly.
+  navigated <- tryCatch(
+    {
+      grid::downViewport(vp_name)
+      TRUE
+    },
+    error = function(e) FALSE
   )
+  if (!navigated) {
+    return(strip_violin_kde_metadata(maidr_data))
+  }
 
   # Get absolute device position of panel corners (inches from device origin)
   loc0 <- grid::deviceLoc(grid::unit(0, "npc"), grid::unit(0, "npc"))
@@ -252,6 +281,55 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
   maidr_data
 }
 
+#' Strip internal violin_kde metadata without coordinate injection
+#'
+#' Fallback used when the panel viewport cannot be navigated: removes the
+#' temporary fields (`.panel_x_range`, `.panel_y_range`, `.is_horizontal`,
+#' `data_left_x`, `data_right_x`, `data_y`) that must never appear in the
+#' serialized maidr-data JSON.
+#'
+#' @param maidr_data The maidr-data structure
+#' @return Cleaned maidr_data
+#' @keywords internal
+strip_violin_kde_metadata <- function(maidr_data) {
+  if (is.null(maidr_data$subplots)) return(maidr_data)
+
+  for (row_idx in seq_along(maidr_data$subplots)) {
+    row <- maidr_data$subplots[[row_idx]]
+    for (cell_idx in seq_along(row)) {
+      cell <- row[[cell_idx]]
+      if (is.null(cell$layers)) next
+
+      for (layer_idx in seq_along(cell$layers)) {
+        layer <- cell$layers[[layer_idx]]
+        if (!identical(layer$type, "violin_kde")) next
+
+        layer$.panel_x_range <- NULL
+        layer$.panel_y_range <- NULL
+        layer$.is_horizontal <- NULL
+
+        for (group_idx in seq_along(layer$data)) {
+          points <- layer$data[[group_idx]]
+          for (pt_idx in seq_along(points)) {
+            pt <- points[[pt_idx]]
+            pt$data_left_x <- NULL
+            pt$data_right_x <- NULL
+            pt$data_y <- NULL
+            points[[pt_idx]] <- pt
+          }
+          layer$data[[group_idx]] <- points
+        }
+
+        cell$layers[[layer_idx]] <- layer
+      }
+      row[[cell_idx]] <- cell
+    }
+    maidr_data$subplots[[row_idx]] <- row
+  }
+
+  maidr_data
+}
+
 #' Inject candlestick open/close virtual line elements into the SVG
 #'
 #' tidyquant's `geom_candlestick()` draws each candle's body as a single
@@ -290,6 +368,27 @@ inject_candlestick_open_close <- function(svg_content, maidr_data) {
   )
   if (is.null(svg_doc)) {
     return(svg_content)
+  }
+
+  if (!inject_candlestick_open_close_doc(svg_doc, maidr_data)) {
+    return(svg_content)
+  }
+
+  strsplit(as.character(svg_doc), "\n")[[1]]
+}
+
+#' Document-level implementation of [inject_candlestick_open_close()]
+#'
+#' Mutates `svg_doc` in place (xml2 documents are references).
+#'
+#' @param svg_doc Parsed SVG document (xml2)
+#' @param maidr_data The maidr-data structure
+#' @return TRUE if the document was modified
+#' @keywords internal
+inject_candlestick_open_close_doc <- function(svg_doc, maidr_data) {
+  cs_layers <- collect_candlestick_layers(maidr_data)
+  if (length(cs_layers) == 0) {
+    return(FALSE)
   }
 
   ns <- c(svg = "http://www.w3.org/2000/svg")
@@ -386,11 +485,7 @@ inject_candlestick_open_close <- function(svg_content, maidr_data) {
     modified <- TRUE
   }
 
-  if (!modified) {
-    return(svg_content)
-  }
-
-  strsplit(as.character(svg_doc), "\n")[[1]]
+  modified
 }
 
 #' Collect all candlestick layers in a maidr_data structure
@@ -487,16 +582,30 @@ adjust_chartseries_bracket <- function(svg_content, maidr_data) {
     return(svg_content)
   }
 
+  if (!adjust_chartseries_bracket_doc(svg_doc)) {
+    return(svg_content)
+  }
+  strsplit(as.character(svg_doc), "\n")[[1]]
+}
+
+#' Document-level implementation of [adjust_chartseries_bracket()]
+#'
+#' Mutates `svg_doc` in place.
+#'
+#' @param svg_doc Parsed SVG document (xml2)
+#' @return TRUE if the document was modified
+#' @keywords internal
+adjust_chartseries_bracket_doc <- function(svg_doc) {
   svg_root <- xml2::xml_root(svg_doc)
   viewbox <- xml2::xml_attr(svg_root, "viewBox")
   if (is.na(viewbox)) {
-    return(svg_content)
+    return(FALSE)
   }
   vb_parts <- suppressWarnings(
     as.numeric(strsplit(viewbox, "\\s+")[[1]])
   )
   if (length(vb_parts) < 4L || any(is.na(vb_parts)) || vb_parts[3] <= 0) {
-    return(svg_content)
+    return(FALSE)
   }
   vb_width <- vb_parts[3]
   safe_x <- vb_width * 0.95  # 5% right padding
@@ -522,10 +631,7 @@ adjust_chartseries_bracket <- function(svg_content, maidr_data) {
     }
   }
 
-  if (!modified) {
-    return(svg_content)
-  }
-  strsplit(as.character(svg_doc), "\n")[[1]]
+  modified
 }
 
 #' Strip the bottom axis line and tick marks from chartSeries candlestick SVG
@@ -574,6 +680,20 @@ strip_chartseries_date_axis <- function(svg_content, maidr_data) {
     return(svg_content)
   }
 
+  if (!strip_chartseries_date_axis_doc(svg_doc)) {
+    return(svg_content)
+  }
+  strsplit(as.character(svg_doc), "\n")[[1]]
+}
+
+#' Document-level implementation of [strip_chartseries_date_axis()]
+#'
+#' Mutates `svg_doc` in place.
+#'
+#' @param svg_doc Parsed SVG document (xml2)
+#' @return TRUE if the document was modified
+#' @keywords internal
+strip_chartseries_date_axis_doc <- function(svg_doc) {
   ns <- c(svg = "http://www.w3.org/2000/svg")
   modified <- FALSE
 
@@ -590,10 +710,7 @@ strip_chartseries_date_axis <- function(svg_content, maidr_data) {
     }
   }
 
-  if (!modified) {
-    return(svg_content)
-  }
-  strsplit(as.character(svg_doc), "\n")[[1]]
+  modified
 }
 
 #' Strip the right y-axis vertical line from chartSeries candlestick SVG
@@ -641,6 +758,20 @@ strip_chartseries_right_axis <- function(svg_content, maidr_data) {
     return(svg_content)
   }
 
+  if (!strip_chartseries_right_axis_doc(svg_doc)) {
+    return(svg_content)
+  }
+  strsplit(as.character(svg_doc), "\n")[[1]]
+}
+
+#' Document-level implementation of [strip_chartseries_right_axis()]
+#'
+#' Mutates `svg_doc` in place.
+#'
+#' @param svg_doc Parsed SVG document (xml2)
+#' @return TRUE if the document was modified
+#' @keywords internal
+strip_chartseries_right_axis_doc <- function(svg_doc) {
   ns <- c(svg = "http://www.w3.org/2000/svg")
   modified <- FALSE
 
@@ -653,10 +784,7 @@ strip_chartseries_right_axis <- function(svg_content, maidr_data) {
     modified <- TRUE
   }
 
-  if (!modified) {
-    return(svg_content)
-  }
-  strsplit(as.character(svg_doc), "\n")[[1]]
+  modified
 }
 
 #' Add maidr-data to SVG using proper XML manipulation
@@ -665,12 +793,6 @@ strip_chartseries_right_axis <- function(svg_content, maidr_data) {
 #' @return Modified SVG content
 #' @keywords internal
 add_maidr_data_to_svg <- function(svg_content, maidr_data) {
-  # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
-  # moving-average line) serialize to JSON `null` rather than the string
-  # `"NA"`, which `Number(point.y)` in the maidr JS frontend would coerce
-  # to NaN and treat as a parse error.
-  maidr_json <- jsonlite::toJSON(maidr_data, auto_unbox = TRUE, na = "null")
-
   if (!requireNamespace("xml2", quietly = TRUE)) {
     stop(
       "The 'xml2' package is required for SVG manipulation. ",
@@ -681,11 +803,39 @@ add_maidr_data_to_svg <- function(svg_content, maidr_data) {
   svg_text <- paste(svg_content, collapse = "\n")
   svg_doc <- xml2::read_xml(svg_text)
 
-  xml2::xml_attr(svg_doc, "maidr-data") <- maidr_json
+  set_maidr_data_attr(svg_doc, maidr_data)
 
   svg_content <- strsplit(as.character(svg_doc), "\n")[[1]]
 
   svg_content
+}
+
+#' Serialize maidr_data and set it as the SVG root's maidr-data attribute
+#'
+#' Mutates `svg_doc` in place.
+#'
+#' @param svg_doc Parsed SVG document (xml2)
+#' @param maidr_data The maidr-data structure
+#' @return NULL (invisible)
+#' @keywords internal
+set_maidr_data_attr <- function(svg_doc, maidr_data) {
+  # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
+  # moving-average line) serialize to JSON `null` rather than the string
+  # `"NA"`, which `Number(point.y)` in the maidr JS frontend would coerce
+  # to NaN and treat as a parse error.
+  # `digits = NA` keeps full numeric precision: jsonlite's default of 4
+  # decimal digits silently rounds data values (0.123456 -> 0.1235) in
+  # the announced output.
+  maidr_json <- jsonlite::toJSON(
+    maidr_data,
+    auto_unbox = TRUE,
+    na = "null",
+    digits = NA
+  )
+
+  xml2::xml_attr(svg_doc, "maidr-data") <- maidr_json
+
+  invisible(NULL)
 }
 
 #' Create HTML document with dependencies
@@ -825,9 +975,12 @@ display_html_file <- function(file) {
 create_standalone_html <- function(svg_content, use_cdn = NULL) {
   svg_html <- paste(svg_content, collapse = "\n")
 
-  # Auto-detect if not specified
+  # Default to local bundled assets, consistent with
+  # maidr_html_dependencies(): deterministic, offline-capable, and no
+  # per-plot network probe (curl::has_internet() can block for seconds
+  # on offline machines).
   if (is.null(use_cdn)) {
-    use_cdn <- curl::has_internet()
+    use_cdn <- FALSE
   }
 
   if (use_cdn) {
@@ -842,11 +995,9 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
     )
   } else {
     # Inline local content - works offline, larger HTML
-    assets <- maidr_local_assets()
-    css_content <- paste(readLines(assets$css, warn = FALSE), collapse = "\n")
-    js_content <- paste(readLines(assets$js, warn = FALSE), collapse = "\n")
-    css_tag <- sprintf("<style>\n%s\n</style>", css_content)
-    js_tag <- sprintf("<script>\n%s\n</script>", js_content)
+    assets <- maidr_inline_asset_tags()
+    css_tag <- assets$css_tag
+    js_tag <- assets$js_tag
   }
 
   # Create a complete standalone HTML document
@@ -984,8 +1135,11 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
 
   standalone_html <- create_standalone_html(svg_content, use_cdn = use_cdn)
 
-  # Use base64 encoding to avoid quote escaping issues with JSON in maidr-data
-  html_base64 <- base64enc::base64encode(charToRaw(standalone_html))
+  # Use base64 encoding to avoid quote escaping issues with JSON in maidr-data.
+  # Force UTF-8 first: the document declares charset=UTF-8, so encoding the
+  # native-locale bytes would garble non-ASCII titles/labels on non-UTF-8
+  # systems.
+  html_base64 <- base64enc::base64encode(charToRaw(enc2utf8(standalone_html)))
   data_uri <- paste0("data:text/html;base64,", html_base64)
 
   iframe_html <- sprintf(
@@ -996,7 +1150,37 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
     height
   )
 
-  iframe_html
+  # The embedded document reports its content height via postMessage;
+  # attach the parent-side listener so auto-resize also works outside the
+  # htmlwidgets binding (e.g. iframes emitted directly into RMarkdown).
+  paste0(iframe_html, maidr_iframe_resize_script())
+}
+
+#' Parent-side listener that resizes MAIDR iframes to their content
+#'
+#' Registered at most once per document (guarded by a window flag), no
+#' matter how many iframes embed it.
+#'
+#' @return Character string with a script tag
+#' @keywords internal
+maidr_iframe_resize_script <- function() {
+  paste0(
+    "<script>(function() {",
+    "if (window.__maidrIframeResize) return;",
+    "window.__maidrIframeResize = true;",
+    "window.addEventListener(\"message\", function(e) {",
+    "if (!e.data || e.data.type !== \"maidr-iframe-height\") return;",
+    "var frames = document.querySelectorAll(",
+    "\"iframe[id^='maidr-iframe-'], iframe[id^='maidr-fallback-']\");",
+    "for (var i = 0; i < frames.length; i++) {",
+    "if (frames[i].contentWindow === e.source) {",
+    "frames[i].style.height = e.data.height + \"px\";",
+    "break;",
+    "}",
+    "}",
+    "});",
+    "})();</script>"
+  )
 }
 
 #' Create iframe HTML tag for fallback static image
@@ -1051,8 +1235,9 @@ create_fallback_iframe <- function(html_content, width = "100%", height = "450px
     html_content
   )
 
-  # Use base64 encoding for the iframe src
-  html_base64 <- base64enc::base64encode(charToRaw(standalone_html))
+  # Use base64 encoding for the iframe src (UTF-8, matching the declared
+  # charset)
+  html_base64 <- base64enc::base64encode(charToRaw(enc2utf8(standalone_html)))
   data_uri <- paste0("data:text/html;base64,", html_base64)
 
   iframe_html <- sprintf(
