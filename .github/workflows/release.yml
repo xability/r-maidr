@@ -30,7 +30,9 @@ name: Release
 # the commit that introduced it, e.g.:
 #   git tag v0.4.0 <commit-sha> && git push origin v0.4.0
 # The guard step below fails loudly (instead of silently releasing 1.0.0)
-# until that tag exists.
+# until that tag exists, and on every run it also requires the newest
+# ``v*`` tag to match DESCRIPTION's Version, so an unrelated or stale tag
+# can never silently become the release baseline.
 
 on:
   push:
@@ -99,14 +101,23 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
 
-      - name: Ensure baseline tag exists
+      - name: Ensure release baseline matches DESCRIPTION
         # Without any v* tag semantic-release treats the next release as
-        # the first ever and jumps straight to 1.0.0. Refuse to run until
-        # a maintainer seeds the baseline tag described in the header.
+        # the first ever and jumps straight to 1.0.0, and with a wrong or
+        # stale tag it would compute the next version from the wrong
+        # baseline. Refuse to run unless the newest v* tag agrees with the
+        # Version currently in DESCRIPTION — an invariant every automated
+        # release re-establishes, so a mismatch always means manual drift
+        # that needs a maintainer's attention.
         run: |
-          if [ -z "$(git tag --list 'v*')" ]; then
-            CURRENT=$(sed -n 's/^Version: //p' DESCRIPTION)
+          CURRENT=$(sed -n 's/^Version: //p' DESCRIPTION)
+          LATEST_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          if [ -z "${LATEST_TAG}" ]; then
             echo "::error::No v* tag found. Create a baseline tag for the current version first, e.g.: git tag v${CURRENT} <commit-that-set-${CURRENT}> && git push origin v${CURRENT}"
+            exit 1
+          fi
+          if [ "${LATEST_TAG}" != "v${CURRENT}" ]; then
+            echo "::error::Newest tag ${LATEST_TAG} does not match DESCRIPTION Version ${CURRENT}. Re-align the baseline tag and DESCRIPTION before releasing."
             exit 1
           fi
 

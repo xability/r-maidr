@@ -20,5 +20,5 @@ fi
 sed -i.bak "s/^Version: .*/Version: ${VERSION}/" DESCRIPTION
 rm -f DESCRIPTION.bak
 
-grep -q "^Version: ${VERSION}$" DESCRIPTION
+grep -qxF "Version: ${VERSION}" DESCRIPTION
 echo "DESCRIPTION Version set to ${VERSION}"

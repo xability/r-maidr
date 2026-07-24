@@ -58,7 +58,10 @@ git push origin v0.4.0
 
 The release job fails with an explicit error until this tag exists —
 otherwise semantic-release would treat the next release as the first ever
-and publish 1.0.0.
+and publish 1.0.0. On every run the job also verifies that the newest
+`v*` tag matches the `Version:` in `DESCRIPTION` (an invariant each
+automated release re-establishes), so an unrelated or stale tag can never
+silently become the release baseline.
 
 ## CRAN releases stay manual
 
