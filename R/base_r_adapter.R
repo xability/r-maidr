@@ -1,12 +1,9 @@
-#' Base R System Adapter
+#' chartSeries TA Advisory Warning State
 #'
-#' Adapter for the Base R plotting system. This adapter uses function patching
-#' to intercept Base R plotting calls and detect plot types.
+#' Environment used to suppress repeat chartSeries `TA` advisory warnings
+#' within a single session.
 #'
-#' @format An R6 class inheriting from SystemAdapter
 #' @keywords internal
-
-# Environment used to suppress repeat warnings within a single session.
 .maidr_chartseries_ta_warned <- new.env(parent = emptyenv())
 .maidr_chartseries_ta_warned$value <- FALSE
 
@@ -51,6 +48,13 @@ warn_chartseries_ta_unsupported <- function() {
   invisible(NULL)
 }
 
+#' Base R System Adapter
+#'
+#' Adapter for the Base R plotting system. This adapter uses function patching
+#' to intercept Base R plotting calls and detect plot types.
+#'
+#' @format An R6 class inheriting from SystemAdapter
+#' @keywords internal
 BaseRAdapter <- R6::R6Class(
   "BaseRAdapter",
   inherit = SystemAdapter,

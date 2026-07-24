@@ -3,6 +3,10 @@
 on:
   push:
     branches: [main, master]
+  # Build (but do not deploy — see the gate on the deploy step) on PRs so
+  # site-breaking changes like a missing reference-index topic surface
+  # before merge instead of on main.
+  pull_request:
   release:
     types: [published]
   workflow_dispatch:
