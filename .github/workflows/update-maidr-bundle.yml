@@ -5,16 +5,18 @@ name: Update MAIDR Bundle
 # commits the refresh directly to ``main``.
 #
 # Unlike py-maidr — where the routine refresh happens inside the automated
-# release workflow so the bundle ships with each release — r-maidr has no
-# release pipeline to hook into (CRAN submissions are manual), so the
-# scheduled refresh here is what keeps ``main`` current: whatever is bundled
-# on ``main`` at submission time is what ships to CRAN. The download is
+# release workflow so the bundle ships with each release — r-maidr keeps
+# the refresh on this daily schedule because CRAN submissions are built
+# from ``main``, not from release artifacts: whatever is bundled on
+# ``main`` at submission time is what ships to CRAN. The download is
 # verified against the integrity hash published in the npm registry
 # metadata (see ``.github/scripts/fetch-maidr-bundle.sh``), so a tampered
 # CDN/registry response fails the job instead of landing on ``main``.
 #
 # The commit uses the ``chore:`` prefix so a bundle refresh reads as
-# maintenance, not a feature, in the history.
+# maintenance, not a feature, in the history — and so the semantic-release
+# pipeline (see ``release.yml``) never cuts a release for a bundle
+# refresh.
 
 on:
   schedule:
