@@ -94,8 +94,8 @@
 * Candlestick SVG post-processing parses the document once instead of five
   times.
 * The multi-megabyte bundled JS/CSS assets are read once per session
-  instead of once per rendered plot, and offline detection no longer probes
-  the network per plot.
+  instead of once per rendered plot, and the offline-detection probe is
+  cached per session instead of hitting the network for every plot.
 
 # maidr 0.4.0
 

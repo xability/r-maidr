@@ -88,8 +88,26 @@ maidr_local_assets <- function() {
 
 # Session cache for inlined asset tags (the JS bundle is several MB;
 # re-reading it from disk for every rendered plot is wasteful in
-# documents with many plots).
+# documents with many plots) and for the internet-availability probe.
 .maidr_asset_cache <- new.env(parent = emptyenv())
+
+#' Check internet availability once per session
+#'
+#' curl::has_internet() can block for seconds on offline machines, so the
+#' result is cached for the session rather than probed per plot.
+#'
+#' @return TRUE if internet appears available
+#' @keywords internal
+maidr_internet_available <- function() {
+  cached <- .maidr_asset_cache$internet
+  if (!is.null(cached)) {
+    return(cached)
+  }
+
+  result <- tryCatch(curl::has_internet(), error = function(e) FALSE)
+  .maidr_asset_cache$internet <- isTRUE(result)
+  .maidr_asset_cache$internet
+}
 
 #' Get `<style>`/`<script>` tags with the bundled assets inlined
 #'

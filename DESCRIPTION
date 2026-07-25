@@ -24,6 +24,7 @@ Encoding: UTF-8
 Depends: R (>= 3.5.0)
 Imports:
     base64enc,
+    curl,
     ggplot2,
     ggplotify,
     grid,

@@ -975,12 +975,13 @@ display_html_file <- function(file) {
 create_standalone_html <- function(svg_content, use_cdn = NULL) {
   svg_html <- paste(svg_content, collapse = "\n")
 
-  # Default to local bundled assets, consistent with
-  # maidr_html_dependencies(): deterministic, offline-capable, and no
-  # per-plot network probe (curl::has_internet() can block for seconds
-  # on offline machines).
+  # Auto-detect with a session-cached probe. CDN (pinned to the bundled
+  # version) keeps documents small: inlining the multi-megabyte bundle
+  # into every iframe balloons multi-plot RMarkdown documents by tens of
+  # megabytes. The cache avoids the previous per-plot has_internet()
+  # probe, which could block for seconds per plot on offline machines.
   if (is.null(use_cdn)) {
-    use_cdn <- FALSE
+    use_cdn <- maidr_internet_available()
   }
 
   if (use_cdn) {
