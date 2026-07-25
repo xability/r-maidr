@@ -2,7 +2,7 @@
 % Please edit documentation in R/base_r_arg_utils.R
 \name{resolve_xy_args}
 \alias{resolve_xy_args}
-\title{Base R Recorded-Argument Utilities}
+\title{Resolve x/y data arguments from a recorded call's argument list}
 \usage{
 resolve_xy_args(args)
 }
@@ -13,54 +13,10 @@ resolve_xy_args(args)
 List with `x` and `y` (either may be NULL)
 }
 \description{
-Helpers for resolving data arguments out of recorded Base R plot calls.
+Mirrors how plot()/points()/lines() match their arguments: named `x`/`y`
+win, then the first two UNNAMED arguments in order. Blind positional
+access (`args[[2]]`) would grab graphical parameters instead
+(plot(x, type = "l") -> y = "l") or error for single-argument calls
+(plot(v), lines(v)).
 }
-\keyword{"l")}
-\keyword{(`args[[2]]`)}
-\keyword{(plot(v),}
-\keyword{(plot(x,}
-\keyword{->}
-\keyword{=}
-\keyword{Blind}
-\keyword{Mirrors}
-\keyword{Resolve}
-\keyword{UNNAMED}
-\keyword{`x`/`y`}
-\keyword{a}
-\keyword{access}
-\keyword{argument}
-\keyword{arguments}
-\keyword{arguments:}
-\keyword{call's}
-\keyword{calls}
-\keyword{data}
-\keyword{error}
-\keyword{first}
-\keyword{for}
-\keyword{from}
-\keyword{grab}
-\keyword{graphical}
-\keyword{how}
-\keyword{in}
-\keyword{instead}
 \keyword{internal}
-\keyword{lines(v)).}
-\keyword{list}
-\keyword{match}
-\keyword{named}
-\keyword{or}
-\keyword{order.}
-\keyword{parameters}
-\keyword{plot()/points()/lines()}
-\keyword{positional}
-\keyword{recorded}
-\keyword{single-argument}
-\keyword{the}
-\keyword{their}
-\keyword{then}
-\keyword{two}
-\keyword{type}
-\keyword{win,}
-\keyword{would}
-\keyword{x/y}
-\keyword{y}

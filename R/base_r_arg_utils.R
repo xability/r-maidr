@@ -3,6 +3,7 @@
 #' Helpers for resolving data arguments out of recorded Base R plot calls.
 #'
 #' @keywords internal
+NULL
 
 #' Resolve x/y data arguments from a recorded call's argument list
 #'
