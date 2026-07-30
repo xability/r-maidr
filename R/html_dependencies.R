@@ -50,14 +50,22 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
       stylesheet = "maidr.css"
     )
   } else {
-    # Local dependency - works offline, copies files to lib/ folder
+    # Local dependency - works offline, copies files to lib/ folder.
+    #
+    # all_files = TRUE (htmlDependency's default, stated here so a future edit
+    # cannot silently drop it) is what ships `maidr-math.css`: maidr.js fetches
+    # that stylesheet at runtime, resolving it against whichever maidr.js or
+    # maidr.css the page loaded, so it has to be copied next to them. It is
+    # deliberately absent from `stylesheet` — giving it a <link> would download
+    # ~360 kB of base64 fonts on every page and undo the split it exists for.
     maidr_dep <- htmltools::htmlDependency(
       name = "maidr",
       version = MAIDR_VERSION,
       package = "maidr",
       src = sprintf("htmlwidgets/lib/maidr-%s", MAIDR_VERSION),
       script = "maidr.js",
-      stylesheet = "maidr.css"
+      stylesheet = "maidr.css",
+      all_files = TRUE
     )
   }
 

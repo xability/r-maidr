@@ -841,7 +841,17 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
       maidr_cdn_url()
     )
   } else {
-    # Inline local content - works offline, larger HTML
+    # Inline local content - works offline, larger HTML.
+    #
+    # Known limitation: inlining leaves no maidr.js <script src> and no
+    # maidr.css <link> for maidr.js to resolve `maidr-math.css` against, so
+    # LaTeX in AI chat responses renders without KaTeX's typography here. The
+    # equation is still read correctly — KaTeX emits MathML regardless, so
+    # screen readers are unaffected and only the visual layout degrades. Fixing
+    # it would mean inlining ~360 kB of base64 fonts into every standalone
+    # file, which is the cost the upstream split exists to avoid; a page that
+    # needs the typography should use use_cdn = TRUE or the htmlwidget path,
+    # which serves the stylesheet from lib/maidr-<version>/.
     assets <- maidr_local_assets()
     css_content <- paste(readLines(assets$css, warn = FALSE), collapse = "\n")
     js_content <- paste(readLines(assets$js, warn = FALSE), collapse = "\n")

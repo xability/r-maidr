@@ -108,12 +108,19 @@ fi
 # Extract the bundled assets from the verified tarball. npm tarballs place
 # published files under ``package/``.
 tar -xzf "$TGZ" -C "$WORK" package/dist/maidr.js package/dist/maidr.css
+# Extracted separately, and tolerantly: maidr.js only started publishing a
+# split-out KaTeX stylesheet partway through its history, so a tarball
+# without one is a valid older bundle rather than a failure.
+tar -xzf "$TGZ" -C "$WORK" package/dist/maidr-math.css 2>/dev/null \
+  || echo "maidr@$VERSION ships no maidr-math.css; maths styling will fall back" >&2
 
 # Defense-in-depth sanity checks on the extracted payloads before touching
 # the package tree: non-empty, and not an HTML error page masquerading as
 # JS / CSS. The check is a positive match: fail when the payload *starts*
 # with an HTML marker.
-for asset in maidr.js maidr.css; do
+for asset in maidr.js maidr.css maidr-math.css; do
+  # maidr-math.css is optional; only inspect it when this version shipped one.
+  [ -f "$WORK/package/dist/${asset}" ] || continue
   test -s "$WORK/package/dist/${asset}"
   if head -c 128 "$WORK/package/dist/${asset}" | grep -qiE "^[[:space:]]*<!DOCTYPE|^[[:space:]]*<html"; then
     echo "${asset} looks like an HTML error page" >&2
@@ -126,6 +133,14 @@ done
 mkdir -p "$DEST_DIR"
 cp "$WORK/package/dist/maidr.js" "$DEST_DIR/maidr.js"
 cp "$WORK/package/dist/maidr.css" "$DEST_DIR/maidr.css"
+# Refresh or remove, never leave stale: a downgrade to a version predating the
+# split would otherwise strand an unrelated stylesheet beside the new bundle.
+# htmltools copies the whole lib directory, so anything left here ships.
+if [ -f "$WORK/package/dist/maidr-math.css" ]; then
+  cp "$WORK/package/dist/maidr-math.css" "$DEST_DIR/maidr-math.css"
+else
+  rm -f "$DEST_DIR/maidr-math.css"
+fi
 for dir in "$LIB_ROOT"/maidr-*/; do
   [ -d "$dir" ] || continue
   if [ "${dir%/}" != "$DEST_DIR" ]; then
