@@ -559,12 +559,19 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       out
     },
 
-    #' Position (1-based) of this layer among the polyline-producing layers of
-    #' `plot`. Delegates to `polyline_layer_position()`, which counts both
-    #' "line" and "step" layers: `find_all_polyline_grobs()` returns every
-    #' polyline in the panel, so counting only "line" layers would index the
-    #' wrong polyline in a plot that also contains a `geom_step()`.
-    #' Returns NULL if the registry-based detection fails.
+    #' @description Position of this layer among the polyline-producing layers.
+    #'
+    #' Delegates to `polyline_layer_position()`, which counts both "line" and
+    #' "step" layers: `find_all_polyline_grobs()` returns every polyline in the
+    #' panel, so counting only "line" layers would index the wrong polyline in a
+    #' plot that also contains a `geom_step()`.
+    #'
+    #' Tagged with `@description` rather than left as bare prose because an
+    #' untagged method title is folded into the class block, where
+    #' `@keywords internal` splits it into one bogus `\keyword{}` per word.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return The 1-based position, or NULL if registry-based detection fails
     #' @keywords internal
     line_layer_position = function(plot) {
       polyline_layer_position(plot, self$layer_info$index)

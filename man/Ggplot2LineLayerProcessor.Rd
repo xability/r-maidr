@@ -13,61 +13,20 @@ Processes line plot layers using the actual gridSVG structure discovered:
 - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
 - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
 }
-\keyword{"line"}
-\keyword{"step"}
-\keyword{(1-based)}
 \keyword{(GRID.polyline.XX)}
-\keyword{Delegates}
 \keyword{Find}
-\keyword{NULL}
-\keyword{Position}
 \keyword{Process}
-\keyword{Returns}
 \keyword{SVG}
-\keyword{`find_all_polyline_grobs()`}
-\keyword{`geom_step()`.}
-\keyword{`plot`.}
-\keyword{`polyline_layer_position()`,}
-\keyword{a}
 \keyword{actual}
-\keyword{also}
-\keyword{among}
-\keyword{and}
-\keyword{both}
-\keyword{contains}
-\keyword{counting}
-\keyword{counts}
-\keyword{detection}
-\keyword{every}
-\keyword{fails.}
 \keyword{grob}
-\keyword{if}
-\keyword{in}
-\keyword{index}
 \keyword{internal}
 \keyword{layer}
-\keyword{layers}
-\keyword{layers:}
 \keyword{line}
 \keyword{main}
-\keyword{of}
-\keyword{only}
-\keyword{panel,}
-\keyword{plot}
 \keyword{polyline}
-\keyword{polyline-producing}
-\keyword{registry-based}
-\keyword{returns}
-\keyword{so}
 \keyword{structure}
-\keyword{that}
 \keyword{the}
-\keyword{this}
-\keyword{to}
-\keyword{which}
 \keyword{with}
-\keyword{would}
-\keyword{wrong}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
 }
@@ -409,10 +368,30 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-line_layer_position}{}}}
 \subsection{Method \code{line_layer_position()}}{
+Position of this layer among the polyline-producing layers.
+
+Delegates to `polyline_layer_position()`, which counts both "line" and
+"step" layers: `find_all_polyline_grobs()` returns every polyline in the
+panel, so counting only "line" layers would index the wrong polyline in a
+plot that also contains a `geom_step()`.
+
+Tagged with `@description` rather than left as bare prose because an
+untagged method title is folded into the class block, where
+`@keywords internal` splits it into one bogus `\keyword{}` per word.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The 1-based position, or NULL if registry-based detection fails
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_main_polyline_grob"></a>}}

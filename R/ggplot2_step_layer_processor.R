@@ -179,13 +179,16 @@ Ggplot2StepLayerProcessor <- R6::R6Class(
       }
 
       keys <- as.character(layer_data$y)
-      names <- as.character(original_y)
+      # Not `names`: R would still resolve names()/`names<-`() correctly, since
+      # a call looks past non-function bindings, but shadowing a base function
+      # here reads as a bug even though it is not one.
+      level_names <- as.character(original_y)
       keep <- !is.na(layer_data$y) & !is.na(original_y)
       if (!any(keep)) {
         return(NULL)
       }
 
-      lookup <- names[keep]
+      lookup <- level_names[keep]
       names(lookup) <- keys[keep]
       lookup[!duplicated(names(lookup))]
     },
