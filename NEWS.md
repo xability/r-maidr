@@ -1,3 +1,27 @@
+# maidr 0.5.0
+
+## New Features
+
+* Added step plot support for 'ggplot2' (`geom_step()`) and Base R
+  (`plot(type = "s")`, `plot(type = "S")`, and the `lines()` equivalents).
+  A step plot describes a value that is piecewise constant — held across an
+  interval and then jumped — such as the sleep stage of a hypnogram.
+* Step layers emit one data point per data sample, never one per stairstep
+  vertex, and report the layer's step convention as `stepDirection`
+  (`"hv"` / `"vh"` / `"mid"` from `geom_step(direction = )`; `"hv"` for Base R
+  `type = "s"` and `"vh"` for `type = "S"`).
+* When a step layer's y aesthetic is an ordinal factor, each point carries the
+  level *name* as `label`, so the frontend announces "REM" rather than the
+  numeric level code while `y` stays numeric for sonification, braille and the
+  min/max range.
+
+## Bug Fixes
+
+* Fixed polyline selector assignment for plots that mix `geom_line()` and
+  `geom_step()`: the layer position was counted over line layers only while
+  every polyline in the panel was searched, so both layers resolved to the
+  same polyline and highlighted the wrong geometry.
+
 # maidr 0.4.0
 
 ## New Features

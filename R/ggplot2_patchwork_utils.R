@@ -239,6 +239,13 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           data = result$data,
           selectors = result$selectors
         )
+        # A step layer reports its hv/vh/mid convention as a layer-level
+        # sibling of axes/data. This entry is rebuilt field by field rather
+        # than copied from the processor result, so the direction has to be
+        # carried across explicitly.
+        if (!is.null(result$stepDirection)) {
+          layer_entry$stepDirection <- result$stepDirection
+        }
         layers[[length(layers) + 1]] <- layer_entry
       }
     }

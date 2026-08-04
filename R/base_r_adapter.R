@@ -48,6 +48,41 @@ warn_chartseries_ta_unsupported <- function() {
   invisible(NULL)
 }
 
+#' Does a Base R `type` argument request a stairstep?
+#'
+#' `graphics::plot()` and `graphics::lines()` draw stairsteps for
+#' `type = "s"` (horizontal segment first) and `type = "S"` (vertical segment
+#' first). The comparison is case-sensitive because those two letters mean
+#' different things.
+#'
+#' @param plot_type The `type` argument recorded from the plot call (may be
+#'   NULL when the caller did not pass one).
+#' @return `TRUE` when `plot_type` is `"s"` or `"S"`, otherwise `FALSE`.
+#' @keywords internal
+is_step_plot_type <- function(plot_type) {
+  if (is.null(plot_type) || length(plot_type) == 0) {
+    return(FALSE)
+  }
+  as.character(plot_type)[1] %in% c("s", "S")
+}
+
+#' Map a Base R `type` argument onto a MAIDR step direction
+#'
+#' `type = "s"` draws the horizontal segment first, which is MAIDR's `"hv"`;
+#' `type = "S"` draws the vertical segment first, which is `"vh"`. Any other
+#' value returns NULL so the caller can omit `stepDirection` rather than
+#' assert a convention the call never asked for.
+#'
+#' @param plot_type The `type` argument recorded from the plot call.
+#' @return `"hv"`, `"vh"`, or NULL.
+#' @keywords internal
+base_r_step_direction <- function(plot_type) {
+  if (!is_step_plot_type(plot_type)) {
+    return(NULL)
+  }
+  if (identical(as.character(plot_type)[1], "s")) "hv" else "vh"
+}
+
 #' Base R System Adapter
 #'
 #' Adapter for the Base R plotting system. This adapter uses function patching
@@ -110,6 +145,10 @@ BaseRAdapter <- R6::R6Class(
             plot_type <- args$type
             if (is.null(plot_type) || plot_type == "p") {
               "point"
+            } else if (is_step_plot_type(plot_type)) {
+              # type = "s" / "S" draw stairsteps. This test must precede the
+              # catch-all "line" below, which would otherwise claim them.
+              "step"
             } else {
               "line"
             }
@@ -173,6 +212,10 @@ BaseRAdapter <- R6::R6Class(
       layer_type <- switch(function_name,
         "lines" = {
           first_arg <- args[[1]]
+          # lines() never inspected `type` before, so lines(x, y, type = "s")
+          # was reported as a plain line. The wrapper captures named dots, so
+          # the stairstep request is available here just as it is for plot().
+          step_fallback <- if (is_step_plot_type(args$type)) "step" else "line"
           if (!is.null(first_arg)) {
             if (inherits(first_arg, "density")) {
               "smooth" # Existing: density curves
@@ -188,10 +231,10 @@ BaseRAdapter <- R6::R6Class(
               # List with x,y and no other args - likely loess.smooth result
               "smooth"
             } else {
-              "line" # Default: regular line
+              step_fallback # Default: regular line, unless type = "s" / "S"
             }
           } else {
-            "line"
+            step_fallback
           }
         },
         "points" = "point",

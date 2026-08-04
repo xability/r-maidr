@@ -75,6 +75,7 @@ test_that("Ggplot2ProcessorFactory get_supported_types returns expected types", 
   testthat::expect_true("bar" %in% types)
   testthat::expect_true("point" %in% types)
   testthat::expect_true("line" %in% types)
+  testthat::expect_true("step" %in% types)
   testthat::expect_true("hist" %in% types)
   testthat::expect_true("box" %in% types)
   testthat::expect_true("heat" %in% types)
@@ -136,6 +137,29 @@ test_that("Ggplot2ProcessorFactory creates line processor", {
 
   testthat::expect_s3_class(processor, "Ggplot2LineLayerProcessor")
   testthat::expect_s3_class(processor, "LayerProcessor")
+})
+
+test_that("Ggplot2ProcessorFactory creates step processor", {
+  factory <- maidr:::Ggplot2ProcessorFactory$new()
+  layer_info <- list(index = 1)
+
+  processor <- factory$create_processor("step", layer_info)
+
+  testthat::expect_s3_class(processor, "Ggplot2StepLayerProcessor")
+  # Inherits the line processor's extraction and selector generation.
+  testthat::expect_s3_class(processor, "Ggplot2LineLayerProcessor")
+  testthat::expect_s3_class(processor, "LayerProcessor")
+})
+
+test_that("Ggplot2ProcessorFactory line and step processors are distinct classes", {
+  factory <- maidr:::Ggplot2ProcessorFactory$new()
+  layer_info <- list(index = 1)
+
+  line_processor <- factory$create_processor("line", layer_info)
+  step_processor <- factory$create_processor("step", layer_info)
+
+  testthat::expect_equal(class(line_processor)[1], "Ggplot2LineLayerProcessor")
+  testthat::expect_equal(class(step_processor)[1], "Ggplot2StepLayerProcessor")
 })
 
 test_that("Ggplot2ProcessorFactory creates histogram processor", {
@@ -289,6 +313,7 @@ test_that("BaseRProcessorFactory get_supported_types returns expected types", {
   testthat::expect_true("box" %in% types)
   testthat::expect_true("heat" %in% types)
   testthat::expect_true("smooth" %in% types)
+  testthat::expect_true("step" %in% types)
   testthat::expect_true("dodged_bar" %in% types)
   testthat::expect_true("stacked_bar" %in% types)
   testthat::expect_true("contour" %in% types)
@@ -347,6 +372,29 @@ test_that("BaseRProcessorFactory creates line processor", {
 
   testthat::expect_s3_class(processor, "BaseRLineLayerProcessor")
   testthat::expect_s3_class(processor, "LayerProcessor")
+})
+
+test_that("BaseRProcessorFactory creates step processor", {
+  factory <- maidr:::BaseRProcessorFactory$new()
+  layer_info <- list(index = 1)
+
+  processor <- factory$create_processor("step", layer_info)
+
+  testthat::expect_s3_class(processor, "BaseRStepLayerProcessor")
+  # Inherits the line processor's extraction and selector generation.
+  testthat::expect_s3_class(processor, "BaseRLineLayerProcessor")
+  testthat::expect_s3_class(processor, "LayerProcessor")
+})
+
+test_that("BaseRProcessorFactory line and step processors are distinct classes", {
+  factory <- maidr:::BaseRProcessorFactory$new()
+  layer_info <- list(index = 1)
+
+  line_processor <- factory$create_processor("line", layer_info)
+  step_processor <- factory$create_processor("step", layer_info)
+
+  testthat::expect_equal(class(line_processor)[1], "BaseRLineLayerProcessor")
+  testthat::expect_equal(class(step_processor)[1], "BaseRStepLayerProcessor")
 })
 
 test_that("BaseRProcessorFactory creates histogram processor", {

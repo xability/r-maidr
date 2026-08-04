@@ -37,6 +37,7 @@ Base R plotting systems:
   \item Histograms - \code{geom_histogram()}
   \item Scatter plots - \code{geom_point()}
   \item Line plots - \code{geom_line()}
+  \item Step plots - \code{geom_step()}
   \item Box plots - \code{geom_boxplot()}
   \item Violin plots - \code{geom_violin()}
   \item Heat maps - \code{geom_tile()}
@@ -51,6 +52,7 @@ Base R plotting systems:
   \item Bar plots (simple, grouped, stacked) - \code{barplot()}
   \item Histograms - \code{hist()}
   \item Scatter and line plots - \code{plot()}, \code{points()}, \code{lines()}
+  \item Step plots - \code{plot(type = "s")}, \code{plot(type = "S")}
   \item Box plots - \code{boxplot()}
   \item Heat maps - \code{image()}, \code{heatmap()}
   \item Multi-panel layouts - \code{par(mfrow)}, \code{par(mfcol)}

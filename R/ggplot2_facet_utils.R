@@ -174,6 +174,15 @@ process_facet_panel <- function(
       selectors = combined_selectors
     )
 
+    # A step layer reports its hv/vh/mid convention as a layer-level sibling
+    # of axes/data. This panel entry is rebuilt field by field rather than
+    # copied from the processor result, so the direction has to be carried
+    # across explicitly or every faceted step plot loses it.
+    step_direction <- first_step_direction(layer_results)
+    if (!is.null(step_direction)) {
+      layer$stepDirection <- step_direction
+    }
+
     layers[[1]] <- layer
   }
 
@@ -227,6 +236,25 @@ combine_facet_layer_data <- function(layer_results) {
   }
 
   combined_data
+}
+
+#' First step direction reported by any layer of a facet panel
+#'
+#' Facet panels merge every layer result into one payload layer, so the
+#' step convention of a `geom_step()` layer has to be lifted out separately.
+#' Returns NULL when no layer reported one, in which case the caller omits
+#' `stepDirection` rather than asserting a convention.
+#'
+#' @param layer_results List of layer processing results
+#' @return "hv", "vh", "mid", or NULL
+#' @keywords internal
+first_step_direction <- function(layer_results) {
+  for (result in layer_results) {
+    if (!is.null(result) && !is.null(result$stepDirection)) {
+      return(result$stepDirection)
+    }
+  }
+  NULL
 }
 
 #' Combine selectors from multiple layers in facet processing

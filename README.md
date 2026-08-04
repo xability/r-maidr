@@ -81,6 +81,7 @@ maidr supports a wide range of visualization types in both ggplot2 and Base R:
 | Histograms | `geom_histogram()` | `hist()` |
 | Scatter plots | `geom_point()` | `plot()` |
 | Line plots | `geom_line()` | `plot(type = "l")`, `lines()` |
+| Step plots | `geom_step()` | `plot(type = "s")`, `plot(type = "S")` |
 | Box plots | `geom_boxplot()` | `boxplot()` |
 | Heatmaps | `geom_tile()` | `image()` |
 | Violin plots | `geom_violin()` | — |

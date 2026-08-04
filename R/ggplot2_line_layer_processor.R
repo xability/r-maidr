@@ -559,29 +559,15 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       out
     },
 
-    #' Position (1-based) of this layer among line-typed layers in `plot`.
+    #' Position (1-based) of this layer among the polyline-producing layers of
+    #' `plot`. Delegates to `polyline_layer_position()`, which counts both
+    #' "line" and "step" layers: `find_all_polyline_grobs()` returns every
+    #' polyline in the panel, so counting only "line" layers would index the
+    #' wrong polyline in a plot that also contains a `geom_step()`.
     #' Returns NULL if the registry-based detection fails.
     #' @keywords internal
     line_layer_position = function(plot) {
-      tryCatch(
-        {
-          registry <- get_global_registry()
-          adapter <- registry$get_adapter("ggplot2")
-          my_idx <- self$layer_info$index
-          pos <- 0L
-          for (i in seq_along(plot$layers)) {
-            tp <- adapter$detect_layer_type(plot$layers[[i]], plot)
-            if (identical(tp, "line")) {
-              pos <- pos + 1L
-              if (i == my_idx) {
-                return(pos)
-              }
-            }
-          }
-          NULL
-        },
-        error = function(e) NULL
-      )
+      polyline_layer_position(plot, self$layer_info$index)
     },
 
     #' Find the main polyline grob (GRID.polyline.XX)
