@@ -14,7 +14,13 @@ render_maidr(expr, env = parent.frame(), quoted = FALSE)
 
 - expr:
 
-  An expression that returns a ggplot object
+  An expression that draws a plot. Either a ggplot object, or Base R
+  plotting calls – their return values differ
+  ([`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) returns
+  NULL, [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  returns bar midpoints) and are ignored; what counts is whether the
+  expression drew. An expression that draws nothing and returns NULL
+  renders nothing, per Shiny convention.
 
 - env:
 

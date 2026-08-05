@@ -145,7 +145,12 @@ This provides automatic dependency injection and robust JavaScript initializatio
 
 
 <dl><dt id="arg-expr">expr<a class="anchor" aria-label="anchor" href="#arg-expr"></a></dt>
-<dd><p>An expression that returns a ggplot object</p></dd>
+<dd><p>An expression that draws a plot. Either a ggplot object, or
+Base R plotting calls – their return values differ
+(<code><a href="base-r-wrappers.html">plot()</a></code> returns NULL, <code><a href="base-r-wrappers.html">barplot()</a></code> returns bar midpoints)
+and are ignored; what counts is whether the expression drew. An
+expression that draws nothing and returns NULL renders nothing, per
+Shiny convention.</p></dd>
 
 
 <dt id="arg-env">env<a class="anchor" aria-label="anchor" href="#arg-env"></a></dt>

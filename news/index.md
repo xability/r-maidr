@@ -4,44 +4,72 @@
 
 ### Bug Fixes
 
+- Shiny:
+  [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md)
+  renders Base R plots again. It branched on the expression’s return
+  value, which says nothing about whether anything was drawn –
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) returns
+  NULL invisibly, so it was treated as an empty reactive and rendered a
+  silent blank, while
+  [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) return a
+  non-plot value and errored the output slot with “Input must be a
+  ggplot object”. Only ggplot worked.
+  [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) now
+  asks whether the expression actually recorded any drawing, so all
+  three render. An expression that draws nothing and returns NULL still
+  renders nothing.
+
 - Base R: recorded plot calls now capture non-standard-evaluation
   arguments safely, so `curve(sin(x))` no longer errors or records stale
   values; replay evaluates them in the original environment.
+
 - Base R: a multi-panel grid is no longer destroyed by the idiomatic
   trailing `par(mfrow = c(1, 1))` reset. A layout call issued after the
   last plot governs nothing that was drawn, so it no longer wins over
   the layout the panels were actually drawn under.
+
 - Base R: `hist(x, plot = FALSE)` / `boxplot(x, plot = FALSE)` are no
   longer recorded as plot calls (previously they injected phantom layers
   into the next render).
+
 - Base R: extracted bar data now always matches the rendered SVG order.
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) no
   longer re-sorts labels alphabetically out of sync with the drawn bars,
   unnamed vectors keep call order, and the sorted arguments the wrapper
   draws are also what gets recorded and replayed.
+
 - Base R: matrix
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) without
   an explicit `beside` argument is now correctly detected as stacked
   (barplot’s default), not simple bars.
+
 - Base R: `legend.text` no longer contaminates stacked/dodged bar
   highlight selectors with the legend’s swatch rectangles.
+
 - Base R: `barplot(horiz = TRUE)` now emits `orientation = "horz"` with
   value/label roles swapped so announcements and navigation are correct.
+
 - Base R: [`heatmap()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   now reproduces the dendrogram row/column reordering it draws with,
   [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) no longer
   transposes rows and columns, both accept positional matrix arguments,
   and per-cell selectors fix the vertically mirrored cell highlighting.
+
 - Base R: [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   recomputation now honours `right`, `include.lowest`, and `nclass`, and
   probability/density histograms announce densities instead of counts.
+
 - Base R: `plot(v, type = "l")`, `lines(v)`, and `plot(v)` single-vector
   calls no longer crash or emit NA values; graphical parameters can no
   longer be mistaken for data arguments.
+
 - Base R: box plot outlier highlights now follow the actual drawing
   order instead of assuming lower outliers are drawn first.
+
 - Base R: multiline selectors are ordered numerically, so plots with ten
   or more series map each series to the correct polyline.
+
 - Base R: multipanel handling fixes -
   [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)-based
   grids are treated as multipanel, plots beyond the grid follow R’s
@@ -50,19 +78,23 @@
   format configs stay per-panel, empty grid cells serialize as valid
   subplots, and processor fields (orientation, domMapping) are
   preserved.
+
 - Base R: fallback replay to the native device now replays
   [`par()`](https://r.maidr.ai/reference/base-r-wrappers.md)/
   [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls in
   original order and strips maidr-internal arguments.
+
 - Base R: `title`/`subtitle` extraction no longer partial-matches
   unrelated arguments (e.g. `subset`) and tolerates non-character
   values.
+
 - Base R: unsupported data-bearing overlays
   ([`polygon()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`rect()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`segments()`](https://r.maidr.ai/reference/base-r-wrappers.md), …)
   now trigger the documented fallback instead of being silently dropped
   from the accessible output.
+
 - Base R: `plot(y ~ x, data = d, subset = ...)` and
   `boxplot(y ~ g, data = d, subset = ...)` work again. The formula
   methods resolve `subset` relative to
@@ -70,28 +102,34 @@
   recording wrapper displaced, so these calls failed with “object ‘g’
   not found” and “..3 used in an incorrect context” even though they
   work in plain R.
+
 - Base R: `matplot(m)` on a matrix again emits one series per column.
   Routing a lone matrix through
   [`xy.coords()`](https://rdrr.io/r/grDevices/xy.coords.html) read a
   two-column matrix as an x/y pair, so every series but one vanished
   from the accessible output and the first series’ values were announced
   as x coordinates.
+
 - Base R: `barplot(x, plot = FALSE)` is no longer recorded as a plot
   call. The rule was applied to the generic wrapper only, and
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) has its
   own code path.
+
 - Base R:
   [`cancel_auto_show()`](https://r.maidr.ai/reference/cancel_auto_show.md)
   removes its task callback by name. It used the index
   [`addTaskCallback()`](https://rdrr.io/r/base/taskCallback.html)
   returned, which is a position in R’s callback list, so an unrelated
   package’s callback could be removed instead.
+
 - Base R:
   [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   calls are now recorded even when ‘quantmod’ is loaded after ‘maidr’.
+
 - ggplot2: faceted box plots, violins, histograms, smooths, heatmaps,
   and stacked/dodged bars no longer crash with “unused arguments”;
   extracted data and selectors are now scoped to each facet panel.
+
 - ggplot2: dodged bars accept expression aesthetics such as
   `aes(fill = factor(cyl))`. Aesthetics were resolved with
   [`rlang::as_label()`](https://rlang.r-lib.org/reference/as_label.html)
@@ -99,49 +137,62 @@
   the plot died with “all arguments must have the same length”.
   Aesthetics are now evaluated against the data, which also makes the
   row ordering match the drawn bars for expression aesthetics.
+
 - ggplot2: each faceted box plot panel is announced with its own
   category names. Names were read from an unfiltered vector of axis
   positions indexed by position within the panel, so a panel drawing its
   boxes at positions 3 and 4 was labelled with the categories at
   positions 1 and 2 — correct quartiles under the wrong names.
+
 - ggplot2: nested patchwork layouts (e.g. `(p1 | p2) / p3`) no longer
   drop panels from the accessible output.
+
 - ggplot2: histogram and smooth layers extract their own layer’s data
   instead of the first similarly-shaped layer in multi-layer plots.
+
 - ggplot2: scatter point colour/grouping values are emitted again,
   faceted plots included. The category lookup compared a panel-filtered
   row count against the whole data set; the two never matched under
   faceting, so every faceted scatter announced raw hex codes (`#F8766D`)
   instead of category names.
+
 - ggplot2: each faceted heat map panel reports its own cell values.
   Cells were looked up in the unfiltered source data by (x, y) label,
   which matches a row in every panel, and the first match won — so all
   panels reported panel 1’s values.
+
 - Base R: [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   matrices no longer count their empty `0` cells as panels when tracking
   device state, matching the panel grouping code.
+
 - ggplot2: heatmap axis mappings follow factor level order instead of
   data-appearance order.
+
 - ggplot2: [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md)
   now really disables RMarkdown interception, PDF and LaTeX output keep
   their figures, a second
   [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) no longer
   risks infinite hook recursion, and non-HTML output uses the original
   knitr plot hook instead of hardcoding the markdown hook.
+
 - Shiny/widgets: `show(as_widget = TRUE)` and widget rendering now
   support Base R plots,
   [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md)
   renders nothing (instead of erroring) for NULL reactives, and device
   storage is cleared on the shiny/widget paths.
+
 - Rendering: maidr-data JSON keeps full numeric precision (previously
   values were silently rounded to 4 decimal digits), `NA` handling is
   unchanged, and non-ASCII text in iframes is UTF-8 safe on all locales.
+
 - Rendering: plot IDs no longer consume random numbers, preserving
   [`set.seed()`](https://rdrr.io/r/base/Random.html) reproducibility of
   user scripts.
+
 - [`maidr_set_fallback()`](https://r.maidr.ai/reference/maidr_set_fallback.md)
   now keeps unspecified settings instead of silently resetting them to
   defaults.
+
 - Scale label mapping keys labels by actual break positions, fixing
   mislabeled categories with custom break subsets.
 
