@@ -52,76 +52,76 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     needs_reordering = function() {
       TRUE
     },
-    reorder_layer_data = function(data, plot) {
+    #' @description Resolve this layer's x/y/fill aesthetics to VALUES.
+    #'   `rlang::as_label()` produces a display string, which doubles as a
+    #'   column name only for bare-column mappings. Evaluating the quosure
+    #'   against the data also covers expression aesthetics such as
+    #'   `aes(fill = factor(cyl))`, which are idiomatic ggplot2 and which
+    #'   the column-name treatment turned into `data[["factor(cyl)"]]`,
+    #'   i.e. NULL.
+    #' @param plot A ggplot2 object
+    #' @param data Data frame the aesthetics are evaluated against
+    #' @return List with `x`, `y` and `fill` vectors (any may be NULL)
+    resolve_aes_values = function(plot, data) {
+      layer_index <- self$get_layer_index()
+      layer_mapping <- if (length(plot$layers) >= layer_index) {
+        plot$layers[[layer_index]]$mapping
+      } else {
+        NULL
+      }
       plot_mapping <- plot$mapping
-      layer_mapping <- plot$layers[[self$get_layer_index()]]$mapping
-      x_col <- y_col <- fill_col <- NULL
-      if (!is.null(layer_mapping)) {
-        if (!is.null(layer_mapping$x)) {
-          x_col <- rlang::as_label(layer_mapping$x)
-        }
-        if (!is.null(layer_mapping$y)) {
-          y_col <- rlang::as_label(layer_mapping$y)
-        }
-        if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_label(layer_mapping$fill)
+
+      # `[[` avoids the partial matching `$x` would do against xmin/xmax
+      quo_for <- function(name) {
+        quo <- if (is.null(layer_mapping)) NULL else layer_mapping[[name]]
+        if (is.null(quo) && !is.null(plot_mapping)) quo <- plot_mapping[[name]]
+        quo
       }
-      if (!is.null(plot_mapping)) {
-        if (is.null(x_col) && !is.null(plot_mapping$x)) {
-          x_col <- rlang::as_label(plot_mapping$x)
+
+      evaluate <- function(quo) {
+        if (is.null(quo)) {
+          return(NULL)
         }
-        if (is.null(y_col) && !is.null(plot_mapping$y)) {
-          y_col <- rlang::as_label(plot_mapping$y)
+        values <- tryCatch(
+          rlang::eval_tidy(quo, data = data),
+          error = function(e) NULL
+        )
+        if (is.null(values)) {
+          return(NULL)
         }
-        if (is.null(fill_col) && !is.null(plot_mapping$fill)) {
-          fill_col <- rlang::as_label(plot_mapping$fill)
+        # A constant aesthetic (aes(fill = "red")) recycles to every row
+        if (length(values) == 1L && nrow(data) > 1L) {
+          values <- rep(values, nrow(data))
         }
+        if (length(values) != nrow(data)) {
+          return(NULL)
+        }
+        values
       }
-      if (
-        is.null(x_col) ||
-          is.null(fill_col) ||
-          !(x_col %in% names(data)) ||
-          !(fill_col %in% names(data))
-      ) {
+
+      list(
+        x = evaluate(quo_for("x")),
+        y = evaluate(quo_for("y")),
+        fill = evaluate(quo_for("fill"))
+      )
+    },
+    reorder_layer_data = function(data, plot) {
+      aes_values <- self$resolve_aes_values(plot, data)
+      x_values <- aes_values$x
+      fill_values <- aes_values$fill
+
+      if (is.null(x_values) || is.null(fill_values)) {
         return(data)
       }
-      x_ordered <- factor(data[[x_col]], levels = sort(unique(data[[x_col]])))
-      fill_ordered <- factor(data[[fill_col]], levels = rev(sort(unique(data[[fill_col]]))))
+
+      x_ordered <- factor(x_values, levels = sort(unique(x_values)))
+      fill_ordered <- factor(fill_values, levels = rev(sort(unique(fill_values))))
 
       data[order(x_ordered, fill_ordered), , drop = FALSE]
     },
     extract_data = function(plot, built = NULL, panel_ctx = NULL) {
       if (!inherits(plot, "ggplot")) {
         stop("Input must be a ggplot object.")
-      }
-
-      plot_mapping <- plot$mapping
-      layer_mapping <- plot$layers[[1]]$mapping
-
-      x_col <- y_col <- fill_col <- NULL
-
-      if (!is.null(layer_mapping)) {
-        if (!is.null(layer_mapping$x)) {
-          x_col <- rlang::as_label(layer_mapping$x)
-        }
-        if (!is.null(layer_mapping$y)) {
-          y_col <- rlang::as_label(layer_mapping$y)
-        }
-        if (!is.null(layer_mapping$fill)) fill_col <- rlang::as_label(layer_mapping$fill)
-      }
-      if (!is.null(plot_mapping)) {
-        if (is.null(x_col) && !is.null(plot_mapping$x)) {
-          x_col <- rlang::as_label(plot_mapping$x)
-        }
-        if (is.null(y_col) && !is.null(plot_mapping$y)) {
-          y_col <- rlang::as_label(plot_mapping$y)
-        }
-        if (is.null(fill_col) && !is.null(plot_mapping$fill)) {
-          fill_col <- rlang::as_label(plot_mapping$fill)
-        }
-      }
-
-      if (is.null(x_col) || is.null(fill_col)) {
-        stop("Could not determine required aesthetic mappings")
       }
 
       source_data <- plot$data
@@ -140,41 +140,57 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         }
       }
 
+      aes_values <- self$resolve_aes_values(plot, source_data)
+      x_values <- aes_values$x
+      y_values <- aes_values$y
+      fill_values <- aes_values$fill
+
+      if (is.null(x_values) || is.null(fill_values)) {
+        stop("Could not determine required aesthetic mappings")
+      }
+
       # stat = "count" (no y aesthetic): one bar per (x, fill) combination
       # with the row count as its value
-      if (is.null(y_col)) {
-        x_levels <- sort(unique(as.character(source_data[[x_col]])))
-        fill_levels <- sort(unique(as.character(source_data[[fill_col]])))
-        count_table <- table(
-          as.character(source_data[[x_col]]),
-          as.character(source_data[[fill_col]])
-        )
+      if (is.null(y_values)) {
+        x_chr <- as.character(x_values)
+        fill_chr <- as.character(fill_values)
+        x_levels <- sort(unique(x_chr))
+        fill_levels <- sort(unique(fill_chr))
+        count_table <- table(x_chr, fill_chr)
 
-        return(lapply(fill_levels, function(fill_name) {
-          lapply(x_levels, function(x_name) {
+        # Only combinations that actually occur get a bar. Emitting the full
+        # cartesian product adds zero-count entries that ggplot2 never draws,
+        # so the announced data would be longer than the rect list the
+        # selector matches and every later bar would be described wrongly.
+        series <- lapply(fill_levels, function(fill_name) {
+          drawn <- x_levels[count_table[x_levels, fill_name] > 0]
+          lapply(drawn, function(x_name) {
             list(
               x = x_name,
               y = as.numeric(count_table[x_name, fill_name]),
               z = fill_name
             )
           })
-        }))
+        })
+
+        return(Filter(function(points) length(points) > 0, series))
       }
 
-      data_by_fill <- split(source_data, source_data[[fill_col]])
+      # Split row INDICES rather than the data frame itself: indexing the
+      # evaluated aesthetic vectors sidesteps the tibble trap where
+      # `df[i, col]` returns a 1x1 tibble that serializes as a nested array
+      # instead of a number.
+      rows_by_fill <- split(seq_along(fill_values), fill_values)
 
-      lapply(names(data_by_fill), function(fill_name) {
-        fill_data <- data_by_fill[[fill_name]]
-        fill_data <- fill_data[order(fill_data[[x_col]]), ]
+      lapply(names(rows_by_fill), function(fill_name) {
+        rows <- rows_by_fill[[fill_name]]
+        rows <- rows[order(x_values[rows])]
 
-        # Column-first indexing: `fill_data[i, y_col]` on a tibble returns
-        # a 1x1 tibble, which serializes as a nested array instead of a
-        # number
-        lapply(seq_len(nrow(fill_data)), function(i) {
+        lapply(rows, function(i) {
           list(
-            x = as.character(fill_data[[x_col]][i]),
-            y = as.numeric(fill_data[[y_col]][i]),
-            z = as.character(fill_data[[fill_col]][i])
+            x = as.character(x_values[i]),
+            y = as.numeric(y_values[i]),
+            z = as.character(fill_values[i])
           )
         })
       })
