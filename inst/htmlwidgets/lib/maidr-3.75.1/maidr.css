@@ -1,0 +1,10 @@
+/*!
+ * maidr.css — intentionally almost empty.
+ *
+ * MAIDR styles its interface at runtime, so there is no static CSS to ship.
+ * This file is still published so that existing
+ * <link rel="stylesheet" href=".../maidr.css"> tags keep resolving.
+ *
+ * LaTeX in AI chat responses is styled by maidr-math.css, which maidr.js
+ * fetches from this same directory the first time a response contains maths.
+ */

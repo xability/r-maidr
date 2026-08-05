@@ -1,7 +1,7 @@
 #' MAIDR JavaScript library version bundled with this package
 #'
 #' @keywords internal
-MAIDR_VERSION <- "3.73.0"
+MAIDR_VERSION <- "3.75.1"
 
 #' Get the MAIDR CDN base URL
 #'
