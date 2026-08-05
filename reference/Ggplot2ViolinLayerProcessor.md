@@ -116,7 +116,16 @@ violin_box (with BoxSelector objects) and violin_kde.
 
 #### Usage
 
-    Ggplot2ViolinLayerProcessor$process(plot, layout, built = NULL, gt = NULL)
+    Ggplot2ViolinLayerProcessor$process(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    )
 
 #### Arguments
 
@@ -136,10 +145,26 @@ violin_box (with BoxSelector objects) and violin_kde.
 
   Gtable object (optional)
 
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for faceted plots (optional)
+
 #### Returns
 
-List with multi_layer flag and layers Extract box-summary statistics per
-violin group
+List with multi_layer flag and layers, or NULL for facet panels Extract
+box-summary statistics per violin group
 
 Computes min, Q1, median, Q3, max from the original data (since
 geom_violin only stores the KDE curve, not quartiles).

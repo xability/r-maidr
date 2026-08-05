@@ -1,5 +1,11 @@
 # Dodged Bar Layer Processor
 
+Dodged Bar Layer Processor
+
+Dodged Bar Layer Processor
+
+## Details
+
 Processes dodged bar plot layers with complete logic included
 
 ## Super class
@@ -14,6 +20,8 @@ Processes dodged bar plot layers with complete logic included
 - [`Ggplot2DodgedBarLayerProcessor$process()`](#method-Ggplot2DodgedBarLayerProcessor-process)
 
 - [`Ggplot2DodgedBarLayerProcessor$needs_reordering()`](#method-Ggplot2DodgedBarLayerProcessor-needs_reordering)
+
+- [`Ggplot2DodgedBarLayerProcessor$resolve_aes_values()`](#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values)
 
 - [`Ggplot2DodgedBarLayerProcessor$reorder_layer_data()`](#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data)
 
@@ -40,7 +48,16 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2DodgedBarLayerProcessor$process(plot, layout, built = NULL, gt = NULL)
+    Ggplot2DodgedBarLayerProcessor$process(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -49,6 +66,35 @@ Inherited methods
 #### Usage
 
     Ggplot2DodgedBarLayerProcessor$needs_reordering()
+
+------------------------------------------------------------------------
+
+### Method `resolve_aes_values()`
+
+Resolve this layer's x/y/fill aesthetics to VALUES.
+\`rlang::as_label()\` produces a display string, which doubles as a
+column name only for bare-column mappings. Evaluating the quosure
+against the data also covers expression aesthetics such as \`aes(fill =
+factor(cyl))\`, which are idiomatic ggplot2 and which the column-name
+treatment turned into \`data\[\["factor(cyl)"\]\]\`, i.e. NULL.
+
+#### Usage
+
+    Ggplot2DodgedBarLayerProcessor$resolve_aes_values(plot, data)
+
+#### Arguments
+
+- `plot`:
+
+  A ggplot2 object
+
+- `data`:
+
+  Data frame the aesthetics are evaluated against
+
+#### Returns
+
+List with \`x\`, \`y\` and \`fill\` vectors (any may be NULL)
 
 ------------------------------------------------------------------------
 
@@ -64,7 +110,11 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2DodgedBarLayerProcessor$extract_data(plot, built = NULL)
+    Ggplot2DodgedBarLayerProcessor$extract_data(
+      plot,
+      built = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -72,7 +122,11 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2DodgedBarLayerProcessor$generate_selectors(plot, gt = NULL)
+    Ggplot2DodgedBarLayerProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 

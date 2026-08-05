@@ -22,12 +22,28 @@ maidr_widget(
 
 - plot:
 
-  A ggplot object to render as an interactive MAIDR widget
+  A ggplot object, or NULL to auto-detect recorded Base R plots
 
 - use_cdn:
 
-  Logical. If \`TRUE\`, use CDN. If \`FALSE\`, use bundled files. If
-  \`NULL\` (default), auto-detect based on internet availability.
+  Logical. Controls where MAIDR.js is loaded from, matching
+  [`show()`](https://r.maidr.ai/reference/show.md) and
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md):
+
+  - `TRUE`: Use CDN (requires internet)
+
+  - `FALSE`: Use local bundled files (works offline)
+
+  - `NULL` (default): Auto-detect based on internet availability
+
+  This differs from
+  [`maidr_html_dependencies()`](https://r.maidr.ai/reference/maidr_html_dependencies.md),
+  where `NULL` means bundled. The widget renders through
+  [`create_maidr_iframe()`](https://r.maidr.ai/reference/create_maidr_iframe.md)
+  and
+  [`create_standalone_html()`](https://r.maidr.ai/reference/create_standalone_html.md),
+  which probes for connectivity, so an unset `use_cdn` loads from the
+  CDN on a machine that is online.
 
 - width:
 

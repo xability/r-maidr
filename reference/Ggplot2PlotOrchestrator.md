@@ -192,7 +192,7 @@ Layer processor instance
 
 #### Usage
 
-    Ggplot2PlotOrchestrator$extract_layout()
+    Ggplot2PlotOrchestrator$extract_layout(built = NULL)
 
 ------------------------------------------------------------------------
 

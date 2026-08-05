@@ -38,7 +38,16 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2SmoothLayerProcessor$process(plot, layout, built = NULL, gt = NULL)
+    Ggplot2SmoothLayerProcessor$process(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -46,7 +55,7 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2SmoothLayerProcessor$extract_data(plot, built = NULL)
+    Ggplot2SmoothLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)
 
 ------------------------------------------------------------------------
 
@@ -54,7 +63,11 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2SmoothLayerProcessor$generate_selectors(plot, gt = NULL)
+    Ggplot2SmoothLayerProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 

@@ -97,7 +97,11 @@ Inherited methods
 
 #### Usage
 
-    BaseRStackedBarLayerProcessor$generate_selectors(layer_info, gt = NULL)
+    BaseRStackedBarLayerProcessor$generate_selectors(
+      layer_info,
+      gt = NULL,
+      extracted_data = NULL
+    )
 
 ------------------------------------------------------------------------
 

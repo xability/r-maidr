@@ -155,12 +155,18 @@ Use maidr_output() and render_maidr() for Shiny integration instead.</p>
 
 
 <dl><dt id="arg-plot">plot<a class="anchor" aria-label="anchor" href="#arg-plot"></a></dt>
-<dd><p>A ggplot object to render as an interactive MAIDR widget</p></dd>
+<dd><p>A ggplot object, or NULL to auto-detect recorded Base R plots</p></dd>
 
 
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
-<dd><p>Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-If `NULL` (default), auto-detect based on internet availability.</p></dd>
+<dd><p>Logical. Controls where MAIDR.js is loaded from, matching
+<code><a href="show.html">show()</a></code> and <code><a href="save_html.html">save_html()</a></code>:</p><ul><li><p><code>TRUE</code>: Use CDN (requires internet)</p></li>
+<li><p><code>FALSE</code>: Use local bundled files (works offline)</p></li>
+<li><p><code>NULL</code> (default): Auto-detect based on internet availability</p></li>
+</ul><p>This differs from <code><a href="maidr_html_dependencies.html">maidr_html_dependencies()</a></code>, where <code>NULL</code>
+means bundled. The widget renders through <code><a href="create_maidr_iframe.html">create_maidr_iframe()</a></code>
+and <code><a href="create_standalone_html.html">create_standalone_html()</a></code>, which probes for connectivity, so
+an unset <code>use_cdn</code> loads from the CDN on a machine that is online.</p></dd>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>

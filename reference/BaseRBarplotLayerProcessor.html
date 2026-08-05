@@ -151,6 +151,7 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
 <ul><li><p><a href="#method-BaseRBarplotLayerProcessor-process"><code>BaseRBarplotLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-BaseRBarplotLayerProcessor-is_horizontal"><code>BaseRBarplotLayerProcessor$is_horizontal()</code></a></p></li>
 <li><p><a href="#method-BaseRBarplotLayerProcessor-needs_reordering"><code>BaseRBarplotLayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-BaseRBarplotLayerProcessor-extract_data"><code>BaseRBarplotLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRBarplotLayerProcessor-extract_axis_titles"><code>BaseRBarplotLayerProcessor$extract_axis_titles()</code></a></p></li>
@@ -187,11 +188,31 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 </div>
 
 
+</div><p></p><hr><a id="method-BaseRBarplotLayerProcessor-is_horizontal"></a><div class="section">
+<h3 id="method-is-horizontal-">Method <code>is_horizontal()</code><a class="anchor" aria-label="anchor" href="#method-is-horizontal-"></a></h3>
+<p>Check whether this barplot call used horiz = TRUE</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">is_horizontal</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>Logical</p>
+</div>
+
 </div><p></p><hr><a id="method-BaseRBarplotLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="method-needs-reordering-">Method <code>needs_reordering()</code><a class="anchor" aria-label="anchor" href="#method-needs-reordering-"></a></h3>
 
 <div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -200,7 +221,7 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 <h3 id="method-extract-data-">Method <code>extract_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-data-"></a></h3>
 
 <div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -209,7 +230,7 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 <h3 id="method-extract-axis-titles-">Method <code>extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#method-extract-axis-titles-"></a></h3>
 
 <div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -218,7 +239,7 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 <h3 id="method-extract-main-title-">Method <code>extract_main_title()</code><a class="anchor" aria-label="anchor" href="#method-extract-main-title-"></a></h3>
 
 <div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -227,7 +248,7 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -235,12 +256,12 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 </div><p></p><hr><a id="method-BaseRBarplotLayerProcessor-find_rect_grobs"></a><div class="section">
 <h3 id="method-find-rect-grobs-">Method <code>find_rect_grobs()</code><a class="anchor" aria-label="anchor" href="#method-find-rect-grobs-"></a></h3>
 <p>Recursively find rect grobs in the grob tree (like ggplot2 does)</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">find_rect_grobs</span><span class="op">(</span><span class="va">grob</span>, <span class="va">call_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>The grob tree to search</p></dd>
 
@@ -252,19 +273,19 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>Character vector of grob names</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRBarplotLayerProcessor-generate_selectors_from_grob"></a><div class="section">
 <h3 id="method-generate-selectors-from-grob-">Method <code>generate_selectors_from_grob()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-from-grob-"></a></h3>
 <p>Generate selectors from grob tree (like ggplot2 does)</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors_from_grob</span><span class="op">(</span><span class="va">grob</span>, <span class="va">call_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>The grob tree to search</p></dd>
 
@@ -276,19 +297,19 @@ Base R Bar Plot Layer Processor"><meta property="og:image" content="https://raw.
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>List of selectors</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRBarplotLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBarplotLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

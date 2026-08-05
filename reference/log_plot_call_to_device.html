@@ -138,7 +138,8 @@
 <span>  <span class="va">function_name</span>,</span>
 <span>  <span class="va">call_expr</span>,</span>
 <span>  <span class="va">args</span>,</span>
-<span>  device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  call_env <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -160,6 +161,11 @@
 
 <dt id="arg-device-id">device_id<a class="anchor" aria-label="anchor" href="#arg-device-id"></a></dt>
 <dd><p>Graphics device ID</p></dd>
+
+
+<dt id="arg-call-env">call_env<a class="anchor" aria-label="anchor" href="#arg-call-env"></a></dt>
+<dd><p>Optional environment for replaying unevaluated (NSE)
+arguments recorded in <code>args</code></p></dd>
 
 </dl></div>
     <div class="section level2">

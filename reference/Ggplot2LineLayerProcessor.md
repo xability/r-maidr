@@ -310,7 +310,8 @@ structure
       plot,
       gt = NULL,
       grob_id = NULL,
-      panel_ctx = NULL
+      panel_ctx = NULL,
+      built = NULL
     )
 
 #### Arguments

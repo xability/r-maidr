@@ -42,7 +42,16 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2StackedBarProcessor$process(plot, layout, built = NULL, gt = NULL)
+    Ggplot2StackedBarProcessor$process(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -74,7 +83,12 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2StackedBarProcessor$extract_data(plot, built = NULL)
+    Ggplot2StackedBarProcessor$extract_data(
+      plot,
+      built = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 
@@ -82,7 +96,11 @@ Inherited methods
 
 #### Usage
 
-    Ggplot2StackedBarProcessor$generate_selectors(plot, gt = NULL)
+    Ggplot2StackedBarProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      panel_ctx = NULL
+    )
 
 ------------------------------------------------------------------------
 

@@ -7,25 +7,26 @@ instead of failing or returning empty data.
 ## Usage
 
 ``` r
-maidr_set_fallback(enabled = TRUE, format = "png", warning = TRUE)
+maidr_set_fallback(enabled = NULL, format = NULL, warning = NULL)
 ```
 
 ## Arguments
 
 - enabled:
 
-  Logical. If TRUE (default), unsupported plots fall back to image
-  rendering. If FALSE, unsupported layers return empty data.
+  Logical. If TRUE, unsupported plots fall back to image rendering. If
+  FALSE, unsupported layers return empty data. If NULL (default), the
+  current setting is kept.
 
 - format:
 
-  Character. Image format for fallback: "png" (default), "svg", or
-  "jpeg".
+  Character. Image format for fallback: "png", "svg", or "jpeg". If NULL
+  (default), the current setting is kept.
 
 - warning:
 
-  Logical. If TRUE (default), shows a warning message when falling back
-  to image rendering.
+  Logical. If TRUE, shows a warning message when falling back to image
+  rendering. If NULL (default), the current setting is kept.
 
 ## Value
 

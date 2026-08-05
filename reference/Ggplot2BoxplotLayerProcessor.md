@@ -13,6 +13,8 @@ structure.
 
 ### Public methods
 
+- [`Ggplot2BoxplotLayerProcessor$get_built()`](#method-Ggplot2BoxplotLayerProcessor-get_built)
+
 - [`Ggplot2BoxplotLayerProcessor$process()`](#method-Ggplot2BoxplotLayerProcessor-process)
 
 - [`Ggplot2BoxplotLayerProcessor$extract_data()`](#method-Ggplot2BoxplotLayerProcessor-extract_data)
@@ -54,11 +56,42 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
+### Method `get_built()`
+
+#### Usage
+
+    Ggplot2BoxplotLayerProcessor$get_built(plot, built = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Optionally a pre-built plot to adopt
+
+#### Returns
+
+Built plot data Process the boxplot layer
+
+------------------------------------------------------------------------
+
 ### Method `process()`
 
 #### Usage
 
-    Ggplot2BoxplotLayerProcessor$process(plot, layout, built = NULL, gt = NULL)
+    Ggplot2BoxplotLayerProcessor$process(
+      plot,
+      layout,
+      built = NULL,
+      gt = NULL,
+      scale_mapping = NULL,
+      grob_id = NULL,
+      panel_id = NULL,
+      panel_ctx = NULL
+    )
 
 #### Arguments
 
@@ -78,6 +111,22 @@ Inherited methods
 
   Gtable object (optional)
 
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selectors (optional)
+
 #### Returns
 
 List with data and selectors Extract data from boxplot layer
@@ -88,7 +137,7 @@ List with data and selectors Extract data from boxplot layer
 
 #### Usage
 
-    Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL)
+    Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)
 
 #### Arguments
 
@@ -99,6 +148,10 @@ List with data and selectors Extract data from boxplot layer
 - `built`:
 
   Built plot data (optional)
+
+- `panel_id`:
+
+  Optional facet panel to restrict extraction to
 
 #### Returns
 
@@ -111,7 +164,12 @@ boxplot elements
 
 #### Usage
 
-    Ggplot2BoxplotLayerProcessor$generate_selectors(plot, gt = NULL)
+    Ggplot2BoxplotLayerProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      panel_ctx = NULL,
+      panel_id = NULL
+    )
 
 #### Arguments
 
@@ -122,6 +180,14 @@ boxplot elements
 - `gt`:
 
   Gtable object (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selection (optional)
+
+- `panel_id`:
+
+  Optional facet panel to restrict outlier counts to
 
 #### Returns
 
@@ -153,7 +219,11 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 
 #### Usage
 
-    Ggplot2BoxplotLayerProcessor$map_categories_to_names(boxplot_data, plot)
+    Ggplot2BoxplotLayerProcessor$map_categories_to_names(
+      boxplot_data,
+      plot,
+      panel_id = NULL
+    )
 
 #### Arguments
 
@@ -164,6 +234,10 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 - `plot`:
 
   The ggplot2 object
+
+- `panel_id`:
+
+  Optional facet panel whose scale supplies the labels
 
 #### Returns
 

@@ -200,7 +200,7 @@ Internal functions for package developers
 - [`extract_leaf_plot_layout()`](https://r.maidr.ai/reference/extract_leaf_plot_layout.md)
   : Extract layout from a single leaf ggplot
 - [`extract_patchwork_leaves()`](https://r.maidr.ai/reference/extract_patchwork_leaves.md)
-  : Recursively extract leaf ggplots in visual order
+  : Recursively extract leaf ggplots in patchwork addition order
 - [`find_children_by_type()`](https://r.maidr.ai/reference/find_children_by_type.md)
   : Find children matching a type pattern
 - [`find_graphics_plot_grob()`](https://r.maidr.ai/reference/find_graphics_plot_grob.md)

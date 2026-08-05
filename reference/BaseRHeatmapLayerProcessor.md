@@ -1,5 +1,11 @@
 # Base R Heatmap Layer Processor
 
+Base R Heatmap Layer Processor
+
+Base R Heatmap Layer Processor
+
+## Details
+
 Processes Base R heatmap layers using the heatmap() function
 
 ## Super class
@@ -14,6 +20,8 @@ Processes Base R heatmap layers using the heatmap() function
 - [`BaseRHeatmapLayerProcessor$process()`](#method-BaseRHeatmapLayerProcessor-process)
 
 - [`BaseRHeatmapLayerProcessor$extract_data()`](#method-BaseRHeatmapLayerProcessor-extract_data)
+
+- [`BaseRHeatmapLayerProcessor$compute_heatmap_ordering()`](#method-BaseRHeatmapLayerProcessor-compute_heatmap_ordering)
 
 - [`BaseRHeatmapLayerProcessor$generate_selectors()`](#method-BaseRHeatmapLayerProcessor-generate_selectors)
 
@@ -68,11 +76,35 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
+### Method `compute_heatmap_ordering()`
+
+Reproduce the row/column ordering heatmap() draws with
+
+#### Usage
+
+    BaseRHeatmapLayerProcessor$compute_heatmap_ordering(args)
+
+#### Arguments
+
+- `args`:
+
+  Recorded heatmap() arguments
+
+#### Returns
+
+List with rowInd/colInd, or NULL if unavailable
+
+------------------------------------------------------------------------
+
 ### Method `generate_selectors()`
 
 #### Usage
 
-    BaseRHeatmapLayerProcessor$generate_selectors(layer_info, gt = NULL)
+    BaseRHeatmapLayerProcessor$generate_selectors(
+      layer_info,
+      gt = NULL,
+      extracted_data = NULL
+    )
 
 ------------------------------------------------------------------------
 

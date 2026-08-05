@@ -19,6 +19,8 @@ Processes Base R bar plot layers based on recorded plot calls
 
 - [`BaseRBarplotLayerProcessor$process()`](#method-BaseRBarplotLayerProcessor-process)
 
+- [`BaseRBarplotLayerProcessor$is_horizontal()`](#method-BaseRBarplotLayerProcessor-is_horizontal)
+
 - [`BaseRBarplotLayerProcessor$needs_reordering()`](#method-BaseRBarplotLayerProcessor-needs_reordering)
 
 - [`BaseRBarplotLayerProcessor$extract_data()`](#method-BaseRBarplotLayerProcessor-extract_data)
@@ -64,6 +66,26 @@ Inherited methods
       panel_ctx = NULL,
       layer_info = NULL
     )
+
+------------------------------------------------------------------------
+
+### Method `is_horizontal()`
+
+Check whether this barplot call used horiz = TRUE
+
+#### Usage
+
+    BaseRBarplotLayerProcessor$is_horizontal(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Logical
 
 ------------------------------------------------------------------------
 

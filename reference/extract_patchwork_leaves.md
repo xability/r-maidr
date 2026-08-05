@@ -1,6 +1,8 @@
-# Recursively extract leaf ggplots in visual order
+# Recursively extract leaf ggplots in patchwork addition order
 
-Recursively extract leaf ggplots in visual order
+The order matches panel discovery order in \[find_patchwork_panels()\]
+(patches first, then the plot carried by the patchwork object itself),
+which is how leaves are paired with panels.
 
 ## Usage
 
