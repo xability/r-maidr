@@ -2,6 +2,15 @@
 
 ## Bug Fixes
 
+* Shiny: `render_maidr()` renders Base R plots again. It branched on the
+  expression's return value, which says nothing about whether anything was
+  drawn -- `plot()` returns NULL invisibly, so it was treated as an empty
+  reactive and rendered a silent blank, while `barplot()` and `hist()`
+  return a non-plot value and errored the output slot with "Input must be a
+  ggplot object". Only ggplot worked. `render_maidr()` now asks whether the
+  expression actually recorded any drawing, so all three render. An
+  expression that draws nothing and returns NULL still renders nothing.
+
 * Base R: recorded plot calls now capture non-standard-evaluation arguments
   safely, so `curve(sin(x))` no longer errors or records stale values;
   replay evaluates them in the original environment.
