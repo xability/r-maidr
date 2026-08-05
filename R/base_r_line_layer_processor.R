@@ -46,13 +46,57 @@ BaseRLineLayerProcessor <- R6::R6Class(
         return(self$extract_abline_data(layer_info))
       }
 
-      x <- args[[1]]
-      y <- args[[2]]
+      # Resolve x/y the way plot()/lines() do: named args win, then the
+      # first two UNNAMED arguments. Positional args[[2]] would grab
+      # graphical parameters instead (plot(x, type = "l") -> y = "l") and
+      # crash for single-argument calls like lines(v).
+      xy <- resolve_xy_args(args)
+      x <- xy$x
+      y <- xy$y
+
+      if (is.null(x) || is.language(x) || is.language(y)) {
+        # Formula interface / NSE-recorded expressions carry no plottable
+        # values here; emit no points rather than garbage.
+        return(list())
+      }
+
+      is_multiline <- is.matrix(y) || (is.array(y) && length(dim(y)) == 2)
+
+      # matplot()/matlines()/matpoints() draw one series per COLUMN against
+      # the row index, so a lone matrix argument is a set of series, not an
+      # xy.coords pair. Letting xy.coords() interpret it would read a
+      # two-column matrix as x = column 1, y = column 2 -- discarding every
+      # series but one and announcing series 1's values as x coordinates.
+      # plot()/lines() keep the xy.coords reading, which is correct there.
+      matrix_series_call <- function_name %in%
+        c("matplot", "matlines", "matpoints")
+
+      if (
+        is.null(y) &&
+          matrix_series_call &&
+          (is.matrix(x) || (is.array(x) && length(dim(x)) == 2))
+      ) {
+        y <- x
+        x <- seq_len(nrow(y))
+        is_multiline <- TRUE
+      }
+
+      if (is.null(y) && !is_multiline) {
+        # Single-vector call (plot(v, type = "l"), lines(v)):
+        # x becomes the index and the vector supplies the y values.
+        coords <- tryCatch(
+          grDevices::xy.coords(x, NULL),
+          error = function(e) NULL
+        )
+        if (is.null(coords)) {
+          return(list())
+        }
+        x <- coords$x
+        y <- coords$y
+      }
 
       # Check for custom axis labels from axis() calls
       x_labels <- self$get_axis_labels(layer_info, axis_side = 1)
-
-      is_multiline <- is.matrix(y) || (is.array(y) && length(dim(y)) == 2)
 
       if (is_multiline) {
         self$extract_multiline_data(x, y, x_labels)
@@ -393,7 +437,13 @@ BaseRLineLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      lines_names <- sort(lines_names)
+      # Sort by the trailing grob number: lexicographic sort would place
+      # "...-lines-10" before "...-lines-2", mapping series 10+ to the
+      # wrong polylines.
+      grob_numbers <- suppressWarnings(
+        as.integer(sub(".*-([0-9]+)$", "\\1", lines_names))
+      )
+      lines_names <- lines_names[order(grob_numbers)]
 
       # Each grob becomes one selector
       selectors <- lapply(lines_names, function(name) {

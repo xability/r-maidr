@@ -19,6 +19,7 @@ Processes Base R bar plot layers based on recorded plot calls
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-BaseRBarplotLayerProcessor-process}{\code{BaseRBarplotLayerProcessor$process()}}
+\item \href{#method-BaseRBarplotLayerProcessor-is_horizontal}{\code{BaseRBarplotLayerProcessor$is_horizontal()}}
 \item \href{#method-BaseRBarplotLayerProcessor-needs_reordering}{\code{BaseRBarplotLayerProcessor$needs_reordering()}}
 \item \href{#method-BaseRBarplotLayerProcessor-extract_data}{\code{BaseRBarplotLayerProcessor$extract_data()}}
 \item \href{#method-BaseRBarplotLayerProcessor-extract_axis_titles}{\code{BaseRBarplotLayerProcessor$extract_axis_titles()}}
@@ -62,6 +63,26 @@ Processes Base R bar plot layers based on recorded plot calls
 )}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-is_horizontal"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-is_horizontal}{}}}
+\subsection{Method \code{is_horizontal()}}{
+Check whether this barplot call used horiz = TRUE
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRBarplotLayerProcessor$is_horizontal(layer_info)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{layer_info}}{Layer information}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Logical
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-needs_reordering"></a>}}

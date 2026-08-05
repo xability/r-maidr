@@ -55,9 +55,14 @@ get_facet_groups <- function(panel_info, built) {
   facet_groups <- list()
 
   if (!is.null(built$layout$facet)) {
+    # facet_wrap stores variables in params$facets; facet_grid splits
+    # them across params$rows AND params$cols - both must be included
     facet_vars <- names(built$layout$facet$params$facets)
     if (length(facet_vars) == 0) {
-      facet_vars <- names(built$layout$facet$params$rows)
+      facet_vars <- c(
+        names(built$layout$facet$params$rows),
+        names(built$layout$facet$params$cols)
+      )
     }
 
     for (var in facet_vars) {
@@ -116,7 +121,8 @@ process_facet_panel <- function(
         row = panel_info$ROW,
         col = panel_info$COL,
         panel_id = panel_info$PANEL,
-        layer_index = layer_idx
+        layer_index = layer_idx,
+        facet_groups = facet_groups
       )
       result <- processor$process(
         plot,
@@ -136,17 +142,34 @@ process_facet_panel <- function(
   combined_data <- combine_facet_layer_data(layer_results)
   combined_selectors <- combine_facet_layer_selectors(layer_results)
 
-  subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", panel_info$PANEL)
+  subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", panel_info$PANEL)
 
   layers <- list()
   if (length(combined_data) > 0) {
-    layer_id <- paste0("maidr-layer-", as.integer(Sys.time()), "-", panel_info$PANEL)
+    layer_id <- paste0("maidr-layer-", generate_unique_id(), "-", panel_info$PANEL)
 
-    # Determine layer type from the first layer processor
-    registry <- get_global_registry()
-    system_name <- "ggplot2"
-    adapter <- registry$get_adapter(system_name)
-    layer_type <- adapter$detect_layer_type(plot$layers[[1]], plot)
+    # Determine layer type from the first layer that actually produced a
+    # result (typing everything from plot$layers[[1]] mislabels
+    # multi-layer faceted plots whose first layer was skipped)
+    layer_type <- NULL
+    for (result in layer_results) {
+      if (!is.null(result) && !is.null(result$type)) {
+        layer_type <- result$type
+        break
+      }
+    }
+    if (is.null(layer_type)) {
+      registry <- get_global_registry()
+      system_name <- "ggplot2"
+      adapter <- registry$get_adapter(system_name)
+      first_processed <- which(!vapply(layer_results, is.null, logical(1)))
+      source_layer <- if (length(first_processed) > 0) {
+        plot$layers[[first_processed[1]]]
+      } else {
+        plot$layers[[1]]
+      }
+      layer_type <- adapter$detect_layer_type(source_layer, plot)
+    }
 
     facet_title <- ""
     if (length(facet_groups) > 0) {
@@ -158,9 +181,11 @@ process_facet_panel <- function(
       y = if (!is.null(plot$labels$y)) plot$labels$y else ""
     )
 
-    # Add format config to x axis if available (per-axis nested schema)
+    # Add format config per axis (attaching the whole {x, y} list as the
+    # x-axis format would drop the y format and malform the x one)
     if (!is.null(format_config)) {
-      axes <- attach_axis_format(axes, "x", format_config)
+      axes <- attach_axis_format(axes, "x", format_config$x)
+      axes <- attach_axis_format(axes, "y", format_config$y)
     }
 
     validate_axes(axes, context = "facet subplot")

@@ -13,6 +13,7 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
                        gt = NULL,
                        scale_mapping = NULL,
                        grob_id = NULL,
+                       panel_id = NULL,
                        panel_ctx = NULL) {
       list(
         data = list(),

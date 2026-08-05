@@ -78,11 +78,6 @@ test_that("maidr_widget() accepts element_id parameter", {
 
 test_that("maidr_widget() errors for non-ggplot objects", {
   testthat::expect_error(
-    maidr_widget(plot = NULL),
-    "Input must be a ggplot object"
-  )
-
-  testthat::expect_error(
     maidr_widget(plot = 42),
     "Input must be a ggplot object"
   )
@@ -90,6 +85,17 @@ test_that("maidr_widget() errors for non-ggplot objects", {
   testthat::expect_error(
     maidr_widget(plot = list(a = 1)),
     "Input must be a ggplot object"
+  )
+})
+
+test_that("maidr_widget(NULL) requires recorded Base R plots", {
+  # NULL now means Base R auto-detection (mirroring show()); without any
+  # recorded plot calls it must fail with a clear message.
+  maidr:::clear_all_device_storage()
+
+  testthat::expect_error(
+    maidr_widget(plot = NULL),
+    "No Base R plots detected"
   )
 })
 

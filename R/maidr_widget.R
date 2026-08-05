@@ -11,9 +11,18 @@ NULL
 #' Each widget gets its own isolated JavaScript context where MAIDR.js
 #' can discover and initialize the SVG with maidr-data attribute.
 #'
-#' @param plot A ggplot object to render as an interactive MAIDR widget
-#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-#'   If `NULL` (default), auto-detect based on internet availability.
+#' @param plot A ggplot object, or NULL to auto-detect recorded Base R plots
+#' @param use_cdn Logical. Controls where MAIDR.js is loaded from, matching
+#'   \code{show()} and \code{save_html()}:
+#'   \itemize{
+#'     \item \code{TRUE}: Use CDN (requires internet)
+#'     \item \code{FALSE}: Use local bundled files (works offline)
+#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'   }
+#'   This differs from \code{maidr_html_dependencies()}, where \code{NULL}
+#'   means bundled. The widget renders through \code{create_maidr_iframe()}
+#'   and \code{create_standalone_html()}, which probes for connectivity, so
+#'   an unset \code{use_cdn} loads from the CDN on a machine that is online.
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
@@ -21,8 +30,16 @@ NULL
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 #' @keywords internal
 maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, element_id = NULL, ...) {
-  if (!inherits(plot, "ggplot")) {
-    stop("Input must be a ggplot object.")
+  # NULL means Base R auto-detection (recorded plot calls), mirroring show()
+  if (is.null(plot)) {
+    if (!is_patching_active() || !has_device_calls(grDevices::dev.cur())) {
+      stop(
+        "No Base R plots detected. Please create a plot first ",
+        "(e.g., barplot(), plot())."
+      )
+    }
+  } else if (!inherits(plot, "ggplot")) {
+    stop("Input must be a ggplot object or NULL (Base R auto-detection).")
   }
 
   svg_content <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)

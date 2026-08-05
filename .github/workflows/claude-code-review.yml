@@ -1,0 +1,74 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    # Neither fork PRs nor Dependabot PRs are given repository secrets, so
+    # CLAUDE_CODE_OAUTH_TOKEN would be empty and this job would fail rather
+    # than review anything. Skip cleanly instead. pull_request_target is
+    # deliberately not used as the workaround: it would run with write-scoped
+    # secrets on untrusted input, and the action does not treat it as an entity
+    # context, so its own write-permission check never runs.
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Forces tag mode, where the action creates a tracking comment up
+          # front and the review is written into it through
+          # mcp__github_comment__update_claude_comment. Without this the run is
+          # in agent mode, where publishing depends on the agent choosing to
+          # shell out to `gh pr comment`; if it ends its final turn with text
+          # instead, nothing is published and the job still reports success.
+          # That is exactly what #48 did -- 26 turns, $1.96, zero comments.
+          # The prompt below survives: tag mode appends it as
+          # <custom_instructions> to its own.
+          track_progress: true
+
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Please review this pull request and provide feedback on:
+            - Code quality and best practices
+            - Potential bugs or issues
+            - Performance considerations
+            - Security concerns
+            - Test coverage
+
+            This is an R package. Hold changes to R-package conventions:
+            roxygen2 docs kept in sync with `man/` and `NAMESPACE`, testthat
+            coverage for new behaviour, `.lintr` / `air.toml` style, and CRAN
+            policy (no writes outside tempdir, no unconditional network access,
+            examples that run clean under `R CMD check`).
+
+            If the repository has a CLAUDE.md, follow it for style and
+            conventions. Be constructive and helpful in your feedback.
+
+          # No claude_args here on purpose. Tag mode builds its own
+          # `--allowedTools` list -- the one carrying
+          # mcp__github_comment__update_claude_comment -- and then appends
+          # whatever claude_args says. A second --allowed-tools flag risks
+          # overriding that list and taking the comment-update tool with it.
+          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md

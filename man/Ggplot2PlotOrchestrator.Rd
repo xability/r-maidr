@@ -173,7 +173,7 @@ Layer processor instance
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-extract_layout}{}}}
 \subsection{Method \code{extract_layout()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PlotOrchestrator$extract_layout()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PlotOrchestrator$extract_layout(built = NULL)}\if{html}{\out{</div>}}
 }
 
 }

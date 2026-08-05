@@ -10,6 +10,9 @@ maidr_cdn_url()
 CDN URL string
 }
 \description{
-Uses @latest to always fetch the most recent version from CDN.
+Pinned to the same version as the bundled assets: the maidr-data JSON
+emitted by this package is written against that frontend version, so an
+unpinned `@latest` CDN could silently break rendering when upstream
+releases a breaking change.
 }
 \keyword{internal}

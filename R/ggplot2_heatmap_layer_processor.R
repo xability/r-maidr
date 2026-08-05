@@ -7,10 +7,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
   "Ggplot2HeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL) {
-      extracted_data <- self$extract_data(plot, built)
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      extracted_data <- self$extract_data(plot, built, panel_id = panel_id)
 
-      selectors <- self$generate_selectors(plot, gt)
+      selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       fill_label <- extracted_data$fill_label
       data <- extracted_data[names(extracted_data) != "fill_label"]
@@ -67,13 +74,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 
       reordered_data
     },
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
 
       layer_index <- self$get_layer_index()
       built_data <- built$data[[layer_index]]
+
+      if (!is.null(panel_id) && "PANEL" %in% names(built_data)) {
+        built_data <- built_data[built_data$PANEL == panel_id, , drop = FALSE]
+      }
 
       original_data <- plot$data
 
@@ -105,8 +116,47 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         names(original_data)[3]
       }
 
-      x_values <- unique(original_data[[x_col]])
-      y_values <- unique(original_data[[y_col]])
+      # Order categories the same way ggplot2 assigns discrete positions
+      # (factor level order, otherwise sorted): position i in built data
+      # is the i-th LEVEL, not the i-th value in data-appearance order.
+      discrete_levels <- function(values) {
+        if (is.factor(values)) {
+          levels(values)
+        } else if (is.character(values)) {
+          sort(unique(values))
+        } else {
+          unique(values)
+        }
+      }
+      # Axis levels come from the WHOLE data: ggplot2 assigns discrete
+      # positions from the full scale, so every panel shares them.
+      x_values <- discrete_levels(original_data[[x_col]])
+      y_values <- discrete_levels(original_data[[y_col]])
+
+      # Cell VALUES, in contrast, must come from this panel's rows only.
+      # `built_data` is filtered to the panel but `original_data` is not, so
+      # the (x, y) lookup below matched rows in every panel and took the
+      # first one — each panel reported panel 1's values.
+      panel_source <- original_data
+      panel_layout <- built$layout$layout
+      if (!is.null(panel_id) && !is.null(panel_layout)) {
+        panel_row <- panel_layout[panel_layout$PANEL == panel_id, , drop = FALSE]
+        if (nrow(panel_row) == 1) {
+          facet_vars <- setdiff(
+            names(panel_layout),
+            c("PANEL", "ROW", "COL", "SCALE_X", "SCALE_Y")
+          )
+          for (facet_var in facet_vars) {
+            if (facet_var %in% names(panel_source)) {
+              panel_source <- panel_source[
+                as.character(panel_source[[facet_var]]) ==
+                  as.character(panel_row[[facet_var]]), ,
+                drop = FALSE
+              ]
+            }
+          }
+        }
+      }
 
       x_mapping <- setNames(x_values, seq_along(x_values))
       y_mapping <- setNames(y_values, seq_along(y_values))
@@ -124,8 +174,8 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         x_val <- x_mapping[as.character(x_pos)]
         y_val <- y_mapping[as.character(y_pos)]
 
-        score_val <- original_data[[fill_col]][
-          original_data[[x_col]] == x_val & original_data[[y_col]] == y_val
+        score_val <- panel_source[[fill_col]][
+          panel_source[[x_col]] == x_val & panel_source[[y_col]] == y_val
         ]
 
         if (length(score_val) > 0) {
@@ -152,11 +202,21 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         fill_label = fill_col
       ))
     },
-    generate_selectors = function(plot, gt = NULL) {
+    generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       selectors <- list()
 
       if (!is.null(gt)) {
-        panel_grob <- find_panel_grob(gt)
+        panel_grob <- NULL
+        if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+          panel_index <- which(
+            grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
+          )
+          if (length(panel_index) > 0) {
+            panel_grob <- gt$grobs[[panel_index[1]]]
+          }
+        } else {
+          panel_grob <- find_panel_grob(gt)
+        }
         if (!is.null(panel_grob)) {
           # Look for geom_rect elements (master container)
           rect_children <- find_children_by_type(panel_grob, "geom_rect")

@@ -46,6 +46,7 @@ Suggests:
     rmarkdown,
     quarto,
     patchwork,
+    tibble,
     tidyquant,
     quantmod,
     TTR,

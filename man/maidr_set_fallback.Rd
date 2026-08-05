@@ -4,17 +4,19 @@
 \alias{maidr_set_fallback}
 \title{Configure MAIDR Fallback Behavior}
 \usage{
-maidr_set_fallback(enabled = TRUE, format = "png", warning = TRUE)
+maidr_set_fallback(enabled = NULL, format = NULL, warning = NULL)
 }
 \arguments{
-\item{enabled}{Logical. If TRUE (default), unsupported plots fall back
-to image rendering. If FALSE, unsupported layers return empty data.}
+\item{enabled}{Logical. If TRUE, unsupported plots fall back to image
+rendering. If FALSE, unsupported layers return empty data. If NULL
+(default), the current setting is kept.}
 
-\item{format}{Character. Image format for fallback: "png" (default),
-"svg", or "jpeg".}
+\item{format}{Character. Image format for fallback: "png", "svg", or
+"jpeg". If NULL (default), the current setting is kept.}
 
-\item{warning}{Logical. If TRUE (default), shows a warning message
-when falling back to image rendering.}
+\item{warning}{Logical. If TRUE, shows a warning message when falling
+back to image rendering. If NULL (default), the current setting is
+kept.}
 }
 \value{
 Invisibly returns a list of the previous settings.

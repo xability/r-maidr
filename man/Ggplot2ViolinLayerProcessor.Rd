@@ -100,7 +100,16 @@ violin_box (with BoxSelector objects) and violin_kde.
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -113,11 +122,19 @@ violin_box (with BoxSelector objects) and violin_kde.
 \item{\code{built}}{Built plot data (optional)}
 
 \item{\code{gt}}{Gtable object (optional)}
+
+\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+
+\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+
+\item{\code{panel_ctx}}{Panel context for faceted plots (optional)}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List with multi_layer flag and layers
+List with multi_layer flag and layers, or NULL for facet panels
 Extract box-summary statistics per violin group
 
 Computes min, Q1, median, Q3, max from the original data (since

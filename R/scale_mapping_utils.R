@@ -54,10 +54,30 @@ extract_scale_mapping <- function(built) {
   breaks <- x_scale$get_breaks()
   labels <- x_scale$get_labels()
 
-  if (is.null(breaks) || is.null(labels)) {
+  if (is.null(breaks) || is.null(labels) || length(breaks) != length(labels)) {
     return(NULL)
   }
 
-  scale_mapping <- setNames(labels, as.character(seq_along(labels)))
+  # Key each label by its break's actual position, not by seq_along():
+  # with a break subset (scale_x_discrete(breaks = c("a", "c"))) or a
+  # continuous scale, sequential keys attach labels to the wrong
+  # positions.
+  if (is.numeric(breaks)) {
+    keys <- as.character(breaks)
+  } else {
+    limits <- tryCatch(x_scale$get_limits(), error = function(e) NULL)
+    if (!is.null(limits)) {
+      keys <- as.character(match(as.character(breaks), as.character(limits)))
+    } else {
+      keys <- as.character(seq_along(labels))
+    }
+  }
+
+  valid <- !is.na(keys) & !is.na(breaks)
+  if (!any(valid)) {
+    return(NULL)
+  }
+
+  scale_mapping <- setNames(as.character(labels)[valid], keys[valid])
   scale_mapping
 }

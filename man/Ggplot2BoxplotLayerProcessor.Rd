@@ -7,10 +7,32 @@
 Processes boxplot layers (geom_boxplot) to extract statistical data and generate selectors
 for individual boxplot components in the SVG structure.
 }
-\keyword{Process}
-\keyword{boxplot}
+\keyword{(and}
+\keyword{Get}
+\keyword{all}
+\keyword{and}
+\keyword{at}
+\keyword{build}
+\keyword{built}
+\keyword{cache)}
+\keyword{data}
+\keyword{determine_orientation,}
+\keyword{expensive;}
+\keyword{extract_data,}
+\keyword{generate_selectors,}
+\keyword{ggplot_build()}
+\keyword{instance.}
 \keyword{internal}
-\keyword{layer}
+\keyword{is}
+\keyword{it,}
+\keyword{map_categories_to_names}
+\keyword{most}
+\keyword{need}
+\keyword{once}
+\keyword{per}
+\keyword{plot}
+\keyword{processor}
+\keyword{so}
 \keyword{the}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2BoxplotLayerProcessor}
@@ -18,6 +40,7 @@ for individual boxplot components in the SVG structure.
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
+\item \href{#method-Ggplot2BoxplotLayerProcessor-get_built}{\code{Ggplot2BoxplotLayerProcessor$get_built()}}
 \item \href{#method-Ggplot2BoxplotLayerProcessor-process}{\code{Ggplot2BoxplotLayerProcessor$process()}}
 \item \href{#method-Ggplot2BoxplotLayerProcessor-extract_data}{\code{Ggplot2BoxplotLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2BoxplotLayerProcessor-generate_selectors}{\code{Ggplot2BoxplotLayerProcessor$generate_selectors()}}
@@ -50,11 +73,42 @@ for individual boxplot components in the SVG structure.
 </details>
 }}
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-get_built"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-get_built}{}}}
+\subsection{Method \code{get_built()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$get_built(plot, built = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Optionally a pre-built plot to adopt}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Built plot data
+Process the boxplot layer
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -67,6 +121,14 @@ for individual boxplot components in the SVG structure.
 \item{\code{built}}{Built plot data (optional)}
 
 \item{\code{gt}}{Gtable object (optional)}
+
+\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+
+\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
 }
 \if{html}{\out{</div>}}
 }
@@ -80,7 +142,7 @@ Extract data from boxplot layer
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -89,6 +151,8 @@ Extract data from boxplot layer
 \item{\code{plot}}{The ggplot2 object}
 
 \item{\code{built}}{Built plot data (optional)}
+
+\item{\code{panel_id}}{Optional facet panel to restrict extraction to}
 }
 \if{html}{\out{</div>}}
 }
@@ -102,7 +166,12 @@ Generate selectors for boxplot elements
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$generate_selectors(plot, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  panel_ctx = NULL,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -111,6 +180,10 @@ Generate selectors for boxplot elements
 \item{\code{plot}}{The ggplot2 object}
 
 \item{\code{gt}}{Gtable object (optional)}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selection (optional)}
+
+\item{\code{panel_id}}{Optional facet panel to restrict outlier counts to}
 }
 \if{html}{\out{</div>}}
 }
@@ -145,7 +218,11 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-map_categories_to_names}{}}}
 \subsection{Method \code{map_categories_to_names()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(boxplot_data, plot)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(
+  boxplot_data,
+  plot,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -154,6 +231,8 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 \item{\code{boxplot_data}}{List of boxplot statistics}
 
 \item{\code{plot}}{The ggplot2 object}
+
+\item{\code{panel_id}}{Optional facet panel whose scale supplies the labels}
 }
 \if{html}{\out{</div>}}
 }
