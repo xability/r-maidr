@@ -196,10 +196,17 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       }
 
       layer_index <- self$get_layer_index()
-      layer_data <- built$data[[layer_index]]
+      full_layer_data <- built$data[[layer_index]]
+      layer_data <- full_layer_data
 
-      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
-        layer_data <- layer_data[layer_data$PANEL == panel_id, ]
+      # Remember which rows this panel kept. The built rows correspond 1:1
+      # to the original data rows, so the same indices resolve mapped
+      # aesthetics (colour, group) back to their source values below.
+      panel_rows <- seq_len(nrow(full_layer_data))
+
+      if (!is.null(panel_id) && "PANEL" %in% names(full_layer_data)) {
+        panel_rows <- which(full_layer_data$PANEL == panel_id)
+        layer_data <- full_layer_data[panel_rows, , drop = FALSE]
       }
 
       # For faceted plots, get x values from original data or scale mapping
@@ -286,15 +293,17 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
       # The mapped grouping variable (e.g. "Species") only exists in the
       # ORIGINAL data; built data carries the mapped hex codes in
-      # `colour`. Use the original column when rows align 1:1, otherwise
-      # fall back to the built hex values.
+      # `colour`. Compare against the UNFILTERED built rows: under faceting
+      # `layer_data` holds one panel while `original_data` holds every row,
+      # so comparing the two counts never matched and every faceted scatter
+      # announced raw hex codes instead of category names.
       color_values <- NULL
       if (!is.null(color_col)) {
         if (
           color_col %in% names(original_data) &&
-            nrow(original_data) == nrow(layer_data)
+            nrow(original_data) == nrow(full_layer_data)
         ) {
-          color_values <- as.character(original_data[[color_col]])
+          color_values <- as.character(original_data[[color_col]])[panel_rows]
         } else if ("colour" %in% names(layer_data)) {
           color_values <- as.character(layer_data$colour)
         }

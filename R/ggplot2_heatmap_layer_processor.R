@@ -128,8 +128,35 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
           unique(values)
         }
       }
+      # Axis levels come from the WHOLE data: ggplot2 assigns discrete
+      # positions from the full scale, so every panel shares them.
       x_values <- discrete_levels(original_data[[x_col]])
       y_values <- discrete_levels(original_data[[y_col]])
+
+      # Cell VALUES, in contrast, must come from this panel's rows only.
+      # `built_data` is filtered to the panel but `original_data` is not, so
+      # the (x, y) lookup below matched rows in every panel and took the
+      # first one — each panel reported panel 1's values.
+      panel_source <- original_data
+      panel_layout <- built$layout$layout
+      if (!is.null(panel_id) && !is.null(panel_layout)) {
+        panel_row <- panel_layout[panel_layout$PANEL == panel_id, , drop = FALSE]
+        if (nrow(panel_row) == 1) {
+          facet_vars <- setdiff(
+            names(panel_layout),
+            c("PANEL", "ROW", "COL", "SCALE_X", "SCALE_Y")
+          )
+          for (facet_var in facet_vars) {
+            if (facet_var %in% names(panel_source)) {
+              panel_source <- panel_source[
+                as.character(panel_source[[facet_var]]) ==
+                  as.character(panel_row[[facet_var]]), ,
+                drop = FALSE
+              ]
+            }
+          }
+        }
+      }
 
       x_mapping <- setNames(x_values, seq_along(x_values))
       y_mapping <- setNames(y_values, seq_along(y_values))
@@ -147,8 +174,8 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         x_val <- x_mapping[as.character(x_pos)]
         y_val <- y_mapping[as.character(y_pos)]
 
-        score_val <- original_data[[fill_col]][
-          original_data[[x_col]] == x_val & original_data[[y_col]] == y_val
+        score_val <- panel_source[[fill_col]][
+          panel_source[[x_col]] == x_val & panel_source[[y_col]] == y_val
         ]
 
         if (length(score_val) > 0) {
