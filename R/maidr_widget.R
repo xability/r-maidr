@@ -12,8 +12,17 @@ NULL
 #' can discover and initialize the SVG with maidr-data attribute.
 #'
 #' @param plot A ggplot object, or NULL to auto-detect recorded Base R plots
-#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
-#'   use bundled files.
+#' @param use_cdn Logical. Controls where MAIDR.js is loaded from, matching
+#'   \code{show()} and \code{save_html()}:
+#'   \itemize{
+#'     \item \code{TRUE}: Use CDN (requires internet)
+#'     \item \code{FALSE}: Use local bundled files (works offline)
+#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'   }
+#'   This differs from \code{maidr_html_dependencies()}, where \code{NULL}
+#'   means bundled. The widget renders through \code{create_maidr_iframe()}
+#'   and \code{create_standalone_html()}, which probes for connectivity, so
+#'   an unset \code{use_cdn} loads from the CDN on a machine that is online.
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
