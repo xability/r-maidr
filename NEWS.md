@@ -3,8 +3,12 @@
 ## Bug Fixes
 
 * Base R: recorded plot calls now capture non-standard-evaluation arguments
-  safely, so `curve(sin(x))` and `plot(y ~ x, subset = ...)` no longer error
-  or record stale values; replay evaluates them in the original environment.
+  safely, so `curve(sin(x))` no longer errors or records stale values;
+  replay evaluates them in the original environment.
+* Base R: a multi-panel grid is no longer destroyed by the idiomatic
+  trailing `par(mfrow = c(1, 1))` reset. A layout call issued after the
+  last plot governs nothing that was drawn, so it no longer wins over the
+  layout the panels were actually drawn under.
 * Base R: `hist(x, plot = FALSE)` / `boxplot(x, plot = FALSE)` are no longer
   recorded as plot calls (previously they injected phantom layers into the
   next render).
@@ -44,14 +48,33 @@
 * Base R: unsupported data-bearing overlays (`polygon()`, `rect()`,
   `segments()`, ...) now trigger the documented fallback instead of being
   silently dropped from the accessible output.
-* Base R: auto-show is now wired up - interactive Base R plots open in the
-  MAIDR viewer automatically as documented, instead of disappearing into a
-  hidden device until `show()` is called manually.
+* Base R: `plot(y ~ x, data = d, subset = ...)` and
+  `boxplot(y ~ g, data = d, subset = ...)` work again. The formula methods
+  resolve `subset` relative to `parent.frame()`, which the recording
+  wrapper displaced, so these calls failed with "object 'g' not found" and
+  "..3 used in an incorrect context" even though they work in plain R.
+* Base R: `matplot(m)` on a matrix again emits one series per column.
+  Routing a lone matrix through `xy.coords()` read a two-column matrix as
+  an x/y pair, so every series but one vanished from the accessible output
+  and the first series' values were announced as x coordinates.
+* Base R: `barplot(x, plot = FALSE)` is no longer recorded as a plot call.
+  The rule was applied to the generic wrapper only, and `barplot()` has its
+  own code path.
+* Base R: `cancel_auto_show()` removes its task callback by name. It used
+  the index `addTaskCallback()` returned, which is a position in R's
+  callback list, so an unrelated package's callback could be removed
+  instead.
 * Base R: `chartSeries()` calls are now recorded even when 'quantmod' is
   loaded after 'maidr'.
 * ggplot2: faceted box plots, violins, histograms, smooths, heatmaps, and
   stacked/dodged bars no longer crash with "unused arguments"; extracted
   data and selectors are now scoped to each facet panel.
+* ggplot2: dodged bars accept expression aesthetics such as
+  `aes(fill = factor(cyl))`. Aesthetics were resolved with
+  `rlang::as_label()` and used as column names, so `data[["factor(cyl)"]]`
+  was `NULL` and the plot died with "all arguments must have the same
+  length". Aesthetics are now evaluated against the data, which also makes
+  the row ordering match the drawn bars for expression aesthetics.
 * ggplot2: nested patchwork layouts (e.g. `(p1 | p2) / p3`) no longer drop
   panels from the accessible output.
 * ggplot2: histogram and smooth layers extract their own layer's data
