@@ -166,7 +166,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       }
 
       # Map numeric categories to actual names if possible
-      boxplot_data <- self$map_categories_to_names(boxplot_data, plot)
+      boxplot_data <- self$map_categories_to_names(boxplot_data, plot, panel_id)
 
       for (i in seq_along(boxplot_data)) {
         if (!is.null(boxplot_data[[i]]$y_value)) {
@@ -432,12 +432,25 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     #' Uses panel_params axis labels from ggplot_build to map codes to labels
     #' @param boxplot_data List of boxplot statistics
     #' @param plot The ggplot2 object
+    #' @param panel_id Optional facet panel whose scale supplies the labels
     #' @return Updated boxplot data with proper category names
-    map_categories_to_names = function(boxplot_data, plot) {
+    map_categories_to_names = function(boxplot_data, plot, panel_id = NULL) {
       built <- self$get_built(plot)
-      panel_params <- built$layout$panel_params[[1]]
-      layer_index <- self$get_layer_index()
-      layer_data <- built$data[[layer_index]]
+
+      # Read the labels off THIS panel's scale. With scales = "free_x" each
+      # panel carries its own break labels, so panel 1's would be wrong.
+      panel_index <- 1L
+      if (!is.null(panel_id)) {
+        candidate <- suppressWarnings(as.integer(panel_id))
+        if (
+          !is.na(candidate) &&
+            candidate >= 1 &&
+            candidate <= length(built$layout$panel_params)
+        ) {
+          panel_index <- candidate
+        }
+      }
+      panel_params <- built$layout$panel_params[[panel_index]]
       orientation <- self$determine_orientation(plot)
 
       get_axis_labels <- function(pp_axis) {
@@ -453,17 +466,22 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         character(0)
       }
 
-      if (orientation == "horz") {
-        labels <- get_axis_labels(panel_params$y)
-        codes <- if ("y" %in% names(layer_data)) layer_data$y else NULL
+      labels <- if (orientation == "horz") {
+        get_axis_labels(panel_params$y)
       } else {
-        labels <- get_axis_labels(panel_params$x)
-        codes <- if ("x" %in% names(layer_data)) layer_data$x else NULL
+        get_axis_labels(panel_params$x)
       }
 
-      if (!is.null(codes) && length(labels) > 0) {
+      if (length(labels) > 0) {
         for (i in seq_along(boxplot_data)) {
-          idx <- suppressWarnings(as.integer(round(codes[i])))
+          # Use the axis position carried on the box itself. Indexing a
+          # separate, UNFILTERED vector of positions by `i` broke facets:
+          # boxplot_data holds only this panel's boxes while the positions
+          # still started at panel 1, so every panel was announced with
+          # panel 1's category names.
+          idx <- suppressWarnings(
+            as.integer(round(boxplot_data[[i]]$y_value))
+          )
           if (!is.na(idx) && idx >= 1 && idx <= length(labels)) {
             boxplot_data[[i]]$z <- as.character(labels[idx])
           }

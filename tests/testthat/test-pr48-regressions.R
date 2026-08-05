@@ -340,6 +340,56 @@ test_that("dodged bar values survive a tibble input", {
 })
 
 # ==============================================================================
+# Faceted boxplots must be labelled from their own panel
+#
+# The category names were looked up in an UNFILTERED vector of axis
+# positions indexed by position within the panel-filtered box list, so
+# every panel was announced with panel 1's categories while carrying its
+# own values.
+# ==============================================================================
+
+test_that("each facet panel's boxes carry that panel's category names", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    grp = c(rep(c("aa", "bb"), each = 6), rep(c("xx", "yy"), each = 6)),
+    panel = rep(c("P1", "P2"), each = 12),
+    value = c(seq_len(12), seq_len(12) + 20)
+  )
+  plot_obj <- ggplot2::ggplot(df, ggplot2::aes(grp, value)) +
+    ggplot2::geom_boxplot() +
+    ggplot2::facet_wrap(~panel)
+  built <- ggplot2::ggplot_build(plot_obj)
+
+  processor <- maidr:::Ggplot2BoxplotLayerProcessor$new(list(index = 1))
+
+  panel1 <- processor$extract_data(plot_obj, built, panel_id = 1)
+  panel2 <- processor$extract_data(plot_obj, built, panel_id = 2)
+
+  testthat::expect_equal(vapply(panel1, function(b) b$z, character(1)), c("aa", "bb"))
+  testthat::expect_equal(vapply(panel2, function(b) b$z, character(1)), c("xx", "yy"))
+})
+
+test_that("an unfaceted boxplot still gets its category names", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    grp = rep(c("one", "two"), each = 6),
+    value = c(seq_len(6), seq_len(6) + 10)
+  )
+  plot_obj <- ggplot2::ggplot(df, ggplot2::aes(grp, value)) +
+    ggplot2::geom_boxplot()
+
+  processor <- maidr:::Ggplot2BoxplotLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(plot_obj)
+
+  testthat::expect_equal(
+    vapply(data, function(b) b$z, character(1)),
+    c("one", "two")
+  )
+})
+
+# ==============================================================================
 # matplot(matrix) draws one series per column
 #
 # Routing a lone matrix through xy.coords() reads a two-column matrix as

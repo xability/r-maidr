@@ -218,7 +218,11 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-map_categories_to_names}{}}}
 \subsection{Method \code{map_categories_to_names()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(boxplot_data, plot)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(
+  boxplot_data,
+  plot,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -227,6 +231,8 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 \item{\code{boxplot_data}}{List of boxplot statistics}
 
 \item{\code{plot}}{The ggplot2 object}
+
+\item{\code{panel_id}}{Optional facet panel whose scale supplies the labels}
 }
 \if{html}{\out{</div>}}
 }
