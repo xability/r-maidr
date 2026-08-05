@@ -140,8 +140,6 @@ chartSeries <- function(...) {
     call_env = call_env
   )
 
-  maybe_schedule_auto_show()
-
   invisible(result)
 }
 

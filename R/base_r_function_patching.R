@@ -47,33 +47,20 @@ schedule_auto_show <- function() {
 
 #' Cancel a pending auto-show callback
 #'
+#' Removes by NAME rather than by the index `addTaskCallback()` returned:
+#' that index is a position in R's callback list, and any other package
+#' adding or removing a callback in the meantime shifts it. Removing a
+#' stale index silently deletes an unrelated package's callback.
+#'
 #' @keywords internal
 cancel_auto_show <- function() {
   if (!is.null(.maidr_patching_env$.auto_show_callback_id)) {
     tryCatch(
-      removeTaskCallback(.maidr_patching_env$.auto_show_callback_id),
+      removeTaskCallback("maidr_auto_show"),
       error = function(e) NULL
     )
     .maidr_patching_env$.auto_show_callback_id <- NULL
   }
-  invisible(NULL)
-}
-
-#' Schedule auto-show when appropriate
-#'
-#' Auto-show only applies to interactive sessions outside knitr: in knitr the
-#' plot hooks handle display, and in non-interactive scripts opening a browser
-#' would be disruptive.
-#'
-#' @keywords internal
-maybe_schedule_auto_show <- function() {
-  if (!interactive()) {
-    return(invisible(NULL))
-  }
-  if (isTRUE(getOption("knitr.in.progress"))) {
-    return(invisible(NULL))
-  }
-  schedule_auto_show()
   invisible(NULL)
 }
 
@@ -249,6 +236,68 @@ replay_plot_call <- function(function_name, args, call_env = NULL) {
   }
 
   invisible(do.call(orig_fn, args))
+}
+
+#' Evaluate an expression, muffling the retry's promise-restart warning
+#'
+#' When a call fails part-way through forcing an argument, that argument's
+#' promise is left interrupted. Forcing it again — which both the retry and
+#' the argument recording do — makes R warn "restarting interrupted promise
+#' evaluation". It is an artifact of retrying, not anything the user's call
+#' did, so it is muffled; every other warning passes through untouched.
+#'
+#' @param expr Expression to evaluate (lazily, inside the handler)
+#' @return The value of `expr`
+#' @keywords internal
+muffle_promise_restart <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (grepl("interrupted promise evaluation", conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
+#' Retry a failed plot call from the caller's own frame
+#'
+#' The formula methods resolve non-standard arguments relative to
+#' `parent.frame()`: `plot.formula()` evaluates `subset =` there, and
+#' `boxplot.formula()` reaches into the caller's `...`. A wrapper puts its
+#' own frame in that position, so calls that work in plain R fail through
+#' maidr:
+#'
+#' \preformatted{
+#' plot(y ~ x, data = d, subset = g == 1)   # object 'g' not found
+#' boxplot(y ~ g, data = d, subset = x > 5) # ..3 used in an incorrect context
+#' }
+#'
+#' Rebuilding the call and evaluating it in the caller's frame gives those
+#' methods the frame they expect. This runs only after the direct call has
+#' already failed, so working calls keep the single-evaluation fast path and
+#' a genuinely invalid call still reports its original error.
+#'
+#' @param original_function The unwrapped plotting function
+#' @param recorded_call `match.call()` captured by the wrapper
+#' @param caller_env The wrapper's calling frame
+#' @param original_error The error condition the direct call raised
+#' @return Result of the retried call
+#' @keywords internal
+retry_call_in_caller_frame <- function(original_function,
+                                       recorded_call,
+                                       caller_env,
+                                       original_error) {
+  rebuilt_call <- as.call(
+    c(list(original_function), as.list(recorded_call)[-1L])
+  )
+
+  tryCatch(
+    muffle_promise_restart(eval(rebuilt_call, caller_env)),
+    # The retry is a fallback, not a diagnosis: if it fails too, report the
+    # error the user's actual call produced.
+    error = function(e) stop(original_error)
+  )
 }
 
 #' Get original (unwrapped) function by name
@@ -599,21 +648,36 @@ create_function_wrapper <- function(function_name, original_function) {
       }
 
       this_call <- match.call()
+      caller_env <- parent.frame()
 
       # Ensure a device is open to suppress default graphics window
       ensure_maidr_device()
 
-      result <- ORIG(...)
+      # Fast path: forward the promises untouched, so each argument is
+      # evaluated exactly once and lazily.
+      call_failed <- FALSE
+      result <- tryCatch(
+        ORIG(...),
+        error = function(e) {
+          call_failed <<- TRUE
+          e
+        }
+      )
+      if (call_failed) {
+        result <- retry_call_in_caller_frame(ORIG, this_call, caller_env, result)
+      }
 
       # Force arguments only AFTER the original call succeeded. For
       # NSE arguments (e.g. curve(sin(x)), plot(y ~ x, subset = g == 1))
       # forcing fails; record the unevaluated expressions plus the caller
       # environment so replay can re-evaluate them faithfully.
-      args_list <- tryCatch(list(...), error = function(e) NULL)
+      args_list <- muffle_promise_restart(
+        tryCatch(list(...), error = function(e) NULL)
+      )
       call_env <- NULL
       if (is.null(args_list)) {
         args_list <- as.list(this_call)[-1L]
-        call_env <- parent.frame()
+        call_env <- caller_env
       }
 
       # Computation-only calls (hist(x, plot = FALSE), boxplot(x,
@@ -629,9 +693,12 @@ create_function_wrapper <- function(function_name, original_function) {
         call_env = call_env
       )
 
-      if (IS_HIGH) {
-        maybe_schedule_auto_show()
-      }
+      # NOTE: auto-show is deliberately NOT scheduled here. show() ends the
+      # Base R session (it clears the recorded calls and closes the temp
+      # device), so firing it after every top-level expression breaks the
+      # most basic Base R idiom: `plot(x, y)` followed by `abline(h = 1)`
+      # fails with "plot.new has not been called yet". Auto-display needs a
+      # non-destructive render path first; see NEWS.
 
       # Return invisibly to prevent auto-printing in knitr
       # Users can still capture the result with assignment
@@ -677,8 +744,6 @@ create_nse_wrapper <- function(function_name, original_function) {
       call_env = parent.frame()
     )
 
-    maybe_schedule_auto_show()
-
     invisible(result)
   }
 }
@@ -720,6 +785,14 @@ create_barplot_wrapper <- function(original_function) {
 
       result <- do.call(original_function, patched_args)
 
+      # Computation-only calls (barplot(x, plot = FALSE) returns the bar
+      # midpoints without drawing) must not be recorded, or they inject a
+      # phantom bar layer into the next render. The generic wrapper applies
+      # the same rule; barplot has its own path and needs it too.
+      if (identical(args[["plot"]], FALSE)) {
+        return(invisible(result))
+      }
+
       # Log the PATCHED args: replay (both the exported SVG and the native
       # fallback) re-draws from the recorded args, so recording the raw
       # args while drawing the patched ones would desynchronize the SVG
@@ -731,8 +804,6 @@ create_barplot_wrapper <- function(original_function) {
         grDevices::dev.cur()
       )
     }
-
-    maybe_schedule_auto_show()
 
     # Return invisibly to prevent auto-printing in knitr
     invisible(result)

@@ -62,6 +62,25 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       is_multiline <- is.matrix(y) || (is.array(y) && length(dim(y)) == 2)
 
+      # matplot()/matlines()/matpoints() draw one series per COLUMN against
+      # the row index, so a lone matrix argument is a set of series, not an
+      # xy.coords pair. Letting xy.coords() interpret it would read a
+      # two-column matrix as x = column 1, y = column 2 -- discarding every
+      # series but one and announcing series 1's values as x coordinates.
+      # plot()/lines() keep the xy.coords reading, which is correct there.
+      matrix_series_call <- function_name %in%
+        c("matplot", "matlines", "matpoints")
+
+      if (
+        is.null(y) &&
+          matrix_series_call &&
+          (is.matrix(x) || (is.array(x) && length(dim(x)) == 2))
+      ) {
+        y <- x
+        x <- seq_len(nrow(y))
+        is_multiline <- TRUE
+      }
+
       if (is.null(y) && !is_multiline) {
         # Single-vector call (plot(v, type = "l"), lines(v)):
         # x becomes the index and the vector supplies the y values.

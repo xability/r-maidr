@@ -126,8 +126,33 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     return(NULL)
   }
 
-  # The LAST layout call wins: every par(mfrow=)/layout() call resets the
-  # device's panel configuration for the plots that follow it.
+  # A layout call only governs the plots drawn AFTER it, so a layout call
+  # that comes after the last plot describes nothing that was drawn. That
+  # is the idiomatic trailing reset:
+  #
+  #   par(mfrow = c(2, 2)); plot(a); plot(b); plot(c); plot(d)
+  #   par(mfrow = c(1, 1))   # restore for the next figure
+  #
+  # Without this filter the trailing reset wins and the 2x2 grid collapses
+  # to a single panel, dropping three quarters of the accessible output.
+  # With no plots recorded there is nothing for a layout call to come after,
+  # so the filter does not apply: the call still describes the grid the user
+  # set up for plots yet to be drawn.
+  if (length(grouped$groups) > 0) {
+    last_plot_index <- max(
+      vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
+    )
+    layout_calls <- Filter(
+      function(call) isTRUE(call$storage_index < last_plot_index),
+      layout_calls
+    )
+
+    if (length(layout_calls) == 0) {
+      return(NULL)
+    }
+  }
+
+  # Among the layout calls that do govern drawn plots, the last one wins.
   config <- NULL
   for (call in layout_calls) {
     args <- call$args
