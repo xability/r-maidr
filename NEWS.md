@@ -75,6 +75,11 @@
   was `NULL` and the plot died with "all arguments must have the same
   length". Aesthetics are now evaluated against the data, which also makes
   the row ordering match the drawn bars for expression aesthetics.
+* ggplot2: each faceted box plot panel is announced with its own category
+  names. Names were read from an unfiltered vector of axis positions
+  indexed by position within the panel, so a panel drawing its boxes at
+  positions 3 and 4 was labelled with the categories at positions 1 and 2 —
+  correct quartiles under the wrong names.
 * ggplot2: nested patchwork layouts (e.g. `(p1 | p2) / p3`) no longer drop
   panels from the accessible output.
 * ggplot2: histogram and smooth layers extract their own layer's data
