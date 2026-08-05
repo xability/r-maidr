@@ -390,6 +390,100 @@ test_that("an unfaceted boxplot still gets its category names", {
 })
 
 # ==============================================================================
+# Faceted plots must resolve values from their OWN panel
+#
+# Two processors compared a panel-filtered built frame against the
+# unfiltered source data. The counts never matched under faceting, so the
+# scatter processor fell back to raw hex colours and the heatmap processor
+# read every panel's cell values out of panel 1.
+# ==============================================================================
+
+test_that("faceted scatter emits category names, not hex colours", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = rep(seq_len(4), 2),
+    y = rep(seq_len(4), 2),
+    grp = rep(c("alpha", "beta"), each = 4),
+    pnl = rep(c("P1", "P2"), 4)
+  )
+  plot_obj <- ggplot2::ggplot(df, ggplot2::aes(x, y, colour = grp)) +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(~pnl)
+  built <- ggplot2::ggplot_build(plot_obj)
+
+  processor <- maidr:::Ggplot2PointLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(plot_obj, built, panel_id = 1)
+
+  colours <- unique(vapply(data, function(p) as.character(p$color), character(1)))
+  testthat::expect_false(any(grepl("^#[0-9A-Fa-f]{6}$", colours)))
+  testthat::expect_true(all(colours %in% c("alpha", "beta")))
+})
+
+test_that("an unfaceted scatter still emits category names", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = seq_len(4), y = seq_len(4),
+    grp = rep(c("alpha", "beta"), 2)
+  )
+  plot_obj <- ggplot2::ggplot(df, ggplot2::aes(x, y, colour = grp)) +
+    ggplot2::geom_point()
+
+  processor <- maidr:::Ggplot2PointLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(plot_obj)
+
+  colours <- unique(vapply(data, function(p) as.character(p$color), character(1)))
+  testthat::expect_true(all(colours %in% c("alpha", "beta")))
+})
+
+test_that("each faceted heatmap panel reports its own cell values", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # the same (x, y) pair occurs in BOTH panels with different values
+  df <- data.frame(
+    xx = rep(c("c1", "c2"), 4),
+    yy = rep(c("r1", "r1", "r2", "r2"), 2),
+    pnl = rep(c("P1", "P2"), each = 4),
+    z = c(1, 2, 3, 4, 100, 200, 300, 400)
+  )
+  plot_obj <- ggplot2::ggplot(df, ggplot2::aes(xx, yy, fill = z)) +
+    ggplot2::geom_tile() +
+    ggplot2::facet_wrap(~pnl)
+  built <- ggplot2::ggplot_build(plot_obj)
+
+  processor <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 1))
+  panel1 <- processor$extract_data(plot_obj, built, panel_id = 1)
+  panel2 <- processor$extract_data(plot_obj, built, panel_id = 2)
+
+  testthat::expect_equal(sort(unlist(panel1$points)), c(1, 2, 3, 4))
+  testthat::expect_equal(sort(unlist(panel2$points)), c(100, 200, 300, 400))
+})
+
+# ==============================================================================
+# layout() empty cells are not panels
+#
+# 0 marks an empty cell in a layout() matrix. base_r_plot_grouping.R
+# excludes it; the state tracker still counted it.
+# ==============================================================================
+
+test_that("layout() panel count ignores empty (0) cells", {
+  maidr:::clear_all_device_storage()
+  device_id <- grDevices::dev.cur()
+
+  # three real panels, one empty cell
+  layout_matrix <- matrix(c(1, 0, 2, 3), nrow = 2, byrow = TRUE)
+  maidr:::on_layout_call(device_id, "layout", list(layout_matrix))
+
+  state <- maidr:::get_device_state(device_id)
+  testthat::expect_equal(state$panel_config$total_panels, 3)
+  testthat::expect_equal(state$panel_config$nrows, 2)
+  testthat::expect_equal(state$panel_config$ncols, 2)
+
+  maidr:::clear_all_device_storage()
+})
+
+# ==============================================================================
 # matplot(matrix) draws one series per column
 #
 # Routing a lone matrix through xy.coords() reads a two-column matrix as

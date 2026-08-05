@@ -84,7 +84,17 @@
   panels from the accessible output.
 * ggplot2: histogram and smooth layers extract their own layer's data
   instead of the first similarly-shaped layer in multi-layer plots.
-* ggplot2: scatter point colour/grouping values are emitted again.
+* ggplot2: scatter point colour/grouping values are emitted again, faceted
+  plots included. The category lookup compared a panel-filtered row count
+  against the whole data set; the two never matched under faceting, so
+  every faceted scatter announced raw hex codes (`#F8766D`) instead of
+  category names.
+* ggplot2: each faceted heat map panel reports its own cell values. Cells
+  were looked up in the unfiltered source data by (x, y) label, which
+  matches a row in every panel, and the first match won — so all panels
+  reported panel 1's values.
+* Base R: `layout()` matrices no longer count their empty `0` cells as
+  panels when tracking device state, matching the panel grouping code.
 * ggplot2: heatmap axis mappings follow factor level order instead of
   data-appearance order.
 * ggplot2: `maidr_off()` now really disables RMarkdown interception, PDF and
