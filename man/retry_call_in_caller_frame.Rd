@@ -40,5 +40,13 @@ Rebuilding the call and evaluating it in the caller's frame gives those
 methods the frame they expect. This runs only after the direct call has
 already failed, so working calls keep the single-evaluation fast path and
 a genuinely invalid call still reports its original error.
+
+Known trade-off: on this retry path an argument can be evaluated more
+than once. The failed first attempt already forced some promises, the
+rebuilt call evaluates the argument expressions afresh, and the argument
+recording that follows forces the interrupted promise again. An argument
+carrying a side effect therefore runs it more than once here. The
+alternative is the pre-existing behaviour, where the whole call simply
+errored, so the retry is the better trade -- but it is a trade.
 }
 \keyword{internal}

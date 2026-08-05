@@ -278,6 +278,14 @@ muffle_promise_restart <- function(expr) {
 #' already failed, so working calls keep the single-evaluation fast path and
 #' a genuinely invalid call still reports its original error.
 #'
+#' Known trade-off: on this retry path an argument can be evaluated more
+#' than once. The failed first attempt already forced some promises, the
+#' rebuilt call evaluates the argument expressions afresh, and the argument
+#' recording that follows forces the interrupted promise again. An argument
+#' carrying a side effect therefore runs it more than once here. The
+#' alternative is the pre-existing behaviour, where the whole call simply
+#' errored, so the retry is the better trade -- but it is a trade.
+#'
 #' @param original_function The unwrapped plotting function
 #' @param recorded_call `match.call()` captured by the wrapper
 #' @param caller_env The wrapper's calling frame
