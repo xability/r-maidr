@@ -109,7 +109,9 @@ on_layout_call <- function(device_id = grDevices::dev.cur(), function_name, args
   } else if (function_name == "layout") {
     mat <- args[[1]]
     if (is.matrix(mat)) {
-      unique_panels <- length(unique(as.vector(mat)))
+      # 0 marks an empty cell in a layout() matrix, not a panel. Counting it
+      # inflates total_panels and shifts every slot decision that follows.
+      unique_panels <- length(unique(as.vector(mat[mat > 0])))
       state$panel_config <- list(
         type = "layout",
         nrows = nrow(mat),
