@@ -308,7 +308,8 @@ Generate selectors using actual SVG structure
   plot,
   gt = NULL,
   grob_id = NULL,
-  panel_ctx = NULL
+  panel_ctx = NULL,
+  built = NULL
 )}\if{html}{\out{</div>}}
 }
 

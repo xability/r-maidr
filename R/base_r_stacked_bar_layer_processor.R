@@ -19,7 +19,7 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL,
                        layer_info = NULL) {
       data <- self$extract_data(layer_info)
-      selectors <- self$generate_selectors(layer_info, gt)
+      selectors <- self$generate_selectors(layer_info, gt, data)
 
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
@@ -106,15 +106,37 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
       args <- layer_info$plot_call$args
       if (!is.null(args$main)) args$main else ""
     },
-    generate_selectors = function(layer_info, gt = NULL) {
+    generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       if (is.null(layer_info) || is.null(gt)) {
         return(list())
       }
 
-      call_index <- layer_info$index
+      # gridSVG numbers grobs by plot group (panel), not by maidr layer
+      call_index <- if (!is.null(layer_info$group_index)) {
+        layer_info$group_index
+      } else {
+        layer_info$index
+      }
       rect_groups <- self$find_rect_groups(gt, call_index)
       if (length(rect_groups) == 0) {
         return(list())
+      }
+
+      # Order groups by their trailing grob number (drawing order) and
+      # keep only the data groups: barplot() draws one rect group per
+      # x category FIRST; legend.text adds extra rect groups (border,
+      # swatches) afterwards which must not be highlight targets.
+      group_numbers <- suppressWarnings(
+        as.integer(sub(".*-([0-9]+)$", "\\1", rect_groups))
+      )
+      rect_groups <- rect_groups[order(group_numbers)]
+      n_categories <- if (length(extracted_data) > 0) {
+        length(extracted_data[[1]])
+      } else {
+        0
+      }
+      if (n_categories > 0 && length(rect_groups) > n_categories) {
+        rect_groups <- rect_groups[seq_len(n_categories)]
       }
 
       # Compose a single selector string that lists all rect groups

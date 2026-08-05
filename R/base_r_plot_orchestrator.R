@@ -25,7 +25,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .layout = NULL,
     .adapter = NULL,
     .grob_list = list(),
-    .format_config = NULL
+    .format_config = NULL,
+    .format_config_by_group = list(),
+    .cached_gtable = NULL
   ),
   public = list(
     initialize = function(device_id = grDevices::dev.cur()) {
@@ -194,9 +196,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' @return A list with x and/or y format configurations, or NULL
     extract_format_config_from_axis_calls = function() {
       config <- list()
+      private$.format_config_by_group <- list()
 
       # Scan all plot groups for axis() calls
-      for (group in private$.plot_groups) {
+      for (group_idx in seq_along(private$.plot_groups)) {
+        group <- private$.plot_groups[[group_idx]]
+        group_config <- list()
+
         # Check low-level calls for axis()
         if (length(group$low_calls) > 0) {
           for (low_call in group$low_calls) {
@@ -211,12 +217,21 @@ BaseRPlotOrchestrator <- R6::R6Class(
                 # Map axis side to x/y: 1=bottom (x), 2=left (y), 3=top, 4=right
                 if (side == 1 || side == 3) {
                   config$x <- format_config
+                  group_config$x <- format_config
                 } else if (side == 2 || side == 4) {
                   config$y <- format_config
+                  group_config$y <- format_config
                 }
               }
             }
           }
+        }
+
+        if (length(group_config) > 0) {
+          # Keyed by group index so multipanel plots apply each panel's
+          # axis() format only to that panel
+          private$.format_config_by_group[[as.character(group_idx)]] <-
+            group_config
         }
       }
 
@@ -235,39 +250,47 @@ BaseRPlotOrchestrator <- R6::R6Class(
       x_label <- ""
       y_label <- ""
 
+      # Exact-match lookup: `args$sub` would partial-match an unrelated
+      # `subset` argument (e.g. plot(y ~ x, subset = ...)), and recorded
+      # values can be non-character (expressions from NSE calls), which
+      # nzchar() cannot handle.
+      get_label_arg <- function(args, name) {
+        value <- args[[name]]
+        if (is.null(value) || is.language(value)) {
+          return(NULL)
+        }
+        value <- tryCatch(as.character(value)[1], error = function(e) NULL)
+        if (is.null(value) || is.na(value) || !nzchar(value)) {
+          return(NULL)
+        }
+        value
+      }
+
       for (group in private$.plot_groups) {
         high_call <- group$high_call
         args <- high_call$args
 
-        if (!is.null(args$main) && nzchar(args$main)) {
-          title <- args$main
-        }
-        if (!is.null(args$sub) && nzchar(args$sub)) {
-          subtitle <- args$sub
-        }
-        if (!is.null(args$xlab) && nzchar(args$xlab)) {
-          x_label <- args$xlab
-        }
-        if (!is.null(args$ylab) && nzchar(args$ylab)) {
-          y_label <- args$ylab
-        }
+        value <- get_label_arg(args, "main")
+        if (!is.null(value)) title <- value
+        value <- get_label_arg(args, "sub")
+        if (!is.null(value)) subtitle <- value
+        value <- get_label_arg(args, "xlab")
+        if (!is.null(value)) x_label <- value
+        value <- get_label_arg(args, "ylab")
+        if (!is.null(value)) y_label <- value
 
         # Also check low-level title() calls which can set main/sub
         for (low_call in group$low_calls) {
           if (low_call$function_name == "title") {
             low_args <- low_call$args
-            if (!is.null(low_args$main) && nzchar(low_args$main)) {
-              title <- low_args$main
-            }
-            if (!is.null(low_args$sub) && nzchar(low_args$sub)) {
-              subtitle <- low_args$sub
-            }
-            if (!is.null(low_args$xlab) && nzchar(low_args$xlab)) {
-              x_label <- low_args$xlab
-            }
-            if (!is.null(low_args$ylab) && nzchar(low_args$ylab)) {
-              y_label <- low_args$ylab
-            }
+            value <- get_label_arg(low_args, "main")
+            if (!is.null(value)) title <- value
+            value <- get_label_arg(low_args, "sub")
+            if (!is.null(value)) subtitle <- value
+            value <- get_label_arg(low_args, "xlab")
+            if (!is.null(value)) x_label <- value
+            value <- get_label_arg(low_args, "ylab")
+            if (!is.null(value)) y_label <- value
           }
         }
       }
@@ -284,11 +307,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     combine_layer_results = function(layer_results) {
       panel_config <- detect_panel_configuration(private$.device_id)
 
-      if (
-        !is.null(panel_config) &&
-          panel_config$type %in% c("mfrow", "mfcol") &&
-          (panel_config$nrows > 1 || panel_config$ncols > 1)
-      ) {
+      if (is_multipanel_config(panel_config)) {
         # Multipanel case - create 2D grid
         nrows <- panel_config$nrows
         ncols <- panel_config$ncols
@@ -298,7 +317,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
           subplot_grid[[r]] <- vector("list", ncols)
         }
 
-        # Map layers to panels based on their group index
+        # Panel slot for each plot group (NA = drawn before the layout
+        # call or on an earlier, no-longer-visible page)
+        panel_slots <- compute_panel_slots(private$.plot_groups, panel_config)
+
+        # Map layers to panels based on their group's panel slot
         for (i in seq_along(layer_results)) {
           result <- layer_results[[i]]
           # Skip NULL results (from unknown/unsupported layers)
@@ -308,15 +331,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
           layer_info <- private$.layers[[i]]
           group_idx <- layer_info$group_index
 
-          if (panel_config$type == "mfrow") {
-            # Row-major order
-            row <- ceiling(group_idx / ncols)
-            col <- ((group_idx - 1) %% ncols) + 1
-          } else {
-            # Column-major order (mfcol)
-            col <- ceiling(group_idx / nrows)
-            row <- ((group_idx - 1) %% nrows) + 1
+          slot <- panel_slots[group_idx]
+          if (is.na(slot)) {
+            next
           }
+          position <- panel_slot_position(slot, panel_config)
+          if (is.null(position)) {
+            next
+          }
+          row <- position[1]
+          col <- position[2]
 
           # Ensure we're within bounds
           if (row > nrows || col > ncols) {
@@ -328,19 +352,17 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_type <- private$.adapter$detect_layer_type(layer_info$plot_call)
           }
 
-          # Build axes with optional format config (nested per-axis)
+          # Build axes with optional per-panel format config from this
+          # panel's own axis() calls (nested per-axis)
           layer_axes <- if (!is.null(result$axes)) {
             result$axes
           } else {
             build_axes(x = "", y = "")
           }
-          if (!is.null(private$.format_config)) {
-            layer_axes <- attach_axis_format(
-              layer_axes, "x", private$.format_config$x
-            )
-            layer_axes <- attach_axis_format(
-              layer_axes, "y", private$.format_config$y
-            )
+          group_format <- private$.format_config_by_group[[as.character(group_idx)]]
+          if (!is.null(group_format)) {
+            layer_axes <- attach_axis_format(layer_axes, "x", group_format$x)
+            layer_axes <- attach_axis_format(layer_axes, "y", group_format$y)
           }
           validate_axes(layer_axes, context = "base_r orchestrator (multipanel)")
 
@@ -352,6 +374,17 @@ BaseRPlotOrchestrator <- R6::R6Class(
             title = if (!is.null(result$title)) result$title else "",
             axes = layer_axes
           )
+
+          # Preserve all other fields from the processor result
+          # (orientation, domMapping, ...)
+          for (field_name in names(result)) {
+            if (!field_name %in% c(
+              "selectors", "data", "title", "axes",
+              "labels", "multi_layer", "layers", "type"
+            )) {
+              layer_obj[[field_name]] <- result[[field_name]]
+            }
+          }
 
           if (!is.null(result$labels) && length(result$labels) > 0) {
             layer_obj$labels <- result$labels
@@ -368,6 +401,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
             subplot_grid[[row]][[col]]$layers,
             list(layer_obj)
           )
+        }
+
+        # Fill cells with no layers with a valid empty subplot: a bare
+        # NULL serializes as `{}`, which the maidr frontend cannot parse.
+        for (r in seq_len(nrows)) {
+          for (c_idx in seq_len(ncols)) {
+            if (is.null(subplot_grid[[r]][[c_idx]])) {
+              subplot_grid[[r]][[c_idx]] <- list(
+                id = paste0("maidr-subplot-", r, "-", c_idx),
+                layers = list()
+              )
+            }
+          }
         }
 
         private$.combined_data <- subplot_grid
@@ -530,6 +576,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
         return(NULL)
       }
 
+      # Replaying every recorded call and rasterizing grobs is expensive;
+      # the recorded calls never change within an orchestrator's lifetime,
+      # so build the gtable once and reuse it.
+      if (!is.null(private$.cached_gtable)) {
+        return(private$.cached_gtable)
+      }
+
       # Suppress native R graphics window by using a null PDF device
       # This ensures only the HTML output is displayed.
       # chartSeries (candlestick) needs a wider canvas (10x5) because its
@@ -577,12 +630,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       panel_config <- detect_panel_configuration(private$.device_id)
 
-      if (
-        !is.null(panel_config) &&
-          panel_config$type %in% c("mfrow", "mfcol") &&
-          (panel_config$nrows > 1 || panel_config$ncols > 1)
-      ) {
+      if (is_multipanel_config(panel_config)) {
         # Multipanel case - create composite grob
+        panel_slots <- compute_panel_slots(private$.plot_groups, panel_config)
+
         composite_func <- function() {
           oldpar <- graphics::par(no.readonly = TRUE)
           on.exit(graphics::par(oldpar), add = TRUE)
@@ -590,6 +641,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
             graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "mfcol") {
             graphics::par(mfcol = c(panel_config$nrows, panel_config$ncols))
+          } else if (panel_config$type == "layout" && !is.null(panel_config$matrix)) {
+            graphics::layout(panel_config$matrix)
           }
 
           # Debug logging
@@ -598,22 +651,33 @@ BaseRPlotOrchestrator <- R6::R6Class(
             message("DEBUG: Panel config: ", panel_config$nrows, " x ", panel_config$ncols)
           }
 
-          # Replay all plot groups using ORIGINAL (unwrapped) functions
-          # to prevent logging new calls during replay
+          # Replay the panel-visible plot groups using ORIGINAL (unwrapped)
+          # functions to prevent logging new calls during replay. Groups
+          # with an NA slot (drawn before the layout call, or on an
+          # earlier page) are excluded so the SVG matches the data grid.
           for (i in seq_along(private$.plot_groups)) {
+            if (is.na(panel_slots[i])) {
+              next
+            }
             group <- private$.plot_groups[[i]]
 
             if (getOption("maidr.debug", FALSE)) {
               message("DEBUG: Replaying group ", i, " - ", group$high_call$function_name)
             }
 
-            orig_fn <- get_original_function(group$high_call$function_name)
-            invisible(do.call(orig_fn, clean_maidr_args(group$high_call$args)))
+            replay_plot_call(
+              group$high_call$function_name,
+              group$high_call$args,
+              group$high_call$call_env
+            )
 
             if (length(group$low_calls) > 0) {
               for (low_call in group$low_calls) {
-                orig_low_fn <- get_original_function(low_call$function_name)
-                invisible(do.call(orig_low_fn, clean_maidr_args(low_call$args)))
+                replay_plot_call(
+                  low_call$function_name,
+                  low_call$args,
+                  low_call$call_env
+                )
               }
             }
           }
@@ -625,6 +689,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
             # Also store individual grobs for reference
             private$.grob_list <- list(composite_grob)
+            private$.cached_gtable <- composite_grob
 
             return(composite_grob)
           },
@@ -644,13 +709,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Use ORIGINAL (unwrapped) functions to prevent logging new calls
           plot_func <- function() {
-            orig_fn <- get_original_function(high_call$function_name)
-            invisible(do.call(orig_fn, clean_maidr_args(high_call$args)))
+            replay_plot_call(
+              high_call$function_name,
+              high_call$args,
+              high_call$call_env
+            )
 
             if (length(low_calls) > 0) {
               for (low_call in low_calls) {
-                orig_low_fn <- get_original_function(low_call$function_name)
-                invisible(do.call(orig_low_fn, clean_maidr_args(low_call$args)))
+                replay_plot_call(
+                  low_call$function_name,
+                  low_call$args,
+                  low_call$call_env
+                )
               }
             }
           }
@@ -669,6 +740,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         private$.grob_list <- grob_list
 
         if (length(grob_list) > 0 && !is.null(grob_list[[1]])) {
+          private$.cached_gtable <- grob_list[[1]]
           return(grob_list[[1]])
         }
 
@@ -685,9 +757,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
 
       panel_config <- detect_panel_configuration(private$.device_id)
-      is_multipanel <- !is.null(panel_config) &&
-        panel_config$type %in% c("mfrow", "mfcol") &&
-        (panel_config$nrows > 1 || panel_config$ncols > 1)
+      is_multipanel <- is_multipanel_config(panel_config)
 
       if (is_multipanel) {
         # For multipanel, all layers share the same composite grob
@@ -715,13 +785,23 @@ BaseRPlotOrchestrator <- R6::R6Class(
         return(FALSE)
       }
 
-      # Only check HIGH-level layers for unsupported types
-      # LOW-level unknown calls (axis, title, etc.) are fine - just ignored
-      any(sapply(private$.layers, function(layer) {
-        is_high_level <- isTRUE(layer$source == "HIGH")
-        is_unknown <- isTRUE(layer$type == "unknown")
-        is_high_level && is_unknown
-      }))
+      # Decorations carry no data of their own; leaving them out of the
+      # interactive output loses nothing. Data-bearing LOW-level overlays
+      # (polygon, rect, segments, ...) with no processor would silently
+      # disappear from the accessible output, so they trigger fallback.
+      decoration_functions <- c(
+        "axis", "title", "legend", "text", "mtext", "grid", "box"
+      )
+
+      any(vapply(private$.layers, function(layer) {
+        if (!isTRUE(layer$type == "unknown")) {
+          return(FALSE)
+        }
+        if (isTRUE(layer$source == "HIGH")) {
+          return(TRUE)
+        }
+        !isTRUE(layer$function_name %in% decoration_functions)
+      }, logical(1)))
     },
 
     #' @description Determine if the plot should fall back to image rendering

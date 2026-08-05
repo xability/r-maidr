@@ -8,7 +8,8 @@ log_plot_call_to_device(
   function_name,
   call_expr,
   args,
-  device_id = grDevices::dev.cur()
+  device_id = grDevices::dev.cur(),
+  call_env = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ log_plot_call_to_device(
 \item{args}{List of function arguments}
 
 \item{device_id}{Graphics device ID}
+
+\item{call_env}{Optional environment for replaying unevaluated (NSE)
+arguments recorded in \code{args}}
 }
 \value{
 NULL (invisible)

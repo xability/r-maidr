@@ -7,9 +7,16 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
   "Ggplot2SmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL) {
-      data <- self$extract_data(plot, built)
-      selectors <- self$generate_selectors(plot, gt)
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      data <- self$extract_data(plot, built, panel_id = panel_id)
+      selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       list(
         data = data,
@@ -18,7 +25,7 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         axes = self$extract_layer_axes(plot, layout)
       )
     },
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (!inherits(plot, "ggplot")) {
         stop("Input must be a ggplot object.")
       }
@@ -27,17 +34,36 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         built <- ggplot2::ggplot_build(plot)
       }
 
-      smooth_layers <- which(sapply(plot$layers, function(layer) {
-        inherits(layer$geom, "GeomSmooth") ||
-          inherits(layer$geom, "GeomLine") ||
-          inherits(layer$geom, "GeomDensity")
-      }))
+      # Prefer this processor's OWN layer: picking the first line-like
+      # layer would extract another layer's data in multi-layer plots
+      # (e.g. geom_line + geom_smooth).
+      layer_index <- self$get_layer_index()
+      own_layer <- plot$layers[[layer_index]]
+      is_smooth_like <- inherits(own_layer$geom, "GeomSmooth") ||
+        inherits(own_layer$geom, "GeomLine") ||
+        inherits(own_layer$geom, "GeomDensity") ||
+        inherits(own_layer$geom, "GeomArea")
 
-      if (length(smooth_layers) == 0) {
-        stop("No smooth curve layers found in plot")
+      if (is_smooth_like) {
+        target_layer <- layer_index
+      } else {
+        smooth_layers <- which(sapply(plot$layers, function(layer) {
+          inherits(layer$geom, "GeomSmooth") ||
+            inherits(layer$geom, "GeomLine") ||
+            inherits(layer$geom, "GeomDensity")
+        }))
+
+        if (length(smooth_layers) == 0) {
+          stop("No smooth curve layers found in plot")
+        }
+        target_layer <- smooth_layers[1]
       }
 
-      built_data <- built$data[[smooth_layers[1]]]
+      built_data <- built$data[[target_layer]]
+
+      if (!is.null(panel_id) && "PANEL" %in% names(built_data)) {
+        built_data <- built_data[built_data$PANEL == panel_id, , drop = FALSE]
+      }
 
       data_points <- lapply(seq_len(nrow(built_data)), function(i) {
         list(
@@ -48,7 +74,7 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
 
       list(data_points)
     },
-    generate_selectors = function(plot, gt = NULL) {
+    generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       collect_all_polyline_grobs <- function(grob) {
         polyline_grobs <- list()
 
@@ -69,7 +95,17 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
       if (!is.null(gt)) {
         all_polyline_grobs <- list()
 
-        if ("grobs" %in% names(gt)) {
+        if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+          # Facet path: scope the search to this panel's grob
+          panel_index <- which(
+            grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
+          )
+          if (length(panel_index) > 0) {
+            all_polyline_grobs <- collect_all_polyline_grobs(
+              gt$grobs[[panel_index[1]]]
+            )
+          }
+        } else if ("grobs" %in% names(gt)) {
           for (grob in gt$grobs) {
             grob_results <- collect_all_polyline_grobs(grob)
             all_polyline_grobs <- append(all_polyline_grobs, grob_results)

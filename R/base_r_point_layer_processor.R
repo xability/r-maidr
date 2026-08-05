@@ -40,15 +40,28 @@ BaseRPointLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # For plot(): first arg is x, second is y
-      # For points(): first arg is x, second is y
-      x <- args[[1]]
-      y <- args[[2]]
+      # For plot()/points(): named x/y win, then unnamed positionals
+      xy <- resolve_xy_args(args)
+      x <- xy$x
+      y <- xy$y
 
-      col <- args$col
+      col <- args[["col"]]
 
-      if (is.null(x) || is.null(y)) {
+      if (is.null(x) || is.language(x) || is.language(y)) {
         return(list())
+      }
+
+      if (is.null(y)) {
+        # Single-vector call plot(v): index on x, values on y
+        coords <- tryCatch(
+          grDevices::xy.coords(x, NULL),
+          error = function(e) NULL
+        )
+        if (is.null(coords)) {
+          return(list())
+        }
+        x <- coords$x
+        y <- coords$y
       }
 
       # Ensure x and y are same length
@@ -104,11 +117,17 @@ BaseRPointLayerProcessor <- R6::R6Class(
       y_axis <- list(label = y_title)
 
       # --- Optionally extract grid navigation fields ---
-      x_data <- args[[1]]
-      y_data <- args[[2]]
+      xy <- resolve_xy_args(args)
+      x_data <- xy$x
+      y_data <- xy$y
+      if (is.null(y_data) && is.numeric(x_data)) {
+        # plot(v): x axis is the index, y axis carries the values
+        y_data <- x_data
+        x_data <- seq_along(y_data)
+      }
 
-      x_grid <- self$extract_base_r_axis_grid_info(x_data, args$xlim)
-      y_grid <- self$extract_base_r_axis_grid_info(y_data, args$ylim)
+      x_grid <- self$extract_base_r_axis_grid_info(x_data, args[["xlim"]])
+      y_grid <- self$extract_base_r_axis_grid_info(y_data, args[["ylim"]])
 
       if (!is.null(x_grid)) {
         x_axis$min <- x_grid$min

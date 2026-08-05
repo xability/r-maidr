@@ -665,10 +665,11 @@ test_that("BaseRAdapter is_stacked_barplot with default beside", {
   test_matrix <- matrix(c(10, 20, 15, 25), nrow = 2)
   args <- list(test_matrix)
 
-  # Default beside is NULL, which means NOT stacked (the function returns FALSE for NULL)
-  # Only matrix with explicit beside=FALSE is considered stacked
+  # barplot()'s default is beside = FALSE, so a matrix WITHOUT an
+  # explicit beside argument draws stacked bars and must be detected
+  # as stacked
   result <- adapter$is_stacked_barplot(args)
-  testthat::expect_false(result)
+  testthat::expect_true(result)
 })
 
 test_that("BaseRAdapter detect_layer_type uses is_dodged_barplot", {

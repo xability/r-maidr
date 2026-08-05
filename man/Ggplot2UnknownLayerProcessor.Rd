@@ -47,6 +47,7 @@ Handles unsupported layer types gracefully by returning empty data
   gt = NULL,
   scale_mapping = NULL,
   grob_id = NULL,
+  panel_id = NULL,
   panel_ctx = NULL
 )}\if{html}{\out{</div>}}
 }

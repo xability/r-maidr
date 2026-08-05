@@ -105,10 +105,24 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
       find_graphics_plot_grob(grob, "lines")
     },
     generate_selectors_from_grob = function(grob, call_index = NULL) {
-      # Use robust selector generation without panel detection
-      selector <- generate_robust_selector(grob, "lines", "polyline")
+      # Scope to this plot group's grobs so multipanel layouts don't
+      # match another panel's lines
+      selector <- generate_robust_selector(
+        grob, "lines", "polyline",
+        plot_index = call_index
+      )
+      if (is.null(selector)) {
+        # Fall back to unscoped search before giving up
+        selector <- generate_robust_selector(grob, "lines", "polyline")
+      }
 
-      return(list(selector))
+      if (is.null(selector)) {
+        # Never emit list(NULL): it serializes as [null] and breaks the
+        # frontend's selector handling
+        return(list())
+      }
+
+      list(selector)
     },
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {

@@ -47,11 +47,16 @@ schedule_auto_show <- function() {
 
 #' Cancel a pending auto-show callback
 #'
+#' Removes by NAME rather than by the index `addTaskCallback()` returned:
+#' that index is a position in R's callback list, and any other package
+#' adding or removing a callback in the meantime shifts it. Removing a
+#' stale index silently deletes an unrelated package's callback.
+#'
 #' @keywords internal
 cancel_auto_show <- function() {
   if (!is.null(.maidr_patching_env$.auto_show_callback_id)) {
     tryCatch(
-      removeTaskCallback(.maidr_patching_env$.auto_show_callback_id),
+      removeTaskCallback("maidr_auto_show"),
       error = function(e) NULL
     )
     .maidr_patching_env$.auto_show_callback_id <- NULL
@@ -78,12 +83,27 @@ is_patching_enabled <- function() {
 #' @return The device ID of the temp device
 #' @keywords internal
 open_maidr_temp_device <- function() {
-  # Only open if we haven't already
-  if (!is.null(.maidr_patching_env$.temp_device_id)) {
-    current_dev <- grDevices::dev.cur()
-    if (current_dev == .maidr_patching_env$.temp_device_id) {
-      return(.maidr_patching_env$.temp_device_id)
+  existing_id <- .maidr_patching_env$.temp_device_id
+  if (!is.null(existing_id)) {
+    open_devices <- grDevices::dev.list()
+    if (existing_id %in% open_devices) {
+      # Reuse the existing temp device instead of opening a duplicate
+      if (grDevices::dev.cur() != existing_id) {
+        grDevices::dev.set(existing_id)
+      }
+      return(existing_id)
     }
+    # The tracked device was closed externally (e.g. dev.off()); its ID may
+    # be recycled by an unrelated device later, so drop the stale tracking
+    # and clean up the leaked temp file before opening a fresh device.
+    if (!is.null(.maidr_patching_env$.temp_device_file)) {
+      tryCatch(
+        unlink(.maidr_patching_env$.temp_device_file),
+        error = function(e) NULL
+      )
+    }
+    .maidr_patching_env$.temp_device_file <- NULL
+    .maidr_patching_env$.temp_device_id <- NULL
   }
 
   temp_file <- tempfile(fileext = ".pdf")
@@ -118,8 +138,16 @@ close_maidr_temp_device <- function() {
   if (!is.null(.maidr_patching_env$.temp_device_id)) {
     tryCatch(
       {
-        if (.maidr_patching_env$.temp_device_id %in% grDevices::dev.list()) {
-          grDevices::dev.off(.maidr_patching_env$.temp_device_id)
+        open_devices <- grDevices::dev.list()
+        temp_id <- .maidr_patching_env$.temp_device_id
+        if (temp_id %in% open_devices) {
+          # Only close the device if it is still a pdf device: after an
+          # external dev.off() the ID can be recycled by a user device,
+          # which we must not close.
+          device_name <- names(open_devices)[match(temp_id, open_devices)]
+          if (identical(device_name, "pdf")) {
+            grDevices::dev.off(temp_id)
+          }
         }
       },
       error = function(e) NULL
@@ -160,9 +188,8 @@ ensure_maidr_device <- function() {
 #' @return NULL (invisible)
 #' @keywords internal
 replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
-  # Get the grouped plot calls before closing
-  grouped <- group_device_calls(device_id)
-  plot_groups <- grouped$groups
+  # Get all recorded calls (HIGH, LOW, and LAYOUT) before closing
+  all_calls <- get_device_calls(device_id)
 
   # Close the temp device
   close_maidr_temp_device()
@@ -170,23 +197,115 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
   # Open native graphics device
   grDevices::dev.new()
 
-  # Replay all plot groups using ORIGINAL functions (not wrapped)
-  for (group in plot_groups) {
-    # Replay HIGH-level call with original function
-    high_call <- group$high_call
-    orig_fn <- get_original_function(high_call$function_name)
-    do.call(orig_fn, high_call$args)
-
-    # Replay LOW-level calls with original functions
-    if (length(group$low_calls) > 0) {
-      for (low_call in group$low_calls) {
-        orig_low_fn <- get_original_function(low_call$function_name)
-        do.call(orig_low_fn, low_call$args)
-      }
-    }
+  # Replay every call in its original order using ORIGINAL functions
+  # (not wrapped). Replaying in order preserves interleaved LAYOUT calls
+  # (par(mfrow=...), layout(...)) so multi-panel plots reproduce correctly.
+  for (call_entry in all_calls) {
+    replay_plot_call(
+      call_entry$function_name,
+      call_entry$args,
+      call_entry$call_env
+    )
   }
 
   invisible(NULL)
+}
+
+#' Replay a recorded plot call with the original (unwrapped) function
+#'
+#' Strips maidr-internal arguments and re-executes the call. When the
+#' recorded args contain unevaluated expressions (from non-standard
+#' evaluation, e.g. `curve(sin(x))` or `plot(y ~ x, subset = g == 1)`),
+#' the call is rebuilt and evaluated in the environment captured at record
+#' time so those expressions resolve exactly as they did originally.
+#'
+#' @param function_name Name of the recorded function
+#' @param args Recorded argument list (values and/or expressions)
+#' @param call_env Environment captured when NSE arguments could not be
+#'   forced at record time, or NULL when all args are plain values
+#' @return The result of the replayed call (invisibly)
+#' @keywords internal
+replay_plot_call <- function(function_name, args, call_env = NULL) {
+  orig_fn <- get_original_function(function_name)
+  args <- clean_maidr_args(args)
+
+  has_language_args <- any(vapply(args, is.language, logical(1)))
+  if (has_language_args && !is.null(call_env) && is.environment(call_env)) {
+    replay_call <- as.call(c(list(orig_fn), args))
+    return(invisible(eval(replay_call, envir = call_env)))
+  }
+
+  invisible(do.call(orig_fn, args))
+}
+
+#' Evaluate an expression, muffling the retry's promise-restart warning
+#'
+#' When a call fails part-way through forcing an argument, that argument's
+#' promise is left interrupted. Forcing it again — which both the retry and
+#' the argument recording do — makes R warn "restarting interrupted promise
+#' evaluation". It is an artifact of retrying, not anything the user's call
+#' did, so it is muffled; every other warning passes through untouched.
+#'
+#' @param expr Expression to evaluate (lazily, inside the handler)
+#' @return The value of `expr`
+#' @keywords internal
+muffle_promise_restart <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (grepl("interrupted promise evaluation", conditionMessage(w))) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
+#' Retry a failed plot call from the caller's own frame
+#'
+#' The formula methods resolve non-standard arguments relative to
+#' `parent.frame()`: `plot.formula()` evaluates `subset =` there, and
+#' `boxplot.formula()` reaches into the caller's `...`. A wrapper puts its
+#' own frame in that position, so calls that work in plain R fail through
+#' maidr:
+#'
+#' \preformatted{
+#' plot(y ~ x, data = d, subset = g == 1)   # object 'g' not found
+#' boxplot(y ~ g, data = d, subset = x > 5) # ..3 used in an incorrect context
+#' }
+#'
+#' Rebuilding the call and evaluating it in the caller's frame gives those
+#' methods the frame they expect. This runs only after the direct call has
+#' already failed, so working calls keep the single-evaluation fast path and
+#' a genuinely invalid call still reports its original error.
+#'
+#' Known trade-off: on this retry path an argument can be evaluated more
+#' than once. The failed first attempt already forced some promises, the
+#' rebuilt call evaluates the argument expressions afresh, and the argument
+#' recording that follows forces the interrupted promise again. An argument
+#' carrying a side effect therefore runs it more than once here. The
+#' alternative is the pre-existing behaviour, where the whole call simply
+#' errored, so the retry is the better trade -- but it is a trade.
+#'
+#' @param original_function The unwrapped plotting function
+#' @param recorded_call `match.call()` captured by the wrapper
+#' @param caller_env The wrapper's calling frame
+#' @param original_error The error condition the direct call raised
+#' @return Result of the retried call
+#' @keywords internal
+retry_call_in_caller_frame <- function(original_function,
+                                       recorded_call,
+                                       caller_env,
+                                       original_error) {
+  rebuilt_call <- as.call(
+    c(list(original_function), as.list(recorded_call)[-1L])
+  )
+
+  tryCatch(
+    muffle_promise_restart(eval(rebuilt_call, caller_env)),
+    # The retry is a fallback, not a diagnosis: if it fails too, report the
+    # error the user's actual call produced.
+    error = function(e) stop(original_error)
+  )
 }
 
 #' Get original (unwrapped) function by name
@@ -208,6 +327,28 @@ get_original_function <- function(function_name) {
   )
   if (!is.null(orig_fn)) {
     return(orig_fn)
+  }
+
+  # Try stats namespace (heatmap lives here)
+  orig_fn <- tryCatch(
+    get(function_name, envir = asNamespace("stats")),
+    error = function(e) NULL
+  )
+  if (!is.null(orig_fn)) {
+    return(orig_fn)
+  }
+
+  # Try quantmod namespace (chartSeries) when loaded. This must come
+  # before the generic get() fallback, which would otherwise resolve to
+  # maidr's own recording wrapper and re-log calls during replay.
+  if ("quantmod" %in% loadedNamespaces()) {
+    orig_fn <- tryCatch(
+      get(function_name, envir = asNamespace("quantmod")),
+      error = function(e) NULL
+    )
+    if (!is.null(orig_fn)) {
+      return(orig_fn)
+    }
   }
 
   # Try base namespace
@@ -334,7 +475,6 @@ wrap_s3_generics <- function() {
 
     # Prepare for logging
     this_call <- match.call()
-    args <- list(x, ...)
 
     # Ensure a device is open to suppress default graphics window
     ensure_maidr_device()
@@ -343,9 +483,17 @@ wrap_s3_generics <- function() {
     original_lines <- .maidr_patching_env$.saved_graphics_fns[["lines"]]
     result <- original_lines(x, ...)
 
+    # Force args only after the original call succeeded (NSE safety)
+    args <- tryCatch(list(x, ...), error = function(e) NULL)
+    call_env <- NULL
+    if (is.null(args)) {
+      args <- as.list(this_call)[-1L]
+      call_env <- parent.frame()
+    }
+
     device_id <- grDevices::dev.cur()
     # Log the call
-    log_plot_call_to_device("lines", this_call, args, device_id)
+    log_plot_call_to_device("lines", this_call, args, device_id, call_env = call_env)
 
     invisible(result)
   }
@@ -373,22 +521,32 @@ wrap_s3_generics <- function() {
   points_wrapper <- function(x, ...) {
     # If patching is disabled, pass through to original
     if (!is_patching_enabled()) {
-      return(graphics::points.default(x, ...))
+      original_points <- .maidr_patching_env$.saved_graphics_fns[["points"]]
+      return(original_points(x, ...))
     }
 
     # Prepare for logging
     this_call <- match.call()
-    args <- list(x, ...)
 
     # Ensure a device is open to suppress default graphics window
     ensure_maidr_device()
 
-    # Call the default method
-    result <- graphics::points.default(x, ...)
+    # Call the original generic so S3 dispatch works
+    # (e.g. points(y ~ x), points(density_obj))
+    original_points <- .maidr_patching_env$.saved_graphics_fns[["points"]]
+    result <- original_points(x, ...)
+
+    # Force args only after the original call succeeded (NSE safety)
+    args <- tryCatch(list(x, ...), error = function(e) NULL)
+    call_env <- NULL
+    if (is.null(args)) {
+      args <- as.list(this_call)[-1L]
+      call_env <- parent.frame()
+    }
 
     device_id <- grDevices::dev.cur()
     # Log the call
-    log_plot_call_to_device("points", this_call, args, device_id)
+    log_plot_call_to_device("points", this_call, args, device_id, call_env = call_env)
 
     invisible(result)
   }
@@ -480,6 +638,14 @@ create_function_wrapper <- function(function_name, original_function) {
     return(create_axis_wrapper(original_function))
   }
 
+  # Functions whose primary argument is an unevaluated expression must
+  # never have their arguments forced: curve(sin(x)) evaluates `sin(x)`
+  # lazily with `x` bound inside curve(), so forcing either errors or
+  # (worse) silently captures an unrelated `x` from the caller.
+  if (function_name %in% c("curve")) {
+    return(create_nse_wrapper(function_name, original_function))
+  }
+
   is_high <- is_high_level_function(function_name)
 
   wrapper <- eval(substitute(
@@ -490,15 +656,57 @@ create_function_wrapper <- function(function_name, original_function) {
       }
 
       this_call <- match.call()
-      args_list <- list(...)
+      caller_env <- parent.frame()
 
       # Ensure a device is open to suppress default graphics window
       ensure_maidr_device()
 
-      result <- ORIG(...)
+      # Fast path: forward the promises untouched, so each argument is
+      # evaluated exactly once and lazily.
+      call_failed <- FALSE
+      result <- tryCatch(
+        ORIG(...),
+        error = function(e) {
+          call_failed <<- TRUE
+          e
+        }
+      )
+      if (call_failed) {
+        result <- retry_call_in_caller_frame(ORIG, this_call, caller_env, result)
+      }
+
+      # Force arguments only AFTER the original call succeeded. For
+      # NSE arguments (e.g. curve(sin(x)), plot(y ~ x, subset = g == 1))
+      # forcing fails; record the unevaluated expressions plus the caller
+      # environment so replay can re-evaluate them faithfully.
+      args_list <- muffle_promise_restart(
+        tryCatch(list(...), error = function(e) NULL)
+      )
+      call_env <- NULL
+      if (is.null(args_list)) {
+        args_list <- as.list(this_call)[-1L]
+        call_env <- caller_env
+      }
+
+      # Computation-only calls (hist(x, plot = FALSE), boxplot(x,
+      # plot = FALSE)) draw nothing: recording them would inject phantom
+      # layers into the next render.
+      if (identical(args_list[["plot"]], FALSE)) {
+        return(invisible(result))
+      }
 
       device_id <- grDevices::dev.cur()
-      log_plot_call_to_device(FNAME, this_call, args_list, device_id)
+      log_plot_call_to_device(
+        FNAME, this_call, args_list, device_id,
+        call_env = call_env
+      )
+
+      # NOTE: auto-show is deliberately NOT scheduled here. show() ends the
+      # Base R session (it clears the recorded calls and closes the temp
+      # device), so firing it after every top-level expression breaks the
+      # most basic Base R idiom: `plot(x, y)` followed by `abline(h = 1)`
+      # fails with "plot.new has not been called yet". Auto-display needs a
+      # non-destructive render path first; see NEWS.
 
       # Return invisibly to prevent auto-printing in knitr
       # Users can still capture the result with assignment
@@ -508,6 +716,44 @@ create_function_wrapper <- function(function_name, original_function) {
   ))
 
   wrapper
+}
+
+#' Create a wrapper for functions taking unevaluated expressions
+#'
+#' Used for functions like curve() whose arguments must stay lazy. The
+#' recorded args are the unevaluated call expressions together with the
+#' caller environment, so replay evaluates them exactly as the user's
+#' call did.
+#'
+#' @param function_name Name of the function
+#' @param original_function Original function to wrap
+#' @return Wrapped function
+#' @keywords internal
+create_nse_wrapper <- function(function_name, original_function) {
+  force(function_name)
+  force(original_function)
+
+  function(...) {
+    if (!is_patching_enabled()) {
+      return(original_function(...))
+    }
+
+    this_call <- match.call()
+
+    ensure_maidr_device()
+
+    result <- original_function(...)
+
+    log_plot_call_to_device(
+      function_name,
+      this_call,
+      as.list(this_call)[-1L],
+      grDevices::dev.cur(),
+      call_env = parent.frame()
+    )
+
+    invisible(result)
+  }
 }
 
 #' Create enhanced wrapper for barplot with sorting logic
@@ -523,17 +769,49 @@ create_barplot_wrapper <- function(original_function) {
     }
 
     this_call <- match.call()
-    args <- list(...)
-
-    patched_args <- apply_barplot_patches(args)
 
     # Ensure a device is open to suppress default graphics window
     ensure_maidr_device()
 
-    result <- do.call(original_function, patched_args)
+    # Force args defensively: barplot(y ~ x, subset = ...) style NSE
+    # arguments cannot be forced outside the original call.
+    args <- tryCatch(list(...), error = function(e) NULL)
 
-    device_id <- grDevices::dev.cur()
-    log_plot_call_to_device("barplot", this_call, args, device_id)
+    if (is.null(args)) {
+      # NSE arguments: skip sorting patches, record expressions + caller
+      # environment so replay evaluates them in the right context.
+      result <- original_function(...)
+      log_plot_call_to_device(
+        "barplot",
+        this_call,
+        as.list(this_call)[-1L],
+        grDevices::dev.cur(),
+        call_env = parent.frame()
+      )
+    } else {
+      patched_args <- apply_barplot_patches(args)
+
+      result <- do.call(original_function, patched_args)
+
+      # Computation-only calls (barplot(x, plot = FALSE) returns the bar
+      # midpoints without drawing) must not be recorded, or they inject a
+      # phantom bar layer into the next render. The generic wrapper applies
+      # the same rule; barplot has its own path and needs it too.
+      if (identical(args[["plot"]], FALSE)) {
+        return(invisible(result))
+      }
+
+      # Log the PATCHED args: replay (both the exported SVG and the native
+      # fallback) re-draws from the recorded args, so recording the raw
+      # args while drawing the patched ones would desynchronize the SVG
+      # bar order from the extracted data order.
+      log_plot_call_to_device(
+        "barplot",
+        this_call,
+        patched_args,
+        grDevices::dev.cur()
+      )
+    }
 
     # Return invisibly to prevent auto-printing in knitr
     invisible(result)
@@ -568,11 +846,19 @@ create_axis_wrapper <- function(original_function) {
       # Extract format config from scales:: closure
       format_config <- extract_from_scales_closure(labels)
 
+      # If no 'at' was provided, compute the default tick positions so the
+      # label function can still be applied (axTicks() reproduces the
+      # positions axis() would choose). Without this, the drawn axis would
+      # silently fall back to unformatted default labels.
+      if (is.null(at)) {
+        at <- tryCatch(graphics::axTicks(side), error = function(e) NULL)
+      }
+
       # Apply the function to get actual string labels
       if (!is.null(at)) {
         actual_labels <- labels(at)
       } else {
-        # If no 'at' provided, let axis() handle it with TRUE
+        # No plot yet - let axis() handle it with TRUE
         actual_labels <- TRUE
       }
     }

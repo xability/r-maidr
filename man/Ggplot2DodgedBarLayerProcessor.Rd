@@ -4,6 +4,11 @@
 \alias{Ggplot2DodgedBarLayerProcessor}
 \title{Dodged Bar Layer Processor}
 \description{
+Dodged Bar Layer Processor
+
+Dodged Bar Layer Processor
+}
+\details{
 Processes dodged bar plot layers with complete logic included
 }
 \keyword{internal}
@@ -15,6 +20,7 @@ Processes dodged bar plot layers with complete logic included
 \itemize{
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-process}{\code{Ggplot2DodgedBarLayerProcessor$process()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-needs_reordering}{\code{Ggplot2DodgedBarLayerProcessor$needs_reordering()}}
+\item \href{#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{\code{Ggplot2DodgedBarLayerProcessor$resolve_aes_values()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data}{\code{Ggplot2DodgedBarLayerProcessor$reorder_layer_data()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-extract_data}{\code{Ggplot2DodgedBarLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{\code{Ggplot2DodgedBarLayerProcessor$generate_selectors()}}
@@ -40,7 +46,16 @@ Processes dodged bar plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$process(plot, layout, built = NULL, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$process(
+  plot,
+  layout,
+  built = NULL,
+  gt = NULL,
+  scale_mapping = NULL,
+  grob_id = NULL,
+  panel_id = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -52,6 +67,34 @@ Processes dodged bar plot layers with complete logic included
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$needs_reordering()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{}}}
+\subsection{Method \code{resolve_aes_values()}}{
+Resolve this layer's x/y/fill aesthetics to VALUES.
+  `rlang::as_label()` produces a display string, which doubles as a
+  column name only for bare-column mappings. Evaluating the quosure
+  against the data also covers expression aesthetics such as
+  `aes(fill = factor(cyl))`, which are idiomatic ggplot2 and which
+  the column-name treatment turned into `data[["factor(cyl)"]]`,
+  i.e. NULL.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$resolve_aes_values(plot, data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{A ggplot2 object}
+
+\item{\code{data}}{Data frame the aesthetics are evaluated against}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List with `x`, `y` and `fill` vectors (any may be NULL)
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data"></a>}}
@@ -67,7 +110,11 @@ Processes dodged bar plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$extract_data(plot, built = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$extract_data(
+  plot,
+  built = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -76,7 +123,11 @@ Processes dodged bar plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$generate_selectors(plot, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

@@ -54,7 +54,12 @@ render_maidr <- function(expr, env = parent.frame(), quoted = FALSE) {
 
   shiny::installExprFunction(expr, "func", env, quoted)
 
-  expr2 <- quote(maidr_widget(func()))
+  # Standard Shiny convention: a NULL reactive result renders nothing
+  # instead of erroring the output slot.
+  expr2 <- quote({
+    plot_result <- func()
+    if (is.null(plot_result)) NULL else maidr_widget(plot_result)
+  })
 
   htmlwidgets::shinyRenderWidget(expr2, maidr_widget_output, environment(), quoted)
 }

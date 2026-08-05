@@ -100,7 +100,11 @@ applied by the `SortingPatcher`.
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRStackedBarLayerProcessor$generate_selectors(layer_info, gt = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BaseRStackedBarLayerProcessor$generate_selectors(
+  layer_info,
+  gt = NULL,
+  extracted_data = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

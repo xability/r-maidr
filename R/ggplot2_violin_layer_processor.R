@@ -57,8 +57,28 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
-    #' @return List with multi_layer flag and layers
-    process = function(plot, layout, built = NULL, gt = NULL) {
+    #' @param scale_mapping Scale mapping for faceted plots (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for faceted plots (optional)
+    #' @return List with multi_layer flag and layers, or NULL for facet panels
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      # Faceted violins are not yet supported interactively: the facet
+      # combiner cannot represent this processor's multi-layer
+      # (violin_box + violin_kde) result, and the KDE coordinate
+      # injection only knows the single-panel viewport. Skip cleanly so
+      # the plot still renders visually instead of crashing.
+      if (!is.null(panel_ctx) || !is.null(panel_id)) {
+        return(NULL)
+      }
+
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
@@ -187,13 +207,14 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
           as.character(cat_pos)
         }
 
-        # Get values for this group from original data
+        # Get values for this group from original data. Column-first
+        # indexing: df[filter, col] on a tibble returns a 1-column tibble
+        # that as.numeric() cannot coerce.
         if (!is.null(cat_var) && !is.null(val_var) &&
               cat_var %in% names(original_data) &&
               val_var %in% names(original_data)) {
-          group_vals <- original_data[
-            as.character(original_data[[cat_var]]) == fill_label,
-            val_var
+          group_vals <- original_data[[val_var]][
+            as.character(original_data[[cat_var]]) == fill_label
           ]
           group_vals <- as.numeric(group_vals)
           group_vals <- group_vals[!is.na(group_vals)]

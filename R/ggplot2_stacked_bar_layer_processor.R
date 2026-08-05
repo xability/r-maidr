@@ -7,10 +7,17 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
   "Ggplot2StackedBarProcessor",
   inherit = LayerProcessor,
   public = list(
-    process = function(plot, layout, built = NULL, gt = NULL) {
-      data <- self$extract_data(plot, built)
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       scale_mapping = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL) {
+      data <- self$extract_data(plot, built, panel_id = panel_id, panel_ctx = panel_ctx)
 
-      selectors <- self$generate_selectors(plot, gt)
+      selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       # Build axes including fill label for stacked bars
       axes <- self$extract_layer_axes(plot, layout)
@@ -79,8 +86,24 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         category_col = extract_col_name(plot_mapping$x)
       )
     },
-    extract_data = function(plot, built = NULL) {
+    extract_data = function(plot, built = NULL, panel_id = NULL, panel_ctx = NULL) {
       original_data <- plot$data
+
+      # Facet path: restrict the original data to this panel's facet
+      # group(s) so per-panel values are extracted
+      if (!is.null(panel_ctx) && length(panel_ctx$facet_groups) > 0) {
+        for (facet_var in names(panel_ctx$facet_groups)) {
+          if (facet_var %in% names(original_data)) {
+            original_data <- original_data[
+              as.character(original_data[[facet_var]]) ==
+                as.character(panel_ctx$facet_groups[[facet_var]]),
+              ,
+              drop = FALSE
+            ]
+          }
+        }
+      }
+
       plot_mapping <- plot$mapping
       layer_index <- self$get_layer_index()
       layer_mapping <- plot$layers[[layer_index]]$mapping
@@ -113,6 +136,17 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         built <- ggplot2::ggplot_build(plot)
       }
       built_data_layer <- built$data[[layer_index]]
+
+      if (!is.null(panel_id) && "PANEL" %in% names(built_data_layer)) {
+        built_data_layer <- built_data_layer[
+          built_data_layer$PANEL == panel_id, ,
+          drop = FALSE
+        ]
+      }
+
+      if (nrow(built_data_layer) == 0) {
+        return(list())
+      }
 
       # Determine stacking order from built data (bottom-to-top at first x position)
       first_bar_data <- built_data_layer[built_data_layer$x == min(built_data_layer$x), ]
@@ -220,7 +254,11 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         })
       }
     },
-    generate_selectors = function(plot, gt = NULL) {
+    generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
+      if (is.null(gt)) {
+        return(list())
+      }
+
       find_rect_grobs <- function(grob) {
         if (!is.null(grob$name) && grepl("geom_rect\\.rect", grob$name)) {
           return(grob$name)
@@ -237,28 +275,31 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         NULL
       }
 
-      if (!is.null(gt)) {
-        rect_grob <- NULL
+      rect_grob <- NULL
 
-        if ("grobs" %in% names(gt)) {
-          for (grob in gt$grobs) {
-            rect_grob <- find_rect_grobs(grob)
-            if (!is.null(rect_grob)) break
-          }
+      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+        # Facet path: scope the search to this panel's grob
+        panel_index <- which(
+          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
+        )
+        if (length(panel_index) > 0) {
+          rect_grob <- find_rect_grobs(gt$grobs[[panel_index[1]]])
         }
-
-        if (!is.null(rect_grob)) {
-          layer_id <- gsub("geom_rect\\.rect\\.", "", rect_grob)
-          grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-          escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-          selector_string <- paste0("#", escaped_grob_id, " rect")
-        } else {
-          layer_id <- self$get_layer_index()
-          grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-          escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-          selector_string <- paste0("#", escaped_grob_id, " rect")
+      } else if ("grobs" %in% names(gt)) {
+        for (grob in gt$grobs) {
+          rect_grob <- find_rect_grobs(grob)
+          if (!is.null(rect_grob)) break
         }
       }
+
+      if (!is.null(rect_grob)) {
+        layer_id <- gsub("geom_rect\\.rect\\.", "", rect_grob)
+        grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
+      } else {
+        grob_id <- paste0("geom_rect.rect.", self$get_layer_index(), ".1")
+      }
+      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+      selector_string <- paste0("#", escaped_grob_id, " rect")
 
       list(selector_string)
     }

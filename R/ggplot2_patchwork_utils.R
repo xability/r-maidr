@@ -27,19 +27,22 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
     grid[[r]] <- vector("list", max_col)
   }
 
-  # Extract leaf plots in visual order
+  # Extract leaf plots in addition order (patches first, then the plot
+  # carried by the patchwork object itself)
   leaves <- extract_patchwork_leaves(plot)
 
-  # For each panel in row-major order, process layers
-  ordered <- panel_df[order(panel_df$row, panel_df$col), ]
-  for (i in seq_len(nrow(ordered))) {
-    panel_index <- ordered$panel_index[i]
-    row <- ordered$row[i]
-    col <- ordered$col[i]
+  # Pair leaves with panels by DISCOVERY order: find_patchwork_panels()
+  # walks panels in patchwork's plot-addition order, which matches the
+  # leaf order even for nested layouts where visual row-major order does
+  # not.
+  for (i in seq_len(nrow(panel_df))) {
+    panel_index <- panel_df$panel_index[i]
+    row <- panel_df$row[i]
+    col <- panel_df$col[i]
 
     # Pick the matching leaf plot if available; else fall back to full plot
     leaf_plot <- if (i <= length(leaves)) leaves[[i]] else plot
-    panel_name <- ordered$name[i]
+    panel_name <- panel_df$name[i]
 
     subplot_data <- process_patchwork_panel(
       leaf_plot,
@@ -51,6 +54,20 @@ process_patchwork_plot_data <- function(plot, layout, gtable) {
       gtable
     )
     grid[[row]][[col]] <- subplot_data
+  }
+
+  # Fill any grid cells left empty by non-rectangular nesting with valid
+  # empty subplots: bare NULLs serialize as `{}`, which the frontend
+  # cannot parse.
+  for (r in seq_len(max_row)) {
+    for (c_idx in seq_len(max_col)) {
+      if (is.null(grid[[r]][[c_idx]])) {
+        grid[[r]][[c_idx]] <- list(
+          id = paste0("maidr-subplot-", generate_unique_id(), "-", r, "-", c_idx),
+          layers = list()
+        )
+      }
+    }
   }
 
   # Canonical financial-chart pattern: candlestick over a volume-only bar
@@ -70,64 +87,111 @@ find_patchwork_panels <- function(gtable) {
   if (is.null(gtable)) {
     return(data.frame())
   }
-  layout <- gtable$layout
-  # Keep only true panel entries, exclude 'panel-area' and others
-  is_panel <- grepl("^panel-\\d+(-\\d+)?$", layout$name)
-  idx <- which(is_panel)
-  if (length(idx) == 0) {
+
+  # Recursively collect panel entries. Nested layouts like (p1 | p2) / p3
+  # place the inner row's panels inside a CHILD gtable
+  # ("patchwork-table-N"), so scanning only the top-level layout would
+  # drop them. Panels are collected in DISCOVERY order, which follows
+  # patchwork's plot-addition order and therefore matches
+  # extract_patchwork_leaves().
+  #
+  # For grid placement, each panel carries a hierarchical position key
+  # (the chain of t/l values down the nesting path) encoded as a
+  # fixed-width string so lexicographic ranking reproduces the visual
+  # top-to-bottom / left-to-right order.
+  collect <- function(gt, t_path, l_path) {
+    out <- list()
+    layout <- gt$layout
+    if (is.null(layout) || nrow(layout) == 0) {
+      return(out)
+    }
+    for (i in seq_len(nrow(layout))) {
+      nm <- layout$name[i]
+      if (grepl("^panel-\\d+(-\\d+)?$", nm)) {
+        out[[length(out) + 1]] <- list(
+          name = nm,
+          t = layout$t[i],
+          l = layout$l[i],
+          t_key = paste(sprintf("%05d", c(t_path, layout$t[i])), collapse = "."),
+          l_key = paste(sprintf("%05d", c(l_path, layout$l[i])), collapse = ".")
+        )
+      } else if (inherits(gt$grobs[[i]], "gtable")) {
+        out <- c(
+          out,
+          collect(gt$grobs[[i]], c(t_path, layout$t[i]), c(l_path, layout$l[i]))
+        )
+      }
+    }
+    out
+  }
+
+  panels <- collect(gtable, integer(0), integer(0))
+  if (length(panels) == 0) {
     return(data.frame())
   }
-  t_vals <- layout$t[idx]
-  l_vals <- layout$l[idx]
 
-  # Try parsing explicit row/col from name 'panel-R-C'
-  names_vec <- layout$name[idx]
-  parse_rc <- function(nm) {
-    m <- regexec("^panel-(\\d+)-(\\d+)$", nm)
-    p <- regmatches(nm, m)[[1]]
-    if (length(p) == 3) {
-      return(c(as.integer(p[2]), as.integer(p[3])))
-    }
-    c(NA_integer_, NA_integer_)
+  t_keys <- vapply(panels, function(p) p$t_key, character(1))
+  l_keys <- vapply(panels, function(p) p$l_key, character(1))
+
+  rows <- match(t_keys, sort(unique(t_keys)))
+  # Columns are ranked within each row band
+  cols <- integer(length(panels))
+  for (r in unique(rows)) {
+    in_row <- which(rows == r)
+    cols[in_row] <- match(l_keys[in_row], sort(unique(l_keys[in_row])))
   }
-  rc_mat <- t(vapply(names_vec, parse_rc, integer(2)))
-  parsed_row <- rc_mat[, 1]
-  parsed_col <- rc_mat[, 2]
 
-  # If not parsed, derive row/col by ranking unique t/l
-  unique_t <- sort(unique(t_vals))
-  unique_l <- sort(unique(l_vals))
-  map_row <- setNames(seq_along(unique_t), unique_t)
-  map_col <- setNames(seq_along(unique_l), unique_l)
-  ranked_row <- as.integer(map_row[as.character(t_vals)])
-  ranked_col <- as.integer(map_col[as.character(l_vals)])
-
-  final_row <- ifelse(is.na(parsed_row), ranked_row, parsed_row)
-  final_col <- ifelse(is.na(parsed_col), ranked_col, parsed_col)
   data.frame(
-    panel_index = idx,
-    name = layout$name[idx],
-    t = t_vals,
-    l = l_vals,
-    row = as.integer(final_row),
-    col = as.integer(final_col)
+    panel_index = seq_along(panels),
+    name = vapply(panels, function(p) p$name, character(1)),
+    t = vapply(panels, function(p) p$t, numeric(1)),
+    l = vapply(panels, function(p) p$l, numeric(1)),
+    row = as.integer(rows),
+    col = as.integer(cols)
   )
 }
 
-#' Recursively extract leaf ggplots in visual order
+#' Recursively extract leaf ggplots in patchwork addition order
+#'
+#' The order matches panel discovery order in [find_patchwork_panels()]
+#' (patches first, then the plot carried by the patchwork object itself),
+#' which is how leaves are paired with panels.
+#'
 #' @param node Patchwork node or ggplot object
 #' @return List of leaf ggplot objects
 extract_patchwork_leaves <- function(node) {
   if (inherits(node, "patchwork")) {
+    out <- list()
+
     plots <- try(node$patches$plots, silent = TRUE)
     if (!inherits(plots, "try-error") && !is.null(plots)) {
-      out <- list()
       for (p in plots) {
         out <- c(out, extract_patchwork_leaves(p))
       }
-      return(out)
     }
-    return(list())
+
+    # A patchwork object IS its most recently added plot (patchwork
+    # stores the earlier plots in $patches and keeps the last one as the
+    # object itself). Without collecting it, nested layouts like
+    # (p1 | p2) / p3 lose p2 and p3.
+    self_plot <- tryCatch(
+      {
+        stripped <- node
+        class(stripped) <- setdiff(class(stripped), "patchwork")
+        stripped$patches <- NULL
+        stripped
+      },
+      error = function(e) NULL
+    )
+    if (
+      !is.null(self_plot) &&
+        inherits(self_plot, "ggplot") &&
+        length(self_plot$layers) > 0
+    ) {
+      out <- c(out, list(self_plot))
+    }
+
+    return(out)
   }
   if (inherits(node, "ggplot")) {
     return(list(node))
@@ -169,10 +233,17 @@ extract_leaf_plot_layout <- function(leaf_plot) {
 #' @param gtable Gtable object
 #' @return Processed panel data
 process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col, layout, gtable) {
-  subplot_id <- paste0("maidr-subplot-", as.integer(Sys.time()), "-", row, "-", col)
+  subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", row, "-", col)
 
   # Extract layout from leaf plot (has its own title and axes)
   leaf_layout <- extract_leaf_plot_layout(leaf_plot)
+
+  # Build ONCE per panel: rebuilding inside the per-layer loop repeats
+  # the full ggplot_build for every layer of the leaf plot
+  leaf_built <- tryCatch(
+    ggplot2::ggplot_build(leaf_plot),
+    error = function(e) NULL
+  )
 
   layers <- list()
   for (layer_idx in seq_along(leaf_plot$layers)) {
@@ -209,7 +280,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
       result <- processor$process(
         leaf_plot,
         leaf_layout,
-        built = ggplot2::ggplot_build(leaf_plot),
+        built = leaf_built,
         gt = gtable,
         scale_mapping = NULL,
         panel_ctx = panel_ctx,
