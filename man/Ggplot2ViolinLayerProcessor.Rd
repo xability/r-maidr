@@ -281,7 +281,12 @@ iq, q2, max, lowerOutliers, upperOutliers.
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-generate_box_selectors}{}}}
 \subsection{Method \code{generate_box_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$generate_box_selectors(plot, gt, built)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$generate_box_selectors(
+  plot,
+  gt,
+  built,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -292,6 +297,8 @@ iq, q2, max, lowerOutliers, upperOutliers.
 \item{\code{gt}}{Gtable object}
 
 \item{\code{built}}{Built plot data}
+
+\item{\code{panel_ctx}}{Panel context (for patchwork leaves)}
 }
 \if{html}{\out{</div>}}
 }
@@ -301,13 +308,6 @@ Determine orientation from built data
 Get the effective mapping (layer mapping merged with plot mapping)
 Get original data used by this layer
 Get category labels from panel params
-Find the boxplot layer index in the augmented plot
-Find the main panel grob
-Recursively find all grob IDs matching a pattern
-Find direct children of a named parent matching a pattern
-Find a grob by its name (recursive)
-Find the first descendant matching a pattern under a named parent
-Find all descendants matching a pattern under a named parent
 }
 }
 \if{html}{\out{<hr>}}
@@ -350,64 +350,160 @@ Find all descendants matching a pattern under a named parent
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_boxplot_layer_index"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_boxplot_layer_index}{}}}
 \subsection{Method \code{find_boxplot_layer_index()}}{
+Find the boxplot layer index in the augmented plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_boxplot_layer_index(plot)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Integer index of the boxplot layer, or NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_panel_grob}{}}}
 \subsection{Method \code{find_panel_grob()}}{
+Find the panel grob this layer draws into
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_panel_grob(gt)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{gt}}{Gtable object}
+
+\item{\code{panel_ctx}}{Panel context for patchwork leaves; NULL for a
+single plot, where the panel is the cell literally named "panel"}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The panel gTree, or NULL when it cannot be resolved
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_grob_ids"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_grob_ids}{}}}
 \subsection{Method \code{find_grob_ids()}}{
+Recursively find all grob IDs matching a pattern
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_grob_ids(grob, pattern)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{Grob tree to search}
+
+\item{\code{pattern}}{Regular expression matched against grob names}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of unique matching grob names
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_direct_children"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_direct_children}{}}}
 \subsection{Method \code{find_direct_children()}}{
+Find direct children of a named parent matching a pattern
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_direct_children(grob, parent_id, pattern)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{Grob tree to search}
+
+\item{\code{parent_id}}{Name of the parent grob}
+
+\item{\code{pattern}}{Regular expression matched against child names}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of matching child names
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_grob_by_id"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_grob_by_id}{}}}
 \subsection{Method \code{find_grob_by_id()}}{
+Find a grob by its name (recursive)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_grob_by_id(grob, target_id)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{Grob tree to search}
+
+\item{\code{target_id}}{Name of the grob to find}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The matching grob, or NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_desc_by_pattern"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_desc_by_pattern}{}}}
 \subsection{Method \code{find_desc_by_pattern()}}{
+Find the first descendant matching a pattern under a named parent
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_desc_by_pattern(grob, parent_id, pattern)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{Grob tree to search}
+
+\item{\code{parent_id}}{Name of the parent grob}
+
+\item{\code{pattern}}{Regular expression matched against descendant names}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The first matching name, or NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_all_desc_by_pattern"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_all_desc_by_pattern}{}}}
 \subsection{Method \code{find_all_desc_by_pattern()}}{
+Find all descendants matching a pattern under a named parent
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_all_desc_by_pattern(grob, parent_id, pattern)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{Grob tree to search}
+
+\item{\code{parent_id}}{Name of the parent grob}
+
+\item{\code{pattern}}{Regular expression matched against descendant names}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of matching descendant names
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-clone"></a>}}

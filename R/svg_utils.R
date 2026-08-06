@@ -137,9 +137,17 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
 #' navigates to the panel viewport, maps data coordinates to SVG points,
 #' and injects `svg_x`/`svg_y` into each ViolinKdePoint.  Temporary
 #' metadata fields (`.panel_x_range`, `.panel_y_range`, `.is_horizontal`,
-#' `data_left_x`, `data_right_x`, `data_y`) are stripped from the output.
+#' `.panel_index`, `.panel_name`, `data_left_x`, `data_right_x`, `data_y`) are
+#' stripped from the output.
 #'
-#' @param gt The gtable object (used to find the panel viewport name)
+#' Each violin_kde layer is mapped through the viewport of the panel it was
+#' extracted from, so a violin inside a patchwork gets its own panel's
+#' coordinates rather than the first panel's. Nested compositions repeat panel
+#' names across levels, so the layer's `.panel_index` (its position in
+#' [collect_gtable_panels()], which matches [find_patchwork_panels()]) is the
+#' primary key and the name is only a fallback.
+#'
+#' @param gt The gtable object (used to find the panel viewport paths)
 #' @param maidr_data The maidr-data structure (modified in place)
 #' @return Updated maidr_data with svg_x/svg_y injected
 #' @keywords internal
@@ -147,42 +155,77 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
   # Find violin_kde layers in the maidr_data structure
   if (is.null(maidr_data$subplots)) return(maidr_data)
 
-  # Find the panel viewport name from the gtable layout. When the panel
-  # cannot be found (e.g. faceted layouts), still strip the internal
-  # metadata fields so they never leak into the emitted JSON.
-  panel_idx <- which(gt$layout$name == "panel")
-  if (length(panel_idx) == 0) {
-    return(strip_violin_kde_metadata(maidr_data))
-  }
-  panel_layout <- gt$layout[panel_idx[1], ]
-  vp_name <- sprintf(
-    "panel.%d-%d-%d-%d",
-    panel_layout$t, panel_layout$l, panel_layout$b, panel_layout$r
+  # Filtered exactly as find_patchwork_panels() filters, because
+  # `.panel_index` is a position in THAT list. Collecting a wider set here
+  # would shift every index by however many extra cells matched.
+  panels <- Filter(
+    function(p) grepl("^panel-\\d+(-\\d+)?$", p$name),
+    collect_gtable_panels(gt)
+  )
+  single_panel <- Filter(
+    function(p) identical(p$name, "panel"),
+    collect_gtable_panels(gt)
   )
 
-  # Navigate to the panel viewport to get device coordinate mapping.
-  # NOTE: return() inside a tryCatch handler only exits the handler, so
-  # the success flag must be checked explicitly.
-  navigated <- tryCatch(
-    {
-      grid::downViewport(vp_name)
-      TRUE
-    },
-    error = function(e) FALSE
-  )
-  if (!navigated) {
-    return(strip_violin_kde_metadata(maidr_data))
+  # Resolve the viewport path for one layer's panel.
+  panel_vp_path <- function(layer) {
+    idx <- layer$.panel_index
+    if (
+      length(idx) == 1L && is.numeric(idx) && !is.na(idx) &&
+        idx >= 1 && idx <= length(panels)
+    ) {
+      return(panels[[idx]]$vp_path)
+    }
+    if (!is.null(layer$.panel_name)) {
+      for (p in panels) {
+        if (identical(p$name, layer$.panel_name)) return(p$vp_path)
+      }
+    }
+    # Single plot: the one cell literally named "panel"
+    if (length(single_panel) > 0) {
+      return(single_panel[[1]]$vp_path)
+    }
+    NULL
   }
 
-  # Get absolute device position of panel corners (inches from device origin)
-  loc0 <- grid::deviceLoc(grid::unit(0, "npc"), grid::unit(0, "npc"))
-  loc1 <- grid::deviceLoc(grid::unit(1, "npc"), grid::unit(1, "npc"))
-  dx0 <- as.numeric(loc0$x)
-  dy0 <- as.numeric(loc0$y)
-  dx1 <- as.numeric(loc1$x)
-  dy1 <- as.numeric(loc1$y)
-
-  grid::upViewport(0)
+  # Device corners of a panel, in inches from the device origin. Navigating
+  # costs a viewport walk per panel, so results are memoised; NA marks a
+  # panel that could not be reached, which must not be retried.
+  corner_cache <- list()
+  panel_corners <- function(vp_path) {
+    key <- paste(vp_path, collapse = "\r")
+    if (!is.null(corner_cache[[key]])) {
+      hit <- corner_cache[[key]]
+      return(if (identical(hit, NA)) NULL else hit)
+    }
+    vp <- if (length(vp_path) == 1L) {
+      vp_path
+    } else {
+      do.call(grid::vpPath, as.list(vp_path))
+    }
+    # NOTE: return() inside a tryCatch handler only exits the handler, so
+    # the success flag must be checked explicitly.
+    navigated <- tryCatch(
+      {
+        grid::downViewport(vp)
+        TRUE
+      },
+      error = function(e) FALSE
+    )
+    if (!navigated) {
+      corner_cache[[key]] <<- NA
+      return(NULL)
+    }
+    loc0 <- grid::deviceLoc(grid::unit(0, "npc"), grid::unit(0, "npc"))
+    loc1 <- grid::deviceLoc(grid::unit(1, "npc"), grid::unit(1, "npc"))
+    grid::upViewport(0)
+    corners <- list(
+      x0 = as.numeric(loc0$x), y0 = as.numeric(loc0$y),
+      x1 = as.numeric(loc1$x), y1 = as.numeric(loc1$y)
+    )
+    corner_cache[[key]] <<- corners
+    corners
+  }
 
   # Walk subplots looking for violin_kde layers
   for (row_idx in seq_along(maidr_data$subplots)) {
@@ -195,6 +238,15 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
         layer <- cell$layers[[layer_idx]]
         if (!identical(layer$type, "violin_kde")) next
         if (is.null(layer$.panel_x_range) || is.null(layer$.panel_y_range)) next
+
+        vp_path <- panel_vp_path(layer)
+        if (is.null(vp_path)) next
+        corners <- panel_corners(vp_path)
+        if (is.null(corners)) next
+        dx0 <- corners$x0
+        dy0 <- corners$y0
+        dx1 <- corners$x1
+        dy1 <- corners$y1
 
         x_range <- layer$.panel_x_range
         y_range <- layer$.panel_y_range
@@ -266,11 +318,6 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
           }
         }
 
-        # Strip layer-level metadata
-        layer$.panel_x_range <- NULL
-        layer$.panel_y_range <- NULL
-        layer$.is_horizontal <- NULL
-
         cell$layers[[layer_idx]] <- layer
       }
       row[[cell_idx]] <- cell
@@ -278,15 +325,19 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
     maidr_data$subplots[[row_idx]] <- row
   }
 
-  maidr_data
+  # Unconditional: every `next` above leaves a layer's internal fields in
+  # place, and none of them may reach the emitted JSON. Idempotent with the
+  # points already rewritten in the success path.
+  strip_violin_kde_metadata(maidr_data)
 }
 
 #' Strip internal violin_kde metadata without coordinate injection
 #'
-#' Fallback used when the panel viewport cannot be navigated: removes the
-#' temporary fields (`.panel_x_range`, `.panel_y_range`, `.is_horizontal`,
-#' `data_left_x`, `data_right_x`, `data_y`) that must never appear in the
-#' serialized maidr-data JSON.
+#' Removes the temporary fields (`.panel_x_range`, `.panel_y_range`,
+#' `.is_horizontal`, `.panel_index`, `.panel_name`, `data_left_x`,
+#' `data_right_x`, `data_y`) that must never appear in the serialized
+#' maidr-data JSON. Called unconditionally after coordinate injection, so a
+#' layer whose panel viewport could not be navigated still comes out clean.
 #'
 #' @param maidr_data The maidr-data structure
 #' @return Cleaned maidr_data
@@ -307,6 +358,8 @@ strip_violin_kde_metadata <- function(maidr_data) {
         layer$.panel_x_range <- NULL
         layer$.panel_y_range <- NULL
         layer$.is_horizontal <- NULL
+        layer$.panel_index <- NULL
+        layer$.panel_name <- NULL
 
         for (group_idx in seq_along(layer$data)) {
           points <- layer$data[[group_idx]]

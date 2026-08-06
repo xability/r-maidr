@@ -70,12 +70,20 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
-      # Faceted violins are not yet supported interactively: the facet
-      # combiner cannot represent this processor's multi-layer
-      # (violin_box + violin_kde) result, and the KDE coordinate
-      # injection only knows the single-panel viewport. Skip cleanly so
-      # the plot still renders visually instead of crashing.
-      if (!is.null(panel_ctx) || !is.null(panel_id)) {
+      # Faceted violins are still not supported interactively: the facet
+      # combiner reads only `result$data` and `result$selectors` and emits
+      # at most one layer per panel, so it cannot represent this
+      # processor's multi-layer (violin_box + violin_kde) result. Skip
+      # cleanly so the plot still renders visually instead of crashing.
+      #
+      # Patchwork leaves are supported. They arrive with a `panel_ctx` but
+      # `panel_id = NULL` and no `facet_groups`; the third clause catches a
+      # faceted leaf nested inside a patchwork, which is still a facet.
+      if (
+        !is.null(panel_id) ||
+          length(panel_ctx$facet_groups) > 0 ||
+          (!is.null(plot$facet) && !inherits(plot$facet, "FacetNull"))
+      ) {
         return(NULL)
       }
 
@@ -95,7 +103,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
 
       # --- violin_box layer ---
       box_data <- self$extract_box_data(plot, built)
-      box_selectors <- self$generate_box_selectors(plot, gt, built)
+      box_selectors <- self$generate_box_selectors(plot, gt, built, panel_ctx)
 
       # gridSVG applies scale(1,-1) Y-flip for vertical plots, which
       # inverts 'top'/'bottom' edges of the IQ polygon.  Signal this via
@@ -119,7 +127,20 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
 
       # --- violin_kde layer ---
       kde_data <- self$extract_kde_data(plot, built)
-      kde_selectors <- self$generate_selectors(plot, gt)
+      kde_selectors <- self$generate_selectors(plot, gt, NULL, panel_ctx)
+
+      # A composition can hand a leaf a panel that leaf does not draw into,
+      # and announcing a violin the user cannot reach is worse than
+      # announcing nothing. Both selector sets have to come up empty before
+      # concluding that: either one finding grobs means this really is the
+      # violin's panel, and the payload should then match what the same plot
+      # produces standalone, warts included.
+      if (
+        !is.null(panel_ctx) &&
+          length(kde_selectors) == 0 && length(box_selectors) == 0
+      ) {
+        return(NULL)
+      }
 
       # Store panel_params ranges as metadata for SVG coordinate injection
       # These will be used by create_enhanced_svg() and stripped from final output
@@ -136,7 +157,12 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         type = "violin_kde",
         .panel_x_range = panel_params$x$continuous_range,
         .panel_y_range = panel_params$y$continuous_range,
-        .is_horizontal = is_horizontal
+        .is_horizontal = is_horizontal,
+        # Which panel of the rendered composition these ranges belong to.
+        # The injector walks subplots in grid order, which is not panel
+        # discovery order, so it cannot recover this on its own.
+        .panel_index = if (!is.null(panel_ctx)) panel_ctx$panel_index else NULL,
+        .panel_name = if (!is.null(panel_ctx)) panel_ctx$panel_name else NULL
       )
 
       # Return multi-layer result; the orchestrator will expand this
@@ -428,7 +454,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      panel_grob <- self$find_panel_grob(gt)
+      panel_grob <- self$find_panel_grob(gt, panel_ctx)
       if (is.null(panel_grob)) {
         return(list())
       }
@@ -470,9 +496,10 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object (augmented with boxplot)
     #' @param gt Gtable object
     #' @param built Built plot data
+    #' @param panel_ctx Panel context (for patchwork leaves)
     #' @return List of BoxSelector objects
-    generate_box_selectors = function(plot, gt, built) {
-      panel_grob <- self$find_panel_grob(gt)
+    generate_box_selectors = function(plot, gt, built, panel_ctx = NULL) {
+      panel_grob <- self$find_panel_grob(gt, panel_ctx)
       if (is.null(panel_grob)) {
         return(list())
       }
@@ -695,7 +722,9 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       character(0)
     },
 
-    #' Find the boxplot layer index in the augmented plot
+    #' @description Find the boxplot layer index in the augmented plot
+    #' @param plot The ggplot2 object
+    #' @return Integer index of the boxplot layer, or NULL
     find_boxplot_layer_index = function(plot) {
       for (i in seq_along(plot$layers)) {
         if (inherits(plot$layers[[i]]$geom, "GeomBoxplot")) {
@@ -705,16 +734,19 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       NULL
     },
 
-    #' Find the main panel grob
-    find_panel_grob = function(gt) {
-      panel_index <- which(gt$layout$name == "panel")
-      if (length(panel_index) == 0) return(NULL)
-      panel_grob <- gt$grobs[[panel_index]]
-      if (!inherits(panel_grob, "gTree")) return(NULL)
-      panel_grob
+    #' @description Find the panel grob this layer draws into
+    #' @param gt Gtable object
+    #' @param panel_ctx Panel context for patchwork leaves; NULL for a
+    #'   single plot, where the panel is the cell literally named "panel"
+    #' @return The panel gTree, or NULL when it cannot be resolved
+    find_panel_grob = function(gt, panel_ctx = NULL) {
+      find_gtable_panel_grob(gt, panel_ctx)
     },
 
-    #' Recursively find all grob IDs matching a pattern
+    #' @description Recursively find all grob IDs matching a pattern
+    #' @param grob Grob tree to search
+    #' @param pattern Regular expression matched against grob names
+    #' @return Character vector of unique matching grob names
     find_grob_ids = function(grob, pattern) {
       ids <- character(0)
       if (!inherits(grob, "gTree") || is.null(grob$children)) {
@@ -732,7 +764,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       unique(ids)
     },
 
-    #' Find direct children of a named parent matching a pattern
+    #' @description Find direct children of a named parent matching a pattern
+    #' @param grob Grob tree to search
+    #' @param parent_id Name of the parent grob
+    #' @param pattern Regular expression matched against child names
+    #' @return Character vector of matching child names
     find_direct_children = function(grob, parent_id, pattern) {
       parent <- self$find_grob_by_id(grob, parent_id)
       if (is.null(parent) || !inherits(parent, "gTree")) {
@@ -748,7 +784,10 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       ids
     },
 
-    #' Find a grob by its name (recursive)
+    #' @description Find a grob by its name (recursive)
+    #' @param grob Grob tree to search
+    #' @param target_id Name of the grob to find
+    #' @return The matching grob, or NULL
     find_grob_by_id = function(grob, target_id) {
       if (!is.null(grob$name) && grob$name == target_id) {
         return(grob)
@@ -762,7 +801,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       NULL
     },
 
-    #' Find the first descendant matching a pattern under a named parent
+    #' @description Find the first descendant matching a pattern under a named parent
+    #' @param grob Grob tree to search
+    #' @param parent_id Name of the parent grob
+    #' @param pattern Regular expression matched against descendant names
+    #' @return The first matching name, or NULL
     find_desc_by_pattern = function(grob, parent_id, pattern) {
       parent <- self$find_grob_by_id(grob, parent_id)
       if (is.null(parent)) return(NULL)
@@ -770,7 +813,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       if (length(ids) > 0) ids[1] else NULL
     },
 
-    #' Find all descendants matching a pattern under a named parent
+    #' @description Find all descendants matching a pattern under a named parent
+    #' @param grob Grob tree to search
+    #' @param parent_id Name of the parent grob
+    #' @param pattern Regular expression matched against descendant names
+    #' @return Character vector of matching descendant names
     find_all_desc_by_pattern = function(grob, parent_id, pattern) {
       parent <- self$find_grob_by_id(grob, parent_id)
       if (is.null(parent)) return(character(0))

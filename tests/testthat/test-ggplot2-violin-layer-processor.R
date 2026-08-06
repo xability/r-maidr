@@ -395,3 +395,140 @@ test_that("violin maidr data serializes to valid JSON", {
   testthat::expect_type(layers[[2]]$selectors, "list")
   testthat::expect_true(length(layers[[2]]$selectors) == 3)
 })
+
+# ==============================================================================
+# Panel-context guard (issue #52)
+# ==============================================================================
+
+# A violin leaf paired with its panel in a rendered composition, exactly as
+# process_patchwork_panel() calls it.
+patchwork_leaf_fixture <- function(violin_first = TRUE) {
+  violin <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  composition <- if (violin_first) violin | bars else bars | violin
+  augmented <- maidr:::augment_patchwork_leaves(composition)
+
+  file <- tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  gt <- patchwork::patchworkGrob(augmented)
+  grDevices::dev.off()
+  unlink(file)
+
+  index <- if (violin_first) 1L else 2L
+  list(
+    leaf = maidr:::extract_patchwork_leaves(augmented)[[index]],
+    gt = gt,
+    panel_ctx = list(
+      panel_name = paste0("panel-", index),
+      panel_index = index,
+      row = 1, col = index, layer_index = 1
+    )
+  )
+}
+
+test_that("process() runs for a patchwork leaf", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  fixture <- patchwork_leaf_fixture()
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  # A patchwork leaf: panel context set, no panel_id, no facet groups
+  result <- processor$process(
+    fixture$leaf,
+    layout,
+    gt = fixture$gt,
+    panel_ctx = fixture$panel_ctx,
+    panel_id = NULL
+  )
+
+  testthat::expect_true(isTRUE(result$multi_layer))
+  testthat::expect_equal(length(result$layers), 2)
+  testthat::expect_equal(
+    vapply(result$layers, function(l) l$type, character(1)),
+    c("violin_box", "violin_kde")
+  )
+  testthat::expect_gt(length(result$layers[[2]]$selectors), 0)
+})
+
+test_that("process() declines a panel it is not drawn into", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  # Point the violin leaf at its SIBLING's panel. That is what a faceted
+  # sibling does to the leaf-to-panel pairing, and announcing a violin the
+  # user cannot reach is worse than announcing nothing.
+  fixture <- patchwork_leaf_fixture()
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  wrong_panel <- fixture$panel_ctx
+  wrong_panel$panel_index <- 2L
+  wrong_panel$panel_name <- "panel-2"
+
+  testthat::expect_null(
+    processor$process(
+      fixture$leaf, layout,
+      gt = fixture$gt, panel_ctx = wrong_panel
+    )
+  )
+})
+
+test_that("process() still skips faceted violins", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  # A facet panel identifies itself with panel_id
+  testthat::expect_null(
+    processor$process(processor$augment_plot(p), layout, panel_id = 1)
+  )
+
+  # ... or with facet_groups in the panel context
+  testthat::expect_null(
+    processor$process(
+      processor$augment_plot(p), layout,
+      panel_ctx = list(panel_name = "panel-1-1", facet_groups = list(drv = "4"))
+    )
+  )
+
+  # ... and a faceted leaf inside a patchwork is still a facet
+  faceted <- p + ggplot2::facet_wrap(~drv)
+  testthat::expect_null(
+    processor$process(
+      processor$augment_plot(faceted), layout,
+      panel_ctx = list(panel_name = "panel-1", panel_index = 1)
+    )
+  )
+})
+
+test_that("the kde layer records which panel its ranges came from", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  # Violin second, so its panel is not the one a panel-blind lookup finds
+  fixture <- patchwork_leaf_fixture(violin_first = FALSE)
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  leaf <- processor$process(
+    fixture$leaf, layout,
+    gt = fixture$gt, panel_ctx = fixture$panel_ctx
+  )
+  kde <- leaf$layers[[2]]
+  testthat::expect_equal(kde$.panel_index, 2L)
+  testthat::expect_equal(kde$.panel_name, "panel-2")
+
+  # A single plot has no panel to record
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  single <- processor$process(processor$augment_plot(p), layout)
+  testthat::expect_null(single$layers[[2]]$.panel_index)
+  testthat::expect_null(single$layers[[2]]$.panel_name)
+})

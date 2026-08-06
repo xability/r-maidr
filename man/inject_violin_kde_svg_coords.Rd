@@ -7,7 +7,7 @@
 inject_violin_kde_svg_coords(gt, maidr_data)
 }
 \arguments{
-\item{gt}{The gtable object (used to find the panel viewport name)}
+\item{gt}{The gtable object (used to find the panel viewport paths)}
 
 \item{maidr_data}{The maidr-data structure (modified in place)}
 }
@@ -19,6 +19,15 @@ After `grid.draw(gt)` has been called on a PDF device, this function
 navigates to the panel viewport, maps data coordinates to SVG points,
 and injects `svg_x`/`svg_y` into each ViolinKdePoint.  Temporary
 metadata fields (`.panel_x_range`, `.panel_y_range`, `.is_horizontal`,
-`data_left_x`, `data_right_x`, `data_y`) are stripped from the output.
+`.panel_index`, `.panel_name`, `data_left_x`, `data_right_x`, `data_y`) are
+stripped from the output.
+}
+\details{
+Each violin_kde layer is mapped through the viewport of the panel it was
+extracted from, so a violin inside a patchwork gets its own panel's
+coordinates rather than the first panel's. Nested compositions repeat panel
+names across levels, so the layer's `.panel_index` (its position in
+[collect_gtable_panels()], which matches [find_patchwork_panels()]) is the
+primary key and the name is only a fallback.
 }
 \keyword{internal}

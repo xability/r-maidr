@@ -21,7 +21,31 @@
   `geom_step()`: the layer position was counted over line layers only while
   every polyline in the panel was searched, so both layers resolved to the
   same polyline and highlighted the wrong geometry.
-
+* ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
+  leaf emitted a subplot with no layers at all -- no sonification, no
+  braille, no highlighting for that panel -- because the processor skipped
+  every call that carried a panel context, a guard meant only for faceted
+  violins. Patchwork leaves now emit the same `violin_box` and `violin_kde`
+  layers a standalone violin does, with selectors scoped to their own panel
+  and KDE highlight coordinates read from their own panel's viewport,
+  including for violins nested inside a patchwork row. Faceted violins
+  remain unsupported.
+* ggplot2: a patchwork containing a faceted plot now pairs each of its other
+  plots with the right panel. A faceted plot draws one panel per facet cell
+  while still counting as one plot, so every plot after it was described
+  over someone else's panel, and the surplus panels repeated the
+  last-added plot's data -- the same numbers announced in three places, only
+  one of them reachable. Panels are now consumed per plot, so each is
+  announced once, on its own panel.
+* ggplot2: a plot placed after an `inset_element()`, `free()` or
+  `wrap_elements()` in a patchwork is described again. Those wrappers put a
+  plot in a cell panel discovery does not recognise, so it contributes no
+  panel -- but it was still counted as occupying one, which pushed every
+  later plot onto somebody else's panel and the last of them off the end.
+  `patchwork::free(p1) | p2` announced nothing for `p2` at all.
+* ggplot2: one plot a processor cannot handle no longer aborts the whole
+  patchwork. Rendering failed for the entire composition; now that panel is
+  silent and the rest of the figure is still described.
 * Shiny: `render_maidr()` renders Base R plots again. It branched on the
   expression's return value, which says nothing about whether anything was
   drawn -- `plot()` returns NULL invisibly, so it was treated as an empty
@@ -95,9 +119,12 @@
   instead.
 * Base R: `chartSeries()` calls are now recorded even when 'quantmod' is
   loaded after 'maidr'.
-* ggplot2: faceted box plots, violins, histograms, smooths, heatmaps, and
+* ggplot2: faceted box plots, histograms, smooths, heatmaps, and
   stacked/dodged bars no longer crash with "unused arguments"; extracted
-  data and selectors are now scoped to each facet panel.
+  data and selectors are now scoped to each facet panel. Faceted violins
+  stop crashing too, but they are skipped rather than made interactive:
+  the facet combiner emits at most one layer per panel and so cannot carry
+  a violin's `violin_box` + `violin_kde` pair.
 * ggplot2: dodged bars accept expression aesthetics such as
   `aes(fill = factor(cyl))`. Aesthetics were resolved with
   `rlang::as_label()` and used as column names, so `data[["factor(cyl)"]]`
