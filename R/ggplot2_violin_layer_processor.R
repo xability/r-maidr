@@ -70,12 +70,20 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
-      # Faceted violins are not yet supported interactively: the facet
-      # combiner cannot represent this processor's multi-layer
-      # (violin_box + violin_kde) result, and the KDE coordinate
-      # injection only knows the single-panel viewport. Skip cleanly so
-      # the plot still renders visually instead of crashing.
-      if (!is.null(panel_ctx) || !is.null(panel_id)) {
+      # Faceted violins are still not supported interactively: the facet
+      # combiner reads only `result$data` and `result$selectors` and emits
+      # at most one layer per panel, so it cannot represent this
+      # processor's multi-layer (violin_box + violin_kde) result. Skip
+      # cleanly so the plot still renders visually instead of crashing.
+      #
+      # Patchwork leaves are supported. They arrive with a `panel_ctx` but
+      # `panel_id = NULL` and no `facet_groups`; the third clause catches a
+      # faceted leaf nested inside a patchwork, which is still a facet.
+      if (
+        !is.null(panel_id) ||
+          length(panel_ctx$facet_groups) > 0 ||
+          (!is.null(plot$facet) && !inherits(plot$facet, "FacetNull"))
+      ) {
         return(NULL)
       }
 
@@ -95,7 +103,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
 
       # --- violin_box layer ---
       box_data <- self$extract_box_data(plot, built)
-      box_selectors <- self$generate_box_selectors(plot, gt, built)
+      box_selectors <- self$generate_box_selectors(plot, gt, built, panel_ctx)
 
       # gridSVG applies scale(1,-1) Y-flip for vertical plots, which
       # inverts 'top'/'bottom' edges of the IQ polygon.  Signal this via
@@ -119,7 +127,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
 
       # --- violin_kde layer ---
       kde_data <- self$extract_kde_data(plot, built)
-      kde_selectors <- self$generate_selectors(plot, gt)
+      kde_selectors <- self$generate_selectors(plot, gt, NULL, panel_ctx)
 
       # Store panel_params ranges as metadata for SVG coordinate injection
       # These will be used by create_enhanced_svg() and stripped from final output
@@ -136,7 +144,12 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         type = "violin_kde",
         .panel_x_range = panel_params$x$continuous_range,
         .panel_y_range = panel_params$y$continuous_range,
-        .is_horizontal = is_horizontal
+        .is_horizontal = is_horizontal,
+        # Which panel of the rendered composition these ranges belong to.
+        # The injector walks subplots in grid order, which is not panel
+        # discovery order, so it cannot recover this on its own.
+        .panel_index = if (!is.null(panel_ctx)) panel_ctx$panel_index else NULL,
+        .panel_name = if (!is.null(panel_ctx)) panel_ctx$panel_name else NULL
       )
 
       # Return multi-layer result; the orchestrator will expand this
@@ -428,7 +441,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      panel_grob <- self$find_panel_grob(gt)
+      panel_grob <- self$find_panel_grob(gt, panel_ctx)
       if (is.null(panel_grob)) {
         return(list())
       }
@@ -470,9 +483,10 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object (augmented with boxplot)
     #' @param gt Gtable object
     #' @param built Built plot data
+    #' @param panel_ctx Panel context (for patchwork leaves)
     #' @return List of BoxSelector objects
-    generate_box_selectors = function(plot, gt, built) {
-      panel_grob <- self$find_panel_grob(gt)
+    generate_box_selectors = function(plot, gt, built, panel_ctx = NULL) {
+      panel_grob <- self$find_panel_grob(gt, panel_ctx)
       if (is.null(panel_grob)) {
         return(list())
       }
@@ -705,13 +719,13 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       NULL
     },
 
-    #' Find the main panel grob
-    find_panel_grob = function(gt) {
-      panel_index <- which(gt$layout$name == "panel")
-      if (length(panel_index) == 0) return(NULL)
-      panel_grob <- gt$grobs[[panel_index]]
-      if (!inherits(panel_grob, "gTree")) return(NULL)
-      panel_grob
+    #' Find the panel grob this layer draws into
+    #'
+    #' @param gt Gtable object
+    #' @param panel_ctx Panel context for patchwork leaves; NULL for a
+    #'   single plot, where the panel is the cell literally named "panel"
+    find_panel_grob = function(gt, panel_ctx = NULL) {
+      find_gtable_panel_grob(gt, panel_ctx)
     },
 
     #' Recursively find all grob IDs matching a pattern

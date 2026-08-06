@@ -395,3 +395,86 @@ test_that("violin maidr data serializes to valid JSON", {
   testthat::expect_type(layers[[2]]$selectors, "list")
   testthat::expect_true(length(layers[[2]]$selectors) == 3)
 })
+
+# ==============================================================================
+# Panel-context guard (issue #52)
+# ==============================================================================
+
+test_that("process() runs for a patchwork leaf", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+
+  augmented <- processor$augment_plot(p)
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  # A patchwork leaf: panel context set, no panel_id, no facet groups
+  result <- processor$process(
+    augmented,
+    layout,
+    panel_ctx = list(panel_name = "panel-1", panel_index = 1, layer_index = 1),
+    panel_id = NULL
+  )
+
+  testthat::expect_true(isTRUE(result$multi_layer))
+  testthat::expect_equal(length(result$layers), 2)
+  testthat::expect_equal(
+    vapply(result$layers, function(l) l$type, character(1)),
+    c("violin_box", "violin_kde")
+  )
+})
+
+test_that("process() still skips faceted violins", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  # A facet panel identifies itself with panel_id
+  testthat::expect_null(
+    processor$process(processor$augment_plot(p), layout, panel_id = 1)
+  )
+
+  # ... or with facet_groups in the panel context
+  testthat::expect_null(
+    processor$process(
+      processor$augment_plot(p), layout,
+      panel_ctx = list(panel_name = "panel-1-1", facet_groups = list(drv = "4"))
+    )
+  )
+
+  # ... and a faceted leaf inside a patchwork is still a facet
+  faceted <- p + ggplot2::facet_wrap(~drv)
+  testthat::expect_null(
+    processor$process(
+      processor$augment_plot(faceted), layout,
+      panel_ctx = list(panel_name = "panel-1", panel_index = 1)
+    )
+  )
+})
+
+test_that("the kde layer records which panel its ranges came from", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  layout <- list(axes = build_axes(x = "class", y = "hwy"))
+
+  leaf <- processor$process(
+    processor$augment_plot(p), layout,
+    panel_ctx = list(panel_name = "panel-2", panel_index = 2, layer_index = 1)
+  )
+  kde <- leaf$layers[[2]]
+  testthat::expect_equal(kde$.panel_index, 2)
+  testthat::expect_equal(kde$.panel_name, "panel-2")
+
+  # A single plot has no panel to record
+  single <- processor$process(processor$augment_plot(p), layout)
+  testthat::expect_null(single$layers[[2]]$.panel_index)
+  testthat::expect_null(single$layers[[2]]$.panel_name)
+})

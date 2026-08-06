@@ -281,7 +281,12 @@ iq, q2, max, lowerOutliers, upperOutliers.
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-generate_box_selectors}{}}}
 \subsection{Method \code{generate_box_selectors()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$generate_box_selectors(plot, gt, built)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$generate_box_selectors(
+  plot,
+  gt,
+  built,
+  panel_ctx = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -292,6 +297,8 @@ iq, q2, max, lowerOutliers, upperOutliers.
 \item{\code{gt}}{Gtable object}
 
 \item{\code{built}}{Built plot data}
+
+\item{\code{panel_ctx}}{Panel context (for patchwork leaves)}
 }
 \if{html}{\out{</div>}}
 }
@@ -302,12 +309,7 @@ Get the effective mapping (layer mapping merged with plot mapping)
 Get original data used by this layer
 Get category labels from panel params
 Find the boxplot layer index in the augmented plot
-Find the main panel grob
-Recursively find all grob IDs matching a pattern
-Find direct children of a named parent matching a pattern
-Find a grob by its name (recursive)
-Find the first descendant matching a pattern under a named parent
-Find all descendants matching a pattern under a named parent
+Find the panel grob this layer draws into
 }
 }
 \if{html}{\out{<hr>}}
@@ -360,9 +362,24 @@ Find all descendants matching a pattern under a named parent
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-find_panel_grob}{}}}
 \subsection{Method \code{find_panel_grob()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_panel_grob(gt)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{gt}}{Gtable object}
+
+\item{\code{panel_ctx}}{Panel context for patchwork leaves; NULL for a
+  single plot, where the panel is the cell literally named "panel"
+Recursively find all grob IDs matching a pattern
+Find direct children of a named parent matching a pattern
+Find a grob by its name (recursive)
+Find the first descendant matching a pattern under a named parent
+Find all descendants matching a pattern under a named parent}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_grob_ids"></a>}}

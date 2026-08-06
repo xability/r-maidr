@@ -491,6 +491,12 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         axes = list()
       )
 
+      # Let processors add the geoms their selectors need (violin injects a
+      # thin boxplot). The augmented composition must be both rendered and
+      # processed: grob names come from a global counter, so selectors
+      # computed against one build do not resolve against another.
+      plot_for_render <- augment_patchwork_leaves(private$.plot)
+
       # Suppress native R graphics window by using a null PDF device
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
@@ -499,7 +505,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       tryCatch(
         {
           if (requireNamespace("patchwork", quietly = TRUE)) {
-            private$.gtable <- patchwork::patchworkGrob(private$.plot)
+            private$.gtable <- patchwork::patchworkGrob(plot_for_render)
           } else {
             private$.gtable <- ggplot2::ggplotGrob(ggplot2::ggplot())
           }
@@ -514,9 +520,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       # Use utility function to process patchwork plot
       private$.combined_data <- process_patchwork_plot_data(
-        private$.plot,
+        plot_for_render,
         private$.layout,
-        private$.gtable
+        private$.gtable,
+        original_plot = private$.plot
       )
       private$.combined_selectors <- list()
     },

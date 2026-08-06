@@ -345,3 +345,222 @@ test_that("Patchwork processing pipeline works end-to-end", {
     testthat::expect_type(layout, "list")
   }
 })
+
+# ==============================================================================
+# Shared panel collector (issue #52)
+# ==============================================================================
+
+test_that("collect_gtable_panels finds nested panels in discovery order", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  p1 <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()
+  p2 <- ggplot2::ggplot(mtcars, ggplot2::aes(hp, mpg)) + ggplot2::geom_point()
+  p3 <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, hp)) + ggplot2::geom_point()
+
+  gt <- patchwork::patchworkGrob((p1 | p2) / p3)
+  panels <- maidr:::collect_gtable_panels(gt)
+  panels <- Filter(function(p) grepl("^panel-\\d+(-\\d+)?$", p$name), panels)
+
+  # Nested rows hide their panels inside a child gtable; a top-level scan
+  # would find only the last leaf.
+  testthat::expect_equal(length(panels), 3)
+
+  # The order must match find_patchwork_panels(), which is how leaves are
+  # paired with panels.
+  df <- maidr:::find_patchwork_panels(gt)
+  testthat::expect_equal(
+    vapply(panels, function(p) p$name, character(1)),
+    as.character(df$name)
+  )
+
+  # Panels reached through a child gtable carry the full viewport path
+  depths <- vapply(panels, function(p) length(p$vp_path), integer(1))
+  testthat::expect_true(any(depths > 1))
+})
+
+test_that("collect_gtable_panels matches the bare panel of a single plot", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  gt <- ggplot2::ggplotGrob(
+    ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()
+  )
+  panels <- maidr:::collect_gtable_panels(gt)
+
+  testthat::expect_equal(length(panels), 1)
+  testthat::expect_equal(panels[[1]]$name, "panel")
+})
+
+test_that("find_gtable_panel_grob resolves each patchwork leaf's own panel", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  bars <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()
+  points <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()
+
+  gt <- patchwork::patchworkGrob(bars | points)
+
+  geoms_in <- function(grob) {
+    names <- character(0)
+    walk <- function(g) {
+      if (!inherits(g, "gTree") || is.null(g$children)) {
+        return(invisible(NULL))
+      }
+      for (nm in names(g$children)) {
+        child <- g$children[[nm]]
+        if (!is.null(child$name)) names <<- c(names, child$name)
+        walk(child)
+      }
+    }
+    walk(grob)
+    names
+  }
+
+  first <- maidr:::find_gtable_panel_grob(gt, list(panel_index = 1, panel_name = "panel-1"))
+  second <- maidr:::find_gtable_panel_grob(gt, list(panel_index = 2, panel_name = "panel-2"))
+
+  testthat::expect_true(any(grepl("geom_rect|geom_bar", geoms_in(first))))
+  testthat::expect_true(any(grepl("geom_point", geoms_in(second))))
+  testthat::expect_false(any(grepl("geom_point", geoms_in(first))))
+})
+
+test_that("find_gtable_panel_grob without a context keeps single-plot behaviour", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  gt <- ggplot2::ggplotGrob(
+    ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()
+  )
+  testthat::expect_false(is.null(maidr:::find_gtable_panel_grob(gt)))
+
+  # A patchwork gtable has no cell named "panel" at all
+  testthat::skip_if_not_installed("patchwork")
+  pw <- patchwork::patchworkGrob(
+    (ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()) |
+      (ggplot2::ggplot(mtcars, ggplot2::aes(hp, mpg)) + ggplot2::geom_point())
+  )
+  testthat::expect_null(maidr:::find_gtable_panel_grob(pw))
+})
+
+# ==============================================================================
+# Leaf augmentation (issue #52)
+# ==============================================================================
+
+test_that("augment_patchwork_leaves injects violin's boxplot into every leaf", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  violin <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  composition <- violin | bars
+  augmented <- maidr:::augment_patchwork_leaves(composition)
+
+  leaves <- maidr:::extract_patchwork_leaves(augmented)
+  testthat::expect_equal(length(leaves[[1]]$layers), 2)
+  testthat::expect_equal(length(leaves[[2]]$layers), 1)
+
+  # The caller's object must not be mutated
+  original <- maidr:::extract_patchwork_leaves(composition)
+  testthat::expect_equal(length(original[[1]]$layers), 1)
+})
+
+test_that("augment_patchwork_leaves reaches the self-carried leaf and nests", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  violin <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  # The last-added plot is carried by the patchwork object itself
+  augmented <- maidr:::augment_patchwork_leaves(bars | violin)
+  leaves <- maidr:::extract_patchwork_leaves(augmented)
+  testthat::expect_equal(length(leaves[[2]]$layers), 2)
+
+  # And nesting must be traversed
+  points <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(displ, hwy)) +
+    ggplot2::geom_point()
+  nested <- maidr:::augment_patchwork_leaves((violin | bars) / points)
+  nested_leaves <- maidr:::extract_patchwork_leaves(nested)
+  testthat::expect_equal(length(nested_leaves[[1]]$layers), 2)
+  testthat::expect_equal(length(nested_leaves[[3]]$layers), 1)
+})
+
+test_that("augment_leaf_plot leaves plots that need no augmentation alone", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+  testthat::expect_equal(length(maidr:::augment_leaf_plot(bars)$layers), 1)
+})
+
+# ==============================================================================
+# Multi-layer expansion in process_patchwork_panel (issue #52)
+# ==============================================================================
+
+test_that("process_patchwork_panel keeps single-layer ids unsuffixed", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  p1 <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()
+  p2 <- ggplot2::ggplot(mtcars, ggplot2::aes(hp, mpg)) + ggplot2::geom_point()
+  gt <- patchwork::patchworkGrob(p1 | p2)
+
+  panel <- maidr:::process_patchwork_panel(
+    p1, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt
+  )
+
+  testthat::expect_equal(length(panel$layers), 1)
+  testthat::expect_equal(panel$layers[[1]]$id, "maidr-layer-1")
+})
+
+test_that("process_patchwork_panel expands a violin into two suffixed layers", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  violin <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  augmented <- maidr:::augment_patchwork_leaves(violin | bars)
+  gt <- patchwork::patchworkGrob(augmented)
+  leaf <- maidr:::extract_patchwork_leaves(augmented)[[1]]
+
+  panel <- maidr:::process_patchwork_panel(
+    leaf, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt,
+    n_original_layers = 1
+  )
+
+  testthat::expect_equal(length(panel$layers), 2)
+  testthat::expect_equal(
+    vapply(panel$layers, function(l) l$type, character(1)),
+    c("violin_box", "violin_kde")
+  )
+  testthat::expect_equal(
+    vapply(panel$layers, function(l) l$id, character(1)),
+    c("maidr-layer-1-1", "maidr-layer-1-2")
+  )
+  # Fields beyond the standard set survive the expansion
+  testthat::expect_equal(panel$layers[[1]]$orientation, "vert")
+})
+
+test_that("process_patchwork_panel ignores geoms injected for rendering", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  violin <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  augmented <- maidr:::augment_patchwork_leaves(violin | bars)
+  gt <- patchwork::patchworkGrob(augmented)
+  leaf <- maidr:::extract_patchwork_leaves(augmented)[[1]]
+
+  # Without the original layer count the injected boxplot emits a third,
+  # spurious "box" layer the user never asked for.
+  bounded <- maidr:::process_patchwork_panel(
+    leaf, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt,
+    n_original_layers = 1
+  )
+  testthat::expect_false("box" %in% vapply(bounded$layers, function(l) l$type, character(1)))
+})

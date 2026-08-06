@@ -2,6 +2,15 @@
 
 ## Bug Fixes
 
+* ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
+  leaf emitted a subplot with no layers at all -- no sonification, no
+  braille, no highlighting for that panel -- because the processor skipped
+  every call that carried a panel context, a guard meant only for faceted
+  violins. Patchwork leaves now emit the same `violin_box` and `violin_kde`
+  layers a standalone violin does, with selectors scoped to their own panel
+  and KDE highlight coordinates read from their own panel's viewport,
+  including for violins nested inside a patchwork row. Faceted violins
+  remain unsupported.
 * Shiny: `render_maidr()` renders Base R plots again. It branched on the
   expression's return value, which says nothing about whether anything was
   drawn -- `plot()` returns NULL invisibly, so it was treated as an empty
@@ -75,9 +84,12 @@
   instead.
 * Base R: `chartSeries()` calls are now recorded even when 'quantmod' is
   loaded after 'maidr'.
-* ggplot2: faceted box plots, violins, histograms, smooths, heatmaps, and
+* ggplot2: faceted box plots, histograms, smooths, heatmaps, and
   stacked/dodged bars no longer crash with "unused arguments"; extracted
-  data and selectors are now scoped to each facet panel.
+  data and selectors are now scoped to each facet panel. Faceted violins
+  stop crashing too, but they are skipped rather than made interactive:
+  the facet combiner emits at most one layer per panel and so cannot carry
+  a violin's `violin_box` + `violin_kde` pair.
 * ggplot2: dodged bars accept expression aesthetics such as
   `aes(fill = factor(cyl))`. Aesthetics were resolved with
   `rlang::as_label()` and used as column names, so `data[["factor(cyl)"]]`
