@@ -155,7 +155,17 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
   # Find violin_kde layers in the maidr_data structure
   if (is.null(maidr_data$subplots)) return(maidr_data)
 
-  panels <- collect_gtable_panels(gt)
+  # Filtered exactly as find_patchwork_panels() filters, because
+  # `.panel_index` is a position in THAT list. Collecting a wider set here
+  # would shift every index by however many extra cells matched.
+  panels <- Filter(
+    function(p) grepl("^panel-\\d+(-\\d+)?$", p$name),
+    collect_gtable_panels(gt)
+  )
+  single_panel <- Filter(
+    function(p) identical(p$name, "panel"),
+    collect_gtable_panels(gt)
+  )
 
   # Resolve the viewport path for one layer's panel.
   panel_vp_path <- function(layer) {
@@ -168,8 +178,9 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
         if (identical(p$name, layer$.panel_name)) return(p$vp_path)
       }
     }
-    for (p in panels) {
-      if (identical(p$name, "panel")) return(p$vp_path)
+    # Single plot: the one cell literally named "panel"
+    if (length(single_panel) > 0) {
+      return(single_panel[[1]]$vp_path)
     }
     NULL
   }

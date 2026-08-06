@@ -129,6 +129,14 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       kde_data <- self$extract_kde_data(plot, built)
       kde_selectors <- self$generate_selectors(plot, gt, NULL, panel_ctx)
 
+      # A composition can hand a leaf a panel that leaf does not draw into --
+      # a faceted sibling occupies several panels, so the leaf-to-panel
+      # pairing runs short. Announcing a violin the user cannot reach is
+      # worse than announcing nothing, so decline the panel instead.
+      if (!is.null(panel_ctx) && length(kde_selectors) == 0) {
+        return(NULL)
+      }
+
       # Store panel_params ranges as metadata for SVG coordinate injection
       # These will be used by create_enhanced_svg() and stripped from final output
       layer_index <- self$get_layer_index()

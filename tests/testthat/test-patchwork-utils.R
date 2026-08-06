@@ -564,3 +564,25 @@ test_that("process_patchwork_panel ignores geoms injected for rendering", {
   )
   testthat::expect_false("box" %in% vapply(bounded$layers, function(l) l$type, character(1)))
 })
+
+test_that("augment_patchwork_leaves leaves faceted leaves visually untouched", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  faceted <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin() +
+    ggplot2::facet_wrap(~drv)
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  # A faceted violin is skipped by the processor, so injecting a boxplot into
+  # it would change the drawn figure and buy no accessibility at all.
+  for (composition in list(faceted | bars, bars | faceted)) {
+    leaves <- maidr:::extract_patchwork_leaves(
+      maidr:::augment_patchwork_leaves(composition)
+    )
+    testthat::expect_equal(
+      vapply(leaves, function(l) length(l$layers), integer(1)),
+      c(1L, 1L)
+    )
+  }
+})

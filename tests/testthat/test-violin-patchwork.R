@@ -296,12 +296,41 @@ test_that("a faceted violin nested in a patchwork is skipped, not mangled", {
   skip_if_no_patchwork()
 
   faceted <- violin_plot() + ggplot2::facet_wrap(~drv)
-  payload <- render_payload(faceted | bar_plot())
 
-  emitted <- unlist(lapply(payload$data$subplots, function(row) {
-    unlist(lapply(row, layer_types))
-  }))
-  expect_length(intersect(emitted, c("violin_box", "violin_kde", "violin")), 0)
+  # Both positions: patchwork keeps the last-added plot on the object itself,
+  # so the two orders take different code paths.
+  for (composition in list(faceted | bar_plot(), bar_plot() | faceted)) {
+    payload <- render_payload(composition)
+    emitted <- unlist(lapply(payload$data$subplots, function(row) {
+      unlist(lapply(row, layer_types))
+    }))
+    expect_length(intersect(emitted, c("violin_box", "violin_kde", "violin")), 0)
+    # The boxplot violin injects to render its selectors must never surface
+    # as a layer the user did not write
+    expect_length(intersect(emitted, "box"), 0)
+  }
+})
+
+test_that("a faceted sibling never makes a violin announce an unreachable panel", {
+  skip_if_no_patchwork()
+
+  # A faceted leaf occupies several panels, so the leaf-to-panel pairing runs
+  # short and a violin can be handed a panel it does not draw into. Every
+  # violin layer that IS emitted must be reachable.
+  faceted_bar <- bar_plot() + ggplot2::facet_wrap(~drv)
+
+  for (composition in list(faceted_bar | violin_plot(), violin_plot() | faceted_bar)) {
+    payload <- render_payload(composition)
+    for (row in payload$data$subplots) {
+      for (cell in row) {
+        for (layer in cell$layers) {
+          if (layer$type %in% c("violin_box", "violin_kde")) {
+            expect_selectors_resolve(payload, layer)
+          }
+        }
+      }
+    }
+  }
 })
 
 test_that("the standalone violin payload is unchanged", {

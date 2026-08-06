@@ -48,8 +48,16 @@ process_patchwork_plot_data <- function(plot, layout, gtable, original_plot = NU
     row <- panel_df$row[i]
     col <- panel_df$col[i]
 
-    # Pick the matching leaf plot if available; else fall back to full plot
-    leaf_plot <- if (i <= length(leaves)) leaves[[i]] else plot
+    # A panel with no leaf of its own -- which happens when a leaf is itself
+    # faceted and so occupies several panels -- is left empty rather than
+    # processed against the whole composition. Treating the composition as
+    # that panel's leaf attributes the last-added plot's layers to a panel
+    # that does not draw them: the selectors resolve to nothing and the
+    # announcement describes the wrong chart.
+    if (i > length(leaves)) {
+      next
+    }
+    leaf_plot <- leaves[[i]]
     panel_name <- panel_df$name[i]
 
     subplot_data <- process_patchwork_panel(
@@ -315,6 +323,13 @@ extract_patchwork_leaves <- function(node) {
 #' @keywords internal
 augment_leaf_plot <- function(leaf_plot) {
   if (!inherits(leaf_plot, "ggplot") || length(leaf_plot$layers) == 0) {
+    return(leaf_plot)
+  }
+
+  # A faceted leaf is not processed interactively, so augmenting it would
+  # draw an extra geom into the figure and buy nothing: the only processor
+  # that augments is violin, and it declines faceted plots.
+  if (!is.null(leaf_plot$facet) && !inherits(leaf_plot$facet, "FacetNull")) {
     return(leaf_plot)
   }
 
