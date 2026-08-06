@@ -355,13 +355,18 @@ augment_leaf_plot <- function(leaf_plot) {
   }
 
   # A leaf that will not be described must not be augmented: the extra geom
-  # would change the drawn figure and buy no accessibility at all. Violin is
-  # the only processor that augments, and it declines faceted plots; an
-  # inset_element() occupies no discoverable panel, so it is never paired
-  # with one either.
-  if (inherits(leaf_plot, "inset_patch")) {
+  # would change the drawn figure and buy no accessibility at all.
+  #
+  # patchwork's wrappers -- inset_element(), free(), wrap_elements() -- each
+  # prepend their own class and place the plot in a cell whose name is not a
+  # plain "panel-N", so panel discovery never pairs them with a panel. Test
+  # for the wrapper rather than naming them, so a wrapper added later is
+  # skipped too.
+  if (length(setdiff(class(leaf_plot), class(ggplot2::ggplot()))) > 0) {
     return(leaf_plot)
   }
+
+  # Violin is the only processor that augments, and it declines facets.
   if (!is.null(leaf_plot$facet) && !inherits(leaf_plot$facet, "FacetNull")) {
     return(leaf_plot)
   }

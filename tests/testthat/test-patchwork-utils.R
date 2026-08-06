@@ -600,7 +600,7 @@ test_that("count_leaf_panels counts a leaf's own panels", {
   testthat::expect_equal(maidr:::count_leaf_panels("not a plot"), 1L)
 })
 
-test_that("augment_patchwork_leaves leaves inset plots untouched", {
+test_that("augment_patchwork_leaves leaves wrapped plots untouched", {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("patchwork")
 
@@ -608,14 +608,25 @@ test_that("augment_patchwork_leaves leaves inset plots untouched", {
     ggplot2::geom_violin()
   bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
 
-  # An inset occupies no discoverable panel, so it is never described --
-  # injecting a boxplot into it would only change the drawn figure.
-  leaves <- maidr:::extract_patchwork_leaves(
-    maidr:::augment_patchwork_leaves(
-      bars + patchwork::inset_element(violin, 0.5, 0.5, 1, 1)
-    )
+  # A wrapped plot occupies no cell panel discovery recognises, so it is
+  # never described -- injecting a boxplot into it would only change the
+  # drawn figure.
+  wrapped <- list(
+    inset = bars + patchwork::inset_element(violin, 0.5, 0.5, 1, 1),
+    free = bars | patchwork::free(violin)
   )
-  inset <- Filter(function(l) inherits(l, "inset_patch"), leaves)
-  testthat::expect_length(inset, 1)
-  testthat::expect_equal(length(inset[[1]]$layers), 1)
+  for (composition in wrapped) {
+    leaves <- maidr:::extract_patchwork_leaves(
+      maidr:::augment_patchwork_leaves(composition)
+    )
+    for (leaf in leaves) {
+      testthat::expect_equal(length(leaf$layers), 1)
+    }
+  }
+
+  # An ordinary violin leaf is still augmented
+  plain <- maidr:::extract_patchwork_leaves(
+    maidr:::augment_patchwork_leaves(violin | bars)
+  )
+  testthat::expect_equal(length(plain[[1]]$layers), 2)
 })
