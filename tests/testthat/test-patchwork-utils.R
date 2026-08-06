@@ -630,3 +630,30 @@ test_that("augment_patchwork_leaves leaves wrapped plots untouched", {
   )
   testthat::expect_equal(length(plain[[1]]$layers), 2)
 })
+
+test_that("find_gtable_panel_grob declines rather than guessing a panel", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  bars <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()
+  points <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) + ggplot2::geom_point()
+  gt <- patchwork::patchworkGrob(bars | points)
+
+  # An index that resolves to nothing and a name that matches nothing must
+  # not fall through to the first panel: handing a layer another panel's
+  # grobs points its highlighting at the wrong chart.
+  testthat::expect_null(
+    maidr:::find_gtable_panel_grob(gt, list(panel_index = 99, panel_name = "panel-99"))
+  )
+  testthat::expect_null(
+    maidr:::find_gtable_panel_grob(gt, list(panel_index = NA_integer_))
+  )
+  testthat::expect_null(
+    maidr:::find_gtable_panel_grob(gt, list(panel_index = c(1, 2)))
+  )
+
+  # A resolvable context still works
+  testthat::expect_false(
+    is.null(maidr:::find_gtable_panel_grob(gt, list(panel_index = 2)))
+  )
+})

@@ -722,7 +722,9 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       character(0)
     },
 
-    #' Find the boxplot layer index in the augmented plot
+    #' @description Find the boxplot layer index in the augmented plot
+    #' @param plot The ggplot2 object
+    #' @return Integer index of the boxplot layer, or NULL
     find_boxplot_layer_index = function(plot) {
       for (i in seq_along(plot$layers)) {
         if (inherits(plot$layers[[i]]$geom, "GeomBoxplot")) {
@@ -732,16 +734,19 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       NULL
     },
 
-    #' Find the panel grob this layer draws into
-    #'
+    #' @description Find the panel grob this layer draws into
     #' @param gt Gtable object
     #' @param panel_ctx Panel context for patchwork leaves; NULL for a
     #'   single plot, where the panel is the cell literally named "panel"
+    #' @return The panel gTree, or NULL when it cannot be resolved
     find_panel_grob = function(gt, panel_ctx = NULL) {
       find_gtable_panel_grob(gt, panel_ctx)
     },
 
-    #' Recursively find all grob IDs matching a pattern
+    #' @description Recursively find all grob IDs matching a pattern
+    #' @param grob Grob tree to search
+    #' @param pattern Regular expression matched against grob names
+    #' @return Character vector of unique matching grob names
     find_grob_ids = function(grob, pattern) {
       ids <- character(0)
       if (!inherits(grob, "gTree") || is.null(grob$children)) {
@@ -759,7 +764,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       unique(ids)
     },
 
-    #' Find direct children of a named parent matching a pattern
+    #' @description Find direct children of a named parent matching a pattern
+    #' @param grob Grob tree to search
+    #' @param parent_id Name of the parent grob
+    #' @param pattern Regular expression matched against child names
+    #' @return Character vector of matching child names
     find_direct_children = function(grob, parent_id, pattern) {
       parent <- self$find_grob_by_id(grob, parent_id)
       if (is.null(parent) || !inherits(parent, "gTree")) {
@@ -775,7 +784,10 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       ids
     },
 
-    #' Find a grob by its name (recursive)
+    #' @description Find a grob by its name (recursive)
+    #' @param grob Grob tree to search
+    #' @param target_id Name of the grob to find
+    #' @return The matching grob, or NULL
     find_grob_by_id = function(grob, target_id) {
       if (!is.null(grob$name) && grob$name == target_id) {
         return(grob)
@@ -789,7 +801,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       NULL
     },
 
-    #' Find the first descendant matching a pattern under a named parent
+    #' @description Find the first descendant matching a pattern under a named parent
+    #' @param grob Grob tree to search
+    #' @param parent_id Name of the parent grob
+    #' @param pattern Regular expression matched against descendant names
+    #' @return The first matching name, or NULL
     find_desc_by_pattern = function(grob, parent_id, pattern) {
       parent <- self$find_grob_by_id(grob, parent_id)
       if (is.null(parent)) return(NULL)
@@ -797,7 +813,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       if (length(ids) > 0) ids[1] else NULL
     },
 
-    #' Find all descendants matching a pattern under a named parent
+    #' @description Find all descendants matching a pattern under a named parent
+    #' @param grob Grob tree to search
+    #' @param parent_id Name of the parent grob
+    #' @param pattern Regular expression matched against descendant names
+    #' @return Character vector of matching descendant names
     find_all_desc_by_pattern = function(grob, parent_id, pattern) {
       parent <- self$find_grob_by_id(grob, parent_id)
       if (is.null(parent)) return(character(0))

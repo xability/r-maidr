@@ -245,7 +245,11 @@ find_gtable_panel_grob <- function(gt, panel_ctx = NULL) {
     }
   }
 
-  as_gtree(panels[[1]]$grob)
+  # Neither key resolved. Guessing at the first panel would hand this
+  # layer another panel's grobs, and highlighting that points somewhere
+  # else is worse than no highlighting: the caller can tell an empty
+  # selector list apart from a wrong one, a user cannot.
+  NULL
 }
 
 #' Discover panels via gtable layout rows named '^panel-<num>' or '^panel-<row>-<col>'
