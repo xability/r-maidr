@@ -586,3 +586,36 @@ test_that("augment_patchwork_leaves leaves faceted leaves visually untouched", {
     )
   }
 })
+
+test_that("count_leaf_panels counts a leaf's own panels", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  plain <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  testthat::expect_equal(maidr:::count_leaf_panels(plain), 1L)
+  testthat::expect_equal(
+    maidr:::count_leaf_panels(plain + ggplot2::facet_wrap(~drv)),
+    length(unique(ggplot2::mpg$drv))
+  )
+  testthat::expect_equal(maidr:::count_leaf_panels("not a plot"), 1L)
+})
+
+test_that("augment_patchwork_leaves leaves inset plots untouched", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  violin <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+  bars <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar()
+
+  # An inset occupies no discoverable panel, so it is never described --
+  # injecting a boxplot into it would only change the drawn figure.
+  leaves <- maidr:::extract_patchwork_leaves(
+    maidr:::augment_patchwork_leaves(
+      bars + patchwork::inset_element(violin, 0.5, 0.5, 1, 1)
+    )
+  )
+  inset <- Filter(function(l) inherits(l, "inset_patch"), leaves)
+  testthat::expect_length(inset, 1)
+  testthat::expect_equal(length(inset[[1]]$layers), 1)
+})

@@ -170,7 +170,10 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
   # Resolve the viewport path for one layer's panel.
   panel_vp_path <- function(layer) {
     idx <- layer$.panel_index
-    if (!is.null(idx) && is.numeric(idx) && idx >= 1 && idx <= length(panels)) {
+    if (
+      length(idx) == 1L && is.numeric(idx) && !is.na(idx) &&
+        idx >= 1 && idx <= length(panels)
+    ) {
       return(panels[[idx]]$vp_path)
     }
     if (!is.null(layer$.panel_name)) {

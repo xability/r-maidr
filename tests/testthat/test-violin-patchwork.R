@@ -26,7 +26,24 @@ point_plot <- function() {
 # Render through the real pipeline and return both the parsed maidr-data and
 # the exported SVG, so selectors can be checked against the document they are
 # meant to address.
-render_payload <- function(plot) {
+#
+# A full render is ~4 s (ggplot_build + patchworkGrob + grid.draw + gridSVG),
+# and several tests assert different things about the same composition, so
+# results are cached per named composition for the duration of the file.
+payload_cache <- new.env(parent = emptyenv())
+
+render_payload <- function(plot, key = NULL) {
+  if (!is.null(key) && !is.null(payload_cache[[key]])) {
+    return(payload_cache[[key]])
+  }
+  out <- render_payload_uncached(plot)
+  if (!is.null(key)) {
+    assign(key, out, envir = payload_cache)
+  }
+  out
+}
+
+render_payload_uncached <- function(plot) {
   file <- tempfile(fileext = ".html")
   on.exit(unlink(file), add = TRUE)
   suppressWarnings(save_html(plot, file))
@@ -131,7 +148,7 @@ all_keys <- function(x) {
 test_that("a violin leaf emits violin_box and violin_kde", {
   skip_if_no_patchwork()
 
-  payload <- render_payload(violin_plot() | bar_plot())
+  payload <- render_payload(violin_plot() | bar_plot(), "v_bar")
 
   violin_cell <- payload$data$subplots[[1]][[1]]
   expect_equal(layer_types(violin_cell), c("violin_box", "violin_kde"))
@@ -149,7 +166,7 @@ test_that("a violin leaf emits violin_box and violin_kde", {
 test_that("violin layers carry their processor fields into the payload", {
   skip_if_no_patchwork()
 
-  payload <- render_payload(violin_plot() | bar_plot())
+  payload <- render_payload(violin_plot() | bar_plot(), "v_bar")
   layers <- payload$data$subplots[[1]][[1]]$layers
 
   box <- layers[[1]]
@@ -165,7 +182,7 @@ test_that("violin layers carry their processor fields into the payload", {
 test_that("leaf/panel pairing does not depend on composition order", {
   skip_if_no_patchwork()
 
-  payload <- render_payload(bar_plot() | violin_plot())
+  payload <- render_payload(bar_plot() | violin_plot(), "bar_v")
 
   expect_equal(layer_types(payload$data$subplots[[1]][[1]]), "bar")
   expect_equal(
@@ -177,7 +194,7 @@ test_that("leaf/panel pairing does not depend on composition order", {
 test_that("violin selectors resolve against the exported SVG", {
   skip_if_no_patchwork()
 
-  payload <- render_payload(violin_plot() | bar_plot())
+  payload <- render_payload(violin_plot() | bar_plot(), "v_bar")
   for (layer in payload$data$subplots[[1]][[1]]$layers) {
     expect_selectors_resolve(payload, layer)
   }
@@ -188,7 +205,7 @@ test_that("two violins in one composition get disjoint selectors", {
 
   other <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(drv, cty)) +
     ggplot2::geom_violin()
-  payload <- render_payload(violin_plot() | other)
+  payload <- render_payload(violin_plot() | other, "two_violins")
 
   left <- payload$data$subplots[[1]][[1]]
   right <- payload$data$subplots[[1]][[2]]
@@ -205,7 +222,7 @@ test_that("a violin nested inside a patchwork row is still processed", {
 
   # (v | b) / s puts the violin's panel inside a CHILD gtable, which a
   # top-level-only panel lookup cannot reach.
-  payload <- render_payload((violin_plot() | bar_plot()) / point_plot())
+  payload <- render_payload((violin_plot() | bar_plot()) / point_plot(), "nested")
 
   violin_cell <- payload$data$subplots[[1]][[1]]
   expect_equal(layer_types(violin_cell), c("violin_box", "violin_kde"))
@@ -220,11 +237,12 @@ test_that("KDE coordinates describe each violin's own panel", {
   other <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(drv, cty)) +
     ggplot2::geom_violin()
 
-  for (composition in list(
-    violin_plot() | other,
-    (violin_plot() | bar_plot()) / point_plot()
-  )) {
-    payload <- render_payload(composition)
+  compositions <- list(
+    two_violins = violin_plot() | other,
+    nested = (violin_plot() | bar_plot()) / point_plot()
+  )
+  for (idx in seq_along(compositions)) {
+    payload <- render_payload(compositions[[idx]], names(compositions)[idx])
     for (row in payload$data$subplots) {
       for (cell in row) {
         for (layer in cell$layers) {
@@ -257,10 +275,10 @@ test_that("no internal metadata reaches the emitted JSON", {
   skip_if_no_patchwork()
 
   compositions <- list(
-    violin_plot(),
-    violin_plot() | bar_plot(),
-    (violin_plot() | bar_plot()) / point_plot(),
-    violin_plot() + ggplot2::facet_wrap(~drv)
+    standalone = violin_plot(),
+    v_bar = violin_plot() | bar_plot(),
+    nested = (violin_plot() | bar_plot()) / point_plot(),
+    faceted = violin_plot() + ggplot2::facet_wrap(~drv)
   )
 
   internal <- c(
@@ -269,8 +287,8 @@ test_that("no internal metadata reaches the emitted JSON", {
     "data_left_x", "data_right_x", "data_y"
   )
 
-  for (composition in compositions) {
-    payload <- render_payload(composition)
+  for (idx in seq_along(compositions)) {
+    payload <- render_payload(compositions[[idx]], names(compositions)[idx])
     keys <- unique(all_keys(payload$data))
     expect_length(intersect(keys, internal), 0)
     expect_false(any(startsWith(keys, ".")))
@@ -283,7 +301,7 @@ test_that("faceted violins remain unsupported and stay quiet", {
   faceted <- violin_plot() + ggplot2::facet_wrap(~drv)
 
   expect_no_error({
-    payload <- render_payload(faceted)
+    payload <- render_payload(faceted, "faceted")
   })
   for (row in payload$data$subplots) {
     for (cell in row) {
@@ -336,7 +354,7 @@ test_that("a faceted sibling never makes a violin announce an unreachable panel"
 test_that("the standalone violin payload is unchanged", {
   skip_if_no_patchwork()
 
-  payload <- render_payload(violin_plot())
+  payload <- render_payload(violin_plot(), "standalone")
   cell <- payload$data$subplots[[1]][[1]]
 
   expect_equal(layer_types(cell), c("violin_box", "violin_kde"))
@@ -356,4 +374,68 @@ test_that("non-violin patchwork payloads keep their layer ids", {
     }))
   }))
   expect_true(all(ids == "maidr-layer-1"))
+})
+
+test_that("a faceted sibling does not cost the other plot its selectors", {
+  skip_if_no_patchwork()
+
+  # A faceted leaf owns one panel per facet cell but is still one leaf, so
+  # naive pairing pushes every later leaf onto someone else's panel.
+  faceted_violin <- violin_plot() + ggplot2::facet_wrap(~drv)
+
+  for (composition in list(faceted_violin | bar_plot(), bar_plot() | faceted_violin)) {
+    payload <- render_payload(composition)
+
+    bars <- list()
+    for (row in payload$data$subplots) {
+      for (cell in row) {
+        for (layer in cell$layers) {
+          if (identical(layer$type, "bar")) bars[[length(bars) + 1]] <- layer
+        }
+      }
+    }
+    # Announced exactly once, and reachable
+    expect_length(bars, 1)
+    expect_selectors_resolve(payload, bars[[1]])
+  }
+})
+
+test_that("a leaf a processor cannot handle does not abort the composition", {
+  skip_if_no_patchwork()
+
+  # geom_violin(width = 0) errors inside the violin processor; the rest of
+  # the figure must still render and describe itself.
+  degenerate <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin(width = 0)
+
+  expect_no_error({
+    payload <- render_payload(degenerate | bar_plot())
+  })
+  expect_equal(layer_types(payload$data$subplots[[1]][[2]]), "bar")
+  expect_length(payload$data$subplots[[1]][[1]]$layers, 0)
+})
+
+test_that("a patchwork violin payload matches the standalone one", {
+  skip_if_no_patchwork()
+
+  # Quantile lines change the grob tree so the kde selectors come up empty
+  # even standalone. The patchwork payload should have the same shape as the
+  # standalone one rather than silently dropping the layers that do work.
+  # draw_quantiles is deprecated in ggplot2 4.0, but it is the cheapest way
+  # to reach a violin whose kde selectors are empty; the deprecation is not
+  # what this test is about.
+  quantiled <- suppressWarnings(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+      ggplot2::geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))
+  )
+
+  alone <- suppressWarnings(render_payload(quantiled))
+  composed <- suppressWarnings(render_payload(quantiled | bar_plot()))
+
+  expect_equal(
+    layer_types(composed$data$subplots[[1]][[1]]),
+    layer_types(alone$data$subplots[[1]][[1]])
+  )
+  box <- composed$data$subplots[[1]][[1]]$layers[[1]]
+  expect_selectors_resolve(composed, box)
 })

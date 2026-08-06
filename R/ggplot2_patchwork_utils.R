@@ -43,33 +43,36 @@ process_patchwork_plot_data <- function(plot, layout, gtable, original_plot = NU
   # walks panels in patchwork's plot-addition order, which matches the
   # leaf order even for nested layouts where visual row-major order does
   # not.
-  for (i in seq_len(nrow(panel_df))) {
+  #
+  # A leaf is not always one panel: a faceted leaf draws one panel per facet
+  # cell while still counting as a single leaf, so pairing leaf k with panel
+  # k drifts by the surplus from there on and every later leaf is described
+  # over someone else's panel. Consume each leaf's own panels instead. Every
+  # count is 1 unless a leaf is faceted, so a composition without facets
+  # pairs exactly as before.
+  panel_cursor <- 1L
+  for (leaf_idx in seq_along(leaves)) {
+    i <- panel_cursor
+    panel_cursor <- panel_cursor + count_leaf_panels(leaves[[leaf_idx]])
+    if (i > nrow(panel_df)) {
+      break
+    }
+
     panel_index <- panel_df$panel_index[i]
     row <- panel_df$row[i]
     col <- panel_df$col[i]
-
-    # A panel with no leaf of its own -- which happens when a leaf is itself
-    # faceted and so occupies several panels -- is left empty rather than
-    # processed against the whole composition. Treating the composition as
-    # that panel's leaf attributes the last-added plot's layers to a panel
-    # that does not draw them: the selectors resolve to nothing and the
-    # announcement describes the wrong chart.
-    if (i > length(leaves)) {
-      next
-    }
-    leaf_plot <- leaves[[i]]
     panel_name <- panel_df$name[i]
 
     subplot_data <- process_patchwork_panel(
-      leaf_plot,
+      leaves[[leaf_idx]],
       panel_name,
       panel_index,
       row,
       col,
       layout,
       gtable,
-      n_original_layers = if (i <= length(orig_leaves)) {
-        length(orig_leaves[[i]]$layers)
+      n_original_layers = if (leaf_idx <= length(orig_leaves)) {
+        length(orig_leaves[[leaf_idx]]$layers)
       } else {
         NULL
       }
@@ -98,6 +101,28 @@ process_patchwork_plot_data <- function(plot, layout, gtable, original_plot = NU
   grid <- merge_candlestick_volume_panels(grid)
 
   grid
+}
+
+#' How many gtable panels one patchwork leaf occupies
+#'
+#' One for an ordinary leaf; one per facet cell for a faceted one. Used to
+#' walk `find_patchwork_panels()` in step with the leaf list.
+#'
+#' @param leaf_plot A leaf of a patchwork composition
+#' @return Integer count, at least 1
+#' @keywords internal
+count_leaf_panels <- function(leaf_plot) {
+  if (!inherits(leaf_plot, "ggplot")) {
+    return(1L)
+  }
+  if (is.null(leaf_plot$facet) || inherits(leaf_plot$facet, "FacetNull")) {
+    return(1L)
+  }
+  n <- tryCatch(
+    nrow(ggplot2::ggplot_build(leaf_plot)$layout$layout),
+    error = function(e) NA_integer_
+  )
+  if (length(n) != 1L || is.na(n) || n < 1L) 1L else as.integer(n)
 }
 
 #' Collect every panel cell of a gtable, descending into nested gtables
@@ -205,7 +230,10 @@ find_gtable_panel_grob <- function(gt, panel_ctx = NULL) {
   }
 
   idx <- panel_ctx$panel_index
-  if (!is.null(idx) && is.numeric(idx) && idx >= 1 && idx <= length(panels)) {
+  if (
+    length(idx) == 1L && is.numeric(idx) && !is.na(idx) &&
+      idx >= 1 && idx <= length(panels)
+  ) {
     return(as_gtree(panels[[idx]]$grob))
   }
 
@@ -326,9 +354,14 @@ augment_leaf_plot <- function(leaf_plot) {
     return(leaf_plot)
   }
 
-  # A faceted leaf is not processed interactively, so augmenting it would
-  # draw an extra geom into the figure and buy nothing: the only processor
-  # that augments is violin, and it declines faceted plots.
+  # A leaf that will not be described must not be augmented: the extra geom
+  # would change the drawn figure and buy no accessibility at all. Violin is
+  # the only processor that augments, and it declines faceted plots; an
+  # inset_element() occupies no discoverable panel, so it is never paired
+  # with one either.
+  if (inherits(leaf_plot, "inset_patch")) {
+    return(leaf_plot)
+  }
   if (!is.null(leaf_plot$facet) && !inherits(leaf_plot$facet, "FacetNull")) {
     return(leaf_plot)
   }
@@ -497,14 +530,20 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
         layer_index = layer_idx
       )
 
-      result <- processor$process(
-        leaf_plot,
-        leaf_layout,
-        built = leaf_built,
-        gt = gtable,
-        scale_mapping = NULL,
-        panel_ctx = panel_ctx,
-        panel_id = NULL
+      # One leaf that a processor cannot handle must not abort the whole
+      # composition: the other panels are still perfectly describable, and a
+      # figure that renders with one silent panel beats no figure at all.
+      result <- tryCatch(
+        processor$process(
+          leaf_plot,
+          leaf_layout,
+          built = leaf_built,
+          gt = gtable,
+          scale_mapping = NULL,
+          panel_ctx = panel_ctx,
+          panel_id = NULL
+        ),
+        error = function(e) NULL
       )
 
       if (!is.null(result)) {
@@ -512,21 +551,18 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
         # (violin -> violin_box + violin_kde), the same expansion
         # Ggplot2PlotOrchestrator$combine_layer_results() performs on the
         # single-plot path. Single-layer ids are left untouched.
-        subs <- if (isTRUE(result$multi_layer) && !is.null(result$layers)) {
-          result$layers
-        } else {
-          list(result)
-        }
+        expanded <- isTRUE(result$multi_layer) && !is.null(result$layers)
+        subs <- if (expanded) result$layers else list(result)
 
         for (sub_idx in seq_along(subs)) {
           sub <- subs[[sub_idx]]
           if (is.null(sub)) next
 
           layer_entry <- list(
-            id = if (length(subs) == 1L) {
-              paste0("maidr-layer-", layer_idx)
-            } else {
+            id = if (expanded) {
               paste0("maidr-layer-", layer_idx, "-", sub_idx)
+            } else {
+              paste0("maidr-layer-", layer_idx)
             },
             type = if (!is.null(sub$type)) sub$type else layer_type,
             title = leaf_title,
@@ -539,7 +575,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           # violinOptions, domMapping, the .panel_* hints the SVG
           # coordinate injection reads). Restricted to expanded results so
           # single-layer patchwork payloads keep their current shape.
-          if (length(subs) > 1L) {
+          if (expanded) {
             for (field_name in names(sub)) {
               if (!field_name %in% c(
                 "id", "type", "selectors", "data", "title", "axes",

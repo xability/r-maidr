@@ -11,12 +11,16 @@
   and KDE highlight coordinates read from their own panel's viewport,
   including for violins nested inside a patchwork row. Faceted violins
   remain unsupported.
-* ggplot2: a patchwork panel that belongs to no leaf of its own is now left
-  empty instead of being described with the last-added plot's data. Such
-  panels appear when a leaf is itself faceted -- a faceted leaf occupies
-  several panels but counts as one leaf -- and the layers they carried
-  announced one chart's numbers over another chart's panel, with
-  highlighting that pointed at the wrong elements.
+* ggplot2: a patchwork containing a faceted plot now pairs each of its other
+  plots with the right panel. A faceted plot draws one panel per facet cell
+  while still counting as one plot, so every plot after it was described
+  over someone else's panel, and the surplus panels repeated the
+  last-added plot's data -- the same numbers announced in three places, only
+  one of them reachable. Panels are now consumed per plot, so each is
+  announced once, on its own panel.
+* ggplot2: one plot a processor cannot handle no longer aborts the whole
+  patchwork. Rendering failed for the entire composition; now that panel is
+  silent and the rest of the figure is still described.
 * Shiny: `render_maidr()` renders Base R plots again. It branched on the
   expression's return value, which says nothing about whether anything was
   drawn -- `plot()` returns NULL invisibly, so it was treated as an empty
