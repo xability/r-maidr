@@ -600,6 +600,27 @@ test_that("count_leaf_panels counts a leaf's own panels", {
   testthat::expect_equal(maidr:::count_leaf_panels("not a plot"), 1L)
 })
 
+test_that("count_leaf_panels reports zero for a plot patchwork has wrapped", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  plain <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin()
+
+  # A wrapped plot lands in a cell panel discovery does not recognise, so it
+  # contributes no row to find_patchwork_panels(). Counting it as one would
+  # make every later leaf consume somebody else's panel.
+  testthat::expect_false(maidr:::is_wrapped_leaf(plain))
+  for (wrapped in list(
+    patchwork::free(plain),
+    patchwork::inset_element(plain, 0.5, 0.5, 1, 1),
+    patchwork::wrap_elements(full = plain)
+  )) {
+    testthat::expect_true(maidr:::is_wrapped_leaf(wrapped))
+    testthat::expect_equal(maidr:::count_leaf_panels(wrapped), 0L)
+  }
+})
+
 test_that("augment_patchwork_leaves leaves wrapped plots untouched", {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("patchwork")

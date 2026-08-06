@@ -10,10 +10,12 @@ count_leaf_panels(leaf_plot)
 \item{leaf_plot}{A leaf of a patchwork composition}
 }
 \value{
-Integer count, at least 1
+Integer count, 0 for a wrapped leaf
 }
 \description{
-One for an ordinary leaf; one per facet cell for a faceted one. Used to
-walk `find_patchwork_panels()` in step with the leaf list.
+One for an ordinary leaf; one per facet cell for a faceted one; none for a
+leaf patchwork has wrapped. Used to walk `find_patchwork_panels()` in step
+with the leaf list -- a leaf that contributes no panel must not consume
+one, or every leaf after it is described over somebody else's panel.
 }
 \keyword{internal}

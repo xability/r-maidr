@@ -45,15 +45,22 @@ process_patchwork_plot_data <- function(plot, layout, gtable, original_plot = NU
   # not.
   #
   # A leaf is not always one panel: a faceted leaf draws one panel per facet
-  # cell while still counting as a single leaf, so pairing leaf k with panel
-  # k drifts by the surplus from there on and every later leaf is described
-  # over someone else's panel. Consume each leaf's own panels instead. Every
-  # count is 1 unless a leaf is faceted, so a composition without facets
-  # pairs exactly as before.
+  # cell while still counting as a single leaf, and a leaf patchwork has
+  # wrapped draws none that panel discovery can see. Pairing leaf k with
+  # panel k drifts from the first such leaf onward, and every later leaf is
+  # then described over someone else's panel or dropped for running past the
+  # end. Consume each leaf's own panels instead. Every count is 1 unless a
+  # leaf is faceted or wrapped, so an ordinary composition pairs exactly as
+  # before.
   panel_cursor <- 1L
   for (leaf_idx in seq_along(leaves)) {
+    n_panels <- count_leaf_panels(leaves[[leaf_idx]])
+    if (n_panels == 0L) {
+      next
+    }
+
     i <- panel_cursor
-    panel_cursor <- panel_cursor + count_leaf_panels(leaves[[leaf_idx]])
+    panel_cursor <- panel_cursor + n_panels
     if (i > nrow(panel_df)) {
       break
     }
@@ -103,17 +110,39 @@ process_patchwork_plot_data <- function(plot, layout, gtable, original_plot = NU
   grid
 }
 
-#' How many gtable panels one patchwork leaf occupies
+#' Has patchwork wrapped this leaf?
 #'
-#' One for an ordinary leaf; one per facet cell for a faceted one. Used to
-#' walk `find_patchwork_panels()` in step with the leaf list.
+#' `inset_element()`, `free()` and `wrap_elements()` each prepend their own
+#' class and place the plot in a gtable cell whose name is not a plain
+#' "panel-N", so panel discovery never sees it. Test for the wrapper rather
+#' than naming them, so one added later behaves the same.
 #'
 #' @param leaf_plot A leaf of a patchwork composition
-#' @return Integer count, at least 1
+#' @return Logical
+#' @keywords internal
+is_wrapped_leaf <- function(leaf_plot) {
+  if (!inherits(leaf_plot, "ggplot")) {
+    return(FALSE)
+  }
+  length(setdiff(class(leaf_plot), class(ggplot2::ggplot()))) > 0
+}
+
+#' How many gtable panels one patchwork leaf occupies
+#'
+#' One for an ordinary leaf; one per facet cell for a faceted one; none for a
+#' leaf patchwork has wrapped. Used to walk `find_patchwork_panels()` in step
+#' with the leaf list -- a leaf that contributes no panel must not consume
+#' one, or every leaf after it is described over somebody else's panel.
+#'
+#' @param leaf_plot A leaf of a patchwork composition
+#' @return Integer count, 0 for a wrapped leaf
 #' @keywords internal
 count_leaf_panels <- function(leaf_plot) {
   if (!inherits(leaf_plot, "ggplot")) {
     return(1L)
+  }
+  if (is_wrapped_leaf(leaf_plot)) {
+    return(0L)
   }
   if (is.null(leaf_plot$facet) || inherits(leaf_plot$facet, "FacetNull")) {
     return(1L)
@@ -359,14 +388,10 @@ augment_leaf_plot <- function(leaf_plot) {
   }
 
   # A leaf that will not be described must not be augmented: the extra geom
-  # would change the drawn figure and buy no accessibility at all.
-  #
-  # patchwork's wrappers -- inset_element(), free(), wrap_elements() -- each
-  # prepend their own class and place the plot in a cell whose name is not a
-  # plain "panel-N", so panel discovery never pairs them with a panel. Test
-  # for the wrapper rather than naming them, so a wrapper added later is
-  # skipped too.
-  if (length(setdiff(class(leaf_plot), class(ggplot2::ggplot()))) > 0) {
+  # would change the drawn figure and buy no accessibility at all. A wrapped
+  # leaf is never paired with a panel, and a faceted one is declined by the
+  # only processor that augments.
+  if (is_wrapped_leaf(leaf_plot)) {
     return(leaf_plot)
   }
 

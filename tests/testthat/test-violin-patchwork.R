@@ -453,3 +453,33 @@ test_that("a wrapped element beside a violin does not shift its coordinates", {
   expect_equal(layer_types(cell), c("violin_box", "violin_kde"))
   expect_kde_coords_on_own_violin(payload, cell$layers[[2]])
 })
+
+test_that("a wrapped plot does not shift the plots after it", {
+  skip_if_no_patchwork()
+
+  # free()/inset_element()/wrap_elements() contribute no discoverable panel.
+  # Treating one as if it occupied a panel pushes every later plot onto
+  # somebody else's, and the last of them off the end entirely.
+  wrapper_first <- render_payload(patchwork::free(violin_plot()) | bar_plot())
+  bars <- unlist(lapply(wrapper_first$data$subplots, function(row) {
+    unlist(lapply(row, layer_types))
+  }))
+  expect_equal(bars, "bar")
+
+  wrapper_middle <- render_payload(
+    bar_plot() | patchwork::free(point_plot()) | violin_plot()
+  )
+  emitted <- unlist(lapply(wrapper_middle$data$subplots, function(row) {
+    unlist(lapply(row, layer_types))
+  }))
+  expect_equal(emitted, c("bar", "violin_box", "violin_kde"))
+
+  # ... and the plots that survive are still reachable
+  for (row in wrapper_middle$data$subplots) {
+    for (cell in row) {
+      for (layer in cell$layers) {
+        expect_selectors_resolve(wrapper_middle, layer)
+      }
+    }
+  }
+})

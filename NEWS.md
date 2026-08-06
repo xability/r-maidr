@@ -18,6 +18,12 @@
   last-added plot's data -- the same numbers announced in three places, only
   one of them reachable. Panels are now consumed per plot, so each is
   announced once, on its own panel.
+* ggplot2: a plot placed after an `inset_element()`, `free()` or
+  `wrap_elements()` in a patchwork is described again. Those wrappers put a
+  plot in a cell panel discovery does not recognise, so it contributes no
+  panel -- but it was still counted as occupying one, which pushed every
+  later plot onto somebody else's panel and the last of them off the end.
+  `patchwork::free(p1) | p2` announced nothing for `p2` at all.
 * ggplot2: one plot a processor cannot handle no longer aborts the whole
   patchwork. Rendering failed for the entire composition; now that panel is
   silent and the rest of the figure is still described.
