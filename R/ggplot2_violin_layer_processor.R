@@ -32,14 +32,35 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       }, logical(1)))
 
       if (!has_boxplot) {
-        plot <- plot + ggplot2::geom_boxplot(
+        # Never set an aesthetic the violin maps. ggplot2 derives `group` from
+        # the discrete aesthetics a layer actually carries, so pinning
+        # `fill = "white"` over an `aes(fill = ...)` drops fill from the box's
+        # grouping: a violin dodged into 12 groups gets 7 boxes, and reading
+        # statistics or selectors back by group pairs them with the wrong
+        # violins. Inheriting the aesthetic keeps the two layers in step.
+        mapping <- tryCatch(
+          self$get_effective_mapping(plot),
+          error = function(e) list()
+        )
+        mapped <- names(mapping)
+
+        args <- list(
           width = 0.1,
-          fill = "white",
-          color = "black",
           alpha = 0.9,
           outlier.shape = 16,
-          outlier.size = 1.5
+          outlier.size = 1.5,
+          # The box is far narrower than the violin, so it only lands inside
+          # its own violin if it dodges across the violin's width.
+          position = ggplot2::position_dodge(width = 0.9)
         )
+        if (!"fill" %in% mapped) {
+          args$fill <- "white"
+        }
+        if (!any(c("colour", "color") %in% mapped)) {
+          args$colour <- "black"
+        }
+
+        plot <- plot + do.call(ggplot2::geom_boxplot, args)
       }
       plot
     },
@@ -190,90 +211,91 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       is_horizontal <- isTRUE(layer_data$flipped_aes[1])
 
       # Get original data and mapping to compute real quartiles
-      original_data <- self$get_original_data(plot)
-      mapping <- self$get_effective_mapping(plot)
-
-      # Resolve the grouping (x) and value (y) variables
-      x_var <- tryCatch(rlang::as_label(mapping$x), error = function(e) NULL)
-      y_var <- tryCatch(rlang::as_label(mapping$y), error = function(e) NULL)
-
-      if (is_horizontal) {
-        cat_var <- y_var
-        val_var <- x_var
-      } else {
-        cat_var <- x_var
-        val_var <- y_var
-      }
-
-      # Map numeric positions to category labels
-      panel_params <- built$layout$panel_params[[1]]
-      category_labels <- self$get_category_labels(
-        panel_params, is_horizontal
-      )
-
       groups <- unique(layer_data$group)
-      cat_col <- if (is_horizontal) "y" else "x"
       val_col <- if (is_horizontal) "x" else "y"
-      group_cat_positions <- vapply(groups, function(g) {
-        rows <- layer_data[layer_data$group == g, ]
-        rows[[cat_col]][1]
-      }, numeric(1))
+      labels <- self$group_labels(built, layer_data, groups, is_horizontal)
+
+      # ggplot2's own stat_boxplot output, keyed by the same group ids the
+      # violin layer uses. The columns are named for the value axis, which
+      # flips with the plot.
+      stats_data <- self$boxplot_stats(plot, built)
+      if (is.null(stats_data)) {
+        # Caller handed us a plot that was never augmented. Build the boxplot
+        # ourselves rather than approximating: the KDE grid is the density's
+        # support, so quantiles of it describe the sampling grid, not the data.
+        stats_data <- tryCatch(
+          {
+            augmented <- self$augment_plot(plot)
+            self$boxplot_stats(augmented, ggplot2::ggplot_build(augmented))
+          },
+          error = function(e) NULL
+        )
+      }
+      stat_cols <- if (is_horizontal) {
+        c(min = "xmin", q1 = "xlower", q2 = "xmiddle", q3 = "xupper", max = "xmax")
+      } else {
+        c(min = "ymin", q1 = "lower", q2 = "middle", q3 = "upper", max = "ymax")
+      }
+      has_stats <- !is.null(stats_data) &&
+        all(stat_cols %in% names(stats_data))
 
       box_data <- vector("list", length(groups))
 
       for (i in seq_along(groups)) {
         g <- groups[i]
-        cat_pos <- group_cat_positions[i]
-
-        idx <- suppressWarnings(as.integer(round(cat_pos)))
-        fill_label <- if (!is.na(idx) && idx >= 1 &&
-              idx <= length(category_labels)) {
-          as.character(category_labels[idx])
+        summary <- if (has_stats) {
+          row <- stats_data[stats_data$group == g, , drop = FALSE]
+          if (nrow(row) > 0) {
+            outliers <- if ("outliers" %in% names(row)) {
+              as.numeric(unlist(row$outliers[1]))
+            } else {
+              numeric(0)
+            }
+            outliers <- outliers[!is.na(outliers)]
+            lo <- row[[stat_cols[["min"]]]][1]
+            hi <- row[[stat_cols[["max"]]]][1]
+            list(
+              min = lo,
+              q1 = row[[stat_cols[["q1"]]]][1],
+              q2 = row[[stat_cols[["q2"]]]][1],
+              q3 = row[[stat_cols[["q3"]]]][1],
+              max = hi,
+              lower_outliers = sort(outliers[outliers < lo]),
+              upper_outliers = sort(outliers[outliers > hi])
+            )
+          } else {
+            NULL
+          }
         } else {
-          as.character(cat_pos)
+          NULL
         }
 
-        # Get values for this group from original data. Column-first
-        # indexing: df[filter, col] on a tibble returns a 1-column tibble
-        # that as.numeric() cannot coerce.
-        if (!is.null(cat_var) && !is.null(val_var) &&
-              cat_var %in% names(original_data) &&
-              val_var %in% names(original_data)) {
-          group_vals <- original_data[[val_var]][
-            as.character(original_data[[cat_var]]) == fill_label
-          ]
-          group_vals <- as.numeric(group_vals)
-          group_vals <- group_vals[!is.na(group_vals)]
-        } else {
+        if (is.null(summary)) {
+          # Nothing authoritative for this group. Report the violin's own
+          # drawn extent and leave the quartiles at its midpoint rather than
+          # inventing numbers that look like quartiles but are not.
           rows <- layer_data[layer_data$group == g, ]
-          group_vals <- rows[[val_col]]
+          vals <- suppressWarnings(as.numeric(rows[[val_col]]))
+          vals <- vals[!is.na(vals)]
+          if (length(vals) == 0) {
+            vals <- 0
+          }
+          mid <- stats::median(vals)
+          summary <- list(
+            min = min(vals), q1 = mid, q2 = mid, q3 = mid, max = max(vals),
+            lower_outliers = numeric(0), upper_outliers = numeric(0)
+          )
         }
-
-        if (length(group_vals) == 0) {
-          group_vals <- 0
-        }
-
-        qs <- stats::quantile(group_vals, probs = c(0, 0.25, 0.5, 0.75, 1))
-
-        # Compute IQR-based whiskers (Tukey fences)
-        iqr <- qs[[4]] - qs[[2]]
-        lower_fence <- qs[[2]] - 1.5 * iqr
-        upper_fence <- qs[[4]] + 1.5 * iqr
-        whisker_min <- min(group_vals[group_vals >= lower_fence])
-        whisker_max <- max(group_vals[group_vals <= upper_fence])
-
-        lower_outliers <- as.list(sort(group_vals[group_vals < lower_fence]))
-        upper_outliers <- as.list(sort(group_vals[group_vals > upper_fence]))
 
         box_data[[i]] <- list(
-          z = fill_label,
-          lowerOutliers = lower_outliers,
-          min = unname(whisker_min),
-          q1 = unname(qs[[2]]),
-          q2 = unname(qs[[3]]),
-          q3 = unname(qs[[4]]),
-          max = unname(whisker_max),
-          upperOutliers = upper_outliers
+          z = labels[i],
+          lowerOutliers = as.list(unname(summary$lower_outliers)),
+          min = unname(summary$min),
+          q1 = unname(summary$q1),
+          q2 = unname(summary$q2),
+          q3 = unname(summary$q3),
+          max = unname(summary$max),
+          upperOutliers = as.list(unname(summary$upper_outliers))
         )
       }
 
@@ -297,37 +319,19 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       layer_data <- built$data[[layer_index]]
       is_horizontal <- isTRUE(layer_data$flipped_aes[1])
 
-      panel_params <- built$layout$panel_params[[1]]
-      category_labels <- self$get_category_labels(
-        panel_params, is_horizontal
-      )
-
-      cat_col <- if (is_horizontal) "y" else "x"
-      val_col <- if (is_horizontal) "x" else "y"
-
       groups <- unique(layer_data$group)
-      group_cat_positions <- vapply(groups, function(g) {
-        rows <- layer_data[layer_data$group == g, ]
-        rows[[cat_col]][1]
-      }, numeric(1))
+      # Same labelling as the box layer: the two describe the same violins and
+      # must announce them under the same names.
+      labels <- self$group_labels(built, layer_data, groups, is_horizontal)
 
       kde_data <- vector("list", length(groups))
 
       for (i in seq_along(groups)) {
         g <- groups[i]
         rows <- layer_data[layer_data$group == g, ]
-        cat_pos <- group_cat_positions[i]
-
-        idx <- suppressWarnings(as.integer(round(cat_pos)))
-        cat_label <- if (!is.na(idx) && idx >= 1 &&
-              idx <= length(category_labels)) {
-          as.character(category_labels[idx])
-        } else {
-          as.character(cat_pos)
-        }
 
         kde_data[[i]] <- self$simplify_violin_kde(
-          rows, cat_label, is_horizontal, max_kde_points
+          rows, labels[i], is_horizontal, max_kde_points
         )
       }
 
@@ -720,6 +724,140 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         return(as.character(pp_axis$breaks))
       }
       character(0)
+    },
+
+    #' @description Break labels of whichever panel axis holds the categories
+    #'
+    #' The categorical axis is the discrete one, which is not always the axis
+    #' the data is keyed on: `coord_flip()` leaves the data x-major while
+    #' moving the category labels to the y axis, so reading the axis off
+    #' `flipped_aes` alone returns the value axis' breaks and every violin is
+    #' labelled with a number.
+    #'
+    #' @param built Built plot data
+    #' @return Character vector of labels, or NULL when neither axis is
+    #'   discrete (a continuous category axis carries its value directly)
+    discrete_axis_labels = function(built) {
+      panel_params <- built$layout$panel_params[[1]]
+      for (axis_name in c("x", "y")) {
+        pp_axis <- panel_params[[axis_name]]
+        if (is.null(pp_axis)) {
+          next
+        }
+        is_discrete <- tryCatch(
+          isTRUE(pp_axis$is_discrete()),
+          error = function(e) FALSE
+        )
+        if (!is_discrete) {
+          next
+        }
+        labels <- tryCatch(pp_axis$get_labels(), error = function(e) NULL)
+        if (is.null(labels) || length(labels) == 0) {
+          labels <- pp_axis$labels
+        }
+        if (!is.null(labels) && length(labels) > 0) {
+          return(as.character(labels))
+        }
+      }
+      NULL
+    },
+
+    #' @description Map each mapped fill colour back to the level it came from
+    #'
+    #' Dodging splits one category into several violins that differ only by
+    #' fill, and they all round to the same category position. Without the
+    #' level, they are announced under one repeated name and cannot be told
+    #' apart.
+    #'
+    #' @param built Built plot data
+    #' @return Named character vector (colour -> level), or NULL when the plot
+    #'   has no fill scale
+    fill_levels_by_colour = function(built) {
+      scale <- tryCatch(
+        built$plot$scales$get_scales("fill"),
+        error = function(e) NULL
+      )
+      if (is.null(scale)) {
+        return(NULL)
+      }
+      levels <- tryCatch(scale$get_limits(), error = function(e) NULL)
+      if (is.null(levels) || length(levels) == 0) {
+        return(NULL)
+      }
+      colours <- tryCatch(scale$map(levels), error = function(e) NULL)
+      if (is.null(colours) || length(colours) != length(levels)) {
+        return(NULL)
+      }
+      stats::setNames(as.character(levels), as.character(colours))
+    },
+
+    #' @description Announceable label for each drawn violin
+    #'
+    #' @param built Built plot data
+    #' @param layer_data Built data for the violin layer
+    #' @param groups The layer's group ids, in emission order
+    #' @param is_horizontal Whether the value axis is x
+    #' @return Character vector of labels, one per group
+    group_labels = function(built, layer_data, groups, is_horizontal) {
+      category_labels <- self$discrete_axis_labels(built)
+      fill_levels <- self$fill_levels_by_colour(built)
+      cat_col <- if (is_horizontal) "y" else "x"
+
+      vapply(groups, function(g) {
+        rows <- layer_data[layer_data$group == g, ]
+        position <- rows[[cat_col]][1]
+
+        label <- if (!is.null(category_labels)) {
+          idx <- suppressWarnings(as.integer(round(position)))
+          if (!is.na(idx) && idx >= 1 && idx <= length(category_labels)) {
+            as.character(category_labels[idx])
+          } else {
+            as.character(position)
+          }
+        } else {
+          # Continuous category axis: the position IS the value, so indexing
+          # break labels with it would read off an unrelated tick.
+          format(position, trim = TRUE)
+        }
+
+        # Only qualify when dodging actually put more than one level on the
+        # axis, so an undodged violin keeps its plain category name.
+        if (!is.null(fill_levels) && length(fill_levels) > 1) {
+          colour <- as.character(rows$fill[1])
+          if (!is.na(colour) && colour %in% names(fill_levels)) {
+            label <- paste0(label, " - ", fill_levels[[colour]])
+          }
+        }
+        label
+      }, character(1), USE.NAMES = FALSE)
+    },
+
+    #' @description Box statistics ggplot2 itself computed for each group
+    #'
+    #' The processor injects a `geom_boxplot()` so the SVG has box elements to
+    #' highlight; that layer's `stat_boxplot` output is also the authoritative
+    #' source for the numbers to announce. Reading it keyed by `group` avoids
+    #' re-deriving quartiles from the original data via a rounded axis
+    #' position and a string match on the break label -- a round trip that
+    #' silently mislabels dodged violins and finds nothing at all under
+    #' `coord_flip()`.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @return data.frame of the boxplot layer's built data, or NULL
+    boxplot_stats = function(plot, built) {
+      idx <- self$find_boxplot_layer_index(plot)
+      if (is.null(idx) || idx > length(built$data)) {
+        return(NULL)
+      }
+      stats <- built$data[[idx]]
+      if (!is.data.frame(stats) || nrow(stats) == 0) {
+        return(NULL)
+      }
+      if (!"group" %in% names(stats)) {
+        return(NULL)
+      }
+      stats
     },
 
     #' @description Find the boxplot layer index in the augmented plot

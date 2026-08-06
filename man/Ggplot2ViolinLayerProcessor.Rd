@@ -37,6 +37,10 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.
 \item \href{#method-Ggplot2ViolinLayerProcessor-get_effective_mapping}{\code{Ggplot2ViolinLayerProcessor$get_effective_mapping()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-get_original_data}{\code{Ggplot2ViolinLayerProcessor$get_original_data()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-get_category_labels}{\code{Ggplot2ViolinLayerProcessor$get_category_labels()}}
+\item \href{#method-Ggplot2ViolinLayerProcessor-discrete_axis_labels}{\code{Ggplot2ViolinLayerProcessor$discrete_axis_labels()}}
+\item \href{#method-Ggplot2ViolinLayerProcessor-fill_levels_by_colour}{\code{Ggplot2ViolinLayerProcessor$fill_levels_by_colour()}}
+\item \href{#method-Ggplot2ViolinLayerProcessor-group_labels}{\code{Ggplot2ViolinLayerProcessor$group_labels()}}
+\item \href{#method-Ggplot2ViolinLayerProcessor-boxplot_stats}{\code{Ggplot2ViolinLayerProcessor$boxplot_stats()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-find_boxplot_layer_index}{\code{Ggplot2ViolinLayerProcessor$find_boxplot_layer_index()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-find_panel_grob}{\code{Ggplot2ViolinLayerProcessor$find_panel_grob()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-find_grob_ids}{\code{Ggplot2ViolinLayerProcessor$find_grob_ids()}}
@@ -345,6 +349,120 @@ Get category labels from panel params
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$get_category_labels(panel_params, is_horizontal)}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-discrete_axis_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-discrete_axis_labels}{}}}
+\subsection{Method \code{discrete_axis_labels()}}{
+Break labels of whichever panel axis holds the categories
+
+The categorical axis is the discrete one, which is not always the axis
+the data is keyed on: `coord_flip()` leaves the data x-major while
+moving the category labels to the y axis, so reading the axis off
+`flipped_aes` alone returns the value axis' breaks and every violin is
+labelled with a number.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$discrete_axis_labels(built)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of labels, or NULL when neither axis is
+  discrete (a continuous category axis carries its value directly)
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-fill_levels_by_colour"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-fill_levels_by_colour}{}}}
+\subsection{Method \code{fill_levels_by_colour()}}{
+Map each mapped fill colour back to the level it came from
+
+Dodging splits one category into several violins that differ only by
+fill, and they all round to the same category position. Without the
+level, they are announced under one repeated name and cannot be told
+apart.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$fill_levels_by_colour(built)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Named character vector (colour -> level), or NULL when the plot
+  has no fill scale
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-group_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-group_labels}{}}}
+\subsection{Method \code{group_labels()}}{
+Announceable label for each drawn violin
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$group_labels(
+  built,
+  layer_data,
+  groups,
+  is_horizontal
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+
+\item{\code{layer_data}}{Built data for the violin layer}
+
+\item{\code{groups}}{The layer's group ids, in emission order}
+
+\item{\code{is_horizontal}}{Whether the value axis is x}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of labels, one per group
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-boxplot_stats"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-boxplot_stats}{}}}
+\subsection{Method \code{boxplot_stats()}}{
+Box statistics ggplot2 itself computed for each group
+
+The processor injects a `geom_boxplot()` so the SVG has box elements to
+highlight; that layer's `stat_boxplot` output is also the authoritative
+source for the numbers to announce. Reading it keyed by `group` avoids
+re-deriving quartiles from the original data via a rounded axis
+position and a string match on the break label -- a round trip that
+silently mislabels dodged violins and finds nothing at all under
+`coord_flip()`.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$boxplot_stats(plot, built)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+data.frame of the boxplot layer's built data, or NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-find_boxplot_layer_index"></a>}}

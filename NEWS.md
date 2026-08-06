@@ -18,6 +18,16 @@
   last-added plot's data -- the same numbers announced in three places, only
   one of them reachable. Panels are now consumed per plot, so each is
   announced once, on its own panel.
+* ggplot2: the box statistics of a violin plot now describe the group they
+  are announced with. The quartiles were recomputed from the drawn geometry
+  rather than read from ggplot2's own `stat_boxplot` output, so a violin
+  split by `fill` announced one set of class-wide numbers over every one of
+  its dodged violins -- `aes(class, hwy, fill = drv)` emitted 7 labels for
+  12 violins, each repeated. A `coord_flip()` violin read its labels off the
+  vertical axis, which is now the continuous one, and reported every
+  quartile as 0. A violin on a continuous axis matched labels by position
+  index, announcing a `7` for `cyl` that no car has. All three now report
+  each group's own quartiles under its own label, dodged violins included.
 * ggplot2: a plot placed after an `inset_element()`, `free()` or
   `wrap_elements()` in a patchwork is described again. Those wrappers put a
   plot in a cell panel discovery does not recognise, so it contributes no
