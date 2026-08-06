@@ -376,10 +376,14 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       left_x <- left_x[valid]
       right_x <- right_x[valid]
       widths_data <- widths_data[valid]
-      # Give zero-width tips a tiny positive width so they survive.
-      # `geom_violin(width = 0)` makes EVERY width zero, leaving nothing
-      # positive to scale from -- min() of an empty vector is Inf, and the
-      # comparison below is then NA, which aborts the whole render.
+      # Widen the zero-width tips of an otherwise normal violin, scaling the
+      # nudge from the narrowest real width so it stays proportionate.
+      #
+      # `geom_violin(width = 0)` has no real width to scale from: every width
+      # is zero, so this vector is empty, min() returns Inf with a warning and
+      # the comparison below is NA, which aborts the render. Skip widening
+      # entirely in that case -- a violin with no envelope has nothing to
+      # widen, and the extrema kept above are exactly what ggplot2 draws.
       positive_widths <- widths_data[widths_data > 0]
       if (any(widths_data <= 0) && length(positive_widths) > 0) {
         min_w <- min(positive_widths, na.rm = TRUE)
