@@ -419,9 +419,7 @@ test_that("a leaf a processor cannot handle does not abort the composition", {
     add = TRUE
   )
 
-  expect_no_error({
-    payload <- render_payload_uncached(violin_plot() | bar_plot())
-  })
+  payload <- expect_no_error(render_payload_uncached(violin_plot() | bar_plot()))
   # The healthy leaf is still described; only the failing one goes quiet.
   expect_equal(layer_types(payload$data$subplots[[1]][[2]]), "bar")
   expect_length(payload$data$subplots[[1]][[1]]$layers, 0)
@@ -437,9 +435,7 @@ test_that("a degenerate violin renders instead of aborting", {
     ggplot2::geom_violin(width = 0)
 
   expect_no_error(render_payload_uncached(degenerate))
-  expect_no_error({
-    payload <- render_payload_uncached(degenerate | bar_plot())
-  })
+  payload <- expect_no_error(render_payload_uncached(degenerate | bar_plot()))
   expect_equal(layer_types(payload$data$subplots[[1]][[2]]), "bar")
 })
 
