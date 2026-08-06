@@ -439,7 +439,12 @@ iq, q2, max, lowerOutliers, upperOutliers.</p>
 
 <div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">generate_box_selectors</span><span class="op">(</span><span class="va">plot</span>, <span class="va">gt</span>, <span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">generate_box_selectors</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  <span class="va">gt</span>,</span>
+<span>  <span class="va">built</span>,</span>
+<span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -456,6 +461,10 @@ iq, q2, max, lowerOutliers, upperOutliers.</p>
 <dd><p>Built plot data</p></dd>
 
 
+<dt><code>panel_ctx</code></dt>
+<dd><p>Panel context (for patchwork leaves)</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
@@ -464,14 +473,7 @@ iq, q2, max, lowerOutliers, upperOutliers.</p>
 Determine orientation from built data
 Get the effective mapping (layer mapping merged with plot mapping)
 Get original data used by this layer
-Get category labels from panel params
-Find the boxplot layer index in the augmented plot
-Find the main panel grob
-Recursively find all grob IDs matching a pattern
-Find direct children of a named parent matching a pattern
-Find a grob by its name (recursive)
-Find the first descendant matching a pattern under a named parent
-Find all descendants matching a pattern under a named parent</p>
+Get category labels from panel params</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-determine_orientation"></a><div class="section">
@@ -512,66 +514,180 @@ Find all descendants matching a pattern under a named parent</p>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_boxplot_layer_index"></a><div class="section">
 <h3 id="method-find-boxplot-layer-index-">Method <code>find_boxplot_layer_index()</code><a class="anchor" aria-label="anchor" href="#method-find-boxplot-layer-index-"></a></h3>
-
-<div class="section">
+<p>Find the boxplot layer index in the augmented plot</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_boxplot_layer_index</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>Integer index of the boxplot layer, or NULL</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_panel_grob"></a><div class="section">
 <h3 id="method-find-panel-grob-">Method <code><a href="find_panel_grob.html">find_panel_grob()</a></code><a class="anchor" aria-label="anchor" href="#method-find-panel-grob-"></a></h3>
-
-<div class="section">
+<p>Find the panel grob this layer draws into</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_panel_grob</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_panel_grob</span><span class="op">(</span><span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>gt</code></dt>
+<dd><p>Gtable object</p></dd>
+
+
+<dt><code>panel_ctx</code></dt>
+<dd><p>Panel context for patchwork leaves; NULL for a
+single plot, where the panel is the cell literally named "panel"</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>The panel gTree, or NULL when it cannot be resolved</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_grob_ids"></a><div class="section">
 <h3 id="method-find-grob-ids-">Method <code>find_grob_ids()</code><a class="anchor" aria-label="anchor" href="#method-find-grob-ids-"></a></h3>
-
-<div class="section">
+<p>Recursively find all grob IDs matching a pattern</p><div class="section">
 <h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_grob_ids</span><span class="op">(</span><span class="va">grob</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>Grob tree to search</p></dd>
+
+
+<dt><code>pattern</code></dt>
+<dd><p>Regular expression matched against grob names</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>Character vector of unique matching grob names</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_direct_children"></a><div class="section">
 <h3 id="method-find-direct-children-">Method <code>find_direct_children()</code><a class="anchor" aria-label="anchor" href="#method-find-direct-children-"></a></h3>
-
-<div class="section">
+<p>Find direct children of a named parent matching a pattern</p><div class="section">
 <h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_direct_children</span><span class="op">(</span><span class="va">grob</span>, <span class="va">parent_id</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>Grob tree to search</p></dd>
+
+
+<dt><code>parent_id</code></dt>
+<dd><p>Name of the parent grob</p></dd>
+
+
+<dt><code>pattern</code></dt>
+<dd><p>Regular expression matched against child names</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>Character vector of matching child names</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_grob_by_id"></a><div class="section">
 <h3 id="method-find-grob-by-id-">Method <code>find_grob_by_id()</code><a class="anchor" aria-label="anchor" href="#method-find-grob-by-id-"></a></h3>
-
-<div class="section">
+<p>Find a grob by its name (recursive)</p><div class="section">
 <h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_grob_by_id</span><span class="op">(</span><span class="va">grob</span>, <span class="va">target_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>Grob tree to search</p></dd>
+
+
+<dt><code>target_id</code></dt>
+<dd><p>Name of the grob to find</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>The matching grob, or NULL</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_desc_by_pattern"></a><div class="section">
 <h3 id="method-find-desc-by-pattern-">Method <code>find_desc_by_pattern()</code><a class="anchor" aria-label="anchor" href="#method-find-desc-by-pattern-"></a></h3>
-
-<div class="section">
+<p>Find the first descendant matching a pattern under a named parent</p><div class="section">
 <h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_desc_by_pattern</span><span class="op">(</span><span class="va">grob</span>, <span class="va">parent_id</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>Grob tree to search</p></dd>
+
+
+<dt><code>parent_id</code></dt>
+<dd><p>Name of the parent grob</p></dd>
+
+
+<dt><code>pattern</code></dt>
+<dd><p>Regular expression matched against descendant names</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>The first matching name, or NULL</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-find_all_desc_by_pattern"></a><div class="section">
 <h3 id="method-find-all-desc-by-pattern-">Method <code>find_all_desc_by_pattern()</code><a class="anchor" aria-label="anchor" href="#method-find-all-desc-by-pattern-"></a></h3>
-
-<div class="section">
+<p>Find all descendants matching a pattern under a named parent</p><div class="section">
 <h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">find_all_desc_by_pattern</span><span class="op">(</span><span class="va">grob</span>, <span class="va">parent_id</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>Grob tree to search</p></dd>
+
+
+<dt><code>parent_id</code></dt>
+<dd><p>Name of the parent grob</p></dd>
+
+
+<dt><code>pattern</code></dt>
+<dd><p>Regular expression matched against descendant names</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<p>Character vector of matching descendant names</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
@@ -581,7 +697,7 @@ Find all descendants matching a pattern under a named parent</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

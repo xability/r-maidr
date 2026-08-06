@@ -323,7 +323,12 @@ lowerOutliers, upperOutliers.
 
 #### Usage
 
-    Ggplot2ViolinLayerProcessor$generate_box_selectors(plot, gt, built)
+    Ggplot2ViolinLayerProcessor$generate_box_selectors(
+      plot,
+      gt,
+      built,
+      panel_ctx = NULL
+    )
 
 #### Arguments
 
@@ -339,16 +344,15 @@ lowerOutliers, upperOutliers.
 
   Built plot data
 
+- `panel_ctx`:
+
+  Panel context (for patchwork leaves)
+
 #### Returns
 
 List of BoxSelector objects Determine orientation from built data Get
 the effective mapping (layer mapping merged with plot mapping) Get
 original data used by this layer Get category labels from panel params
-Find the boxplot layer index in the augmented plot Find the main panel
-grob Recursively find all grob IDs matching a pattern Find direct
-children of a named parent matching a pattern Find a grob by its name
-(recursive) Find the first descendant matching a pattern under a named
-parent Find all descendants matching a pattern under a named parent
 
 ------------------------------------------------------------------------
 
@@ -386,57 +390,178 @@ parent Find all descendants matching a pattern under a named parent
 
 ### Method `find_boxplot_layer_index()`
 
+Find the boxplot layer index in the augmented plot
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$find_boxplot_layer_index(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+Integer index of the boxplot layer, or NULL
 
 ------------------------------------------------------------------------
 
 ### Method [`find_panel_grob()`](https://r.maidr.ai/reference/find_panel_grob.md)
 
+Find the panel grob this layer draws into
+
 #### Usage
 
-    Ggplot2ViolinLayerProcessor$find_panel_grob(gt)
+    Ggplot2ViolinLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)
+
+#### Arguments
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for patchwork leaves; NULL for a single plot, where the
+  panel is the cell literally named "panel"
+
+#### Returns
+
+The panel gTree, or NULL when it cannot be resolved
 
 ------------------------------------------------------------------------
 
 ### Method `find_grob_ids()`
 
+Recursively find all grob IDs matching a pattern
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$find_grob_ids(grob, pattern)
+
+#### Arguments
+
+- `grob`:
+
+  Grob tree to search
+
+- `pattern`:
+
+  Regular expression matched against grob names
+
+#### Returns
+
+Character vector of unique matching grob names
 
 ------------------------------------------------------------------------
 
 ### Method `find_direct_children()`
 
+Find direct children of a named parent matching a pattern
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$find_direct_children(grob, parent_id, pattern)
+
+#### Arguments
+
+- `grob`:
+
+  Grob tree to search
+
+- `parent_id`:
+
+  Name of the parent grob
+
+- `pattern`:
+
+  Regular expression matched against child names
+
+#### Returns
+
+Character vector of matching child names
 
 ------------------------------------------------------------------------
 
 ### Method `find_grob_by_id()`
 
+Find a grob by its name (recursive)
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$find_grob_by_id(grob, target_id)
+
+#### Arguments
+
+- `grob`:
+
+  Grob tree to search
+
+- `target_id`:
+
+  Name of the grob to find
+
+#### Returns
+
+The matching grob, or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `find_desc_by_pattern()`
 
+Find the first descendant matching a pattern under a named parent
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$find_desc_by_pattern(grob, parent_id, pattern)
+
+#### Arguments
+
+- `grob`:
+
+  Grob tree to search
+
+- `parent_id`:
+
+  Name of the parent grob
+
+- `pattern`:
+
+  Regular expression matched against descendant names
+
+#### Returns
+
+The first matching name, or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `find_all_desc_by_pattern()`
 
+Find all descendants matching a pattern under a named parent
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$find_all_desc_by_pattern(grob, parent_id, pattern)
+
+#### Arguments
+
+- `grob`:
+
+  Grob tree to search
+
+- `parent_id`:
+
+  Name of the parent grob
+
+- `pattern`:
+
+  Regular expression matched against descendant names
+
+#### Returns
+
+Character vector of matching descendant names
 
 ------------------------------------------------------------------------
 

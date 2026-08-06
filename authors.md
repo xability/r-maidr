@@ -2,9 +2,9 @@
 
 ## Authors
 
-- **JooYoung Seo**. Author, copyright holder.
+- **JooYoung Seo**. Author, copyright holder, maintainer.
 
-- **Niranjan Kalaiselvan**. Author, maintainer.
+- **Niranjan Kalaiselvan**. Author.
 
 ## Citation
 

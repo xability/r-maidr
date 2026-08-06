@@ -52,6 +52,8 @@
 <url><loc>https://r.maidr.ai/reference/apply_scale_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/as_axis_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/attach_axis_format.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/augment_leaf_plot.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/augment_patchwork_leaves.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/axes_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base-r-wrappers.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_axes.html</loc></url>
@@ -66,9 +68,11 @@
 <url><loc>https://r.maidr.ai/reference/close_maidr_temp_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/collapse_lines_to_multiseries.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/collect_candlestick_layers.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/collect_gtable_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_selectors.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/compute_panel_slots.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/count_leaf_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_axis_wrapper.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_barplot_wrapper.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_enhanced_svg.html</loc></url>
@@ -105,6 +109,7 @@
 <url><loc>https://r.maidr.ai/reference/extract_scale_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_children_by_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_graphics_plot_grob.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/find_gtable_panel_grob.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_original_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_panel_grob.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_patchwork_panels.html</loc></url>
@@ -160,6 +165,7 @@
 <url><loc>https://r.maidr.ai/reference/is_patching_active.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_patching_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_volume_only_bar_panel.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_wrapped_leaf.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>

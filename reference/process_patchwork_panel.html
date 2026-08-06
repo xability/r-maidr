@@ -141,7 +141,8 @@
 <span>  <span class="va">row</span>,</span>
 <span>  <span class="va">col</span>,</span>
 <span>  <span class="va">layout</span>,</span>
-<span>  <span class="va">gtable</span></span>
+<span>  <span class="va">gtable</span>,</span>
+<span>  n_original_layers <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -175,6 +176,12 @@
 
 <dt id="arg-gtable">gtable<a class="anchor" aria-label="anchor" href="#arg-gtable"></a></dt>
 <dd><p>Gtable object</p></dd>
+
+
+<dt id="arg-n-original-layers">n_original_layers<a class="anchor" aria-label="anchor" href="#arg-n-original-layers"></a></dt>
+<dd><p>Number of layers the user actually wrote. Defaults
+to every layer of `leaf_plot`; pass the un-augmented count so injected
+geoms (violin's boxplot) do not emit a maidr layer of their own.</p></dd>
 
 </dl></div>
     <div class="section level2">
