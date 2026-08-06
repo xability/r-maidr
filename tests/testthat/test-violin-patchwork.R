@@ -403,16 +403,44 @@ test_that("a faceted sibling does not cost the other plot its selectors", {
 test_that("a leaf a processor cannot handle does not abort the composition", {
   skip_if_no_patchwork()
 
-  # geom_violin(width = 0) errors inside the violin processor; the rest of
-  # the figure must still render and describe itself.
+  # Force the violin processor to fail for this render only. `width = 0` used
+  # to be a natural trigger; now that it is fixed, the isolation guarantee
+  # still needs exercising, so make the failure explicitly.
+  original <- Ggplot2ViolinLayerProcessor$public_methods$process
+  Ggplot2ViolinLayerProcessor$set(
+    "public", "process",
+    function(...) stop("processor blew up"),
+    overwrite = TRUE
+  )
+  on.exit(
+    Ggplot2ViolinLayerProcessor$set(
+      "public", "process", original, overwrite = TRUE
+    ),
+    add = TRUE
+  )
+
+  expect_no_error({
+    payload <- render_payload_uncached(violin_plot() | bar_plot())
+  })
+  # The healthy leaf is still described; only the failing one goes quiet.
+  expect_equal(layer_types(payload$data$subplots[[1]][[2]]), "bar")
+  expect_length(payload$data$subplots[[1]][[1]]$layers, 0)
+})
+
+test_that("a degenerate violin renders instead of aborting", {
+  skip_if_no_patchwork()
+
+  # geom_violin(width = 0) leaves every KDE width at zero, which used to make
+  # the tip-widening step compute min() of an empty vector and abort the
+  # whole render (issue #65).
   degenerate <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
     ggplot2::geom_violin(width = 0)
 
+  expect_no_error(render_payload_uncached(degenerate))
   expect_no_error({
-    payload <- render_payload(degenerate | bar_plot())
+    payload <- render_payload_uncached(degenerate | bar_plot())
   })
   expect_equal(layer_types(payload$data$subplots[[1]][[2]]), "bar")
-  expect_length(payload$data$subplots[[1]][[1]]$layers, 0)
 })
 
 test_that("a patchwork violin payload matches the standalone one", {

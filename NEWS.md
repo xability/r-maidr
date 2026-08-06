@@ -28,6 +28,10 @@
   quartile as 0. A violin on a continuous axis matched labels by position
   index, announcing a `7` for `cyl` that no car has. All three now report
   each group's own quartiles under its own label, dodged violins included.
+* ggplot2: `geom_violin(width = 0)` no longer errors out of rendering with
+  "missing value where TRUE/FALSE needed". A violin drawn with no width has
+  nothing to scale the density against; it now renders, and any positive
+  widths in the same layer still scale normally.
 * ggplot2: a plot placed after an `inset_element()`, `free()` or
   `wrap_elements()` in a patchwork is described again. Those wrappers put a
   plot in a cell panel discovery does not recognise, so it contributes no
