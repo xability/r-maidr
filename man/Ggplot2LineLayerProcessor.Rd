@@ -378,7 +378,10 @@ plot that also contains a `geom_step()`.
 
 Tagged with `@description` rather than left as bare prose because an
 untagged method title is folded into the class block, where
-`@keywords internal` splits it into one bogus `\keyword{}` per word.
+`@keywords internal` splits it into one bogus keyword entry per word.
+(Spelling that Rd macro out literally here would itself emit an
+`unexpected section header` warning, since roxygen copies this prose
+verbatim into a subsection of the generated Rd file.)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}\if{html}{\out{</div>}}
 }
