@@ -11,7 +11,8 @@ process_patchwork_panel(
   row,
   col,
   layout,
-  gtable
+  gtable,
+  n_original_layers = NULL
 )
 }
 \arguments{
@@ -28,6 +29,10 @@ process_patchwork_panel(
 \item{layout}{Layout information}
 
 \item{gtable}{Gtable object}
+
+\item{n_original_layers}{Number of layers the user actually wrote. Defaults
+to every layer of `leaf_plot`; pass the un-augmented count so injected
+geoms (violin's boxplot) do not emit a maidr layer of their own.}
 }
 \value{
 Processed panel data
