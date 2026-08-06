@@ -439,3 +439,17 @@ test_that("a patchwork violin payload matches the standalone one", {
   box <- composed$data$subplots[[1]][[1]]$layers[[1]]
   expect_selectors_resolve(composed, box)
 })
+
+test_that("a wrapped element beside a violin does not shift its coordinates", {
+  skip_if_no_patchwork()
+
+  # wrap_elements() contributes a cell literally named "panel" to the
+  # gtable. The panel list a violin's `.panel_index` refers to must be
+  # filtered the same way the index was minted, or every violin after that
+  # cell maps its highlight coordinates through the wrong panel.
+  payload <- render_payload(violin_plot() | patchwork::wrap_elements(full = bar_plot()))
+
+  cell <- payload$data$subplots[[1]][[1]]
+  expect_equal(layer_types(cell), c("violin_box", "violin_kde"))
+  expect_kde_coords_on_own_violin(payload, cell$layers[[2]])
+})
