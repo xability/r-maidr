@@ -8,6 +8,19 @@
   `print.ggplot`, and has never been true for Base R: those plots are
   recorded to a hidden device and wait for an explicit `show()`. The message
   now says which is which.
+* Asset loading: the internet probe is no longer cached for the whole
+  session. It was probed once and never re-checked, so the first answer
+  decided CDN-versus-inline for the life of the process -- a transient
+  failure inlined the bundle into every later document, and a machine that
+  went offline after a successful probe kept emitting CDN references, leaving
+  plots dead in the browser exactly when the user could not debug them. The
+  result now expires after five minutes, which still costs one probe per
+  render rather than one per plot.
+* knitr: turning interception off mid-document no longer leaves recorded Base
+  R calls behind. The hook returned early when interception was disabled
+  without clearing the device, unlike the sibling branch for non-HTML output,
+  so a document that plotted, called `maidr_off()`, then called `maidr_on()`
+  again folded the earlier calls into the next render as phantom layers.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped
