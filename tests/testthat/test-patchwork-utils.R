@@ -678,3 +678,103 @@ test_that("find_gtable_panel_grob declines rather than guessing a panel", {
     is.null(maidr:::find_gtable_panel_grob(gt, list(panel_index = 2)))
   )
 })
+
+# ==============================================================================
+# Axis number formatting on patchwork leaves (issue #66)
+# ==============================================================================
+
+test_that("a patchwork leaf keeps the axis format of its own scales", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("scales")
+
+  df <- data.frame(g = c("a", "b", "c"), v = c(10, 20, 30))
+  money <- ggplot2::ggplot(df, ggplot2::aes(g, v)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar()) +
+    ggplot2::labs(x = "Group", y = "Revenue")
+  plain <- ggplot2::ggplot(df, ggplot2::aes(g, v)) + ggplot2::geom_col()
+
+  gt <- patchwork::patchworkGrob(money | plain)
+  panel <- maidr:::process_patchwork_panel(
+    money, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt
+  )
+
+  testthat::expect_equal(
+    panel$layers[[1]]$axes$y$format,
+    list(type = "currency", currency = "USD", decimals = 2L, locale = "en-US")
+  )
+  testthat::expect_null(panel$layers[[1]]$axes$x$format)
+})
+
+test_that("each patchwork leaf gets its own format, not the composition's", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("scales")
+
+  df <- data.frame(g = c("a", "b", "c"), v = c(10, 20, 30))
+  money <- ggplot2::ggplot(df, ggplot2::aes(g, v)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar())
+  share <- ggplot2::ggplot(df, ggplot2::aes(g, v / 100)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_percent())
+
+  grid <- maidr:::process_patchwork_plot_data(
+    money | share,
+    list(title = "", axes = list()),
+    patchwork::patchworkGrob(money | share)
+  )
+
+  testthat::expect_equal(
+    grid[[1]][[1]]$layers[[1]]$axes$y$format$type, "currency"
+  )
+  testthat::expect_equal(
+    grid[[1]][[2]]$layers[[1]]$axes$y$format$type, "percent"
+  )
+})
+
+test_that("a patchwork leaf's axes match the same plot rendered standalone", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("scales")
+
+  df <- data.frame(g = c("a", "b", "c"), v = c(10, 20, 30))
+  money <- ggplot2::ggplot(df, ggplot2::aes(g, v)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar()) +
+    ggplot2::labs(x = "Group", y = "Revenue")
+
+  standalone <- maidr:::Ggplot2PlotOrchestrator$new(money)
+  solo_axes <- standalone$get_combined_data()[[1]][[1]]$layers[[1]]$axes
+
+  gt <- patchwork::patchworkGrob(money | money)
+  panel <- maidr:::process_patchwork_panel(
+    money, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt
+  )
+
+  testthat::expect_equal(panel$layers[[1]]$axes, solo_axes)
+})
+
+test_that("patchwork layer axes satisfy the canonical axes contract", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  bars <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()
+  points <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()
+
+  grid <- maidr:::process_patchwork_plot_data(
+    bars | points,
+    list(title = "", axes = list()),
+    patchwork::patchworkGrob(bars | points)
+  )
+
+  for (row in grid) {
+    for (cell in row) {
+      for (layer in cell$layers) {
+        testthat::expect_true(all(names(layer$axes) %in% c("x", "y", "z")))
+        testthat::expect_silent(maidr:::validate_axes(layer$axes))
+      }
+    }
+  }
+})
