@@ -4,7 +4,14 @@
 # is wired for ggplot2 through print.ggplot, while Base R plots are recorded
 # and wait for an explicit show() (issue #53).
 
-startup_message <- function() {
+# Set the option rather than inheriting it. `maidr.startup_message = FALSE`
+# suppresses the message entirely, so a test that took the ambient value would
+# quietly compare its expectations against "" if anything upstream had turned
+# it off.
+startup_message <- function(enabled = TRUE) {
+  previous <- options(maidr.startup_message = enabled)
+  on.exit(options(previous), add = TRUE)
+
   paste(
     utils::capture.output(
       maidr:::.onAttach("lib", "maidr"),
@@ -36,11 +43,18 @@ test_that("the startup message still documents how to turn interception off", {
 })
 
 test_that("the startup message honours maidr.startup_message", {
-  withr_option <- getOption("maidr.startup_message")
-  on.exit(options(maidr.startup_message = withr_option), add = TRUE)
+  testthat::expect_identical(startup_message(enabled = FALSE), "")
+})
 
-  options(maidr.startup_message = FALSE)
-  testthat::expect_identical(startup_message(), "")
+test_that("reading the message leaves maidr.startup_message as it found it", {
+  for (ambient in list(TRUE, FALSE, NULL)) {
+    options(maidr.startup_message = ambient)
+    invisible(startup_message())
+    invisible(startup_message(enabled = FALSE))
+    testthat::expect_identical(getOption("maidr.startup_message"), ambient)
+  }
+
+  options(maidr.startup_message = TRUE)
 })
 
 # Note: that Base R auto-display is genuinely unwired -- schedule_auto_show()
