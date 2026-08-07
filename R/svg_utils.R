@@ -1028,11 +1028,13 @@ display_html_file <- function(file) {
 create_standalone_html <- function(svg_content, use_cdn = NULL) {
   svg_html <- paste(svg_content, collapse = "\n")
 
-  # Auto-detect with a session-cached probe. CDN (pinned to the bundled
+  # Auto-detect with a time-boxed cached probe. CDN (pinned to the bundled
   # version) keeps documents small: inlining the multi-megabyte bundle
   # into every iframe balloons multi-plot RMarkdown documents by tens of
   # megabytes. The cache avoids the previous per-plot has_internet()
-  # probe, which could block for seconds per plot on offline machines.
+  # probe, which could block for seconds per plot on offline machines,
+  # while its TTL keeps a stale answer from outliving the connectivity
+  # it described.
   if (is.null(use_cdn)) {
     use_cdn <- maidr_internet_available()
   }
