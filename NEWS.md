@@ -2,6 +2,14 @@
 
 ## Bug Fixes
 
+* Asset loading: the internet probe is no longer cached for the whole
+  session. It was probed once and never re-checked, so the first answer
+  decided CDN-versus-inline for the life of the process -- a transient
+  failure inlined the bundle into every later document, and a machine that
+  went offline after a successful probe kept emitting CDN references, leaving
+  plots dead in the browser exactly when the user could not debug them. The
+  result now expires after five minutes, which still costs one probe per
+  render rather than one per plot.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped
