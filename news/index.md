@@ -4,6 +4,15 @@
 
 ### Bug Fixes
 
+- The startup message no longer promises something the package does not
+  do. It told every user, on every
+  [`library(maidr)`](https://github.com/xability/r-maidr), that plots
+  are displayed in the interactive viewer by default. That is true for
+  ggplot2, which hooks `print.ggplot`, and has never been true for Base
+  R: those plots are recorded to a hidden device and wait for an
+  explicit [`show()`](https://r.maidr.ai/reference/show.md). The message
+  now says which is which.
+
 - Asset loading: the internet probe is no longer cached for the whole
   session. It was probed once and never re-checked, so the first answer
   decided CDN-versus-inline for the life of the process – a transient
