@@ -35,8 +35,6 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.
 \item \href{#method-Ggplot2ViolinLayerProcessor-generate_box_selectors}{\code{Ggplot2ViolinLayerProcessor$generate_box_selectors()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-determine_orientation}{\code{Ggplot2ViolinLayerProcessor$determine_orientation()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-get_effective_mapping}{\code{Ggplot2ViolinLayerProcessor$get_effective_mapping()}}
-\item \href{#method-Ggplot2ViolinLayerProcessor-get_original_data}{\code{Ggplot2ViolinLayerProcessor$get_original_data()}}
-\item \href{#method-Ggplot2ViolinLayerProcessor-get_category_labels}{\code{Ggplot2ViolinLayerProcessor$get_category_labels()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-discrete_axis_labels}{\code{Ggplot2ViolinLayerProcessor$discrete_axis_labels()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-fill_levels_by_colour}{\code{Ggplot2ViolinLayerProcessor$fill_levels_by_colour()}}
 \item \href{#method-Ggplot2ViolinLayerProcessor-group_labels}{\code{Ggplot2ViolinLayerProcessor$group_labels()}}
@@ -346,27 +344,7 @@ the two layers.
 }
 \subsection{Returns}{
 Named list of quosures, one per mapped aesthetic
-Get original data used by this layer
-Get category labels from panel params
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-get_original_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-get_original_data}{}}}
-\subsection{Method \code{get_original_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$get_original_data(plot)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-get_category_labels"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-get_category_labels}{}}}
-\subsection{Method \code{get_category_labels()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$get_category_labels(panel_params, is_horizontal)}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-discrete_axis_labels"></a>}}

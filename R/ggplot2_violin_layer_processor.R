@@ -739,32 +739,6 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' Get original data used by this layer
-    get_original_data = function(plot) {
-      layer_index <- self$get_layer_index()
-      layer <- plot$layers[[layer_index]]
-      if (!is.null(layer$data) && is.data.frame(layer$data) &&
-            nrow(layer$data) > 0) {
-        return(layer$data)
-      }
-      if (is.data.frame(plot$data)) {
-        return(plot$data)
-      }
-      data.frame()
-    },
-
-    #' Get category labels from panel params
-    get_category_labels = function(panel_params, is_horizontal) {
-      pp_axis <- if (is_horizontal) panel_params$y else panel_params$x
-      if (!is.null(pp_axis$labels) && length(pp_axis$labels) > 0) {
-        return(as.character(pp_axis$labels))
-      }
-      if (!is.null(pp_axis$breaks) && length(pp_axis$breaks) > 0) {
-        return(as.character(pp_axis$breaks))
-      }
-      character(0)
-    },
-
     #' @description Break labels of whichever panel axis holds the categories
     #'
     #' The categorical axis is the discrete one, which is not always the axis
