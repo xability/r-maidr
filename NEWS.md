@@ -2,6 +2,12 @@
 
 ## Bug Fixes
 
+* The startup message no longer promises something the package does not do.
+  It told every user, on every `library(maidr)`, that plots are displayed in
+  the interactive viewer by default. That is true for ggplot2, which hooks
+  `print.ggplot`, and has never been true for Base R: those plots are
+  recorded to a hidden device and wait for an explicit `show()`. The message
+  now says which is which.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped

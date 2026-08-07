@@ -114,7 +114,8 @@ initialize_ggplot2_system <- function() {
 
   packageStartupMessage(
     "maidr ", utils::packageVersion(pkgname), " loaded\n",
-    "- Plots are displayed in the maidr interactive viewer by default\n",
+    "- ggplot2 plots open in the maidr interactive viewer automatically\n",
+    "- Base R plots are recorded; call show() to open the viewer\n",
     "- Use maidr_off() to disable interception\n",
     "- Use options(maidr.auto_show = FALSE) to disable permanently\n",
     "- See ?maidr_off for more details"
