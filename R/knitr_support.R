@@ -304,8 +304,12 @@ create_maidr_widget_internal <- function(plot = NULL) {
 maidr_plot_hook <- function(x, options) {
   device_id <- grDevices::dev.cur()
 
-  # Honour maidr_off(): behave exactly like the original hook
+  # Honour maidr_off(): behave exactly like the original hook. Drop anything
+  # already recorded on this device first - otherwise calls captured before
+  # interception was disabled survive, and a later maidr_on() folds them into
+  # the next render as phantom layers.
   if (!is_base_r_enabled()) {
+    clear_device_storage(device_id)
     return(call_original_plot_hook(x, options))
   }
 
