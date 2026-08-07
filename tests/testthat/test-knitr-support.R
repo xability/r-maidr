@@ -11,6 +11,7 @@ save_knitr_env <- function() {
 
   state <- list(
     options = options("maidr.auto_show", "maidr.base_r", "maidr.ggplot2"),
+    patching_active = maidr:::is_patching_active(),
     plot_hook = NULL,
     original_plot_hook = knitr_state$original_plot_hook,
     enabled = knitr_state$enabled
@@ -24,6 +25,16 @@ save_knitr_env <- function() {
 }
 
 restore_knitr_env <- function(state) {
+  # Go back through maidr_on()/maidr_off() rather than writing the flag
+  # directly: they install and remove the Base R wrappers as well as setting
+  # it, and a flag that disagrees with which wrappers are installed is worse
+  # than either state on its own.
+  if (isTRUE(state$patching_active)) {
+    maidr::maidr_on()
+  } else {
+    maidr::maidr_off()
+  }
+
   if (requireNamespace("knitr", quietly = TRUE) && !is.null(state$plot_hook)) {
     knitr::knit_hooks$set(plot = state$plot_hook)
   }
@@ -31,6 +42,7 @@ restore_knitr_env <- function(state) {
   knitr_state <- maidr:::.maidr_knitr_state
   knitr_state$original_plot_hook <- state$original_plot_hook
   knitr_state$enabled <- state$enabled
+  # Last, so the saved values win over whatever maidr_on()/maidr_off() set.
   options(state$options)
   maidr:::clear_all_device_storage()
 
@@ -103,4 +115,25 @@ test_that("toggling maidr_off()/maidr_on() does not leak phantom layers", {
 
   testthat::expect_false("barplot" %in% recorded)
   testthat::expect_true("hist" %in% recorded)
+})
+
+test_that("the test helpers leave global patching state as they found it", {
+  testthat::skip_if_not_installed("knitr")
+
+  # These tests call maidr_on()/maidr_off(), which install and remove the Base
+  # R wrappers globally. Without this the first test above -- which ends with
+  # interception off -- would leave it off for whatever runs next, making the
+  # suite quietly order-dependent.
+  for (start_on in c(TRUE, FALSE)) {
+    if (start_on) maidr::maidr_on() else maidr::maidr_off()
+    before <- maidr:::is_patching_active()
+
+    env_state <- save_knitr_env()
+    if (start_on) maidr::maidr_off() else maidr::maidr_on()
+    restore_knitr_env(env_state)
+
+    testthat::expect_identical(maidr:::is_patching_active(), before)
+  }
+
+  maidr::maidr_on()
 })
