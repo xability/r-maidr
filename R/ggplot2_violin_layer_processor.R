@@ -32,12 +32,17 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       }, logical(1)))
 
       if (!has_boxplot) {
-        # Never set an aesthetic the violin maps. ggplot2 derives `group` from
-        # the discrete aesthetics a layer actually carries, so pinning
-        # `fill = "white"` over an `aes(fill = ...)` drops fill from the box's
-        # grouping: a violin dodged into 12 groups gets 7 boxes, and reading
-        # statistics or selectors back by group pairs them with the wrong
-        # violins. Inheriting the aesthetic keeps the two layers in step.
+        # The box has to group exactly like the violin. ggplot2 derives
+        # `group` from the discrete aesthetics a layer carries, so a violin
+        # dodged into 12 groups whose box only sees 7 pairs statistics and
+        # selectors with the wrong violins.
+        #
+        # Two ways to lose that. Pinning `fill = "white"` over an
+        # `aes(fill = ...)` drops fill from the box's grouping, so only set a
+        # default the violin does not map. And `inherit.aes` carries the PLOT
+        # mapping only, never another layer's own `aes()` -- so a violin that
+        # maps fill on itself, `geom_violin(aes(fill = drv))`, leaves the box
+        # with nothing to dodge by. Pass the merged mapping explicitly.
         mapping <- tryCatch(
           self$get_effective_mapping(plot),
           error = function(e) list()
@@ -53,6 +58,11 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
           # its own violin if it dodges across the violin's width.
           position = ggplot2::position_dodge(width = 0.9)
         )
+        if (length(mapped) > 0) {
+          # Carry whatever class this ggplot2 gives an aes() object; the
+          # merged list is otherwise just a list of quosures.
+          args$mapping <- structure(mapping, class = class(ggplot2::aes()))
+        }
         if (!"fill" %in% mapped) {
           args$fill <- "white"
         }
@@ -697,14 +707,35 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       "vert"
     },
 
-    #' Get the effective mapping (layer mapping merged with plot mapping)
+    #' @description The violin layer's mapping merged with the plot's
+    #'
+    #' Built in ggplot2's own order -- the layer's own aesthetics first, then
+    #' whatever only the plot maps -- because the order is not cosmetic.
+    #' ggplot2 numbers `group` from the interaction of a layer's discrete
+    #' columns taken in the order the mapping produced them, so a mapping
+    #' assembled the other way round gives the injected box different group
+    #' ids than the violin, and every lookup keyed on `group` then crosses
+    #' the two layers.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return Named list of quosures, one per mapped aesthetic
     get_effective_mapping = function(plot) {
       layer_index <- self$get_layer_index()
       layer_mapping <- plot$layers[[layer_index]]$mapping
       plot_mapping <- plot$mapping
-      modifyList(
-        if (is.null(plot_mapping)) list() else as.list(plot_mapping),
-        if (is.null(layer_mapping)) list() else as.list(layer_mapping)
+      layer_mapping <- if (is.null(layer_mapping)) {
+        list()
+      } else {
+        as.list(layer_mapping)
+      }
+      plot_mapping <- if (is.null(plot_mapping)) {
+        list()
+      } else {
+        as.list(plot_mapping)
+      }
+      c(
+        layer_mapping,
+        plot_mapping[setdiff(names(plot_mapping), names(layer_mapping))]
       )
     },
 

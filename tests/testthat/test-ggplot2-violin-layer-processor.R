@@ -581,6 +581,61 @@ test_that("dodged violins get their own statistics, not the whole category's", {
   testthat::expect_false(isTRUE(all.equal(q4, qf)))
 })
 
+test_that("a violin that maps fill on itself dodges its box the same way", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # `inherit.aes` carries the PLOT mapping only, never another layer's own
+  # aes(), so a box left to inherit gets no fill here and collapses to one
+  # undodged box per class while the violin dodges into twelve.
+  box_data <- violin_box_payload(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+      ggplot2::geom_violin(ggplot2::aes(fill = drv))
+  )
+
+  testthat::expect_equal(length(box_data), 12)
+  labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+  testthat::expect_equal(anyDuplicated(labels), 0)
+
+  compact4 <- ggplot2::mpg$hwy[ggplot2::mpg$class == "compact" & ggplot2::mpg$drv == "4"]
+  suvr <- ggplot2::mpg$hwy[ggplot2::mpg$class == "suv" & ggplot2::mpg$drv == "r"]
+  q4 <- unname(stats::quantile(compact4, c(0.25, 0.5, 0.75)))
+  qs <- unname(stats::quantile(suvr, c(0.25, 0.5, 0.75)))
+
+  expect_group_quartiles(box_data, "compact - 4", q4[1], q4[2], q4[3])
+  expect_group_quartiles(box_data, "suv - r", qs[1], qs[2], qs[3])
+})
+
+test_that("the injected box carries the violin's own group ids", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # Statistics and selectors are both looked up by `group`, and ggplot2
+  # numbers groups from the interaction of a layer's discrete columns in
+  # mapping order. Build the box's mapping in a different order and the same
+  # id means a different violin -- silently, with plausible numbers.
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  plot <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin(ggplot2::aes(fill = drv))
+  built <- ggplot2::ggplot_build(processor$augment_plot(plot))
+
+  key <- function(d) {
+    first <- !duplicated(d$group)
+    out <- data.frame(
+      group = d$group[first],
+      x = round(d$x[first], 2),
+      fill = as.character(d$fill[first]),
+      stringsAsFactors = FALSE
+    )
+    out[order(out$group), ]
+  }
+  violin <- key(built$data[[1]])
+  box <- key(built$data[[2]])
+
+  testthat::expect_equal(nrow(violin), 12)
+  testthat::expect_equal(box$group, violin$group)
+  testthat::expect_equal(box$fill, violin$fill)
+  testthat::expect_equal(box$x, violin$x)
+})
+
 test_that("coord_flip violins are labelled with categories, not axis breaks", {
   testthat::skip_if_not_installed("ggplot2")
 

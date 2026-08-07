@@ -309,9 +309,6 @@ iq, q2, max, lowerOutliers, upperOutliers.
 \subsection{Returns}{
 List of BoxSelector objects
 Determine orientation from built data
-Get the effective mapping (layer mapping merged with plot mapping)
-Get original data used by this layer
-Get category labels from panel params
 }
 }
 \if{html}{\out{<hr>}}
@@ -327,10 +324,31 @@ Get category labels from panel params
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-get_effective_mapping"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-get_effective_mapping}{}}}
 \subsection{Method \code{get_effective_mapping()}}{
+The violin layer's mapping merged with the plot's
+
+Built in ggplot2's own order -- the layer's own aesthetics first, then
+whatever only the plot maps -- because the order is not cosmetic.
+ggplot2 numbers `group` from the interaction of a layer's discrete
+columns taken in the order the mapping produced them, so a mapping
+assembled the other way round gives the injected box different group
+ids than the violin, and every lookup keyed on `group` then crosses
+the two layers.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ViolinLayerProcessor$get_effective_mapping(plot)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Named list of quosures, one per mapped aesthetic
+Get original data used by this layer
+Get category labels from panel params
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-get_original_data"></a>}}
