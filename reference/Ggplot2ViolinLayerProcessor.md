@@ -45,9 +45,13 @@ selectors can drive the violin_box highlight in the maidr frontend.
 
 - [`Ggplot2ViolinLayerProcessor$get_effective_mapping()`](#method-Ggplot2ViolinLayerProcessor-get_effective_mapping)
 
-- [`Ggplot2ViolinLayerProcessor$get_original_data()`](#method-Ggplot2ViolinLayerProcessor-get_original_data)
+- [`Ggplot2ViolinLayerProcessor$discrete_axis_labels()`](#method-Ggplot2ViolinLayerProcessor-discrete_axis_labels)
 
-- [`Ggplot2ViolinLayerProcessor$get_category_labels()`](#method-Ggplot2ViolinLayerProcessor-get_category_labels)
+- [`Ggplot2ViolinLayerProcessor$fill_levels_by_colour()`](#method-Ggplot2ViolinLayerProcessor-fill_levels_by_colour)
+
+- [`Ggplot2ViolinLayerProcessor$group_labels()`](#method-Ggplot2ViolinLayerProcessor-group_labels)
+
+- [`Ggplot2ViolinLayerProcessor$boxplot_stats()`](#method-Ggplot2ViolinLayerProcessor-boxplot_stats)
 
 - [`Ggplot2ViolinLayerProcessor$find_boxplot_layer_index()`](#method-Ggplot2ViolinLayerProcessor-find_boxplot_layer_index)
 
@@ -350,9 +354,7 @@ lowerOutliers, upperOutliers.
 
 #### Returns
 
-List of BoxSelector objects Determine orientation from built data Get
-the effective mapping (layer mapping merged with plot mapping) Get
-original data used by this layer Get category labels from panel params
+List of BoxSelector objects Determine orientation from built data
 
 ------------------------------------------------------------------------
 
@@ -366,25 +368,150 @@ original data used by this layer Get category labels from panel params
 
 ### Method `get_effective_mapping()`
 
+The violin layer's mapping merged with the plot's
+
+Built in ggplot2's own order – the layer's own aesthetics first, then
+whatever only the plot maps – because the order is not cosmetic. ggplot2
+numbers \`group\` from the interaction of a layer's discrete columns
+taken in the order the mapping produced them, so a mapping assembled the
+other way round gives the injected box different group ids than the
+violin, and every lookup keyed on \`group\` then crosses the two layers.
+
 #### Usage
 
     Ggplot2ViolinLayerProcessor$get_effective_mapping(plot)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+Named list of quosures, one per mapped aesthetic
+
 ------------------------------------------------------------------------
 
-### Method `get_original_data()`
+### Method `discrete_axis_labels()`
+
+Break labels of whichever panel axis holds the categories
+
+The categorical axis is the discrete one, which is not always the axis
+the data is keyed on: \`coord_flip()\` leaves the data x-major while
+moving the category labels to the y axis, so reading the axis off
+\`flipped_aes\` alone returns the value axis' breaks and every violin is
+labelled with a number.
 
 #### Usage
 
-    Ggplot2ViolinLayerProcessor$get_original_data(plot)
+    Ggplot2ViolinLayerProcessor$discrete_axis_labels(built)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+#### Returns
+
+Character vector of labels, or NULL when neither axis is discrete (a
+continuous category axis carries its value directly)
 
 ------------------------------------------------------------------------
 
-### Method `get_category_labels()`
+### Method `fill_levels_by_colour()`
+
+Map each mapped fill colour back to the level it came from
+
+Dodging splits one category into several violins that differ only by
+fill, and they all round to the same category position. Without the
+level, they are announced under one repeated name and cannot be told
+apart.
 
 #### Usage
 
-    Ggplot2ViolinLayerProcessor$get_category_labels(panel_params, is_horizontal)
+    Ggplot2ViolinLayerProcessor$fill_levels_by_colour(built)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+#### Returns
+
+Named character vector (colour -\> level), or NULL when the plot has no
+fill scale
+
+------------------------------------------------------------------------
+
+### Method `group_labels()`
+
+Announceable label for each drawn violin
+
+#### Usage
+
+    Ggplot2ViolinLayerProcessor$group_labels(
+      built,
+      layer_data,
+      groups,
+      is_horizontal
+    )
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `layer_data`:
+
+  Built data for the violin layer
+
+- `groups`:
+
+  The layer's group ids, in emission order
+
+- `is_horizontal`:
+
+  Whether the value axis is x
+
+#### Returns
+
+Character vector of labels, one per group
+
+------------------------------------------------------------------------
+
+### Method `boxplot_stats()`
+
+Box statistics ggplot2 itself computed for each group
+
+The processor injects a \`geom_boxplot()\` so the SVG has box elements
+to highlight; that layer's \`stat_boxplot\` output is also the
+authoritative source for the numbers to announce. Reading it keyed by
+\`group\` avoids re-deriving quartiles from the original data via a
+rounded axis position and a string match on the break label – a round
+trip that silently mislabels dodged violins and finds nothing at all
+under \`coord_flip()\`.
+
+#### Usage
+
+    Ggplot2ViolinLayerProcessor$boxplot_stats(plot, built)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data
+
+#### Returns
+
+data.frame of the boxplot layer's built data, or NULL
 
 ------------------------------------------------------------------------
 

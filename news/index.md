@@ -22,6 +22,24 @@
   three places, only one of them reachable. Panels are now consumed per
   plot, so each is announced once, on its own panel.
 
+- ggplot2: the box statistics of a violin plot now describe the group
+  they are announced with. The quartiles were recomputed from the drawn
+  geometry rather than read from ggplot2’s own `stat_boxplot` output, so
+  a violin split by `fill` announced one set of class-wide numbers over
+  every one of its dodged violins – `aes(class, hwy, fill = drv)`
+  emitted 7 labels for 12 violins, each repeated. A
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+  violin read its labels off the vertical axis, which is now the
+  continuous one, and reported every quartile as 0. A violin on a
+  continuous axis matched labels by position index, announcing a `7` for
+  `cyl` that no car has. All three now report each group’s own quartiles
+  under its own label, dodged violins included.
+
+- ggplot2: `geom_violin(width = 0)` no longer errors out of rendering
+  with “missing value where TRUE/FALSE needed”. A violin drawn with no
+  width has nothing to scale the density against; it now renders, and
+  any positive widths in the same layer still scale normally.
+
 - ggplot2: a plot placed after an
   [`inset_element()`](https://patchwork.data-imaginist.com/reference/inset_element.html),
   [`free()`](https://patchwork.data-imaginist.com/reference/free.html)
