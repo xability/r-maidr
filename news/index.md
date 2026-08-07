@@ -4,6 +4,14 @@
 
 ### Bug Fixes
 
+- knitr: turning interception off mid-document no longer leaves recorded
+  Base R calls behind. The hook returned early when interception was
+  disabled without clearing the device, unlike the sibling branch for
+  non-HTML output, so a document that plotted, called
+  [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md), then
+  called [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) again
+  folded the earlier calls into the next render as phantom layers.
+
 - ggplot2: a violin plot combined with ‘patchwork’ is no longer silent.
   The leaf emitted a subplot with no layers at all – no sonification, no
   braille, no highlighting for that panel – because the processor
