@@ -3,7 +3,7 @@
 #'
 #' Thin wrapper around `.github/scripts/fetch-maidr-bundle.sh`, which is the
 #' single source of truth for resolving, downloading, verifying, and
-#' installing the bundled MAIDR JavaScript and CSS files. The same script is
+#' installing the bundled MAIDR JavaScript and KaTeX stylesheet. The same script is
 #' used by the scheduled refresh workflow (`update-maidr-bundle.yml`), so the
 #' download + integrity-check logic cannot drift between CI and local use.
 #'
@@ -12,6 +12,11 @@
 #' `inst/htmlwidgets/lib/maidr-<version>/`, removes stale bundle
 #' directories, and updates the version references in
 #' `R/html_dependencies.R` and `inst/htmlwidgets/maidr.yaml`.
+#'
+#' It also strips KaTeX's embedded base64 web fonts from `maidr-math.css`,
+#' which is what keeps the installed package under CRAN's 5 MB soft limit.
+#' That used to be a separate script run by hand after every refresh; it is
+#' part of the fetch now, so an automatic update cannot skip it.
 #'
 #' Requires: bash, curl, jq, openssl, tar (available on macOS/Linux and on
 #' Windows via Git Bash).

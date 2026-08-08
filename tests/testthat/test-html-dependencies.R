@@ -180,3 +180,66 @@ test_that("the TTL is a positive finite number of seconds", {
   testthat::expect_gt(ttl_seconds(), 0)
   testthat::expect_true(is.finite(ttl_seconds()))
 })
+
+# ==============================================================================
+# Bundled asset Tests
+# ==============================================================================
+
+# maidr.js resolves maidr-math.css against the URL it was itself loaded from,
+# so the bundled copy has to sit beside it in the lib directory. When it does
+# not, the failure is silent and narrow: LaTeX in AI chat responses renders
+# unstyled and nothing else changes, so only a reader who opened the chat
+# would ever notice.
+
+test_that("the bundled KaTeX stylesheet ships beside maidr.js", {
+  assets <- maidr:::maidr_local_assets()
+
+  testthat::expect_true(file.exists(assets$js))
+  testthat::expect_true(file.exists(assets$math_css))
+  testthat::expect_identical(basename(assets$math_css), "maidr-math.css")
+  testthat::expect_identical(dirname(assets$math_css), dirname(assets$js))
+})
+
+test_that("the bundled KaTeX stylesheet is font-stripped but still styles maths", {
+  css <- paste(
+    readLines(maidr:::maidr_local_assets()$math_css, warn = FALSE),
+    collapse = "\n"
+  )
+
+  # The web fonts are ~349 kB of base64 and would put the installed package
+  # back over CRAN's size limit; the layout rules are the part that makes
+  # mathematics render correctly, and they have to survive the strip.
+  testthat::expect_false(grepl("@font-face", css, fixed = TRUE))
+  testthat::expect_true(grepl(".katex", css, fixed = TRUE))
+})
+
+test_that("no dependency declares a stylesheet", {
+  # Since maidr 3.75.1 the published maidr.css is a placeholder with no rules
+  # in it, kept only so that pre-existing <link> tags resolve. Declaring it
+  # would cost a request and change nothing on the page.
+  for (use_cdn in list(TRUE, FALSE)) {
+    dep <- maidr:::maidr_html_dependencies(use_cdn = use_cdn)[[1]]
+    testthat::expect_null(dep$stylesheet)
+    testthat::expect_identical(dep$script, "maidr.js")
+  }
+})
+
+test_that("the htmlwidgets manifest matches the dependency it mirrors", {
+  # Read as text rather than parsed YAML: this package does not depend on a
+  # YAML reader, and the three facts worth pinning are all line-shaped.
+  manifest <- readLines(
+    system.file("htmlwidgets/maidr.yaml", package = "maidr"),
+    warn = FALSE
+  )
+
+  testthat::expect_true(
+    any(trimws(manifest) == sprintf("version: %s", maidr:::MAIDR_VERSION))
+  )
+  testthat::expect_true(
+    any(trimws(manifest) == sprintf(
+      "src: htmlwidgets/lib/maidr-%s", maidr:::MAIDR_VERSION
+    ))
+  )
+  testthat::expect_true(any(trimws(manifest) == "script: maidr.js"))
+  testthat::expect_false(any(grepl("stylesheet", manifest, fixed = TRUE)))
+})
