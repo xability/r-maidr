@@ -756,7 +756,12 @@ test_that("a patchwork leaf's axes match the same plot rendered standalone", {
   testthat::expect_equal(panel$layers[[1]]$axes, solo_axes)
 })
 
-test_that("patchwork layer axes satisfy the canonical axes contract", {
+# Attaching the format put a validate_axes() gate on the patchwork path that
+# was not there before. Unformatted leaves go through it too, so this pins
+# that the gate lets an ordinary composition past rather than aborting it --
+# the failure mode a new throw introduces. It deliberately uses plain scales:
+# the formatted cases are covered above.
+test_that("the axes gate passes every leaf of an unformatted composition", {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("patchwork")
 
