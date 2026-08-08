@@ -364,7 +364,7 @@ test_that("the standalone violin payload is unchanged", {
   expect_kde_coords_on_own_violin(payload, cell$layers[[2]])
 })
 
-test_that("non-violin patchwork payloads keep their layer ids", {
+test_that("non-violin patchwork cells get ids that differ per cell", {
   skip_if_no_patchwork()
 
   payload <- render_payload(bar_plot() | point_plot())
