@@ -75,6 +75,42 @@ get_facet_groups <- function(panel_info, built) {
   facet_groups
 }
 
+#' Rows of a layer's own data that belong to one facet panel
+#'
+#' The obvious `values == group` is wrong the moment the facet column holds
+#' an `NA`: `==` answers `NA` for that row, and `[` turns an `NA` index into
+#' a fabricated all-`NA` row. One missing facet value therefore injects junk
+#' rows into EVERY panel's subset, not only the panel the `NA` belongs to.
+#'
+#' `NA` is a panel, not an absence. ggplot2 lays out a real panel for it and
+#' draws "NA" on its strip, so the matching rows have to be selected for that
+#' panel rather than dropped everywhere. `%in%` handles the ordinary levels
+#' (it scores an `NA` value as `FALSE` instead of `NA`), and `is.na()` picks
+#' out the `NA` panel's own rows. A facet column that literally contains the
+#' string "NA" stays distinct from a missing value: `as.character()` leaves
+#' the former as `"NA"` and the latter as `NA_character_`.
+#'
+#' @param values The facet column of the layer's data
+#' @param group The panel's own facet group, possibly `NA`
+#' @return A logical vector, one element per row, never `NA`
+#' @keywords internal
+facet_group_rows <- function(values, group) {
+  values <- as.character(values)
+  group <- as.character(group)
+
+  # `get_facet_groups()` builds each entry from a one-row slice of the layout,
+  # so the only reachable shape today is a length-1 group. The length test is
+  # defensive: a zero-length group would make `%in%` answer FALSE for every
+  # row, and a longer one would quietly widen the panel to a set of levels,
+  # neither of which is a panel identity. Both degrade to "the missing panel"
+  # instead, which is the only other thing a panel can be.
+  if (length(group) != 1L || is.na(group)) {
+    return(is.na(values))
+  }
+
+  values %in% group
+}
+
 #' Process a single facet panel
 #' @param plot The original plot
 #' @param panel_info Panel information

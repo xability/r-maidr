@@ -80,13 +80,17 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       original_data <- plot$data
 
       # Facet path: restrict the original data to this panel's facet
-      # group(s) so per-panel values are extracted
+      # group(s) so per-panel values are extracted. facet_group_rows() is
+      # NA-safe on purpose - see its comment; a bare `==` fabricated an
+      # all-NA row in every panel for each missing facet value.
       if (!is.null(panel_ctx) && length(panel_ctx$facet_groups) > 0) {
         for (facet_var in names(panel_ctx$facet_groups)) {
           if (facet_var %in% names(original_data)) {
             original_data <- original_data[
-              as.character(original_data[[facet_var]]) ==
-                as.character(panel_ctx$facet_groups[[facet_var]]),
+              facet_group_rows(
+                original_data[[facet_var]],
+                panel_ctx$facet_groups[[facet_var]]
+              ),
               ,
               drop = FALSE
             ]
@@ -134,6 +138,19 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         ]
       }
 
+      # A row ggplot2 could not position - a missing value in a required
+      # aesthetic - stays in the built data with `x`, `ymin` and `ymax` set to
+      # NA rather than being deleted. It drew no rect, so it is not part of
+      # this layer, and leaving it in poisons `min(x)` below: every subsequent
+      # `x == min(x)` comparison answers NA and the stacking order comes back
+      # empty.
+      if ("x" %in% names(built_data_layer)) {
+        built_data_layer <- built_data_layer[
+          !is.na(built_data_layer$x), ,
+          drop = FALSE
+        ]
+      }
+
       if (nrow(built_data_layer) == 0) {
         return(list())
       }
@@ -142,11 +159,20 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       first_bar_data <- built_data_layer[built_data_layer$x == min(built_data_layer$x), ]
       first_bar_data <- first_bar_data[order(first_bar_data$ymin), ]
 
-      if (has_y_mapping && !is.null(y_col) && y_col %in% names(original_data) &&
+      # The stat = "identity" branch reads the values out of the user's own
+      # data frame and can only pair them with the drawn rects row by row, so
+      # it is only usable while the two frames still have the same number of
+      # rows. `setNames()` does not object to a mismatch - it PADS the names
+      # with NA - so a frame ggplot2 partly discarded (one missing `y` is
+      # enough) used to yield a colour lookup full of NA names and die later
+      # in `order(NULL)`. When they no longer line up, read the built data
+      # instead: it is what was actually drawn.
+      rows_aligned <- nrow(original_data) == nrow(built_data_layer)
+
+      if (rows_aligned &&
+          has_y_mapping && !is.null(y_col) && y_col %in% names(original_data) &&
           !is.null(fill_col) && fill_col %in% names(original_data) &&
           !is.null(x_col) && x_col %in% names(original_data)) {
-        # stat="identity": original data and built data have same row count,
-        # so setNames mapping is valid
         color_to_fill <- setNames(
           as.character(original_data[[fill_col]]),
           built_data_layer$fill
@@ -155,6 +181,12 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
 
         # Read values from original data (original approach)
         fill_groups <- split(original_data, original_data[[fill_col]])
+
+        # split() drops NA, so a fill level this lookup cannot resolve has no
+        # rows to read and must not reach `order(NULL)`.
+        stacking_order <- stacking_order[
+          !is.na(stacking_order) & stacking_order %in% names(fill_groups)
+        ]
 
         lapply(stacking_order, function(fill_value) {
           group_data <- fill_groups[[as.character(fill_value)]]

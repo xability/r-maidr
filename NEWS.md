@@ -2,6 +2,21 @@
 
 ## Bug Fixes
 
+* ggplot2: a faceted stacked bar whose facet column contains `NA` exports
+  again. ggplot2 draws a real extra panel for the missing value, but the
+  per-panel subset picked its rows with `==`, which answers `NA` for exactly
+  those rows, and `[` turns an `NA` index into a fabricated all-`NA` row — so
+  one missing facet value contaminated every panel, not only its own.
+  `save_html()` aborted with `argument 1 is not a vector` and wrote no file at
+  all; `geom_col()` and `stat = "identity"` were affected, `stat = "count"`
+  was not. Each panel now reads only its own rows, the missing-value panel
+  reads the rows whose facet value is `NA`, and it is announced as "NA" — the
+  same two characters ggplot2 prints on its strip. Two neighbouring
+  assumptions in the same layer go with it: the values are no longer paired
+  with the drawn rectangles row by row once the two frames differ in length (a
+  layer carrying its own `data =` argument used to announce categories it
+  never drew), and a row ggplot2 could not position, such as one with a
+  missing `y`, no longer counts as part of the layer.
 * ggplot2: a faceted line plot on a transformed x scale announces the data
   values again instead of the transformed positions behind them. Under
   `facet_wrap()` plus `scale_x_log10()`, points labelled 1, 10, 100 and 1000
