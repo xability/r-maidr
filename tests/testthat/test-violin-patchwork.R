@@ -154,13 +154,14 @@ test_that("a violin leaf emits violin_box and violin_kde", {
   expect_equal(layer_types(violin_cell), c("violin_box", "violin_kde"))
   expect_equal(
     vapply(violin_cell$layers, function(l) l$id, character(1)),
-    c("maidr-layer-1-1", "maidr-layer-1-2")
+    c("maidr-layer-1-1-1-1", "maidr-layer-1-1-1-2")
   )
 
-  # The other leaf is untouched, and its single-layer id keeps the old form
+  # The other leaf is untouched, and its single layer is still one layer --
+  # only the cell it sits in tells the two leaves' ids apart
   bar_cell <- payload$data$subplots[[1]][[2]]
   expect_equal(layer_types(bar_cell), "bar")
-  expect_equal(bar_cell$layers[[1]]$id, "maidr-layer-1")
+  expect_equal(bar_cell$layers[[1]]$id, "maidr-layer-1-2-1")
 })
 
 test_that("violin layers carry their processor fields into the payload", {
@@ -373,7 +374,7 @@ test_that("non-violin patchwork payloads keep their layer ids", {
       vapply(cell$layers, function(l) as.character(l$id), character(1))
     }))
   }))
-  expect_true(all(ids == "maidr-layer-1"))
+  expect_equal(ids, c("maidr-layer-1-1-1", "maidr-layer-1-2-1"))
 })
 
 test_that("a faceted sibling does not cost the other plot its selectors", {
