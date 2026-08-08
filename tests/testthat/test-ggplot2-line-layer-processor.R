@@ -579,3 +579,152 @@ test_that("merge_line_layers dedupes selectors to match series count", {
   testthat::expect_equal(merged$selectors[[1]], "#sel.A")
   testthat::expect_equal(merged$selectors[[2]], "#sel.B")
 })
+
+# ==============================================================================
+# Legend title -> z axis label (issue #27)
+# ==============================================================================
+
+# A grouped line layer emits a per-series `z` value. MAIDR announces it as
+# "<z label> is <z value>", so without a z label the frontend substitutes the
+# generic word "Group" and the legend title the plot shows is lost.
+
+two_series_df <- function() {
+  data.frame(
+    x = rep(1:5, 2),
+    y = c(1, 2, 3, 4, 5, 5, 4, 3, 2, 1),
+    series = rep(c("A", "B"), each = 5)
+  )
+}
+
+process_line_axes <- function(plot) {
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  layout <- list(title = "", axes = list(x = "x", y = "y"))
+  result <- processor$process(plot, layout, ggplot2::ggplot_build(plot))
+  maidr:::validate_axes(result$axes, "line layer")
+  result$axes
+}
+
+test_that("multiline z label comes from labs(colour = ...)", {
+  p <- ggplot2::ggplot(
+    two_series_df(),
+    ggplot2::aes(x = x, y = y, colour = series)
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::labs(colour = "Cohort")
+
+  axes <- process_line_axes(p)
+
+  testthat::expect_equal(axes$z$label, "Cohort")
+})
+
+test_that("multiline z label honours the American labs(color = ...) spelling", {
+  p <- ggplot2::ggplot(
+    two_series_df(),
+    ggplot2::aes(x = x, y = y, color = series)
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::labs(color = "Cohort")
+
+  axes <- process_line_axes(p)
+
+  testthat::expect_equal(axes$z$label, "Cohort")
+})
+
+test_that("multiline z label falls back to the mapped column name", {
+  p <- ggplot2::ggplot(
+    two_series_df(),
+    ggplot2::aes(x = x, y = y, colour = series)
+  ) +
+    ggplot2::geom_line()
+
+  axes <- process_line_axes(p)
+
+  testthat::expect_equal(axes$z$label, "series")
+})
+
+test_that("multiline z label reads a layer-level colour mapping", {
+  p <- ggplot2::ggplot(two_series_df(), ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line(ggplot2::aes(colour = series)) +
+    ggplot2::labs(colour = "Cohort")
+
+  axes <- process_line_axes(p)
+
+  testthat::expect_equal(axes$z$label, "Cohort")
+})
+
+test_that("single line emits no z label", {
+  p <- ggplot2::ggplot(
+    data.frame(x = 1:5, y = c(2, 4, 6, 8, 10)),
+    ggplot2::aes(x = x, y = y)
+  ) +
+    ggplot2::geom_line()
+
+  axes <- process_line_axes(p)
+
+  testthat::expect_null(axes$z)
+})
+
+test_that("labs(colour = ...) on an ungrouped line invents no z label", {
+  # ggplot2 records a labs() title even for an aesthetic the plot never maps,
+  # so the lookup has to be gated on the layer actually being split into
+  # series -- otherwise MAIDR would announce a legend that is not drawn.
+  p <- ggplot2::ggplot(
+    data.frame(x = 1:5, y = c(2, 4, 6, 8, 10)),
+    ggplot2::aes(x = x, y = y)
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::labs(colour = "Not a legend")
+
+  # ggplot2 emits "Ignoring unknown labels" while building this plot.
+  axes <- suppressMessages(suppressWarnings(process_line_axes(p)))
+
+  testthat::expect_null(axes$z)
+})
+
+test_that("a line grouped by aes(group = ...) emits no z label", {
+  # aes(group = ) draws no legend, so there is no title to announce.
+  p <- ggplot2::ggplot(
+    two_series_df(),
+    ggplot2::aes(x = x, y = y, group = series)
+  ) +
+    ggplot2::geom_line()
+
+  axes <- process_line_axes(p)
+
+  testthat::expect_null(axes$z)
+})
+
+test_that("multiline z label survives the full render pipeline", {
+  testthat::skip_if_not_installed("jsonlite")
+
+  p <- ggplot2::ggplot(
+    two_series_df(),
+    ggplot2::aes(x = x, y = y, colour = series)
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::labs(colour = "Cohort")
+
+  file <- withr::local_tempfile(fileext = ".html")
+  suppressWarnings(save_html(p, file))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+
+  layer <- payload$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_equal(layer$type, "line")
+  testthat::expect_equal(layer$axes$z$label, "Cohort")
+  # The label names the per-series z values the layer already emits.
+  testthat::expect_equal(layer$data[[1]][[1]]$z, "A")
+  testthat::expect_equal(layer$data[[2]][[1]]$z, "B")
+})

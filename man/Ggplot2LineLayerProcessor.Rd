@@ -67,6 +67,9 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Ggplot2LineLayerProcessor-process}{\code{Ggplot2LineLayerProcessor$process()}}
+\item \href{#method-Ggplot2LineLayerProcessor-attach_group_axis}{\code{Ggplot2LineLayerProcessor$attach_group_axis()}}
+\item \href{#method-Ggplot2LineLayerProcessor-has_series_groups}{\code{Ggplot2LineLayerProcessor$has_series_groups()}}
+\item \href{#method-Ggplot2LineLayerProcessor-resolve_group_mapping}{\code{Ggplot2LineLayerProcessor$resolve_group_mapping()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_layer_axes}{\code{Ggplot2LineLayerProcessor$extract_layer_axes()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_data}{\code{Ggplot2LineLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-format_x_value}{\code{Ggplot2LineLayerProcessor$format_x_value()}}
@@ -136,6 +139,85 @@ Processes line plot layers using the actual gridSVG structure discovered:
 }
 \subsection{Returns}{
 List with data and selectors
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-attach_group_axis"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-attach_group_axis}{}}}
+\subsection{Method \code{attach_group_axis()}}{
+Add the legend title as the z axis label for a
+multi-series line layer.
+
+A grouped line layer emits a per-series \code{z} value (the group's
+name), and MAIDR announces it as "<z label> is <z value>". Without a
+z label the frontend falls back to the generic word "Group", losing
+the legend title the plot actually shows. Single-series layers emit
+no z value at all, so they get no z label either.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$attach_group_axis(plot, built, data, axes)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{data}}{The extracted layer data}
+
+\item{\code{axes}}{Axes built so far}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The axes list, with z added when the layer is grouped
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-has_series_groups"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-has_series_groups}{}}}
+\subsection{Method \code{has_series_groups()}}{
+Report whether extracted data is split into named series.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$has_series_groups(data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{The extracted layer data}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+TRUE when there is more than one series and points carry z
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-resolve_group_mapping"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-resolve_group_mapping}{}}}
+\subsection{Method \code{resolve_group_mapping()}}{
+Resolve the aesthetic that splits this layer into series.
+
+Mirrors ggplot2's precedence: the layer's own mapping wins over the
+plot-level one. ggplot2 normalises \code{color} to \code{colour}, but
+both spellings are probed defensively.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$resolve_group_mapping(plot)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+list with \code{aes} (aesthetic spelling variants, or NULL when
+  nothing is mapped) and \code{column} (the mapped column name, or
+  "group" as a fallback)
 Extract axes labels for line layers, with a special case for
 moving-average geoms (e.g. `tidyquant::geom_ma`).
 

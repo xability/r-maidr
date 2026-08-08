@@ -2,6 +2,14 @@
 
 ## Bug Fixes
 
+* ggplot2: a multi-series line plot now announces its legend title instead of
+  the word "Group". The layer already emitted a per-series group name, which
+  MAIDR reads out as "<label> is <value>", but the payload carried no label
+  for it, so the viewer fell back to a generic placeholder and the title set
+  by `labs(colour = ...)` -- or the mapped column name when no title was set
+  -- was never spoken, brailled, or shown in the chart description. Stacked
+  bar, dodged bar, and heatmap layers already carried theirs; line layers now
+  do too.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks
