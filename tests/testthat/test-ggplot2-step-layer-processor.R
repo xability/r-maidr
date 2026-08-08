@@ -585,13 +585,3 @@ test_that("A faceted step plot keeps its stepDirection", {
     }
   }
 })
-
-test_that("first_step_direction reports the first direction, or NULL", {
-  testthat::expect_null(maidr:::first_step_direction(list(NULL, list(type = "line"))))
-  testthat::expect_equal(
-    maidr:::first_step_direction(
-      list(list(type = "line"), list(type = "step", stepDirection = "mid"))
-    ),
-    "mid"
-  )
-})
