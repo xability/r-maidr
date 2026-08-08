@@ -827,7 +827,31 @@ create_nse_wrapper <- function(function_name, original_function) {
 
     ensure_maidr_device()
 
-    result <- original_function(...)
+    # curve() resolves the free variables of its expression against
+    # parent.frame(), which from here is the wrapper's own frame rather
+    # than the user's, so a variable the caller holds locally is invisible:
+    #
+    #   f <- function(k) curve(sin(k * x), from = 0, to = pi)
+    #   f(2)   # object 'k' not found
+    #
+    # It works at top level only because the global environment sits on
+    # the namespace's search chain. Rebuilding the call in the caller's
+    # frame gives curve() the frame it expects; as on the other retry
+    # path, this runs only after the direct call has already failed, so
+    # working calls keep the single-evaluation fast path.
+    call_failed <- FALSE
+    result <- tryCatch(
+      original_function(...),
+      error = function(e) {
+        call_failed <<- TRUE
+        e
+      }
+    )
+    if (call_failed) {
+      result <- retry_call_in_caller_frame(
+        original_function, this_call, caller_env, result
+      )
+    }
 
     recorded_args <- as.list(this_call)[-1L]
     # Snapshot FIRST: the snapshot walks the recorded args with all.vars(),
