@@ -2,6 +2,18 @@
 
 ## Bug Fixes
 
+* Base R: one annotation overlay no longer silences a whole multi-panel
+  figure. A `segments()`, `arrows()`, `rect()` or `polygon()` call can carry
+  data maidr cannot read, so the panel holding it is still declined rather
+  than described incompletely -- but the decline used to take the entire
+  figure with it. A single arrow pointing at an outlier in one cell of a
+  `par(mfrow = c(2, 2))` grid cost the other three panels their
+  sonification, braille and keyboard navigation, and left the reader with a
+  static image. Only the annotated panel now goes quiet; it is still drawn,
+  the rest of the grid stays interactive, and the warning names the panel
+  that fell back. Single-panel figures, figures whose every panel is
+  annotated, and overlays drawn outside the exported grid still fall back as
+  a whole, as before.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks

@@ -79,7 +79,12 @@ the results into a comprehensive interactive plot.
 \item \href{#method-BaseRPlotOrchestrator-get_plot_calls}{\code{BaseRPlotOrchestrator$get_plot_calls()}}
 \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
 \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
+\item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
 \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
+\item \href{#method-BaseRPlotOrchestrator-unsupported_group_indices}{\code{BaseRPlotOrchestrator$unsupported_group_indices()}}
+\item \href{#method-BaseRPlotOrchestrator-resolve_fallback_scope}{\code{BaseRPlotOrchestrator$resolve_fallback_scope()}}
+\item \href{#method-BaseRPlotOrchestrator-is_group_scoped_out}{\code{BaseRPlotOrchestrator$is_group_scoped_out()}}
+\item \href{#method-BaseRPlotOrchestrator-fallback_panels}{\code{BaseRPlotOrchestrator$fallback_panels()}}
 \item \href{#method-BaseRPlotOrchestrator-should_fallback}{\code{BaseRPlotOrchestrator$should_fallback()}}
 \item \href{#method-BaseRPlotOrchestrator-clone}{\code{BaseRPlotOrchestrator$clone()}}
 }
@@ -268,6 +273,24 @@ A list with x and/or y format configurations, or NULL
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-unsupported_layer_flags"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-unsupported_layer_flags}{}}}
+\subsection{Method \code{unsupported_layer_flags()}}{
+Flag each detected layer maidr cannot process
+
+Decorations carry no data of their own; leaving them out of the
+interactive output loses nothing. Data-bearing LOW-level overlays
+(polygon, rect, segments, ...) with no processor would silently
+disappear from the accessible output, so they count as unsupported.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$unsupported_layer_flags()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical vector, one entry per detected layer
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-has_unsupported_layers}{}}}
 \subsection{Method \code{has_unsupported_layers()}}{
@@ -278,6 +301,74 @@ Check if any HIGH-level layers are unsupported (unknown type)
 
 \subsection{Returns}{
 Logical indicating if there are unsupported layers
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-unsupported_group_indices"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-unsupported_group_indices}{}}}
+\subsection{Method \code{unsupported_group_indices()}}{
+Plot groups holding a layer maidr cannot process
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$unsupported_group_indices()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Integer vector of plot-group indices, in ascending order
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-resolve_fallback_scope"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-resolve_fallback_scope}{}}}
+\subsection{Method \code{resolve_fallback_scope()}}{
+Work out how far an unsupported layer reaches
+
+An unsupported overlay only makes the panel that owns it
+undescribable. In a multi-panel figure the other panels are drawn
+from their own calls and stay fully accessible, so the fallback is
+scoped to the affected panels. It widens to the whole figure when
+there is nothing left to scope to: a single-panel figure, a figure
+whose every visible panel is affected, or an unsupported call that
+belongs to no panel of the exported page.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$resolve_fallback_scope()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Invisible NULL; the scope is cached on the orchestrator
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-is_group_scoped_out"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-is_group_scoped_out}{}}}
+\subsection{Method \code{is_group_scoped_out()}}{
+Check whether a plot group is scoped out of the payload
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$is_group_scoped_out(group_index)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{group_index}}{Plot-group index to test}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+TRUE when the group's panel falls back on its own
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-fallback_panels"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-fallback_panels}{}}}
+\subsection{Method \code{fallback_panels()}}{
+Panels rendered without accessible data
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$fallback_panels()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Integer vector of 1-based panel numbers, empty when the whole
+  figure renders normally or falls back as a whole
 }
 }
 \if{html}{\out{<hr>}}
