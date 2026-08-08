@@ -101,12 +101,13 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-discrete_level_order"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-discrete_level_order}{}}}
 \subsection{Method \code{discrete_level_order()}}{
-Order the distinct values of a discrete aesthetic the way
-  ggplot2 lays them out. A discrete scale follows the factor's level
-  order and drops the levels nothing was drawn for; anything else is
-  coerced to a factor, which sorts it. Ordering by `sort()` regardless
-  put the emitted columns in a different order from the drawn ones
-  whenever a factor's levels were not alphabetical.
+Order the distinct values of an aesthetic the way ggplot2
+  lays them out, so the emitted columns line up with the drawn ones.
+  A factor follows its own level order, minus the levels nothing was
+  drawn for; anything else sorts in its own type's order. Sorting the
+  values AS TEXT, which is what this used to do, reordered the columns
+  twice over: against a factor whose levels are not alphabetical, and
+  against a number, where it puts 10 before 2.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$discrete_level_order(values)}\if{html}{\out{</div>}}
 }

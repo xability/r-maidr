@@ -107,21 +107,21 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         fill = evaluate(quo_for("fill"))
       )
     },
-    #' @description Order the distinct values of a discrete aesthetic the way
-    #'   ggplot2 lays them out. A discrete scale follows the factor's level
-    #'   order and drops the levels nothing was drawn for; anything else is
-    #'   coerced to a factor, which sorts it. Ordering by `sort()` regardless
-    #'   put the emitted columns in a different order from the drawn ones
-    #'   whenever a factor's levels were not alphabetical.
+    #' @description Order the distinct values of an aesthetic the way ggplot2
+    #'   lays them out, so the emitted columns line up with the drawn ones.
+    #'   A factor follows its own level order, minus the levels nothing was
+    #'   drawn for; anything else sorts in its own type's order. Sorting the
+    #'   values AS TEXT, which is what this used to do, reordered the columns
+    #'   twice over: against a factor whose levels are not alphabetical, and
+    #'   against a number, where it puts 10 before 2.
     #' @param values A vector of aesthetic values
     #' @return Character vector of the observed levels, in drawn order
     discrete_level_order = function(values) {
-      observed <- unique(as.character(values))
       if (is.factor(values)) {
-        levels(values)[levels(values) %in% observed]
-      } else {
-        sort(observed)
+        observed <- unique(as.character(values))
+        return(levels(values)[levels(values) %in% observed])
       }
+      as.character(sort(unique(values)))
     },
     reorder_layer_data = function(data, plot) {
       aes_values <- self$resolve_aes_values(plot, data)

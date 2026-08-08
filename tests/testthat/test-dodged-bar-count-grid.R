@@ -21,6 +21,27 @@ skip_if_no_render <- function() {
 
 count_grid_cache <- new.env(parent = emptyenv())
 
+# Resolve a layer's selector to the rects it matches, in document order.
+#
+# A segmented bar layer emits exactly one `#<escaped-id> rect` selector, so
+# the id can be lifted out and looked up by XPath -- but only once that shape
+# is confirmed, which is what the expectation below is for: a selector with
+# any more structure than that would need a real CSS engine, and must fail
+# here rather than quietly resolve to the wrong nodes. The equivalence of this
+# lookup with `document.querySelectorAll()` was checked against headless
+# Chromium for both the plain and the faceted renders of these plots.
+resolve_layer_rects <- function(html, layer) {
+  selector <- unlist(layer$selectors, use.names = FALSE)
+  testthat::expect_length(selector, 1)
+  testthat::expect_match(selector, "^#(\\\\.|[^ \\\\])+ rect$")
+
+  id <- gsub("\\\\", "", sub(" rect$", "", sub("^#", "", selector)))
+  xml2::xml_find_all(
+    xml2::read_html(html),
+    sprintf("//*[@id='%s']//rect", id)
+  )
+}
+
 # Render through the real pipeline and return the layer payload alongside the
 # geometry of every rect the layer's selector matches, in SVG document order.
 render_count_grid <- function(key, plot) {
@@ -44,11 +65,7 @@ render_count_grid <- function(key, plot) {
   payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
   layer <- payload$subplots[[1]][[1]]$layers[[1]]
 
-  selector <- unlist(layer$selectors, use.names = FALSE)[1]
-  id <- gsub("\\\\", "", sub(" rect$", "", sub("^#", "", selector)))
-
-  doc <- xml2::read_html(html)
-  rects <- xml2::xml_find_all(doc, sprintf("//*[@id='%s']//rect", id))
+  rects <- resolve_layer_rects(html, layer)
 
   out <- list(
     layer = layer,
@@ -277,4 +294,50 @@ test_that("a dodged count grid follows factor level order, not alphabetical orde
   testthat::expect_equal(rendered$x_labels[[1]], c("c", "b", "a"))
   testthat::expect_equal(rendered$bar_values, list(c(6, 5, 4), c(3, 2, 1)))
   expect_series_own_their_rects(rendered)
+})
+
+test_that("every faceted panel keeps the dodged count layer's walk direction", {
+  skip_if_no_render()
+
+  # A faceted panel is assembled by its own code path, which built the layer
+  # entry from a fixed list of keys and dropped everything else the processor
+  # returned. `domMapping` was one of those, so each panel silently fell back
+  # to the reverse walk and highlighted its neighbour's bars.
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
+  suppressWarnings(save_html(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, fill = drv)) +
+      ggplot2::geom_bar(position = "dodge") +
+      ggplot2::facet_wrap(~year),
+    file
+  ))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+
+  raw <- regmatches(html, regexpr('maidr-data="[^"]*"', html))
+  json <- sub('"$', "", sub('^maidr-data="', "", raw))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+
+  panels <- unlist(payload$subplots, recursive = FALSE)
+  testthat::expect_gte(length(panels), 2)
+
+  for (panel in panels) {
+    layer <- panel$layers[[1]]
+    testthat::expect_equal(layer$type, "dodged_bar")
+    testthat::expect_equal(layer$domMapping$groupDirection, "forward")
+
+    rects <- resolve_layer_rects(html, layer)
+    rendered <- list(
+      layer = layer,
+      bar_values = lapply(layer$data, function(series) {
+        vapply(series, function(point) as.numeric(point$y), numeric(1))
+      }),
+      rect_x = as.numeric(xml2::xml_attr(rects, "x")),
+      rect_height = as.numeric(xml2::xml_attr(rects, "height"))
+    )
+    expect_series_own_their_rects(rendered)
+  }
 })

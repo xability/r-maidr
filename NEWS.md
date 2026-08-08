@@ -19,11 +19,18 @@
   caller omitted has no value, and inventing a zero for it would invent data.
   Dodged counts also asked for the wrong per-column highlight direction, which
   put every series on its neighbour's bars even when no combination was empty.
-* ggplot2: a dodged `geom_bar()` whose x or fill is a factor now announces its
-  categories in the plotted order. The layer sorted them alphabetically while
-  ggplot2 lays a discrete scale out in level order, so reversed or custom
-  levels described column one of the payload against column three of the
-  chart.
+* ggplot2: a dodged `geom_bar()` now announces its categories in the plotted
+  order. The layer sorted them as text, which disagreed with the chart twice
+  over: a factor is laid out in level order, so reversed or custom levels
+  described column one of the payload against column three of the chart, and a
+  number sorts with 10 before 2.
+* ggplot2: a faceted panel no longer discards the display hints its layers
+  emit. The panel entry was assembled from a fixed list of keys, so anything
+  else a processor returned -- `domMapping`, `orientation`, the box plot's IQR
+  direction -- was dropped, and every panel fell back to defaults the
+  unfaceted plot never uses. A faceted dodged `geom_bar()` therefore
+  highlighted its neighbour's bars in every panel. The 'patchwork' path
+  already carried these fields; the facet path now matches it.
 * ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
   computes. Each leaf's layout was read before the leaf was built, and under
   ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
