@@ -310,12 +310,17 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
+      # An unresolvable panel and a panel with no rects are the same
+      # answer: this layer has no marks to address here. The layer INDEX is
+      # not the grob id - every `geom_rect.rect.N` id carries grid's
+      # session-wide grob counter - so the guess is right only by
+      # coincidence, and when it does land it lands on ANOTHER panel's
+      # segments, which highlights the wrong marks while the payload still
+      # looks healthy. The caller can tell an empty selector list apart
+      # from a wrong one, a user cannot.
       panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
       if (is.null(panel_grob)) {
-        layer_id <- self$get_layer_index()
-        grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-        escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-        return(list(paste0("#", escaped_grob_id, " rect")))
+        return(list())
       }
 
       find_rect_names <- function(grob) {
@@ -341,21 +346,15 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       }
 
       rect_names <- find_rect_names(panel_grob)
-
-      if (length(rect_names) > 0) {
-        grob_name <- rect_names[1]
-        layer_id <- gsub("geom_rect\\.rect\\.", "", grob_name)
-        grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-        escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-        selector_string <- paste0("#", escaped_grob_id, " rect")
-      } else {
-        layer_id <- self$get_layer_index()
-        grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-        escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-        selector_string <- paste0("#", escaped_grob_id, " rect")
+      if (length(rect_names) == 0) {
+        return(list())
       }
 
-      list(selector_string)
+      layer_id <- gsub("geom_rect\\.rect\\.", "", rect_names[1])
+      grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
+      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+
+      list(paste0("#", escaped_grob_id, " rect"))
     }
   )
 )
