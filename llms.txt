@@ -205,8 +205,6 @@ Internal functions for package developers
   : Find children matching a type pattern
 - [`find_graphics_plot_grob()`](https://r.maidr.ai/reference/find_graphics_plot_grob.md)
   : Utility functions for robust selector generation in Base R plots
-- [`find_panel_grob()`](https://r.maidr.ai/reference/find_panel_grob.md)
-  : Find the panel grob in a grob tree
 - [`find_patchwork_panels()`](https://r.maidr.ai/reference/find_patchwork_panels.md)
   : Discover panels via gtable layout rows named '^panel-\<num\>' or
   '^panel-\<row\>-\<col\>' Returns a data.frame with panel_index, name,

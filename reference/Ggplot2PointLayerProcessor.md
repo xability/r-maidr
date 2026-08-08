@@ -227,21 +227,26 @@ point elements
 
 #### Returns
 
-List of selectors Find the main panel grob
+List of selectors Find the panel grob this layer draws into
 
 ------------------------------------------------------------------------
 
-### Method [`find_panel_grob()`](https://r.maidr.ai/reference/find_panel_grob.md)
+### Method `find_panel_grob()`
 
 #### Usage
 
-    Ggplot2PointLayerProcessor$find_panel_grob(gt)
+    Ggplot2PointLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)
 
 #### Arguments
 
 - `gt`:
 
   The gtable to search
+
+- `panel_ctx`:
+
+  Panel context for patchwork leaves and facets; NULL for a single plot,
+  where the panel is the cell literally named "panel"
 
 #### Returns
 

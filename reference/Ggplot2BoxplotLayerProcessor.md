@@ -241,21 +241,27 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 
 #### Returns
 
-Updated boxplot data with proper category names Find the main panel grob
+Updated boxplot data with proper category names Find the panel grob this
+layer draws into
 
 ------------------------------------------------------------------------
 
-### Method [`find_panel_grob()`](https://r.maidr.ai/reference/find_panel_grob.md)
+### Method `find_panel_grob()`
 
 #### Usage
 
-    Ggplot2BoxplotLayerProcessor$find_panel_grob(gt)
+    Ggplot2BoxplotLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)
 
 #### Arguments
 
 - `gt`:
 
   The gtable to search
+
+- `panel_ctx`:
+
+  Panel context for patchwork leaves and facets; NULL for a single plot,
+  where the panel is the cell literally named "panel"
 
 #### Returns
 

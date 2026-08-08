@@ -288,13 +288,28 @@ Count candles from the original data
 
 ------------------------------------------------------------------------
 
-### Method [`find_panel_grob()`](https://r.maidr.ai/reference/find_panel_grob.md)
+### Method `find_panel_grob()`
 
-Find the panel grob (panel_ctx-aware)
+Find the panel grob this layer draws into
 
 #### Usage
 
     Ggplot2CandlestickProcessor$find_panel_grob(gt, panel_ctx = NULL)
+
+#### Arguments
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for patchwork leaves and facets; NULL for a single plot,
+  where the panel is the cell literally named "panel"
+
+#### Returns
+
+The panel gTree, or NULL when it cannot be resolved
 
 ------------------------------------------------------------------------
 

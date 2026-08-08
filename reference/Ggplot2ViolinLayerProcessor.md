@@ -535,7 +535,7 @@ Integer index of the boxplot layer, or NULL
 
 ------------------------------------------------------------------------
 
-### Method [`find_panel_grob()`](https://r.maidr.ai/reference/find_panel_grob.md)
+### Method `find_panel_grob()`
 
 Find the panel grob this layer draws into
 
