@@ -379,6 +379,14 @@ BaseRLineLayerProcessor <- R6::R6Class(
         if (grob_type == "abline") {
           # Pattern for abline: graphics-plot-{group_index}-abline-*
           pattern <- paste0("^graphics-plot-", group_index, "-abline-")
+        } else if (grob_type == "step") {
+          # gridGraphics names a stairstep grob after the `type` letter that
+          # drew it -- `-step-` for type = "s", `-Step-` for type = "S" --
+          # never `-lines-`. A step layer searching for the line name finds
+          # nothing, and a layer that emits zero selectors is dropped by the
+          # frontend's `selectors.length === series count` precondition,
+          # which kills highlighting for the whole layer.
+          pattern <- paste0("^graphics-plot-", group_index, "-[sS]tep-[0-9]+$")
         } else {
           # Pattern for lines: graphics-plot-{group_index}-lines-{index}
           pattern <- paste0("^graphics-plot-", group_index, "-lines-[0-9]+$")
@@ -412,10 +420,15 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       names
     },
-    generate_selectors_from_grob = function(grob, group_index, layer_info) {
-      # Determine grob type based on function name
+    # Which family of grob names this layer's selectors are drawn from:
+    # "abline", "lines" or "step". Overridden by subclasses whose geometry
+    # lands under a different grob name (see BaseRStepLayerProcessor).
+    selector_grob_type = function(layer_info) {
       function_name <- if (!is.null(layer_info)) layer_info$function_name else "lines"
-      grob_type <- if (function_name == "abline") "abline" else "lines"
+      if (function_name == "abline") "abline" else "lines"
+    },
+    generate_selectors_from_grob = function(grob, group_index, layer_info) {
+      grob_type <- self$selector_grob_type(layer_info)
 
       # Returns ALL matching grobs (for multiline support)
       lines_names <- self$find_lines_grobs(grob, group_index, grob_type)

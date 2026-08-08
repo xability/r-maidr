@@ -96,6 +96,55 @@ create_test_ggplot_multiline <- function() {
     ggplot2::labs(title = "Test Multi-line Plot")
 }
 
+#' Create a ggplot2 step plot for testing
+#'
+#' A plain continuous-y step plot: no ordinal level names, so no `label` is
+#' expected on the emitted points.
+#'
+#' @param direction One of "hv", "vh", "mid" (geom_step's convention)
+#' @return A ggplot object with a step layer
+create_test_ggplot_step <- function(direction = "hv") {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = 1:6,
+    y = c(1, 3, 3, 5, 2, 2)
+  )
+
+  ggplot2::ggplot(
+    df,
+    ggplot2::aes(x = x, y = y)
+  ) +
+    ggplot2::geom_step(direction = direction) +
+    ggplot2::labs(title = "Test Step Plot", x = "X", y = "Y")
+}
+
+#' Create a hypnogram-shaped ggplot2 step plot for testing
+#'
+#' Sleep stage (an ordinal factor) against time. `ggplot_build()` replaces the
+#' factor level with its numeric code, so this fixture exercises the level-name
+#' recovery that puts `label` on each point.
+#'
+#' @return A ggplot object with a factor-y step layer
+create_test_ggplot_hypnogram <- function() {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    hour = 0:9,
+    stage = factor(
+      c("Awake", "N1", "N2", "N2", "N3", "N3", "REM", "N2", "N1", "Awake"),
+      levels = c("N3", "N2", "N1", "REM", "Awake")
+    )
+  )
+
+  ggplot2::ggplot(
+    df,
+    ggplot2::aes(x = hour, y = stage, group = 1)
+  ) +
+    ggplot2::geom_step() +
+    ggplot2::labs(title = "Test Hypnogram", x = "Hours", y = "Sleep stage")
+}
+
 #' Create a ggplot2 faceted plot for testing
 #' @return A ggplot object with facets
 create_test_ggplot_faceted <- function() {
@@ -174,6 +223,20 @@ create_test_base_r_stacked_bar <- function() {
     beside = FALSE,
     main = "Test Stacked Bar",
     legend.text = TRUE
+  )
+}
+
+#' Create a Base R step plot for testing
+#' @param type "s" (horizontal segment first) or "S" (vertical first)
+#' @return NULL (creates plot on current device)
+create_test_base_r_step <- function(type = "s") {
+  plot(
+    1:6,
+    c(1, 3, 3, 5, 2, 2),
+    type = type,
+    main = "Test Step Plot",
+    xlab = "X",
+    ylab = "Y"
   )
 }
 

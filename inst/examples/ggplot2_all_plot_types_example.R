@@ -537,6 +537,35 @@ result_candle_ma_vol <- save_html(p_candle_ma_vol, file = html_file_candle_ma_vo
 cat("Candlestick + MA + volume:",
     if (file.exists(html_file_candle_ma_vol)) "OK" else "FAIL", "\n")
 
+# Test 21: Step plot (hypnogram, ordinal factor y)
+cat("\n=== TEST 21: Step Plot (Hypnogram) ===\n")
+
+hypnogram_data <- data.frame(
+  hour = seq(0, 7.5, by = 0.5),
+  stage = factor(
+    c(
+      "Awake", "N1", "N2", "N3", "N3", "N2", "REM", "N2",
+      "N3", "N3", "N2", "REM", "N2", "N1", "REM", "Awake"
+    ),
+    levels = c("N3", "N2", "N1", "REM", "Awake")
+  )
+)
+
+p_step <- ggplot(hypnogram_data, aes(x = hour, y = stage, group = 1)) +
+  geom_step(direction = "hv", color = "steelblue", linewidth = 1) +
+  scale_x_continuous(breaks = 0:8) +
+  labs(
+    title = "Overnight Hypnogram",
+    subtitle = "Sleep stage across an eight-hour night",
+    x = "Hours after lights out",
+    y = "Sleep stage"
+  ) +
+  theme_minimal()
+
+html_file_step <- file.path(output_dir, "example_step_plot_ggplot2.html")
+result_step <- save_html(p_step, file = html_file_step)
+cat("Step plot (hypnogram):", if (file.exists(html_file_step)) "OK" else "FAIL", "\n")
+
 
 cat("\n=== SUMMARY ===\n")
 cat("Generated HTML files in output/ directory:\n")
@@ -560,6 +589,7 @@ cat("- Faceted line plot (percent):", if (file.exists(html_file_facet_line)) "OK
 cat("- Patchwork 2x2 (mixed formatting):", if (file.exists(html_file_patchwork_2x2)) "OK" else "FAIL", "\n")
 cat("- Candlestick plot (OHLC):", if (file.exists(html_file_candle)) "OK" else "FAIL", "\n")
 cat("- Candlestick + MA + volume:", if (file.exists(html_file_candle_ma_vol)) "OK" else "FAIL", "\n")
+cat("- Step plot (hypnogram):", if (file.exists(html_file_step)) "OK" else "FAIL", "\n")
 
 cat("\n=== FORMATTING TYPES DEMONSTRATED ===\n")
 cat("- label_dollar(): Currency formatting (e.g., $1,500.50)\n")

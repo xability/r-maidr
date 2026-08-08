@@ -216,6 +216,76 @@ test_that("Ggplot2Adapter detect_layer_type detects smooth plots", {
   testthat::expect_equal(layer_type, "smooth")
 })
 
+test_that("Ggplot2Adapter detect_layer_type detects step plots", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- create_test_ggplot_step()
+  layer <- p$layers[[1]]
+
+  layer_type <- adapter$detect_layer_type(layer, p)
+  testthat::expect_equal(layer_type, "step")
+})
+
+test_that("Ggplot2Adapter detect_layer_type does not confuse step with line or smooth", {
+  # GeomStep inherits GeomPath, so a detector keyed on inherits() (rather than
+  # class(...)[1]) would report "line" and the frontend would interpolate
+  # between samples that are actually piecewise constant. Detecting "unknown"
+  # is just as bad: it triggers the static-PNG fallback silently.
+  testthat::skip_if_not_installed("ggplot2")
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- create_test_ggplot_step()
+  layer_type <- adapter$detect_layer_type(p$layers[[1]], p)
+
+  testthat::expect_false(layer_type == "line")
+  testthat::expect_false(layer_type == "smooth")
+  testthat::expect_false(layer_type == "unknown")
+})
+
+test_that("Ggplot2Adapter detect_layer_type leaves stat_ecdf() on the fallback path", {
+  # GeomStep is also the default geom of stat_ecdf(), but a computed stat is a
+  # different plot: StatEcdf returns rows in input order (GeomStep only sorts
+  # them later, in draw_panel) and pads them with -Inf / Inf. Claiming it as a
+  # step layer replaces the static-image fallback it had before step support
+  # with an interactive trace whose points neither match the drawn polyline nor
+  # carry usable x values.
+  testthat::skip_if_not_installed("ggplot2")
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- ggplot2::ggplot(data.frame(v = c(3, 1, 5, 2, 4)), ggplot2::aes(v)) +
+    ggplot2::stat_ecdf()
+
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "unknown")
+
+  orchestrator <- maidr:::Ggplot2PlotOrchestrator$new(p)
+  testthat::expect_true(orchestrator$should_fallback())
+})
+
+test_that("Ggplot2Adapter detect_layer_type detects step for every direction", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+
+  for (direction in c("hv", "vh", "mid")) {
+    p <- create_test_ggplot_step(direction)
+    testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "step")
+  }
+})
+
+test_that("Ggplot2Adapter still detects geom_line as line alongside geom_step", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  df <- data.frame(x = 1:5, y = c(1, 2, 2, 4, 4))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_step()
+
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "line")
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[2]], p), "step")
+})
+
 test_that("Ggplot2Adapter detect_layer_type returns unknown for NULL", {
   adapter <- maidr:::Ggplot2Adapter$new()
 
@@ -448,6 +518,78 @@ test_that("BaseRAdapter detect_layer_type detects line plot", {
 
   layer_type <- adapter$detect_layer_type(layer)
   testthat::expect_equal(layer_type, "line")
+})
+
+test_that("BaseRAdapter detect_layer_type detects step plot (type = 's')", {
+  adapter <- maidr:::BaseRAdapter$new()
+
+  layer <- list(
+    function_name = "plot",
+    args = list(1:10, rnorm(10), type = "s")
+  )
+
+  testthat::expect_equal(adapter$detect_layer_type(layer), "step")
+})
+
+test_that("BaseRAdapter detect_layer_type detects step plot (type = 'S')", {
+  adapter <- maidr:::BaseRAdapter$new()
+
+  layer <- list(
+    function_name = "plot",
+    args = list(1:10, rnorm(10), type = "S")
+  )
+
+  testthat::expect_equal(adapter$detect_layer_type(layer), "step")
+})
+
+test_that("BaseRAdapter detect_layer_type keeps type = 'l' as line", {
+  # The step branch sits ahead of the catch-all "line" mapping; make sure it
+  # only claims "s" / "S" and leaves every other non-"p" type alone.
+  adapter <- maidr:::BaseRAdapter$new()
+
+  for (plot_type in c("l", "b", "o", "h", "c")) {
+    layer <- list(
+      function_name = "plot",
+      args = list(1:10, rnorm(10), type = plot_type)
+    )
+    testthat::expect_equal(adapter$detect_layer_type(layer), "line")
+  }
+})
+
+test_that("BaseRAdapter detect_layer_type detects lines(type = 's') as step", {
+  # The lines() branch never inspected `type` before, so a low-level stairstep
+  # overlay was silently reported as a plain line.
+  adapter <- maidr:::BaseRAdapter$new()
+
+  layer <- list(
+    function_name = "lines",
+    args = list(1:10, rnorm(10), type = "s")
+  )
+
+  testthat::expect_equal(adapter$detect_layer_type(layer), "step")
+})
+
+test_that("BaseRAdapter detect_layer_type detects lines(type = 'S') as step", {
+  adapter <- maidr:::BaseRAdapter$new()
+
+  layer <- list(
+    function_name = "lines",
+    args = list(1:10, rnorm(10), type = "S")
+  )
+
+  testthat::expect_equal(adapter$detect_layer_type(layer), "step")
+})
+
+test_that("BaseRAdapter detect_layer_type keeps density lines as smooth", {
+  # A density curve stays "smooth" even if someone passes type = "s".
+  adapter <- maidr:::BaseRAdapter$new()
+
+  layer <- list(
+    function_name = "lines",
+    args = list(stats::density(rnorm(50)), type = "s")
+  )
+
+  testthat::expect_equal(adapter$detect_layer_type(layer), "smooth")
 })
 
 test_that("BaseRAdapter detect_layer_type detects lines function", {
