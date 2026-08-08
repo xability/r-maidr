@@ -117,7 +117,6 @@ test_that("save_html() creates HTML file for Base R histogram", {
 })
 
 test_that("save_html() creates HTML file for Base R line plot", {
-  testthat::skip("Base R plot() function detection needs investigation")
   plot(1:10, rnorm(10), type = "l")
   tmp_file <- tempfile(fileext = ".html")
 
@@ -125,18 +124,27 @@ test_that("save_html() creates HTML file for Base R line plot", {
 
   testthat::expect_true(file.exists(tmp_file))
 
+  # an interactive plot, not the static-image fallback: plot() detection
+  # is the thing this test exists to exercise
+  content <- readLines(tmp_file)
+  testthat::expect_true(any(grepl("<svg", content)))
+
   clear_base_r_state()
   unlink(tmp_file)
 })
 
 test_that("save_html() creates HTML file for Base R scatter plot", {
-  testthat::skip("Base R plot() function detection needs investigation")
   plot(mtcars$wt[1:10], mtcars$mpg[1:10])
   tmp_file <- tempfile(fileext = ".html")
 
   result <- save_html(file = tmp_file)
 
   testthat::expect_true(file.exists(tmp_file))
+
+  # an interactive plot, not the static-image fallback: plot() detection
+  # is the thing this test exists to exercise
+  content <- readLines(tmp_file)
+  testthat::expect_true(any(grepl("<svg", content)))
 
   clear_base_r_state()
   unlink(tmp_file)
