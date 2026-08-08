@@ -14,8 +14,8 @@ library(patchwork)
 # tidyquant is required for candlestick examples (Tests 19-20) and is a heavy
 # install. Skip those two rather than aborting the other eighteen: a machine
 # that cannot build tidyquant can still regenerate every other baseline.
-HAVE_TIDYQUANT <- requireNamespace("tidyquant", quietly = TRUE)
-if (HAVE_TIDYQUANT) {
+have_tidyquant <- requireNamespace("tidyquant", quietly = TRUE)
+if (have_tidyquant) {
   suppressPackageStartupMessages(library(tidyquant))
 } else {
   cat("NOTE: tidyquant not installed - candlestick examples will be skipped.\n")
@@ -459,7 +459,7 @@ html_file_patchwork_2x2 <- file.path(output_dir, "example_patchwork_2x2_ggplot2.
 result_patchwork_2x2 <- save_html(pw_2x2, file = html_file_patchwork_2x2)
 cat("Patchwork 2x2 (mixed formatting):", if (file.exists(html_file_patchwork_2x2)) "OK" else "FAIL", "\n")
 
-if (HAVE_TIDYQUANT) {
+if (have_tidyquant) {
   # Test 19: Candlestick (OHLC) plot via tidyquant::geom_candlestick()
   # Each candle is exposed as a single navigable element with
   # open / high / low / close + computed trend (Bull / Bear / Neutral) and
@@ -574,7 +574,7 @@ cat("- Faceted bar plot (comma):", if (file.exists(html_file_facet_bar)) "OK" el
 cat("- Faceted point plot (fixed):", if (file.exists(html_file_facet_point)) "OK" else "FAIL", "\n")
 cat("- Faceted line plot (percent):", if (file.exists(html_file_facet_line)) "OK" else "FAIL", "\n")
 cat("- Patchwork 2x2 (mixed formatting):", if (file.exists(html_file_patchwork_2x2)) "OK" else "FAIL", "\n")
-if (HAVE_TIDYQUANT) {
+if (have_tidyquant) {
   cat("- Candlestick plot (OHLC):", if (file.exists(html_file_candle)) "OK" else "FAIL", "\n")
   cat("- Candlestick + MA + volume:",
       if (file.exists(html_file_candle_ma_vol)) "OK" else "FAIL", "\n")
