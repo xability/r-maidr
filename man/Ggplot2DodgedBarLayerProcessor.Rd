@@ -21,6 +21,7 @@ Processes dodged bar plot layers with complete logic included
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-process}{\code{Ggplot2DodgedBarLayerProcessor$process()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-needs_reordering}{\code{Ggplot2DodgedBarLayerProcessor$needs_reordering()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{\code{Ggplot2DodgedBarLayerProcessor$resolve_aes_values()}}
+\item \href{#method-Ggplot2DodgedBarLayerProcessor-discrete_level_order}{\code{Ggplot2DodgedBarLayerProcessor$discrete_level_order()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data}{\code{Ggplot2DodgedBarLayerProcessor$reorder_layer_data()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-extract_data}{\code{Ggplot2DodgedBarLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{\code{Ggplot2DodgedBarLayerProcessor$generate_selectors()}}
@@ -94,6 +95,32 @@ Resolve this layer's x/y/fill aesthetics to VALUES.
 }
 \subsection{Returns}{
 List with `x`, `y` and `fill` vectors (any may be NULL)
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-discrete_level_order"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-discrete_level_order}{}}}
+\subsection{Method \code{discrete_level_order()}}{
+Order the distinct values of an aesthetic the way ggplot2
+  lays them out, so the emitted columns line up with the drawn ones.
+  A factor follows its own level order, minus the levels nothing was
+  drawn for; anything else sorts in its own type's order. Sorting the
+  values AS TEXT, which is what this used to do, reordered the columns
+  twice over: against a factor whose levels are not alphabetical, and
+  against a number, where it puts 10 before 2.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$discrete_level_order(values)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{values}}{A vector of aesthetic values}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of the observed levels, in drawn order
 }
 }
 \if{html}{\out{<hr>}}

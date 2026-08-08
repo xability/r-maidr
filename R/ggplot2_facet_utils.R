@@ -228,6 +228,32 @@ process_facet_panel <- function(
       selectors = combined_selectors
     )
 
+    # Carry the processor's remaining fields the way the patchwork path does
+    # (orientation, violinOptions, domMapping, the `.panel_*` hints the SVG
+    # coordinate injection reads). Dropping them silently un-configured every
+    # faceted panel: a dodged `stat = "count"` layer asks for the forward
+    # per-column highlight walk and got the default reverse one, so every
+    # panel highlighted its neighbour's bars.
+    #
+    # A panel collapses all of its layers into one entry, so the leading
+    # layer wins a key it defines -- the same precedence the axes above use.
+    for (result in layer_results) {
+      if (is.null(result)) {
+        next
+      }
+      for (field_name in names(result)) {
+        if (field_name %in% c(
+          "id", "type", "selectors", "data", "title", "axes",
+          "labels", "multi_layer", "layers"
+        )) {
+          next
+        }
+        if (is.null(layer[[field_name]])) {
+          layer[[field_name]] <- result[[field_name]]
+        }
+      }
+    }
+
     layers[[1]] <- layer
   }
 
