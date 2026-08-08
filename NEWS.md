@@ -15,6 +15,32 @@
   line layers in one panel likewise each resolve to their own grob. When the
   curves cannot be lined up with the series, no selector is emitted rather
   than one of the wrong length.
+* ggplot2: a faceted line plot on a transformed x scale announces the data
+  values again instead of the transformed positions behind them. Under
+  `facet_wrap()` plus `scale_x_log10()`, points labelled 1, 10, 100 and 1000
+  on the axis were read out as 0, 1, 2 and 3; `scale_x_reverse()` negated
+  every value and `scale_x_sqrt()` reported square roots. Panels now put the
+  data through the same transformation the scale applied before matching, so
+  what is announced matches the drawn axis. Faceted panels also read break
+  labels off their own scale rather than the first panel's, which matters
+  under `scales = "free_x"`. Untransformed, date and date-time faceted panels
+  are unchanged, as are all unfaceted line plots.
+* ggplot2: a facet level that drew nothing no longer breaks the chart's
+  highlighting. A layer with no highlight target was emitting an empty
+  selector list, and the frontend passes that value straight to
+  `document.querySelectorAll()`, where an empty selector raises a
+  `SyntaxError` inside the trace it was building. On a histogram, stacked bar
+  or dodged bar under `facet_wrap(~g, drop = FALSE)` with an unused level,
+  keyboard navigation then produced no highlight anywhere in the figure,
+  while the chart still looked correct. Such a layer now omits the field
+  instead, which is the value the frontend reads as "nothing to highlight".
+* ggplot2: an empty facet panel no longer emits a layer describing nothing.
+  A processor that drew nothing in a panel returns no data, and that was
+  being wrapped into a single empty series, so a reader entering the panel
+  was told it held a plot and then heard its fields announced as undefined,
+  with the sonification failing on a non-finite value. The panel now carries
+  no layers, the same shape a Base R `layout()` cell with no plot already
+  has.
 * ggplot2: a grouped smooth is described as one series per curve.
   `geom_smooth(aes(colour = g))` draws a curve per group, but the payload
   concatenated all of them into a single undifferentiated series with no `z`,

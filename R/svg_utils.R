@@ -863,6 +863,42 @@ add_maidr_data_to_svg <- function(svg_content, maidr_data) {
   svg_content
 }
 
+#' Drop `selectors` entries that carry no selector
+#'
+#' A layer that resolved no highlight target must say so by OMITTING the key,
+#' never by sending an empty list. The frontend hands `layer.selectors`
+#' straight to `document.querySelectorAll()`, and an empty array stringifies
+#' to `""`, which is a `SyntaxError` -- thrown inside the trace constructor,
+#' so the whole figure fails to initialise: no announcement, no sonification,
+#' no braille, no keyboard entry, on a chart that still looks fine. An absent
+#' key is falsy and takes the frontend's own "no selectors" path instead.
+#'
+#' Applied here rather than in each processor because every payload passes
+#' through this one point, and `list()` is the honest return value for a
+#' processor whose grob lookup found nothing.
+#'
+#' @param node A maidr-data node (list, or a leaf)
+#' @return The node with empty `selectors` entries removed
+#' @keywords internal
+drop_empty_selectors <- function(node) {
+  if (!is.list(node)) {
+    return(node)
+  }
+  # An empty BoxSelector object is still a real selector spec, so only a
+  # zero-length `selectors` is dropped -- not one whose entries are empty.
+  has_empty_selectors <- !is.null(names(node)) &&
+    "selectors" %in% names(node) &&
+    length(node$selectors) == 0
+  if (has_empty_selectors) {
+    node$selectors <- NULL
+  }
+  if (length(node) == 0) {
+    return(node)
+  }
+  node[] <- lapply(node, drop_empty_selectors)
+  node
+}
+
 #' Serialize maidr_data and set it as the SVG root's maidr-data attribute
 #'
 #' Mutates `svg_doc` in place.
@@ -872,6 +908,8 @@ add_maidr_data_to_svg <- function(svg_content, maidr_data) {
 #' @return NULL (invisible)
 #' @keywords internal
 set_maidr_data_attr <- function(svg_doc, maidr_data) {
+  maidr_data <- drop_empty_selectors(maidr_data)
+
   # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
   # moving-average line) serialize to JSON `null` rather than the string
   # `"NA"`, which `Number(point.y)` in the maidr JS frontend would coerce
