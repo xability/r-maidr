@@ -23,6 +23,8 @@ Processes dodged bar plot layers with complete logic included
 
 - [`Ggplot2DodgedBarLayerProcessor$resolve_aes_values()`](#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values)
 
+- [`Ggplot2DodgedBarLayerProcessor$discrete_level_order()`](#method-Ggplot2DodgedBarLayerProcessor-discrete_level_order)
+
 - [`Ggplot2DodgedBarLayerProcessor$reorder_layer_data()`](#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data)
 
 - [`Ggplot2DodgedBarLayerProcessor$extract_data()`](#method-Ggplot2DodgedBarLayerProcessor-extract_data)
@@ -95,6 +97,32 @@ treatment turned into \`data\[\["factor(cyl)"\]\]\`, i.e. NULL.
 #### Returns
 
 List with \`x\`, \`y\` and \`fill\` vectors (any may be NULL)
+
+------------------------------------------------------------------------
+
+### Method `discrete_level_order()`
+
+Order the distinct values of an aesthetic the way ggplot2 lays them out,
+so the emitted columns line up with the drawn ones. A factor follows its
+own level order, minus the levels nothing was drawn for; anything else
+sorts in its own type's order. Sorting the values AS TEXT, which is what
+this used to do, reordered the columns twice over: against a factor
+whose levels are not alphabetical, and against a number, where it puts
+10 before 2.
+
+#### Usage
+
+    Ggplot2DodgedBarLayerProcessor$discrete_level_order(values)
+
+#### Arguments
+
+- `values`:
+
+  A vector of aesthetic values
+
+#### Returns
+
+Character vector of the observed levels, in drawn order
 
 ------------------------------------------------------------------------
 
