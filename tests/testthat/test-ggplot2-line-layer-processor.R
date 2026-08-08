@@ -730,3 +730,149 @@ test_that("multiline z label survives the full render pipeline", {
   testthat::expect_equal(layer$data[[1]][[1]]$z, "A")
   testthat::expect_equal(layer$data[[2]][[1]]$z, "B")
 })
+
+# ==============================================================================
+# Faceted panels under a transformed x scale
+# ==============================================================================
+
+# `ggplot_build()` records x positions in the scale's TRANSFORMED space: under
+# scale_x_log10() the data value 100 is stored as 2. A faceted panel recovers
+# the user-facing value by matching those positions against the raw column, so
+# the raw column has to make the same trip through the transformation first.
+# Without that, nothing matched and the panel announced 0/1/2/3 for an axis
+# labelled 1/10/100/1000.
+
+facet_line_x <- function(plot, panel_id) {
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  built <- ggplot2::ggplot_build(plot)
+  series <- processor$extract_data(plot, built, panel_id = panel_id)
+  lapply(series, function(points) {
+    vapply(points, function(point) point$x, character(1))
+  })
+}
+
+transformed_scale_df <- function() {
+  data.frame(
+    g = rep(c("a", "b"), each = 4),
+    x = rep(c(1, 10, 100, 1000), 2),
+    y = 1:8
+  )
+}
+
+transformed_scale_aes <- ggplot2::aes(x = x, y = y)
+
+faceted_line <- function(df = transformed_scale_df()) {
+  ggplot2::ggplot(df, transformed_scale_aes) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~g)
+}
+
+test_that("faceted panels announce data x values under scale_x_log10()", {
+  p <- faceted_line() + ggplot2::scale_x_log10()
+
+  for (panel in c(1, 2)) {
+    series <- facet_line_x(p, panel)
+    testthat::expect_length(series, 1)
+    testthat::expect_equal(series[[1]], c("1", "10", "100", "1000"))
+  }
+})
+
+test_that("faceted panels announce data x values under scale_x_sqrt()", {
+  p <- faceted_line() + ggplot2::scale_x_sqrt()
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+    )
+  }
+})
+
+test_that("faceted panels announce data x values under scale_x_reverse()", {
+  p <- faceted_line() + ggplot2::scale_x_reverse()
+
+  # A reversed axis draws 1000 leftmost, and geom_line orders its points the
+  # way it draws them, so the announced order follows the drawn line.
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1000", "100", "10", "1")
+    )
+  }
+})
+
+test_that("faceted panels announce data x values under a named transform", {
+  p <- faceted_line() + ggplot2::scale_x_continuous(trans = "log2")
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+    )
+  }
+})
+
+test_that("faceted panels keep working on an untransformed x scale", {
+  p <- faceted_line()
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+    )
+  }
+})
+
+test_that("faceted Date panels still announce ISO dates", {
+  dates <- as.Date("2024-01-01") + c(0, 10, 20, 30)
+  df <- data.frame(
+    g = rep(c("a", "b"), each = 4),
+    x = rep(dates, 2),
+    y = 1:8
+  )
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(faceted_line(df), panel)[[1]],
+      c("2024-01-01", "2024-01-11", "2024-01-21", "2024-01-31")
+    )
+  }
+})
+
+test_that("every series of a faceted multiline panel is untransformed", {
+  df <- data.frame(
+    g = rep(c("a", "b"), each = 8),
+    s = rep(rep(c("s1", "s2"), each = 4), 2),
+    x = rep(c(1, 10, 100, 1000), 4),
+    y = 1:16
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y, colour = s)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~g) +
+    ggplot2::scale_x_log10()
+
+  for (panel in c(1, 2)) {
+    series <- facet_line_x(p, panel)
+    testthat::expect_length(series, 2)
+    for (points in series) {
+      testthat::expect_equal(points, c("1", "10", "100", "1000"))
+    }
+  }
+})
+
+test_that("each faceted panel reads break labels off its own scale", {
+  df <- data.frame(
+    g = rep(c("a", "b"), each = 3),
+    x = c(1, 2, 3, 1000, 2000, 3000),
+    y = 1:6
+  )
+  # An expression x aesthetic leaves no raw column to match against, so the
+  # break/label mapping is what supplies the announced value. Under
+  # scales = "free_x" it has to read the panel's own breaks; panel 1's do not
+  # reach panel 2's data at all.
+  p <- ggplot2::ggplot(df, ggplot2::aes(x + 0, y)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~g, scales = "free_x") +
+    ggplot2::scale_x_continuous(labels = function(value) paste0("<", value, ">"))
+
+  testthat::expect_equal(facet_line_x(p, 1)[[1]], c("<1>", "<2>", "<3>"))
+  testthat::expect_equal(
+    facet_line_x(p, 2)[[1]], c("<1000>", "<2000>", "<3000>")
+  )
+})
