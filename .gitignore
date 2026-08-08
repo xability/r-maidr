@@ -28,3 +28,5 @@ docs/
 
 # CRAN-SUBMISSION
 CRAN-SUBMISSION
+# htmlwidgets asset bundle emitted next to the generated examples
+inst/output/lib/
