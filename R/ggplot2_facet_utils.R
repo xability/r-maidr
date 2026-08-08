@@ -99,9 +99,11 @@ facet_group_rows <- function(values, group) {
   group <- as.character(group)
 
   # `get_facet_groups()` builds each entry from a one-row slice of the layout,
-  # so the only reachable shape today is a length-1 group -- the length test is
-  # here so a zero-length or vector group degrades to "the missing panel"
-  # rather than recycling silently through `%in%`.
+  # so the only reachable shape today is a length-1 group. The length test is
+  # defensive: a zero-length group would make `%in%` answer FALSE for every
+  # row, and a longer one would quietly widen the panel to a set of levels,
+  # neither of which is a panel identity. Both degrade to "the missing panel"
+  # instead, which is the only other thing a panel can be.
   if (length(group) != 1L || is.na(group)) {
     return(is.na(values))
   }
