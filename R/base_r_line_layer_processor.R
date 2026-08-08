@@ -46,6 +46,18 @@ BaseRLineLayerProcessor <- R6::R6Class(
         return(self$extract_abline_data(layer_info))
       }
 
+      # curve()'s own arguments hold no coordinates -- the first one is an
+      # unevaluated expression -- so the wrapper stores the x/y curve()
+      # returned after drawing them. See curve_recorded_values().
+      curve_data <- args$.maidr_curve_data
+      if (!is.null(curve_data)) {
+        return(self$extract_single_line_data(
+          curve_data$x,
+          curve_data$y,
+          self$get_axis_labels(layer_info, axis_side = 1)
+        ))
+      }
+
       # Resolve x/y the way plot()/lines() do: named args win, then the
       # first two UNNAMED arguments. Positional args[[2]] would grab
       # graphical parameters instead (plot(x, type = "l") -> y = "l") and
@@ -208,8 +220,26 @@ BaseRLineLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
+      # curve() derives its labels internally (x name, deparsed
+      # expression) rather than taking them from the call, so they are
+      # recorded alongside the drawn points. An explicit xlab/ylab still
+      # wins, exactly as it does inside curve().
+      curve_labels <- args$.maidr_curve_data$labels
+
+      x_title <- if (!is.null(args$xlab)) {
+        args$xlab
+      } else if (!is.null(curve_labels)) {
+        curve_labels$x
+      } else {
+        ""
+      }
+      y_title <- if (!is.null(args$ylab)) {
+        args$ylab
+      } else if (!is.null(curve_labels)) {
+        curve_labels$y
+      } else {
+        ""
+      }
 
       build_axes(x = x_title, y = y_title)
     },

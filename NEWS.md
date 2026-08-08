@@ -31,6 +31,23 @@
   unfaceted plot never uses. A faceted dodged `geom_bar()` therefore
   highlighted its neighbour's bars in every panel. The 'patchwork' path
   already carried these fields; the facet path now matches it.
+* Base R: `curve()` renders as an interactive line plot instead of a static
+  image. The call was recorded, but the adapter had no layer type for it, so
+  it typed as "unknown" and the whole figure fell back to a picture with no
+  sonification, braille, or keyboard navigation. It now types as the same
+  line layer `plot(x, y, type = "l")` produces, and the announced points are
+  the ones `curve()` returned after drawing them, so they cannot drift from
+  what was plotted. The axis labels `curve()` derives for itself -- the
+  variable name and the deparsed expression -- are announced too. Draw types
+  that are not a polyline (`type = "p"`, `"b"`, `"s"`, ...) and
+  `curve(add = TRUE)` keep the static fallback.
+* Base R: `curve()` called from inside a function sees that function's
+  variables. `curve()` resolves the free variables of its expression against
+  the calling frame, which through maidr's wrapper was the wrapper's own
+  frame, so `f <- function(k) curve(sin(k * x), from = 0, to = pi)` failed
+  with "object 'k' not found" -- a call that works in plain R. It only
+  appeared to work at top level, where the global environment is on the
+  package's search chain.
 * ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
   computes. Each leaf's layout was read before the leaf was built, and under
   ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,

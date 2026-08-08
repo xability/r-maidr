@@ -119,7 +119,10 @@ replay_base_r_plot <- function(device_id) {
     stop("No Base R plot calls found to replay")
   }
 
-  # Replay each group of calls
+  # Replay each group of calls. The recorded args carry maidr's own
+  # bookkeeping (the axis format config, the points curve() drew); passing
+  # those through to the plotting function reaches its `...` and warns
+  # '".maidr_..." is not a graphical parameter'.
 
   for (group in plot_groups) {
     # Execute high-level call first
@@ -127,7 +130,7 @@ replay_base_r_plot <- function(device_id) {
     if (!is.null(high_call)) {
       tryCatch(
         {
-          do.call(high_call$function_name, high_call$args)
+          do.call(high_call$function_name, clean_maidr_args(high_call$args))
         },
         error = function(e) {
           warning("Failed to replay: ", high_call$function_name)
@@ -139,7 +142,7 @@ replay_base_r_plot <- function(device_id) {
     for (low_call in group$low_calls) {
       tryCatch(
         {
-          do.call(low_call$function_name, low_call$args)
+          do.call(low_call$function_name, clean_maidr_args(low_call$args))
         },
         error = function(e) NULL
       )
