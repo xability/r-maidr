@@ -181,9 +181,10 @@ test_that("lines(v) overlays the vector as its own layer", {
 #
 # Seven faceted layer types used to die with "unused arguments" because
 # process() did not accept panel_id/panel_ctx. Box plot, scatter and heat
-# map are pinned in test-pr48-regressions.R; these are the rest. Each uses
-# panel values far enough apart that a panel reading its neighbour's data
-# cannot pass by coincidence.
+# map are pinned in test-pr48-regressions.R, and faceted violins are
+# deliberately skipped by their processor (test-ggplot2-violin-layer-
+# processor.R); these are the rest. Each uses panel values far enough apart
+# that a panel reading its neighbour's data cannot pass by coincidence.
 # ==============================================================================
 
 test_that("each faceted histogram panel reports its own bin counts", {
@@ -259,6 +260,41 @@ test_that("each faceted stacked bar panel reports its own values", {
   panel2 <- payload_layer(data, column = 2)
 
   testthat::expect_equal(panel1$type, "stacked_bar")
+  testthat::expect_equal(
+    sort(unlist(lapply(panel1$data, field_of, "y"))),
+    c(1, 2, 3, 4)
+  )
+  testthat::expect_equal(
+    sort(unlist(lapply(panel2$data, field_of, "y"))),
+    c(100, 200, 300, 400)
+  )
+
+  testthat::expect_false(
+    identical(unlist(panel1$selectors), unlist(panel2$selectors))
+  )
+})
+
+test_that("each faceted dodged bar panel reports its own values", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    category = rep(c("a", "b"), 4),
+    fill = rep(c("u", "v"), each = 4),
+    panel = rep(c("P1", "P1", "P2", "P2"), 2),
+    value = c(1, 2, 100, 200, 3, 4, 300, 400)
+  )
+  plot_obj <- ggplot2::ggplot(
+    df,
+    ggplot2::aes(x = category, y = value, fill = fill)
+  ) +
+    ggplot2::geom_col(position = "dodge") +
+    ggplot2::facet_wrap(~panel)
+
+  data <- render_maidr_data(plot_obj)
+  panel1 <- payload_layer(data, column = 1)
+  panel2 <- payload_layer(data, column = 2)
+
+  testthat::expect_equal(panel1$type, "dodged_bar")
   testthat::expect_equal(
     sort(unlist(lapply(panel1$data, field_of, "y"))),
     c(1, 2, 3, 4)
