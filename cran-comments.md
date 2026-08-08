@@ -8,7 +8,7 @@ This is an update of the CRAN package 'maidr', from 0.3.0 to 0.4.0.
   'tidyquant::geom_candlestick()', with optional 'geom_ma()' moving-average
   overlays and a 'patchwork' volume sub-panel) and Base R (via
   'quantmod::chartSeries()', OHLC-only).
-* Updated the bundled MAIDR JavaScript/CSS assets to v3.75.1.
+* Updated the bundled MAIDR JavaScript and stylesheet assets to v3.75.1.
 * Reduced the installed package size to under 5 MB: the embedded KaTeX
   web-font data is stripped from the bundled stylesheet (KaTeX math glyphs
   fall back to system fonts; there is no effect on the accessibility output).

@@ -238,3 +238,42 @@ test_that("create_html_document handles multiline SVG", {
   testthat::expect_true(grepl("rect", html_text))
   testthat::expect_true(grepl("circle", html_text))
 })
+
+# ==============================================================================
+# create_standalone_html stylesheet Tests
+# ==============================================================================
+
+# Both branches decide what stylesheet, if any, reaches the document, and they
+# decide it differently: the CDN branch names a script whose URL maidr.js can
+# resolve maidr-math.css against, while the offline branch inlines a script
+# with no URL at all and so has to carry KaTeX itself.
+
+svg_fixture <- function() {
+  c(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">',
+    '<rect x="10" y="10" width="80" height="80"/>',
+    "</svg>"
+  )
+}
+
+test_that("the CDN branch links no stylesheet", {
+  html <- maidr:::create_standalone_html(svg_fixture(), use_cdn = TRUE)
+
+  # The script tag's own URL is what maidr.js resolves maidr-math.css
+  # against, so a <link> would be a request that changes nothing — and
+  # since maidr 3.75.1 maidr.css has no rules in it to change anything with.
+  testthat::expect_false(grepl("maidr.css", html, fixed = TRUE))
+  testthat::expect_false(grepl("rel=\"stylesheet\"", html, fixed = TRUE))
+  testthat::expect_true(grepl("/maidr.js\"></script>", html, fixed = TRUE))
+})
+
+test_that("the offline branch inlines KaTeX alongside the script", {
+  html <- maidr:::create_standalone_html(svg_fixture(), use_cdn = FALSE)
+
+  # No URL anywhere for the runtime to resolve against, so the rules have
+  # to already be in the document.
+  testthat::expect_false(grepl("cdn.jsdelivr.net", html, fixed = TRUE))
+  testthat::expect_true(grepl(".katex", html, fixed = TRUE))
+  # Stripped of its web fonts, per .github/scripts/fetch-maidr-bundle.sh.
+  testthat::expect_false(grepl("@font-face", html, fixed = TRUE))
+})
