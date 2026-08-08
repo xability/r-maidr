@@ -160,6 +160,18 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # Extract format config from axis() calls
       private$.format_config <- self$extract_format_config_from_axis_calls()
 
+      # A multipanel replay redraws only the panel-visible groups, so the
+      # exported SVG numbers its panels 1..n in replay order. A skipped
+      # group (drawn before the layout call, or on an earlier page) shifts
+      # every later group's panel number down, so processors have to look
+      # up their grobs by panel SLOT, not by the group's own index.
+      panel_config <- detect_panel_configuration(private$.device_id)
+      panel_slots <- if (is_multipanel_config(panel_config)) {
+        compute_panel_slots(private$.plot_groups, panel_config)
+      } else {
+        NULL
+      }
+
       layer_results <- vector("list", length(private$.layers))
       for (i in seq_along(private$.layers)) {
         processor <- private$.layer_processors[[i]]
@@ -170,6 +182,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
           next
         }
 
+        layer_info <- private$.layers[[i]]
+        if (!is.null(panel_slots)) {
+          slot <- panel_slots[layer_info$group_index]
+          if (!is.na(slot)) {
+            layer_info$group_index <- slot
+          }
+        }
+
         layer_grob <- self$get_grob_for_layer(i)
 
         # Pass grob to processor (similar to ggplot2 passing gt)
@@ -178,7 +198,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         result <- processor$process(
           NULL,
           private$.layout,
-          layer_info = private$.layers[[i]],
+          layer_info = layer_info,
           gt = layer_grob
         )
         processor$set_last_result(result)

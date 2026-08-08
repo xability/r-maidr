@@ -2,6 +2,14 @@
 
 ## Bug Fixes
 
+* Base R: highlighting in a multi-panel figure now follows the panel actually
+  drawn. Only the panel-visible plot groups are replayed, so the exported SVG
+  numbers its panels in replay order, but each panel looked its elements up by
+  the plot group's own index. One skipped group -- a plot drawn before the
+  `par(mfrow = ...)` call, or a page that scrolled off when more plots were
+  drawn than the grid holds -- shifted every later panel, so panel 1 lit up
+  panel 2's bars and the last panel highlighted nothing at all. This affected
+  `mfrow`, `mfcol` and `layout()` grids alike.
 * Base R: a `heatmap()` drawn with `revC` -- which every `symm = TRUE` call
   turns on, since `Colv` defaults to `"Rowv"` there -- is no longer described
   upside down. `revC` flips the drawing so the first reordered row lands at
