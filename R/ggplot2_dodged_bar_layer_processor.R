@@ -19,25 +19,15 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
 
       selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
-      # Build axes including fill label for dodged bars
+      # Build axes including the fill legend title. A dodged bar layer only
+      # exists because fill is mapped, so the title is always meaningful.
       axes <- self$extract_layer_axes(plot, layout)
-
-      # Add fill axis label from built plot labels (includes labs(fill = ...))
-      if (!is.null(built)) {
-        fill_label <- built$plot$labels$fill
-      } else {
-        b <- ggplot2::ggplot_build(plot)
-        fill_label <- b$plot$labels$fill
-      }
-      if (is.null(fill_label)) {
-        # Fallback: get fill label from mapping expression
-        layer_index <- self$get_layer_index()
-        fill_quo <- plot$layers[[layer_index]]$mapping$fill
-        if (is.null(fill_quo)) fill_quo <- plot$mapping$fill
-        if (!is.null(fill_quo)) {
-          fill_label <- rlang::as_label(fill_quo)
-        }
-      }
+      fill_label <- resolve_legend_label(
+        plot,
+        built = built,
+        aes_names = "fill",
+        layer_index = self$get_layer_index()
+      )
       if (!is.null(fill_label)) {
         axes$z <- list(label = fill_label)
       }
