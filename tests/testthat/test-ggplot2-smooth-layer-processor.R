@@ -362,3 +362,304 @@ test_that("Ggplot2SmoothLayerProcessor works in full pipeline", {
   # Validate data format
   expect_maidr_data_format(result$data[[1]], "smooth")
 })
+
+# ==============================================================================
+# Grouped smooth -> one series per drawn curve (issue #81)
+# ==============================================================================
+
+# ggplot2 draws geom_smooth(aes(colour = g)) as one curve per group. The
+# payload has to be split the same way: concatenating the groups into a single
+# undifferentiated series walks a reader off the end of one curve into the
+# start of the next with nothing announced in between, and leaves the layer's
+# lone selector highlighting a single group's polyline for all of them.
+
+grouped_smooth_df <- function() {
+  data.frame(
+    x = rep(1:10, 3),
+    y = c(1:10, 10:1, rep(c(4, 6), 5)),
+    g = rep(c("a", "b", "c"), each = 10)
+  )
+}
+
+grouped_smooth_plot <- function(se = FALSE) {
+  ggplot2::ggplot(
+    grouped_smooth_df(),
+    ggplot2::aes(x = x, y = y, colour = g)
+  ) +
+    ggplot2::geom_smooth(se = se, method = "lm", formula = y ~ x)
+}
+
+ungrouped_smooth_plot <- function() {
+  ggplot2::ggplot(grouped_smooth_df(), ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_smooth(se = FALSE, method = "lm", formula = y ~ x)
+}
+
+smooth_processor <- function(index = 1) {
+  maidr:::Ggplot2SmoothLayerProcessor$new(list(index = index))
+}
+
+process_smooth <- function(plot, index = 1) {
+  processor <- smooth_processor(index)
+  built <- ggplot2::ggplot_build(plot)
+  layout <- list(title = "", axes = list(x = "x", y = "y"))
+  result <- processor$process(
+    plot, layout, built, ggplot2::ggplotGrob(plot)
+  )
+  maidr:::validate_axes(result$axes, "smooth layer")
+  result
+}
+
+series_z_values <- function(series) {
+  unique(vapply(series, function(point) {
+    if (is.null(point$z)) NA_character_ else as.character(point$z)
+  }, character(1)))
+}
+
+test_that("a grouped smooth emits one series per drawn curve", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  data <- smooth_processor()$extract_data(grouped_smooth_plot())
+
+  # ggplot2 fits each group over 80 points; before the fix all 240 landed in
+  # a single series.
+  testthat::expect_equal(length(data), 3)
+  testthat::expect_equal(as.integer(lengths(data)), c(80L, 80L, 80L))
+})
+
+test_that("every point of a grouped smooth series carries its group name", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  data <- smooth_processor()$extract_data(grouped_smooth_plot())
+
+  testthat::expect_equal(series_z_values(data[[1]]), "a")
+  testthat::expect_equal(series_z_values(data[[2]]), "b")
+  testthat::expect_equal(series_z_values(data[[3]]), "c")
+})
+
+test_that("an ungrouped smooth stays a single series with no z", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  data <- smooth_processor()$extract_data(ungrouped_smooth_plot())
+
+  testthat::expect_equal(length(data), 1)
+  testthat::expect_equal(length(data[[1]]), 80)
+  testthat::expect_false("z" %in% names(data[[1]][[1]]))
+})
+
+test_that("grouped smooth z label falls back to the mapped column name", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  axes <- process_smooth(grouped_smooth_plot())$axes
+
+  testthat::expect_equal(axes$z$label, "g")
+})
+
+test_that("grouped smooth z label comes from labs(colour = ...)", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  plot <- grouped_smooth_plot() + ggplot2::labs(colour = "Cohort")
+
+  testthat::expect_equal(process_smooth(plot)$axes$z$label, "Cohort")
+})
+
+test_that("grouped smooth z label reads a layer-level colour mapping", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  plot <- ggplot2::ggplot(grouped_smooth_df(), ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_smooth(
+      ggplot2::aes(colour = g),
+      se = FALSE, method = "lm", formula = y ~ x
+    ) +
+    ggplot2::labs(colour = "Cohort")
+
+  testthat::expect_equal(process_smooth(plot)$axes$z$label, "Cohort")
+})
+
+test_that("an ungrouped smooth emits no z label", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  testthat::expect_null(process_smooth(ungrouped_smooth_plot())$axes$z)
+})
+
+test_that("labs(colour = ...) on an ungrouped smooth invents no z label", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # ggplot2 records a labs() title even for an aesthetic the plot never maps,
+  # so the lookup has to be gated on the layer actually drawing more than one
+  # curve -- otherwise MAIDR would announce a legend that is not drawn.
+  plot <- ungrouped_smooth_plot() + ggplot2::labs(colour = "Not a legend")
+
+  axes <- suppressMessages(suppressWarnings(process_smooth(plot)))$axes
+
+  testthat::expect_null(axes$z)
+})
+
+test_that("a smooth grouped by a fill mapping is split and labelled", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # geom_density() / geom_area() render a fill, so aes(fill = g) splits them
+  # into one curve per group exactly as aes(colour = g) does.
+  plot <- ggplot2::ggplot(
+    grouped_smooth_df(),
+    ggplot2::aes(x = y, fill = g)
+  ) +
+    ggplot2::geom_density(alpha = 0.3)
+
+  result <- process_smooth(plot)
+
+  testthat::expect_equal(length(result$data), 3)
+  testthat::expect_equal(series_z_values(result$data[[1]]), "a")
+  testthat::expect_equal(result$axes$z$label, "g")
+})
+
+test_that("a grouped smooth emits one distinct selector per curve", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  plot <- grouped_smooth_plot()
+  selectors <- smooth_processor()$generate_selectors(
+    plot, ggplot2::ggplotGrob(plot),
+    built = ggplot2::ggplot_build(plot)
+  )
+
+  # selectors.length === data.length is a MAIDR frontend precondition.
+  testthat::expect_equal(length(selectors), 3)
+  testthat::expect_equal(length(unique(unlist(selectors))), 3)
+})
+
+test_that("an ungrouped smooth keeps its single selector", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  plot <- ungrouped_smooth_plot()
+  selectors <- smooth_processor()$generate_selectors(
+    plot, ggplot2::ggplotGrob(plot),
+    built = ggplot2::ggplot_build(plot)
+  )
+
+  testthat::expect_equal(length(selectors), 1)
+})
+
+test_that("a grouped smooth does not select a sibling line layer's polyline", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # geom_line() draws its own polyline as a sibling of the smooth layer's
+  # grob tree. Scoping the search to this layer's tree is what keeps the two
+  # layers' selectors apart.
+  plot <- ggplot2::ggplot(
+    grouped_smooth_df(),
+    ggplot2::aes(x = x, y = y, colour = g)
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::geom_smooth(se = FALSE, method = "lm", formula = y ~ x)
+
+  gt <- ggplot2::ggplotGrob(plot)
+  built <- ggplot2::ggplot_build(plot)
+
+  smooth_selectors <- unlist(
+    smooth_processor(2)$generate_selectors(plot, gt, built = built)
+  )
+  line_selectors <- unlist(
+    maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$generate_selectors(
+      plot, gt,
+      built = built
+    )
+  )
+
+  testthat::expect_equal(length(smooth_selectors), 3)
+  testthat::expect_length(intersect(smooth_selectors, line_selectors), 0)
+})
+
+# ------------------------------------------------------------------------
+# Full render pipeline: the payload has to line up with the drawn SVG
+# ------------------------------------------------------------------------
+
+render_smooth_payload <- function(plot) {
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
+  suppressWarnings(suppressMessages(save_html(plot, file)))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+
+  list(
+    data = jsonlite::fromJSON(json, simplifyVector = FALSE),
+    doc = xml2::read_html(html)
+  )
+}
+
+# The smooth layer emits id-only selectors ("#GRID\\.polyline\\.3\\.1\\.1"),
+# so un-escaping is just the inverse of the processor's own escaping. The
+# shape is asserted first: a selector carrying a combinator would need a real
+# CSS engine, and must fail here rather than be mis-parsed into a wrong id.
+smooth_selector_node <- function(doc, selector) {
+  testthat::expect_false(grepl("[[:space:]>+~,]", selector))
+  id <- sub("^#", "", gsub("\\.", ".", selector, fixed = TRUE))
+  xml2::xml_find_first(doc, sprintf("//*[@id='%s']", id))
+}
+
+polyline_point_count <- function(node) {
+  points <- xml2::xml_attr(node, "points")
+  length(strsplit(trimws(points), "[[:space:]]+")[[1]])
+}
+
+test_that("a grouped smooth's selectors each address their own curve", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("jsonlite")
+  testthat::skip_if_not_installed("xml2")
+
+  payload <- render_smooth_payload(grouped_smooth_plot())
+  layer <- payload$data$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_equal(layer$type, "smooth")
+  testthat::expect_equal(length(layer$data), 3)
+  testthat::expect_equal(length(layer$selectors), 3)
+  testthat::expect_equal(layer$axes$z$label, "g")
+  testthat::expect_equal(
+    vapply(layer$data, function(s) as.character(s[[1]]$z), character(1)),
+    c("a", "b", "c")
+  )
+
+  for (i in seq_along(layer$selectors)) {
+    node <- smooth_selector_node(payload$doc, layer$selectors[[i]])
+    testthat::expect_false(inherits(node, "xml_missing"))
+    testthat::expect_equal(xml2::xml_name(node), "polyline")
+    # A selector aimed at one group while the data holds all three is the
+    # mismatch this issue is about, so compare the vertex counts.
+    testthat::expect_equal(
+      polyline_point_count(node), length(layer$data[[i]])
+    )
+  }
+})
+
+test_that("a grouped se = TRUE smooth selects the fitted lines, not the ribbons", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("jsonlite")
+  testthat::skip_if_not_installed("xml2")
+
+  payload <- render_smooth_payload(grouped_smooth_plot(se = TRUE))
+  layer <- payload$data$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_equal(length(layer$data), 3)
+  testthat::expect_equal(length(layer$selectors), 3)
+
+  # Each group draws a confidence ribbon whose outline polyline carries
+  # stroke="none", and a fitted line stroked in the group's own colour.
+  # Selecting a distinct visible stroke per series is what tells the two
+  # apart.
+  strokes <- vapply(layer$selectors, function(selector) {
+    node <- smooth_selector_node(payload$doc, selector)
+    testthat::expect_false(inherits(node, "xml_missing"))
+    as.character(xml2::xml_attr(node, "stroke"))
+  }, character(1))
+
+  testthat::expect_false(any(strokes == "none"))
+  testthat::expect_equal(length(unique(strokes)), 3)
+})
