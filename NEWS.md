@@ -2,6 +2,15 @@
 
 ## Bug Fixes
 
+* ggplot2: a faceted bar chart on a continuous, `Date` or `POSIXct` x axis no
+  longer announces the wrong x value. Each panel labelled its bars by using
+  the bar's x position as an INDEX into that panel's axis break labels, which
+  is only meaningful for a discrete axis where those positions are category
+  numbers. On a numeric axis the positions are the values themselves, so
+  `c(2, 4, 6)` was announced as "2", "6", "6", `c(1, 2, 3)` lost its first
+  label entirely, and a `Date` axis announced raw day counts ("19723") rather
+  than dates. Non-discrete panels now report their own values, formatted the
+  same way an unfaceted chart formats them.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks

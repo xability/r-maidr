@@ -86,16 +86,15 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
             panel_labels <- panel_params$x.labels
           }
 
-          if (!is.null(panel_labels) && is.numeric(built_data$x)) {
-            label_idx <- as.integer(round(built_data$x))
-            valid <- !is.na(label_idx) &
-              label_idx >= 1 &
-              label_idx <= length(panel_labels)
-            x_values <- as.character(built_data$x)
-            x_values[valid] <- as.character(panel_labels[label_idx[valid]])
+          # Break labels may only be INDEXED by the built positions on a
+          # discrete scale, where those positions are 1..n category
+          # numbers. On a continuous, Date or datetime scale the positions
+          # ARE the values, so indexing invents labels (x = 4 picking up
+          # the 4th break's label) or emits raw day counts for dates.
+          if (self$panel_x_is_discrete(panel_params, built_data$x, panel_labels)) {
+            x_values <- self$map_discrete_x(built_data$x, panel_labels)
           } else {
-            # Fallback: use built_data$x but convert to character
-            x_values <- as.character(built_data$x)
+            x_values <- self$map_continuous_x(built_data$x, plot, layer_index)
           }
         }
       } else {
@@ -205,6 +204,101 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         return(format(x))
       }
       as.character(x)
+    },
+
+    #' @description Does this panel draw x on a discrete scale?
+    #'
+    #' Only a discrete scale numbers its built positions 1..n, which is what
+    #' makes indexing the break labels with them legitimate.
+    #'
+    #' @param panel_params This panel's entry from `built$layout$panel_params`
+    #' @param x_pos Built x positions for this panel
+    #' @param panel_labels This panel's x break labels, or NULL
+    #' @return TRUE for a discrete x scale
+    panel_x_is_discrete = function(panel_params, x_pos, panel_labels) {
+      if (!is.numeric(x_pos) || length(x_pos) == 0) {
+        return(FALSE)
+      }
+      if (!is.null(panel_params$x) && is.function(panel_params$x$is_discrete)) {
+        discrete <- tryCatch(
+          isTRUE(panel_params$x$is_discrete()),
+          error = function(e) NULL
+        )
+        if (!is.null(discrete)) {
+          return(discrete)
+        }
+      }
+      # Flattened panel_params (older ggplot2) expose no scale object, so
+      # fall back to the shape of the positions: whole numbers covered by
+      # the break labels.
+      !is.null(panel_labels) &&
+        !anyNA(x_pos) &&
+        all(abs(x_pos - round(x_pos)) < 1e-6) &&
+        all(x_pos >= 1 & x_pos <= length(panel_labels))
+    },
+
+    #' @description Label discrete built positions with this panel's breaks.
+    #'
+    #' @param x_pos Built x positions for this panel
+    #' @param panel_labels This panel's x break labels, or NULL
+    #' @return Character vector of x labels
+    map_discrete_x = function(x_pos, panel_labels) {
+      x_values <- as.character(x_pos)
+      if (is.null(panel_labels) || !is.numeric(x_pos)) {
+        return(x_values)
+      }
+      idx <- as.integer(round(x_pos))
+      idx[is.na(idx) | idx < 1 | idx > length(panel_labels)] <- NA_integer_
+      labelled <- as.character(panel_labels[idx])
+      hit <- !is.na(labelled)
+      x_values[hit] <- labelled[hit]
+      x_values
+    },
+
+    #' @description Recover user-facing x values for a non-discrete scale.
+    #'
+    #' Built positions on a continuous, Date or datetime scale already are
+    #' the values, but a Date arrives as a day count. Matching them back to
+    #' the mapped column restores the original typing so `format_x_value()`
+    #' can emit "2024-01-02" rather than "19724". Mirrors the same recovery
+    #' in `Ggplot2LineLayerProcessor`.
+    #'
+    #' @param x_pos Built x positions for this panel
+    #' @param plot The ggplot object
+    #' @param layer_index Index of this layer within the plot
+    #' @return Character vector of x labels
+    map_continuous_x = function(x_pos, plot, layer_index) {
+      x_values <- as.character(x_pos)
+      if (!is.numeric(x_pos)) {
+        return(x_values)
+      }
+
+      layer_mapping <- plot$layers[[layer_index]]$mapping
+      x_col <- NULL
+      if (!is.null(layer_mapping) && !is.null(layer_mapping$x)) {
+        x_col <- rlang::as_label(layer_mapping$x)
+      } else if (!is.null(plot$mapping) && !is.null(plot$mapping$x)) {
+        x_col <- rlang::as_label(plot$mapping$x)
+      }
+      has_column <- !is.null(x_col) &&
+        is.data.frame(plot$data) &&
+        x_col %in% names(plot$data)
+      if (!has_column) {
+        return(x_values)
+      }
+
+      original <- sort(unique(plot$data[[x_col]]))
+      numeric_repr <- suppressWarnings(as.numeric(original))
+      if (length(numeric_repr) == 0 || anyNA(numeric_repr)) {
+        return(x_values)
+      }
+
+      match_idx <- match(round(as.numeric(x_pos), 6), round(numeric_repr, 6))
+      hit <- !is.na(match_idx)
+      if (any(hit)) {
+        x_values[hit] <- self$format_x_value(original[match_idx[hit]])
+      }
+      x_values
     },
 
     generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
