@@ -62,6 +62,10 @@ field_of <- function(points, name) {
 # itself. Forcing it at record time either errors or, when the caller
 # happens to have its own `x`, silently records that unrelated vector -
 # so replay redraws something the user never asked for.
+#
+# These assert on the recording and the replay rather than on a maidr-data
+# payload: curve() has no layer type of its own, so it renders through the
+# static-image fallback, and the recorded call IS what that fallback draws.
 # ==============================================================================
 
 test_that("curve() records its expression, not a same-named caller variable", {
