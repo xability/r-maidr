@@ -236,21 +236,13 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        panel_index <- which(
-          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-        )
-      } else {
-        panel_index <- which(gt$layout$name == "panel")
-      }
-      if (length(panel_index) == 0) {
+      panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+      if (is.null(panel_grob)) {
         layer_id <- self$get_layer_index()
         grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
         escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
         return(list(paste0("#", escaped_grob_id, " rect")))
       }
-
-      panel_grob <- gt$grobs[[panel_index[1]]]
 
       find_rect_names <- function(grob) {
         names <- character(0)
