@@ -64,8 +64,9 @@ field_of <- function(points, name) {
 # so replay redraws something the user never asked for.
 #
 # These assert on the recording and the replay rather than on a maidr-data
-# payload: curve() has no layer type of its own, so it renders through the
-# static-image fallback, and the recorded call IS what that fallback draws.
+# payload: the recorded call is what the SVG export redraws. The payload
+# side is covered by test-base-r-curve.R (issue #82), which pins the
+# interactive line layer curve() now renders as.
 # ==============================================================================
 
 test_that("curve() records its expression, not a same-named caller variable", {

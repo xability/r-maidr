@@ -12,6 +12,52 @@
   the guessed id was byte-identical to the first panel's, and the empty panel
   highlighted another panel's fitted line. They now emit no selector, matching
   bar, point, box plot, line, heat map, and candlestick layers.
+* ggplot2: a dodged `geom_bar()` no longer highlights the wrong bar when some
+  (x, fill) combinations are empty. The layer emitted only the combinations it
+  actually drew, so `ggplot(mpg, aes(class, fill = drv)) + geom_bar(position =
+  "dodge")` produced series of five, four and three values against a chart of
+  seven categories. MAIDR walks one flat list of rects column by column and
+  sizes that walk from the payload, so a ragged payload claimed fifteen bars
+  where twelve exist: the cursor overran and every bar after the first empty
+  cell highlighted its neighbour, while position three meant `pickup` in one
+  series and `minivan` in the next. Absent combinations are now announced as
+  zero, which keeps each series one entry per category so the same position
+  means the same category in all of them, and which is the honest value for a
+  cross-tabulation -- a cell `stat = "count"` never drew is a cell whose count
+  really is zero, and MAIDR gives it no highlight because there is no bar to
+  highlight. Bars supplied through `geom_col()` are left alone: a row the
+  caller omitted has no value, and inventing a zero for it would invent data.
+  Dodged counts also asked for the wrong per-column highlight direction, which
+  put every series on its neighbour's bars even when no combination was empty.
+* ggplot2: a dodged `geom_bar()` now announces its categories in the plotted
+  order. The layer sorted them as text, which disagreed with the chart twice
+  over: a factor is laid out in level order, so reversed or custom levels
+  described column one of the payload against column three of the chart, and a
+  number sorts with 10 before 2.
+* ggplot2: a faceted panel no longer discards the display hints its layers
+  emit. The panel entry was assembled from a fixed list of keys, so anything
+  else a processor returned -- `domMapping`, `orientation`, the box plot's IQR
+  direction -- was dropped, and every panel fell back to defaults the
+  unfaceted plot never uses. A faceted dodged `geom_bar()` therefore
+  highlighted its neighbour's bars in every panel. The 'patchwork' path
+  already carried these fields; the facet path now matches it.
+* Base R: `curve()` renders as an interactive line plot instead of a static
+  image. The call was recorded, but the adapter had no layer type for it, so
+  it typed as "unknown" and the whole figure fell back to a picture with no
+  sonification, braille, or keyboard navigation. It now types as the same
+  line layer `plot(x, y, type = "l")` produces, and the announced points are
+  the ones `curve()` returned after drawing them, so they cannot drift from
+  what was plotted. The axis labels `curve()` derives for itself -- the
+  variable name and the deparsed expression -- are announced too. Draw types
+  that are not a polyline (`type = "p"`, `"b"`, `"s"`, ...) and
+  `curve(add = TRUE)` keep the static fallback.
+* Base R: `curve()` called from inside a function sees that function's
+  variables. `curve()` resolves the free variables of its expression against
+  the calling frame, which through maidr's wrapper was the wrapper's own
+  frame, so `f <- function(k) curve(sin(k * x), from = 0, to = pi)` failed
+  with "object 'k' not found" -- a call that works in plain R. It only
+  appeared to work at top level, where the global environment is on the
+  package's search chain.
 * ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
   computes. Each leaf's layout was read before the leaf was built, and under
   ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
