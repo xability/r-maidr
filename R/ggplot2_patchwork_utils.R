@@ -534,6 +534,13 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     error = function(e) NULL
   )
 
+  # Number formatting is per LEAF, not per composition: every leaf is its own
+  # ggplot carrying its own scales, so a currency y axis on one leaf and a
+  # percent y axis on another must each survive into their own layers. The
+  # single-plot and faceted paths extract this once because they only ever
+  # describe one set of scales.
+  leaf_format <- extract_format_config(leaf_built)
+
   registry <- get_global_registry()
   factory <- registry$get_processor_factory("ggplot2")
   adapter <- registry$get_adapter("ggplot2")
@@ -605,6 +612,16 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           sub <- subs[[sub_idx]]
           if (is.null(sub)) next
 
+          # Same treatment the other two paths give their axes: attach the
+          # scale's number format per axis, then hold the result to the
+          # canonical {x,y,z} contract.
+          sub_axes <- if (!is.null(sub$axes)) sub$axes else leaf_axes
+          if (!is.null(leaf_format)) {
+            sub_axes <- attach_axis_format(sub_axes, "x", leaf_format$x)
+            sub_axes <- attach_axis_format(sub_axes, "y", leaf_format$y)
+          }
+          validate_axes(sub_axes, context = "patchwork subplot")
+
           layer_entry <- list(
             id = if (expanded) {
               paste0(layer_id_prefix, "-", layer_idx, "-", sub_idx)
@@ -613,7 +630,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
             },
             type = if (!is.null(sub$type)) sub$type else layer_type,
             title = leaf_title,
-            axes = if (!is.null(sub$axes)) sub$axes else leaf_axes,
+            axes = sub_axes,
             data = sub$data,
             selectors = sub$selectors
           )
