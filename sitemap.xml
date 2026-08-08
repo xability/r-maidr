@@ -170,6 +170,7 @@
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/locate_binding_env.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/log_plot_call_to_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr-options.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr-package.html</loc></url>
@@ -231,6 +232,7 @@
 <url><loc>https://r.maidr.ai/reference/set_maidr_data_attr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/simplify_curve.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/snapshot_call_env.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_date_axis.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_date_axis_doc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis.html</loc></url>
