@@ -339,20 +339,29 @@ test_that("named barplot bars are emitted in the order they are drawn", {
 test_that("an unnamed barplot keeps call order in both data and geometry", {
   reset_devices()
 
-  # nothing to sort by, so the drawn order is the call order and the
-  # emitted labels are the bar indices
-  barplot(c(9, 2, 7, 4))
+  # Twelve bars, because the labels of an unnamed barplot are its bar
+  # indices: sorting those as text puts "10" between "1" and "2", so this
+  # is the shape where an alphabetical re-sort during extraction shows up
+  # as data that no longer lines up with the rects.
+  values <- c(9, 2, 7, 4, 13, 6, 1, 11, 3, 8, 5, 12)
+  barplot(values)
 
   html <- render_html()
   layer <- payload_layer(parse_maidr_data(html))
 
-  testthat::expect_equal(field_of(layer$data, "y"), c(9, 2, 7, 4))
+  testthat::expect_equal(
+    vapply(layer$data, function(point) point$x, character(1)),
+    as.character(seq_along(values))
+  )
+  testthat::expect_equal(field_of(layer$data, "y"), values)
 
   rects <- selector_rects(html, unlist(layer$selectors)[1])
   heights <- as.numeric(xml2::xml_attr(rects, "height"))
+  lefts <- as.numeric(xml2::xml_attr(rects, "x"))
 
-  testthat::expect_length(rects, 4)
-  testthat::expect_equal(rank(heights), rank(c(9, 2, 7, 4)))
+  testthat::expect_length(rects, length(values))
+  testthat::expect_true(all(diff(lefts) > 0))
+  testthat::expect_equal(rank(heights), rank(field_of(layer$data, "y")))
 
   reset_devices()
 })
@@ -396,10 +405,14 @@ test_that("show(as_widget = TRUE) clears the recorded Base R calls", {
   reset_devices()
 
   barplot(c(a = 1, b = 2))
+  # the device has to be remembered here: show() closes the temp device on
+  # its way out, so asking dev.cur() afterwards would answer about a
+  # different device and pass no matter what
+  device_id <- grDevices::dev.cur()
   invisible(show(as_widget = TRUE))
 
   # leaving the calls behind would fold this plot into the next render
-  testthat::expect_false(maidr:::has_device_calls(grDevices::dev.cur()))
+  testthat::expect_false(maidr:::has_device_calls(device_id))
 
   reset_devices()
 })
