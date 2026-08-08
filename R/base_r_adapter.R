@@ -115,6 +115,38 @@ BaseRAdapter <- R6::R6Class(
             }
           }
         },
+        # curve() draws the points it evaluates as a polyline, which is
+        # what plot(x, y, type = "l") does, so it types as the same "line"
+        # layer -- and the SVG export names that polyline
+        # "graphics-plot-N-lines-1", the grob the line processor already
+        # looks for.
+        #
+        # Only the polyline draw types qualify. type = "s"/"S"/"b"/"c"/"h"
+        # /"p" export under grob names the line selector cannot address
+        # ("step", "Step", "brokenline", "spike", "points"), so they keep
+        # falling back to a static image rather than shipping data with
+        # selectors that highlight nothing. type = "o" draws the same
+        # polyline plus a points grob, so the line reading holds.
+        #
+        # curve(add = TRUE) is excluded for a different reason: `curve` is
+        # a HIGH-level function, so it opens its own plot group, and a
+        # single-panel figure exports only the FIRST group's grob. An
+        # overlay typed as "line" would therefore emit data for a curve
+        # that is absent from the exported SVG, with a selector pointing
+        # at a grob that group never drew. Overlays stay on the static
+        # fallback until they are grouped with the plot they add to.
+        "curve" = {
+          curve_type <- args[["type"]]
+          overlays_existing <- "add" %in% names(args) &&
+            !identical(args[["add"]], FALSE)
+          draws_polyline <- is.null(curve_type) ||
+            (is.character(curve_type) && curve_type[1] %in% c("l", "o"))
+          if (overlays_existing || !draws_polyline) {
+            "unknown"
+          } else {
+            "line"
+          }
+        },
         "hist" = "hist",
         "boxplot" = "box",
         "image" = "heat",

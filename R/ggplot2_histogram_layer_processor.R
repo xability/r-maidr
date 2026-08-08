@@ -92,16 +92,23 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class(
         }
       }
 
-      if (!is.null(rect_grob)) {
-        layer_id <- gsub("geom_rect\\.rect\\.", "", rect_grob)
-        grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-      } else {
-        grob_id <- "geom_rect.rect.1.1"
+      # No rect grob means this layer drew no bins here: an empty facet
+      # level, a zero-row layer, a coord that renders no rects. Every
+      # `geom_rect.rect.N` id carries grid's session-wide grob counter, so
+      # a guessed N is right only by coincidence - and when it does land it
+      # lands on ANOTHER panel's bins, which highlights the wrong marks
+      # while the payload still looks healthy. The caller can tell an empty
+      # selector list apart from a wrong one, a user cannot; bar, point,
+      # boxplot, line and heatmap already return list() here.
+      if (is.null(rect_grob)) {
+        return(list())
       }
-      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-      selector_string <- paste0("#", escaped_grob_id, " rect")
 
-      list(selector_string)
+      layer_id <- gsub("geom_rect\\.rect\\.", "", rect_grob)
+      grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
+      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+
+      list(paste0("#", escaped_grob_id, " rect"))
     }
   )
 )
