@@ -559,8 +559,12 @@ test_that("A step layer survives alongside a line layer in the payload", {
 
 test_that("A faceted step plot keeps its stepDirection", {
   # Facet panels rebuild the payload layer field by field instead of copying
-  # the processor result, so the direction has to be carried across
-  # explicitly or it silently disappears from every faceted step plot.
+  # the processor result, so anything not carried across silently disappears
+  # from every faceted step plot. The carry is `process_facet_panel()`'s
+  # generic one, which copies every processor field outside its exclusion
+  # list -- `stepDirection` is not in that list. This test is what stands
+  # between a future edit to that list and the direction vanishing without a
+  # word, so it asserts on the emitted field rather than on the mechanism.
   testthat::skip_if_not_installed("ggplot2")
 
   df <- data.frame(
