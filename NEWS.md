@@ -10,6 +10,44 @@
   composition was worse, because collapsing its two panels into one subplot
   put two identically named layers side by side. Ids now carry the panel's
   grid cell.
+* Base R: highlighting in a multi-panel figure now follows the panel actually
+  drawn. Only the panel-visible plot groups are replayed, so the exported SVG
+  numbers its panels in replay order, but each panel looked its elements up by
+  the plot group's own index. One skipped group -- a plot drawn before the
+  `par(mfrow = ...)` call, or a page that scrolled off when more plots were
+  drawn than the grid holds -- shifted every later panel, so panel 1 lit up
+  panel 2's bars and the last panel highlighted nothing at all. This affected
+  `mfrow`, `mfcol` and `layout()` grids alike.
+* Base R: a `heatmap()` drawn with `revC` -- which every `symm = TRUE` call
+  turns on, since `Colv` defaults to `"Rowv"` there -- is no longer described
+  upside down. `revC` flips the drawing so the first reordered row lands at
+  the top, but it is not part of the ordering `heatmap()` reports, so the
+  emitted grid was reversed anyway: two calls differing only in `revC`
+  produced byte-identical data for mirror-image figures, and every row label
+  named the row on the opposite side of the plot.
+* ggplot2: a faceted bar chart on a continuous, `Date` or `POSIXct` x axis no
+  longer announces the wrong x value. Each panel labelled its bars by using
+  the bar's x position as an INDEX into that panel's axis break labels, which
+  is only meaningful for a discrete axis where those positions are category
+  numbers. On a numeric axis the positions are the values themselves, so
+  `c(2, 4, 6)` was announced as "2", "6", "6", `c(1, 2, 3)` lost its first
+  label entirely, and a `Date` axis announced raw day counts ("19723") rather
+  than dates. Non-discrete panels now report their own values, formatted the
+  same way an unfaceted chart formats them.
+* ggplot2: bar, point, line, box, histogram, smooth, stacked-bar, dodged-bar,
+  heatmap and candlestick plots inside a NESTED 'patchwork' are no longer
+  inert. Each of these carried its own panel lookup that scanned only the top
+  level of the composition and addressed panels by name, but `(p1 | p2) / p3`
+  keeps the inner row's panels inside a child table and leaves only a
+  placeholder at the top, and panel names repeat across nesting levels
+  anyway. A nested leaf therefore failed in one of two ways: bar, point, box,
+  line, heatmap and candlestick emitted no selector at all, while histogram,
+  smooth, stacked bar and dodged bar fell through to a fabricated selector
+  that matched nothing -- the worse of the two, because the payload looks
+  healthy while the layer highlights nothing. Every processor now resolves
+  its panel through the same recursive walk the violin processor already
+  used, and each leaf addresses its own panel. Flat compositions and faceted
+  plots are unaffected.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks
@@ -29,6 +67,21 @@
   without clearing the device, unlike the sibling branch for non-HTML output,
   so a document that plotted, called `maidr_off()`, then called `maidr_on()`
   again folded the earlier calls into the next render as phantom layers.
+* Base R: a plot drawn in a loop now renders the iteration it recorded. When
+  an argument cannot be evaluated where the call is intercepted -- the shape
+  `plot(y ~ x, data = d, subset = grp == g)`, which mixes a column of `data`
+  with a variable from the loop -- maidr records the unevaluated expressions
+  and re-evaluates them at render time. It recorded the caller's frame to
+  re-evaluate them in, and R reuses ONE frame for the whole loop, so by
+  render time every iteration saw the LAST iteration's values:
+  `for (g in c("a", "b")) plot(y ~ x, data = d, subset = grp == g)` drew
+  `grp == "b"` in both panels, with no error and no warning. The values the
+  recorded expressions name are now captured when the call is made, so each
+  panel replays its own data. Only the names actually referenced are
+  captured, into a child of the caller's frame, so everything else still
+  resolves as before and active bindings are left to the caller. Applies to
+  every deferred path: `plot()`, `boxplot()`, `barplot()`, `curve()`,
+  `lines()`, `points()` and `chartSeries()`.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped

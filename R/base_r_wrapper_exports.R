@@ -120,6 +120,7 @@ chartSeries <- function(...) {
   }
 
   this_call <- match.call()
+  caller_env <- parent.frame()
 
   ensure_maidr_device()
 
@@ -129,7 +130,7 @@ chartSeries <- function(...) {
   call_env <- NULL
   if (is.null(args_list)) {
     args_list <- as.list(this_call)[-1L]
-    call_env <- parent.frame()
+    call_env <- snapshot_call_env(args_list, caller_env)
   }
 
   log_plot_call_to_device(
