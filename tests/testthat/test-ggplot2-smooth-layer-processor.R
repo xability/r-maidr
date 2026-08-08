@@ -661,3 +661,66 @@ test_that("a grouped se = TRUE smooth selects the fitted lines, not the ribbons"
   testthat::expect_false(any(strokes == "none"))
   testthat::expect_equal(length(unique(strokes)), 3)
 })
+
+# ==============================================================================
+# The grouped-selector fallback emits nothing rather than one wrong selector
+# ==============================================================================
+
+test_that("a chunking failure emits no selector rather than a mismatched one", {
+  # grouped_curve_selectors() gives up when the layer's grob children do not
+  # divide evenly by the group count. The old single-curve path is NOT a safe
+  # landing place there: it returns one selector while the data already holds
+  # one series per group, so the highlight sits on one curve while the reader
+  # walks all of them -- the defect this processor was fixed for. Forcing the
+  # give-up proves the answer is an empty list, not a wrong selector.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = rep(1:10, 3),
+    y = c(1:10, 11:20, 21:30),
+    g = rep(c("a", "b", "c"), each = 10)
+  )
+  plot <- ggplot2::ggplot(df, ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_smooth(se = FALSE, method = "lm", formula = y ~ x)
+
+  processor <- Ggplot2SmoothLayerProcessor$new(list(index = 1))
+  gt <- ggplot2::ggplotGrob(plot)
+
+  # A group count the grob tree cannot divide by: 3 curves, 4 claimed groups.
+  testthat::expect_null(processor$grouped_curve_selectors(plot, gt, NULL, 4L))
+})
+
+test_that("geom_area(stat = \"density\") splits per group like the others", {
+  # A default geom_area() uses StatAlign and never reaches this processor,
+  # but with stat = "density" the adapter types it smooth, so it does.
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  set.seed(1)
+  df <- data.frame(
+    y = c(stats::rnorm(30), stats::rnorm(30, 3), stats::rnorm(30, 6)),
+    g = rep(c("a", "b", "c"), each = 30)
+  )
+  plot <- ggplot2::ggplot(df, ggplot2::aes(y, fill = g)) +
+    ggplot2::geom_area(stat = "density", alpha = 0.3)
+
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
+  suppressWarnings(save_html(plot, file))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+
+  json <- sub('"$', "", sub('^maidr-data="', "", regmatches(
+    html, regexpr('maidr-data="[^"]*"', html)
+  )))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+  layer <- payload$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_equal(layer$type, "smooth")
+  testthat::expect_length(layer$data, 3)
+  testthat::expect_length(unlist(layer$selectors), 3)
+  testthat::expect_equal(layer$axes$z$label, "g")
+})

@@ -40,9 +40,11 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     #' because a line has no fill and reading one from an unrelated layer's
     #' mapping would invent a legend the plot never draws.
     #'
-    #' These are the two geoms that reach this processor:
     #' \code{Ggplot2Adapter} types a layer as \code{smooth} for
-    #' \code{GeomSmooth} or \code{StatDensity} and nothing else.
+    #' \code{GeomSmooth} or for any layer whose stat is \code{StatDensity}.
+    #' A default \code{geom_area()} uses \code{StatAlign} and so never
+    #' arrives here, but \code{geom_area(stat = "density")} does, and splits
+    #' per group like the others.
     #'
     #' @return List of aesthetic-name vectors, in precedence order
     group_aes = function() {
@@ -191,6 +193,14 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         if (!is.null(grouped)) {
           return(grouped)
         }
+        # The chunking could not line the grob children up with the groups.
+        # Do NOT fall through to the single-curve path here: it returns ONE
+        # selector while extract_data() has already returned n_series, and a
+        # highlight aimed at one group's curve while the reader walks all of
+        # them is the very defect this processor was fixed for. Emitting
+        # nothing is the honest answer -- the caller can tell an empty
+        # selector list apart from a wrong one, a user cannot.
+        return(list())
       }
 
       collect_all_polyline_grobs <- function(grob) {

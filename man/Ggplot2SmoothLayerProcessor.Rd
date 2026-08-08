@@ -80,9 +80,11 @@ Grouping aesthetics that split this layer into curves.
 because a line has no fill and reading one from an unrelated layer's
 mapping would invent a legend the plot never draws.
 
-These are the two geoms that reach this processor:
 \code{Ggplot2Adapter} types a layer as \code{smooth} for
-\code{GeomSmooth} or \code{StatDensity} and nothing else.
+\code{GeomSmooth} or for any layer whose stat is \code{StatDensity}.
+A default \code{geom_area()} uses \code{StatAlign} and so never
+arrives here, but \code{geom_area(stat = "density")} does, and splits
+per group like the others.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$group_aes()}\if{html}{\out{</div>}}
 }
