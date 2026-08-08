@@ -2,6 +2,14 @@
 
 ## Bug Fixes
 
+* ggplot2: axis number formats are honoured inside a 'patchwork'. A
+  `scale_y_continuous(labels = ...)` wrapper was applied on a single plot and
+  on a faceted plot, and silently ignored the moment the same plot went into
+  a composition, so values were announced unformatted -- currency read as a
+  bare number, percentages without their sign. The patchwork path never
+  extracted a format config or ran the `validate_axes()` contract check the
+  other two paths run; it now does both, per leaf, so each plot in a
+  composition keeps its own formats.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks
