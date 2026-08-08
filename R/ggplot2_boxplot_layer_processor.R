@@ -188,20 +188,10 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      # Locate panel: with a panel context (facets), scope the search to
-      # that panel's grob; otherwise use the single "panel" grob
-      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        panel_index <- which(
-          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-        )
-      } else {
-        panel_index <- which(gt$layout$name == "panel")
-      }
-      if (length(panel_index) == 0) {
-        return(list())
-      }
-      panel_grob <- gt$grobs[[panel_index[1]]]
-      if (!inherits(panel_grob, "gTree")) {
+      # Locate panel: with a panel context (facets, patchwork leaves), scope
+      # the search to that panel's grob; otherwise use the single "panel" grob
+      panel_grob <- self$find_panel_grob(gt, panel_ctx)
+      if (is.null(panel_grob)) {
         return(list())
       }
 
@@ -491,21 +481,13 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       boxplot_data
     },
 
-    #' Find the main panel grob
+    #' Find the panel grob this layer draws into
     #' @param gt The gtable to search
+    #' @param panel_ctx Panel context for patchwork leaves and facets; NULL
+    #'   for a single plot, where the panel is the cell literally named "panel"
     #' @return The panel grob or NULL
-    find_panel_grob = function(gt) {
-      panel_index <- which(gt$layout$name == "panel")
-      if (length(panel_index) == 0) {
-        return(NULL)
-      }
-
-      panel_grob <- gt$grobs[[panel_index]]
-      if (!inherits(panel_grob, "gTree")) {
-        return(NULL)
-      }
-
-      panel_grob
+    find_panel_grob = function(gt, panel_ctx = NULL) {
+      find_gtable_panel_grob(gt, panel_ctx)
     },
 
     #' Find children by type pattern

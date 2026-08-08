@@ -255,11 +255,24 @@ Count candles from the original data
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-find_panel_grob}{}}}
 \subsection{Method \code{find_panel_grob()}}{
-Find the panel grob (panel_ctx-aware)
+Find the panel grob this layer draws into
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{gt}}{Gtable object}
+
+\item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
+for a single plot, where the panel is the cell literally named "panel"}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The panel gTree, or NULL when it cannot be resolved
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-find_first_child_name"></a>}}

@@ -211,6 +211,11 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         # order. So data[last] maps to DOM rect[0] (top segment) and data[0]
         # maps to the last DOM rect (bottom segment).
         # Therefore: data[0] = bottom fill level, data[last] = top fill level.
+        # Verified against the rendered SVG: gridSVG wraps the plot in a
+        # `translate(0, height) scale(1, -1)` group, so a rect's `y`
+        # attribute grows with its data value. Within one column the rect
+        # with the largest `y` (the top segment) is emitted first, and it is
+        # the last data series that receives it.
         fill_max_y <- tapply(built_data_layer$ymax, built_data_layer$fill, max)
         ordered_colors <- names(sort(fill_max_y, decreasing = FALSE))
 
@@ -254,6 +259,40 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         })
       }
     },
+    # ONE flat CSS selector matching every rect in the layer is the contract
+    # maidr.js expects for segmented bars. It is deliberate, not an oversight:
+    # do not "fix" it by emitting one selector per series.
+    #
+    # In the bundled frontend (inst/htmlwidgets/lib/maidr-*/maidr.js) the
+    # stacked, dodged and normalized trace types are all built by the same
+    # class:
+    #
+    #   case DODGED: case NORMALIZED: case STACKED: return new <Segmented>(layer)
+    #
+    # Its constructor runs `this.highlightValues = this.mapToSvgElements(
+    # layer.selectors)`, and `selectAllElements` is just
+    # `Array.from(document.querySelectorAll(sel))` - one flat node list in SVG
+    # document order. The class then RE-GROUPS that list itself instead of
+    # zipping it against the flattened payload (de-minified, rect branch):
+    #
+    #   for (let col = 0, k = 0; col < barValues[0].length; col++)
+    #     if (domMapping?.groupDirection === "forward")
+    #       for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
+    #     else
+    #       for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
+    #
+    # So the DOM walk is X-MAJOR (one whole column at a time) while `data`
+    # stays SERIES-MAJOR, and because this layer emits no `domMapping` the
+    # per-column direction defaults to "reverse": the first rect of a column
+    # is handed to the LAST data series, the last rect to the first series.
+    #
+    # That is why flattening `data` and lining it up against document order
+    # looks wrong - the frontend never does that. Concretely, for x = a,b,c
+    # and fills u = 10,20,30 / v = 55,65,75, the emitted flattening is
+    # 55,65,75,10,20,30 while the rects come out 10,55,20,65,30,75; the
+    # regrouping above reunites data[0] = v with the v rects.
+    #
+    # Pinned by tests/testthat/test-segmented-bar-selector-contract.R.
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         return(list())
@@ -278,12 +317,10 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       rect_grob <- NULL
 
       if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        # Facet path: scope the search to this panel's grob
-        panel_index <- which(
-          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-        )
-        if (length(panel_index) > 0) {
-          rect_grob <- find_rect_grobs(gt$grobs[[panel_index[1]]])
+        # Facet / patchwork path: scope the search to this panel's grob
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+        if (!is.null(panel_grob)) {
+          rect_grob <- find_rect_grobs(panel_grob)
         }
       } else if ("grobs" %in% names(gt)) {
         for (grob in gt$grobs) {
