@@ -2,6 +2,13 @@
 
 ## Bug Fixes
 
+* Base R: a `heatmap()` drawn with `revC` -- which every `symm = TRUE` call
+  turns on, since `Colv` defaults to `"Rowv"` there -- is no longer described
+  upside down. `revC` flips the drawing so the first reordered row lands at
+  the top, but it is not part of the ordering `heatmap()` reports, so the
+  emitted grid was reversed anyway: two calls differing only in `revC`
+  produced byte-identical data for mirror-image figures, and every row label
+  named the row on the opposite side of the plot.
 * ggplot2: a faceted bar chart on a continuous, `Date` or `POSIXct` x axis no
   longer announces the wrong x value. Each panel labelled its bars by using
   the bar's x position as an INDEX into that panel's axis break labels, which
