@@ -72,6 +72,9 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-resolve_group_mapping}{\code{Ggplot2LineLayerProcessor$resolve_group_mapping()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_layer_axes}{\code{Ggplot2LineLayerProcessor$extract_layer_axes()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_data}{\code{Ggplot2LineLayerProcessor$extract_data()}}
+\item \href{#method-Ggplot2LineLayerProcessor-resolve_panel_index}{\code{Ggplot2LineLayerProcessor$resolve_panel_index()}}
+\item \href{#method-Ggplot2LineLayerProcessor-get_x_transformation}{\code{Ggplot2LineLayerProcessor$get_x_transformation()}}
+\item \href{#method-Ggplot2LineLayerProcessor-transform_x_values}{\code{Ggplot2LineLayerProcessor$transform_x_values()}}
 \item \href{#method-Ggplot2LineLayerProcessor-format_x_value}{\code{Ggplot2LineLayerProcessor$format_x_value()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_original_x_column}{\code{Ggplot2LineLayerProcessor$get_original_x_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_multiline_data}{\code{Ggplot2LineLayerProcessor$extract_multiline_data()}}
@@ -276,6 +279,91 @@ Extract data from line layer (single or multiline)
 }
 \subsection{Returns}{
 List of arrays, each containing series data points
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-resolve_panel_index"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-resolve_panel_index}{}}}
+\subsection{Method \code{resolve_panel_index()}}{
+Resolve which entry of \code{built$layout$panel_params}
+describes a facet panel.
+
+Panel parameters are stored in the row order of
+\code{built$layout$layout}, so panel \code{n} is entry \code{n}. An
+unfaceted plot (or an unusable id) resolves to the only panel there is.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$resolve_panel_index(built, panel_id = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+
+\item{\code{panel_id}}{Panel id for faceted plots (optional)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Integer index guaranteed to be in range
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_x_transformation"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_x_transformation}{}}}
+\subsection{Method \code{get_x_transformation()}}{
+The transformation a panel's x scale applies to positions.
+
+\code{ggplot_build()} stores x positions in transformed space, so under
+\code{scale_x_log10()} the data value 100 is recorded as 2. Recovering
+the value the axis actually shows needs the scale's own transformation.
+ggplot2 >= 3.5 exposes it through \code{get_transformation()}; earlier
+versions keep it in the scale's \code{trans} field.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_x_transformation(built, panel_index)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+
+\item{\code{panel_index}}{Index into \code{built$layout$panel_params}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \pkg{scales} transform object, or NULL when none is available
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-transform_x_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-transform_x_values}{}}}
+\subsection{Method \code{transform_x_values()}}{
+Project raw x values into the space \code{ggplot_build()}
+stores positions in.
+
+Going forwards (raw -> transformed) rather than inverting the built
+positions keeps the comparison exact: it repeats the very computation
+ggplot2 performed, so no floating-point drift is introduced. Values the
+transformation cannot represent (a non-positive number under a log
+scale, say) become NA and simply fail to match.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$transform_x_values(values, transformation)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{values}}{Raw values taken from the plot's data}
+
+\item{\code{transformation}}{Transform object from \code{get_x_transformation()},
+or NULL}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Numeric vector the same length as \code{values}
 }
 }
 \if{html}{\out{<hr>}}

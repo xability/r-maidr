@@ -125,6 +125,10 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         layer_data <- layer_data[layer_data$PANEL == panel_id, ]
       }
 
+      # Every scale lookup below has to read THIS panel's scale: with
+      # scales = "free_x" each panel carries its own breaks and labels.
+      panel_index <- self$resolve_panel_index(built, panel_id)
+
       # For faceted plots, get x values from original data or scale mapping
       if (!is.null(panel_id)) {
         # For faceted plots, we need to get the actual x values from the original data
@@ -161,6 +165,9 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
             all(abs(x_pos - round(x_pos)) < 1e-6) &&
             all(round(x_pos) >= 1 & round(x_pos) <= n_values)
 
+          # Whatever is not resolved here stays numeric: the break/label
+          # mapping further down needs a numeric vector, and
+          # extract_*_line_data() stringifies anything that survives it.
           if (looks_like_positions) {
             # Discrete scale: positions index the (sorted) categories
             layer_data$x <- as.character(original_values[round(x_pos)])
@@ -170,23 +177,32 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
               !anyNA(suppressWarnings(as.numeric(original_values)))
           ) {
             # Continuous/Date scale: match numeric representations back to
-            # the original values so Dates format as dates, not day counts
-            numeric_repr <- round(as.numeric(original_values), 6)
+            # the original values so Dates format as dates, not day counts.
+            #
+            # `x_pos` is in the scale's TRANSFORMED space -- under
+            # scale_x_log10() the value 100 is stored as 2, under
+            # scale_x_reverse() 1 is stored as -1 -- so the raw values have
+            # to travel through the same transformation before they can be
+            # compared, or nothing ever matches and the transformed number
+            # is announced instead of the value the axis shows.
+            transformation <- self$get_x_transformation(built, panel_index)
+            numeric_repr <- round(
+              self$transform_x_values(original_values, transformation), 6
+            )
             match_idx <- match(round(as.numeric(x_pos), 6), numeric_repr)
-            mapped <- as.character(x_pos)
             hit <- !is.na(match_idx)
-            matched_vals <- original_values[match_idx[hit]]
-            mapped[hit] <- if (
-              inherits(original_values, c("Date", "POSIXct", "POSIXlt"))
-            ) {
-              format(matched_vals)
-            } else {
-              as.character(matched_vals)
+            if (any(hit)) {
+              mapped <- as.character(x_pos)
+              matched_vals <- original_values[match_idx[hit]]
+              mapped[hit] <- if (
+                inherits(original_values, c("Date", "POSIXct", "POSIXlt"))
+              ) {
+                format(matched_vals)
+              } else {
+                as.character(matched_vals)
+              }
+              layer_data$x <- mapped
             }
-            layer_data$x <- mapped
-          } else {
-            # Fallback: use layer_data$x but convert to character
-            layer_data$x <- as.character(layer_data$x)
           }
         }
       } else {
@@ -196,7 +212,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       }
 
       # Map numeric x positions to axis labels for categorical x-axis
-      panel_params <- built$layout$panel_params[[1]]
+      panel_params <- built$layout$panel_params[[panel_index]]
       if (!is.null(panel_params$x)) {
         x_labels <- NULL
         x_breaks <- NULL
@@ -256,6 +272,88 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
       # Single line plot - maintain backward compatibility
       return(self$extract_single_line_data(layer_data, plot))
+    },
+
+    #' @description Resolve which entry of \code{built$layout$panel_params}
+    #' describes a facet panel.
+    #'
+    #' Panel parameters are stored in the row order of
+    #' \code{built$layout$layout}, so panel \code{n} is entry \code{n}. An
+    #' unfaceted plot (or an unusable id) resolves to the only panel there is.
+    #'
+    #' @param built Built plot data
+    #' @param panel_id Panel id for faceted plots (optional)
+    #' @return Integer index guaranteed to be in range
+    resolve_panel_index = function(built, panel_id = NULL) {
+      n_panels <- length(built$layout$panel_params)
+      if (is.null(panel_id) || n_panels == 0) {
+        return(1L)
+      }
+      candidate <- suppressWarnings(as.integer(as.character(panel_id)))
+      if (is.na(candidate) || candidate < 1 || candidate > n_panels) {
+        return(1L)
+      }
+      candidate
+    },
+
+    #' @description The transformation a panel's x scale applies to positions.
+    #'
+    #' \code{ggplot_build()} stores x positions in transformed space, so under
+    #' \code{scale_x_log10()} the data value 100 is recorded as 2. Recovering
+    #' the value the axis actually shows needs the scale's own transformation.
+    #' ggplot2 >= 3.5 exposes it through \code{get_transformation()}; earlier
+    #' versions keep it in the scale's \code{trans} field.
+    #'
+    #' @param built Built plot data
+    #' @param panel_index Index into \code{built$layout$panel_params}
+    #' @return A \pkg{scales} transform object, or NULL when none is available
+    get_x_transformation = function(built, panel_index) {
+      tryCatch(
+        {
+          scale <- built$layout$panel_params[[panel_index]]$x$scale
+          if (is.null(scale)) {
+            return(NULL)
+          }
+          transformation <- if (is.function(scale$get_transformation)) {
+            scale$get_transformation()
+          } else {
+            scale$trans
+          }
+          if (is.null(transformation) || !is.function(transformation$transform)) {
+            return(NULL)
+          }
+          transformation
+        },
+        error = function(e) NULL
+      )
+    },
+
+    #' @description Project raw x values into the space \code{ggplot_build()}
+    #' stores positions in.
+    #'
+    #' Going forwards (raw -> transformed) rather than inverting the built
+    #' positions keeps the comparison exact: it repeats the very computation
+    #' ggplot2 performed, so no floating-point drift is introduced. Values the
+    #' transformation cannot represent (a non-positive number under a log
+    #' scale, say) become NA and simply fail to match.
+    #'
+    #' @param values Raw values taken from the plot's data
+    #' @param transformation Transform object from \code{get_x_transformation()},
+    #'   or NULL
+    #' @return Numeric vector the same length as \code{values}
+    transform_x_values = function(values, transformation) {
+      numeric_values <- suppressWarnings(as.numeric(values))
+      if (is.null(transformation) || identical(transformation$name, "identity")) {
+        return(numeric_values)
+      }
+      transformed <- tryCatch(
+        suppressWarnings(as.numeric(transformation$transform(numeric_values))),
+        error = function(e) NULL
+      )
+      if (is.null(transformed) || length(transformed) != length(numeric_values)) {
+        return(numeric_values)
+      }
+      transformed
     },
 
     #' @description Format an x-axis value as character.
