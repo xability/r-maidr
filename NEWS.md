@@ -21,6 +21,21 @@
   without clearing the device, unlike the sibling branch for non-HTML output,
   so a document that plotted, called `maidr_off()`, then called `maidr_on()`
   again folded the earlier calls into the next render as phantom layers.
+* Base R: a plot drawn in a loop now renders the iteration it recorded. When
+  an argument cannot be evaluated where the call is intercepted -- the shape
+  `plot(y ~ x, data = d, subset = grp == g)`, which mixes a column of `data`
+  with a variable from the loop -- maidr records the unevaluated expressions
+  and re-evaluates them at render time. It recorded the caller's frame to
+  re-evaluate them in, and R reuses ONE frame for the whole loop, so by
+  render time every iteration saw the LAST iteration's values:
+  `for (g in c("a", "b")) plot(y ~ x, data = d, subset = grp == g)` drew
+  `grp == "b"` in both panels, with no error and no warning. The values the
+  recorded expressions name are now captured when the call is made, so each
+  panel replays its own data. Only the names actually referenced are
+  captured, into a child of the caller's frame, so everything else still
+  resolves as before and active bindings are left to the caller. Applies to
+  every deferred path: `plot()`, `boxplot()`, `barplot()`, `curve()`,
+  `lines()`, `points()` and `chartSeries()`.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped
