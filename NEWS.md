@@ -8,11 +8,14 @@
   level of the composition and addressed panels by name, but `(p1 | p2) / p3`
   keeps the inner row's panels inside a child table and leaves only a
   placeholder at the top, and panel names repeat across nesting levels
-  anyway. Nested leaves therefore emitted an empty selector list, which the
-  browser rejects outright -- so a single nested panel took down the whole
-  figure, including the panels whose selectors were fine. Every processor now
-  resolves its panel through the same recursive walk the violin processor
-  already used. Flat compositions and faceted plots are unaffected.
+  anyway. A nested leaf therefore failed in one of two ways: bar, point, box,
+  line, heatmap and candlestick emitted no selector at all, while histogram,
+  smooth, stacked bar and dodged bar fell through to a fabricated selector
+  that matched nothing -- the worse of the two, because the payload looks
+  healthy while the layer highlights nothing. Every processor now resolves
+  its panel through the same recursive walk the violin processor already
+  used, and each leaf addresses its own panel. Flat compositions and faceted
+  plots are unaffected.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks
