@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Resolve, download, verify, and install the bundled ``maidr.js`` /
-# ``maidr.css`` assets. Shared by the scheduled refresh workflow
+# ``maidr-math.css`` assets. Shared by the scheduled refresh workflow
 # (``update-maidr-bundle.yml``) and the local maintainer tool
 # (``tools/update-maidr-assets.R``) so the download + integrity-check +
 # install logic lives in exactly one place and cannot drift between the two.
@@ -107,13 +107,35 @@ fi
 
 # Extract the bundled assets from the verified tarball. npm tarballs place
 # published files under ``package/``.
-tar -xzf "$TGZ" -C "$WORK" package/dist/maidr.js package/dist/maidr.css
+#
+# ``maidr-math.css`` is KaTeX, which maidr 3.75.1 split out of ``maidr.css``,
+# leaving the latter a 406-byte placeholder with no rules in it. ``maidr.js``
+# fetches the maths stylesheet at runtime, resolved against the URL it was
+# itself loaded from -- so the bundled copy has to sit beside ``maidr.js`` in
+# the lib directory, or LaTeX in AI chat responses renders unstyled. Only
+# readers who open the chat ever see that, which is why it needs catching
+# here rather than in review.
+#
+# ``maidr.css`` is deliberately not installed: nothing links it any more.
+#
+# The listing is captured into a variable and matched from a here-string
+# because under ``set -o pipefail`` a ``tar | grep -q`` pipeline reports
+# failure on *success* -- grep exits at the first match and tar dies of
+# SIGPIPE.
+TARBALL_FILES=$(tar -tzf "$TGZ")
+if ! grep -qx 'package/dist/maidr-math.css' <<<"$TARBALL_FILES"; then
+  echo "maidr@$VERSION does not ship dist/maidr-math.css." >&2
+  echo "This package requires maidr >= 3.75.1; refusing to bundle $VERSION." >&2
+  exit 1
+fi
+
+tar -xzf "$TGZ" -C "$WORK" package/dist/maidr.js package/dist/maidr-math.css
 
 # Defense-in-depth sanity checks on the extracted payloads before touching
 # the package tree: non-empty, and not an HTML error page masquerading as
 # JS / CSS. The check is a positive match: fail when the payload *starts*
 # with an HTML marker.
-for asset in maidr.js maidr.css; do
+for asset in maidr.js maidr-math.css; do
   test -s "$WORK/package/dist/${asset}"
   if head -c 128 "$WORK/package/dist/${asset}" | grep -qiE "^[[:space:]]*<!DOCTYPE|^[[:space:]]*<html"; then
     echo "${asset} looks like an HTML error page" >&2
@@ -121,11 +143,46 @@ for asset in maidr.js maidr.css; do
   fi
 done
 
+# Strip KaTeX's embedded base64 @font-face blocks: 20 of them, ~349 kB of
+# the 368 kB file, which would put the installed package back over CRAN's
+# 5 MB soft limit. What survives is KaTeX's layout -- spacing, fractions,
+# radicals, delimiters -- so mathematics still renders correctly; only the
+# glyphs fall back to system fonts. That is the same trade this package has
+# documented since it stripped the fonts out of ``maidr.css``, moved here
+# because upstream moved the fonts here.
+#
+# Done in this script rather than in a separate tool run by hand: the
+# scheduled refresh workflow calls only this script, so a manual step would
+# be skipped on every automatic update and silently re-inflate the package.
+#
+# ``@font-face`` blocks contain no nested braces (base64, url and format
+# have none), so ``[^}]*`` cannot overrun one. The file is emitted minified
+# on a single line, which is what makes sed the right tool: it works a line
+# at a time, and there is only one.
+sed 's/@font-face{[^}]*}//g' \
+  "$WORK/package/dist/maidr-math.css" > "$WORK/maidr-math.css"
+
+# Verify the strip did what it claims: the fonts gone, the rules kept. A
+# silent no-op here would ship 368 kB, and a silent over-match would ship a
+# stylesheet that no longer lays maths out.
+if grep -q '@font-face' "$WORK/maidr-math.css"; then
+  echo "Font stripping left @font-face blocks in maidr-math.css" >&2
+  exit 1
+fi
+if ! grep -q '\.katex' "$WORK/maidr-math.css"; then
+  echo "Font stripping removed KaTeX's rules from maidr-math.css" >&2
+  exit 1
+fi
+
 # Install into the versioned lib directory and drop any stale bundles so a
 # version bump cannot leave two maidr-* dirs behind.
 mkdir -p "$DEST_DIR"
 cp "$WORK/package/dist/maidr.js" "$DEST_DIR/maidr.js"
-cp "$WORK/package/dist/maidr.css" "$DEST_DIR/maidr.css"
+cp "$WORK/maidr-math.css" "$DEST_DIR/maidr-math.css"
+# A refresh onto the same version leaves the previous layout in place, so
+# drop the stylesheet this package stopped installing rather than letting a
+# stale copy sit in the lib directory.
+rm -f "$DEST_DIR/maidr.css"
 for dir in "$LIB_ROOT"/maidr-*/; do
   [ -d "$dir" ] || continue
   if [ "${dir%/}" != "$DEST_DIR" ]; then
