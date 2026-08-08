@@ -746,6 +746,7 @@ test_that("stacked panels contribute ids that survive being merged", {
   testthat::expect_length(intersect(top_ids, bottom_ids), 0L)
 })
 
+# ==============================================================================
 # Axis number formatting on patchwork leaves (issue #66)
 # ==============================================================================
 
