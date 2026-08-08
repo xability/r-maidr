@@ -146,11 +146,9 @@ List with data and selectors
 
 Add the legend title as the z axis label for a multi-series line layer.
 
-A grouped line layer emits a per-series `z` value (the group's name),
-and MAIDR announces it as "\<z label\> is \<z value\>". Without a z
-label the frontend falls back to the generic word "Group", losing the
-legend title the plot actually shows. Single-series layers emit no z
-value at all, so they get no z label either.
+Shared with the smooth layer processor via
+[`attach_series_group_axis()`](https://r.maidr.ai/reference/attach_series_group_axis.md);
+see `R/series_group_utils.R`.
 
 #### Usage
 
@@ -204,9 +202,7 @@ TRUE when there is more than one series and points carry z
 
 Resolve the aesthetic that splits this layer into series.
 
-Mirrors ggplot2's precedence: the layer's own mapping wins over the
-plot-level one. ggplot2 normalises `color` to `colour`, but both
-spellings are probed defensively.
+A line has no fill, so only the colour aesthetic is probed.
 
 #### Usage
 

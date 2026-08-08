@@ -4,6 +4,18 @@
 
 ### Bug Fixes
 
+- ggplot2: a grouped smooth is described as one series per curve.
+  `geom_smooth(aes(colour = g))` draws a curve per group, but the
+  payload concatenated all of them into a single undifferentiated series
+  with no `z`, so a reader walked off the end of one curve into the
+  start of the next with nothing announced in between. The layer also
+  carried a single selector aimed at one group’s polyline, leaving three
+  times as many data points as the highlighted line had vertices. Each
+  group is now its own series, named after the group and labelled with
+  the legend title, with its own selector.
+  [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html)
+  splits the same way, including when the grouping is mapped to `fill`.
+
 - ggplot2: histogram, stacked bar, dodged bar, and smooth layers no
   longer invent a highlight target when the grob lookup finds nothing. A
   facet level with no observations (`facet_wrap(~g, drop = FALSE)`), a
