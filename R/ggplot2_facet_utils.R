@@ -327,12 +327,28 @@ combine_facet_layer_data <- function(layer_results) {
   combined_data <- list()
 
   for (result in layer_results) {
-    if (!is.null(result) && !is.null(result$data)) {
-      if (is.list(result$data) && length(result$data) > 0) {
-        combined_data <- c(combined_data, result$data)
-      } else {
-        combined_data <- c(combined_data, list(result$data))
-      }
+    if (is.null(result) || is.null(result$data)) {
+      next
+    }
+    # A processor that drew nothing in this panel returns `list()`. Wrapping
+    # that in `list()` used to turn "no data" into ONE empty series, which
+    # the caller reads as a layer worth emitting: the panel came out as
+    # `"data":[[]]` with an empty selector list, and a reader entering it was
+    # told "this is a box plot" and then heard "cat is undefined, lower
+    # outlier(s) v is undefined" while the sonification threw on a
+    # non-finite AudioParam. An empty facet level (`drop = FALSE` over a
+    # factor with an unused level) reaches this on every processor.
+    #
+    # Contribute nothing instead. With no layer left, the panel is emitted
+    # with `layers = list()`, which the frontend already handles -- the Base
+    # R `layout()` path emits zero-layer cells today and loads clean.
+    if (length(result$data) == 0) {
+      next
+    }
+    if (is.list(result$data)) {
+      combined_data <- c(combined_data, result$data)
+    } else {
+      combined_data <- c(combined_data, list(result$data))
     }
   }
 

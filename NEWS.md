@@ -17,6 +17,22 @@
   layer carrying its own `data =` argument used to announce categories it
   never drew), and a row ggplot2 could not position, such as one with a
   missing `y`, no longer counts as part of the layer.
+* ggplot2: a facet level that drew nothing no longer breaks the chart's
+  highlighting. A layer with no highlight target was emitting an empty
+  selector list, and the frontend passes that value straight to
+  `document.querySelectorAll()`, where an empty selector raises a
+  `SyntaxError` inside the trace it was building. On a histogram, stacked bar
+  or dodged bar under `facet_wrap(~g, drop = FALSE)` with an unused level,
+  keyboard navigation then produced no highlight anywhere in the figure,
+  while the chart still looked correct. Such a layer now omits the field
+  instead, which is the value the frontend reads as "nothing to highlight".
+* ggplot2: an empty facet panel no longer emits a layer describing nothing.
+  A processor that drew nothing in a panel returns no data, and that was
+  being wrapped into a single empty series, so a reader entering the panel
+  was told it held a plot and then heard its fields announced as undefined,
+  with the sonification failing on a non-finite value. The panel now carries
+  no layers, the same shape a Base R `layout()` cell with no plot already
+  has.
 * ggplot2: a grouped smooth is described as one series per curve.
   `geom_smooth(aes(colour = g))` draws a curve per group, but the payload
   concatenated all of them into a single undifferentiated series with no `z`,
