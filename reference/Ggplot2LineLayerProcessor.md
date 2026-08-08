@@ -42,6 +42,12 @@ geom_point.points.63.1.24 (grouped by series)
 
 - [`Ggplot2LineLayerProcessor$process()`](#method-Ggplot2LineLayerProcessor-process)
 
+- [`Ggplot2LineLayerProcessor$attach_group_axis()`](#method-Ggplot2LineLayerProcessor-attach_group_axis)
+
+- [`Ggplot2LineLayerProcessor$has_series_groups()`](#method-Ggplot2LineLayerProcessor-has_series_groups)
+
+- [`Ggplot2LineLayerProcessor$resolve_group_mapping()`](#method-Ggplot2LineLayerProcessor-resolve_group_mapping)
+
 - [`Ggplot2LineLayerProcessor$extract_layer_axes()`](#method-Ggplot2LineLayerProcessor-extract_layer_axes)
 
 - [`Ggplot2LineLayerProcessor$extract_data()`](#method-Ggplot2LineLayerProcessor-extract_data)
@@ -132,8 +138,92 @@ Inherited methods
 
 #### Returns
 
-List with data and selectors Extract axes labels for line layers, with a
-special case for moving-average geoms (e.g. \`tidyquant::geom_ma\`).
+List with data and selectors
+
+------------------------------------------------------------------------
+
+### Method `attach_group_axis()`
+
+Add the legend title as the z axis label for a multi-series line layer.
+
+A grouped line layer emits a per-series `z` value (the group's name),
+and MAIDR announces it as "\<z label\> is \<z value\>". Without a z
+label the frontend falls back to the generic word "Group", losing the
+legend title the plot actually shows. Single-series layers emit no z
+value at all, so they get no z label either.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$attach_group_axis(plot, built, data, axes)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
+- `data`:
+
+  The extracted layer data
+
+- `axes`:
+
+  Axes built so far
+
+#### Returns
+
+The axes list, with z added when the layer is grouped
+
+------------------------------------------------------------------------
+
+### Method `has_series_groups()`
+
+Report whether extracted data is split into named series.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$has_series_groups(data)
+
+#### Arguments
+
+- `data`:
+
+  The extracted layer data
+
+#### Returns
+
+TRUE when there is more than one series and points carry z
+
+------------------------------------------------------------------------
+
+### Method `resolve_group_mapping()`
+
+Resolve the aesthetic that splits this layer into series.
+
+Mirrors ggplot2's precedence: the layer's own mapping wins over the
+plot-level one. ggplot2 normalises `color` to `colour`, but both
+spellings are probed defensively.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$resolve_group_mapping(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+list with `aes` (aesthetic spelling variants, or NULL when nothing is
+mapped) and `column` (the mapped column name, or "group" as a fallback)
+Extract axes labels for line layers, with a special case for
+moving-average geoms (e.g. \`tidyquant::geom_ma\`).
 
 By default the parent \`LayerProcessor\$extract_layer_axes()\` reads the
 y-label from the layer's aesthetic mapping. For a moving-average overlay
