@@ -195,7 +195,9 @@ test_that("a patchwork bar panel carries its stat-computed y label", {
     ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(displ, hwy)) + ggplot2::geom_point()
   )
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+
+  on.exit(unlink(file), add = TRUE)
   suppressWarnings(save_html(composition, file))
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
 

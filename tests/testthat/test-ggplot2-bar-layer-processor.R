@@ -439,7 +439,9 @@ test_that("a stat-computed bar count carries a y axis label (issue #28)", {
   p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) +
     ggplot2::geom_bar()
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+
+  on.exit(unlink(file), add = TRUE)
   suppressWarnings(save_html(p, file))
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
 

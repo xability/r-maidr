@@ -704,7 +704,9 @@ test_that("multiline z label survives the full render pipeline", {
     ggplot2::geom_line() +
     ggplot2::labs(colour = "Cohort")
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+
+  on.exit(unlink(file), add = TRUE)
   suppressWarnings(save_html(p, file))
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
 

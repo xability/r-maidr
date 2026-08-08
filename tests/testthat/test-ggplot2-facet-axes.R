@@ -7,7 +7,8 @@
 # title a grouped layer needs so MAIDR announces it instead of "Group".
 
 facet_payload <- function(plot) {
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
   suppressWarnings(save_html(plot, file))
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
 
