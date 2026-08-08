@@ -2,6 +2,30 @@
 
 ## Bug Fixes
 
+* Base R: highlighting in a multi-panel figure now follows the panel actually
+  drawn. Only the panel-visible plot groups are replayed, so the exported SVG
+  numbers its panels in replay order, but each panel looked its elements up by
+  the plot group's own index. One skipped group -- a plot drawn before the
+  `par(mfrow = ...)` call, or a page that scrolled off when more plots were
+  drawn than the grid holds -- shifted every later panel, so panel 1 lit up
+  panel 2's bars and the last panel highlighted nothing at all. This affected
+  `mfrow`, `mfcol` and `layout()` grids alike.
+* Base R: a `heatmap()` drawn with `revC` -- which every `symm = TRUE` call
+  turns on, since `Colv` defaults to `"Rowv"` there -- is no longer described
+  upside down. `revC` flips the drawing so the first reordered row lands at
+  the top, but it is not part of the ordering `heatmap()` reports, so the
+  emitted grid was reversed anyway: two calls differing only in `revC`
+  produced byte-identical data for mirror-image figures, and every row label
+  named the row on the opposite side of the plot.
+* ggplot2: a faceted bar chart on a continuous, `Date` or `POSIXct` x axis no
+  longer announces the wrong x value. Each panel labelled its bars by using
+  the bar's x position as an INDEX into that panel's axis break labels, which
+  is only meaningful for a discrete axis where those positions are category
+  numbers. On a numeric axis the positions are the values themselves, so
+  `c(2, 4, 6)` was announced as "2", "6", "6", `c(1, 2, 3)` lost its first
+  label entirely, and a `Date` axis announced raw day counts ("19723") rather
+  than dates. Non-discrete panels now report their own values, formatted the
+  same way an unfaceted chart formats them.
 * ggplot2: bar, point, line, box, histogram, smooth, stacked-bar, dodged-bar,
   heatmap and candlestick plots inside a NESTED 'patchwork' are no longer
   inert. Each of these carried its own panel lookup that scanned only the top
