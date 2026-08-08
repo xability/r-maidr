@@ -238,6 +238,85 @@ replay_plot_call <- function(function_name, args, call_env = NULL) {
   invisible(do.call(orig_fn, args))
 }
 
+#' Find the environment a name is bound in
+#'
+#' Walks the enclosing chain from \code{env} the way R's own lookup does,
+#' stopping once the global environment has been checked: names that resolve
+#' beyond it live in attached packages, which no plotting loop rebinds.
+#'
+#' @param name Name to look up
+#' @param env Environment to start from
+#' @return The environment holding \code{name}, or NULL when unbound
+#' @keywords internal
+locate_binding_env <- function(name, env) {
+  while (!identical(env, emptyenv())) {
+    if (exists(name, envir = env, inherits = FALSE)) {
+      return(env)
+    }
+    if (identical(env, globalenv())) {
+      return(NULL)
+    }
+    env <- parent.env(env)
+  }
+  NULL
+}
+
+#' Snapshot the bindings a recorded NSE call will need at replay time
+#'
+#' Recorded expressions are re-evaluated when the figure is rendered, long
+#' after the caller has moved on -- and R reuses ONE frame for every
+#' iteration of a `for` loop. Storing that frame therefore makes every
+#' iteration replay with the LAST iteration's values:
+#'
+#' \preformatted{
+#' par(mfrow = c(1, 2))
+#' for (g in c("a", "b")) plot(y ~ x, data = d, subset = grp == g)
+#' }
+#'
+#' Both panels drew `grp == "b"`, silently and without an error. Copying the
+#' whole frame would fix that but brings its own problems (large objects,
+#' active bindings, unforced promises, frames that are shared and mutated),
+#' so only the names the recorded expressions actually mention are copied,
+#' into a CHILD of the caller's frame. Everything else -- including anything
+#' reached through the enclosing scopes -- still resolves exactly as before,
+#' and the copies are references, so R's copy-on-write keeps them free.
+#'
+#' Active bindings are deliberately left behind: reading one is a side
+#' effect, and re-reading it at replay time is the whole point of declaring
+#' it active. Names that cannot be read are skipped for the same reason --
+#' the fall-through to the caller's frame preserves today's behaviour.
+#'
+#' @param args Recorded argument list holding the unevaluated expressions
+#' @param caller_env The frame the recorded call was made from
+#' @return An environment whose parent is \code{caller_env}
+#' @keywords internal
+snapshot_call_env <- function(args, caller_env) {
+  snapshot <- new.env(parent = caller_env)
+
+  referenced <- unique(unlist(lapply(args, all.vars), use.names = FALSE))
+  referenced <- setdiff(referenced, "...")
+
+  for (name in referenced) {
+    source_env <- locate_binding_env(name, caller_env)
+    if (is.null(source_env)) {
+      next
+    }
+    if (bindingIsActive(name, source_env)) {
+      next
+    }
+    captured <- tryCatch(
+      list(get(name, envir = source_env, inherits = FALSE)),
+      error = function(e) NULL
+    )
+    if (is.null(captured)) {
+      next
+    }
+    assign(name, captured[[1L]], envir = snapshot)
+  }
+
+  snapshot
+}
+
 #' Evaluate an expression, muffling the retry's promise-restart warning
 #'
 #' When a call fails part-way through forcing an argument, that argument's
@@ -475,6 +554,7 @@ wrap_s3_generics <- function() {
 
     # Prepare for logging
     this_call <- match.call()
+    caller_env <- parent.frame()
 
     # Ensure a device is open to suppress default graphics window
     ensure_maidr_device()
@@ -488,7 +568,7 @@ wrap_s3_generics <- function() {
     call_env <- NULL
     if (is.null(args)) {
       args <- as.list(this_call)[-1L]
-      call_env <- parent.frame()
+      call_env <- snapshot_call_env(args, caller_env)
     }
 
     device_id <- grDevices::dev.cur()
@@ -527,6 +607,7 @@ wrap_s3_generics <- function() {
 
     # Prepare for logging
     this_call <- match.call()
+    caller_env <- parent.frame()
 
     # Ensure a device is open to suppress default graphics window
     ensure_maidr_device()
@@ -541,7 +622,7 @@ wrap_s3_generics <- function() {
     call_env <- NULL
     if (is.null(args)) {
       args <- as.list(this_call)[-1L]
-      call_env <- parent.frame()
+      call_env <- snapshot_call_env(args, caller_env)
     }
 
     device_id <- grDevices::dev.cur()
@@ -677,15 +758,18 @@ create_function_wrapper <- function(function_name, original_function) {
 
       # Force arguments only AFTER the original call succeeded. For
       # NSE arguments (e.g. curve(sin(x)), plot(y ~ x, subset = g == 1))
-      # forcing fails; record the unevaluated expressions plus the caller
-      # environment so replay can re-evaluate them faithfully.
+      # forcing fails; record the unevaluated expressions plus a snapshot of
+      # the bindings they name so replay can re-evaluate them faithfully.
+      # The snapshot rather than the caller frame itself: R reuses one frame
+      # across loop iterations, so storing it by reference would make every
+      # iteration replay the last one's values.
       args_list <- muffle_promise_restart(
         tryCatch(list(...), error = function(e) NULL)
       )
       call_env <- NULL
       if (is.null(args_list)) {
         args_list <- as.list(this_call)[-1L]
-        call_env <- caller_env
+        call_env <- snapshot_call_env(args_list, caller_env)
       }
 
       # Computation-only calls (hist(x, plot = FALSE), boxplot(x,
@@ -739,17 +823,19 @@ create_nse_wrapper <- function(function_name, original_function) {
     }
 
     this_call <- match.call()
+    caller_env <- parent.frame()
 
     ensure_maidr_device()
 
     result <- original_function(...)
 
+    recorded_args <- as.list(this_call)[-1L]
     log_plot_call_to_device(
       function_name,
       this_call,
-      as.list(this_call)[-1L],
+      recorded_args,
       grDevices::dev.cur(),
-      call_env = parent.frame()
+      call_env = snapshot_call_env(recorded_args, caller_env)
     )
 
     invisible(result)
@@ -769,6 +855,7 @@ create_barplot_wrapper <- function(original_function) {
     }
 
     this_call <- match.call()
+    caller_env <- parent.frame()
 
     # Ensure a device is open to suppress default graphics window
     ensure_maidr_device()
@@ -778,15 +865,17 @@ create_barplot_wrapper <- function(original_function) {
     args <- tryCatch(list(...), error = function(e) NULL)
 
     if (is.null(args)) {
-      # NSE arguments: skip sorting patches, record expressions + caller
-      # environment so replay evaluates them in the right context.
+      # NSE arguments: skip sorting patches, record expressions + a snapshot
+      # of the caller bindings they name so replay evaluates them in the
+      # right context, with the values they had when the call was made.
       result <- original_function(...)
+      recorded_args <- as.list(this_call)[-1L]
       log_plot_call_to_device(
         "barplot",
         this_call,
-        as.list(this_call)[-1L],
+        recorded_args,
         grDevices::dev.cur(),
-        call_env = parent.frame()
+        call_env = snapshot_call_env(recorded_args, caller_env)
       )
     } else {
       patched_args <- apply_barplot_patches(args)

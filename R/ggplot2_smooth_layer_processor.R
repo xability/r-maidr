@@ -96,14 +96,10 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         all_polyline_grobs <- list()
 
         if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-          # Facet path: scope the search to this panel's grob
-          panel_index <- which(
-            grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-          )
-          if (length(panel_index) > 0) {
-            all_polyline_grobs <- collect_all_polyline_grobs(
-              gt$grobs[[panel_index[1]]]
-            )
+          # Facet / patchwork path: scope the search to this panel's grob
+          panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+          if (!is.null(panel_grob)) {
+            all_polyline_grobs <- collect_all_polyline_grobs(panel_grob)
           }
         } else if ("grobs" %in% names(gt)) {
           for (grob in gt$grobs) {

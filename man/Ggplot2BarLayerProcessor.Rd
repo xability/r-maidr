@@ -23,6 +23,9 @@ Processes bar plot layers with complete logic included
 \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
 \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
+\item \href{#method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{\code{Ggplot2BarLayerProcessor$panel_x_is_discrete()}}
+\item \href{#method-Ggplot2BarLayerProcessor-map_discrete_x}{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}
+\item \href{#method-Ggplot2BarLayerProcessor-map_continuous_x}{\code{Ggplot2BarLayerProcessor$map_continuous_x()}}
 \item \href{#method-Ggplot2BarLayerProcessor-generate_selectors}{\code{Ggplot2BarLayerProcessor$generate_selectors()}}
 \item \href{#method-Ggplot2BarLayerProcessor-clone}{\code{Ggplot2BarLayerProcessor$clone()}}
 }
@@ -106,6 +109,85 @@ so candle and bar layers from the same Date column align string-wise.
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-panel_x_is_discrete"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{}}}
+\subsection{Method \code{panel_x_is_discrete()}}{
+Does this panel draw x on a discrete scale?
+
+Only a discrete scale numbers its built positions 1..n, which is what
+makes indexing the break labels with them legitimate.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$panel_x_is_discrete(panel_params, x_pos, panel_labels)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{panel_params}}{This panel's entry from `built$layout$panel_params`}
+
+\item{\code{x_pos}}{Built x positions for this panel}
+
+\item{\code{panel_labels}}{This panel's x break labels, or NULL}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+TRUE for a discrete x scale
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-map_discrete_x"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-map_discrete_x}{}}}
+\subsection{Method \code{map_discrete_x()}}{
+Label discrete built positions with this panel's breaks.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$map_discrete_x(x_pos, panel_labels)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x_pos}}{Built x positions for this panel}
+
+\item{\code{panel_labels}}{This panel's x break labels, or NULL}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of x labels
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-map_continuous_x"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-map_continuous_x}{}}}
+\subsection{Method \code{map_continuous_x()}}{
+Recover user-facing x values for a non-discrete scale.
+
+Built positions on a continuous, Date or datetime scale already are
+the values, but a Date arrives as a day count. Matching them back to
+the mapped column restores the original typing so `format_x_value()`
+can emit "2024-01-02" rather than "19724". Mirrors the same recovery
+in `Ggplot2LineLayerProcessor`.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$map_continuous_x(x_pos, plot, layer_index)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x_pos}}{Built x positions for this panel}
+
+\item{\code{plot}}{The ggplot object}
+
+\item{\code{layer_index}}{Index of this layer within the plot}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of x labels
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-generate_selectors"></a>}}

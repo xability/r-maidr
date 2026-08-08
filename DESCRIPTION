@@ -46,6 +46,7 @@ Suggests:
     rmarkdown,
     quarto,
     patchwork,
+    scales,
     tibble,
     tidyquant,
     quantmod,

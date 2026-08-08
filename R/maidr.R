@@ -152,6 +152,8 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
     return(create_fallback_html(plot, shiny = shiny, ...))
   }
 
+  warn_panel_fallback(orchestrator)
+
   gt <- orchestrator$get_gtable()
 
   # All plot types now use the unified orchestrator data generation
@@ -165,6 +167,34 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   html_doc <- create_html_document(svg_content, use_cdn = use_cdn)
   html_doc
+}
+
+#' Warn About Panels That Lost Their Accessible Data
+#'
+#' Emitted from the single place every render path funnels through, so a
+#' figure is described once no matter which entry point produced it.
+#'
+#' @param orchestrator The orchestrator about to render the figure
+#' @return Invisibly NULL
+#' @keywords internal
+warn_panel_fallback <- function(orchestrator) {
+  if (!is_fallback_warning_enabled()) {
+    return(invisible(NULL))
+  }
+  # Only the Base R orchestrator scopes a fallback to panels; on any other
+  # orchestrator this member is simply absent.
+  if (!is.function(orchestrator$fallback_panels)) {
+    return(invisible(NULL))
+  }
+
+  panels <- orchestrator$fallback_panels()
+  if (length(panels) == 0) {
+    return(invisible(NULL))
+  }
+
+  warning(format_panel_fallback_warning(panels), call. = FALSE)
+
+  invisible(NULL)
 }
 
 #' Save Interactive Plot as HTML File

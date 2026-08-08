@@ -371,3 +371,153 @@ test_that("Orchestrator can generate gtable", {
 
   clear_base_r_state()
 })
+
+# ==============================================================================
+# Multipanel selectors must follow the SVG's panel numbering (issue #60)
+#
+# A multipanel replay redraws only the panel-visible groups, so gridSVG
+# numbers the panels 1..n in replay order. Processors were resolving their
+# grob names against the group's own index instead, so one skipped group --
+# a plot drawn before the layout call, or a page that scrolled off -- shifted
+# every later panel:
+#
+#   plot(...); par(mfrow = c(1, 2)); barplot(a); barplot(b)
+#
+# emitted panel 1 (a's data) pointing at the panel that draws b, and panel 2
+# (b's data) with no selectors at all.
+# ==============================================================================
+
+render_base_r_html <- function(draw) {
+  maidr:::clear_all_device_storage()
+  grDevices::pdf(NULL)
+  file <- tempfile(fileext = ".html")
+  drawn <- FALSE
+  on.exit(
+    {
+      if (!drawn) grDevices::dev.off()
+      unlink(file)
+      maidr:::clear_all_device_storage()
+    },
+    add = TRUE
+  )
+  draw()
+  suppressWarnings(save_html(file = file))
+  grDevices::dev.off()
+  drawn <- TRUE
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+
+  list(
+    data = jsonlite::fromJSON(json, simplifyVector = FALSE),
+    doc = xml2::read_html(html)
+  )
+}
+
+# The element id a maidr selector addresses, unescaped.
+first_selector_id <- function(layer) {
+  flat <- unlist(layer$selectors, use.names = FALSE)
+  flat <- flat[vapply(flat, is.character, logical(1))]
+  if (length(flat) == 0) {
+    return(NA_character_)
+  }
+  gsub("\\\\", "", sub("^[a-zA-Z]*#", "", sub(" .*$", "", flat[1])))
+}
+
+# Heights of the bar rects a selector resolves to. barplot() draws from a
+# zero baseline, so these are proportional to the values the panel plots.
+selector_rect_heights <- function(doc, id) {
+  node <- xml2::xml_find_first(doc, sprintf("//*[@id='%s']", id))
+  if (inherits(node, "xml_missing")) {
+    return(numeric(0))
+  }
+  rects <- xml2::xml_find_all(node, ".//*[local-name()='rect']")
+  as.numeric(xml2::xml_attr(rects, "height"))
+}
+
+expect_panel_draws <- function(payload, row, col, values) {
+  layers <- payload$data$subplots[[row]][[col]]$layers
+  testthat::expect_equal(length(layers), 1L)
+  layer <- layers[[1]]
+
+  testthat::expect_equal(
+    vapply(layer$data, function(pt) as.numeric(pt$y), numeric(1)),
+    values
+  )
+
+  id <- first_selector_id(layer)
+  testthat::expect_false(is.na(id))
+
+  heights <- selector_rect_heights(payload$doc, id)
+  testthat::expect_equal(length(heights), length(values))
+  testthat::expect_equal(
+    heights / max(heights),
+    values / max(values),
+    tolerance = 0.01
+  )
+}
+
+test_that("a plot drawn before par(mfrow) does not shift the panel selectors", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  payload <- render_base_r_html(function() {
+    plot(1:5, 1:5)
+    par(mfrow = c(1, 2))
+    barplot(c(10, 20, 30))
+    barplot(c(40, 50, 60))
+  })
+
+  # The pre-layout plot is not replayed, so the two barplots are SVG panels
+  # 1 and 2 even though they are plot groups 2 and 3.
+  expect_panel_draws(payload, 1, 1, c(10, 20, 30))
+  expect_panel_draws(payload, 1, 2, c(40, 50, 60))
+
+  layers <- payload$data$subplots[[1]][[1]]$layers
+  testthat::expect_match(
+    first_selector_id(layers[[1]]),
+    "^graphics-plot-1-"
+  )
+})
+
+test_that("panels on an earlier page do not shift the visible selectors", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  # Three plots in a 1x2 grid: the third starts a new page, and only that
+  # page is exported, so the visible panel is SVG panel 1 while its plot
+  # group is the third.
+  payload <- render_base_r_html(function() {
+    par(mfrow = c(1, 2))
+    barplot(c(1, 2, 3))
+    barplot(c(4, 5, 6))
+    barplot(c(7, 8, 9))
+  })
+
+  expect_panel_draws(payload, 1, 1, c(7, 8, 9))
+  testthat::expect_equal(
+    length(payload$data$subplots[[1]][[2]]$layers), 0L
+  )
+})
+
+test_that("an exactly filled panel grid still resolves its selectors", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  payload <- render_base_r_html(function() {
+    par(mfrow = c(1, 2))
+    barplot(c(10, 20, 30))
+    barplot(c(40, 50, 60))
+  })
+
+  expect_panel_draws(payload, 1, 1, c(10, 20, 30))
+  expect_panel_draws(payload, 1, 2, c(40, 50, 60))
+})

@@ -511,6 +511,19 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
                                     n_original_layers = NULL) {
   subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", row, "-", col)
 
+  # Layer ids have to be unique across the whole FIGURE, not just this panel.
+  # The frontend's number-format service builds one map for the figure --
+  # `for (const subplot of ...) for (const layer of subplot.layers)
+  # formatters.set(layer.id, ...)` -- and every trace then looks its formatter
+  # up by the bare id it was given. Numbering each leaf's layers from 1 makes
+  # a composition emit "maidr-layer-1" once per leaf, so the last leaf's
+  # formats overwrite every other leaf's and the wrong ones are announced.
+  # The candlestick/volume merge below is worse still: it lifts layers out of
+  # two panels into one subplot, where the collision is between siblings.
+  # Qualify by the panel's grid cell -- each cell holds exactly one subplot,
+  # so (row, col) is what makes an id figure-wide unique.
+  layer_id_prefix <- paste0("maidr-layer-", row, "-", col)
+
   # Extract layout from leaf plot (has its own title and axes)
   leaf_layout <- extract_leaf_plot_layout(leaf_plot)
 
@@ -520,6 +533,13 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     ggplot2::ggplot_build(leaf_plot),
     error = function(e) NULL
   )
+
+  # Number formatting is per LEAF, not per composition: every leaf is its own
+  # ggplot carrying its own scales, so a currency y axis on one leaf and a
+  # percent y axis on another must each survive into their own layers. The
+  # single-plot and faceted paths extract this once because they only ever
+  # describe one set of scales.
+  leaf_format <- extract_format_config(leaf_built)
 
   registry <- get_global_registry()
   factory <- registry$get_processor_factory("ggplot2")
@@ -592,15 +612,25 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           sub <- subs[[sub_idx]]
           if (is.null(sub)) next
 
+          # Same treatment the other two paths give their axes: attach the
+          # scale's number format per axis, then hold the result to the
+          # canonical {x,y,z} contract.
+          sub_axes <- if (!is.null(sub$axes)) sub$axes else leaf_axes
+          if (!is.null(leaf_format)) {
+            sub_axes <- attach_axis_format(sub_axes, "x", leaf_format$x)
+            sub_axes <- attach_axis_format(sub_axes, "y", leaf_format$y)
+          }
+          validate_axes(sub_axes, context = "patchwork subplot")
+
           layer_entry <- list(
             id = if (expanded) {
-              paste0("maidr-layer-", layer_idx, "-", sub_idx)
+              paste0(layer_id_prefix, "-", layer_idx, "-", sub_idx)
             } else {
-              paste0("maidr-layer-", layer_idx)
+              paste0(layer_id_prefix, "-", layer_idx)
             },
             type = if (!is.null(sub$type)) sub$type else layer_type,
             title = leaf_title,
-            axes = if (!is.null(sub$axes)) sub$axes else leaf_axes,
+            axes = sub_axes,
             data = sub$data,
             selectors = sub$selectors
           )

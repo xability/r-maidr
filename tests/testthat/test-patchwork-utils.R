@@ -498,7 +498,7 @@ test_that("augment_leaf_plot leaves plots that need no augmentation alone", {
 # Multi-layer expansion in process_patchwork_panel (issue #52)
 # ==============================================================================
 
-test_that("process_patchwork_panel keeps single-layer ids unsuffixed", {
+test_that("process_patchwork_panel leaves a single-layer id un-expanded", {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("patchwork")
 
@@ -511,7 +511,8 @@ test_that("process_patchwork_panel keeps single-layer ids unsuffixed", {
   )
 
   testthat::expect_equal(length(panel$layers), 1)
-  testthat::expect_equal(panel$layers[[1]]$id, "maidr-layer-1")
+  # <row>-<col>-<layer>: the cell qualifies the id, no multi-layer suffix
+  testthat::expect_equal(panel$layers[[1]]$id, "maidr-layer-1-1-1")
 })
 
 test_that("process_patchwork_panel expands a violin into two suffixed layers", {
@@ -538,7 +539,7 @@ test_that("process_patchwork_panel expands a violin into two suffixed layers", {
   )
   testthat::expect_equal(
     vapply(panel$layers, function(l) l$id, character(1)),
-    c("maidr-layer-1-1", "maidr-layer-1-2")
+    c("maidr-layer-1-1-1-1", "maidr-layer-1-1-1-2")
   )
   # Fields beyond the standard set survive the expansion
   testthat::expect_equal(panel$layers[[1]]$orientation, "vert")
@@ -677,4 +678,175 @@ test_that("find_gtable_panel_grob declines rather than guessing a panel", {
   testthat::expect_false(
     is.null(maidr:::find_gtable_panel_grob(gt, list(panel_index = 2)))
   )
+})
+
+# ==============================================================================
+# Layer ids are unique across the whole figure (issue #66)
+# ==============================================================================
+
+# The frontend builds one number-format map per FIGURE, keyed on the bare
+# layer id, and every trace looks its formatter up by that id. Ids that repeat
+# across subplots collide there -- last leaf wins -- so uniqueness has to hold
+# over the composition, not just within a panel.
+test_that("no two layers of a composition share an id", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  bars <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()
+  points <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()
+  composition <- (bars | points) / (points | bars)
+
+  grid <- maidr:::process_patchwork_plot_data(
+    composition,
+    list(title = "", axes = list()),
+    patchwork::patchworkGrob(composition)
+  )
+
+  ids <- unlist(lapply(grid, function(row) {
+    unlist(lapply(row, function(cell) {
+      vapply(cell$layers, function(l) as.character(l$id), character(1))
+    }))
+  }))
+
+  testthat::expect_equal(length(ids), 4L)
+  testthat::expect_equal(length(unique(ids)), length(ids))
+  testthat::expect_equal(
+    sort(ids),
+    c(
+      "maidr-layer-1-1-1", "maidr-layer-1-2-1",
+      "maidr-layer-2-1-1", "maidr-layer-2-2-1"
+    )
+  )
+})
+
+# merge_candlestick_volume_panels() lifts the layers of a stacked 2x1
+# composition out of their two panels and into one subplot. Panels that
+# numbered their layers from 1 handed that subplot two layers both called
+# "maidr-layer-1" -- a collision between siblings, not merely across
+# subplots, which even a subplot-scoped lookup resolves to the wrong layer.
+test_that("stacked panels contribute ids that survive being merged", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  price <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_line()
+  volume <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()
+  stacked <- price / volume
+
+  grid <- maidr:::process_patchwork_plot_data(
+    stacked,
+    list(title = "", axes = list()),
+    patchwork::patchworkGrob(stacked)
+  )
+
+  top_ids <- vapply(grid[[1]][[1]]$layers, function(l) as.character(l$id), character(1))
+  bottom_ids <- vapply(grid[[2]][[1]]$layers, function(l) as.character(l$id), character(1))
+
+  testthat::expect_length(top_ids, 1L)
+  testthat::expect_length(bottom_ids, 1L)
+  testthat::expect_length(intersect(top_ids, bottom_ids), 0L)
+})
+
+# ==============================================================================
+# Axis number formatting on patchwork leaves (issue #66)
+# ==============================================================================
+
+test_that("a patchwork leaf keeps the axis format of its own scales", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("scales")
+
+  df <- data.frame(g = c("a", "b", "c"), v = c(10, 20, 30))
+  money <- ggplot2::ggplot(df, ggplot2::aes(g, v)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar()) +
+    ggplot2::labs(x = "Group", y = "Revenue")
+  plain <- ggplot2::ggplot(df, ggplot2::aes(g, v)) + ggplot2::geom_col()
+
+  gt <- patchwork::patchworkGrob(money | plain)
+  panel <- maidr:::process_patchwork_panel(
+    money, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt
+  )
+
+  testthat::expect_equal(
+    panel$layers[[1]]$axes$y$format,
+    list(type = "currency", currency = "USD", decimals = 2L, locale = "en-US")
+  )
+  testthat::expect_null(panel$layers[[1]]$axes$x$format)
+})
+
+test_that("each patchwork leaf gets its own format, not the composition's", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("scales")
+
+  df <- data.frame(g = c("a", "b", "c"), v = c(10, 20, 30))
+  money <- ggplot2::ggplot(df, ggplot2::aes(g, v)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar())
+  share <- ggplot2::ggplot(df, ggplot2::aes(g, v / 100)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_percent())
+
+  grid <- maidr:::process_patchwork_plot_data(
+    money | share,
+    list(title = "", axes = list()),
+    patchwork::patchworkGrob(money | share)
+  )
+
+  testthat::expect_equal(
+    grid[[1]][[1]]$layers[[1]]$axes$y$format$type, "currency"
+  )
+  testthat::expect_equal(
+    grid[[1]][[2]]$layers[[1]]$axes$y$format$type, "percent"
+  )
+})
+
+test_that("a patchwork leaf's axes match the same plot rendered standalone", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("scales")
+
+  df <- data.frame(g = c("a", "b", "c"), v = c(10, 20, 30))
+  money <- ggplot2::ggplot(df, ggplot2::aes(g, v)) +
+    ggplot2::geom_col() +
+    ggplot2::scale_y_continuous(labels = scales::label_dollar()) +
+    ggplot2::labs(x = "Group", y = "Revenue")
+
+  standalone <- maidr:::Ggplot2PlotOrchestrator$new(money)
+  solo_axes <- standalone$get_combined_data()[[1]][[1]]$layers[[1]]$axes
+
+  gt <- patchwork::patchworkGrob(money | money)
+  panel <- maidr:::process_patchwork_panel(
+    money, "panel-1", 1, 1, 1, list(title = "", axes = list()), gt
+  )
+
+  testthat::expect_equal(panel$layers[[1]]$axes, solo_axes)
+})
+
+# Attaching the format put a validate_axes() gate on the patchwork path that
+# was not there before. Unformatted leaves go through it too, so this pins
+# that the gate lets an ordinary composition past rather than aborting it --
+# the failure mode a new throw introduces. It deliberately uses plain scales:
+# the formatted cases are covered above.
+test_that("the axes gate passes every leaf of an unformatted composition", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  bars <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()
+  points <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()
+
+  grid <- maidr:::process_patchwork_plot_data(
+    bars | points,
+    list(title = "", axes = list()),
+    patchwork::patchworkGrob(bars | points)
+  )
+
+  for (row in grid) {
+    for (cell in row) {
+      for (layer in cell$layers) {
+        testthat::expect_true(all(names(layer$axes) %in% c("x", "y", "z")))
+        testthat::expect_silent(maidr:::validate_axes(layer$axes))
+      }
+    }
+  }
 })

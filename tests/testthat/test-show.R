@@ -107,7 +107,6 @@ test_that("show() with shiny=TRUE works for Base R histogram", {
 })
 
 test_that("show() with shiny=TRUE works for Base R line plot", {
-  testthat::skip("Base R plot() function detection needs investigation")
   plot(1:10, rnorm(10), type = "l")
 
   html <- show(shiny = TRUE)
@@ -118,7 +117,6 @@ test_that("show() with shiny=TRUE works for Base R line plot", {
 })
 
 test_that("show() with shiny=TRUE works for Base R scatter plot", {
-  testthat::skip("Base R plot() function detection needs investigation")
   plot(mtcars$wt, mtcars$mpg)
 
   html <- show(shiny = TRUE)
