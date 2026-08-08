@@ -52,6 +52,12 @@ geom_point.points.63.1.24 (grouped by series)
 
 - [`Ggplot2LineLayerProcessor$extract_data()`](#method-Ggplot2LineLayerProcessor-extract_data)
 
+- [`Ggplot2LineLayerProcessor$resolve_panel_index()`](#method-Ggplot2LineLayerProcessor-resolve_panel_index)
+
+- [`Ggplot2LineLayerProcessor$get_x_transformation()`](#method-Ggplot2LineLayerProcessor-get_x_transformation)
+
+- [`Ggplot2LineLayerProcessor$transform_x_values()`](#method-Ggplot2LineLayerProcessor-transform_x_values)
+
 - [`Ggplot2LineLayerProcessor$format_x_value()`](#method-Ggplot2LineLayerProcessor-format_x_value)
 
 - [`Ggplot2LineLayerProcessor$get_original_x_column()`](#method-Ggplot2LineLayerProcessor-get_original_x_column)
@@ -288,6 +294,99 @@ line layer (single or multiline)
 #### Returns
 
 List of arrays, each containing series data points
+
+------------------------------------------------------------------------
+
+### Method `resolve_panel_index()`
+
+Resolve which entry of `built$layout$panel_params` describes a facet
+panel.
+
+Panel parameters are stored in the row order of `built$layout$layout`,
+so panel `n` is entry `n`. An unfaceted plot (or an unusable id)
+resolves to the only panel there is.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$resolve_panel_index(built, panel_id = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Panel id for faceted plots (optional)
+
+#### Returns
+
+Integer index guaranteed to be in range
+
+------------------------------------------------------------------------
+
+### Method `get_x_transformation()`
+
+The transformation a panel's x scale applies to positions.
+
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+stores x positions in transformed space, so under
+[`scale_x_log10()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)
+the data value 100 is recorded as 2. Recovering the value the axis
+actually shows needs the scale's own transformation. ggplot2 \>= 3.5
+exposes it through `get_transformation()`; earlier versions keep it in
+the scale's `trans` field.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$get_x_transformation(built, panel_index)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `panel_index`:
+
+  Index into `built$layout$panel_params`
+
+#### Returns
+
+A scales transform object, or NULL when none is available
+
+------------------------------------------------------------------------
+
+### Method `transform_x_values()`
+
+Project raw x values into the space
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+stores positions in.
+
+Going forwards (raw -\> transformed) rather than inverting the built
+positions keeps the comparison exact: it repeats the very computation
+ggplot2 performed, so no floating-point drift is introduced. Values the
+transformation cannot represent (a non-positive number under a log
+scale, say) become NA and simply fail to match.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$transform_x_values(values, transformation)
+
+#### Arguments
+
+- `values`:
+
+  Raw values taken from the plot's data
+
+- `transformation`:
+
+  Transform object from `get_x_transformation()`, or NULL
+
+#### Returns
+
+Numeric vector the same length as `values`
 
 ------------------------------------------------------------------------
 

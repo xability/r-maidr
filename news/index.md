@@ -4,6 +4,24 @@
 
 ### Bug Fixes
 
+- ggplot2: a faceted line plot on a transformed x scale announces the
+  data values again instead of the transformed positions behind them.
+  Under
+  [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
+  plus
+  [`scale_x_log10()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html),
+  points labelled 1, 10, 100 and 1000 on the axis were read out as 0, 1,
+  2 and 3;
+  [`scale_x_reverse()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)
+  negated every value and
+  [`scale_x_sqrt()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)
+  reported square roots. Panels now put the data through the same
+  transformation the scale applied before matching, so what is announced
+  matches the drawn axis. Faceted panels also read break labels off
+  their own scale rather than the first panel’s, which matters under
+  `scales = "free_x"`. Untransformed, date and date-time faceted panels
+  are unchanged, as are all unfaceted line plots.
+
 - ggplot2: a facet level that drew nothing no longer breaks the chart’s
   highlighting. A layer with no highlight target was emitting an empty
   selector list, and the frontend passes that value straight to

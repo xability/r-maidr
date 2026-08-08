@@ -182,6 +182,9 @@ Final Line Layer Processor - Uses Actual SVG Structure"><meta property="og:image
 <li><p><a href="#method-Ggplot2LineLayerProcessor-resolve_group_mapping"><code>Ggplot2LineLayerProcessor$resolve_group_mapping()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-extract_layer_axes"><code>Ggplot2LineLayerProcessor$extract_layer_axes()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-extract_data"><code>Ggplot2LineLayerProcessor$extract_data()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-resolve_panel_index"><code>Ggplot2LineLayerProcessor$resolve_panel_index()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-get_x_transformation"><code>Ggplot2LineLayerProcessor$get_x_transformation()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-transform_x_values"><code>Ggplot2LineLayerProcessor$transform_x_values()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-format_x_value"><code>Ggplot2LineLayerProcessor$format_x_value()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-get_original_x_column"><code>Ggplot2LineLayerProcessor$get_original_x_column()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-extract_multiline_data"><code>Ggplot2LineLayerProcessor$extract_multiline_data()</code></a></p></li>
@@ -409,6 +412,94 @@ Extract data from line layer (single or multiline)</p>
 <p>List of arrays, each containing series data points</p>
 </div>
 
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-resolve_panel_index"></a><div class="section">
+<h3 id="method-resolve-panel-index-">Method <code>resolve_panel_index()</code><a class="anchor" aria-label="anchor" href="#method-resolve-panel-index-"></a></h3>
+<p>Resolve which entry of <code>built$layout$panel_params</code>
+describes a facet panel.</p>
+<p>Panel parameters are stored in the row order of
+<code>built$layout$layout</code>, so panel <code>n</code> is entry <code>n</code>. An
+unfaceted plot (or an unusable id) resolves to the only panel there is.</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">resolve_panel_index</span><span class="op">(</span><span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+
+<dt><code>panel_id</code></dt>
+<dd><p>Panel id for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Integer index guaranteed to be in range</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-get_x_transformation"></a><div class="section">
+<h3 id="method-get-x-transformation-">Method <code>get_x_transformation()</code><a class="anchor" aria-label="anchor" href="#method-get-x-transformation-"></a></h3>
+<p>The transformation a panel's x scale applies to positions.</p>
+<p><code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code> stores x positions in transformed space, so under
+<code><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10()</a></code> the data value 100 is recorded as 2. Recovering
+the value the axis actually shows needs the scale's own transformation.
+ggplot2 &gt;= 3.5 exposes it through <code>get_transformation()</code>; earlier
+versions keep it in the scale's <code>trans</code> field.</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">get_x_transformation</span><span class="op">(</span><span class="va">built</span>, <span class="va">panel_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+
+<dt><code>panel_index</code></dt>
+<dd><p>Index into <code>built$layout$panel_params</code></p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>A <span class="pkg">scales</span> transform object, or NULL when none is available</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-transform_x_values"></a><div class="section">
+<h3 id="method-transform-x-values-">Method <code>transform_x_values()</code><a class="anchor" aria-label="anchor" href="#method-transform-x-values-"></a></h3>
+<p>Project raw x values into the space <code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code>
+stores positions in.</p>
+<p>Going forwards (raw -&gt; transformed) rather than inverting the built
+positions keeps the comparison exact: it repeats the very computation
+ggplot2 performed, so no floating-point drift is introduced. Values the
+transformation cannot represent (a non-positive number under a log
+scale, say) become NA and simply fail to match.</p><div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">transform_x_values</span><span class="op">(</span><span class="va">values</span>, <span class="va">transformation</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>values</code></dt>
+<dd><p>Raw values taken from the plot's data</p></dd>
+
+
+<dt><code>transformation</code></dt>
+<dd><p>Transform object from <code>get_x_transformation()</code>,
+or NULL</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>Numeric vector the same length as <code>values</code></p>
+</div>
+
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-format_x_value"></a><div class="section">
 <h3 id="method-format-x-value-">Method <code>format_x_value()</code><a class="anchor" aria-label="anchor" href="#method-format-x-value-"></a></h3>
 <p>Format an x-axis value as character.</p>
@@ -418,7 +509,7 @@ the underlying numeric days-since-epoch representation produced by
 `ggplot_build()`. All other types use `as.character()`. Mirrors
 `Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers
 from the same Date column align string-wise.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">format_x_value</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -433,7 +524,7 @@ the original column from `plot$data` (or the layer's own `data`).</p>
 simple column reference is found and the lengths match, otherwise
 NULL.
 Extract data for multiple line series</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">get_original_x_column</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -442,12 +533,12 @@ Extract data for multiple line series</p><div class="section">
 <h3 id="method-extract-multiline-data-">Method <code>extract_multiline_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-multiline-data-"></a></h3>
 
 <div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">extract_multiline_data</span><span class="op">(</span><span class="va">layer_data</span>, <span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_data</code></dt>
 <dd><p>The built layer data</p></dd>
 
@@ -459,7 +550,7 @@ Extract data for multiple line series</p><div class="section">
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>List of arrays, each containing series data
 Extract data for single line (backward compatibility)</p>
 </div>
@@ -468,12 +559,12 @@ Extract data for single line (backward compatibility)</p>
 <h3 id="method-extract-single-line-data-">Method <code>extract_single_line_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-single-line-data-"></a></h3>
 
 <div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">extract_single_line_data</span><span class="op">(</span><span class="va">layer_data</span>, plot <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_data</code></dt>
 <dd><p>The built layer data</p></dd>
 
@@ -481,7 +572,7 @@ Extract data for single line (backward compatibility)</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>List containing single series data
 Get the grouping column name from plot mappings</p>
 </div>
@@ -490,12 +581,12 @@ Get the grouping column name from plot mappings</p>
 <h3 id="method-get-group-column-">Method <code>get_group_column()</code><a class="anchor" aria-label="anchor" href="#method-get-group-column-"></a></h3>
 
 <div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">get_group_column</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -503,7 +594,7 @@ Get the grouping column name from plot mappings</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>Name of the grouping column
 Generate selectors using actual SVG structure</p>
 </div>
@@ -512,7 +603,7 @@ Generate selectors using actual SVG structure</p>
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -523,7 +614,7 @@ Generate selectors using actual SVG structure</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -539,7 +630,7 @@ Generate selectors using actual SVG structure</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>List of selectors for each series
 Generate selectors for multiline plots using actual structure</p>
 </div>
@@ -548,12 +639,12 @@ Generate selectors for multiline plots using actual structure</p>
 <h3 id="method-generate-multiline-selectors-">Method <code>generate_multiline_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-multiline-selectors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_multiline_selectors</span><span class="op">(</span><span class="va">base_id</span>, <span class="va">num_series</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>base_id</code></dt>
 <dd><p>The base ID from the grob (e.g., "61")</p></dd>
 
@@ -565,7 +656,7 @@ Generate selectors for multiline plots using actual structure</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>List of selectors
 Generate selector for single line plot</p>
 </div>
@@ -574,12 +665,12 @@ Generate selector for single line plot</p>
 <h3 id="method-generate-single-line-selector-">Method <code>generate_single_line_selector()</code><a class="anchor" aria-label="anchor" href="#method-generate-single-line-selector-"></a></h3>
 
 <div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_single_line_selector</span><span class="op">(</span><span class="va">base_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>base_id</code></dt>
 <dd><p>The base ID from the grob</p></dd>
 
@@ -587,7 +678,7 @@ Generate selector for single line plot</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>List with single selector
 Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 </div>
@@ -596,7 +687,7 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 <h3 id="method-find-all-polyline-grobs-">Method <code>find_all_polyline_grobs()</code><a class="anchor" aria-label="anchor" href="#method-find-all-polyline-grobs-"></a></h3>
 
 <div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_all_polyline_grobs</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -605,7 +696,7 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 <h3 id="method-line-layer-position-">Method <code>line_layer_position()</code><a class="anchor" aria-label="anchor" href="#method-line-layer-position-"></a></h3>
 
 <div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">line_layer_position</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -614,12 +705,12 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 <h3 id="method-find-main-polyline-grob-">Method <code>find_main_polyline_grob()</code><a class="anchor" aria-label="anchor" href="#method-find-main-polyline-grob-"></a></h3>
 
 <div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_main_polyline_grob</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>gt</code></dt>
 <dd><p>The gtable to search</p></dd>
 
@@ -627,7 +718,7 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p>The main polyline grob or NULL
 Check if layer needs reordering</p>
 </div>
@@ -636,24 +727,24 @@ Check if layer needs reordering</p>
 <h3 id="method-needs-reordering-">Method <code>needs_reordering()</code><a class="anchor" aria-label="anchor" href="#method-needs-reordering-"></a></h3>
 
 <div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
 <p>FALSE (line plots typically don't need reordering)</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
