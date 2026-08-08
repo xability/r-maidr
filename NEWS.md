@@ -2,6 +2,14 @@
 
 ## Bug Fixes
 
+* patchwork: layer ids are unique across a whole composition. Every leaf
+  numbered its layers from 1, so a 2x2 patchwork emitted four layers all
+  called `maidr-layer-1`. The frontend keys its per-figure number-format map
+  on the bare layer id, so the last leaf's formats overwrote every other
+  leaf's and the wrong ones were announced; a candlestick-over-volume
+  composition was worse, because collapsing its two panels into one subplot
+  put two identically named layers side by side. Ids now carry the panel's
+  grid cell.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks
