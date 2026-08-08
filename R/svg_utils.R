@@ -1078,17 +1078,19 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
   }
 
   if (use_cdn) {
-    # CDN links - smaller HTML, relies on internet at view time
-    css_tag <- sprintf(
-      '<link rel="stylesheet" href="%s/maidr.css">',
-      maidr_cdn_url()
-    )
+    # CDN links - smaller HTML, relies on internet at view time. No
+    # stylesheet: maidr.js styles its interface at runtime and fetches
+    # maidr-math.css (KaTeX) from the directory this script tag names,
+    # so a <link> would be a request that changes nothing.
+    css_tag <- ""
     js_tag <- sprintf(
       '<script src="%s/maidr.js"></script>',
       maidr_cdn_url()
     )
   } else {
-    # Inline local content - works offline, larger HTML
+    # Inline local content - works offline, larger HTML. The script is
+    # inline here, so it has no URL to resolve KaTeX against and the
+    # stylesheet is inlined alongside it.
     assets <- maidr_inline_asset_tags()
     css_tag <- assets$css_tag
     js_tag <- assets$js_tag

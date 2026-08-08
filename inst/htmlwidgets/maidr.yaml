@@ -3,4 +3,3 @@ dependencies:
     version: 3.75.1
     src: htmlwidgets/lib/maidr-3.75.1
     script: maidr.js
-    stylesheet: maidr.css
