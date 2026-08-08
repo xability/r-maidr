@@ -28,6 +28,26 @@
   -- was never spoken, brailled, or shown in the chart description. Stacked
   bar, dodged bar, and heatmap layers already carried theirs; line layers now
   do too.
+* ggplot2: axis number formats are honoured inside a 'patchwork'. A
+  `scale_y_continuous(labels = ...)` wrapper was applied on a single plot and
+  on a faceted plot, and silently ignored the moment the same plot went into
+  a composition, so values were announced unformatted -- currency read as a
+  bare number, percentages without their sign. The patchwork path never
+  extracted a format config or ran the `validate_axes()` contract check the
+  other two paths run; it now does both, per leaf, so each plot in a
+  composition keeps its own formats.
+* Base R: one annotation overlay no longer silences a whole multi-panel
+  figure. A `segments()`, `arrows()`, `rect()` or `polygon()` call can carry
+  data maidr cannot read, so the panel holding it is still declined rather
+  than described incompletely -- but the decline used to take the entire
+  figure with it. A single arrow pointing at an outlier in one cell of a
+  `par(mfrow = c(2, 2))` grid cost the other three panels their
+  sonification, braille and keyboard navigation, and left the reader with a
+  static image. Only the annotated panel now goes quiet; it is still drawn,
+  the rest of the grid stays interactive, and the warning names the panel
+  that fell back. Single-panel figures, figures whose every panel is
+  annotated, overlays drawn outside the exported grid, and grids holding a
+  plot type maidr cannot read at all still fall back as a whole, as before.
 * Base R: highlighting in a multi-panel figure now follows the panel actually
   drawn. Only the panel-visible plot groups are replayed, so the exported SVG
   numbers its panels in replay order, but each panel looked its elements up by
