@@ -21,6 +21,25 @@
   `geom_step()`: the layer position was counted over line layers only while
   every polyline in the panel was searched, so both layers resolved to the
   same polyline and highlighted the wrong geometry.
+* The startup message no longer promises something the package does not do.
+  It told every user, on every `library(maidr)`, that plots are displayed in
+  the interactive viewer by default. That is true for ggplot2, which hooks
+  `print.ggplot`, and has never been true for Base R: those plots are
+  recorded to a hidden device and wait for an explicit `show()`. The message
+  now says which is which.
+* Asset loading: the internet probe is no longer cached for the whole
+  session. It was probed once and never re-checked, so the first answer
+  decided CDN-versus-inline for the life of the process -- a transient
+  failure inlined the bundle into every later document, and a machine that
+  went offline after a successful probe kept emitting CDN references, leaving
+  plots dead in the browser exactly when the user could not debug them. The
+  result now expires after five minutes, which still costs one probe per
+  render rather than one per plot.
+* knitr: turning interception off mid-document no longer leaves recorded Base
+  R calls behind. The hook returned early when interception was disabled
+  without clearing the device, unlike the sibling branch for non-HTML output,
+  so a document that plotted, called `maidr_off()`, then called `maidr_on()`
+  again folded the earlier calls into the next render as phantom layers.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped
@@ -37,6 +56,20 @@
   last-added plot's data -- the same numbers announced in three places, only
   one of them reachable. Panels are now consumed per plot, so each is
   announced once, on its own panel.
+* ggplot2: the box statistics of a violin plot now describe the group they
+  are announced with. The quartiles were recomputed from the drawn geometry
+  rather than read from ggplot2's own `stat_boxplot` output, so a violin
+  split by `fill` announced one set of class-wide numbers over every one of
+  its dodged violins -- `aes(class, hwy, fill = drv)` emitted 7 labels for
+  12 violins, each repeated. A `coord_flip()` violin read its labels off the
+  vertical axis, which is now the continuous one, and reported every
+  quartile as 0. A violin on a continuous axis matched labels by position
+  index, announcing a `7` for `cyl` that no car has. All three now report
+  each group's own quartiles under its own label, dodged violins included.
+* ggplot2: `geom_violin(width = 0)` no longer errors out of rendering with
+  "missing value where TRUE/FALSE needed". A violin drawn with no width has
+  nothing to scale the density against; it now renders, and any positive
+  widths in the same layer still scale normally.
 * ggplot2: a plot placed after an `inset_element()`, `free()` or
   `wrap_elements()` in a patchwork is described again. Those wrappers put a
   plot in a cell panel discovery does not recognise, so it contributes no

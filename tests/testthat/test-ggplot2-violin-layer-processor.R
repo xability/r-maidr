@@ -532,3 +532,204 @@ test_that("the kde layer records which panel its ranges came from", {
   testthat::expect_null(single$layers[[2]]$.panel_index)
   testthat::expect_null(single$layers[[2]]$.panel_name)
 })
+
+# ==============================================================================
+# Box statistics and category labels (issue #65)
+# ==============================================================================
+
+# The numbers a screen reader announces must be the numbers on screen, so each
+# case is checked against quartiles computed independently from the raw data.
+violin_box_payload <- function(plot) {
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  augmented <- processor$augment_plot(plot)
+  built <- ggplot2::ggplot_build(augmented)
+  processor$extract_box_data(augmented, built)
+}
+
+expect_group_quartiles <- function(box_data, key, q1, q2, q3) {
+  labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+  idx <- which(labels == key)
+  testthat::expect_length(idx, 1)
+  entry <- box_data[[idx]]
+  testthat::expect_equal(entry$q1, q1)
+  testthat::expect_equal(entry$q2, q2)
+  testthat::expect_equal(entry$q3, q3)
+}
+
+test_that("dodged violins get their own statistics, not the whole category's", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  box_data <- violin_box_payload(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy, fill = drv)) +
+      ggplot2::geom_violin()
+  )
+
+  # One entry per drawn violin, each separately identifiable
+  testthat::expect_equal(length(box_data), 12)
+  labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+  testthat::expect_equal(anyDuplicated(labels), 0)
+
+  # compact/4 and compact/f are different distributions and must not share
+  # the category-wide numbers
+  compact4 <- ggplot2::mpg$hwy[ggplot2::mpg$class == "compact" & ggplot2::mpg$drv == "4"]
+  compactf <- ggplot2::mpg$hwy[ggplot2::mpg$class == "compact" & ggplot2::mpg$drv == "f"]
+  q4 <- unname(stats::quantile(compact4, c(0.25, 0.5, 0.75)))
+  qf <- unname(stats::quantile(compactf, c(0.25, 0.5, 0.75)))
+
+  expect_group_quartiles(box_data, "compact - 4", q4[1], q4[2], q4[3])
+  expect_group_quartiles(box_data, "compact - f", qf[1], qf[2], qf[3])
+  testthat::expect_false(isTRUE(all.equal(q4, qf)))
+})
+
+test_that("a violin that maps fill on itself dodges its box the same way", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # `inherit.aes` carries the PLOT mapping only, never another layer's own
+  # aes(), so a box left to inherit gets no fill here and collapses to one
+  # undodged box per class while the violin dodges into twelve.
+  box_data <- violin_box_payload(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+      ggplot2::geom_violin(ggplot2::aes(fill = drv))
+  )
+
+  testthat::expect_equal(length(box_data), 12)
+  labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+  testthat::expect_equal(anyDuplicated(labels), 0)
+
+  compact4 <- ggplot2::mpg$hwy[ggplot2::mpg$class == "compact" & ggplot2::mpg$drv == "4"]
+  suvr <- ggplot2::mpg$hwy[ggplot2::mpg$class == "suv" & ggplot2::mpg$drv == "r"]
+  q4 <- unname(stats::quantile(compact4, c(0.25, 0.5, 0.75)))
+  qs <- unname(stats::quantile(suvr, c(0.25, 0.5, 0.75)))
+
+  expect_group_quartiles(box_data, "compact - 4", q4[1], q4[2], q4[3])
+  expect_group_quartiles(box_data, "suv - r", qs[1], qs[2], qs[3])
+})
+
+test_that("the injected box carries the violin's own group ids", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # Statistics and selectors are both looked up by `group`, and ggplot2
+  # numbers groups from the interaction of a layer's discrete columns in
+  # mapping order. Build the box's mapping in a different order and the same
+  # id means a different violin -- silently, with plausible numbers.
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  plot <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_violin(ggplot2::aes(fill = drv))
+  built <- ggplot2::ggplot_build(processor$augment_plot(plot))
+
+  key <- function(d) {
+    first <- !duplicated(d$group)
+    out <- data.frame(
+      group = d$group[first],
+      x = round(d$x[first], 2),
+      fill = as.character(d$fill[first]),
+      stringsAsFactors = FALSE
+    )
+    out[order(out$group), ]
+  }
+  violin <- key(built$data[[1]])
+  box <- key(built$data[[2]])
+
+  testthat::expect_equal(nrow(violin), 12)
+  testthat::expect_equal(box$group, violin$group)
+  testthat::expect_equal(box$fill, violin$fill)
+  testthat::expect_equal(box$x, violin$x)
+})
+
+test_that("coord_flip violins are labelled with categories, not axis breaks", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  box_data <- violin_box_payload(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+      ggplot2::geom_violin() +
+      ggplot2::coord_flip()
+  )
+
+  labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+  testthat::expect_equal(sort(labels), sort(levels(factor(ggplot2::mpg$class))))
+
+  # Previously every group fell back to a value of 0
+  minivan <- ggplot2::mpg$hwy[ggplot2::mpg$class == "minivan"]
+  q <- unname(stats::quantile(minivan, c(0.25, 0.5, 0.75)))
+  expect_group_quartiles(box_data, "minivan", q[1], q[2], q[3])
+})
+
+test_that("a continuous category axis labels groups with their own value", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  box_data <- violin_box_payload(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(cyl, hwy, group = cyl)) +
+      ggplot2::geom_violin()
+  )
+
+  labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+  # The cylinder counts that exist -- not positions in the axis break list
+  testthat::expect_equal(sort(labels), c("4", "5", "6", "8"))
+
+  six <- ggplot2::mpg$hwy[ggplot2::mpg$cyl == 6]
+  q <- unname(stats::quantile(six, c(0.25, 0.5, 0.75)))
+  expect_group_quartiles(box_data, "6", q[1], q[2], q[3])
+})
+
+test_that("plain and horizontal violins keep their existing labels", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  classes <- sort(levels(factor(ggplot2::mpg$class)))
+  for (plot in list(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) + ggplot2::geom_violin(),
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(hwy, class)) + ggplot2::geom_violin()
+  )) {
+    box_data <- violin_box_payload(plot)
+    labels <- vapply(box_data, function(d) as.character(d$z), character(1))
+    testthat::expect_equal(sort(labels), classes)
+
+    suv <- ggplot2::mpg$hwy[ggplot2::mpg$class == "suv"]
+    q <- unname(stats::quantile(suv, c(0.25, 0.5, 0.75)))
+    expect_group_quartiles(box_data, "suv", q[1], q[2], q[3])
+  }
+})
+
+test_that("augmentation never overrides an aesthetic the violin maps", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+
+  # Pinning fill would drop it from the box's grouping, so a dodged violin
+  # would get fewer boxes than violins and they would pair up wrongly.
+  dodged <- processor$augment_plot(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy, fill = drv)) +
+      ggplot2::geom_violin()
+  )
+  built <- ggplot2::ggplot_build(dodged)
+  testthat::expect_equal(
+    length(unique(built$data[[1]]$group)),
+    length(unique(built$data[[2]]$group))
+  )
+
+  # With no fill mapped, the box keeps its white fill
+  plain <- processor$augment_plot(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) + ggplot2::geom_violin()
+  )
+  testthat::expect_equal(plain$layers[[2]]$aes_params$fill, "white")
+})
+
+test_that("box and kde layers announce the same group names", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  processor <- Ggplot2ViolinLayerProcessor$new(list(index = 1, type = "violin"))
+  augmented <- processor$augment_plot(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy, fill = drv)) +
+      ggplot2::geom_violin()
+  )
+  built <- ggplot2::ggplot_build(augmented)
+
+  box_labels <- vapply(
+    processor$extract_box_data(augmented, built),
+    function(d) as.character(d$z), character(1)
+  )
+  kde_labels <- vapply(
+    processor$extract_kde_data(augmented, built),
+    function(points) as.character(points[[1]]$x), character(1)
+  )
+  testthat::expect_equal(kde_labels, box_labels)
+})

@@ -91,21 +91,43 @@ maidr_local_assets <- function() {
 # documents with many plots) and for the internet-availability probe.
 .maidr_asset_cache <- new.env(parent = emptyenv())
 
-#' Check internet availability once per session
+#' How long a cached internet probe stays trusted, in seconds
+#'
+#' Five minutes: long enough that knitting a document with dozens of plots
+#' still probes at most once or twice, short enough that connectivity that
+#' changed under a long-lived session is picked up while the user is still
+#' looking at it.
+#'
+#' @keywords internal
+MAIDR_INTERNET_CACHE_TTL <- 300
+
+#' Check internet availability, with a time-boxed cache
 #'
 #' curl::has_internet() can block for seconds on offline machines, so the
-#' result is cached for the session rather than probed per plot.
+#' result is cached rather than probed per plot. The cache is time-boxed to
+#' MAIDR_INTERNET_CACHE_TTL seconds so a stale answer self-heals: a transient
+#' failure does not pin the rest of the session to inlining the multi-megabyte
+#' bundle, and a session that goes offline after a successful probe stops
+#' emitting documents that point at a CDN it can no longer reach.
 #'
 #' @return TRUE if internet appears available
 #' @keywords internal
 maidr_internet_available <- function() {
   cached <- .maidr_asset_cache$internet
-  if (!is.null(cached)) {
-    return(cached)
+  checked_at <- .maidr_asset_cache$internet_checked_at
+
+  if (!is.null(cached) && !is.null(checked_at)) {
+    age <- as.numeric(difftime(Sys.time(), checked_at, units = "secs"))
+    # A negative age means the clock moved backwards; re-probe rather than
+    # trust a cache entry that is apparently from the future.
+    if (!is.na(age) && age >= 0 && age < MAIDR_INTERNET_CACHE_TTL) {
+      return(cached)
+    }
   }
 
   result <- tryCatch(curl::has_internet(), error = function(e) FALSE)
   .maidr_asset_cache$internet <- isTRUE(result)
+  .maidr_asset_cache$internet_checked_at <- Sys.time()
   .maidr_asset_cache$internet
 }
 
