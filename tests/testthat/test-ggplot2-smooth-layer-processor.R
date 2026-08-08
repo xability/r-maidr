@@ -517,8 +517,7 @@ test_that("a grouped smooth emits one distinct selector per curve", {
 
   plot <- grouped_smooth_plot()
   selectors <- smooth_processor()$generate_selectors(
-    plot, ggplot2::ggplotGrob(plot),
-    built = ggplot2::ggplot_build(plot)
+    plot, ggplot2::ggplotGrob(plot)
   )
 
   # selectors.length === data.length is a MAIDR frontend precondition.
@@ -531,8 +530,7 @@ test_that("an ungrouped smooth keeps its single selector", {
 
   plot <- ungrouped_smooth_plot()
   selectors <- smooth_processor()$generate_selectors(
-    plot, ggplot2::ggplotGrob(plot),
-    built = ggplot2::ggplot_build(plot)
+    plot, ggplot2::ggplotGrob(plot)
   )
 
   testthat::expect_equal(length(selectors), 1)
@@ -555,7 +553,7 @@ test_that("a grouped smooth does not select a sibling line layer's polyline", {
   built <- ggplot2::ggplot_build(plot)
 
   smooth_selectors <- unlist(
-    smooth_processor(2)$generate_selectors(plot, gt, built = built)
+    smooth_processor(2)$generate_selectors(plot, gt)
   )
   line_selectors <- unlist(
     maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$generate_selectors(
