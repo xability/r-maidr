@@ -182,11 +182,25 @@ process_facet_panel <- function(
     # `labs()` overrides, so reading it drops "count" for geom_bar() and the
     # mapped column name for everything else. They also carry the legend title
     # as z for grouped layers, which a rebuilt {x, y} pair cannot express.
+    #
+    # The leading layer wins for a key it defines -- x and y are the panel's
+    # shared scales, so every layer agrees on them. A key it does NOT define
+    # is filled from a later layer, because the panel collapses all of them
+    # into one payload entry. z is the case that matters: an ungrouped first
+    # layer carries no legend title while a later grouped layer still writes
+    # z VALUES into the shared data, and a z value with no label is announced
+    # as the generic word "Group".
     axes <- NULL
     for (result in layer_results) {
-      if (!is.null(result) && length(result$axes) > 0) {
+      if (is.null(result) || length(result$axes) == 0) {
+        next
+      }
+      if (is.null(axes)) {
         axes <- result$axes
-        break
+        next
+      }
+      for (key in setdiff(names(result$axes), names(axes))) {
+        axes[[key]] <- result$axes[[key]]
       }
     }
     if (is.null(axes)) {

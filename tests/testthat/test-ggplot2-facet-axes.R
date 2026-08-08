@@ -77,3 +77,36 @@ test_that("faceted grouped line panels keep the legend title as z", {
     maidr:::validate_axes(layer$axes, "facet subplot")
   }
 })
+
+test_that("a facet panel takes z from a grouped layer that is not first", {
+  # A faceted panel collapses every layer into ONE payload entry, so its axes
+  # have to be assembled from all of them rather than from whichever happens
+  # to be processed first. Here layer 1 (points) is ungrouped and layer 2
+  # (lines) is grouped, but the shared data still carries the group as z --
+  # so a first-layer-wins rule emits z VALUES with no z LABEL, and MAIDR
+  # announces the generic word "Group" instead of the legend title.
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  df <- data.frame(
+    x = rep(1:4, 4),
+    y = as.numeric(1:16),
+    series = rep(c("alpha", "beta"), each = 8),
+    panel = rep(c("P1", "P2"), 8)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_line(ggplot2::aes(colour = series)) +
+    ggplot2::facet_wrap(~panel) +
+    ggplot2::labs(colour = "Cohort")
+
+  layers <- facet_layers(facet_payload(p))
+
+  testthat::expect_gt(length(layers), 0)
+  for (layer in layers) {
+    testthat::expect_equal(layer$axes$x$label, "x")
+    testthat::expect_equal(layer$axes$y$label, "y")
+    testthat::expect_equal(layer$axes$z$label, "Cohort")
+    maidr:::validate_axes(layer$axes, "facet subplot")
+  }
+})

@@ -15,7 +15,11 @@
   "Categories" for x and nothing at all for y, so a faceted `geom_bar()` said
   "Categories is suv" where the unfaceted one says "class is suv, count is
   62". Panels now keep the labels their layers resolved, including the legend
-  title.
+  title. A panel collapses all of its layers into one description, so the
+  labels are assembled across them: a plot whose first layer is ungrouped and
+  whose second is grouped -- `geom_point()` under `geom_line(aes(colour =
+  g))`, say -- still wrote the group into the data while carrying no title
+  for it, and MAIDR announced the generic word "Group".
 * ggplot2: a multi-series line plot now announces its legend title instead of
   the word "Group". The layer already emitted a per-series group name, which
   MAIDR reads out as "<label> is <value>", but the payload carried no label
