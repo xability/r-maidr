@@ -13,34 +13,19 @@ Processes line plot layers using the actual gridSVG structure discovered:
 - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
 - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
 }
-\keyword{(1-based)}
 \keyword{(GRID.polyline.XX)}
 \keyword{Find}
-\keyword{NULL}
-\keyword{Position}
 \keyword{Process}
-\keyword{Returns}
 \keyword{SVG}
-\keyword{`plot`.}
 \keyword{actual}
-\keyword{among}
-\keyword{detection}
-\keyword{fails.}
 \keyword{grob}
-\keyword{if}
-\keyword{in}
 \keyword{internal}
 \keyword{layer}
-\keyword{layers}
 \keyword{line}
-\keyword{line-typed}
 \keyword{main}
-\keyword{of}
 \keyword{polyline}
-\keyword{registry-based}
 \keyword{structure}
 \keyword{the}
-\keyword{this}
 \keyword{with}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
@@ -78,9 +63,14 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-extract_single_line_data}{\code{Ggplot2LineLayerProcessor$extract_single_line_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_group_column}{\code{Ggplot2LineLayerProcessor$get_group_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_selectors}{\code{Ggplot2LineLayerProcessor$generate_selectors()}}
+\item \href{#method-Ggplot2LineLayerProcessor-series_count}{\code{Ggplot2LineLayerProcessor$series_count()}}
+\item \href{#method-Ggplot2LineLayerProcessor-curve_selectors}{\code{Ggplot2LineLayerProcessor$curve_selectors()}}
+\item \href{#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob}{\code{Ggplot2LineLayerProcessor$find_layer_polyline_grob()}}
+\item \href{#method-Ggplot2LineLayerProcessor-layer_polyline_grobs}{\code{Ggplot2LineLayerProcessor$layer_polyline_grobs()}}
+\item \href{#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes}{\code{Ggplot2LineLayerProcessor$other_geom_grob_prefixes()}}
+\item \href{#method-Ggplot2LineLayerProcessor-polyline_curve_count}{\code{Ggplot2LineLayerProcessor$polyline_curve_count()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{\code{Ggplot2LineLayerProcessor$generate_multiline_selectors()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_single_line_selector}{\code{Ggplot2LineLayerProcessor$generate_single_line_selector()}}
-\item \href{#method-Ggplot2LineLayerProcessor-find_all_polyline_grobs}{\code{Ggplot2LineLayerProcessor$find_all_polyline_grobs()}}
 \item \href{#method-Ggplot2LineLayerProcessor-line_layer_position}{\code{Ggplot2LineLayerProcessor$line_layer_position()}}
 \item \href{#method-Ggplot2LineLayerProcessor-find_main_polyline_grob}{\code{Ggplot2LineLayerProcessor$find_main_polyline_grob()}}
 \item \href{#method-Ggplot2LineLayerProcessor-needs_reordering}{\code{Ggplot2LineLayerProcessor$needs_reordering()}}
@@ -373,20 +363,38 @@ Get the grouping column name from plot mappings
 }
 \subsection{Returns}{
 Name of the grouping column
-Generate selectors using actual SVG structure
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
+One selector per series this line layer draws.
+
+The panel-wide polyline list conflates two different things: a
+grouped \code{geom_line()} draws ALL of its curves as ONE
+\code{polylineGrob} whose \code{id} splits it (gridSVG then emits
+\code{GRID.polyline.N.1.1}, \code{.1.2}, ... per curve), while a
+second polyline-producing layer such as \code{geom_smooth()} adds
+further grobs of its own. Indexing that flat list by this layer's
+position among line layers therefore returned one selector for a
+three-curve layer as soon as a smooth sat beside it, and the
+frontend's multiline trace refuses a selector list whose length does
+not equal the series count -- so the layer lost highlighting
+entirely rather than mis-aiming it.
+
+This resolves THIS layer's own grob first and then enumerates the
+curves inside it, emitting one selector per curve. When the curves
+cannot be lined up with the series, no selector is emitted: a caller
+can tell an absent selector apart from a wrong one, a user cannot.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
   grob_id = NULL,
   panel_ctx = NULL,
-  built = NULL
+  built = NULL,
+  n_series = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -398,11 +406,172 @@ Generate selectors using actual SVG structure
 \item{\code{gt}}{Gtable object (optional)}
 
 \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{n_series}}{Number of series \code{extract_data()} produced, or
+NULL to derive it from the built layer data}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 List of selectors for each series
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-series_count"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-series_count}{}}}
+\subsection{Method \code{series_count()}}{
+Number of series this layer draws in the given panel.
+
+Never throws: selector generation has to degrade gracefully for
+inputs \code{extract_data()} would reject.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$series_count(plot, built = NULL, panel_ctx = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Number of series, at least 1
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-curve_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-curve_selectors}{}}}
+\subsection{Method \code{curve_selectors()}}{
+Selectors for the curves inside this layer's own grob.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$curve_selectors(plot, panel_grob, n_series)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{panel_grob}}{The panel's grob tree}
+
+\item{\code{n_series}}{Number of series the layer produced}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of selectors, or NULL when the grob does not line up
+  with the series
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_layer_polyline_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-find_layer_polyline_grob}{}}}
+\subsection{Method \code{find_layer_polyline_grob()}}{
+The polyline grob ggplot2 drew for THIS line layer.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$find_layer_polyline_grob(plot, panel_grob)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{panel_grob}}{The panel's grob tree}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The matching grob, or NULL
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-layer_polyline_grobs"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-layer_polyline_grobs}{}}}
+\subsection{Method \code{layer_polyline_grobs()}}{
+Panel polylines that a line layer could have drawn.
+
+\code{GeomPath$draw_panel()} returns a bare \code{polylineGrob}, so a
+line layer's grob carries grid's auto-generated
+\code{GRID.polyline.N} name with no geom prefix to match on -- only
+its draw-order position identifies it. Layers that DO name their grob
+tree after their geom (\code{geom_smooth.gTree.N}) are skipped whole
+via \code{geom_grob_prefix()}, the same helper the smooth processor
+uses to scope itself to its own tree; without that, the smooth's
+three curves are counted as line-layer polylines and shift every
+position by three. Panel grid lines are named after the theme element
+(\code{panel.grid.major.x..polyline.N}) and so never match.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$layer_polyline_grobs(plot, panel_grob)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{panel_grob}}{The panel's grob tree}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of grobs in draw order
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes}{}}}
+\subsection{Method \code{other_geom_grob_prefixes()}}{
+Grob-name prefixes belonging to the plot's OTHER geoms.
+
+This layer's own prefix is excluded so that a second layer sharing
+the geom (two \code{geom_line()} calls) is still walked.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$other_geom_grob_prefixes(plot)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of prefixes, possibly empty
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-polyline_curve_count"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-polyline_curve_count}{}}}
+\subsection{Method \code{polyline_curve_count()}}{
+Number of separate curves a polyline grob draws.
+
+\code{polylineGrob()} splits one grob into several drawn lines via
+\code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
+element suffixed \code{.1.<k>}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$polyline_curve_count(grob)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{A polyline grob}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Integer count, at least 1
 Generate selectors for multiline plots using actual structure
 }
 }
@@ -445,17 +614,9 @@ Generate selector for single line plot
 }
 \subsection{Returns}{
 List with single selector
-Find all polyline parent grobs (GRID.polyline.XX) in the panel.
+Position (1-based) of this layer among line-typed layers in `plot`.
+Returns NULL if the registry-based detection fails.
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_all_polyline_grobs"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-find_all_polyline_grobs}{}}}
-\subsection{Method \code{find_all_polyline_grobs()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$find_all_polyline_grobs(gt)}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a>}}

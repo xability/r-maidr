@@ -2,6 +2,19 @@
 
 ## Bug Fixes
 
+* ggplot2: a grouped `geom_line()` keeps its highlight when another layer in
+  the same panel also draws polylines. A grouped line draws all of its curves
+  as one grob that gridSVG splits per curve, while a sibling `geom_smooth()`
+  contributes grobs of its own; the layer's selector was picked by indexing
+  that flat panel-wide list of grobs by the layer's position among line
+  layers, so `geom_line(aes(colour = g)) + geom_smooth()` emitted three series
+  and one selector. The frontend requires one selector per series and drops
+  the whole layer's highlight otherwise, so nothing on screen moved as the
+  reader walked any of the three lines. The layer's own grob is now resolved
+  first and its curves enumerated from it, giving one selector per series; two
+  line layers in one panel likewise each resolve to their own grob. When the
+  curves cannot be lined up with the series, no selector is emitted rather
+  than one of the wrong length.
 * ggplot2: a grouped smooth is described as one series per curve.
   `geom_smooth(aes(colour = g))` draws a curve per group, but the payload
   concatenated all of them into a single undifferentiated series with no `z`,
