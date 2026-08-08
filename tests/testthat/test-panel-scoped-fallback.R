@@ -286,6 +286,25 @@ test_that("orchestrator reports no fallback for a clean figure", {
   testthat::expect_length(orchestrator$fallback_panels(), 0)
 })
 
+test_that("an unsupported HIGH-level plot falls back as a whole figure", {
+  # An unsupported HIGH-level call is not an annotation over a readable
+  # chart: the panel's whole content is unknown, and its grobs are not
+  # known to survive the SVG export -- pie() aborts gridSVG outright. The
+  # figure keeps the whole-figure fallback so it renders as a correct
+  # image rather than failing mid-export.
+  orchestrator <- build_orchestrator(function() {
+    par(mfrow = c(1, 2))
+    plot(1:5, 1:5)
+    pie(c(1, 2, 3))
+    par(mfrow = c(1, 1))
+  })
+  on.exit(maidr:::clear_all_device_storage(), add = TRUE)
+
+  testthat::expect_true(orchestrator$has_unsupported_layers())
+  testthat::expect_true(orchestrator$should_fallback())
+  testthat::expect_length(orchestrator$fallback_panels(), 0)
+})
+
 test_that("an overlay drawn before the layout call falls back as a whole", {
   # The group has no slot in the exported grid, so there is no panel to
   # scope the fallback to.

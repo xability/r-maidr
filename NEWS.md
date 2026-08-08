@@ -12,8 +12,8 @@
   static image. Only the annotated panel now goes quiet; it is still drawn,
   the rest of the grid stays interactive, and the warning names the panel
   that fell back. Single-panel figures, figures whose every panel is
-  annotated, and overlays drawn outside the exported grid still fall back as
-  a whole, as before.
+  annotated, overlays drawn outside the exported grid, and grids holding a
+  plot type maidr cannot read at all still fall back as a whole, as before.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks

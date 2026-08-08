@@ -322,13 +322,14 @@ Integer vector of plot-group indices, in ascending order
 \subsection{Method \code{resolve_fallback_scope()}}{
 Work out how far an unsupported layer reaches
 
-An unsupported overlay only makes the panel that owns it
-undescribable. In a multi-panel figure the other panels are drawn
-from their own calls and stay fully accessible, so the fallback is
-scoped to the affected panels. It widens to the whole figure when
-there is nothing left to scope to: a single-panel figure, a figure
-whose every visible panel is affected, or an unsupported call that
-belongs to no panel of the exported page.
+An unsupported LOW-level overlay sits on top of a chart maidr does
+understand, so it only makes the panel that owns it undescribable.
+In a multi-panel figure the other panels are drawn from their own
+calls and stay fully accessible, so the fallback is scoped to the
+affected panels. It widens to the whole figure when there is nothing
+left to scope to: a single-panel figure, a figure whose every
+visible panel is affected, an unsupported call that belongs to no
+panel of the exported page, or an unsupported HIGH-level call.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$resolve_fallback_scope()}\if{html}{\out{</div>}}
 }

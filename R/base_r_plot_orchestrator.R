@@ -842,13 +842,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
     #' @description Work out how far an unsupported layer reaches
     #'
-    #' An unsupported overlay only makes the panel that owns it
-    #' undescribable. In a multi-panel figure the other panels are drawn
-    #' from their own calls and stay fully accessible, so the fallback is
-    #' scoped to the affected panels. It widens to the whole figure when
-    #' there is nothing left to scope to: a single-panel figure, a figure
-    #' whose every visible panel is affected, or an unsupported call that
-    #' belongs to no panel of the exported page.
+    #' An unsupported LOW-level overlay sits on top of a chart maidr does
+    #' understand, so it only makes the panel that owns it undescribable.
+    #' In a multi-panel figure the other panels are drawn from their own
+    #' calls and stay fully accessible, so the fallback is scoped to the
+    #' affected panels. It widens to the whole figure when there is nothing
+    #' left to scope to: a single-panel figure, a figure whose every
+    #' visible panel is affected, an unsupported call that belongs to no
+    #' panel of the exported page, or an unsupported HIGH-level call.
     #'
     #' @return Invisible NULL; the scope is cached on the orchestrator
     resolve_fallback_scope = function() {
@@ -860,7 +861,23 @@ BaseRPlotOrchestrator <- R6::R6Class(
         return(invisible(NULL))
       }
 
-      if (!self$has_unsupported_layers()) {
+      unsupported <- self$unsupported_layer_flags()
+      if (!any(unsupported)) {
+        return(invisible(NULL))
+      }
+
+      # An unsupported HIGH-level call is not an annotation over a chart we
+      # can read -- the panel's entire content is unknown, and its grobs
+      # are not known to survive the SVG export (pie() does not). Keeping
+      # such a figure whole means it falls back to an image that is at
+      # least correct, rather than to an interactive render that may fail.
+      sources <- vapply(
+        private$.layers[unsupported],
+        function(layer) as.character(layer$source %||% "HIGH"),
+        character(1)
+      )
+      if (any(sources == "HIGH")) {
+        private$.fallback_mode <- "figure"
         return(invisible(NULL))
       }
 
