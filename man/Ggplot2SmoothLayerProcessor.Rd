@@ -74,11 +74,15 @@ Processes smooth plot layers with complete logic included
 \subsection{Method \code{group_aes()}}{
 Grouping aesthetics that split this layer into curves.
 
-\code{geom_smooth()}, \code{geom_density()} and \code{geom_area()} all
-render a fill, so \code{aes(fill = g)} splits them into one curve per
-group just as \code{aes(colour = g)} does. The line processor probes
-colour only, because a line has no fill and reading one from an
-unrelated layer's mapping would invent a legend the plot never draws.
+\code{geom_smooth()} and \code{geom_density()} both render a fill, so
+\code{aes(fill = g)} splits them into one curve per group just as
+\code{aes(colour = g)} does. The line processor probes colour only,
+because a line has no fill and reading one from an unrelated layer's
+mapping would invent a legend the plot never draws.
+
+These are the two geoms that reach this processor:
+\code{Ggplot2Adapter} types a layer as \code{smooth} for
+\code{GeomSmooth} or \code{StatDensity} and nothing else.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$group_aes()}\if{html}{\out{</div>}}
 }

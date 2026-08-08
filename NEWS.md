@@ -10,8 +10,8 @@
   aimed at one group's polyline, leaving three times as many data points as
   the highlighted line had vertices. Each group is now its own series, named
   after the group and labelled with the legend title, with its own selector.
-  `geom_density()` and `geom_area()` split the same way, including when the
-  grouping is mapped to `fill`.
+  `geom_density()` splits the same way, including when the grouping is mapped
+  to `fill`.
 * ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
   computes. Each leaf's layout was read before the leaf was built, and under
   ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
