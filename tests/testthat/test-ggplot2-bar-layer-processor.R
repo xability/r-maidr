@@ -428,3 +428,165 @@ test_that("Ggplot2BarLayerProcessor preserves character x ordering", {
   xs <- vapply(data, function(pt) pt$x, character(1))
   testthat::expect_equal(xs, c("Apple", "Banana", "Cherry"))
 })
+
+# ==============================================================================
+# Faceted x labels on non-discrete scales (issue #60)
+#
+# A faceted panel used to label its bars by INDEXING the panel's x break
+# labels with the built x positions. That is only meaningful on a discrete
+# scale, where the positions are 1..n category numbers. On a continuous or
+# Date scale the positions are the values themselves, so the lookup either
+# picked up an unrelated break label or fell through to the raw number:
+#
+#   x = c(2, 4, 6)              ->  "2", "6", "6"
+#   x = c(1, 2, 3)              ->  NA,  "1", "2"   (NA serialises as null)
+#   x = Date "2024-01-01" + 0:2 ->  "19723", "19724", "19725"
+# ==============================================================================
+
+faceted_panel_xs <- function(p, panel_id) {
+  processor <- maidr:::Ggplot2BarLayerProcessor$new(list(index = 1))
+  data <- processor$extract_data(
+    p,
+    ggplot2::ggplot_build(p),
+    panel_id = panel_id
+  )
+  vapply(
+    data,
+    function(pt) if (is.null(pt$x)) NA_character_ else as.character(pt$x),
+    character(1)
+  )
+}
+
+faceted_df <- function(values) {
+  data.frame(
+    x = rep(values, 2),
+    y = c(1, 2, 3, 4, 5, 6),
+    g = rep(c("p", "q"), each = 3)
+  )
+}
+
+faceted_col <- function(values) {
+  # aes() captures these as symbols and resolves them against the data
+  # frame's columns; the local NULLs only stop static checkers reading
+  # them as undefined globals.
+  x <- y <- NULL
+  ggplot2::ggplot(faceted_df(values), ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~g)
+}
+
+test_that("faceted bars keep continuous x values instead of break labels", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- faceted_col(c(2, 4, 6))
+  testthat::expect_equal(faceted_panel_xs(p, 1), c("2", "4", "6"))
+  testthat::expect_equal(faceted_panel_xs(p, 2), c("2", "4", "6"))
+})
+
+test_that("faceted bars never emit an NA x for small continuous values", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # x values of 1..3 sit inside the break-label vector, so the old index
+  # lookup hit the leading NA padding break and dropped the label.
+  p <- faceted_col(c(1, 2, 3))
+  xs <- faceted_panel_xs(p, 1)
+
+  testthat::expect_false(anyNA(xs))
+  testthat::expect_equal(xs, c("1", "2", "3"))
+})
+
+test_that("faceted bars keep fractional continuous x values", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- faceted_col(c(0.5, 1.5, 2.5))
+  testthat::expect_equal(faceted_panel_xs(p, 1), c("0.5", "1.5", "2.5"))
+})
+
+test_that("faceted bars emit ISO dates, not day counts", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  dates <- as.Date("2024-01-01") + 0:2
+  p <- faceted_col(dates)
+
+  testthat::expect_equal(
+    faceted_panel_xs(p, 1),
+    c("2024-01-01", "2024-01-02", "2024-01-03")
+  )
+  testthat::expect_equal(
+    faceted_panel_xs(p, 2),
+    c("2024-01-01", "2024-01-02", "2024-01-03")
+  )
+})
+
+test_that("faceted bars emit formatted timestamps, not epoch seconds", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  ts <- as.POSIXct("2024-01-01 00:00:00", tz = "UTC") + c(0, 3600, 7200)
+  p <- faceted_col(ts)
+  xs <- faceted_panel_xs(p, 1)
+
+  testthat::expect_length(xs, 3L)
+  for (x in xs) {
+    testthat::expect_match(x, "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$")
+  }
+})
+
+test_that("faceted bars still label discrete x per panel", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- faceted_col(c("A", "B", "C"))
+  testthat::expect_equal(faceted_panel_xs(p, 1), c("A", "B", "C"))
+  testthat::expect_equal(faceted_panel_xs(p, 2), c("A", "B", "C"))
+})
+
+test_that("faceted bars still label free discrete scales per panel", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = c("A", "B", "X", "Y", "Z"),
+    y = c(1, 2, 3, 4, 5),
+    g = c("p", "p", "q", "q", "q")
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(~g, scales = "free_x")
+
+  testthat::expect_equal(faceted_panel_xs(p, 1), c("A", "B"))
+  testthat::expect_equal(faceted_panel_xs(p, 2), c("X", "Y", "Z"))
+})
+
+test_that("a rendered faceted Date bar chart carries date labels", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  dates <- as.Date("2024-01-01") + 0:2
+  p <- faceted_col(dates)
+
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
+  suppressWarnings(save_html(p, file))
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+
+  for (col in payload$subplots[[1]]) {
+    for (layer in col$layers) {
+      xs <- vapply(
+        layer$data,
+        function(pt) if (is.null(pt$x)) NA_character_ else as.character(pt$x),
+        character(1)
+      )
+      testthat::expect_equal(xs, format(dates))
+    }
+  }
+})

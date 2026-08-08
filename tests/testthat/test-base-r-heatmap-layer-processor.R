@@ -418,3 +418,164 @@ test_that("BaseRHeatmapLayerProcessor extracts all metadata correctly", {
 })
 
 # Selector tests skipped - tested at orchestrator level
+
+# ==============================================================================
+# heatmap(revC = TRUE) draws its rows the other way up (issue #60)
+#
+# heatmap() puts reordered row 1 at the BOTTOM of the y axis, so the emitted
+# grid, which reads top-down, is the reverse of the reordered matrix. `revC`
+# flips the drawing, and it is TRUE for every symm = TRUE call because Colv
+# defaults to "Rowv" there. revC is not part of the ordering heatmap()
+# returns, so the payload used to come out vertically mirrored: two calls
+# differing only in revC emitted byte-identical data for mirror-image
+# figures.
+# ==============================================================================
+
+heatmap_layer_info <- function(m, ...) {
+  list(
+    index = 1,
+    function_name = "heatmap",
+    plot_call = list(
+      function_name = "heatmap",
+      args = c(list(x = m), list(...))
+    )
+  )
+}
+
+heatmap_matrix <- function() {
+  matrix(
+    c(1, 2, 3, 4, 5, 6, 7, 8, 9),
+    nrow = 3, byrow = TRUE,
+    dimnames = list(c("R1", "R2", "R3"), c("C1", "C2", "C3"))
+  )
+}
+
+test_that("heatmap_applies_revc() resolves revC the way heatmap() does", {
+  m <- heatmap_matrix()
+
+  # Plain call: Colv defaults to NULL, so revC is FALSE.
+  testthat::expect_false(maidr:::heatmap_applies_revc(list(x = m)))
+  # symm = TRUE makes Colv default to "Rowv", which makes revC TRUE.
+  testthat::expect_true(maidr:::heatmap_applies_revc(list(x = m, symm = TRUE)))
+  # Colv = "Rowv" does the same without symm.
+  testthat::expect_true(
+    maidr:::heatmap_applies_revc(list(x = m, Colv = "Rowv"))
+  )
+  # An explicit revC always wins.
+  testthat::expect_false(
+    maidr:::heatmap_applies_revc(list(x = m, symm = TRUE, revC = FALSE))
+  )
+  testthat::expect_true(maidr:::heatmap_applies_revc(list(x = m, revC = TRUE)))
+  # Colv = NA is not "Rowv".
+  testthat::expect_false(
+    maidr:::heatmap_applies_revc(list(x = m, symm = TRUE, Colv = NA))
+  )
+})
+
+test_that("heatmap without revC still emits rows bottom-up", {
+  m <- heatmap_matrix()
+  info <- heatmap_layer_info(m, Rowv = NA, Colv = NA, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+
+  data <- processor$extract_data(info)
+
+  testthat::expect_equal(unlist(data$y), c("R3", "R2", "R1"))
+  testthat::expect_equal(unlist(data$points[[1]]), c(7, 8, 9))
+  testthat::expect_equal(unlist(data$points[[3]]), c(1, 2, 3))
+})
+
+test_that("heatmap with revC emits rows the way they are drawn", {
+  m <- heatmap_matrix()
+  info <- heatmap_layer_info(m, Rowv = NA, Colv = "Rowv", scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+
+  data <- processor$extract_data(info)
+
+  # Same matrix and same ordering as the test above; only revC differs, so
+  # the grid must come out the other way up rather than identical.
+  testthat::expect_equal(unlist(data$y), c("R1", "R2", "R3"))
+  testthat::expect_equal(unlist(data$points[[1]]), c(1, 2, 3))
+  testthat::expect_equal(unlist(data$points[[3]]), c(7, 8, 9))
+})
+
+test_that("a symm heatmap emits its dendrogram rows in drawn order", {
+  testthat::skip_if_not_installed("xml2")
+
+  m <- heatmap_matrix()
+  sym <- (m + t(m)) / 2
+
+  # The ordering heatmap() itself will use, taken from the function under
+  # test's own throwaway-device trick so the expectation is not hard-coded
+  # to one clustering implementation.
+  null_pdf <- tempfile(fileext = ".pdf")
+  on.exit(unlink(null_pdf), add = TRUE)
+  grDevices::pdf(null_pdf)
+  ordering <- stats::heatmap(sym, symm = TRUE, scale = "none")
+  grDevices::dev.off()
+
+  info <- heatmap_layer_info(sym, symm = TRUE, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+  data <- processor$extract_data(info)
+
+  # revC applies, so the drawn rows read top-down in rowInd order.
+  testthat::expect_equal(
+    unlist(data$y),
+    rownames(sym)[ordering$rowInd]
+  )
+  testthat::expect_equal(
+    unlist(data$points[[1]]),
+    unname(sym[ordering$rowInd[1], ordering$colInd])
+  )
+})
+
+test_that("a rendered revC heatmap lists rows in drawn top-to-bottom order", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  m <- heatmap_matrix()
+
+  maidr:::clear_all_device_storage()
+  grDevices::pdf(NULL)
+  heatmap(m, Rowv = NA, Colv = "Rowv", scale = "none")
+  file <- tempfile(fileext = ".html")
+  on.exit(
+    {
+      unlink(file)
+      maidr:::clear_all_device_storage()
+    },
+    add = TRUE
+  )
+  suppressWarnings(save_html(file = file))
+  grDevices::dev.off()
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+  layer <- payload$subplots[[1]][[1]]$layers[[1]]
+
+  # Row labels as drawn: axis(4) text nodes, read visually top to bottom.
+  # gridSVG wraps the whole tree in translate(0, h) scale(1, -1), so a
+  # LARGER y is higher up the page.
+  doc <- xml2::read_html(html)
+  nodes <- xml2::xml_find_all(
+    doc,
+    "//*[contains(@id,'right-axis-labels')][local-name()='text']"
+  )
+  testthat::expect_equal(length(nodes), 3L)
+  label_y <- vapply(nodes, function(nd) {
+    tf <- xml2::xml_attr(xml2::xml_parent(xml2::xml_parent(nd)), "transform")
+    as.numeric(regmatches(tf, gregexpr("-?[0-9.]+", tf))[[1]])[2]
+  }, numeric(1))
+  drawn <- vapply(nodes, xml2::xml_text, character(1))[order(-label_y)]
+
+  testthat::expect_equal(unlist(layer$data$y), drawn)
+})
