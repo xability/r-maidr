@@ -4,6 +4,19 @@
 
 ### Bug Fixes
 
+- ggplot2: histogram, stacked bar, dodged bar, and smooth layers no
+  longer invent a highlight target when the grob lookup finds nothing. A
+  facet level with no observations (`facet_wrap(~g, drop = FALSE)`), a
+  zero-row layer, and a segmented bar under
+  [`coord_polar()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)
+  all draw no marks, and these four layers answered with a guessed
+  element id instead of no selector at all. The guess never matched for
+  the three rect layers, so the payload looked healthy while the layer
+  highlighted nothing; for smooth it was worse, since the guessed id was
+  byte-identical to the first panel’s, and the empty panel highlighted
+  another panel’s fitted line. They now emit no selector, matching bar,
+  point, box plot, line, heat map, and candlestick layers.
+
 - ggplot2: a dodged
   [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
   no longer highlights the wrong bar when some (x, fill) combinations
