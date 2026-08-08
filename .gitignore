@@ -28,5 +28,8 @@ docs/
 
 # CRAN-SUBMISSION
 CRAN-SUBMISSION
-# htmlwidgets asset bundle emitted beside a rendered example
+# htmlwidgets asset bundle: save_html() drops it next to whatever file it
+# writes, so it lands in inst/output/ from the generator and at the repo
+# root from any ad-hoc render run there.
+inst/output/lib/
 /lib/
