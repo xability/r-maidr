@@ -210,13 +210,8 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
       # Prefer panel-scoped selection when panel_ctx is provided
       if (!is.null(panel_ctx) && !is.null(gt)) {
-        pn <- panel_ctx$panel_name
-        idx <- which(grepl(paste0("^", pn, "\\b"), gt$layout$name))
-        if (length(idx) == 0) {
-          return(list())
-        }
-        panel_grob <- gt$grobs[[idx[1]]]
-        if (!inherits(panel_grob, "gTree")) {
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+        if (is.null(panel_grob)) {
           return(list())
         }
 

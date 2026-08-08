@@ -14,6 +14,20 @@
   that fell back. Single-panel figures, figures whose every panel is
   annotated, overlays drawn outside the exported grid, and grids holding a
   plot type maidr cannot read at all still fall back as a whole, as before.
+* ggplot2: bar, point, line, box, histogram, smooth, stacked-bar, dodged-bar,
+  heatmap and candlestick plots inside a NESTED 'patchwork' are no longer
+  inert. Each of these carried its own panel lookup that scanned only the top
+  level of the composition and addressed panels by name, but `(p1 | p2) / p3`
+  keeps the inner row's panels inside a child table and leaves only a
+  placeholder at the top, and panel names repeat across nesting levels
+  anyway. A nested leaf therefore failed in one of two ways: bar, point, box,
+  line, heatmap and candlestick emitted no selector at all, while histogram,
+  smooth, stacked bar and dodged bar fell through to a fabricated selector
+  that matched nothing -- the worse of the two, because the payload looks
+  healthy while the layer highlights nothing. Every processor now resolves
+  its panel through the same recursive walk the violin processor already
+  used, and each leaf addresses its own panel. Flat compositions and faceted
+  plots are unaffected.
 * The startup message no longer promises something the package does not do.
   It told every user, on every `library(maidr)`, that plots are displayed in
   the interactive viewer by default. That is true for ggplot2, which hooks
@@ -33,6 +47,21 @@
   without clearing the device, unlike the sibling branch for non-HTML output,
   so a document that plotted, called `maidr_off()`, then called `maidr_on()`
   again folded the earlier calls into the next render as phantom layers.
+* Base R: a plot drawn in a loop now renders the iteration it recorded. When
+  an argument cannot be evaluated where the call is intercepted -- the shape
+  `plot(y ~ x, data = d, subset = grp == g)`, which mixes a column of `data`
+  with a variable from the loop -- maidr records the unevaluated expressions
+  and re-evaluates them at render time. It recorded the caller's frame to
+  re-evaluate them in, and R reuses ONE frame for the whole loop, so by
+  render time every iteration saw the LAST iteration's values:
+  `for (g in c("a", "b")) plot(y ~ x, data = d, subset = grp == g)` drew
+  `grp == "b"` in both panels, with no error and no warning. The values the
+  recorded expressions name are now captured when the call is made, so each
+  panel replays its own data. Only the names actually referenced are
+  captured, into a child of the caller's frame, so everything else still
+  resolves as before and active bindings are left to the caller. Applies to
+  every deferred path: `plot()`, `boxplot()`, `barplot()`, `curve()`,
+  `lines()`, `points()` and `chartSeries()`.
 * ggplot2: a violin plot combined with 'patchwork' is no longer silent. The
   leaf emitted a subplot with no layers at all -- no sonification, no
   braille, no highlighting for that panel -- because the processor skipped
