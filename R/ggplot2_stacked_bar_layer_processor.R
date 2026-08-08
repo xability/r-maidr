@@ -19,25 +19,15 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
 
       selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
-      # Build axes including fill label for stacked bars
+      # Build axes including the fill legend title. A stacked bar layer only
+      # exists because fill is mapped, so the title is always meaningful.
       axes <- self$extract_layer_axes(plot, layout)
-
-      # Add fill axis label from built plot labels (includes labs(fill = ...))
-      if (!is.null(built)) {
-        fill_label <- built$plot$labels$fill
-      } else {
-        b <- ggplot2::ggplot_build(plot)
-        fill_label <- b$plot$labels$fill
-      }
-      if (is.null(fill_label)) {
-        # Fallback: get fill label from mapping expression
-        layer_index <- self$get_layer_index()
-        fill_quo <- plot$layers[[layer_index]]$mapping$fill
-        if (is.null(fill_quo)) fill_quo <- plot$mapping$fill
-        if (!is.null(fill_quo)) {
-          fill_label <- rlang::as_label(fill_quo)
-        }
-      }
+      fill_label <- resolve_legend_label(
+        plot,
+        built = built,
+        aes_names = "fill",
+        layer_index = self$get_layer_index()
+      )
       if (!is.null(fill_label)) {
         axes$z <- list(label = fill_label)
       }
@@ -329,16 +319,23 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         }
       }
 
-      if (!is.null(rect_grob)) {
-        layer_id <- gsub("geom_rect\\.rect\\.", "", rect_grob)
-        grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
-      } else {
-        grob_id <- paste0("geom_rect.rect.", self$get_layer_index(), ".1")
+      # No rect grob means this layer drew no segments here: an empty facet
+      # level, a zero-row layer, a coord that renders no rects. The layer
+      # INDEX is not the grob id - every `geom_rect.rect.N` id carries
+      # grid's session-wide grob counter - so the guess is right only by
+      # coincidence, and when it does land it lands on ANOTHER panel's
+      # segments, which highlights the wrong marks while the payload still
+      # looks healthy. The caller can tell an empty selector list apart
+      # from a wrong one, a user cannot.
+      if (is.null(rect_grob)) {
+        return(list())
       }
-      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-      selector_string <- paste0("#", escaped_grob_id, " rect")
 
-      list(selector_string)
+      layer_id <- gsub("geom_rect\\.rect\\.", "", rect_grob)
+      grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
+      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+
+      list(paste0("#", escaped_grob_id, " rect"))
     }
   )
 )

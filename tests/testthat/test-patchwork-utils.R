@@ -157,6 +157,76 @@ test_that("extract_leaf_plot_layout returns empty string for missing title", {
   testthat::expect_equal(result$title, "")
 })
 
+test_that("extract_leaf_plot_layout reads stat-computed labels off the build", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # geom_bar() computes y, so nothing in the unbuilt plot names that axis:
+  # ggplot2 v4 only resolves the default "count" while building. Without the
+  # built labels the leaf reports an empty y label and MAIDR announces the
+  # placeholder "Y".
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) +
+    ggplot2::geom_bar()
+
+  result <- maidr:::extract_leaf_plot_layout(p, ggplot2::ggplot_build(p))
+
+  testthat::expect_equal(result$axes$x$label, "class")
+  testthat::expect_equal(result$axes$y$label, "count")
+})
+
+test_that("extract_leaf_plot_layout still works without a build", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(mtcars, ggplot2::aes(x = mpg, y = wt)) +
+    ggplot2::geom_point() +
+    ggplot2::labs(x = "X Label")
+
+  result <- maidr:::extract_leaf_plot_layout(p, NULL)
+
+  testthat::expect_equal(result$axes$x$label, "X Label")
+  testthat::expect_equal(result$axes$y$label, "wt")
+})
+
+test_that("a patchwork bar panel carries its stat-computed y label", {
+  testthat::skip_if_not_installed("patchwork")
+  testthat::skip_if_not_installed("jsonlite")
+
+  composition <- patchwork::wrap_plots(
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) + ggplot2::geom_bar(),
+    ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(displ, hwy)) + ggplot2::geom_point()
+  )
+
+  file <- tempfile(fileext = ".html")
+
+  on.exit(unlink(file), add = TRUE)
+  suppressWarnings(save_html(composition, file))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+
+  bar <- NULL
+  for (row in payload$subplots) {
+    for (subplot in row) {
+      for (layer in subplot$layers) {
+        if (identical(layer$type, "bar")) bar <- layer
+      }
+    }
+  }
+
+  testthat::expect_false(is.null(bar))
+  testthat::expect_equal(bar$axes$x$label, "class")
+  testthat::expect_equal(bar$axes$y$label, "count")
+})
+
 # ==============================================================================
 # process_patchwork_plot_data Tests
 # ==============================================================================

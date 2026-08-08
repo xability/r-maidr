@@ -81,6 +81,65 @@ build_axes <- function(x = NULL, y = NULL, z = NULL) {
   axes
 }
 
+#' Resolve the legend title for a grouping aesthetic
+#'
+#' Returns the title ggplot2 prints above the legend for a grouping
+#' aesthetic, which is what the MAIDR payload emits as the z axis label.
+#' A \code{labs()} override wins (ggplot2 stores it on the built plot's
+#' \code{labels}, normalising \code{color} to \code{colour}); otherwise the
+#' mapped expression is used, with the layer's own mapping taking precedence
+#' over the plot-level one. Returns NULL when the aesthetic carries neither.
+#'
+#' Callers are responsible for only asking about an aesthetic the layer is
+#' actually grouped by: \code{labs()} records a title even for an unmapped
+#' aesthetic, so an unguarded lookup would invent a legend that the plot does
+#' not draw.
+#'
+#' @param plot The ggplot object
+#' @param built Built plot from \code{ggplot2::ggplot_build()}, or NULL to
+#'   build one on demand
+#' @param aes_names Aesthetic names to try, in order. Pass spelling variants
+#'   of one aesthetic (for example \code{c("colour", "color")}), never
+#'   unrelated aesthetics.
+#' @param layer_index Index of the layer whose mapping takes precedence, or
+#'   NULL to consult only the plot-level mapping
+#' @return Character scalar, or NULL when the aesthetic has no title
+#' @keywords internal
+resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
+                                 layer_index = NULL) {
+  labels <- if (!is.null(built)) {
+    built$plot$labels
+  } else {
+    tryCatch(ggplot2::ggplot_build(plot)$plot$labels, error = function(e) NULL)
+  }
+
+  for (aes_name in aes_names) {
+    label <- labels[[aes_name]]
+    if (!is.null(label) && length(label) == 1L && !is.na(label) &&
+      nzchar(as.character(label))) {
+      return(as.character(label))
+    }
+  }
+
+  mappings <- list()
+  if (!is.null(layer_index) && length(plot$layers) >= layer_index) {
+    mappings[[length(mappings) + 1L]] <- plot$layers[[layer_index]]$mapping
+  }
+  mappings[[length(mappings) + 1L]] <- plot$mapping
+
+  for (mapping in mappings) {
+    if (is.null(mapping)) next
+    for (aes_name in aes_names) {
+      quo <- mapping[[aes_name]]
+      if (!is.null(quo)) {
+        return(rlang::as_label(quo))
+      }
+    }
+  }
+
+  NULL
+}
+
 #' Attach a format object to a specific axis
 #'
 #' Mutates a single axis's \code{format} field. Creates the axis slot

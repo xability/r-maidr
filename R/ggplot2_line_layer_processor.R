@@ -33,12 +33,52 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx, built = built)
 
+      axes <- self$extract_layer_axes(plot, layout)
+      axes <- self$attach_group_axis(plot, built, data, axes)
+
       list(
         data = data,
         selectors = selectors,
         title = if (!is.null(layout$title)) layout$title else "",
-        axes = self$extract_layer_axes(plot, layout)
+        axes = axes
       )
+    },
+
+    #' @description Add the legend title as the z axis label for a
+    #' multi-series line layer.
+    #'
+    #' Shared with the smooth layer processor via
+    #' \code{attach_series_group_axis()}; see \code{R/series_group_utils.R}.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param data The extracted layer data
+    #' @param axes Axes built so far
+    #' @return The axes list, with z added when the layer is grouped
+    attach_group_axis = function(plot, built, data, axes) {
+      attach_series_group_axis(
+        axes, plot, built, data,
+        layer_index = self$get_layer_index()
+      )
+    },
+
+    #' @description Report whether extracted data is split into named series.
+    #' @param data The extracted layer data
+    #' @return TRUE when there is more than one series and points carry z
+    has_series_groups = function(data) {
+      data_has_series_groups(data)
+    },
+
+    #' @description Resolve the aesthetic that splits this layer into series.
+    #'
+    #' A line has no fill, so only the colour aesthetic is probed.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return list with \code{aes} (aesthetic spelling variants, or NULL when
+    #'   nothing is mapped) and \code{column} (the mapped column name, or
+    #'   "group" as a fallback)
+    resolve_group_mapping = function(plot) {
+      resolve_series_group_mapping(plot, self$layer_info$index)
     },
 
     #' Extract axes labels for line layers, with a special case for
@@ -281,17 +321,10 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param plot The original ggplot2 object
     #' @return List of arrays, each containing series data
     extract_multiline_data = function(layer_data, plot) {
-      original_data <- plot$data
-      mapping_col <- self$get_group_column(plot)
-
       unique_groups <- sort(unique(layer_data$group))
-
-      if (!is.null(original_data) && mapping_col %in% names(original_data)) {
-        unique_categories <- sort(unique(original_data[[mapping_col]]))
-      } else {
-        # Fallback: use group numbers
-        unique_categories <- paste0("Series ", unique_groups)
-      }
+      unique_categories <- resolve_series_group_names(
+        plot, layer_data$group, self$get_group_column(plot)
+      )
 
       # Recover original (Date/POSIXct-typed) x column when available so we
       # emit ISO date strings rather than numeric days-since-epoch.
@@ -395,28 +428,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return Name of the grouping column
     get_group_column = function(plot) {
-      layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
-      if (!is.null(layer_mapping)) {
-        if (!is.null(layer_mapping$colour)) {
-          return(rlang::as_label(layer_mapping$colour))
-        }
-        if (!is.null(layer_mapping$color)) {
-          return(rlang::as_label(layer_mapping$color))
-        }
-      }
-
-      plot_mapping <- plot$mapping
-      if (!is.null(plot_mapping)) {
-        if (!is.null(plot_mapping$colour)) {
-          return(rlang::as_label(plot_mapping$colour))
-        }
-        if (!is.null(plot_mapping$color)) {
-          return(rlang::as_label(plot_mapping$color))
-        }
-      }
-
-      # Default to 'group' if no color mapping found
-      "group"
+      self$resolve_group_mapping(plot)$column
     },
 
     #' Generate selectors using actual SVG structure

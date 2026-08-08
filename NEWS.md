@@ -21,6 +21,98 @@
   `geom_step()`: the layer position was counted over line layers only while
   every polyline in the panel was searched, so both layers resolved to the
   same polyline and highlighted the wrong geometry.
+* ggplot2: a grouped smooth is described as one series per curve.
+  `geom_smooth(aes(colour = g))` draws a curve per group, but the payload
+  concatenated all of them into a single undifferentiated series with no `z`,
+  so a reader walked off the end of one curve into the start of the next with
+  nothing announced in between. The layer also carried a single selector
+  aimed at one group's polyline, leaving three times as many data points as
+  the highlighted line had vertices. Each group is now its own series, named
+  after the group and labelled with the legend title, with its own selector.
+  `geom_density()` splits the same way, including when the grouping is mapped
+  to `fill`.
+* ggplot2: histogram, stacked bar, dodged bar, and smooth layers no longer
+  invent a highlight target when the grob lookup finds nothing. A facet level
+  with no observations (`facet_wrap(~g, drop = FALSE)`), a zero-row layer, and
+  a segmented bar under `coord_polar()` all draw no marks, and these four
+  layers answered with a guessed element id instead of no selector at all.
+  The guess never matched for the three rect layers, so the payload looked
+  healthy while the layer highlighted nothing; for smooth it was worse, since
+  the guessed id was byte-identical to the first panel's, and the empty panel
+  highlighted another panel's fitted line. They now emit no selector, matching
+  bar, point, box plot, line, heat map, and candlestick layers.
+* ggplot2: a dodged `geom_bar()` no longer highlights the wrong bar when some
+  (x, fill) combinations are empty. The layer emitted only the combinations it
+  actually drew, so `ggplot(mpg, aes(class, fill = drv)) + geom_bar(position =
+  "dodge")` produced series of five, four and three values against a chart of
+  seven categories. MAIDR walks one flat list of rects column by column and
+  sizes that walk from the payload, so a ragged payload claimed fifteen bars
+  where twelve exist: the cursor overran and every bar after the first empty
+  cell highlighted its neighbour, while position three meant `pickup` in one
+  series and `minivan` in the next. Absent combinations are now announced as
+  zero, which keeps each series one entry per category so the same position
+  means the same category in all of them, and which is the honest value for a
+  cross-tabulation -- a cell `stat = "count"` never drew is a cell whose count
+  really is zero, and MAIDR gives it no highlight because there is no bar to
+  highlight. Bars supplied through `geom_col()` are left alone: a row the
+  caller omitted has no value, and inventing a zero for it would invent data.
+  Dodged counts also asked for the wrong per-column highlight direction, which
+  put every series on its neighbour's bars even when no combination was empty.
+* ggplot2: a dodged `geom_bar()` now announces its categories in the plotted
+  order. The layer sorted them as text, which disagreed with the chart twice
+  over: a factor is laid out in level order, so reversed or custom levels
+  described column one of the payload against column three of the chart, and a
+  number sorts with 10 before 2.
+* ggplot2: a faceted panel no longer discards the display hints its layers
+  emit. The panel entry was assembled from a fixed list of keys, so anything
+  else a processor returned -- `domMapping`, `orientation`, the box plot's IQR
+  direction -- was dropped, and every panel fell back to defaults the
+  unfaceted plot never uses. A faceted dodged `geom_bar()` therefore
+  highlighted its neighbour's bars in every panel. The 'patchwork' path
+  already carried these fields; the facet path now matches it.
+* Base R: `curve()` renders as an interactive line plot instead of a static
+  image. The call was recorded, but the adapter had no layer type for it, so
+  it typed as "unknown" and the whole figure fell back to a picture with no
+  sonification, braille, or keyboard navigation. It now types as the same
+  line layer `plot(x, y, type = "l")` produces, and the announced points are
+  the ones `curve()` returned after drawing them, so they cannot drift from
+  what was plotted. The axis labels `curve()` derives for itself -- the
+  variable name and the deparsed expression -- are announced too. Draw types
+  that are not a polyline (`type = "p"`, `"b"`, `"s"`, ...) and
+  `curve(add = TRUE)` keep the static fallback.
+* Base R: `curve()` called from inside a function sees that function's
+  variables. `curve()` resolves the free variables of its expression against
+  the calling frame, which through maidr's wrapper was the wrapper's own
+  frame, so `f <- function(k) curve(sin(k * x), from = 0, to = pi)` failed
+  with "object 'k' not found" -- a call that works in plain R. It only
+  appeared to work at top level, where the global environment is on the
+  package's search chain.
+* ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
+  computes. Each leaf's layout was read before the leaf was built, and under
+  ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
+  so a `geom_bar()` inside a composition announced the placeholder "Y" in
+  place of "count". The leaf is now built first and its layout read from the
+  result.
+* ggplot2: faceted plots no longer lose their axis labels. Each panel rebuilt
+  its own axes from the unbuilt plot, which under ggplot2 v4 records only the
+  labels an explicit `labs()` set -- everything ggplot2 derives while building
+  was dropped. Every faceted panel therefore announced the placeholder
+  "Categories" for x and nothing at all for y, so a faceted `geom_bar()` said
+  "Categories is suv" where the unfaceted one says "class is suv, count is
+  62". Panels now keep the labels their layers resolved, including the legend
+  title. A panel collapses all of its layers into one description, so the
+  labels are assembled across them: a plot whose first layer is ungrouped and
+  whose second is grouped -- `geom_point()` under `geom_line(aes(colour =
+  g))`, say -- still wrote the group into the data while carrying no title
+  for it, and MAIDR announced the generic word "Group".
+* ggplot2: a multi-series line plot now announces its legend title instead of
+  the word "Group". The layer already emitted a per-series group name, which
+  MAIDR reads out as "<label> is <value>", but the payload carried no label
+  for it, so the viewer fell back to a generic placeholder and the title set
+  by `labs(colour = ...)` -- or the mapped column name when no title was set
+  -- was never spoken, brailled, or shown in the chart description. Stacked
+  bar, dodged bar, and heatmap layers already carried theirs; line layers now
+  do too.
 * patchwork: layer ids are unique across a whole composition. Every leaf
   numbered its layers from 1, so a 2x2 patchwork emitted four layers all
   called `maidr-layer-1`. The frontend keys its per-figure number-format map

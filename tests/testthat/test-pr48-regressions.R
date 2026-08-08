@@ -255,12 +255,21 @@ test_that("dodged bars accept an expression fill aesthetic", {
   testthat::expect_equal(data[[1]][[1]]$y, 2)
 })
 
-test_that("dodged bar counts skip combinations that are never drawn", {
+# This test used to assert the opposite: that combinations ggplot2 never drew
+# were dropped, on the reasoning that the announced data must be no longer
+# than the rect list the selector matches. Issue #80 disproved the reasoning.
+# MAIDR does not zip the flattened payload against the node list; it walks
+# `barValues[0].length` columns times `barValues.length` series and takes one
+# node per slot, and when it holds fewer rects than slots it treats a value of
+# exactly 0 as "no rect here" and consumes no node for it. A payload that is
+# longer but RECTANGULAR is therefore what the frontend wants; the short
+# ragged one is what overran the node cursor. See
+# test-dodged-bar-count-grid.R, which replays the regrouping against the
+# rects actually exported.
+test_that("dodged bar counts score combinations that are never drawn zero", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # "c" never occurs with "v", so ggplot2 draws 5 bars, not 6. Emitting the
-  # full cartesian product left the announced data longer than the rect list
-  # the selector matches, shifting every later bar's description.
+  # "c" never occurs with "v", so ggplot2 draws 5 bars across 3 x 2 cells.
   df <- data.frame(
     category = c("a", "a", "b", "b", "c", "c"),
     grp = c("u", "v", "u", "v", "u", "u")
@@ -271,12 +280,15 @@ test_that("dodged bar counts skip combinations that are never drawn", {
   processor <- maidr:::Ggplot2DodgedBarLayerProcessor$new(list(index = 1))
   data <- processor$extract_data(plot_obj)
 
-  drawn_bars <- nrow(ggplot2::ggplot_build(plot_obj)$data[[1]])
-  testthat::expect_equal(sum(vapply(data, length, integer(1))), drawn_bars)
+  # Every series covers every category, so position 3 means "c" in both.
+  testthat::expect_equal(vapply(data, length, integer(1)), c(3L, 3L))
 
-  # no zero-count entry survives
-  all_y <- unlist(lapply(data, function(s) vapply(s, function(p) p$y, numeric(1))))
-  testthat::expect_false(any(all_y == 0))
+  all_y <- lapply(data, function(s) vapply(s, function(p) p$y, numeric(1)))
+  testthat::expect_equal(all_y, list(c(1, 1, 2), c(1, 1, 0)))
+
+  # The non-zero cells still account for exactly the bars ggplot2 drew.
+  drawn_bars <- nrow(ggplot2::ggplot_build(plot_obj)$data[[1]])
+  testthat::expect_equal(sum(unlist(all_y) > 0), drawn_bars)
 })
 
 test_that("dodged bars accept an expression x aesthetic", {

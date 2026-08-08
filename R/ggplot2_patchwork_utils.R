@@ -472,25 +472,40 @@ augment_patchwork_leaves <- function(node) {
 }
 
 #' Extract layout from a single leaf ggplot
+#'
+#' Mirrors the single-plot path in \code{Ggplot2PlotOrchestrator}: labels are
+#' read from the BUILT plot first. ggplot2 v4 resolves derived labels only
+#' while building -- the stat-computed "count" of \code{geom_bar()}, and the
+#' mapped column names -- so an unbuilt \code{labels} holds nothing but the
+#' explicit \code{labs()} overrides.
+#'
 #' @param leaf_plot The ggplot object
+#' @param leaf_built The leaf's built plot, or NULL when it is unavailable
 #' @return Layout with title and axes
-extract_leaf_plot_layout <- function(leaf_plot) {
-  # Extract x label: try labels$x first, fall back to mapping
-  x_label <- leaf_plot$labels$x
+extract_leaf_plot_layout <- function(leaf_plot, leaf_built = NULL) {
+  built_labels <- if (!is.null(leaf_built)) leaf_built$plot$labels else NULL
+
+  # Extract x label: built labels, then user labels, then mapping
+  x_label <- built_labels$x
+  if (is.null(x_label)) x_label <- leaf_plot$labels$x
   if (is.null(x_label) && !is.null(leaf_plot$mapping$x)) {
     x_label <- rlang::as_label(leaf_plot$mapping$x)
   }
   if (is.null(x_label)) x_label <- ""
 
-  # Extract y label: try labels$y first, fall back to mapping
-  y_label <- leaf_plot$labels$y
+  # Extract y label: built labels, then user labels, then mapping
+  y_label <- built_labels$y
+  if (is.null(y_label)) y_label <- leaf_plot$labels$y
   if (is.null(y_label) && !is.null(leaf_plot$mapping$y)) {
     y_label <- rlang::as_label(leaf_plot$mapping$y)
   }
   if (is.null(y_label)) y_label <- ""
 
+  plot_title <- built_labels$title
+  if (is.null(plot_title)) plot_title <- leaf_plot$labels$title
+
   list(
-    title = if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else "",
+    title = if (!is.null(plot_title)) plot_title else "",
     axes = build_axes(x = x_label, y = y_label)
   )
 }
@@ -524,15 +539,16 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
   # so (row, col) is what makes an id figure-wide unique.
   layer_id_prefix <- paste0("maidr-layer-", row, "-", col)
 
-  # Extract layout from leaf plot (has its own title and axes)
-  leaf_layout <- extract_leaf_plot_layout(leaf_plot)
-
   # Build ONCE per panel: rebuilding inside the per-layer loop repeats
-  # the full ggplot_build for every layer of the leaf plot
+  # the full ggplot_build for every layer of the leaf plot. It also has to
+  # happen before the layout is read, which needs the built labels.
   leaf_built <- tryCatch(
     ggplot2::ggplot_build(leaf_plot),
     error = function(e) NULL
   )
+
+  # Extract layout from leaf plot (has its own title and axes)
+  leaf_layout <- extract_leaf_plot_layout(leaf_plot, leaf_built)
 
   # Number formatting is per LEAF, not per composition: every leaf is its own
   # ggplot carrying its own scales, so a currency y axis on one leaf and a
@@ -545,11 +561,9 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
   factory <- registry$get_processor_factory("ggplot2")
   adapter <- registry$get_adapter("ggplot2")
 
-  leaf_title <- if (!is.null(leaf_plot$labels$title)) leaf_plot$labels$title else ""
-  leaf_axes <- build_axes(
-    x = if (!is.null(leaf_plot$labels$x)) leaf_plot$labels$x else "",
-    y = if (!is.null(leaf_plot$labels$y)) leaf_plot$labels$y else ""
-  )
+  # Fallbacks for a layer whose processor returned no title or axes.
+  leaf_title <- leaf_layout$title
+  leaf_axes <- leaf_layout$axes
 
   n_layers <- if (is.null(n_original_layers)) {
     length(leaf_plot$layers)

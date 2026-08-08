@@ -176,10 +176,39 @@ process_facet_panel <- function(
       facet_title <- paste(facet_groups, collapse = " & ")
     }
 
-    axes <- build_axes(
-      x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
-      y = if (!is.null(plot$labels$y)) plot$labels$y else ""
-    )
+    # Prefer the axes the layer processors already resolved. They start from
+    # the BUILT plot's labels, which is where ggplot2 records defaults derived
+    # from aesthetics and stats -- an unbuilt `plot$labels` holds only explicit
+    # `labs()` overrides, so reading it drops "count" for geom_bar() and the
+    # mapped column name for everything else. They also carry the legend title
+    # as z for grouped layers, which a rebuilt {x, y} pair cannot express.
+    #
+    # The leading layer wins for a key it defines -- x and y are the panel's
+    # shared scales, so every layer agrees on them. A key it does NOT define
+    # is filled from a later layer, because the panel collapses all of them
+    # into one payload entry. z is the case that matters: an ungrouped first
+    # layer carries no legend title while a later grouped layer still writes
+    # z VALUES into the shared data, and a z value with no label is announced
+    # as the generic word "Group".
+    axes <- NULL
+    for (result in layer_results) {
+      if (is.null(result) || length(result$axes) == 0) {
+        next
+      }
+      if (is.null(axes)) {
+        axes <- result$axes
+        next
+      }
+      for (key in setdiff(names(result$axes), names(axes))) {
+        axes[[key]] <- result$axes[[key]]
+      }
+    }
+    if (is.null(axes)) {
+      axes <- build_axes(
+        x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
+        y = if (!is.null(plot$labels$y)) plot$labels$y else ""
+      )
+    }
 
     # Add format config per axis (attaching the whole {x, y} list as the
     # x-axis format would drop the y format and malform the x one)
@@ -199,13 +228,30 @@ process_facet_panel <- function(
       selectors = combined_selectors
     )
 
-    # A step layer reports its hv/vh/mid convention as a layer-level sibling
-    # of axes/data. This panel entry is rebuilt field by field rather than
-    # copied from the processor result, so the direction has to be carried
-    # across explicitly or every faceted step plot loses it.
-    step_direction <- first_step_direction(layer_results)
-    if (!is.null(step_direction)) {
-      layer$stepDirection <- step_direction
+    # Carry the processor's remaining fields the way the patchwork path does
+    # (orientation, violinOptions, domMapping, the `.panel_*` hints the SVG
+    # coordinate injection reads). Dropping them silently un-configured every
+    # faceted panel: a dodged `stat = "count"` layer asks for the forward
+    # per-column highlight walk and got the default reverse one, so every
+    # panel highlighted its neighbour's bars.
+    #
+    # A panel collapses all of its layers into one entry, so the leading
+    # layer wins a key it defines -- the same precedence the axes above use.
+    for (result in layer_results) {
+      if (is.null(result)) {
+        next
+      }
+      for (field_name in names(result)) {
+        if (field_name %in% c(
+          "id", "type", "selectors", "data", "title", "axes",
+          "labels", "multi_layer", "layers"
+        )) {
+          next
+        }
+        if (is.null(layer[[field_name]])) {
+          layer[[field_name]] <- result[[field_name]]
+        }
+      }
     }
 
     layers[[1]] <- layer

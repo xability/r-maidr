@@ -4,14 +4,20 @@
 \alias{extract_leaf_plot_layout}
 \title{Extract layout from a single leaf ggplot}
 \usage{
-extract_leaf_plot_layout(leaf_plot)
+extract_leaf_plot_layout(leaf_plot, leaf_built = NULL)
 }
 \arguments{
 \item{leaf_plot}{The ggplot object}
+
+\item{leaf_built}{The leaf's built plot, or NULL when it is unavailable}
 }
 \value{
 Layout with title and axes
 }
 \description{
-Extract layout from a single leaf ggplot
+Mirrors the single-plot path in \code{Ggplot2PlotOrchestrator}: labels are
+read from the BUILT plot first. ggplot2 v4 resolves derived labels only
+while building -- the stat-computed "count" of \code{geom_bar()}, and the
+mapped column names -- so an unbuilt \code{labels} holds nothing but the
+explicit \code{labs()} overrides.
 }
