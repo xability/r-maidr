@@ -1,6 +1,6 @@
 name: Update MAIDR Bundle
 
-# Keeps the offline-bundled ``maidr.js`` / ``maidr.css`` under
+# Keeps the offline-bundled ``maidr.js`` / ``maidr-math.css`` under
 # ``inst/htmlwidgets/lib/`` in sync with the upstream npm release and
 # commits the refresh directly to ``main``.
 #
