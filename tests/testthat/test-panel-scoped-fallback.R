@@ -362,3 +362,22 @@ test_that("the panel fallback warning names the affected panels", {
   many <- maidr:::format_panel_fallback_warning(c(4L, 2L, 2L))
   testthat::expect_match(many, "^Panels 2, 4 contain unsupported elements\\.")
 })
+
+# ==============================================================================
+# Non-Base R orchestrators
+# ==============================================================================
+
+test_that("a ggplot2 orchestrator passes through the panel warning untouched", {
+  # warn_panel_fallback() runs on every render, not just Base R ones, and only
+  # the Base R orchestrator defines fallback_panels(). The guard is written as
+  # a member probe because an R6 object is an environment, so reading a member
+  # its class does not define yields NULL rather than erroring -- pinned here
+  # because the whole ggplot2 path would break if that ever stopped holding.
+  testthat::skip_if_not_installed("ggplot2")
+
+  plot <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()
+  orchestrator <- maidr:::Ggplot2PlotOrchestrator$new(plot)
+
+  testthat::expect_null(orchestrator$fallback_panels)
+  testthat::expect_silent(maidr:::warn_panel_fallback(orchestrator))
+})
