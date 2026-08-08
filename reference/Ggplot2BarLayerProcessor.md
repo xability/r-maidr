@@ -27,6 +27,12 @@ Processes bar plot layers with complete logic included
 
 - [`Ggplot2BarLayerProcessor$format_x_value()`](#method-Ggplot2BarLayerProcessor-format_x_value)
 
+- [`Ggplot2BarLayerProcessor$panel_x_is_discrete()`](#method-Ggplot2BarLayerProcessor-panel_x_is_discrete)
+
+- [`Ggplot2BarLayerProcessor$map_discrete_x()`](#method-Ggplot2BarLayerProcessor-map_discrete_x)
+
+- [`Ggplot2BarLayerProcessor$map_continuous_x()`](#method-Ggplot2BarLayerProcessor-map_continuous_x)
+
 - [`Ggplot2BarLayerProcessor$generate_selectors()`](#method-Ggplot2BarLayerProcessor-generate_selectors)
 
 - [`Ggplot2BarLayerProcessor$clone()`](#method-Ggplot2BarLayerProcessor-clone)
@@ -104,6 +110,95 @@ layers from the same Date column align string-wise.
 #### Usage
 
     Ggplot2BarLayerProcessor$format_x_value(x)
+
+------------------------------------------------------------------------
+
+### Method `panel_x_is_discrete()`
+
+Does this panel draw x on a discrete scale?
+
+Only a discrete scale numbers its built positions 1..n, which is what
+makes indexing the break labels with them legitimate.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$panel_x_is_discrete(panel_params, x_pos, panel_labels)
+
+#### Arguments
+
+- `panel_params`:
+
+  This panel's entry from \`built\$layout\$panel_params\`
+
+- `x_pos`:
+
+  Built x positions for this panel
+
+- `panel_labels`:
+
+  This panel's x break labels, or NULL
+
+#### Returns
+
+TRUE for a discrete x scale
+
+------------------------------------------------------------------------
+
+### Method `map_discrete_x()`
+
+Label discrete built positions with this panel's breaks.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$map_discrete_x(x_pos, panel_labels)
+
+#### Arguments
+
+- `x_pos`:
+
+  Built x positions for this panel
+
+- `panel_labels`:
+
+  This panel's x break labels, or NULL
+
+#### Returns
+
+Character vector of x labels
+
+------------------------------------------------------------------------
+
+### Method `map_continuous_x()`
+
+Recover user-facing x values for a non-discrete scale.
+
+Built positions on a continuous, Date or datetime scale already are the
+values, but a Date arrives as a day count. Matching them back to the
+mapped column restores the original typing so \`format_x_value()\` can
+emit "2024-01-02" rather than "19724". Mirrors the same recovery in
+\`Ggplot2LineLayerProcessor\`.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$map_continuous_x(x_pos, plot, layer_index)
+
+#### Arguments
+
+- `x_pos`:
+
+  Built x positions for this panel
+
+- `plot`:
+
+  The ggplot object
+
+- `layer_index`:
+
+  Index of this layer within the plot
+
+#### Returns
+
+Character vector of x labels
 
 ------------------------------------------------------------------------
 
