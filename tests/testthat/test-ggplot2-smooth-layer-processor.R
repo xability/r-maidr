@@ -688,6 +688,20 @@ test_that("a chunking failure emits no selector rather than a mismatched one", {
 
   # A group count the grob tree cannot divide by: 3 curves, 4 claimed groups.
   testthat::expect_null(processor$grouped_curve_selectors(plot, gt, NULL, 4L))
+
+  # And through the wrapper that decides what to do about it, since that is
+  # the branch the fix actually changed -- it must return nothing rather than
+  # fall through to the single-curve path. Subclassed rather than patched:
+  # an R6 object is locked, so the count cannot be overwritten in place.
+  stubbed <- R6::R6Class(
+    "StubbedSmoothProcessor",
+    inherit = Ggplot2SmoothLayerProcessor,
+    public = list(
+      series_group_count = function(plot, built = NULL, panel_id = NULL) 4L
+    )
+  )$new(list(index = 1))
+
+  testthat::expect_length(stubbed$generate_selectors(plot, gt), 0L)
 })
 
 test_that("geom_area(stat = \"density\") splits per group like the others", {
