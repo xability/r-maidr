@@ -2,6 +2,12 @@
 
 ## Bug Fixes
 
+* ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
+  computes. Each leaf's layout was read before the leaf was built, and under
+  ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
+  so a `geom_bar()` inside a composition announced the placeholder "Y" in
+  place of "count". The leaf is now built first and its layout read from the
+  result.
 * ggplot2: faceted plots no longer lose their axis labels. Each panel rebuilt
   its own axes from the unbuilt plot, which under ggplot2 v4 records only the
   labels an explicit `labs()` set -- everything ggplot2 derives while building
