@@ -27,7 +27,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .grob_list = list(),
     .format_config = NULL,
     .format_config_by_group = list(),
-    .cached_gtable = NULL
+    .cached_gtable = NULL,
+    .fallback_mode = "none",
+    .fallback_groups = integer(0),
+    .fallback_panels = integer(0)
   ),
   public = list(
     initialize = function(device_id = grDevices::dev.cur()) {
@@ -41,6 +44,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       private$.plot_groups <- grouped$groups
 
       self$detect_layers()
+      self$resolve_fallback_scope()
       self$create_layer_processors()
       self$process_layers()
     },
@@ -167,6 +171,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # Skip layers without processors (unknown types)
         # layer_results is pre-allocated so NULL is already set
         if (is.null(processor)) {
+          next
+        }
+
+        # A panel scoped out by resolve_fallback_scope() emits no data at
+        # all: its unsupported overlay may carry values we cannot read, so
+        # publishing only the layers we did understand would describe that
+        # panel incompletely without saying so.
+        if (self$is_group_scoped_out(private$.layers[[i]]$group_index)) {
           next
         }
 
@@ -778,22 +790,24 @@ BaseRPlotOrchestrator <- R6::R6Class(
       NULL
     },
 
-    #' @description Check if any HIGH-level layers are unsupported (unknown type)
-    #' @return Logical indicating if there are unsupported layers
-    has_unsupported_layers = function() {
+    #' @description Flag each detected layer maidr cannot process
+    #'
+    #' Decorations carry no data of their own; leaving them out of the
+    #' interactive output loses nothing. Data-bearing LOW-level overlays
+    #' (polygon, rect, segments, ...) with no processor would silently
+    #' disappear from the accessible output, so they count as unsupported.
+    #'
+    #' @return Logical vector, one entry per detected layer
+    unsupported_layer_flags = function() {
       if (length(private$.layers) == 0) {
-        return(FALSE)
+        return(logical(0))
       }
 
-      # Decorations carry no data of their own; leaving them out of the
-      # interactive output loses nothing. Data-bearing LOW-level overlays
-      # (polygon, rect, segments, ...) with no processor would silently
-      # disappear from the accessible output, so they trigger fallback.
       decoration_functions <- c(
         "axis", "title", "legend", "text", "mtext", "grid", "box"
       )
 
-      any(vapply(private$.layers, function(layer) {
+      vapply(private$.layers, function(layer) {
         if (!isTRUE(layer$type == "unknown")) {
           return(FALSE)
         }
@@ -801,7 +815,108 @@ BaseRPlotOrchestrator <- R6::R6Class(
           return(TRUE)
         }
         !isTRUE(layer$function_name %in% decoration_functions)
-      }, logical(1)))
+      }, logical(1))
+    },
+
+    #' @description Check if any HIGH-level layers are unsupported (unknown type)
+    #' @return Logical indicating if there are unsupported layers
+    has_unsupported_layers = function() {
+      any(self$unsupported_layer_flags())
+    },
+
+    #' @description Plot groups holding a layer maidr cannot process
+    #' @return Integer vector of plot-group indices, in ascending order
+    unsupported_group_indices = function() {
+      unsupported <- self$unsupported_layer_flags()
+      if (!any(unsupported)) {
+        return(integer(0))
+      }
+
+      groups <- vapply(
+        private$.layers[unsupported],
+        function(layer) as.integer(layer$group_index %||% NA_integer_),
+        integer(1)
+      )
+      sort(unique(groups[!is.na(groups)]))
+    },
+
+    #' @description Work out how far an unsupported layer reaches
+    #'
+    #' An unsupported overlay only makes the panel that owns it
+    #' undescribable. In a multi-panel figure the other panels are drawn
+    #' from their own calls and stay fully accessible, so the fallback is
+    #' scoped to the affected panels. It widens to the whole figure when
+    #' there is nothing left to scope to: a single-panel figure, a figure
+    #' whose every visible panel is affected, or an unsupported call that
+    #' belongs to no panel of the exported page.
+    #'
+    #' @return Invisible NULL; the scope is cached on the orchestrator
+    resolve_fallback_scope = function() {
+      private$.fallback_mode <- "none"
+      private$.fallback_groups <- integer(0)
+      private$.fallback_panels <- integer(0)
+
+      if (!is_fallback_enabled()) {
+        return(invisible(NULL))
+      }
+
+      if (!self$has_unsupported_layers()) {
+        return(invisible(NULL))
+      }
+
+      unsupported_groups <- self$unsupported_group_indices()
+      if (length(unsupported_groups) == 0) {
+        # Unsupported layers that name no group cannot be scoped.
+        private$.fallback_mode <- "figure"
+        return(invisible(NULL))
+      }
+
+      panel_config <- detect_panel_configuration(private$.device_id)
+      if (!is_multipanel_config(panel_config)) {
+        private$.fallback_mode <- "figure"
+        return(invisible(NULL))
+      }
+
+      panel_slots <- compute_panel_slots(private$.plot_groups, panel_config)
+      affected_slots <- panel_slots[unsupported_groups]
+
+      # An NA slot means the group is not on the exported page at all, so
+      # there is no panel to scope the fallback to.
+      if (anyNA(affected_slots)) {
+        private$.fallback_mode <- "figure"
+        return(invisible(NULL))
+      }
+
+      visible_slots <- panel_slots[!is.na(panel_slots)]
+      if (length(setdiff(visible_slots, affected_slots)) == 0) {
+        # Every panel that was drawn is affected; scoping would leave an
+        # interactive figure with no data anywhere.
+        private$.fallback_mode <- "figure"
+        return(invisible(NULL))
+      }
+
+      private$.fallback_mode <- "panel"
+      private$.fallback_groups <- unsupported_groups
+      private$.fallback_panels <- sort(unique(as.integer(affected_slots)))
+
+      invisible(NULL)
+    },
+
+    #' @description Check whether a plot group is scoped out of the payload
+    #' @param group_index Plot-group index to test
+    #' @return TRUE when the group's panel falls back on its own
+    is_group_scoped_out = function(group_index) {
+      if (!identical(private$.fallback_mode, "panel")) {
+        return(FALSE)
+      }
+      isTRUE(group_index %in% private$.fallback_groups)
+    },
+
+    #' @description Panels rendered without accessible data
+    #' @return Integer vector of 1-based panel numbers, empty when the whole
+    #'   figure renders normally or falls back as a whole
+    fallback_panels = function() {
+      private$.fallback_panels
     },
 
     #' @description Determine if the plot should fall back to image rendering
@@ -812,8 +927,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         return(FALSE)
       }
 
-      # Check if we have unsupported layers
-      self$has_unsupported_layers()
+      identical(private$.fallback_mode, "figure")
     }
   )
 )

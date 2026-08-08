@@ -250,6 +250,35 @@ create_fallback_html <- function(plot = NULL, shiny = FALSE,
   html_doc
 }
 
+#' Describe a Panel-scoped Fallback
+#'
+#' Builds the warning text used when only some panels of a multi-panel
+#' figure lose their accessible data. Naming the panels matters: the rest
+#' of the figure still sonifies and navigates, so the user needs to know
+#' which panel went quiet rather than assuming the whole figure did.
+#'
+#' @param panels Integer vector of 1-based panel numbers, in drawing order
+#' @return A single warning string
+#' @keywords internal
+format_panel_fallback_warning <- function(panels) {
+  panels <- sort(unique(as.integer(panels)))
+  listed <- paste(panels, collapse = ", ")
+
+  if (length(panels) == 1) {
+    return(paste0(
+      "Panel ", listed, " contains unsupported elements. ",
+      "It is drawn but has no accessible data; ",
+      "the other panels remain interactive."
+    ))
+  }
+
+  paste0(
+    "Panels ", listed, " contain unsupported elements. ",
+    "They are drawn but have no accessible data; ",
+    "the other panels remain interactive."
+  )
+}
+
 #' Check if Fallback is Enabled
 #'
 #' @return Logical indicating if fallback rendering is enabled
