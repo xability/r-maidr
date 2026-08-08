@@ -317,12 +317,10 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       rect_grob <- NULL
 
       if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        # Facet path: scope the search to this panel's grob
-        panel_index <- which(
-          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-        )
-        if (length(panel_index) > 0) {
-          rect_grob <- find_rect_grobs(gt$grobs[[panel_index[1]]])
+        # Facet / patchwork path: scope the search to this panel's grob
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+        if (!is.null(panel_grob)) {
+          rect_grob <- find_rect_grobs(panel_grob)
         }
       } else if ("grobs" %in% names(gt)) {
         for (grob in gt$grobs) {

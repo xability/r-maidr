@@ -238,7 +238,7 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 }
 \subsection{Returns}{
 Updated boxplot data with proper category names
-Find the main panel grob
+Find the panel grob this layer draws into
 }
 }
 \if{html}{\out{<hr>}}
@@ -246,13 +246,16 @@ Find the main panel grob
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_panel_grob}{}}}
 \subsection{Method \code{find_panel_grob()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_panel_grob(gt)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{gt}}{The gtable to search}
+
+\item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
+for a single plot, where the panel is the cell literally named "panel"}
 }
 \if{html}{\out{</div>}}
 }
