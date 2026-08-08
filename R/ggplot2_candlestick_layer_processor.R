@@ -324,18 +324,13 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
       if (is.data.frame(d)) nrow(d) else 0L
     },
 
-    #' @description Find the panel grob (panel_ctx-aware)
+    #' @description Find the panel grob this layer draws into
+    #' @param gt Gtable object
+    #' @param panel_ctx Panel context for patchwork leaves and facets; NULL
+    #'   for a single plot, where the panel is the cell literally named "panel"
+    #' @return The panel gTree, or NULL when it cannot be resolved
     find_panel_grob = function(gt, panel_ctx = NULL) {
-      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        idx <- which(grepl(paste0("^", panel_ctx$panel_name, "\\b"),
-                           gt$layout$name))
-      } else {
-        idx <- which(gt$layout$name == "panel")
-      }
-      if (length(idx) == 0) return(NULL)
-      pg <- gt$grobs[[idx[1]]]
-      if (!inherits(pg, "gTree")) return(NULL)
-      pg
+      find_gtable_panel_grob(gt, panel_ctx)
     },
 
     #' @description Find the first descendant whose name matches `pattern`
