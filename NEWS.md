@@ -10,6 +10,18 @@
   composition was worse, because collapsing its two panels into one subplot
   put two identically named layers side by side. Ids now carry the panel's
   grid cell.
+* Base R: one annotation overlay no longer silences a whole multi-panel
+  figure. A `segments()`, `arrows()`, `rect()` or `polygon()` call can carry
+  data maidr cannot read, so the panel holding it is still declined rather
+  than described incompletely -- but the decline used to take the entire
+  figure with it. A single arrow pointing at an outlier in one cell of a
+  `par(mfrow = c(2, 2))` grid cost the other three panels their
+  sonification, braille and keyboard navigation, and left the reader with a
+  static image. Only the annotated panel now goes quiet; it is still drawn,
+  the rest of the grid stays interactive, and the warning names the panel
+  that fell back. Single-panel figures, figures whose every panel is
+  annotated, overlays drawn outside the exported grid, and grids holding a
+  plot type maidr cannot read at all still fall back as a whole, as before.
 * Base R: highlighting in a multi-panel figure now follows the panel actually
   drawn. Only the panel-visible plot groups are replayed, so the exported SVG
   numbers its panels in replay order, but each panel looked its elements up by
