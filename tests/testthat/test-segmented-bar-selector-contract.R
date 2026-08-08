@@ -124,7 +124,12 @@ test_that("a stacked bar layer emits one flat selector for every rect", {
   testthat::expect_equal(rendered$layer$type, "stacked_bar")
 })
 
-test_that("stacked bar data stays series-major, top fill level first", {
+# The two orders below run opposite ways, which is the whole point of this
+# file: `data` starts at the BOTTOM of the stack while each column's rects
+# are drawn TOP first. ggplot2 puts v at the bottom here (ymin 0 to 55) and
+# u above it (55 to 65), and the processor sorts series by ascending stack
+# height, so data[[1]] is v. The reverse regrouping is what reunites the two.
+test_that("stacked bar data stays series-major, bottom fill level first", {
   skip_if_no_render()
   rendered <- render_segmented_bar("stack", "stack")
   layer <- rendered$layer
