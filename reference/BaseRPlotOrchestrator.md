@@ -102,7 +102,17 @@ combines the results into a comprehensive interactive plot.
 
 - [`BaseRPlotOrchestrator$get_grob_for_layer()`](#method-BaseRPlotOrchestrator-get_grob_for_layer)
 
+- [`BaseRPlotOrchestrator$unsupported_layer_flags()`](#method-BaseRPlotOrchestrator-unsupported_layer_flags)
+
 - [`BaseRPlotOrchestrator$has_unsupported_layers()`](#method-BaseRPlotOrchestrator-has_unsupported_layers)
+
+- [`BaseRPlotOrchestrator$unsupported_group_indices()`](#method-BaseRPlotOrchestrator-unsupported_group_indices)
+
+- [`BaseRPlotOrchestrator$resolve_fallback_scope()`](#method-BaseRPlotOrchestrator-resolve_fallback_scope)
+
+- [`BaseRPlotOrchestrator$is_group_scoped_out()`](#method-BaseRPlotOrchestrator-is_group_scoped_out)
+
+- [`BaseRPlotOrchestrator$fallback_panels()`](#method-BaseRPlotOrchestrator-fallback_panels)
 
 - [`BaseRPlotOrchestrator$should_fallback()`](#method-BaseRPlotOrchestrator-should_fallback)
 
@@ -276,6 +286,25 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
+### Method `unsupported_layer_flags()`
+
+Flag each detected layer maidr cannot process
+
+Decorations carry no data of their own; leaving them out of the
+interactive output loses nothing. Data-bearing LOW-level overlays
+(polygon, rect, segments, ...) with no processor would silently
+disappear from the accessible output, so they count as unsupported.
+
+#### Usage
+
+    BaseRPlotOrchestrator$unsupported_layer_flags()
+
+#### Returns
+
+Logical vector, one entry per detected layer
+
+------------------------------------------------------------------------
+
 ### Method `has_unsupported_layers()`
 
 Check if any HIGH-level layers are unsupported (unknown type)
@@ -287,6 +316,78 @@ Check if any HIGH-level layers are unsupported (unknown type)
 #### Returns
 
 Logical indicating if there are unsupported layers
+
+------------------------------------------------------------------------
+
+### Method `unsupported_group_indices()`
+
+Plot groups holding a layer maidr cannot process
+
+#### Usage
+
+    BaseRPlotOrchestrator$unsupported_group_indices()
+
+#### Returns
+
+Integer vector of plot-group indices, in ascending order
+
+------------------------------------------------------------------------
+
+### Method `resolve_fallback_scope()`
+
+Work out how far an unsupported layer reaches
+
+An unsupported LOW-level overlay sits on top of a chart maidr does
+understand, so it only makes the panel that owns it undescribable. In a
+multi-panel figure the other panels are drawn from their own calls and
+stay fully accessible, so the fallback is scoped to the affected panels.
+It widens to the whole figure when there is nothing left to scope to: a
+single-panel figure, a figure whose every visible panel is affected, an
+unsupported call that belongs to no panel of the exported page, or an
+unsupported HIGH-level call.
+
+#### Usage
+
+    BaseRPlotOrchestrator$resolve_fallback_scope()
+
+#### Returns
+
+Invisible NULL; the scope is cached on the orchestrator
+
+------------------------------------------------------------------------
+
+### Method `is_group_scoped_out()`
+
+Check whether a plot group is scoped out of the payload
+
+#### Usage
+
+    BaseRPlotOrchestrator$is_group_scoped_out(group_index)
+
+#### Arguments
+
+- `group_index`:
+
+  Plot-group index to test
+
+#### Returns
+
+TRUE when the group's panel falls back on its own
+
+------------------------------------------------------------------------
+
+### Method `fallback_panels()`
+
+Panels rendered without accessible data
+
+#### Usage
+
+    BaseRPlotOrchestrator$fallback_panels()
+
+#### Returns
+
+Integer vector of 1-based panel numbers, empty when the whole figure
+renders normally or falls back as a whole
 
 ------------------------------------------------------------------------
 

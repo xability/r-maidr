@@ -114,6 +114,7 @@
 <url><loc>https://r.maidr.ai/reference/find_original_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_patchwork_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/format-utils.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/format_panel_fallback_warning.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/generate_robust_css_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/generate_robust_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/generate_unique_id.html</loc></url>
@@ -241,6 +242,7 @@
 <url><loc>https://r.maidr.ai/reference/update_device_state.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/validate_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/warn_chartseries_ta_unsupported.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/warn_panel_fallback.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/wrap_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/wrap_s3_generics.html</loc></url>
 </urlset>
