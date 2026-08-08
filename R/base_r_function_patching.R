@@ -758,8 +758,11 @@ create_function_wrapper <- function(function_name, original_function) {
 
       # Force arguments only AFTER the original call succeeded. For
       # NSE arguments (e.g. curve(sin(x)), plot(y ~ x, subset = g == 1))
-      # forcing fails; record the unevaluated expressions plus the caller
-      # environment so replay can re-evaluate them faithfully.
+      # forcing fails; record the unevaluated expressions plus a snapshot of
+      # the bindings they name so replay can re-evaluate them faithfully.
+      # The snapshot rather than the caller frame itself: R reuses one frame
+      # across loop iterations, so storing it by reference would make every
+      # iteration replay the last one's values.
       args_list <- muffle_promise_restart(
         tryCatch(list(...), error = function(e) NULL)
       )
