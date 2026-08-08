@@ -526,6 +526,19 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
                                     n_original_layers = NULL) {
   subplot_id <- paste0("maidr-subplot-", generate_unique_id(), "-", row, "-", col)
 
+  # Layer ids have to be unique across the whole FIGURE, not just this panel.
+  # The frontend's number-format service builds one map for the figure --
+  # `for (const subplot of ...) for (const layer of subplot.layers)
+  # formatters.set(layer.id, ...)` -- and every trace then looks its formatter
+  # up by the bare id it was given. Numbering each leaf's layers from 1 makes
+  # a composition emit "maidr-layer-1" once per leaf, so the last leaf's
+  # formats overwrite every other leaf's and the wrong ones are announced.
+  # The candlestick/volume merge below is worse still: it lifts layers out of
+  # two panels into one subplot, where the collision is between siblings.
+  # Qualify by the panel's grid cell -- each cell holds exactly one subplot,
+  # so (row, col) is what makes an id figure-wide unique.
+  layer_id_prefix <- paste0("maidr-layer-", row, "-", col)
+
   # Build ONCE per panel: rebuilding inside the per-layer loop repeats
   # the full ggplot_build for every layer of the leaf plot. It also has to
   # happen before the layout is read, which needs the built labels.
@@ -625,9 +638,9 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
 
           layer_entry <- list(
             id = if (expanded) {
-              paste0("maidr-layer-", layer_idx, "-", sub_idx)
+              paste0(layer_id_prefix, "-", layer_idx, "-", sub_idx)
             } else {
-              paste0("maidr-layer-", layer_idx)
+              paste0(layer_id_prefix, "-", layer_idx)
             },
             type = if (!is.null(sub$type)) sub$type else layer_type,
             title = leaf_title,

@@ -28,6 +28,14 @@
   -- was never spoken, brailled, or shown in the chart description. Stacked
   bar, dodged bar, and heatmap layers already carried theirs; line layers now
   do too.
+* patchwork: layer ids are unique across a whole composition. Every leaf
+  numbered its layers from 1, so a 2x2 patchwork emitted four layers all
+  called `maidr-layer-1`. The frontend keys its per-figure number-format map
+  on the bare layer id, so the last leaf's formats overwrote every other
+  leaf's and the wrong ones were announced; a candlestick-over-volume
+  composition was worse, because collapsing its two panels into one subplot
+  put two identically named layers side by side. Ids now carry the panel's
+  grid cell.
 * ggplot2: axis number formats are honoured inside a 'patchwork'. A
   `scale_y_continuous(labels = ...)` wrapper was applied on a single plot and
   on a faceted plot, and silently ignored the moment the same plot went into
