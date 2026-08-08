@@ -16,6 +16,20 @@
   [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html)
   splits the same way, including when the grouping is mapped to `fill`.
 
+- LaTeX in MAIDR’s AI chat responses renders styled again. MAIDR 3.75.1
+  split KaTeX out of `maidr.css` — which became a placeholder with no
+  rules in it — into `maidr-math.css`, which `maidr.js` fetches at
+  runtime from whichever directory it was itself loaded from. The
+  bundled assets tracked that release without picking up the new file,
+  so `maidr.css` was still linked (styling nothing) and the stylesheet
+  that does style mathematics was absent. The bundle now ships
+  `maidr-math.css` beside `maidr.js`, and no stylesheet is linked: MAIDR
+  styles its interface at runtime and fetches that one file for itself.
+  Its embedded KaTeX web fonts are still stripped to keep the installed
+  package under CRAN’s size limit, so glyphs fall back to system fonts
+  while the layout rules — spacing, fractions, radicals, delimiters —
+  are intact.
+
 - ggplot2: histogram, stacked bar, dodged bar, and smooth layers no
   longer invent a highlight target when the grob lookup finds nothing. A
   facet level with no observations (`facet_wrap(~g, drop = FALSE)`), a
