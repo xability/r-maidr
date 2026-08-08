@@ -33,12 +33,91 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx, built = built)
 
+      axes <- self$extract_layer_axes(plot, layout)
+      axes <- self$attach_group_axis(plot, built, data, axes)
+
       list(
         data = data,
         selectors = selectors,
         title = if (!is.null(layout$title)) layout$title else "",
-        axes = self$extract_layer_axes(plot, layout)
+        axes = axes
       )
+    },
+
+    #' @description Add the legend title as the z axis label for a
+    #' multi-series line layer.
+    #'
+    #' A grouped line layer emits a per-series \code{z} value (the group's
+    #' name), and MAIDR announces it as "<z label> is <z value>". Without a
+    #' z label the frontend falls back to the generic word "Group", losing
+    #' the legend title the plot actually shows. Single-series layers emit
+    #' no z value at all, so they get no z label either.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param data The extracted layer data
+    #' @param axes Axes built so far
+    #' @return The axes list, with z added when the layer is grouped
+    attach_group_axis = function(plot, built, data, axes) {
+      if (!self$has_series_groups(data)) {
+        return(axes)
+      }
+      group <- self$resolve_group_mapping(plot)
+      if (is.null(group$aes)) {
+        return(axes)
+      }
+      label <- resolve_legend_label(
+        plot,
+        built = built,
+        aes_names = group$aes,
+        layer_index = self$get_layer_index()
+      )
+      if (!is.null(label) && nzchar(label)) {
+        axes$z <- list(label = label)
+      }
+      axes
+    },
+
+    #' @description Report whether extracted data is split into named series.
+    #' @param data The extracted layer data
+    #' @return TRUE when there is more than one series and points carry z
+    has_series_groups = function(data) {
+      if (!is.list(data) || length(data) < 2L) {
+        return(FALSE)
+      }
+      first_series <- data[[1]]
+      if (!is.list(first_series) || length(first_series) == 0L) {
+        return(FALSE)
+      }
+      !is.null(first_series[[1]]$z)
+    },
+
+    #' @description Resolve the aesthetic that splits this layer into series.
+    #'
+    #' Mirrors ggplot2's precedence: the layer's own mapping wins over the
+    #' plot-level one. ggplot2 normalises \code{color} to \code{colour}, but
+    #' both spellings are probed defensively.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return list with \code{aes} (aesthetic spelling variants, or NULL when
+    #'   nothing is mapped) and \code{column} (the mapped column name, or
+    #'   "group" as a fallback)
+    resolve_group_mapping = function(plot) {
+      aes_names <- c("colour", "color")
+      mappings <- list(
+        plot$layers[[self$layer_info$index]]$mapping,
+        plot$mapping
+      )
+      for (mapping in mappings) {
+        if (is.null(mapping)) next
+        for (aes_name in aes_names) {
+          quo <- mapping[[aes_name]]
+          if (!is.null(quo)) {
+            return(list(aes = aes_names, column = rlang::as_label(quo)))
+          }
+        }
+      }
+      list(aes = NULL, column = "group")
     },
 
     #' Extract axes labels for line layers, with a special case for
@@ -395,28 +474,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @return Name of the grouping column
     get_group_column = function(plot) {
-      layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
-      if (!is.null(layer_mapping)) {
-        if (!is.null(layer_mapping$colour)) {
-          return(rlang::as_label(layer_mapping$colour))
-        }
-        if (!is.null(layer_mapping$color)) {
-          return(rlang::as_label(layer_mapping$color))
-        }
-      }
-
-      plot_mapping <- plot$mapping
-      if (!is.null(plot_mapping)) {
-        if (!is.null(plot_mapping$colour)) {
-          return(rlang::as_label(plot_mapping$colour))
-        }
-        if (!is.null(plot_mapping$color)) {
-          return(rlang::as_label(plot_mapping$color))
-        }
-      }
-
-      # Default to 'group' if no color mapping found
-      "group"
+      self$resolve_group_mapping(plot)$column
     },
 
     #' Generate selectors using actual SVG structure

@@ -2,6 +2,32 @@
 
 ## Bug Fixes
 
+* ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
+  computes. Each leaf's layout was read before the leaf was built, and under
+  ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
+  so a `geom_bar()` inside a composition announced the placeholder "Y" in
+  place of "count". The leaf is now built first and its layout read from the
+  result.
+* ggplot2: faceted plots no longer lose their axis labels. Each panel rebuilt
+  its own axes from the unbuilt plot, which under ggplot2 v4 records only the
+  labels an explicit `labs()` set -- everything ggplot2 derives while building
+  was dropped. Every faceted panel therefore announced the placeholder
+  "Categories" for x and nothing at all for y, so a faceted `geom_bar()` said
+  "Categories is suv" where the unfaceted one says "class is suv, count is
+  62". Panels now keep the labels their layers resolved, including the legend
+  title. A panel collapses all of its layers into one description, so the
+  labels are assembled across them: a plot whose first layer is ungrouped and
+  whose second is grouped -- `geom_point()` under `geom_line(aes(colour =
+  g))`, say -- still wrote the group into the data while carrying no title
+  for it, and MAIDR announced the generic word "Group".
+* ggplot2: a multi-series line plot now announces its legend title instead of
+  the word "Group". The layer already emitted a per-series group name, which
+  MAIDR reads out as "<label> is <value>", but the payload carried no label
+  for it, so the viewer fell back to a generic placeholder and the title set
+  by `labs(colour = ...)` -- or the mapped column name when no title was set
+  -- was never spoken, brailled, or shown in the chart description. Stacked
+  bar, dodged bar, and heatmap layers already carried theirs; line layers now
+  do too.
 * patchwork: layer ids are unique across a whole composition. Every leaf
   numbered its layers from 1, so a 2x2 patchwork emitted four layers all
   called `maidr-layer-1`. The frontend keys its per-figure number-format map

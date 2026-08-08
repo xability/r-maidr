@@ -176,10 +176,39 @@ process_facet_panel <- function(
       facet_title <- paste(facet_groups, collapse = " & ")
     }
 
-    axes <- build_axes(
-      x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
-      y = if (!is.null(plot$labels$y)) plot$labels$y else ""
-    )
+    # Prefer the axes the layer processors already resolved. They start from
+    # the BUILT plot's labels, which is where ggplot2 records defaults derived
+    # from aesthetics and stats -- an unbuilt `plot$labels` holds only explicit
+    # `labs()` overrides, so reading it drops "count" for geom_bar() and the
+    # mapped column name for everything else. They also carry the legend title
+    # as z for grouped layers, which a rebuilt {x, y} pair cannot express.
+    #
+    # The leading layer wins for a key it defines -- x and y are the panel's
+    # shared scales, so every layer agrees on them. A key it does NOT define
+    # is filled from a later layer, because the panel collapses all of them
+    # into one payload entry. z is the case that matters: an ungrouped first
+    # layer carries no legend title while a later grouped layer still writes
+    # z VALUES into the shared data, and a z value with no label is announced
+    # as the generic word "Group".
+    axes <- NULL
+    for (result in layer_results) {
+      if (is.null(result) || length(result$axes) == 0) {
+        next
+      }
+      if (is.null(axes)) {
+        axes <- result$axes
+        next
+      }
+      for (key in setdiff(names(result$axes), names(axes))) {
+        axes[[key]] <- result$axes[[key]]
+      }
+    }
+    if (is.null(axes)) {
+      axes <- build_axes(
+        x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
+        y = if (!is.null(plot$labels$y)) plot$labels$y else ""
+      )
+    }
 
     # Add format config per axis (attaching the whole {x, y} list as the
     # x-axis format would drop the y format and malform the x one)
