@@ -4,6 +4,11 @@
 \alias{Ggplot2SmoothLayerProcessor}
 \title{Smooth Layer Processor}
 \description{
+Smooth Layer Processor
+
+Smooth Layer Processor
+}
+\details{
 Processes smooth plot layers with complete logic included
 }
 \keyword{internal}
@@ -14,8 +19,18 @@ Processes smooth plot layers with complete logic included
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Ggplot2SmoothLayerProcessor-process}{\code{Ggplot2SmoothLayerProcessor$process()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-group_aes}{\code{Ggplot2SmoothLayerProcessor$group_aes()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-attach_group_axis}{\code{Ggplot2SmoothLayerProcessor$attach_group_axis()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-resolve_target_layer}{\code{Ggplot2SmoothLayerProcessor$resolve_target_layer()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-layer_built_data}{\code{Ggplot2SmoothLayerProcessor$layer_built_data()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-series_group_ids}{\code{Ggplot2SmoothLayerProcessor$series_group_ids()}}
 \item \href{#method-Ggplot2SmoothLayerProcessor-extract_data}{\code{Ggplot2SmoothLayerProcessor$extract_data()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-curve_points}{\code{Ggplot2SmoothLayerProcessor$curve_points()}}
 \item \href{#method-Ggplot2SmoothLayerProcessor-generate_selectors}{\code{Ggplot2SmoothLayerProcessor$generate_selectors()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-series_group_count}{\code{Ggplot2SmoothLayerProcessor$series_group_count()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors}{\code{Ggplot2SmoothLayerProcessor$grouped_curve_selectors()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-polyline_grob_names}{\code{Ggplot2SmoothLayerProcessor$polyline_grob_names()}}
+\item \href{#method-Ggplot2SmoothLayerProcessor-find_layer_grob_tree}{\code{Ggplot2SmoothLayerProcessor$find_layer_grob_tree()}}
 \item \href{#method-Ggplot2SmoothLayerProcessor-clone}{\code{Ggplot2SmoothLayerProcessor$clone()}}
 }
 }
@@ -54,13 +69,176 @@ Processes smooth plot layers with complete logic included
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-group_aes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-group_aes}{}}}
+\subsection{Method \code{group_aes()}}{
+Grouping aesthetics that split this layer into curves.
+
+\code{geom_smooth()}, \code{geom_density()} and \code{geom_area()} all
+render a fill, so \code{aes(fill = g)} splits them into one curve per
+group just as \code{aes(colour = g)} does. The line processor probes
+colour only, because a line has no fill and reading one from an
+unrelated layer's mapping would invent a legend the plot never draws.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$group_aes()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+List of aesthetic-name vectors, in precedence order
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-attach_group_axis"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-attach_group_axis}{}}}
+\subsection{Method \code{attach_group_axis()}}{
+Add the legend title as the z axis label when the layer is
+split into per-group curves.
+
+Shared with the line layer processor via
+\code{attach_series_group_axis()}; see \code{R/series_group_utils.R}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$attach_group_axis(plot, built, data, axes)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{data}}{The extracted layer data}
+
+\item{\code{axes}}{Axes built so far}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The axes list, with z added when the layer is grouped
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-resolve_target_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-resolve_target_layer}{}}}
+\subsection{Method \code{resolve_target_layer()}}{
+Resolve which layer of the plot this processor describes.
+
+Prefers this processor's OWN layer: picking the first line-like layer
+would extract another layer's data in multi-layer plots (e.g.
+geom_line + geom_smooth).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$resolve_target_layer(plot)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Index into \code{plot$layers}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-layer_built_data"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-layer_built_data}{}}}
+\subsection{Method \code{layer_built_data()}}{
+Built data for this layer, restricted to one facet panel.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$layer_built_data(
+  plot,
+  built = NULL,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A data frame of built rows
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-series_group_ids"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-series_group_ids}{}}}
+\subsection{Method \code{series_group_ids()}}{
+Distinct group ids when the layer draws more than one curve.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$series_group_ids(built_data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built_data}}{Built rows for this layer}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Sorted group ids, or an empty vector for a single-curve layer
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
+Extract one series per drawn curve.
+
+ggplot2 draws a mapped smooth as one curve per group, so the payload
+has to be split the same way: concatenating the groups into a single
+series would walk a reader off the end of one curve into the start of
+the next with nothing announced in between.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of series, each a list of points
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-curve_points"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-curve_points}{}}}
+\subsection{Method \code{curve_points()}}{
+Turn built rows into MAIDR points.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$curve_points(rows, z = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{rows}}{Built rows for one curve}
+
+\item{\code{z}}{Series name, or NULL for a single-curve layer}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of points
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-generate_selectors"></a>}}
@@ -70,10 +248,134 @@ Processes smooth plot layers with complete logic included
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
-  panel_ctx = NULL
+  panel_ctx = NULL,
+  built = NULL,
+  panel_id = NULL
 )}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-series_group_count"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-series_group_count}{}}}
+\subsection{Method \code{series_group_count()}}{
+Number of curves this layer draws in the given panel.
+
+Never throws: selector generation has to degrade to the single-curve
+path for inputs \code{extract_data()} would reject.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$series_group_count(
+  plot,
+  built = NULL,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data (optional)}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Number of groups, or 0 when the layer draws a single curve
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors}{}}}
+\subsection{Method \code{grouped_curve_selectors()}}{
+One selector per curve for a layer split into groups.
+
+ggplot2 draws a grouped smooth one group at a time, so the layer's grob
+tree holds an equal run of children per group: a bare polyline for
+\code{se = FALSE}, a ribbon gTree followed by a polyline for
+\code{se = TRUE}, and a ribbon gTree alone for \code{geom_density()}.
+Chunking the children by group and taking the last polyline in each
+chunk applies the same "the curve is the last polyline drawn" rule the
+single-curve path uses, once per group instead of once per layer.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$grouped_curve_selectors(
+  plot,
+  gt,
+  panel_ctx,
+  n_series
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{gt}}{Gtable object}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+
+\item{\code{n_series}}{Number of curves the layer draws}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+List of selectors, or NULL when the grob tree does not line up
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-polyline_grob_names"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-polyline_grob_names}{}}}
+\subsection{Method \code{polyline_grob_names()}}{
+Names of the curve polyline grobs inside a grob, in draw
+order. Panel grid lines are excluded: they are named after the theme
+element (\code{panel.grid.major.x..polyline.N}), not \code{GRID.polyline.N}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$polyline_grob_names(grob)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{grob}}{A grob to walk}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of grob names
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-find_layer_grob_tree"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-find_layer_grob_tree}{}}}
+\subsection{Method \code{find_layer_grob_tree()}}{
+Find the grob tree ggplot2 drew for this layer.
+
+ggplot2 names a layer's grob after its geom (\code{geom_smooth.gTree.5}),
+so the tree is located by that prefix and, when the plot repeats the
+geom, by this layer's position among the layers sharing it. Scoping to
+the layer's own tree keeps a sibling \code{geom_line()} polyline out of
+the per-group chunking.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$find_layer_grob_tree(plot, gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{gt}}{Gtable object}
+
+\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The matching grob, or NULL
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-clone"></a>}}

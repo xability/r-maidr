@@ -148,11 +148,8 @@ List with data and selectors
 Add the legend title as the z axis label for a
 multi-series line layer.
 
-A grouped line layer emits a per-series \code{z} value (the group's
-name), and MAIDR announces it as "<z label> is <z value>". Without a
-z label the frontend falls back to the generic word "Group", losing
-the legend title the plot actually shows. Single-series layers emit
-no z value at all, so they get no z label either.
+Shared with the smooth layer processor via
+\code{attach_series_group_axis()}; see \code{R/series_group_utils.R}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$attach_group_axis(plot, built, data, axes)}\if{html}{\out{</div>}}
 }
@@ -200,9 +197,7 @@ TRUE when there is more than one series and points carry z
 \subsection{Method \code{resolve_group_mapping()}}{
 Resolve the aesthetic that splits this layer into series.
 
-Mirrors ggplot2's precedence: the layer's own mapping wins over the
-plot-level one. ggplot2 normalises \code{color} to \code{colour}, but
-both spellings are probed defensively.
+A line has no fill, so only the colour aesthetic is probed.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$resolve_group_mapping(plot)}\if{html}{\out{</div>}}
 }
