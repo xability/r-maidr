@@ -206,17 +206,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       selectors <- list()
 
       if (!is.null(gt)) {
-        panel_grob <- NULL
-        if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-          panel_index <- which(
-            grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-          )
-          if (length(panel_index) > 0) {
-            panel_grob <- gt$grobs[[panel_index[1]]]
-          }
-        } else {
-          panel_grob <- find_panel_grob(gt)
-        }
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
         if (!is.null(panel_grob)) {
           # Look for geom_rect elements (master container)
           rect_children <- find_children_by_type(panel_grob, "geom_rect")

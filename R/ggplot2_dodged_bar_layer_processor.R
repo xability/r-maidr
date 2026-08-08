@@ -185,26 +185,54 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         })
       })
     },
+    # ONE flat CSS selector matching every rect in the layer is the contract
+    # maidr.js expects for segmented bars. It is deliberate, not an oversight:
+    # do not "fix" it by emitting one selector per series.
+    #
+    # In the bundled frontend (inst/htmlwidgets/lib/maidr-*/maidr.js) the
+    # dodged, stacked and normalized trace types are all built by the same
+    # class:
+    #
+    #   case DODGED: case NORMALIZED: case STACKED: return new <Segmented>(layer)
+    #
+    # Its constructor runs `this.highlightValues = this.mapToSvgElements(
+    # layer.selectors)`, and `selectAllElements` is just
+    # `Array.from(document.querySelectorAll(sel))` - one flat node list in SVG
+    # document order. The class then RE-GROUPS that list itself instead of
+    # zipping it against the flattened payload (de-minified, rect branch):
+    #
+    #   for (let col = 0, k = 0; col < barValues[0].length; col++)
+    #     if (domMapping?.groupDirection === "forward")
+    #       for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
+    #     else
+    #       for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
+    #
+    # So the DOM walk is X-MAJOR (one whole column at a time) while `data`
+    # stays SERIES-MAJOR, and because this layer emits no `domMapping` the
+    # per-column direction defaults to "reverse": the first rect of a column
+    # is handed to the LAST data series, the last rect to the first series.
+    #
+    # `reorder_layer_data()` above is what makes that hold for dodged bars.
+    # It sorts the plot data by x ascending and fill DESCENDING, so ggplot2
+    # draws each column's rects right-to-left and the reverse regrouping
+    # lands them back on the ascending-fill series this processor emits.
+    # Concretely, for x = a,b,c and fills u = 10,20,30 / v = 55,65,75 the
+    # emitted flattening is 10,20,30,55,65,75 while the rects come out
+    # 55,10,65,20,75,30; the regrouping reunites data[0] = u with the u rects.
+    #
+    # Pinned by tests/testthat/test-segmented-bar-selector-contract.R.
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        panel_index <- which(
-          grepl(paste0("^", panel_ctx$panel_name, "\\b"), gt$layout$name)
-        )
-      } else {
-        panel_index <- which(gt$layout$name == "panel")
-      }
-      if (length(panel_index) == 0) {
+      panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+      if (is.null(panel_grob)) {
         layer_id <- self$get_layer_index()
         grob_id <- paste0("geom_rect.rect.", layer_id, ".1")
         escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
         return(list(paste0("#", escaped_grob_id, " rect")))
       }
-
-      panel_grob <- gt$grobs[[panel_index[1]]]
 
       find_rect_names <- function(grob) {
         names <- character(0)

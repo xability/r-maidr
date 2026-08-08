@@ -59,6 +59,11 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
 
       function_name <- layer_info$function_name
 
+      # heatmap()/image() put reordered row 1 at the BOTTOM of the y axis,
+      # so the top-down grid is the reverse of the matrix. heatmap()'s revC
+      # flips the drawing back, and then the matrix already reads top-down.
+      reverse_rows <- TRUE
+
       if (identical(function_name, "heatmap")) {
         # heatmap() reorders rows/columns by dendrogram (default Rowv/Colv)
         # before drawing; extract the same ordering so announced values
@@ -69,6 +74,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
             ordering$rowInd, ordering$colInd,
             drop = FALSE
           ]
+        }
+        if (heatmap_applies_revc(args)) {
+          reverse_rows <- FALSE
         }
       } else if (identical(function_name, "image")) {
         # image(z) draws matrix ROWS along the x-axis and COLUMNS along
@@ -87,9 +95,6 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       }
 
       # points is a 2D array where points[row][col] = value
-      # IMPORTANT: Base R heatmap()/image() render matrix row 1 at the
-      # BOTTOM of the y-axis, while the maidr grid lists rows top-down.
-      # We reverse to match the visual bottom-to-top order.
       points <- list()
       for (i in seq_len(nrow(heat_matrix))) {
         row_values <- list()
@@ -99,14 +104,15 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         points[[i]] <- row_values
       }
 
-      # Reverse to match visual bottom-to-top order
-      points_reversed <- rev(points)
-      row_names_reversed <- rev(row_names)
+      if (reverse_rows) {
+        points <- rev(points)
+        row_names <- rev(row_names)
+      }
 
       list(
-        points = points_reversed,
+        points = points,
         x = as.list(col_names),
-        y = as.list(row_names_reversed)
+        y = as.list(row_names)
       )
     },
 
@@ -271,3 +277,40 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+#' Does This heatmap() Call Apply revC?
+#'
+#' `heatmap()` normally puts reordered row 1 at the bottom of the y axis, but
+#' its `revC` argument flips the drawing so row 1 lands at the top. `revC` is
+#' not part of the ordering `heatmap()` returns, and it defaults to
+#' `identical(Colv, "Rowv")` -- which is TRUE for every `symm = TRUE` call,
+#' since `Colv` itself defaults to `"Rowv"` there.
+#'
+#' @param args Recorded heatmap() arguments
+#' @return TRUE when `revC` applies, i.e. the drawn rows read top-down
+#' @keywords internal
+heatmap_applies_revc <- function(args) {
+  matched <- tryCatch(
+    {
+      call <- as.call(c(list(quote(stats::heatmap)), clean_maidr_args(args)))
+      as.list(match.call(stats::heatmap, call))[-1]
+    },
+    error = function(e) NULL
+  )
+  if (is.null(matched)) {
+    return(FALSE)
+  }
+
+  if ("revC" %in% names(matched)) {
+    return(isTRUE(matched$revC))
+  }
+
+  colv <- if ("Colv" %in% names(matched)) {
+    matched$Colv
+  } else if (isTRUE(matched$symm)) {
+    "Rowv"
+  } else {
+    NULL
+  }
+  identical(colv, "Rowv")
+}
