@@ -191,3 +191,85 @@ test_that("facet_group_rows never answers NA", {
     c(FALSE, TRUE, FALSE, FALSE)
   )
 })
+
+# The two fixes below are in the same `extract_data()` change but are reachable
+# with NO facet at all, so they need their own coverage (raised in review of
+# the PR for issue #92).
+
+test_that("a layer whose own data is shorter than the plot's is not zipped against it", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  # Naming the caller's fill values after the built layer's fill column is
+  # only meaningful while the two frames still line up row for row. A layer
+  # carrying its own `data =` breaks that, and the mismatch used to pad the
+  # names with NA -- which announced a category the layer never drew.
+  big <- data.frame(
+    cat = c("x", "y", "z"), fill = c("u", "v", "u"), val = c(1, 2, 3),
+    stringsAsFactors = FALSE
+  )
+  small <- data.frame(
+    cat = c("x", "x", "y", "y"), fill = c("u", "v", "u", "v"),
+    val = c(10, 30, 20, 40), stringsAsFactors = FALSE
+  )
+  plot <- ggplot2::ggplot(big, ggplot2::aes(x = cat, y = val, fill = fill)) +
+    ggplot2::geom_col(data = small)
+
+  drawn <- ggplot2::ggplot_build(plot)$data[[1]]
+  processor <- maidr:::Ggplot2StackedBarProcessor$new(list(index = 1))
+  data <- processor$extract_data(plot)
+
+  points <- unlist(data, recursive = FALSE)
+  testthat::expect_length(points, nrow(drawn))
+
+  # Every announced category is one the layer actually drew. "z" is in the
+  # plot's data but not the layer's, so it must not appear.
+  announced <- vapply(points, function(p) as.character(p$x), character(1))
+  testthat::expect_setequal(unique(announced), unique(as.character(small$cat)))
+  testthat::expect_false("z" %in% announced)
+})
+
+test_that("rows ggplot2 could not position do not poison the stacking order", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # ggplot2 4.x keeps an unpositionable row in the built data with x/ymin/ymax
+  # NA rather than deleting it. `min(x)` then returned NA, `x == min(x)`
+  # answered NA for every row, and the stacking order came back empty --
+  # `order(NULL)`, which is the same crash issue #92 reports, reachable with
+  # no facet in sight.
+  frame <- data.frame(
+    cat = c("x", "x", "y", "y"),
+    fill = c("u", "v", "u", "v"),
+    val = c(10, 30, NA, 40),
+    stringsAsFactors = FALSE
+  )
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(x = cat, y = val, fill = fill)) +
+    ggplot2::geom_bar(stat = "identity", position = "stack")
+
+  processor <- maidr:::Ggplot2StackedBarProcessor$new(list(index = 1))
+  testthat::expect_no_error(data <- suppressWarnings(processor$extract_data(plot)))
+
+  # Both fill levels survive. Before the fix the stacking order came back
+  # empty and there was nothing to order by, which is the crash.
+  testthat::expect_length(data, 2)
+  levels_seen <- vapply(data, function(s) as.character(s[[1]]$z), character(1))
+  testthat::expect_setequal(levels_seen, c("u", "v"))
+
+  values <- vapply(
+    unlist(data, recursive = FALSE), function(p) as.numeric(p$y), numeric(1)
+  )
+  testthat::expect_false(any(is.na(values)))
+
+  # What is NOT claimed here: the unpositionable cell is still announced,
+  # as (y, 0, u). ggplot2 gives that row `x = NA` and draws no rect for it,
+  # so a value of 0 is announced for a bar that is not on screen. This fix
+  # only stops the row poisoning `min(x)`; deciding whether an unpositioned
+  # cell should be announced as 0 or omitted is the same open question the
+  # dodged processor's comment raises for `stat = "identity"`, and it wants
+  # its own change. Pinned so the current behaviour is at least visible.
+  emitted <- vapply(
+    unlist(data, recursive = FALSE),
+    function(p) sprintf("%s/%s/%s", p$x, p$y, p$z), character(1)
+  )
+  testthat::expect_true("y/0/u" %in% emitted)
+})
