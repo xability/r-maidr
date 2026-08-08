@@ -2,6 +2,21 @@
 
 ## Bug Fixes
 
+* ggplot2: a faceted stacked bar whose facet column contains `NA` exports
+  again. ggplot2 draws a real extra panel for the missing value, but the
+  per-panel subset picked its rows with `==`, which answers `NA` for exactly
+  those rows, and `[` turns an `NA` index into a fabricated all-`NA` row — so
+  one missing facet value contaminated every panel, not only its own.
+  `save_html()` aborted with `argument 1 is not a vector` and wrote no file at
+  all; `geom_col()` and `stat = "identity"` were affected, `stat = "count"`
+  was not. Each panel now reads only its own rows, the missing-value panel
+  reads the rows whose facet value is `NA`, and it is announced as "NA" — the
+  same two characters ggplot2 prints on its strip. Two neighbouring
+  assumptions in the same layer go with it: the values are no longer paired
+  with the drawn rectangles row by row once the two frames differ in length (a
+  layer carrying its own `data =` argument used to announce categories it
+  never drew), and a row ggplot2 could not position, such as one with a
+  missing `y`, no longer counts as part of the layer.
 * ggplot2: a grouped smooth is described as one series per curve.
   `geom_smooth(aes(colour = g))` draws a curve per group, but the payload
   concatenated all of them into a single undifferentiated series with no `z`,
