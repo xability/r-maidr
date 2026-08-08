@@ -108,7 +108,7 @@ test_that("Ggplot2SmoothLayerProcessor handles smooth with se=TRUE", {
   testthat::expect_equal(length(data), 1)
 })
 
-test_that("Ggplot2SmoothLayerProcessor handles NULL gt parameter", {
+test_that("Ggplot2SmoothLayerProcessor emits no selector without a gtable", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_smooth()
@@ -118,10 +118,12 @@ test_that("Ggplot2SmoothLayerProcessor handles NULL gt parameter", {
 
   selectors <- processor$generate_selectors(p, NULL)
 
+  # `GRID.polyline.N` carries grid's session-wide grob counter, so without
+  # the gtable that will actually be drawn there is nothing to read N off.
+  # Building a replacement with ggplotGrob() allocates a fresh round of
+  # names the exported SVG never carries, so no guess can be right.
   testthat::expect_type(selectors, "list")
-  testthat::expect_equal(length(selectors), 1)
-  # Should use fallback selector
-  testthat::expect_match(selectors[[1]], "polyline")
+  testthat::expect_length(selectors, 0)
 })
 
 test_that("Ggplot2SmoothLayerProcessor handles non-ggplot input", {
@@ -320,22 +322,20 @@ test_that("Ggplot2SmoothLayerProcessor data points have correct structure", {
   }
 })
 
-test_that("Ggplot2SmoothLayerProcessor handles fallback selector", {
+test_that("Ggplot2SmoothLayerProcessor emits no selector when no polyline exists", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # Create a mock gt with no polyline grobs
+  # A bar plot's gtable holds no line grobs at all
   p <- create_test_ggplot_bar()
 
   layer_info <- list(index = 1)
   processor <- maidr:::Ggplot2SmoothLayerProcessor$new(layer_info)
 
-  # gt with no polylines
   gt <- ggplot2::ggplotGrob(p)
   selectors <- processor$generate_selectors(p, gt)
 
-  # Should use fallback
   testthat::expect_type(selectors, "list")
-  testthat::expect_match(selectors[[1]], "polyline")
+  testthat::expect_length(selectors, 0)
 })
 
 # ==============================================================================
