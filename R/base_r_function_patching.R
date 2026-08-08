@@ -827,19 +827,148 @@ create_nse_wrapper <- function(function_name, original_function) {
 
     ensure_maidr_device()
 
-    result <- original_function(...)
+    # curve() resolves the free variables of its expression against
+    # parent.frame(), which from here is the wrapper's own frame rather
+    # than the user's, so a variable the caller holds locally is invisible:
+    # a function drawing `curve(sin(k * x))` dies with "object 'k' not
+    # found" for its own argument k.
+    #
+    # It works at top level only because the global environment sits on
+    # the namespace's search chain. Rebuilding the call in the caller's
+    # frame gives curve() the frame it expects; as on the other retry
+    # path, this runs only after the direct call has already failed, so
+    # working calls keep the single-evaluation fast path.
+    call_failed <- FALSE
+    result <- tryCatch(
+      original_function(...),
+      error = function(e) {
+        call_failed <<- TRUE
+        e
+      }
+    )
+    if (call_failed) {
+      result <- retry_call_in_caller_frame(
+        original_function, this_call, caller_env, result
+      )
+    }
 
     recorded_args <- as.list(this_call)[-1L]
+    # Snapshot FIRST: the snapshot walks the recorded args with all.vars(),
+    # which only accepts language objects, and the curve values appended
+    # below are a plain list.
+    call_env <- snapshot_call_env(recorded_args, caller_env)
+
+    if (identical(function_name, "curve")) {
+      curve_values <- curve_recorded_values(recorded_args, result)
+      if (!is.null(curve_values)) {
+        recorded_args$.maidr_curve_data <- curve_values
+      }
+    }
+
     log_plot_call_to_device(
       function_name,
       this_call,
       recorded_args,
       grDevices::dev.cur(),
-      call_env = snapshot_call_env(recorded_args, caller_env)
+      call_env = call_env
     )
 
     invisible(result)
   }
+}
+
+#' Keep the points curve() itself evaluated
+#'
+#' curve() returns, invisibly, the exact x/y vectors it just drew. Keeping
+#' them means the accessible data is read back from the user's own call --
+#' evaluated once, at the moment it was made, in the frame that made it.
+#'
+#' The alternative -- re-deriving the points when the figure is emitted --
+#' means running user code a second time, later, in a rebuilt frame. That
+#' is the failure mode #59 fixed for `for` loops, where every panel
+#' replayed the last iteration's bindings; snapshot_call_env() narrows the
+#' window but cannot close it, and the recorded call alone is not enough
+#' anyway: `from`/`to` arrive unevaluated too (`to = 2 * pi` is recorded as
+#' a call), so emit time would have to redo curve()'s own seq/log/xname
+#' handling on top of evaluating the expression. Reading back what was
+#' drawn is neither. The SVG still comes from replaying the call, so a
+#' deliberately non-deterministic expression can draw a second, different
+#' curve -- that is true of every recorded call and is not made worse here.
+#'
+#' The values are stored under a `.maidr_` name, so clean_maidr_args()
+#' drops them before the call is replayed.
+#'
+#' @param recorded_args Recorded (unevaluated) argument list of the call
+#' @param result The value curve() returned
+#' @return A list with `x`, `y` and `labels`, or NULL when the returned
+#'   value is not a usable pair of coordinate vectors
+#' @keywords internal
+curve_recorded_values <- function(recorded_args, result) {
+  if (!is.list(result) || !all(c("x", "y") %in% names(result))) {
+    return(NULL)
+  }
+
+  x <- result$x
+  y <- result$y
+  if (!is.numeric(x) || !is.numeric(y)) {
+    return(NULL)
+  }
+  if (length(x) == 0 || length(x) != length(y)) {
+    return(NULL)
+  }
+
+  list(x = x, y = y, labels = curve_default_labels(recorded_args))
+}
+
+#' Reproduce the axis labels curve() derives for itself
+#'
+#' curve() computes its default labels internally and does not return them:
+#' the x label is `xname` ("x" unless the caller overrides it) and the y
+#' label is the deparsed expression, with a bare function name rewritten as
+#' `fname(xname)`. Reading them off the recorded call keeps the announced
+#' axes matching the drawn ones; without them a visibly labelled plot would
+#' be announced with two empty axis titles.
+#'
+#' An explicit `xlab`/`ylab` in the call wins over these defaults; the line
+#' processor applies that precedence.
+#'
+#' @param recorded_args Recorded (unevaluated) argument list of the call
+#' @return List with `x` and `y` label strings
+#' @keywords internal
+curve_default_labels <- function(recorded_args) {
+  arg_names <- names(recorded_args)
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(recorded_args))
+  }
+
+  xname <- "x"
+  if ("xname" %in% arg_names) {
+    recorded_xname <- tryCatch(
+      as.character(recorded_args[["xname"]])[1L],
+      error = function(e) NA_character_
+    )
+    if (!is.na(recorded_xname) && nzchar(recorded_xname)) {
+      xname <- recorded_xname
+    }
+  }
+
+  expr <- if ("expr" %in% arg_names) {
+    recorded_args[["expr"]]
+  } else {
+    unnamed <- which(!nzchar(arg_names))
+    if (length(unnamed) > 0) recorded_args[[unnamed[1L]]] else NULL
+  }
+
+  if (is.null(expr)) {
+    return(list(x = xname, y = ""))
+  }
+
+  # curve(sin, 0, 1) labels its y axis "sin(x)", not "sin".
+  if (is.name(expr)) {
+    expr <- call(as.character(expr), as.name(xname))
+  }
+
+  list(x = xname, y = paste(deparse(expr), collapse = ""))
 }
 
 #' Create enhanced wrapper for barplot with sorting logic
