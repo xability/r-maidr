@@ -791,7 +791,9 @@ collapse_lines_to_multiseries <- function(panel) {
 #' grobs in the panel and handed every one of N line layers the same length-N
 #' set. What still has to hold after merging is the frontend precondition
 #' `selectors.length === data.length` — one selector per merged series —
-#' which is why the trim/pad stays.
+#' which is why the trim below stays. There is deliberately no pad: a short
+#' list fails that precondition and the frontend drops the layer's highlight
+#' rather than aiming it at the wrong curve.
 #' @keywords internal
 merge_line_layers <- function(line_layers) {
   first <- line_layers[[1]]
@@ -823,8 +825,9 @@ merge_line_layers <- function(line_layers) {
     }
   }
 
-  # Dedupe selectors (panel_ctx path returns the same set for each line layer
-  # in the panel), preserving discovery order.
+  # Dedupe, preserving discovery order. Each layer now resolves to its own
+  # grob, so this should be a no-op; it is kept because a duplicate would
+  # otherwise consume a series' slot in the trim below.
   seen <- character(0)
   unique_selectors <- list()
   for (s in all_selectors) {
