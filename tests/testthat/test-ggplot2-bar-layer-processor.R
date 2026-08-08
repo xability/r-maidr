@@ -428,3 +428,36 @@ test_that("Ggplot2BarLayerProcessor preserves character x ordering", {
   xs <- vapply(data, function(pt) pt$x, character(1))
   testthat::expect_equal(xs, c("Apple", "Banana", "Cherry"))
 })
+
+test_that("a stat-computed bar count carries a y axis label (issue #28)", {
+  # geom_bar() computes y rather than taking a y aesthetic, so the label has
+  # to come from ggplot2's own default ("count") rather than from a mapping.
+  # Without it the viewer announces the literal placeholder "Y" in verbose
+  # mode, e.g. "class is 2seater, Y is 5".
+  testthat::skip_if_not_installed("jsonlite")
+
+  p <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class)) +
+    ggplot2::geom_bar()
+
+  file <- withr::local_tempfile(fileext = ".html")
+  suppressWarnings(save_html(p, file))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+
+  layer <- payload$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_equal(layer$type, "bar")
+  testthat::expect_equal(layer$axes$x$label, "class")
+  testthat::expect_equal(layer$axes$y$label, "count")
+})
