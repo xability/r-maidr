@@ -211,6 +211,53 @@ test_that("box and line leaves resolve inside a nested row", {
   expect_selectors_resolve(payload, point_layer, "subplot[2][1]")
 })
 
+test_that("the remaining panel-scoped geoms resolve inside a nested row", {
+  skip_if_no_patchwork()
+
+  # These four fell into a different failure mode than the bar and point
+  # leaves: instead of an empty list they fabricated a plausible-looking
+  # fallback selector, so the payload looked healthy while addressing an
+  # element that does not exist.
+  heat_df <- expand.grid(a = letters[1:4], b = LETTERS[1:3])
+  heat_df$v <- seq_len(nrow(heat_df))
+
+  heat <- ggplot2::ggplot(heat_df, ggplot2::aes(a, b, fill = v)) +
+    ggplot2::geom_tile()
+  hist <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(hwy)) +
+    ggplot2::geom_histogram(bins = 10)
+  smooth <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(displ, hwy)) +
+    ggplot2::geom_smooth(method = "lm", se = FALSE)
+  stacked <- ggplot2::ggplot(
+    ggplot2::mpg, ggplot2::aes(class, fill = drv)
+  ) + ggplot2::geom_bar()
+  dodged <- ggplot2::ggplot(
+    ggplot2::mpg, ggplot2::aes(class, fill = drv)
+  ) + ggplot2::geom_bar(position = "dodge")
+
+  payload <- render_nested(
+    (heat | hist) / (smooth | stacked) / (dodged | nested_point()),
+    "three_by_two"
+  )
+
+  expected <- list(
+    list(pos = c(1, 1), type = "heat"),
+    list(pos = c(1, 2), type = "hist"),
+    list(pos = c(2, 1), type = "smooth"),
+    list(pos = c(2, 2), type = "stacked_bar"),
+    list(pos = c(3, 1), type = "dodged_bar"),
+    list(pos = c(3, 2), type = "point")
+  )
+
+  for (want in expected) {
+    layer <- cell(payload, want$pos[1], want$pos[2])$layers[[1]]
+    expect_equal(layer$type, want$type)
+    expect_selectors_resolve(
+      payload, layer,
+      sprintf("subplot[%d][%d]", want$pos[1], want$pos[2])
+    )
+  }
+})
+
 test_that("a flat patchwork keeps resolving each leaf's own panel", {
   skip_if_no_patchwork()
 
