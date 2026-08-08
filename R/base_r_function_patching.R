@@ -830,9 +830,8 @@ create_nse_wrapper <- function(function_name, original_function) {
     # curve() resolves the free variables of its expression against
     # parent.frame(), which from here is the wrapper's own frame rather
     # than the user's, so a variable the caller holds locally is invisible:
-    #
-    #   f <- function(k) curve(sin(k * x), from = 0, to = pi)
-    #   f(2)   # object 'k' not found
+    # a function drawing `curve(sin(k * x))` dies with "object 'k' not
+    # found" for its own argument k.
     #
     # It works at top level only because the global environment sits on
     # the namespace's search chain. Rebuilding the call in the caller's
