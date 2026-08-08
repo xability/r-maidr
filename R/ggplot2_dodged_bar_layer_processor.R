@@ -17,6 +17,14 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL) {
       data <- self$extract_data(plot, built, panel_ctx = panel_ctx)
 
+      # `extract_data()` is the only place that knows which stat produced the
+      # bars, and the two stats need opposite per-column DOM walks (see the
+      # note above `generate_selectors()`), so it reports the walk it needs
+      # back through an attribute rather than making `process()` re-evaluate
+      # the aesthetics to work it out a second time.
+      dom_mapping <- attr(data, "dom_mapping", exact = TRUE)
+      attr(data, "dom_mapping") <- NULL
+
       selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       # Build axes including the fill legend title. A dodged bar layer only
@@ -32,12 +40,16 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         axes$z <- list(label = fill_label)
       }
 
-      list(
+      result <- list(
         data = data,
         selectors = selectors,
         title = if (!is.null(layout$title)) layout$title else "",
         axes = axes
       )
+      if (!is.null(dom_mapping)) {
+        result$domMapping <- dom_mapping
+      }
+      result
     },
     needs_reordering = function() {
       TRUE
@@ -95,6 +107,22 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         fill = evaluate(quo_for("fill"))
       )
     },
+    #' @description Order the distinct values of a discrete aesthetic the way
+    #'   ggplot2 lays them out. A discrete scale follows the factor's level
+    #'   order and drops the levels nothing was drawn for; anything else is
+    #'   coerced to a factor, which sorts it. Ordering by `sort()` regardless
+    #'   put the emitted columns in a different order from the drawn ones
+    #'   whenever a factor's levels were not alphabetical.
+    #' @param values A vector of aesthetic values
+    #' @return Character vector of the observed levels, in drawn order
+    discrete_level_order = function(values) {
+      observed <- unique(as.character(values))
+      if (is.factor(values)) {
+        levels(values)[levels(values) %in% observed]
+      } else {
+        sort(observed)
+      }
+    },
     reorder_layer_data = function(data, plot) {
       aes_values <- self$resolve_aes_values(plot, data)
       x_values <- aes_values$x
@@ -142,19 +170,43 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # stat = "count" (no y aesthetic): one bar per (x, fill) combination
       # with the row count as its value
       if (is.null(y_values)) {
-        x_chr <- as.character(x_values)
-        fill_chr <- as.character(fill_values)
-        x_levels <- sort(unique(x_chr))
-        fill_levels <- sort(unique(fill_chr))
-        count_table <- table(x_chr, fill_chr)
+        x_levels <- self$discrete_level_order(x_values)
+        fill_levels <- self$discrete_level_order(fill_values)
+        count_table <- table(
+          factor(as.character(x_values), levels = x_levels),
+          factor(as.character(fill_values), levels = fill_levels)
+        )
 
-        # Only combinations that actually occur get a bar. Emitting the full
-        # cartesian product adds zero-count entries that ggplot2 never draws,
-        # so the announced data would be longer than the rect list the
-        # selector matches and every later bar would be described wrongly.
+        # Emit the FULL cartesian product, scoring absent (x, fill) cells 0,
+        # so every series has one entry per x category (issue #80).
+        #
+        # Dropping the absent cells kept the payload as short as the rect
+        # list, but it made the series RAGGED - five, four and three entries
+        # for `mpg` class x drv - and raggedness is what the frontend cannot
+        # survive. Its `mapToSvgElements` walks
+        # `barValues[0].length * barValues.length` slots column by column, so
+        # a 5x3 payload consumed 15 slots against 12 rects: the node cursor
+        # ran off the end and every bar after the first gap highlighted its
+        # neighbour. Ragged series also destroy positional correspondence -
+        # index 3 meant `pickup` in one series and `minivan` in the next -
+        # which is the one thing a grouped bar chart exists to provide.
+        #
+        # The frontend is built for this: when it holds fewer rects than
+        # slots it treats a barValue of exactly 0 as "no rect here", consumes
+        # no node for it and hands the cell an empty highlight element. So a
+        # zero cell announces its value and highlights nothing, which is the
+        # honest rendering of a bar that is not on screen.
+        #
+        # Announcing "0" is also the truthful reading of THIS stat. A dodged
+        # `stat = "count"` layer is a cross-tabulation, and a cell it never
+        # drew is a cell whose count is genuinely zero, not one whose value is
+        # unknown - "no four-wheel-drive two-seaters" is a fact about the data
+        # that a sighted reader takes from the gap in the column. The
+        # stat = "identity" branch below deliberately does NOT do this: there
+        # a missing row means the caller supplied no value, and inventing a
+        # zero would invent data.
         series <- lapply(fill_levels, function(fill_name) {
-          drawn <- x_levels[count_table[x_levels, fill_name] > 0]
-          lapply(drawn, function(x_name) {
+          lapply(x_levels, function(x_name) {
             list(
               x = x_name,
               y = as.numeric(count_table[x_name, fill_name]),
@@ -163,7 +215,14 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
           })
         })
 
-        return(Filter(function(points) length(points) > 0, series))
+        # `stat_count()` re-derives its own rows, so `reorder_layer_data()`
+        # cannot steer the draw order the way it does for stat = "identity":
+        # ggplot2 lays the rects out x-major with the fill levels ASCENDING
+        # inside each column, which is the order the series above are emitted
+        # in. That is the frontend's "forward" walk, not its default reverse
+        # one, so this branch has to say so.
+        attr(series, "dom_mapping") <- list(groupDirection = "forward")
+        return(series)
       }
 
       # Split row INDICES rather than the data frame itself: indexing the
@@ -201,26 +260,51 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     # document order. The class then RE-GROUPS that list itself instead of
     # zipping it against the flattened payload (de-minified, rect branch):
     #
-    #   for (let col = 0, k = 0; col < barValues[0].length; col++)
-    #     if (domMapping?.groupDirection === "forward")
-    #       for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
-    #     else
-    #       for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
+    #   const slots  = barValues.reduce((n, row) => n + row.length, 0);
+    #   const sparse = nodes.length < slots;
+    #   for (let col = 0, k = 0; col < barValues[0].length; col++) {
+    #     // series runs 0..n-1 when domMapping.groupDirection is "forward",
+    #     // and n-1..0 otherwise
+    #     for (const s of series)
+    #       (sparse && barValues[s][col] === 0) || k >= nodes.length
+    #         ? out[s].push(emptyElement())
+    #         : out[s].push(nodes[k++]);
+    #   }
     #
-    # So the DOM walk is X-MAJOR (one whole column at a time) while `data`
-    # stays SERIES-MAJOR, and because this layer emits no `domMapping` the
-    # per-column direction defaults to "reverse": the first rect of a column
-    # is handed to the LAST data series, the last rect to the first series.
+    # Three things follow, and this layer depends on all of them.
     #
-    # `reorder_layer_data()` above is what makes that hold for dodged bars.
-    # It sorts the plot data by x ascending and fill DESCENDING, so ggplot2
-    # draws each column's rects right-to-left and the reverse regrouping
-    # lands them back on the ascending-fill series this processor emits.
-    # Concretely, for x = a,b,c and fills u = 10,20,30 / v = 55,65,75 the
-    # emitted flattening is 10,20,30,55,65,75 while the rects come out
-    # 55,10,65,20,75,30; the regrouping reunites data[0] = u with the u rects.
+    # 1. The DOM walk is X-MAJOR (one whole column at a time) while `data`
+    #    stays SERIES-MAJOR. Flattening `data` and lining it up against
+    #    document order therefore looks wrong; the frontend never does that.
     #
-    # Pinned by tests/testthat/test-segmented-bar-selector-contract.R.
+    # 2. `barValues` must be RECTANGULAR. The walk is bounded by
+    #    `barValues[0].length` columns times `barValues.length` series, so a
+    #    ragged payload sends the node cursor off the end of the list and
+    #    shifts every assignment after the first short column. See the
+    #    zero-filling in `extract_data()` (issue #80).
+    #
+    # 3. A cell whose value is exactly 0 consumes no node WHEN the layer has
+    #    fewer rects than slots. That is what lets a rectangular payload
+    #    describe a chart with structurally missing bars.
+    #
+    # The per-column direction differs by stat, so the two branches of
+    # `extract_data()` disagree about `domMapping`:
+    #
+    # * stat = "identity" emits none, taking the default REVERSE walk - the
+    #   first rect of a column goes to the LAST series.
+    #   `reorder_layer_data()` above is what makes that hold: it sorts the
+    #   plot data by x ascending and fill DESCENDING, so ggplot2 draws each
+    #   column's rects right-to-left. For x = a,b,c and fills u = 10,20,30 /
+    #   v = 55,65,75 the emitted flattening is 10,20,30,55,65,75 while the
+    #   rects come out 55,10,65,20,75,30; the regrouping reunites
+    #   data[0] = u with the u rects.
+    #
+    # * stat = "count" emits `groupDirection = "forward"`. `stat_count()`
+    #   builds its own rows, so the reordering above cannot reach it and
+    #   ggplot2 draws each column's fills left-to-right, ASCENDING.
+    #
+    # Pinned by test-segmented-bar-selector-contract.R (stat = "identity")
+    # and by test-dodged-bar-count-grid.R (stat = "count").
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         gt <- ggplot2::ggplotGrob(plot)

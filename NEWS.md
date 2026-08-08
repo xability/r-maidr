@@ -2,6 +2,28 @@
 
 ## Bug Fixes
 
+* ggplot2: a dodged `geom_bar()` no longer highlights the wrong bar when some
+  (x, fill) combinations are empty. The layer emitted only the combinations it
+  actually drew, so `ggplot(mpg, aes(class, fill = drv)) + geom_bar(position =
+  "dodge")` produced series of five, four and three values against a chart of
+  seven categories. MAIDR walks one flat list of rects column by column and
+  sizes that walk from the payload, so a ragged payload claimed fifteen bars
+  where twelve exist: the cursor overran and every bar after the first empty
+  cell highlighted its neighbour, while position three meant `pickup` in one
+  series and `minivan` in the next. Absent combinations are now announced as
+  zero, which keeps each series one entry per category so the same position
+  means the same category in all of them, and which is the honest value for a
+  cross-tabulation -- a cell `stat = "count"` never drew is a cell whose count
+  really is zero, and MAIDR gives it no highlight because there is no bar to
+  highlight. Bars supplied through `geom_col()` are left alone: a row the
+  caller omitted has no value, and inventing a zero for it would invent data.
+  Dodged counts also asked for the wrong per-column highlight direction, which
+  put every series on its neighbour's bars even when no combination was empty.
+* ggplot2: a dodged `geom_bar()` whose x or fill is a factor now announces its
+  categories in the plotted order. The layer sorted them alphabetically while
+  ggplot2 lays a discrete scale out in level order, so reversed or custom
+  levels described column one of the payload against column three of the
+  chart.
 * ggplot2: a 'patchwork' panel no longer loses the axis labels ggplot2
   computes. Each leaf's layout was read before the leaf was built, and under
   ggplot2 v4 an unbuilt plot carries only the labels an explicit `labs()` set,
