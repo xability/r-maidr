@@ -176,10 +176,25 @@ process_facet_panel <- function(
       facet_title <- paste(facet_groups, collapse = " & ")
     }
 
-    axes <- build_axes(
-      x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
-      y = if (!is.null(plot$labels$y)) plot$labels$y else ""
-    )
+    # Prefer the axes the layer processors already resolved. They start from
+    # the BUILT plot's labels, which is where ggplot2 records defaults derived
+    # from aesthetics and stats -- an unbuilt `plot$labels` holds only explicit
+    # `labs()` overrides, so reading it drops "count" for geom_bar() and the
+    # mapped column name for everything else. They also carry the legend title
+    # as z for grouped layers, which a rebuilt {x, y} pair cannot express.
+    axes <- NULL
+    for (result in layer_results) {
+      if (!is.null(result) && length(result$axes) > 0) {
+        axes <- result$axes
+        break
+      }
+    }
+    if (is.null(axes)) {
+      axes <- build_axes(
+        x = if (!is.null(plot$labels$x)) plot$labels$x else "Categories",
+        y = if (!is.null(plot$labels$y)) plot$labels$y else ""
+      )
+    }
 
     # Add format config per axis (attaching the whole {x, y} list as the
     # x-axis format would drop the y format and malform the x one)

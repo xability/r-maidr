@@ -2,6 +2,14 @@
 
 ## Bug Fixes
 
+* ggplot2: faceted plots no longer lose their axis labels. Each panel rebuilt
+  its own axes from the unbuilt plot, which under ggplot2 v4 records only the
+  labels an explicit `labs()` set -- everything ggplot2 derives while building
+  was dropped. Every faceted panel therefore announced the placeholder
+  "Categories" for x and nothing at all for y, so a faceted `geom_bar()` said
+  "Categories is suv" where the unfaceted one says "class is suv, count is
+  62". Panels now keep the labels their layers resolved, including the legend
+  title.
 * ggplot2: a multi-series line plot now announces its legend title instead of
   the word "Group". The layer already emitted a per-series group name, which
   MAIDR reads out as "<label> is <value>", but the payload carried no label
