@@ -74,7 +74,30 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
 
       list(data_points)
     },
+    # `GRID.polyline.N` is grid's auto-name for an unnamed grob: N is a
+    # session-wide counter, not a per-plot index. Two renders of the same
+    # plot in one session produced `GRID.polyline.1` then
+    # `GRID.polyline.54`, and the gtable this processor inspects is the one
+    # `create_enhanced_svg()` later draws, so the only way to learn N is to
+    # read it off that gtable. Rebuilding one with `ggplotGrob()` does not
+    # help - it allocates a fresh round of names that the exported SVG will
+    # never carry.
+    #
+    # So when the lookup finds no polyline there is nothing to guess from,
+    # and the id this used to fall back to - `GRID.polyline.1.1.1` - is not
+    # a harmless miss. In a `facet_wrap(~g, drop = FALSE)` whose third
+    # level is empty, panel 3's fabricated selector came out byte-identical
+    # to panel 1's real one, so the empty panel highlighted panel 1's
+    # fitted line. The one plot shape where that id IS this layer's line (a
+    # lone `geom_smooth()` drawn as the session's first auto-named grob)
+    # is a shape where the lookup SUCCEEDS, so it never reached the
+    # fallback. Emit nothing instead: the caller can tell an empty selector
+    # list apart from a wrong one, a user cannot.
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
+      if (is.null(gt)) {
+        return(list())
+      }
+
       collect_all_polyline_grobs <- function(grob) {
         polyline_grobs <- list()
 
@@ -92,56 +115,48 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         polyline_grobs
       }
 
-      if (!is.null(gt)) {
-        all_polyline_grobs <- list()
+      all_polyline_grobs <- list()
 
-        if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-          # Facet / patchwork path: scope the search to this panel's grob
-          panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-          if (!is.null(panel_grob)) {
-            all_polyline_grobs <- collect_all_polyline_grobs(panel_grob)
-          }
-        } else if ("grobs" %in% names(gt)) {
-          for (grob in gt$grobs) {
-            grob_results <- collect_all_polyline_grobs(grob)
-            all_polyline_grobs <- append(all_polyline_grobs, grob_results)
-          }
+      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+        # Facet / patchwork path: scope the search to this panel's grob
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+        if (!is.null(panel_grob)) {
+          all_polyline_grobs <- collect_all_polyline_grobs(panel_grob)
         }
-
-        if (length(all_polyline_grobs) > 0) {
-          numeric_ids <- sapply(all_polyline_grobs, function(grob_name) {
-            match_result <- regmatches(grob_name, regexpr("GRID\\.polyline\\.(\\d+)", grob_name))
-            if (length(match_result) > 0) {
-              as.numeric(gsub("GRID\\.polyline\\.", "", match_result))
-            } else {
-              0
-            }
-          })
-
-          numeric_ids <- numeric_ids[numeric_ids > 0]
-
-          if (length(numeric_ids) > 0) {
-            # Fitted line is the LAST polyline (confidence interval rendered first)
-            # ggplot2 renders confidence interval first, then the fitted line
-            target_id <- max(numeric_ids)
-            grob_id <- paste0("GRID.polyline.", target_id, ".1.1")
-            escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-            selector_string <- paste0("#", escaped_grob_id)
-          } else {
-            # Fallback to first found grob
-            grob_id <- paste0(all_polyline_grobs[[1]], ".1")
-            escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
-            selector_string <- paste0("#", escaped_grob_id)
-          }
-        } else {
-          # No polyline grobs found, use fallback
-          selector_string <- "#GRID\\.polyline\\.1\\.1\\.1"
+      } else if ("grobs" %in% names(gt)) {
+        for (grob in gt$grobs) {
+          grob_results <- collect_all_polyline_grobs(grob)
+          all_polyline_grobs <- append(all_polyline_grobs, grob_results)
         }
-      } else {
-        selector_string <- "#GRID\\.polyline\\.1\\.1\\.1"
       }
 
-      list(selector_string)
+      if (length(all_polyline_grobs) == 0) {
+        return(list())
+      }
+
+      numeric_ids <- sapply(all_polyline_grobs, function(grob_name) {
+        match_result <- regmatches(grob_name, regexpr("GRID\\.polyline\\.(\\d+)", grob_name))
+        if (length(match_result) > 0) {
+          as.numeric(gsub("GRID\\.polyline\\.", "", match_result))
+        } else {
+          0
+        }
+      })
+
+      numeric_ids <- numeric_ids[numeric_ids > 0]
+
+      if (length(numeric_ids) > 0) {
+        # Fitted line is the LAST polyline (confidence interval rendered first)
+        # ggplot2 renders confidence interval first, then the fitted line
+        target_id <- max(numeric_ids)
+        grob_id <- paste0("GRID.polyline.", target_id, ".1.1")
+      } else {
+        # Fallback to first found grob
+        grob_id <- paste0(all_polyline_grobs[[1]], ".1")
+      }
+      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+
+      list(paste0("#", escaped_grob_id))
     }
   )
 )
