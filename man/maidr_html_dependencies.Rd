@@ -2,7 +2,7 @@
 % Please edit documentation in R/html_dependencies.R
 \name{maidr_html_dependencies}
 \alias{maidr_html_dependencies}
-\title{Register JS/CSS dependencies for maidr}
+\title{Register JS dependencies for maidr}
 \usage{
 maidr_html_dependencies(use_cdn = NULL)
 }
@@ -14,7 +14,7 @@ use bundled files.}
 A list containing one htmlDependency object
 }
 \description{
-Creates HTML dependencies for MAIDR JavaScript and CSS files.
+Creates the HTML dependency for the MAIDR JavaScript bundle.
 Behavior is controlled by the `use_cdn` parameter:
 - If `TRUE`: Use CDN (requires internet)
 - If `FALSE` (default): Use local bundled files (works offline)
@@ -28,5 +28,12 @@ nested-`<html>` HTML scaffold caused base R chart SVGs to render squished
 in the upper-left of the viewport. Local assets match the ggplot path that
 has always rendered correctly. Users who want CDN can still pass
 `use_cdn = TRUE` explicitly.
+
+No stylesheet is declared. MAIDR styles its interface at runtime, and
+since maidr 3.75.1 the published `maidr.css` is a placeholder with no
+rules in it. The one stylesheet that does carry rules, `maidr-math.css`
+(KaTeX, for LaTeX in AI chat responses), is fetched by `maidr.js` itself,
+resolved against the URL it was loaded from -- the CDN directory, or the
+`lib/` folder htmltools copies the bundle into.
 }
 \keyword{internal}

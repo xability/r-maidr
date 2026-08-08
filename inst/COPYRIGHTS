@@ -1,5 +1,5 @@
 The bundled MAIDR web assets in inst/htmlwidgets/lib/maidr-*/ (maidr.js and
-maidr.css) are the compiled distribution of the MAIDR project
+maidr-math.css) are the compiled distribution of the MAIDR project
 (https://maidr.ai, MIT License) and embed the following third-party
 open-source components:
 
@@ -8,10 +8,12 @@ open-source components:
 
 - KaTeX (https://katex.org)
   Copyright (c) Khan Academy and contributors. MIT License.
-  (KaTeX provides math rendering in maidr.js. The KaTeX_* web fonts that are
-  normally embedded in maidr.css are stripped from the copy shipped with this
-  R package to reduce installed size; KaTeX math glyphs therefore fall back to
-  system fonts. See tools/trim-maidr-css.R.)
+  (KaTeX provides math rendering in maidr.js, and its rules ship as
+  maidr-math.css. The KaTeX_* web fonts normally embedded in that file are
+  stripped from the copy shipped with this R package to reduce installed
+  size; KaTeX math glyphs therefore fall back to system fonts. The stripping
+  is done by .github/scripts/fetch-maidr-bundle.sh when the bundle is
+  refreshed.)
 
 - D3 (https://d3js.org)
   Copyright (c) Mike Bostock. ISC License.
