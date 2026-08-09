@@ -60,7 +60,10 @@
 <url><loc>https://r.maidr.ai/reference/augment_patchwork_leaves.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/axes_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base-r-wrappers.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/base_r_axis_labels.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/base_r_categorical_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_axes.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/build_axis_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_format_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/call_original_plot_hook.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/cancel_auto_show.html</loc></url>
@@ -227,6 +230,7 @@
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_intl_options.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_js_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/rdp.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/recorded_axis_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/register_ggplot2_print_method.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr_widget.html</loc></url>

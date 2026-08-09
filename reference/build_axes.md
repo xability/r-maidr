@@ -1,6 +1,8 @@
 # Build a canonical axes object
 
-Convenience constructor for a per-axis axes list. Drops NULL axes.
+Convenience constructor for a per-axis axes list. Drops NULL and empty
+axes, so a caller that can say nothing about an axis simply omits the
+key and leaves the generic to the renderer.
 
 ## Usage
 
@@ -24,4 +26,5 @@ build_axes(x = NULL, y = NULL, z = NULL)
 
 ## Value
 
-A canonical axes list with only non-NULL axes set
+A canonical axes list with only non-NULL axes set. Named even when
+empty, so it serializes as the JSON object \`\` rather than as \`\[\]\`.

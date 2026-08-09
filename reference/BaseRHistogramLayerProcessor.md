@@ -16,6 +16,10 @@ and selector generation logic.
 
 - [`BaseRHistogramLayerProcessor$extract_data()`](#method-BaseRHistogramLayerProcessor-extract_data)
 
+- [`BaseRHistogramLayerProcessor$recompute_histogram()`](#method-BaseRHistogramLayerProcessor-recompute_histogram)
+
+- [`BaseRHistogramLayerProcessor$is_frequency()`](#method-BaseRHistogramLayerProcessor-is_frequency)
+
 - [`BaseRHistogramLayerProcessor$generate_selectors()`](#method-BaseRHistogramLayerProcessor-generate_selectors)
 
 - [`BaseRHistogramLayerProcessor$find_rect_grobs()`](#method-BaseRHistogramLayerProcessor-find_rect_grobs)
@@ -23,6 +27,8 @@ and selector generation logic.
 - [`BaseRHistogramLayerProcessor$generate_selectors_from_grob()`](#method-BaseRHistogramLayerProcessor-generate_selectors_from_grob)
 
 - [`BaseRHistogramLayerProcessor$extract_axis_titles()`](#method-BaseRHistogramLayerProcessor-extract_axis_titles)
+
+- [`BaseRHistogramLayerProcessor$frequency_label()`](#method-BaseRHistogramLayerProcessor-frequency_label)
 
 - [`BaseRHistogramLayerProcessor$extract_main_title()`](#method-BaseRHistogramLayerProcessor-extract_main_title)
 
@@ -65,6 +71,22 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
+### Method `recompute_histogram()`
+
+#### Usage
+
+    BaseRHistogramLayerProcessor$recompute_histogram(args)
+
+------------------------------------------------------------------------
+
+### Method `is_frequency()`
+
+#### Usage
+
+    BaseRHistogramLayerProcessor$is_frequency(args, hist_obj = NULL)
+
+------------------------------------------------------------------------
+
 ### Method `generate_selectors()`
 
 #### Usage
@@ -97,6 +119,14 @@ Inherited methods
 #### Usage
 
     BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)
+
+------------------------------------------------------------------------
+
+### Method `frequency_label()`
+
+#### Usage
+
+    BaseRHistogramLayerProcessor$frequency_label(args)
 
 ------------------------------------------------------------------------
 

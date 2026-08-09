@@ -148,10 +148,13 @@ and selector generation logic.</p>
 
 <ul><li><p><a href="#method-BaseRHistogramLayerProcessor-process"><code>BaseRHistogramLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-extract_data"><code>BaseRHistogramLayerProcessor$extract_data()</code></a></p></li>
+<li><p><a href="#method-BaseRHistogramLayerProcessor-recompute_histogram"><code>BaseRHistogramLayerProcessor$recompute_histogram()</code></a></p></li>
+<li><p><a href="#method-BaseRHistogramLayerProcessor-is_frequency"><code>BaseRHistogramLayerProcessor$is_frequency()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-generate_selectors"><code>BaseRHistogramLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-find_rect_grobs"><code>BaseRHistogramLayerProcessor$find_rect_grobs()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-generate_selectors_from_grob"><code>BaseRHistogramLayerProcessor$generate_selectors_from_grob()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-extract_axis_titles"><code>BaseRHistogramLayerProcessor$extract_axis_titles()</code></a></p></li>
+<li><p><a href="#method-BaseRHistogramLayerProcessor-frequency_label"><code>BaseRHistogramLayerProcessor$frequency_label()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-extract_main_title"><code>BaseRHistogramLayerProcessor$extract_main_title()</code></a></p></li>
 <li><p><a href="#method-BaseRHistogramLayerProcessor-clone"><code>BaseRHistogramLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
@@ -188,11 +191,29 @@ and selector generation logic.</p>
 </div>
 
 
+</div><p></p><hr><a id="method-BaseRHistogramLayerProcessor-recompute_histogram"></a><div class="section">
+<h3 id="method-recompute-histogram-">Method <code>recompute_histogram()</code><a class="anchor" aria-label="anchor" href="#method-recompute-histogram-"></a></h3>
+
+<div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">recompute_histogram</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+
+</div><p></p><hr><a id="method-BaseRHistogramLayerProcessor-is_frequency"></a><div class="section">
+<h3 id="method-is-frequency-">Method <code>is_frequency()</code><a class="anchor" aria-label="anchor" href="#method-is-frequency-"></a></h3>
+
+<div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">is_frequency</span><span class="op">(</span><span class="va">args</span>, hist_obj <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+
 </div><p></p><hr><a id="method-BaseRHistogramLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -201,7 +222,7 @@ and selector generation logic.</p>
 <h3 id="method-find-rect-grobs-">Method <code>find_rect_grobs()</code><a class="anchor" aria-label="anchor" href="#method-find-rect-grobs-"></a></h3>
 
 <div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">find_rect_grobs</span><span class="op">(</span><span class="va">grob</span>, <span class="va">call_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -210,7 +231,7 @@ and selector generation logic.</p>
 <h3 id="method-generate-selectors-from-grob-">Method <code>generate_selectors_from_grob()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-from-grob-"></a></h3>
 
 <div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors_from_grob</span><span class="op">(</span></span>
 <span>  <span class="va">grob</span>,</span>
 <span>  call_index <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -222,8 +243,17 @@ and selector generation logic.</p>
 <h3 id="method-extract-axis-titles-">Method <code>extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#method-extract-axis-titles-"></a></h3>
 
 <div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+
+</div><p></p><hr><a id="method-BaseRHistogramLayerProcessor-frequency_label"></a><div class="section">
+<h3 id="method-frequency-label-">Method <code>frequency_label()</code><a class="anchor" aria-label="anchor" href="#method-frequency-label-"></a></h3>
+
+<div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">frequency_label</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 
@@ -231,7 +261,7 @@ and selector generation logic.</p>
 <h3 id="method-extract-main-title-">Method <code>extract_main_title()</code><a class="anchor" aria-label="anchor" href="#method-extract-main-title-"></a></h3>
 
 <div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -239,7 +269,7 @@ and selector generation logic.</p>
 </div><p></p><hr><a id="method-BaseRHistogramLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 

@@ -7,7 +7,7 @@ is NULL.
 ## Usage
 
 ``` r
-attach_axis_format(axes, which, format_obj, default_label = "")
+attach_axis_format(axes, which, format_obj, default_label = NULL)
 ```
 
 ## Arguments
@@ -26,7 +26,10 @@ attach_axis_format(axes, which, format_obj, default_label = "")
 
 - default_label:
 
-  Label to use if the axis slot is being created
+  Label to use if the axis slot is being created. NULL (the default)
+  creates the slot without one, so attaching a format to an axis whose
+  processor had no title to give does not put an empty label back in
+  front of the renderer's generic.
 
 ## Value
 

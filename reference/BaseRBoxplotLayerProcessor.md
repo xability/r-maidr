@@ -20,6 +20,8 @@ generating selectors for boxplot components.
 
 - [`BaseRBoxplotLayerProcessor$extract_axis_titles()`](#method-BaseRBoxplotLayerProcessor-extract_axis_titles)
 
+- [`BaseRBoxplotLayerProcessor$extract_formula_labels()`](#method-BaseRBoxplotLayerProcessor-extract_formula_labels)
+
 - [`BaseRBoxplotLayerProcessor$extract_main_title()`](#method-BaseRBoxplotLayerProcessor-extract_main_title)
 
 - [`BaseRBoxplotLayerProcessor$determine_orientation()`](#method-BaseRBoxplotLayerProcessor-determine_orientation)
@@ -80,6 +82,14 @@ Inherited methods
 #### Usage
 
     BaseRBoxplotLayerProcessor$extract_axis_titles(layer_info)
+
+------------------------------------------------------------------------
+
+### Method `extract_formula_labels()`
+
+#### Usage
+
+    BaseRBoxplotLayerProcessor$extract_formula_labels(args)
 
 ------------------------------------------------------------------------
 

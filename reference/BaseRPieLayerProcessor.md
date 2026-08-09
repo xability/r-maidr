@@ -239,6 +239,9 @@ Character vector of grob names
 Extract the axis titles for this layer
 
 x names what the slice labels mean, y what their magnitudes measure.
+\`pie()\` records neither unless the author wrote one, and a pie always
+holds labelled categories against their magnitudes, so the defaults say
+that much rather than leaving the axes nameless.
 
 #### Usage
 
