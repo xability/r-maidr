@@ -29,6 +29,31 @@
   arguments rebuilt in the caller's frame — the same fallback maidr's
   generated wrappers already used, which is why attaching 'quantmod' first
   was unaffected.
+* Base R: a `layout()` grid in which one panel spans several cells no longer
+  advertises the rest of the span as empty subplots. `layout(matrix(c(1, 1, 1,
+  2, 3, 4), 2, 3, byrow = TRUE))` draws panel 1 across the whole top row, but
+  the two cells it covered were emitted with no layers, no title and no
+  selector, so a four-panel figure announced six subplots and arrowing into
+  either cell threw in the browser instead of announcing anything. Every cell
+  a panel spans now carries that panel, so navigation across the span keeps
+  announcing and highlighting it; the panel is still one plot, reported once
+  per cell it covers. A `0` in the layout matrix, and a panel the matrix
+  declares but the user never drew, still emit an empty cell — those are
+  genuinely blank. `par(mfrow)` and `par(mfcol)` grids cannot span and are
+  unchanged.
+* Base R: `heatmap()` of a matrix with no `dimnames` announces the row and
+  column identities it actually draws. `heatmap()` clusters the rows and
+  columns and then labels the reordered matrix with the *original* indices,
+  `(1L:nr)[rowInd]`; maidr instead filled unnamed axes with a plain 1..n
+  position sequence, so a default `heatmap(m)` announced "row 5" while
+  sonifying the values of original row 2. Only the labels were affected — the
+  values have been drawn from the same ordering since dendrogram support
+  landed, which left the payload internally inconsistent as well as wrong
+  against the figure. Unnamed axes now take their labels from that ordering,
+  on both the row and the column axis, and `revC` (which every `symm = TRUE`
+  call turns on) reverses labels and values together as before. Matrices that
+  carry `dimnames` are unchanged, as are `Rowv = NA, Colv = NA` heatmaps and
+  `image()`, none of which reorder anything, so 1..n is what they draw.
 * ggplot2: a grouped `geom_line()` keeps its highlight when another layer in
   the same panel also draws polylines. A grouped line draws all of its curves
   as one grob that gridSVG splits per curve, while a sibling `geom_smooth()`

@@ -63,6 +63,7 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       # so the top-down grid is the reverse of the matrix. heatmap()'s revC
       # flips the drawing back, and then the matrix already reads top-down.
       reverse_rows <- TRUE
+      ordering <- NULL
 
       if (identical(function_name, "heatmap")) {
         # heatmap() reorders rows/columns by dendrogram (default Rowv/Colv)
@@ -87,11 +88,24 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       row_names <- rownames(heat_matrix)
       col_names <- colnames(heat_matrix)
 
+      # An unnamed matrix keeps no dimnames through the reorder, so fall back
+      # the way heatmap() itself does: it labels the reordered matrix with
+      # `(1L:nr)[rowInd]`, i.e. the ORIGINAL indices in drawn order, not with
+      # 1..n positions. Only when no ordering was recovered -- or for image(),
+      # which never reorders -- is a plain 1..n sequence the drawn label.
       if (is.null(row_names)) {
-        row_names <- as.character(seq_len(nrow(heat_matrix)))
+        row_names <- if (is.null(ordering)) {
+          as.character(seq_len(nrow(heat_matrix)))
+        } else {
+          as.character(ordering$rowInd)
+        }
       }
       if (is.null(col_names)) {
-        col_names <- as.character(seq_len(ncol(heat_matrix)))
+        col_names <- if (is.null(ordering)) {
+          as.character(seq_len(ncol(heat_matrix)))
+        } else {
+          as.character(ordering$colInd)
+        }
       }
 
       # points is a 2D array where points[row][col] = value

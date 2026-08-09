@@ -521,3 +521,142 @@ test_that("an exactly filled panel grid still resolves its selectors", {
   expect_panel_draws(payload, 1, 1, c(10, 20, 30))
   expect_panel_draws(payload, 1, 2, c(40, 50, 60))
 })
+
+# ==============================================================================
+# layout() spans must not advertise phantom empty cells (issue #96)
+#
+# A layout matrix of c(1, 1, 1, 2, 3, 4) over two rows and three columns
+# draws panel 1 across the whole top row -- par("fig") is [0, 1, 0.5, 1] and
+# nothing is blank. Padding every unclaimed cell turned the two cells the span
+# covers into empty subplots, so a four-panel figure advertised six and two
+# arrow stops had no data, no title and no selector. A cell is genuinely blank
+# only where the layout matrix holds a 0 (or names a panel that was never
+# drawn).
+# ==============================================================================
+
+# Per-cell layer counts and titles of an emitted grid, as matrices.
+panel_layer_counts <- function(payload) {
+  subplots <- payload$data$subplots
+  matrix(
+    unlist(lapply(subplots, function(row) {
+      vapply(row, function(cell) length(cell$layers), integer(1))
+    })),
+    nrow = length(subplots),
+    byrow = TRUE
+  )
+}
+
+panel_titles <- function(payload) {
+  subplots <- payload$data$subplots
+  matrix(
+    unlist(lapply(subplots, function(row) {
+      vapply(
+        row,
+        function(cell) {
+          if (length(cell$layers) == 0) "" else cell$layers[[1]]$title
+        },
+        character(1)
+      )
+    })),
+    nrow = length(subplots),
+    byrow = TRUE
+  )
+}
+
+test_that("panel_slot_positions returns every cell a layout panel spans", {
+  row_span <- list(
+    type = "layout",
+    nrows = 2,
+    ncols = 3,
+    matrix = matrix(c(1, 1, 1, 2, 3, 4), nrow = 2, ncol = 3, byrow = TRUE)
+  )
+
+  # Reading order: top-to-bottom, then left-to-right.
+  testthat::expect_equal(
+    maidr:::panel_slot_positions(1, row_span),
+    list(c(1L, 1L), c(1L, 2L), c(1L, 3L))
+  )
+  testthat::expect_equal(
+    maidr:::panel_slot_positions(3, row_span),
+    list(c(2L, 2L))
+  )
+
+  # A column span: panel 1 owns both rows of column 1.
+  col_span <- list(
+    type = "layout",
+    nrows = 2,
+    ncols = 2,
+    matrix = matrix(c(1, 2, 1, 3), nrow = 2, ncol = 2, byrow = TRUE)
+  )
+  testthat::expect_equal(
+    maidr:::panel_slot_positions(1, col_span),
+    list(c(1L, 1L), c(2L, 1L))
+  )
+
+  # A panel number absent from the matrix owns no cell.
+  testthat::expect_equal(maidr:::panel_slot_positions(9, row_span), list())
+
+  # mfrow/mfcol grids cannot span: always exactly one cell.
+  testthat::expect_equal(
+    maidr:::panel_slot_positions(4, list(type = "mfrow", nrows = 2, ncols = 3)),
+    list(c(2L, 1L))
+  )
+  testthat::expect_equal(
+    maidr:::panel_slot_positions(4, list(type = "mfcol", nrows = 2, ncols = 3)),
+    list(c(2L, 2L))
+  )
+})
+
+test_that("a spanned layout() panel fills every cell of its span", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  payload <- render_base_r_html(function() {
+    layout(matrix(c(1, 1, 1, 2, 3, 4), nrow = 2, ncol = 3, byrow = TRUE))
+    plot(1:10, main = "A")
+    plot(11:20, main = "B")
+    plot(21:30, main = "C")
+    plot(31:40, main = "D")
+  })
+
+  # The whole top row is panel A; no cell is left blank.
+  testthat::expect_equal(
+    panel_layer_counts(payload),
+    matrix(1L, nrow = 2, ncol = 3)
+  )
+  testthat::expect_equal(
+    panel_titles(payload),
+    matrix(c("A", "A", "A", "B", "C", "D"), nrow = 2, byrow = TRUE)
+  )
+
+  # The span is one drawn panel repeated, not three panels: the cells carry
+  # the same layer, selector included, so navigating across the span keeps
+  # announcing and highlighting A.
+  top <- lapply(payload$data$subplots[[1]], function(cell) cell$layers[[1]])
+  testthat::expect_identical(top[[2]], top[[1]])
+  testthat::expect_identical(top[[3]], top[[1]])
+  testthat::expect_gt(length(unlist(top[[1]]$selectors)), 0)
+})
+
+test_that("a 0 in the layout() matrix still emits one empty cell", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  # R itself leaves the bottom-left quadrant blank here, so that cell is the
+  # one place an empty subplot is honest.
+  payload <- render_base_r_html(function() {
+    layout(matrix(c(1, 2, 0, 3), nrow = 2, ncol = 2, byrow = TRUE))
+    plot(1:10, main = "A")
+    plot(11:20, main = "B")
+    plot(21:30, main = "C")
+  })
+
+  testthat::expect_equal(
+    panel_layer_counts(payload),
+    matrix(c(1L, 1L, 0L, 1L), nrow = 2, byrow = TRUE)
+  )
+  testthat::expect_equal(
+    panel_titles(payload),
+    matrix(c("A", "B", "", "C"), nrow = 2, byrow = TRUE)
+  )
+})

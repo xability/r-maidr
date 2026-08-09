@@ -254,22 +254,33 @@ compute_panel_slots <- function(plot_groups, panel_config) {
   slots
 }
 
-#' Convert a Panel Slot Number to a (row, column) Grid Position
+#' Convert a Panel Slot Number to its (row, column) Grid Positions
+#'
+#' A `layout()` matrix may name the same panel in several cells; R draws that
+#' panel once, spanning all of them. Returning every matching cell (in reading
+#' order) lets the caller advertise the panel in each cell it actually covers,
+#' so a spanned region is not mistaken for empty space. An `mfrow`/`mfcol`
+#' grid cannot span, so it always yields exactly one cell.
 #'
 #' @param slot Panel slot number (1-based)
 #' @param panel_config Panel configuration from detect_panel_configuration()
-#' @return Integer vector c(row, col), or NULL if the slot has no cell
+#' @return List of integer vectors c(row, col); empty list if the slot
+#'   occupies no cell
 #' @keywords internal
-panel_slot_position <- function(slot, panel_config) {
+panel_slot_positions <- function(slot, panel_config) {
   nrows <- panel_config$nrows
   ncols <- panel_config$ncols
 
   if (identical(panel_config$type, "layout") && !is.null(panel_config$matrix)) {
     pos <- which(panel_config$matrix == slot, arr.ind = TRUE)
     if (nrow(pos) == 0) {
-      return(NULL)
+      return(list())
     }
-    return(c(pos[1, 1], pos[1, 2]))
+    # Reading order: top-to-bottom, then left-to-right.
+    ordered <- order(pos[, 1], pos[, 2])
+    return(lapply(ordered, function(i) {
+      c(as.integer(pos[i, 1]), as.integer(pos[i, 2]))
+    }))
   }
 
   if (identical(panel_config$type, "mfcol")) {
@@ -279,5 +290,5 @@ panel_slot_position <- function(slot, panel_config) {
     row <- ceiling(slot / ncols)
     col <- ((slot - 1) %% ncols) + 1
   }
-  c(row, col)
+  list(c(as.integer(row), as.integer(col)))
 }
