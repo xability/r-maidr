@@ -7,18 +7,18 @@
 quantmod_masks_maidr()
 }
 \value{
-`TRUE` when both packages are attached and quantmod comes first.
+\code{TRUE} when both packages are attached and quantmod comes first.
 }
 \description{
-`library(quantmod)` after `library(maidr)` puts `package:quantmod` in
-front of `package:maidr`, so an unqualified `chartSeries()` binds to
+\code{library(quantmod)} after \code{library(maidr)} puts \code{package:quantmod} in
+front of \code{package:maidr}, so an unqualified \code{chartSeries()} binds to
 quantmod's own function and maidr's recording wrapper is never entered.
 }
 \details{
 maidr deliberately does not reach into quantmod's namespace to win this
 race: overwriting a foreign package's binding would also redirect
-quantmod's *internal* `chartSeries()` calls through maidr's `...`-
-forwarding wrapper, which corrupts the `match.call(expand.dots = TRUE)`
+quantmod's \emph{internal} \code{chartSeries()} calls through maidr's \code{...}-
+forwarding wrapper, which corrupts the \code{match.call(expand.dots = TRUE)}
 that quantmod relies on. maidr reports the condition instead.
 }
 \keyword{internal}

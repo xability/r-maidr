@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{inject_candlestick_open_close_doc}
 \alias{inject_candlestick_open_close_doc}
-\title{Document-level implementation of [inject_candlestick_open_close()]}
+\title{Document-level implementation of \code{\link[=inject_candlestick_open_close]{inject_candlestick_open_close()}}}
 \usage{
 inject_candlestick_open_close_doc(svg_doc, maidr_data)
 }
@@ -15,6 +15,6 @@ inject_candlestick_open_close_doc(svg_doc, maidr_data)
 TRUE if the document was modified
 }
 \description{
-Mutates `svg_doc` in place (xml2 documents are references).
+Mutates \code{svg_doc} in place (xml2 documents are references).
 }
 \keyword{internal}

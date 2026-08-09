@@ -100,10 +100,10 @@ Processes bar plot layers with complete logic included
 \subsection{Method \code{format_x_value()}}{
 Format an x-axis value as character.
 
-Date / POSIXct / POSIXlt values are formatted via `format()` so that a
-`Date` column emits ISO date strings ("2024-01-02") rather than the
+Date / POSIXct / POSIXlt values are formatted via \code{format()} so that a
+\code{Date} column emits ISO date strings ("2024-01-02") rather than the
 default scale-tick labels ("Jan 02"). All other types use
-`as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
+\code{as.character()}. Mirrors \code{Ggplot2CandlestickProcessor$format_x_value()}
 so candle and bar layers from the same Date column align string-wise.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
@@ -125,7 +125,7 @@ makes indexing the break labels with them legitimate.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{panel_params}}{This panel's entry from `built$layout$panel_params`}
+\item{\code{panel_params}}{This panel's entry from \code{built$layout$panel_params}}
 
 \item{\code{x_pos}}{Built x positions for this panel}
 
@@ -167,9 +167,9 @@ Recover user-facing x values for a non-discrete scale.
 
 Built positions on a continuous, Date or datetime scale already are
 the values, but a Date arrives as a day count. Matching them back to
-the mapped column restores the original typing so `format_x_value()`
+the mapped column restores the original typing so \code{format_x_value()}
 can emit "2024-01-02" rather than "19724". Mirrors the same recovery
-in `Ggplot2LineLayerProcessor`.
+in \code{Ggplot2LineLayerProcessor}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$map_continuous_x(x_pos, plot, layer_index)}\if{html}{\out{</div>}}
 }

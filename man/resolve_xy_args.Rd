@@ -10,12 +10,12 @@ resolve_xy_args(args)
 \item{args}{Recorded argument list}
 }
 \value{
-List with `x` and `y` (either may be NULL)
+List with \code{x} and \code{y} (either may be NULL)
 }
 \description{
-Mirrors how plot()/points()/lines() match their arguments: named `x`/`y`
+Mirrors how plot()/points()/lines() match their arguments: named \code{x}/\code{y}
 win, then the first two UNNAMED arguments in order. Blind positional
-access (`args[[2]]`) would grab graphical parameters instead
+access (\code{args[[2]]}) would grab graphical parameters instead
 (plot(x, type = "l") -> y = "l") or error for single-argument calls
 (plot(v), lines(v)).
 }

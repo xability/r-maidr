@@ -15,7 +15,7 @@ build_axes(x = NULL, y = NULL, z = NULL)
 }
 \value{
 A canonical axes list with only non-NULL axes set. Named even when
-  empty, so it serializes as the JSON object `{}` rather than as `[]`.
+empty, so it serializes as the JSON object \code{{}} rather than as \verb{[]}.
 }
 \description{
 Convenience constructor for a per-axis axes list. Drops NULL and empty

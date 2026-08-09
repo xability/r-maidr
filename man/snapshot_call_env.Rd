@@ -17,7 +17,7 @@ An environment whose parent is \code{caller_env}
 \description{
 Recorded expressions are re-evaluated when the figure is rendered, long
 after the caller has moved on -- and R reuses ONE frame for every
-iteration of a `for` loop. Storing that frame therefore makes every
+iteration of a \code{for} loop. Storing that frame therefore makes every
 iteration replay with the LAST iteration's values:
 }
 \details{
@@ -26,7 +26,7 @@ par(mfrow = c(1, 2))
 for (g in c("a", "b")) plot(y ~ x, data = d, subset = grp == g)
 }
 
-Both panels drew `grp == "b"`, silently and without an error. Copying the
+Both panels drew \code{grp == "b"}, silently and without an error. Copying the
 whole frame would fix that but brings its own problems (large objects,
 active bindings, unforced promises, frames that are shared and mutated),
 so only the names the recorded expressions actually mention are copied,

@@ -652,7 +652,7 @@ extract_rect_index_from_id <- function(grob_id) {
 #' Reposition chartSeries date-range bracket header to prevent clipping
 #'
 #' `quantmod::chartSeries()` renders a bracketed date-range header
-#' (e.g. "[2024-01-12/2024-01-15]") via base R `title()` with `par(adj=1)`.
+#' (e.g. `"[2024-01-12/2024-01-15]"`) via base R `title()` with `par(adj=1)`.
 #' For short timeseries the text width exceeds the available right margin
 #' and the closing bracket is clipped at the SVG viewBox edge. This is
 #' upstream quantmod issue #129 (open since 2016, no fix). See
@@ -1282,7 +1282,7 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
 #' This isolates each plot in its own document/JavaScript context.
 #'
 #' @param svg_content Character vector of SVG content with maidr-data attribute
-#' @param width Width of the iframe (default: "100\%")
+#' @param width Width of the iframe (default: "100%")
 #' @param height Height of the iframe (default: "450px")
 #' @param plot_id Unique identifier for the plot
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
@@ -1351,7 +1351,7 @@ maidr_iframe_resize_script <- function() {
 #' Unlike create_maidr_iframe, this does not include MAIDR.js dependencies.
 #'
 #' @param html_content Character string of HTML content (with img tag)
-#' @param width Width of the iframe (default: "100\%")
+#' @param width Width of the iframe (default: "100%")
 #' @param height Height of the iframe (default: "450px")
 #' @param plot_id Unique identifier for the plot
 #' @return Character string of iframe HTML

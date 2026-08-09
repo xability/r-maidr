@@ -8,11 +8,11 @@ maidr_get_fallback()
 }
 \value{
 A list with the current fallback settings:
-  \itemize{
-    \item \code{enabled}: Logical indicating if fallback is enabled
-    \item \code{format}: Character string of the image format
-    \item \code{warning}: Logical indicating if warnings are shown
-  }
+\itemize{
+\item \code{enabled}: Logical indicating if fallback is enabled
+\item \code{format}: Character string of the image format
+\item \code{warning}: Logical indicating if warnings are shown
+}
 }
 \description{
 Retrieves the current fallback configuration for MAIDR.
@@ -24,5 +24,5 @@ print(settings)
 
 }
 \seealso{
-[maidr_set_fallback()] to configure settings
+\code{\link[=maidr_set_fallback]{maidr_set_fallback()}} to configure settings
 }

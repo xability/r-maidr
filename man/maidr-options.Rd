@@ -9,16 +9,16 @@ Configure MAIDR interception and display behavior using R's options system.
 \section{Available Options}{
 
 \describe{
-  \item{\code{maidr.auto_show}}{Logical. Master switch for all MAIDR interception.
-    When FALSE, all plotting functions behave as standard R. Default: TRUE.}
-  \item{\code{maidr.base_r}}{Logical. Enable Base R plot interception.
-    When TRUE, Base R plots are captured and displayed in the MAIDR viewer.
-    Default: TRUE.}
-  \item{\code{maidr.ggplot2}}{Logical. Enable ggplot2 auto-display.
-    When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
-    instead of the standard graphics device. Default: TRUE.}
-  \item{\code{maidr.startup_message}}{Logical. Show startup message when
-    package is loaded. Default: TRUE.}
+\item{\code{maidr.auto_show}}{Logical. Master switch for all MAIDR interception.
+When FALSE, all plotting functions behave as standard R. Default: TRUE.}
+\item{\code{maidr.base_r}}{Logical. Enable Base R plot interception.
+When TRUE, Base R plots are captured and displayed in the MAIDR viewer.
+Default: TRUE.}
+\item{\code{maidr.ggplot2}}{Logical. Enable ggplot2 auto-display.
+When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
+instead of the standard graphics device. Default: TRUE.}
+\item{\code{maidr.startup_message}}{Logical. Show startup message when
+package is loaded. Default: TRUE.}
 }
 }
 

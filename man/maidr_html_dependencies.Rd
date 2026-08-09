@@ -7,7 +7,7 @@
 maidr_html_dependencies(use_cdn = NULL)
 }
 \arguments{
-\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
+\item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE} or \code{NULL} (default),
 use bundled files.}
 }
 \value{
@@ -15,25 +15,27 @@ A list containing one htmlDependency object
 }
 \description{
 Creates the HTML dependency for the MAIDR JavaScript bundle.
-Behavior is controlled by the `use_cdn` parameter:
-- If `TRUE`: Use CDN (requires internet)
-- If `FALSE` (default): Use local bundled files (works offline)
-- If `NULL`: Same as `FALSE` — use local bundled files
+Behavior is controlled by the \code{use_cdn} parameter:
+\itemize{
+\item If \code{TRUE}: Use CDN (requires internet)
+\item If \code{FALSE} (default): Use local bundled files (works offline)
+\item If \code{NULL}: Same as \code{FALSE} — use local bundled files
+}
 }
 \details{
 We default to local bundled assets for deterministic rendering. Previously
-we auto-detected via `curl::has_internet()`; when internet was available
+we auto-detected via \code{curl::has_internet()}; when internet was available
 the CDN path was selected, which combined with a (now-fixed) malformed
-nested-`<html>` HTML scaffold caused base R chart SVGs to render squished
+nested-\verb{<html>} HTML scaffold caused base R chart SVGs to render squished
 in the upper-left of the viewport. Local assets match the ggplot path that
 has always rendered correctly. Users who want CDN can still pass
-`use_cdn = TRUE` explicitly.
+\code{use_cdn = TRUE} explicitly.
 
 No stylesheet is declared. MAIDR styles its interface at runtime, and
-since maidr 3.75.1 the published `maidr.css` is a placeholder with no
-rules in it. The one stylesheet that does carry rules, `maidr-math.css`
-(KaTeX, for LaTeX in AI chat responses), is fetched by `maidr.js` itself,
+since maidr 3.75.1 the published \code{maidr.css} is a placeholder with no
+rules in it. The one stylesheet that does carry rules, \code{maidr-math.css}
+(KaTeX, for LaTeX in AI chat responses), is fetched by \code{maidr.js} itself,
 resolved against the URL it was loaded from -- the CDN directory, or the
-`lib/` folder htmltools copies the bundle into.
+\verb{lib/} folder htmltools copies the bundle into.
 }
 \keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{strip_chartseries_right_axis_doc}
 \alias{strip_chartseries_right_axis_doc}
-\title{Document-level implementation of [strip_chartseries_right_axis()]}
+\title{Document-level implementation of \code{\link[=strip_chartseries_right_axis]{strip_chartseries_right_axis()}}}
 \usage{
 strip_chartseries_right_axis_doc(svg_doc)
 }
@@ -13,6 +13,6 @@ strip_chartseries_right_axis_doc(svg_doc)
 TRUE if the document was modified
 }
 \description{
-Mutates `svg_doc` in place.
+Mutates \code{svg_doc} in place.
 }
 \keyword{internal}

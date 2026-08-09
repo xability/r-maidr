@@ -20,7 +20,7 @@ Character vector, one name per distinct group id in ascending order
 \code{ggplot_build()} replaces the grouping column with integer group ids,
 so the user-facing name has to be recovered from the plot's own data. The
 ids are assigned in the sorted order of the grouping column's values, which
-is the order this function relies on. Falls back to "Series <id>" when the
+is the order this function relies on. Falls back to "Series \if{html}{\out{<id>}}" when the
 mapped column is not present on the plot data (for example an expression
 such as \code{aes(colour = paste(a, b))}).
 }

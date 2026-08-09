@@ -14,7 +14,7 @@ detect candlestick layers)}
 }
 \value{
 Modified SVG content (character vector). If any guard
-  fails, returns `svg_content` unchanged.
+fails, returns \code{svg_content} unchanged.
 }
 \description{
 quantmod::chartSeries() emits a bottom date axis (axis line, tick
@@ -29,11 +29,11 @@ in the maidr-data JSON for the screen reader.
 }
 \details{
 The relevant groups have IDs of the form
-`graphics-plot-N-bottom-axis-(line|ticks)-...`; we match by
-substring with `contains(@id, 'bottom-axis-(line|ticks)-')` and
-explicitly leave `bottom-axis-labels-` untouched.
+\code{graphics-plot-N-bottom-axis-(line|ticks)-...}; we match by
+substring with \verb{contains(@id, 'bottom-axis-(line|ticks)-')} and
+explicitly leave \verb{bottom-axis-labels-} untouched.
 
-Safety: no-op when `maidr_data` contains no candlestick layers
+Safety: no-op when \code{maidr_data} contains no candlestick layers
 (ggplot candlestick / non-candlestick plots use different SVG IDs
 and are unaffected), when xml2 is unavailable, when SVG parsing
 fails, or when no matching groups are found.

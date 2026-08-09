@@ -16,7 +16,7 @@ which swaps which visual axis holds the categories}
 Canonical axes list
 }
 \description{
-`barplot()`, `boxplot()` and `pie()` all plot one categorical axis against
+\code{barplot()}, \code{boxplot()} and \code{pie()} all plot one categorical axis against
 one measured axis, and none of them writes a title unless the author does.
 Naming those axes for what they hold -- "Category" against "Value" -- says
 what the numbers mean, where the renderer's positional "X"/"Y" fallback

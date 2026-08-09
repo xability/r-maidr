@@ -293,7 +293,7 @@ prefix_to_currency_code <- function(prefix) {
 #'
 #' Converts R strftime format strings to JavaScript Intl.DateTimeFormat options.
 #'
-#' @param format R date format string (e.g., "\%Y-\%m-\%d")
+#' @param format R date format string (e.g., "%Y-%m-%d")
 #' @return List of Intl.DateTimeFormat options
 #' @keywords internal
 r_date_format_to_intl_options <- function(format) {

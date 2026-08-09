@@ -7,15 +7,15 @@
 usable_xy_coords(coords)
 }
 \arguments{
-\item{coords}{Value returned by `grDevices::xy.coords()`, or NULL}
+\item{coords}{Value returned by \code{grDevices::xy.coords()}, or NULL}
 }
 \value{
 TRUE when both axes carry at least one finite value
 }
 \description{
-`grDevices::xy.coords()` coerces whatever it is given, so categorical
-coordinates come back as all-`NA` numerics rather than as an error. Those
-are worse than the raw input: `range()` on them yields infinities and a
+\code{grDevices::xy.coords()} coerces whatever it is given, so categorical
+coordinates come back as all-\code{NA} numerics rather than as an error. Those
+are worse than the raw input: \code{range()} on them yields infinities and a
 warning, where the raw character vector is simply rejected as non-numeric.
 }
 \keyword{internal}

@@ -74,12 +74,12 @@ Processes dodged bar plot layers with complete logic included
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{}}}
 \subsection{Method \code{resolve_aes_values()}}{
 Resolve this layer's x/y/fill aesthetics to VALUES.
-  `rlang::as_label()` produces a display string, which doubles as a
-  column name only for bare-column mappings. Evaluating the quosure
-  against the data also covers expression aesthetics such as
-  `aes(fill = factor(cyl))`, which are idiomatic ggplot2 and which
-  the column-name treatment turned into `data[["factor(cyl)"]]`,
-  i.e. NULL.
+\code{rlang::as_label()} produces a display string, which doubles as a
+column name only for bare-column mappings. Evaluating the quosure
+against the data also covers expression aesthetics such as
+\code{aes(fill = factor(cyl))}, which are idiomatic ggplot2 and which
+the column-name treatment turned into \code{data[["factor(cyl)"]]},
+i.e. NULL.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$resolve_aes_values(plot, data)}\if{html}{\out{</div>}}
 }
@@ -94,7 +94,7 @@ Resolve this layer's x/y/fill aesthetics to VALUES.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-List with `x`, `y` and `fill` vectors (any may be NULL)
+List with \code{x}, \code{y} and \code{fill} vectors (any may be NULL)
 }
 }
 \if{html}{\out{<hr>}}
@@ -102,12 +102,12 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-discrete_level_order}{}}}
 \subsection{Method \code{discrete_level_order()}}{
 Order the distinct values of an aesthetic the way ggplot2
-  lays them out, so the emitted columns line up with the drawn ones.
-  A factor follows its own level order, minus the levels nothing was
-  drawn for; anything else sorts in its own type's order. Sorting the
-  values AS TEXT, which is what this used to do, reordered the columns
-  twice over: against a factor whose levels are not alphabetical, and
-  against a number, where it puts 10 before 2.
+lays them out, so the emitted columns line up with the drawn ones.
+A factor follows its own level order, minus the levels nothing was
+drawn for; anything else sorts in its own type's order. Sorting the
+values AS TEXT, which is what this used to do, reordered the columns
+twice over: against a factor whose levels are not alphabetical, and
+against a number, where it puts 10 before 2.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$discrete_level_order(values)}\if{html}{\out{</div>}}
 }

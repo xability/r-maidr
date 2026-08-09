@@ -11,7 +11,7 @@ An object of class \code{environment} of length 1.
 .maidr_chartseries_ta_warned
 }
 \description{
-Environment used to suppress repeat chartSeries `TA` advisory warnings
+Environment used to suppress repeat chartSeries \code{TA} advisory warnings
 within a single session.
 }
 \keyword{internal}

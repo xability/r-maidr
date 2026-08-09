@@ -14,7 +14,7 @@ retry_call_in_caller_frame(
 \arguments{
 \item{original_function}{The unwrapped plotting function}
 
-\item{recorded_call}{`match.call()` captured by the wrapper}
+\item{recorded_call}{\code{match.call()} captured by the wrapper}
 
 \item{caller_env}{The wrapper's calling frame}
 
@@ -25,8 +25,8 @@ Result of the retried call
 }
 \description{
 The formula methods resolve non-standard arguments relative to
-`parent.frame()`: `plot.formula()` evaluates `subset =` there, and
-`boxplot.formula()` reaches into the caller's `...`. A wrapper puts its
+\code{parent.frame()}: \code{plot.formula()} evaluates \verb{subset =} there, and
+\code{boxplot.formula()} reaches into the caller's \code{...}. A wrapper puts its
 own frame in that position, so calls that work in plain R fail through
 maidr:
 }

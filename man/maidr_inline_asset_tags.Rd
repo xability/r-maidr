@@ -2,19 +2,19 @@
 % Please edit documentation in R/html_dependencies.R
 \name{maidr_inline_asset_tags}
 \alias{maidr_inline_asset_tags}
-\title{Get `<style>`/`<script>` tags with the bundled assets inlined}
+\title{Get \verb{<style>}/\verb{<script>} tags with the bundled assets inlined}
 \usage{
 maidr_inline_asset_tags()
 }
 \value{
-A named list with `css_tag` and `js_tag` strings
+A named list with \code{css_tag} and \code{js_tag} strings
 }
 \description{
 Reads the bundled maidr.js/maidr-math.css once per session and caches the
 assembled tags.
 }
 \details{
-KaTeX is inlined rather than left to `maidr.js` to fetch, because these
+KaTeX is inlined rather than left to \code{maidr.js} to fetch, because these
 tags go into a standalone document whose script is inline: it has no URL
 of its own, so the runtime has nothing to resolve the stylesheet against.
 }

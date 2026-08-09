@@ -10,19 +10,19 @@ Base R Candlestick Layer Processor
 }
 \details{
 Processes Base R candlestick chart layers produced by
-`quantmod::chartSeries(x, type = "candlesticks")`.
+\code{quantmod::chartSeries(x, type = "candlesticks")}.
 
-Each xts row becomes a single navigable `CandlestickPoint` with
-`value`, `open`, `high`, `low`, `close`, computed `trend`
-(Bull / Bear / Neutral), `volatility` (high - low) and optional
-`volume` (when `quantmod::has.Vo()` is `TRUE`).
+Each xts row becomes a single navigable \code{CandlestickPoint} with
+\code{value}, \code{open}, \code{high}, \code{low}, \code{close}, computed \code{trend}
+(Bull / Bear / Neutral), \code{volatility} (high - low) and optional
+\code{volume} (when \code{quantmod::has.Vo()} is \code{TRUE}).
 
 Selectors are derived from the gridSVG export of the chartSeries
-grob (captured via `ggplotify::as.grob()`). chartSeries draws candle
-bodies via a single vectorized `rect()` call (each candle body is one
-SVG `<rect>` child of `graphics-plot-<N>-rect-*`) and upper/lower
-wicks via `segments()` calls (one SVG `<polyline>` per wick under
-`graphics-plot-<N>-segments-*`).
+grob (captured via \code{ggplotify::as.grob()}). chartSeries draws candle
+bodies via a single vectorized \code{rect()} call (each candle body is one
+SVG \verb{<rect>} child of \verb{graphics-plot-<N>-rect-*}) and upper/lower
+wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
+\verb{graphics-plot-<N>-segments-*}).
 }
 \keyword{internal}
 \section{Super class}{
@@ -106,7 +106,7 @@ Build a "bar" layer carrying volume data
 Generate selectors for the addVo() volume bar panel
 
 chartSeries(TA = "addVo()") creates a second plotting window. In
-the gridSVG export that maps to a second `graphics-plot-<N>` group
+the gridSVG export that maps to a second \verb{graphics-plot-<N>} group
 (typically N = 2). Returns a per-bar selector list so each volume
 bar can be individually highlighted on navigation; matches the
 bar layer contract used by the Base R barplot processor.
@@ -145,29 +145,30 @@ List of CandlestickPoint dicts
 \subsection{Method \code{generate_selectors()}}{
 Generate CSS selectors for the candlestick layer
 
-Returns ONE `CandlestickSelector` object (matching the maidr JS
-frontend contract in `src/model/candlestick.ts::mapToSvgElements`).
+Returns ONE \code{CandlestickSelector} object (matching the maidr JS
+frontend contract in \code{src/model/candlestick.ts::mapToSvgElements}).
 The returned object has these named character-vector keys:
-  - `body`     length-N vector, one per-candle body-rect selector
-  - `wickHigh` length-N vector, one per-candle upper-wick selector
-               (omitted if only one segments group is present)
-  - `wickLow`  length-N vector, one per-candle lower-wick selector
-               (omitted if only one segments group is present)
-  - `wick`     length-N vector, used as fallback when there is only
-               one segments group (the frontend falls back to
-               `wick` when `wickHigh` / `wickLow` are absent).
+\itemize{
+\item \code{body}     length-N vector, one per-candle body-rect selector
+\item \code{wickHigh} length-N vector, one per-candle upper-wick selector
+(omitted if only one segments group is present)
+\item \code{wickLow}  length-N vector, one per-candle lower-wick selector
+(omitted if only one segments group is present)
+\item \code{wick}     length-N vector, used as fallback when there is only
+one segments group (the frontend falls back to
+\code{wick} when \code{wickHigh} / \code{wickLow} are absent).
+}
 
-gridSVG emits a child id `<group-id>.1.<i>` for each primitive in
+gridSVG emits a child id \verb{<group-id>.1.<i>} for each primitive in
 a vectorized draw call. The frontend iterates each string array
-(`collectElements(arr)`) and picks the i-th element via
-`getElementAt(*, i)`, so per-candle selectors are required for
+(\code{collectElements(arr)}) and picks the i-th element via
+\verb{getElementAt(*, i)}, so per-candle selectors are required for
 single-candle highlighting on arrow-key navigation.
 
 IMPORTANT: do NOT return an array of objects (e.g.
-`[[body, wick], ...]`). The frontend's `Array.isArray()` branch
-would then take `selectors[0]` (the first dict) and pass it to
-`querySelectorAll`, yielding a JS `SyntaxError: '[object Object]'
-is not a valid selector`. The boxplot pattern of per-item dicts
+\verb{[[body, wick], ...]}). The frontend's \code{Array.isArray()} branch
+would then take \code{selectors[0]} (the first dict) and pass it to
+\code{querySelectorAll}, yielding a JS \verb{SyntaxError: '[object Object]' is not a valid selector}. The boxplot pattern of per-item dicts
 does NOT apply here because each chart model has its own contract.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRCandlestickLayerProcessor$generate_selectors(
@@ -189,8 +190,8 @@ does NOT apply here because each chart model has its own contract.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Named list (single CandlestickSelector) or `list()` when
-  grobs cannot be located.
+Named list (single CandlestickSelector) or \code{list()} when
+grobs cannot be located.
 }
 }
 \if{html}{\out{<hr>}}
@@ -245,7 +246,7 @@ Sort grob ids by trailing integer suffix
 \if{html}{\out{<a id="method-BaseRCandlestickLayerProcessor-find_grob_by_name"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRCandlestickLayerProcessor-find_grob_by_name}{}}}
 \subsection{Method \code{find_grob_by_name()}}{
-Find the grob node whose name matches `id`
+Find the grob node whose name matches \code{id}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRCandlestickLayerProcessor$find_grob_by_name(g, id)}\if{html}{\out{</div>}}
 }

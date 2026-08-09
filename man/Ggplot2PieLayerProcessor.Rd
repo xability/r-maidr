@@ -112,6 +112,21 @@ The magnitude is the segment's own extent, not the stacked \code{y}:
 \code{ymax - ymin} is what the wedge actually subtends, and it is the
 one expression that works for both \code{geom_col()} (stat identity)
 and \code{geom_bar()} (stat count).
+
+The extent is unsigned, though, and a negative datum is stacked
+\emph{below} the baseline: ggplot2 builds \code{v = -40} as
+\code{ymin = -40, ymax = 0}, so the extent is 40 and the sign is gone.
+Reporting that would announce a slice the author entered as -40 as
+\code{40}, and compute its share against a total that swallowed it --
+confidently wrong, and indistinguishable from real data.
+
+So the sign is restored from which side of the baseline the segment
+sits on. The renderer treats a negative slice as a gap, announcing it
+as missing rather than letting it corrupt every other slice's
+percentage; laundering it here would leave that defence nothing to
+catch. Whether a producer should reject such a value outright is a
+separate question -- see xability/maidr#771 -- but no answer to it is
+served by destroying the sign first.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
 }
@@ -178,7 +193,7 @@ row shares group -1 or 1), so no aesthetic names its wedges.
 }
 \subsection{Returns}{
 list with \code{aes} (aesthetic name, or NULL) and
-  \code{column} (the mapped column name)
+\code{column} (the mapped column name)
 }
 }
 \if{html}{\out{<hr>}}

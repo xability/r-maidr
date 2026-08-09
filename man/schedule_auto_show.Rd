@@ -8,7 +8,7 @@ schedule_auto_show()
 }
 \description{
 Uses R's task callback mechanism. When a HIGH-level plot function is called,
-this schedules `show()` to run after the expression finishes. If another
+this schedules \code{show()} to run after the expression finishes. If another
 HIGH-level function is called in the same expression, the previous callback
 is replaced (only one auto-show fires per expression).
 }

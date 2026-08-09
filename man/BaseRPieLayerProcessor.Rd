@@ -9,9 +9,9 @@ Base R Pie Chart Layer Processor
 Base R Pie Chart Layer Processor
 }
 \details{
-Processes Base R `pie()` layers based on recorded plot calls. A pie layer is
-1-D and flat: one point per slice, carrying the slice label as `x` and the
-slice magnitude as `y`. Percentages are derived by the frontend from those
+Processes Base R \code{pie()} layers based on recorded plot calls. A pie layer is
+1-D and flat: one point per slice, carrying the slice label as \code{x} and the
+slice magnitude as \code{y}. Percentages are derived by the frontend from those
 magnitudes, so none are emitted here.
 }
 \keyword{internal}
@@ -123,7 +123,7 @@ Extract one point per slice from the recorded call
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Flat list of `list(x = <label>, y = <value>)` points
+Flat list of \verb{list(x = <label>, y = <value>)} points
 }
 }
 \if{html}{\out{<hr>}}
@@ -132,8 +132,8 @@ Flat list of `list(x = <label>, y = <value>)` points
 \subsection{Method \code{resolve_slice_labels()}}{
 Resolve the per-slice labels the way pie() does
 
-`labels` defaults to `names(x)`, and falls back to the slice position
-when the input is unnamed. `pie(labels = NA)` draws neither label nor
+\code{labels} defaults to \code{names(x)}, and falls back to the slice position
+when the input is unnamed. \code{pie(labels = NA)} draws neither label nor
 leader line, but the wedges are still there and still navigable, so
 those slices are announced by position rather than as "NA".
 \subsection{Usage}{
@@ -143,7 +143,7 @@ those slices are announced by position rather than as "NA".
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{values}}{The recorded `x` argument (names still attached)}
+\item{\code{values}}{The recorded \code{x} argument (names still attached)}
 
 \item{\code{args}}{Recorded argument list from the pie() call}
 }
@@ -173,7 +173,7 @@ Generate one selector per wedge, index-aligned to the data
 
 \item{\code{gt}}{Grob tree to search}
 
-\item{\code{extracted_data}}{Points from [extract_data()], used for the count}
+\item{\code{extracted_data}}{Points from \code{extract_data()}, used for the count}
 }
 \if{html}{\out{</div>}}
 }
@@ -210,7 +210,7 @@ Character vector of grob names
 Extract the axis titles for this layer
 
 x names what the slice labels mean, y what their magnitudes measure.
-`pie()` records neither unless the author wrote one, and a pie always
+\code{pie()} records neither unless the author wrote one, and a pie always
 holds labelled categories against their magnitudes, so the defaults
 say that much rather than leaving the axes nameless.
 \subsection{Usage}{

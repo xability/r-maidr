@@ -11,9 +11,9 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:
 \itemize{
-  \item \code{TRUE}: Use CDN (requires internet)
-  \item \code{FALSE}: Use local bundled files (works offline)
-  \item \code{NULL} (default): Auto-detect based on internet availability
+\item \code{TRUE}: Use CDN (requires internet)
+\item \code{FALSE}: Use local bundled files (works offline)
+\item \code{NULL} (default): Auto-detect based on internet availability
 }}
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}

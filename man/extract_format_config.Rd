@@ -11,7 +11,7 @@ extract_format_config(built)
 }
 \value{
 A list with \code{x} and/or \code{y} format configurations,
-  or NULL if no format config is found
+or NULL if no format config is found
 }
 \description{
 Extracts MAIDR format configuration from the scale objects in a built
