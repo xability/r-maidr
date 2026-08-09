@@ -372,15 +372,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
           if (is.na(slot)) {
             next
           }
-          position <- panel_slot_position(slot, panel_config)
-          if (is.null(position)) {
-            next
-          }
-          row <- position[1]
-          col <- position[2]
-
-          # Ensure we're within bounds
-          if (row > nrows || col > ncols) {
+          # A layout() panel can span several cells; it belongs in all of them.
+          positions <- panel_slot_positions(slot, panel_config)
+          if (length(positions) == 0) {
             next
           }
 
@@ -427,21 +421,36 @@ BaseRPlotOrchestrator <- R6::R6Class(
             layer_obj$labels <- result$labels
           }
 
-          if (is.null(subplot_grid[[row]][[col]])) {
-            subplot_grid[[row]][[col]] <- list(
-              id = paste0("maidr-subplot-", row, "-", col),
-              layers = list()
+          # The same panel object goes into every cell of its span, so
+          # navigating across the span keeps announcing that panel instead of
+          # falling into a cell with nothing to sonify.
+          for (position in positions) {
+            row <- position[1]
+            col <- position[2]
+
+            # Ensure we're within bounds
+            if (row > nrows || col > ncols) {
+              next
+            }
+
+            if (is.null(subplot_grid[[row]][[col]])) {
+              subplot_grid[[row]][[col]] <- list(
+                id = paste0("maidr-subplot-", row, "-", col),
+                layers = list()
+              )
+            }
+
+            subplot_grid[[row]][[col]]$layers <- append(
+              subplot_grid[[row]][[col]]$layers,
+              list(layer_obj)
             )
           }
-
-          subplot_grid[[row]][[col]]$layers <- append(
-            subplot_grid[[row]][[col]]$layers,
-            list(layer_obj)
-          )
         }
 
-        # Fill cells with no layers with a valid empty subplot: a bare
-        # NULL serializes as `{}`, which the maidr frontend cannot parse.
+        # Whatever is still unclaimed is genuinely blank -- a `0` in the
+        # layout() matrix, or a declared panel the user never drew. Give it a
+        # valid empty subplot: a bare NULL serializes as `{}`, which the maidr
+        # frontend cannot parse.
         for (r in seq_len(nrows)) {
           for (c_idx in seq_len(ncols)) {
             if (is.null(subplot_grid[[r]][[c_idx]])) {

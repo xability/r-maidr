@@ -2,6 +2,18 @@
 
 ## Bug Fixes
 
+* Base R: a `layout()` grid in which one panel spans several cells no longer
+  advertises the rest of the span as empty subplots. `layout(matrix(c(1, 1, 1,
+  2, 3, 4), 2, 3, byrow = TRUE))` draws panel 1 across the whole top row, but
+  the two cells it covered were emitted with no layers, no title and no
+  selector, so a four-panel figure announced six subplots and arrowing into
+  either cell threw in the browser instead of announcing anything. Every cell
+  a panel spans now carries that panel, so navigation across the span keeps
+  announcing and highlighting it; the panel is still one plot, reported once
+  per cell it covers. A `0` in the layout matrix, and a panel the matrix
+  declares but the user never drew, still emit an empty cell — those are
+  genuinely blank. `par(mfrow)` and `par(mfcol)` grids cannot span and are
+  unchanged.
 * ggplot2: a faceted stacked bar whose facet column contains `NA` exports
   again. ggplot2 draws a real extra panel for the missing value, but the
   per-panel subset picked its rows with `==`, which answers `NA` for exactly
