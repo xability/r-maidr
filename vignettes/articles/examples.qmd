@@ -557,6 +557,14 @@ The Base R path supports a plain OHLC candlestick via
 > data **without** a `Volume` column (default `TA` then becomes a
 > no-op), or pass `TA = NULL` explicitly.
 
+> **Attach order matters.** `library(quantmod)` after `library(maidr)`
+> puts `package:quantmod` ahead of `package:maidr` on the search path,
+> so a bare `chartSeries()` call reaches quantmod directly and maidr
+> never records it — the chart draws, but `show()` and `save_html()`
+> then report that no Base R plot was found. Either attach `quantmod`
+> **before** `maidr`, or call `maidr::chartSeries()` explicitly as
+> below, which works in either order.
+
 ```{r}
 #| eval: false
 library(quantmod)
@@ -575,7 +583,7 @@ TST <- xts::xts(
 )
 colnames(TST) <- c("TST.Open", "TST.High", "TST.Low", "TST.Close")
 
-chartSeries(TST, type = "candlesticks", theme = "white", name = "TST")
+maidr::chartSeries(TST, type = "candlesticks", theme = "white", name = "TST")
 ```
 
 ---

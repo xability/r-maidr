@@ -33,10 +33,7 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
   # NULL means Base R auto-detection (recorded plot calls), mirroring show()
   if (is.null(plot)) {
     if (!is_patching_active() || !has_device_calls(grDevices::dev.cur())) {
-      stop(
-        "No Base R plots detected. Please create a plot first ",
-        "(e.g., barplot(), plot())."
-      )
+      stop(no_base_r_plots_message(), call. = FALSE)
     }
   } else if (!inherits(plot, "ggplot")) {
     stop("Input must be a ggplot object or NULL (Base R auto-detection).")

@@ -31,7 +31,13 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL) {
       data <- self$extract_data(plot, built, scale_mapping, panel_id)
 
-      selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx, built = built)
+      # Size the selectors to the series actually emitted: the frontend's
+      # multiline trace drops the whole layer's highlight unless
+      # selectors.length === data.length.
+      selectors <- self$generate_selectors(
+        plot, gt, grob_id, panel_ctx,
+        built = built, n_series = length(data)
+      )
 
       axes <- self$extract_layer_axes(plot, layout)
       axes <- self$attach_group_axis(plot, built, data, axes)
@@ -529,118 +535,212 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       self$resolve_group_mapping(plot)$column
     },
 
-    #' Generate selectors using actual SVG structure
+    #' @description One selector per series this line layer draws.
+    #'
+    #' The panel-wide polyline list conflates two different things: a
+    #' grouped \code{geom_line()} draws ALL of its curves as ONE
+    #' \code{polylineGrob} whose \code{id} splits it (gridSVG then emits
+    #' \code{GRID.polyline.N.1.1}, \code{.1.2}, ... per curve), while a
+    #' second polyline-producing layer such as \code{geom_smooth()} adds
+    #' further grobs of its own. Indexing that flat list by this layer's
+    #' position among line layers therefore returned one selector for a
+    #' three-curve layer as soon as a smooth sat beside it, and the
+    #' frontend's multiline trace refuses a selector list whose length does
+    #' not equal the series count -- so the layer lost highlighting
+    #' entirely rather than mis-aiming it.
+    #'
+    #' This resolves THIS layer's own grob first and then enumerates the
+    #' curves inside it, emitting one selector per curve. When the curves
+    #' cannot be lined up with the series, no selector is emitted: a caller
+    #' can tell an absent selector apart from a wrong one, a user cannot.
+    #'
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation
+    #' @param built Built plot data (optional)
+    #' @param n_series Number of series \code{extract_data()} produced, or
+    #'   NULL to derive it from the built layer data
     #' @return List of selectors for each series
-    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL, built = NULL) {
-      if (!is.null(panel_ctx) && !is.null(gt)) {
-        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-        if (is.null(panel_grob)) {
-          return(list())
+    generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL,
+                                  built = NULL, n_series = NULL) {
+      if (is.null(panel_ctx) || is.null(gt)) {
+        if (!is.null(grob_id)) {
+          # For faceted plots: use provided grob ID with .1.1 suffix
+          # (gridSVG adds this)
+          full_grob_id <- paste0(grob_id, ".1.1")
+          escaped_grob_id <- gsub("\\.", "\\\\.", full_grob_id)
+          return(list(paste0("#", escaped_grob_id)))
         }
-
-        poly_ids <- c()
-        find_poly <- function(grob) {
-          if (!is.null(grob$name) && grepl("^GRID\\.polyline\\.\\d+$", grob$name)) {
-            poly_ids <<- c(poly_ids, grob$name)
-          }
-          if (inherits(grob, "gList")) {
-            for (i in seq_along(grob)) {
-              find_poly(grob[[i]])
-            }
-          }
-          if (inherits(grob, "gTree")) {
-            for (i in seq_along(grob$children)) {
-              find_poly(grob$children[[i]])
-            }
-          }
-        }
-        find_poly(panel_grob)
-        if (length(poly_ids) == 0) {
-          return(list())
-        }
-
-        # Each separate geom_line / geom_ma layer renders as its own
-        # GRID.polyline grob in the panel. Target the polyline at this
-        # layer's line-layer position so merge_line_layers gets one unique
-        # selector per series (matching JS's selectors.length === data.length
-        # precondition).
-        line_layer_position <- self$line_layer_position(plot)
-        if (length(poly_ids) > 1L &&
-          !is.null(line_layer_position) &&
-          line_layer_position <= length(poly_ids)) {
-          pid <- poly_ids[line_layer_position]
-          base_id <- gsub("^GRID\\.polyline\\.", "", pid)
-          escaped <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
-          return(list(paste0("#", escaped)))
-        }
-
-        # Fallback for single-polyline panels.
-        selectors <- list()
-        for (pid in poly_ids) {
-          base_id <- gsub("^GRID\\.polyline\\.", "", pid)
-          escaped <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
-          selectors[[length(selectors) + 1]] <- paste0("#", escaped)
-        }
-        return(selectors)
-      }
-
-      if (!is.null(grob_id)) {
-        # For faceted plots: use provided grob ID with .1.1 suffix (gridSVG adds this)
-        full_grob_id <- paste0(grob_id, ".1.1")
-        escaped_grob_id <- gsub("\\.", "\\\\.", full_grob_id)
-        return(list(paste0("#", escaped_grob_id)))
-      } else {
-        # For single plots: use existing logic
         if (is.null(gt)) {
           gt <- ggplot2::ggplotGrob(plot)
         }
-
-        all_polyline_grobs <- self$find_all_polyline_grobs(gt)
-        if (length(all_polyline_grobs) == 0) {
-          return(list())
-        }
-
-        # Locate the polyline grob that corresponds to *this* line layer by
-        # counting line-typed layers up to and including the current one in
-        # the plot's layer list. This lets merge_line_layers collapse
-        # candlestick + N geom_ma overlays into a multi-series layer with one
-        # unique selector per series.
-        line_layer_position <- self$line_layer_position(plot)
-
-        # Reuse the caller's build when supplied; rebuilding here would
-        # repeat the full ggplot_build per line layer
-        if (is.null(built)) {
-          built <- ggplot2::ggplot_build(plot)
-        }
-        layer_data <- built$data[[self$layer_info$index]]
-
-        # If multiple separate polylines exist (one per geom_line/geom_ma
-        # layer), target the polyline at this layer's line-layer position.
-        if (length(all_polyline_grobs) > 1L &&
-          !is.null(line_layer_position) &&
-          line_layer_position <= length(all_polyline_grobs)) {
-          grob_name <- all_polyline_grobs[[line_layer_position]]$name
-          base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
-          return(self$generate_single_line_selector(base_id))
-        }
-
-        # Otherwise fall through to the original first-polyline path: one
-        # geom_line whose grouping aesthetic produces N sub-polylines.
-        main_polyline_grob <- all_polyline_grobs[[1]]
-        grob_name <- main_polyline_grob$name
-        base_id <- gsub("^GRID\\.polyline\\.", "", grob_name)
-
-        if ("group" %in% names(layer_data)) {
-          num_series <- length(unique(layer_data$group))
-          if (num_series > 1L) {
-            return(self$generate_multiline_selectors(base_id, num_series))
-          }
-        }
-        return(self$generate_single_line_selector(base_id))
+        # Without a gtable to scope it to, a panel context cannot be resolved.
+        panel_ctx <- NULL
       }
+
+      panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+      if (is.null(panel_grob)) {
+        return(list())
+      }
+
+      if (is.null(n_series)) {
+        n_series <- self$series_count(plot, built, panel_ctx)
+      }
+
+      selectors <- self$curve_selectors(plot, panel_grob, n_series)
+      if (is.null(selectors)) {
+        return(list())
+      }
+      selectors
+    },
+
+    #' @description Number of series this layer draws in the given panel.
+    #'
+    #' Never throws: selector generation has to degrade gracefully for
+    #' inputs \code{extract_data()} would reject.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation
+    #' @return Number of series, at least 1
+    series_count = function(plot, built = NULL, panel_ctx = NULL) {
+      tryCatch(
+        {
+          if (is.null(built)) {
+            built <- ggplot2::ggplot_build(plot)
+          }
+          layer_data <- built$data[[self$layer_info$index]]
+          panel_id <- if (!is.null(panel_ctx)) panel_ctx$panel_id else NULL
+          if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
+            layer_data <- layer_data[layer_data$PANEL == panel_id, , drop = FALSE]
+          }
+          if (!("group" %in% names(layer_data))) {
+            return(1L)
+          }
+          max(1L, length(unique(layer_data$group)))
+        },
+        error = function(e) 1L
+      )
+    },
+
+    #' @description Selectors for the curves inside this layer's own grob.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param panel_grob The panel's grob tree
+    #' @param n_series Number of series the layer produced
+    #' @return List of selectors, or NULL when the grob does not line up
+    #'   with the series
+    curve_selectors = function(plot, panel_grob, n_series) {
+      grob <- self$find_layer_polyline_grob(plot, panel_grob)
+      if (is.null(grob)) {
+        return(NULL)
+      }
+      if (!identical(as.integer(self$polyline_curve_count(grob)), as.integer(n_series))) {
+        return(NULL)
+      }
+      base_id <- gsub("^GRID\\.polyline\\.", "", grob$name)
+      self$generate_multiline_selectors(base_id, n_series)
+    },
+
+    #' @description The polyline grob ggplot2 drew for THIS line layer.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param panel_grob The panel's grob tree
+    #' @return The matching grob, or NULL
+    find_layer_polyline_grob = function(plot, panel_grob) {
+      candidates <- self$layer_polyline_grobs(plot, panel_grob)
+      if (length(candidates) == 0L) {
+        return(NULL)
+      }
+      position <- self$line_layer_position(plot)
+      if (!is.null(position)) {
+        if (position > length(candidates)) {
+          return(NULL)
+        }
+        return(candidates[[position]])
+      }
+      if (length(candidates) == 1L) candidates[[1]] else NULL
+    },
+
+    #' @description Panel polylines that a line layer could have drawn.
+    #'
+    #' \code{GeomPath$draw_panel()} returns a bare \code{polylineGrob}, so a
+    #' line layer's grob carries grid's auto-generated
+    #' \code{GRID.polyline.N} name with no geom prefix to match on -- only
+    #' its draw-order position identifies it. Layers that DO name their grob
+    #' tree after their geom (\code{geom_smooth.gTree.N}) are skipped whole
+    #' via \code{geom_grob_prefix()}, the same helper the smooth processor
+    #' uses to scope itself to its own tree; without that, the smooth's
+    #' three curves are counted as line-layer polylines and shift every
+    #' position by three. Panel grid lines are named after the theme element
+    #' (\code{panel.grid.major.x..polyline.N}) and so never match.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param panel_grob The panel's grob tree
+    #' @return List of grobs in draw order
+    layer_polyline_grobs = function(plot, panel_grob) {
+      skip <- self$other_geom_grob_prefixes(plot)
+      out <- list()
+      collect <- function(grob) {
+        name <- grob$name
+        belongs_to_other_layer <- !is.null(name) && length(skip) > 0L &&
+          any(startsWith(name, paste0(skip, ".")))
+        if (belongs_to_other_layer) {
+          # Another layer's tree: a match is the whole layer, do not descend.
+          return(invisible(NULL))
+        }
+        if (!is.null(name) && grepl("^GRID\\.polyline\\.\\d+$", name)) {
+          out[[length(out) + 1L]] <<- grob
+        }
+        if (inherits(grob, "gTree")) {
+          for (child in grob$children) collect(child)
+        }
+        if (inherits(grob, "gList")) {
+          for (i in seq_along(grob)) collect(grob[[i]])
+        }
+        invisible(NULL)
+      }
+      collect(panel_grob)
+      out
+    },
+
+    #' @description Grob-name prefixes belonging to the plot's OTHER geoms.
+    #'
+    #' This layer's own prefix is excluded so that a second layer sharing
+    #' the geom (two \code{geom_line()} calls) is still walked.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return Character vector of prefixes, possibly empty
+    other_geom_grob_prefixes = function(plot) {
+      prefix_of <- function(layer) {
+        tryCatch(geom_grob_prefix(layer$geom), error = function(e) NA_character_)
+      }
+      own <- prefix_of(plot$layers[[self$get_layer_index()]])
+      prefixes <- vapply(plot$layers, prefix_of, character(1))
+      prefixes <- unique(prefixes[!is.na(prefixes)])
+      if (!is.na(own)) {
+        prefixes <- setdiff(prefixes, own)
+      }
+      prefixes
+    },
+
+    #' @description Number of separate curves a polyline grob draws.
+    #'
+    #' \code{polylineGrob()} splits one grob into several drawn lines via
+    #' \code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
+    #' element suffixed \code{.1.<k>}.
+    #'
+    #' @param grob A polyline grob
+    #' @return Integer count, at least 1
+    polyline_curve_count = function(grob) {
+      if (!is.null(grob$id.lengths)) {
+        return(length(grob$id.lengths))
+      }
+      if (!is.null(grob$id)) {
+        return(length(unique(grob$id)))
+      }
+      1L
     },
 
     #' Generate selectors for multiline plots using actual structure
@@ -668,34 +768,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
       selector <- paste0("#", escaped_id)
       list(selector)
-    },
-
-    #' Find all polyline parent grobs (GRID.polyline.XX) in the panel.
-    #' @keywords internal
-    find_all_polyline_grobs = function(gt) {
-      panel_index <- which(gt$layout$name == "panel")
-      if (length(panel_index) == 0) {
-        return(list())
-      }
-      panel_grob <- gt$grobs[[panel_index]]
-      if (!inherits(panel_grob, "gTree")) {
-        return(list())
-      }
-
-      out <- list()
-      collect <- function(grob) {
-        if (!is.null(grob$name) && grepl("^GRID\\.polyline\\.\\d+$", grob$name)) {
-          out[[length(out) + 1L]] <<- grob
-        }
-        if (inherits(grob, "gList")) {
-          for (i in seq_along(grob)) collect(grob[[i]])
-        }
-        if (inherits(grob, "gTree")) {
-          for (i in seq_along(grob$children)) collect(grob$children[[i]])
-        }
-      }
-      collect(panel_grob)
-      out
     },
 
     #' Position (1-based) of this layer among line-typed layers in `plot`.

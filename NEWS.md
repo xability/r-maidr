@@ -24,6 +24,71 @@
   all announce the grid R drew — a `ts` starting in 2001 is announced
   2001-2005 rather than 1-5, and `plot()` of a data frame gains the grid it
   previously omitted.
+* Base R: `library(maidr); library(quantmod); chartSeries(SPY)` no longer
+  fails silently and then blames the user. Attaching 'quantmod' puts
+  `package:quantmod` ahead of `package:maidr` on the search path, so a bare
+  `chartSeries()` binds to quantmod's own function and maidr's recording
+  wrapper is never entered: the chart drew as a plain inaccessible graphic
+  and `show()` / `save_html()` then stopped with "No Base R plots detected.
+  Please create a plot first", which is false — a chart *was* drawn.
+  An earlier NEWS entry claimed this case was already handled; it never was,
+  and that claim has been corrected. maidr does not overwrite quantmod's
+  bindings to win the search-path race, because that would also route
+  quantmod's own internal `chartSeries()` calls through maidr's wrapper.
+  Instead the ordering problem is now reported: attaching 'quantmod' after
+  'maidr' prints a startup message naming the masking, and the "No Base R
+  plots detected" error names it too, in both cases pointing at the two
+  working options — attach 'quantmod' before 'maidr', or call
+  `maidr::chartSeries()` explicitly. Attaching 'quantmod' first, and
+  `maidr::chartSeries()`, record and export as before.
+* Base R: `maidr::chartSeries(x, type = "candlesticks", TA = NULL)` no longer
+  dies with "no applicable method for `@` applied to an object of class
+  \"name\"" when 'quantmod' is loaded but not attached. quantmod records its
+  own arguments with `match.call(expand.dots = TRUE)`; forwarded through
+  maidr's `...` that record holds the dot symbols rather than the caller's
+  expressions, so an explicit `TA = NULL` arrived as a symbol and quantmod
+  tried to take an S4 slot from it. The call is now retried with the
+  arguments rebuilt in the caller's frame — the same fallback maidr's
+  generated wrappers already used, which is why attaching 'quantmod' first
+  was unaffected.
+* Base R: a `layout()` grid in which one panel spans several cells no longer
+  advertises the rest of the span as empty subplots. `layout(matrix(c(1, 1, 1,
+  2, 3, 4), 2, 3, byrow = TRUE))` draws panel 1 across the whole top row, but
+  the two cells it covered were emitted with no layers, no title and no
+  selector, so a four-panel figure announced six subplots and arrowing into
+  either cell threw in the browser instead of announcing anything. Every cell
+  a panel spans now carries that panel, so navigation across the span keeps
+  announcing and highlighting it; the panel is still one plot, reported once
+  per cell it covers. A `0` in the layout matrix, and a panel the matrix
+  declares but the user never drew, still emit an empty cell — those are
+  genuinely blank. `par(mfrow)` and `par(mfcol)` grids cannot span and are
+  unchanged.
+* Base R: `heatmap()` of a matrix with no `dimnames` announces the row and
+  column identities it actually draws. `heatmap()` clusters the rows and
+  columns and then labels the reordered matrix with the *original* indices,
+  `(1L:nr)[rowInd]`; maidr instead filled unnamed axes with a plain 1..n
+  position sequence, so a default `heatmap(m)` announced "row 5" while
+  sonifying the values of original row 2. Only the labels were affected — the
+  values have been drawn from the same ordering since dendrogram support
+  landed, which left the payload internally inconsistent as well as wrong
+  against the figure. Unnamed axes now take their labels from that ordering,
+  on both the row and the column axis, and `revC` (which every `symm = TRUE`
+  call turns on) reverses labels and values together as before. Matrices that
+  carry `dimnames` are unchanged, as are `Rowv = NA, Colv = NA` heatmaps and
+  `image()`, none of which reorder anything, so 1..n is what they draw.
+* ggplot2: a grouped `geom_line()` keeps its highlight when another layer in
+  the same panel also draws polylines. A grouped line draws all of its curves
+  as one grob that gridSVG splits per curve, while a sibling `geom_smooth()`
+  contributes grobs of its own; the layer's selector was picked by indexing
+  that flat panel-wide list of grobs by the layer's position among line
+  layers, so `geom_line(aes(colour = g)) + geom_smooth()` emitted three series
+  and one selector. The frontend requires one selector per series and drops
+  the whole layer's highlight otherwise, so nothing on screen moved as the
+  reader walked any of the three lines. The layer's own grob is now resolved
+  first and its curves enumerated from it, giving one selector per series; two
+  line layers in one panel likewise each resolve to their own grob. When the
+  curves cannot be lined up with the series, no selector is emitted rather
+  than one of the wrong length.
 * ggplot2: a faceted stacked bar whose facet column contains `NA` exports
   again. ggplot2 draws a real extra panel for the missing value, but the
   per-panel subset picked its rows with `==`, which answers `NA` for exactly
@@ -379,8 +444,12 @@
   the index `addTaskCallback()` returned, which is a position in R's
   callback list, so an unrelated package's callback could be removed
   instead.
-* Base R: `chartSeries()` calls are now recorded even when 'quantmod' is
-  loaded after 'maidr'.
+* Base R: `maidr::chartSeries()` is recorded even when 'quantmod' is loaded
+  after 'maidr'. (Corrected in the development version: this entry
+  originally claimed `chartSeries()` calls were recorded whenever 'quantmod'
+  was loaded after 'maidr', which was never true of `library(quantmod)`.
+  Attaching 'quantmod' after 'maidr' masks maidr's wrapper — see the
+  development-version notes.)
 * ggplot2: faceted box plots, histograms, smooths, heatmaps, and
   stacked/dodged bars no longer crash with "unused arguments"; extracted
   data and selectors are now scoped to each facet panel. Faceted violins
