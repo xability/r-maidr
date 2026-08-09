@@ -166,8 +166,7 @@ for individual points in the SVG structure.</p>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href="LayerProcessor.html#method-set_last_result"><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
 </ul></details></p><hr><a id="method-Ggplot2PointLayerProcessor-process"></a><div class="section">
 <h3 id="method-process-">Method <code>process()</code><a class="anchor" aria-label="anchor" href="#method-process-"></a></h3>
-
-<div class="section">
+<p>Process the point layer</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -215,17 +214,15 @@ for individual points in the SVG structure.</p>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>List with data and selectors
-Extract axis information from the plot</p>
-<p>Returns per-axis objects with label and optional grid navigation fields
-(min, max, tickStep). Grid fields are only included when they can be
-successfully extracted from the built plot scales.</p>
+<p>List with data and selectors</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-extract_axes_labels"></a><div class="section">
 <h3 id="method-extract-axes-labels-">Method <code>extract_axes_labels()</code><a class="anchor" aria-label="anchor" href="#method-extract-axes-labels-"></a></h3>
-
-<div class="section">
+<p>Extract axis information from the plot</p>
+<p>Returns per-axis objects with label and optional grid navigation fields
+(min, max, tickStep). Grid fields are only included when they can be
+successfully extracted from the built plot scales.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_axes_labels</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -252,17 +249,15 @@ successfully extracted from the built plot scales.</p>
 </div>
 <div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>List with x and y per-axis objects
-Extract grid navigation info (min, max, tickStep) for a single axis</p>
-<p>Attempts to extract range and tick interval from the built plot's
-panel parameters. Returns NULL if any required value cannot be
-determined, allowing graceful fallback to non-grid scatter navigation.</p>
+<p>List with x and y per-axis objects</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-extract_axis_grid_info"></a><div class="section">
 <h3 id="method-extract-axis-grid-info-">Method <code>extract_axis_grid_info()</code><a class="anchor" aria-label="anchor" href="#method-extract-axis-grid-info-"></a></h3>
-
-<div class="section">
+<p>Extract grid navigation info (min, max, tickStep) for a single axis</p>
+<p>Attempts to extract range and tick interval from the built plot's
+panel parameters. Returns NULL if any required value cannot be
+determined, allowing graceful fallback to non-grid scatter navigation.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_grid_info</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
@@ -289,14 +284,12 @@ determined, allowing graceful fallback to non-grid scatter navigation.</p>
 </div>
 <div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>List with min, max, tickStep or NULL if extraction fails
-Extract data from point layer</p>
+<p>List with min, max, tickStep or NULL if extraction fails</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-extract_data"></a><div class="section">
 <h3 id="method-extract-data-">Method <code>extract_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-data-"></a></h3>
-
-<div class="section">
+<p>Extract data from point layer</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -328,14 +321,12 @@ Extract data from point layer</p>
 </div>
 <div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>List with points array and color information
-Generate selectors for point elements</p>
+<p>List with points array and color information</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
-
-<div class="section">
+<p>Generate selectors for point elements</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -363,14 +354,12 @@ Generate selectors for point elements</p>
 </div>
 <div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>List of selectors
-Find the panel grob this layer draws into</p>
+<p>List of selectors</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-find_panel_grob"></a><div class="section">
 <h3 id="method-find-panel-grob-">Method <code>find_panel_grob()</code><a class="anchor" aria-label="anchor" href="#method-find-panel-grob-"></a></h3>
-
-<div class="section">
+<p>Find the panel grob this layer draws into</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">find_panel_grob</span><span class="op">(</span><span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -390,14 +379,12 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 </div>
 <div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>The panel grob or NULL
-Find children by type pattern</p>
+<p>The panel grob or NULL</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PointLayerProcessor-find_children_by_type"></a><div class="section">
 <h3 id="method-find-children-by-type-">Method <code><a href="find_children_by_type.html">find_children_by_type()</a></code><a class="anchor" aria-label="anchor" href="#method-find-children-by-type-"></a></h3>
-
-<div class="section">
+<p>Find children by type pattern</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PointLayerProcessor</span><span class="op">$</span><span class="fu">find_children_by_type</span><span class="op">(</span><span class="va">grob</span>, <span class="va">type_pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

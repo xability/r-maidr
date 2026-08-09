@@ -1,17 +1,11 @@
 # ggplot2 System Adapter
 
-ggplot2 System Adapter
-
-ggplot2 System Adapter
+Adapter for the ggplot2 plotting system. This adapter wraps the existing
+ggplot2 functionality to work with the new extensible architecture.
 
 ## Format
 
 An R6 class inheriting from SystemAdapter
-
-## Details
-
-Adapter for the ggplot2 plotting system. This adapter wraps the existing
-ggplot2 functionality to work with the new extensible architecture.
 
 ## Super class
 

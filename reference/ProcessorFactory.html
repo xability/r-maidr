@@ -156,8 +156,7 @@ the appropriate processors for different plot types.</p>
 <li><p><a href="#method-ProcessorFactory-clone"><code>ProcessorFactory$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-ProcessorFactory-create_processor"></a><div class="section">
 <h3 id="method-create-processor-">Method <code>create_processor()</code><a class="anchor" aria-label="anchor" href="#method-create-processor-"></a></h3>
-
-<div class="section">
+<p>Abstract method to create a processor for a specific plot type</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">create_processor</span><span class="op">(</span><span class="va">plot_type</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -176,28 +175,24 @@ the appropriate processors for different plot types.</p>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Processor instance for the specified plot type
-Abstract method to get list of supported plot types</p>
+<p>Processor instance for the specified plot type</p>
 </div>
 
 </div><p></p><hr><a id="method-ProcessorFactory-get_supported_types"></a><div class="section">
 <h3 id="method-get-supported-types-">Method <code>get_supported_types()</code><a class="anchor" aria-label="anchor" href="#method-get-supported-types-"></a></h3>
-
-<div class="section">
+<p>Abstract method to get list of supported plot types</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">get_supported_types</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>Character vector of supported plot types
-Check if a plot type is supported by this factory</p>
+<p>Character vector of supported plot types</p>
 </div>
 
 </div><p></p><hr><a id="method-ProcessorFactory-supports_plot_type"></a><div class="section">
 <h3 id="method-supports-plot-type-">Method <code>supports_plot_type()</code><a class="anchor" aria-label="anchor" href="#method-supports-plot-type-"></a></h3>
-
-<div class="section">
+<p>Check if a plot type is supported by this factory</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">supports_plot_type</span><span class="op">(</span><span class="va">plot_type</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -212,14 +207,12 @@ Check if a plot type is supported by this factory</p>
 </div>
 <div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>TRUE if supported, FALSE otherwise
-Get system name (should be overridden by subclasses)</p>
+<p>TRUE if supported, FALSE otherwise</p>
 </div>
 
 </div><p></p><hr><a id="method-ProcessorFactory-get_system_name"></a><div class="section">
 <h3 id="method-get-system-name-">Method <code>get_system_name()</code><a class="anchor" aria-label="anchor" href="#method-get-system-name-"></a></h3>
-
-<div class="section">
+<p>Get system name (should be overridden by subclasses)</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">get_system_name</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

@@ -1,11 +1,5 @@
 # Final Line Layer Processor - Uses Actual SVG Structure
 
-Final Line Layer Processor - Uses Actual SVG Structure
-
-Final Line Layer Processor - Uses Actual SVG Structure
-
-## Details
-
 Processes line plot layers using the actual gridSVG structure
 discovered: - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2,
 GRID.polyline.61.1.3 - Points: geom_point.points.63.1.1 through
@@ -108,6 +102,8 @@ Inherited methods
 ------------------------------------------------------------------------
 
 ### Method `process()`
+
+Process the line layer with actual SVG structure
 
 #### Usage
 
@@ -234,6 +230,11 @@ A line has no fill, so only the colour aesthetic is probed.
 
 list with `aes` (aesthetic spelling variants, or NULL when nothing is
 mapped) and `column` (the mapped column name, or "group" as a fallback)
+
+------------------------------------------------------------------------
+
+### Method `extract_layer_axes()`
+
 Extract axes labels for line layers, with a special case for
 moving-average geoms (e.g. \`tidyquant::geom_ma\`).
 
@@ -246,10 +247,6 @@ the moving average of \`close\`, not \`close\` itself. We detect
 \`GeomMA\` (the class of tidyquant's geom_ma layer) and override the
 y-label accordingly. Plain \`geom_line\` / \`geom_smooth\` overlays are
 untouched.
-
-------------------------------------------------------------------------
-
-### Method `extract_layer_axes()`
 
 #### Usage
 
@@ -267,12 +264,13 @@ untouched.
 
 #### Returns
 
-list(x = list(label = ...), y = list(label = ...)) Extract data from
-line layer (single or multiline)
+list(x = list(label = ...), y = list(label = ...))
 
 ------------------------------------------------------------------------
 
 ### Method `extract_data()`
+
+Extract data from line layer (single or multiline)
 
 #### Usage
 
@@ -428,7 +426,6 @@ need the original column from \`plot\$data\` (or the layer's own
 
 Returns the per-row vector of x values aligned to \`built_data\` if a
 simple column reference is found and the lengths match, otherwise NULL.
-Extract data for multiple line series
 
 #### Usage
 
@@ -437,6 +434,8 @@ Extract data for multiple line series
 ------------------------------------------------------------------------
 
 ### Method `extract_multiline_data()`
+
+Extract data for multiple line series
 
 #### Usage
 
@@ -454,12 +453,13 @@ Extract data for multiple line series
 
 #### Returns
 
-List of arrays, each containing series data Extract data for single line
-(backward compatibility)
+List of arrays, each containing series data
 
 ------------------------------------------------------------------------
 
 ### Method `extract_single_line_data()`
+
+Extract data for single line (backward compatibility)
 
 #### Usage
 
@@ -473,12 +473,13 @@ List of arrays, each containing series data Extract data for single line
 
 #### Returns
 
-List containing single series data Get the grouping column name from
-plot mappings
+List containing single series data
 
 ------------------------------------------------------------------------
 
 ### Method `get_group_column()`
+
+Get the grouping column name from plot mappings
 
 #### Usage
 
@@ -727,12 +728,13 @@ Number of separate curves a polyline grob draws.
 
 #### Returns
 
-Integer count, at least 1 Generate selectors for multiline plots using
-actual structure
+Integer count, at least 1
 
 ------------------------------------------------------------------------
 
 ### Method `generate_multiline_selectors()`
+
+Generate selectors for multiline plots using actual structure
 
 #### Usage
 
@@ -750,11 +752,13 @@ actual structure
 
 #### Returns
 
-List of selectors Generate selector for single line plot
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### Method `generate_single_line_selector()`
+
+Generate selector for single line plot
 
 #### Usage
 
@@ -768,13 +772,14 @@ List of selectors Generate selector for single line plot
 
 #### Returns
 
-List with single selector Position (1-based) of this layer among
-line-typed layers in \`plot\`. Returns NULL if the registry-based
-detection fails.
+List with single selector
 
 ------------------------------------------------------------------------
 
 ### Method `line_layer_position()`
+
+Position (1-based) of this layer among line-typed layers in \`plot\`.
+Returns NULL if the registry-based detection fails.
 
 #### Usage
 
@@ -783,6 +788,8 @@ detection fails.
 ------------------------------------------------------------------------
 
 ### Method `find_main_polyline_grob()`
+
+Find the main polyline grob (GRID.polyline.XX)
 
 #### Usage
 
@@ -796,11 +803,13 @@ detection fails.
 
 #### Returns
 
-The main polyline grob or NULL Check if layer needs reordering
+The main polyline grob or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `needs_reordering()`
+
+Check if layer needs reordering
 
 #### Usage
 

@@ -27,6 +27,8 @@ An R6 class
 
 ### Method `create_processor()`
 
+Abstract method to create a processor for a specific plot type
+
 #### Usage
 
     ProcessorFactory$create_processor(plot_type, plot_object)
@@ -43,12 +45,13 @@ An R6 class
 
 #### Returns
 
-Processor instance for the specified plot type Abstract method to get
-list of supported plot types
+Processor instance for the specified plot type
 
 ------------------------------------------------------------------------
 
 ### Method `get_supported_types()`
+
+Abstract method to get list of supported plot types
 
 #### Usage
 
@@ -56,12 +59,13 @@ list of supported plot types
 
 #### Returns
 
-Character vector of supported plot types Check if a plot type is
-supported by this factory
+Character vector of supported plot types
 
 ------------------------------------------------------------------------
 
 ### Method `supports_plot_type()`
+
+Check if a plot type is supported by this factory
 
 #### Usage
 
@@ -75,12 +79,13 @@ supported by this factory
 
 #### Returns
 
-TRUE if supported, FALSE otherwise Get system name (should be overridden
-by subclasses)
+TRUE if supported, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `get_system_name()`
+
+Get system name (should be overridden by subclasses)
 
 #### Usage
 

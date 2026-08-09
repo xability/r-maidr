@@ -1,8 +1,6 @@
-# Facet Processing Utilities
+# Process a faceted plot and return organized subplot data
 
-Utility functions for processing faceted ggplot2 plots. These functions
-handle panel extraction, processing, and grid organization for faceted
-plots in a unified way.
+Process a faceted plot and return organized subplot data
 
 ## Usage
 

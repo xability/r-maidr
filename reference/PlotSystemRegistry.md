@@ -36,6 +36,14 @@ An R6 class
 
 ### Method `register_system()`
 
+Registered plotting systems
+
+System adapters
+
+Processor factories
+
+Register a new plotting system
+
 #### Usage
 
     PlotSystemRegistry$register_system(system_name, adapter, processor_factory)
@@ -52,12 +60,13 @@ An R6 class
 
 - `processor_factory`:
 
-  Processor factory instance for this system Detect which system can
-  handle a plot object
+  Processor factory instance for this system
 
 ------------------------------------------------------------------------
 
 ### Method `detect_system()`
+
+Detect which system can handle a plot object
 
 #### Usage
 
@@ -71,12 +80,13 @@ An R6 class
 
 #### Returns
 
-System name if found, NULL otherwise Get the adapter for a specific
-system
+System name if found, NULL otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `get_adapter()`
+
+Get the adapter for a specific system
 
 #### Usage
 
@@ -90,11 +100,13 @@ system
 
 #### Returns
 
-Adapter instance Get the processor factory for a specific system
+Adapter instance
 
 ------------------------------------------------------------------------
 
 ### Method `get_processor_factory()`
+
+Get the processor factory for a specific system
 
 #### Usage
 
@@ -108,12 +120,13 @@ Adapter instance Get the processor factory for a specific system
 
 #### Returns
 
-Processor factory instance Get the adapter for a plot object
-(auto-detect system)
+Processor factory instance
 
 ------------------------------------------------------------------------
 
 ### Method `get_adapter_for_plot()`
+
+Get the adapter for a plot object (auto-detect system)
 
 #### Usage
 
@@ -127,12 +140,13 @@ Processor factory instance Get the adapter for a plot object
 
 #### Returns
 
-Adapter instance Get the processor factory for a plot object
-(auto-detect system)
+Adapter instance
 
 ------------------------------------------------------------------------
 
 ### Method `get_processor_factory_for_plot()`
+
+Get the processor factory for a plot object (auto-detect system)
 
 #### Usage
 
@@ -146,11 +160,13 @@ Adapter instance Get the processor factory for a plot object
 
 #### Returns
 
-Processor factory instance List all registered systems
+Processor factory instance
 
 ------------------------------------------------------------------------
 
 ### Method `list_systems()`
+
+List all registered systems
 
 #### Usage
 
@@ -158,12 +174,13 @@ Processor factory instance List all registered systems
 
 #### Returns
 
-Character vector of registered system names Check if a system is
-registered
+Character vector of registered system names
 
 ------------------------------------------------------------------------
 
 ### Method `is_system_registered()`
+
+Check if a system is registered
 
 #### Usage
 
@@ -177,11 +194,13 @@ registered
 
 #### Returns
 
-TRUE if registered, FALSE otherwise Unregister a system
+TRUE if registered, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `unregister_system()`
+
+Unregister a system
 
 #### Usage
 

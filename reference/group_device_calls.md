@@ -1,8 +1,7 @@
-# Base R Plot Grouping
+# Group Device Calls into Plot Units
 
-This module groups plot calls into logical units: - Each HIGH-level call
-starts a new plot group - Subsequent LOW-level calls are associated with
-the current plot group - LAYOUT calls affect multi-panel configuration
+Groups all calls from a device into logical plot units. Each group
+contains one HIGH-level call and its associated LOW-level calls.
 
 ## Usage
 

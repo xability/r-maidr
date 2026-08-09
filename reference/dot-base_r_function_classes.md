@@ -1,4 +1,4 @@
-# Base R Function Classification
+# Function Classification Maps
 
 Maps of function names to their classification levels
 
@@ -11,10 +11,3 @@ Maps of function names to their classification levels
 ## Format
 
 An object of class `list` of length 3.
-
-## Details
-
-This module classifies Base R plotting functions into categories: -
-HIGH: Main plot creation functions (barplot, hist, plot, etc.) - LOW:
-Drawing functions that add to existing plots (lines, points, etc.) -
-LAYOUT: Canvas layout functions (par, layout, etc.)

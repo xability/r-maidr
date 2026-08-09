@@ -1,8 +1,6 @@
-# Patchwork Processing Utilities
+# Process a patchwork plot and return organized subplot data
 
-Utility functions for processing patchwork multipanel compositions.
-These functions handle panel discovery, leaf extraction, and processing
-for patchwork plots in a unified way.
+Process a patchwork plot and return organized subplot data
 
 ## Usage
 

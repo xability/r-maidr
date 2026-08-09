@@ -91,6 +91,8 @@ Inherited methods
 
 ### Method `get_axis_labels()`
 
+Get custom axis labels from axis() LOW-level calls
+
 #### Usage
 
     BaseRLineLayerProcessor$get_axis_labels(layer_info, axis_side = 1)

@@ -1,11 +1,5 @@
 # Plot Orchestrator Class
 
-Plot Orchestrator Class
-
-Plot Orchestrator Class
-
-## Details
-
 This class orchestrates the detection and processing of multiple layers
 in a ggplot2 object. It analyzes each layer individually and combines
 the results into a comprehensive interactive plot.
@@ -163,6 +157,8 @@ the results into a comprehensive interactive plot.
 ------------------------------------------------------------------------
 
 ### Method `create_unified_layer_processor()`
+
+Unified layer processor creation - used by all plot types
 
 #### Usage
 

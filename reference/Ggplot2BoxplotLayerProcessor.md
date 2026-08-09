@@ -58,6 +58,12 @@ Inherited methods
 
 ### Method `get_built()`
 
+Get (and cache) the built plot data
+
+ggplot_build() is expensive; extract_data, generate_selectors,
+determine_orientation, and map_categories_to_names all need it, so build
+at most once per processor instance.
+
 #### Usage
 
     Ggplot2BoxplotLayerProcessor$get_built(plot, built = NULL)
@@ -74,11 +80,13 @@ Inherited methods
 
 #### Returns
 
-Built plot data Process the boxplot layer
+Built plot data
 
 ------------------------------------------------------------------------
 
 ### Method `process()`
+
+Process the boxplot layer
 
 #### Usage
 
@@ -129,11 +137,13 @@ Built plot data Process the boxplot layer
 
 #### Returns
 
-List with data and selectors Extract data from boxplot layer
+List with data and selectors
 
 ------------------------------------------------------------------------
 
 ### Method `extract_data()`
+
+Extract data from boxplot layer
 
 #### Usage
 
@@ -155,12 +165,13 @@ List with data and selectors Extract data from boxplot layer
 
 #### Returns
 
-List with boxplot statistics for each category Generate selectors for
-boxplot elements
+List with boxplot statistics for each category
 
 ------------------------------------------------------------------------
 
 ### Method `generate_selectors()`
+
+Generate selectors for boxplot elements
 
 #### Usage
 
@@ -191,12 +202,13 @@ boxplot elements
 
 #### Returns
 
-List of selectors for each boxplot Determine if the boxplot is
-horizontal or vertical
+List of selectors for each boxplot
 
 ------------------------------------------------------------------------
 
 ### Method `determine_orientation()`
+
+Determine if the boxplot is horizontal or vertical
 
 #### Usage
 
@@ -210,12 +222,14 @@ horizontal or vertical
 
 #### Returns
 
-"horz" or "vert" Map numeric category codes to actual category names
-Uses panel_params axis labels from ggplot_build to map codes to labels
+"horz" or "vert"
 
 ------------------------------------------------------------------------
 
 ### Method `map_categories_to_names()`
+
+Map numeric category codes to actual category names Uses panel_params
+axis labels from ggplot_build to map codes to labels
 
 #### Usage
 
@@ -241,12 +255,13 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 
 #### Returns
 
-Updated boxplot data with proper category names Find the panel grob this
-layer draws into
+Updated boxplot data with proper category names
 
 ------------------------------------------------------------------------
 
 ### Method `find_panel_grob()`
+
+Find the panel grob this layer draws into
 
 #### Usage
 
@@ -265,11 +280,13 @@ layer draws into
 
 #### Returns
 
-The panel grob or NULL Find children by type pattern
+The panel grob or NULL
 
 ------------------------------------------------------------------------
 
 ### Method [`find_children_by_type()`](https://r.maidr.ai/reference/find_children_by_type.md)
+
+Find children by type pattern
 
 #### Usage
 
@@ -287,11 +304,13 @@ The panel grob or NULL Find children by type pattern
 
 #### Returns
 
-List of matching children Find the outlier container within a boxplot
+List of matching children
 
 ------------------------------------------------------------------------
 
 ### Method `find_outlier_container()`
+
+Find the outlier container within a boxplot
 
 #### Usage
 
@@ -309,11 +328,13 @@ List of matching children Find the outlier container within a boxplot
 
 #### Returns
 
-The outlier container ID or NULL Find the box container within a boxplot
+The outlier container ID or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `find_box_container()`
+
+Find the box container within a boxplot
 
 #### Usage
 
@@ -331,11 +352,13 @@ The outlier container ID or NULL Find the box container within a boxplot
 
 #### Returns
 
-The box container ID or NULL Find the whisker container within a boxplot
+The box container ID or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `find_whisker_container()`
+
+Find the whisker container within a boxplot
 
 #### Usage
 
@@ -353,12 +376,13 @@ The box container ID or NULL Find the whisker container within a boxplot
 
 #### Returns
 
-The whisker container ID or NULL Find the median container within a
-boxplot
+The whisker container ID or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `find_median_container()`
+
+Find the median container within a boxplot
 
 #### Usage
 
@@ -376,12 +400,13 @@ boxplot
 
 #### Returns
 
-The median container ID or NULL Find a child element by pattern within a
-container
+The median container ID or NULL
 
 ------------------------------------------------------------------------
 
 ### Method `find_child_by_pattern()`
+
+Find a child element by pattern within a container
 
 #### Usage
 

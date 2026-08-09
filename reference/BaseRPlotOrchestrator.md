@@ -1,11 +1,5 @@
 # Base R Plot Orchestrator Class
 
-Base R Plot Orchestrator Class
-
-Base R Plot Orchestrator Class
-
-## Details
-
 This class orchestrates the detection and processing of multiple layers
 in Base R plots. It analyzes each recorded plot call individually and
 combines the results into a comprehensive interactive plot.
@@ -166,6 +160,8 @@ combines the results into a comprehensive interactive plot.
 
 ### Method `create_unified_layer_processor()`
 
+Unified layer processor creation - used by all plot types
+
 #### Usage
 
     BaseRPlotOrchestrator$create_unified_layer_processor(layer_info)
@@ -178,11 +174,7 @@ combines the results into a comprehensive interactive plot.
 
 #### Returns
 
-Layer processor instance Extract Format Configuration from axis() Calls
-
-Scans logged axis() calls for format config stored by the axis wrapper.
-The wrapper stores .maidr_format_config when labels is a scales::
-function.
+Layer processor instance
 
 ------------------------------------------------------------------------
 
@@ -195,6 +187,12 @@ function.
 ------------------------------------------------------------------------
 
 ### Method `extract_format_config_from_axis_calls()`
+
+Extract Format Configuration from axis() Calls
+
+Scans logged axis() calls for format config stored by the axis wrapper.
+The wrapper stores .maidr_format_config when labels is a scales::
+function.
 
 #### Usage
 

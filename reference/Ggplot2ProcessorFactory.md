@@ -41,6 +41,8 @@ Inherited methods
 
 ### Method `new()`
 
+Initialize the ggplot2 processor factory
+
 #### Usage
 
     Ggplot2ProcessorFactory$new()
@@ -48,6 +50,8 @@ Inherited methods
 ------------------------------------------------------------------------
 
 ### Method `create_processor()`
+
+Create a processor for a specific plot type
 
 #### Usage
 
@@ -65,12 +69,13 @@ Inherited methods
 
 #### Returns
 
-Processor instance for the specified plot type Get list of supported
-plot types
+Processor instance for the specified plot type
 
 ------------------------------------------------------------------------
 
 ### Method `get_supported_types()`
+
+Get list of supported plot types
 
 #### Usage
 
@@ -78,11 +83,13 @@ plot types
 
 #### Returns
 
-Character vector of supported plot types Get the system name
+Character vector of supported plot types
 
 ------------------------------------------------------------------------
 
 ### Method `get_system_name()`
+
+Get the system name
 
 #### Usage
 
@@ -90,11 +97,13 @@ Character vector of supported plot types Get the system name
 
 #### Returns
 
-System name string Check if a specific processor class is available
+System name string
 
 ------------------------------------------------------------------------
 
 ### Method `is_processor_available()`
+
+Check if a specific processor class is available
 
 #### Usage
 
@@ -108,11 +117,13 @@ System name string Check if a specific processor class is available
 
 #### Returns
 
-TRUE if available, FALSE otherwise Get available processor classes
+TRUE if available, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `get_available_processors()`
+
+Get available processor classes
 
 #### Usage
 
@@ -120,12 +131,13 @@ TRUE if available, FALSE otherwise Get available processor classes
 
 #### Returns
 
-Character vector of available processor class names Create a processor
-with error handling
+Character vector of available processor class names
 
 ------------------------------------------------------------------------
 
 ### Method `try_create_processor()`
+
+Create a processor with error handling
 
 #### Usage
 

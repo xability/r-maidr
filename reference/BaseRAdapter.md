@@ -1,17 +1,11 @@
 # Base R System Adapter
 
-Base R System Adapter
-
-Base R System Adapter
+Adapter for the Base R plotting system. This adapter uses function
+patching to intercept Base R plotting calls and detect plot types.
 
 ## Format
 
 An R6 class inheriting from SystemAdapter
-
-## Details
-
-Adapter for the Base R plotting system. This adapter uses function
-patching to intercept Base R plotting calls and detect plot types.
 
 ## Super class
 

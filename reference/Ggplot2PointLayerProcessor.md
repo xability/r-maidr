@@ -45,6 +45,8 @@ Inherited methods
 
 ### Method `process()`
 
+Process the point layer
+
 #### Usage
 
     Ggplot2PointLayerProcessor$process(
@@ -90,15 +92,17 @@ Inherited methods
 
 #### Returns
 
-List with data and selectors Extract axis information from the plot
-
-Returns per-axis objects with label and optional grid navigation fields
-(min, max, tickStep). Grid fields are only included when they can be
-successfully extracted from the built plot scales.
+List with data and selectors
 
 ------------------------------------------------------------------------
 
 ### Method `extract_axes_labels()`
+
+Extract axis information from the plot
+
+Returns per-axis objects with label and optional grid navigation fields
+(min, max, tickStep). Grid fields are only included when they can be
+successfully extracted from the built plot scales.
 
 #### Usage
 
@@ -124,16 +128,17 @@ successfully extracted from the built plot scales.
 
 #### Returns
 
-List with x and y per-axis objects Extract grid navigation info (min,
-max, tickStep) for a single axis
-
-Attempts to extract range and tick interval from the built plot's panel
-parameters. Returns NULL if any required value cannot be determined,
-allowing graceful fallback to non-grid scatter navigation.
+List with x and y per-axis objects
 
 ------------------------------------------------------------------------
 
 ### Method `extract_axis_grid_info()`
+
+Extract grid navigation info (min, max, tickStep) for a single axis
+
+Attempts to extract range and tick interval from the built plot's panel
+parameters. Returns NULL if any required value cannot be determined,
+allowing graceful fallback to non-grid scatter navigation.
 
 #### Usage
 
@@ -159,12 +164,13 @@ allowing graceful fallback to non-grid scatter navigation.
 
 #### Returns
 
-List with min, max, tickStep or NULL if extraction fails Extract data
-from point layer
+List with min, max, tickStep or NULL if extraction fails
 
 ------------------------------------------------------------------------
 
 ### Method `extract_data()`
+
+Extract data from point layer
 
 #### Usage
 
@@ -195,12 +201,13 @@ from point layer
 
 #### Returns
 
-List with points array and color information Generate selectors for
-point elements
+List with points array and color information
 
 ------------------------------------------------------------------------
 
 ### Method `generate_selectors()`
+
+Generate selectors for point elements
 
 #### Usage
 
@@ -227,11 +234,13 @@ point elements
 
 #### Returns
 
-List of selectors Find the panel grob this layer draws into
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### Method `find_panel_grob()`
+
+Find the panel grob this layer draws into
 
 #### Usage
 
@@ -250,11 +259,13 @@ List of selectors Find the panel grob this layer draws into
 
 #### Returns
 
-The panel grob or NULL Find children by type pattern
+The panel grob or NULL
 
 ------------------------------------------------------------------------
 
 ### Method [`find_children_by_type()`](https://r.maidr.ai/reference/find_children_by_type.md)
+
+Find children by type pattern
 
 #### Usage
 

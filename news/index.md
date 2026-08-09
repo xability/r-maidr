@@ -30,6 +30,20 @@
 
 ### Bug Fixes
 
+- Documentation: the internal R6 class reference pages no longer carry
+  keyword entries made of ordinary English words. An R6 method docblock
+  that opens with untagged title text instead of `@description` makes
+  roxygen2 scatter that sentence’s individual words into the *class*
+  block as `\keyword{}` entries, which `R CMD check` NOTEs as
+  non-standard — `BaseRAdapter.Rd` had accumulated `\keyword{Check}`,
+  `\keyword{a}`, `\keyword{the}` and the rest of “Check if this adapter
+  can handle a plot object”. It also glued each such title onto the
+  *previous* method’s Returns section. Both are fixed for the fifteen
+  pages [\#104](https://github.com/xability/r-maidr/issues/104) left,
+  along with a related cause: five module files opened a file-level
+  block that was never terminated, so its text was absorbed into the
+  first function documented below it. No user-visible behaviour changes.
+
 - Base R: an argument passed by position now reaches the description
   under the name R matched it to. The patched functions are declared
   `function(...)`, so the recorded call kept only the names the caller

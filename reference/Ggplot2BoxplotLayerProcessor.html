@@ -172,8 +172,10 @@ for individual boxplot components in the SVG structure.</p>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href="LayerProcessor.html#method-set_last_result"><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
 </ul></details></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-get_built"></a><div class="section">
 <h3 id="method-get-built-">Method <code>get_built()</code><a class="anchor" aria-label="anchor" href="#method-get-built-"></a></h3>
-
-<div class="section">
+<p>Get (and cache) the built plot data</p>
+<p>ggplot_build() is expensive; extract_data, generate_selectors,
+determine_orientation, and map_categories_to_names all need it, so
+build at most once per processor instance.</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">get_built</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -192,14 +194,12 @@ for individual boxplot components in the SVG structure.</p>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Built plot data
-Process the boxplot layer</p>
+<p>Built plot data</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-process"></a><div class="section">
 <h3 id="method-process-">Method <code>process()</code><a class="anchor" aria-label="anchor" href="#method-process-"></a></h3>
-
-<div class="section">
+<p>Process the boxplot layer</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -251,14 +251,12 @@ Process the boxplot layer</p>
 </div>
 <div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>List with data and selectors
-Extract data from boxplot layer</p>
+<p>List with data and selectors</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-extract_data"></a><div class="section">
 <h3 id="method-extract-data-">Method <code>extract_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-data-"></a></h3>
-
-<div class="section">
+<p>Extract data from boxplot layer</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -281,14 +279,12 @@ Extract data from boxplot layer</p>
 </div>
 <div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>List with boxplot statistics for each category
-Generate selectors for boxplot elements</p>
+<p>List with boxplot statistics for each category</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
-
-<div class="section">
+<p>Generate selectors for boxplot elements</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -320,14 +316,12 @@ Generate selectors for boxplot elements</p>
 </div>
 <div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>List of selectors for each boxplot
-Determine if the boxplot is horizontal or vertical</p>
+<p>List of selectors for each boxplot</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-determine_orientation"></a><div class="section">
 <h3 id="method-determine-orientation-">Method <code>determine_orientation()</code><a class="anchor" aria-label="anchor" href="#method-determine-orientation-"></a></h3>
-
-<div class="section">
+<p>Determine if the boxplot is horizontal or vertical</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">determine_orientation</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -342,15 +336,13 @@ Determine if the boxplot is horizontal or vertical</p>
 </div>
 <div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>"horz" or "vert"
-Map numeric category codes to actual category names
-Uses panel_params axis labels from ggplot_build to map codes to labels</p>
+<p>"horz" or "vert"</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-map_categories_to_names"></a><div class="section">
 <h3 id="method-map-categories-to-names-">Method <code>map_categories_to_names()</code><a class="anchor" aria-label="anchor" href="#method-map-categories-to-names-"></a></h3>
-
-<div class="section">
+<p>Map numeric category codes to actual category names
+Uses panel_params axis labels from ggplot_build to map codes to labels</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">map_categories_to_names</span><span class="op">(</span></span>
 <span>  <span class="va">boxplot_data</span>,</span>
@@ -377,14 +369,12 @@ Uses panel_params axis labels from ggplot_build to map codes to labels</p>
 </div>
 <div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>Updated boxplot data with proper category names
-Find the panel grob this layer draws into</p>
+<p>Updated boxplot data with proper category names</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_panel_grob"></a><div class="section">
 <h3 id="method-find-panel-grob-">Method <code>find_panel_grob()</code><a class="anchor" aria-label="anchor" href="#method-find-panel-grob-"></a></h3>
-
-<div class="section">
+<p>Find the panel grob this layer draws into</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_panel_grob</span><span class="op">(</span><span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -404,14 +394,12 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 </div>
 <div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
-<p>The panel grob or NULL
-Find children by type pattern</p>
+<p>The panel grob or NULL</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_children_by_type"></a><div class="section">
 <h3 id="method-find-children-by-type-">Method <code><a href="find_children_by_type.html">find_children_by_type()</a></code><a class="anchor" aria-label="anchor" href="#method-find-children-by-type-"></a></h3>
-
-<div class="section">
+<p>Find children by type pattern</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_children_by_type</span><span class="op">(</span><span class="va">grob</span>, <span class="va">type_pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -430,14 +418,12 @@ Find children by type pattern</p>
 </div>
 <div class="section">
 <h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
-<p>List of matching children
-Find the outlier container within a boxplot</p>
+<p>List of matching children</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_outlier_container"></a><div class="section">
 <h3 id="method-find-outlier-container-">Method <code>find_outlier_container()</code><a class="anchor" aria-label="anchor" href="#method-find-outlier-container-"></a></h3>
-
-<div class="section">
+<p>Find the outlier container within a boxplot</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_outlier_container</span><span class="op">(</span><span class="va">gt</span>, <span class="va">boxplot_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -456,14 +442,12 @@ Find the outlier container within a boxplot</p>
 </div>
 <div class="section">
 <h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
-<p>The outlier container ID or NULL
-Find the box container within a boxplot</p>
+<p>The outlier container ID or NULL</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_box_container"></a><div class="section">
 <h3 id="method-find-box-container-">Method <code>find_box_container()</code><a class="anchor" aria-label="anchor" href="#method-find-box-container-"></a></h3>
-
-<div class="section">
+<p>Find the box container within a boxplot</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_box_container</span><span class="op">(</span><span class="va">gt</span>, <span class="va">boxplot_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -482,14 +466,12 @@ Find the box container within a boxplot</p>
 </div>
 <div class="section">
 <h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
-<p>The box container ID or NULL
-Find the whisker container within a boxplot</p>
+<p>The box container ID or NULL</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_whisker_container"></a><div class="section">
 <h3 id="method-find-whisker-container-">Method <code>find_whisker_container()</code><a class="anchor" aria-label="anchor" href="#method-find-whisker-container-"></a></h3>
-
-<div class="section">
+<p>Find the whisker container within a boxplot</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_whisker_container</span><span class="op">(</span><span class="va">gt</span>, <span class="va">boxplot_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -508,14 +490,12 @@ Find the whisker container within a boxplot</p>
 </div>
 <div class="section">
 <h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
-<p>The whisker container ID or NULL
-Find the median container within a boxplot</p>
+<p>The whisker container ID or NULL</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_median_container"></a><div class="section">
 <h3 id="method-find-median-container-">Method <code>find_median_container()</code><a class="anchor" aria-label="anchor" href="#method-find-median-container-"></a></h3>
-
-<div class="section">
+<p>Find the median container within a boxplot</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_median_container</span><span class="op">(</span><span class="va">gt</span>, <span class="va">boxplot_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -534,14 +514,12 @@ Find the median container within a boxplot</p>
 </div>
 <div class="section">
 <h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
-<p>The median container ID or NULL
-Find a child element by pattern within a container</p>
+<p>The median container ID or NULL</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern"></a><div class="section">
 <h3 id="method-find-child-by-pattern-">Method <code>find_child_by_pattern()</code><a class="anchor" aria-label="anchor" href="#method-find-child-by-pattern-"></a></h3>
-
-<div class="section">
+<p>Find a child element by pattern within a container</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BoxplotLayerProcessor</span><span class="op">$</span><span class="fu">find_child_by_pattern</span><span class="op">(</span><span class="va">gt</span>, <span class="va">container_id</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

@@ -161,8 +161,7 @@ processors for Base R plot types based on recorded plot calls.</p>
 </ul></div><p><details open><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="ProcessorFactory" data-id="supports_plot_type"><a href="ProcessorFactory.html#method-supports_plot_type"><code>maidr::ProcessorFactory$supports_plot_type()</code></a></span></li>
 </ul></details></p><hr><a id="method-BaseRProcessorFactory-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
-
-<div class="section">
+<p>Initialize the Base R processor factory</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/BaseRProcessorFactory.html">BaseRProcessorFactory</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -170,8 +169,7 @@ processors for Base R plot types based on recorded plot calls.</p>
 
 </div><p></p><hr><a id="method-BaseRProcessorFactory-create_processor"></a><div class="section">
 <h3 id="method-create-processor-">Method <code>create_processor()</code><a class="anchor" aria-label="anchor" href="#method-create-processor-"></a></h3>
-
-<div class="section">
+<p>Create a processor for a specific plot type</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">create_processor</span><span class="op">(</span><span class="va">plot_type</span>, <span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -190,42 +188,36 @@ processors for Base R plot types based on recorded plot calls.</p>
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Processor instance for the specified plot type
-Get list of supported plot types</p>
+<p>Processor instance for the specified plot type</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRProcessorFactory-get_supported_types"></a><div class="section">
 <h3 id="method-get-supported-types-">Method <code>get_supported_types()</code><a class="anchor" aria-label="anchor" href="#method-get-supported-types-"></a></h3>
-
-<div class="section">
+<p>Get list of supported plot types</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">get_supported_types</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>Character vector of supported plot types
-Get the system name</p>
+<p>Character vector of supported plot types</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRProcessorFactory-get_system_name"></a><div class="section">
 <h3 id="method-get-system-name-">Method <code>get_system_name()</code><a class="anchor" aria-label="anchor" href="#method-get-system-name-"></a></h3>
-
-<div class="section">
+<p>Get the system name</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">get_system_name</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>System name string
-Check if a specific processor class is available</p>
+<p>System name string</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRProcessorFactory-is_processor_available"></a><div class="section">
 <h3 id="method-is-processor-available-">Method <code>is_processor_available()</code><a class="anchor" aria-label="anchor" href="#method-is-processor-available-"></a></h3>
-
-<div class="section">
+<p>Check if a specific processor class is available</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">is_processor_available</span><span class="op">(</span><span class="va">processor_class_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -240,28 +232,24 @@ Check if a specific processor class is available</p>
 </div>
 <div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>TRUE if available, FALSE otherwise
-Get available processor classes</p>
+<p>TRUE if available, FALSE otherwise</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRProcessorFactory-get_available_processors"></a><div class="section">
 <h3 id="method-get-available-processors-">Method <code>get_available_processors()</code><a class="anchor" aria-label="anchor" href="#method-get-available-processors-"></a></h3>
-
-<div class="section">
+<p>Get available processor classes</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">get_available_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>Character vector of available processor class names
-Create a processor with error handling</p>
+<p>Character vector of available processor class names</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRProcessorFactory-try_create_processor"></a><div class="section">
 <h3 id="method-try-create-processor-">Method <code>try_create_processor()</code><a class="anchor" aria-label="anchor" href="#method-try-create-processor-"></a></h3>
-
-<div class="section">
+<p>Create a processor with error handling</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">try_create_processor</span><span class="op">(</span><span class="va">plot_type</span>, <span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

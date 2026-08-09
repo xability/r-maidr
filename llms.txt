@@ -222,8 +222,12 @@ Internal functions for package developers
   : Organize subplots into 2D grid structure
 - [`process_facet_panel()`](https://r.maidr.ai/reference/process_facet_panel.md)
   : Process a single facet panel
+- [`process_faceted_plot_data()`](https://r.maidr.ai/reference/process_faceted_plot_data.md)
+  : Process a faceted plot and return organized subplot data
 - [`process_patchwork_panel()`](https://r.maidr.ai/reference/process_patchwork_panel.md)
   : Process a single patchwork panel
+- [`process_patchwork_plot_data()`](https://r.maidr.ai/reference/process_patchwork_plot_data.md)
+  : Process a patchwork plot and return organized subplot data
 
 # Articles
 

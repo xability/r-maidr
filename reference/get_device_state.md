@@ -1,7 +1,6 @@
-# Base R State Tracking
+# Get or Initialize Device State
 
-This module tracks the plotting state for each graphics device,
-including active plot index, panel configuration, and plot grouping.
+Retrieves the state object for a specific graphics device.
 
 ## Usage
 
