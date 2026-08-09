@@ -1,13 +1,12 @@
 # heatmap()'s own labRow= / labCol= arguments (issue #106).
 #
-# stats::heatmap resolves each axis in a single expression:
-#
-#   labRow <- labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]
-#
-# The caller's labels come FIRST and beat dimnames, and they are subscripted
-# by the same ordering as the data. Issue 99 implemented the second and third
-# arms; the first was missing, so an explicit labRow= drew one set of strings
-# on the axis and announced another.
+# stats::heatmap resolves each axis in a single expression: it takes the
+# caller's own labRow subscripted by rowInd when there is one, falling back to
+# the reordered matrix's rownames and then to the original indices in drawn
+# order. The caller's labels come FIRST and beat dimnames, and they carry the
+# same ordering as the data. Issue 99 implemented the second and third arms of
+# that fallback; the first was missing, so an explicit labRow= drew one set of
+# strings on the axis and announced another.
 #
 # The announced y order is the REVERSE of the drawn one throughout: heatmap()
 # puts reordered row 1 at the bottom of the image, and the payload's row 0 is

@@ -88,14 +88,13 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       row_names <- rownames(heat_matrix)
       col_names <- colnames(heat_matrix)
 
-      # heatmap() resolves each axis in one expression:
-      #
-      #   labRow <- labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]
-      #
-      # so the caller's own labels come FIRST and beat dimnames, and they are
-      # subscripted by the same ordering as everything else. `x` is already
-      # reordered by the time `rownames(x)` is read, which is why only the
-      # first and third arms carry a subscript.
+      # heatmap() resolves each axis in one expression: it takes the
+      # caller's own `labRow` subscripted by `rowInd` when there is one,
+      # falling back to `rownames(x)` and then to `(1L:nr)[rowInd]`. So the
+      # caller's labels come FIRST and beat dimnames, and they carry the same
+      # ordering as everything else. `x` is already reordered by the time
+      # `rownames(x)` is read, which is why only the first and third arms of
+      # that fallback carry a subscript.
       if (identical(function_name, "heatmap")) {
         caller_rows <- heatmap_caller_labels(args[["labRow"]], ordering$rowInd)
         if (!is.null(caller_rows)) row_names <- caller_rows
@@ -348,7 +347,7 @@ heatmap_applies_revc <- function(args) {
 #'
 #' `heatmap()` gives an explicit `labRow=`/`labCol=` priority over the
 #' matrix's own dimnames, and subscripts it by the same ordering it applies to
-#' the data: `labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]`. Reading
+#' the data: `labRow[rowInd] \%||\% rownames(x) \%||\% (1L:nr)[rowInd]`. Reading
 #' the labels off the reordered matrix therefore announced the dimnames -- or,
 #' for an unnamed matrix, bare indices -- while the axis showed the caller's
 #' strings.
