@@ -96,6 +96,7 @@
 <url><loc>https://r.maidr.ai/reference/data_has_series_groups.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/detect_panel_configuration.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/detect_scales_format_type.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/dispatched_definition.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html_file.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-base_r_function_classes.html</loc></url>
@@ -202,6 +203,7 @@
 <url><loc>https://r.maidr.ai/reference/maidr_widget.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr_widget_output.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/map_visual_to_dom_panel.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/match_recorded_args.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/merge_candlestick_volume_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/merge_line_layers.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/muffle_promise_restart.html</loc></url>
@@ -258,6 +260,7 @@
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis_doc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_violin_kde_metadata.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/update_device_state.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/usable_xy_coords.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/validate_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/warn_chartseries_ta_unsupported.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/warn_panel_fallback.html</loc></url>
