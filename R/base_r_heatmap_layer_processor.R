@@ -96,9 +96,25 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       # `rownames(x)` is read, which is why only the first and third arms of
       # that fallback carry a subscript.
       if (identical(function_name, "heatmap")) {
-        caller_rows <- heatmap_caller_labels(args[["labRow"]], ordering$rowInd)
+        # When the ordering probe came back empty the matrix was not
+        # reordered either, so heatmap()'s subscript is the identity - but it
+        # is still a subscript, which is what keeps a mismatched-length
+        # labRow from producing more or fewer labels than there are rows
+        # (raised in review).
+        row_order <- if (is.null(ordering)) {
+          seq_len(nrow(heat_matrix))
+        } else {
+          ordering$rowInd
+        }
+        col_order <- if (is.null(ordering)) {
+          seq_len(ncol(heat_matrix))
+        } else {
+          ordering$colInd
+        }
+
+        caller_rows <- heatmap_caller_labels(args[["labRow"]], row_order)
         if (!is.null(caller_rows)) row_names <- caller_rows
-        caller_cols <- heatmap_caller_labels(args[["labCol"]], ordering$colInd)
+        caller_cols <- heatmap_caller_labels(args[["labCol"]], col_order)
         if (!is.null(caller_cols)) col_names <- caller_cols
       }
 
@@ -355,21 +371,20 @@ heatmap_applies_revc <- function(args) {
 #' A short or `NA`-carrying vector is passed through rather than rejected:
 #' `labRow[rowInd]` yields `NA` for the positions it cannot fill, and grid
 #' draws that as the glyphs "NA", so mirroring it keeps the announcement equal
-#' to the picture.
+#' to the picture. Subscripting is also what holds the result to one label per
+#' row: a caller who supplies too many gets the surplus dropped, exactly as
+#' `heatmap()` drops it.
 #'
 #' @param labels The recorded `labRow=` or `labCol=` argument, or NULL
-#' @param ordering The matching `rowInd`/`colInd`, or NULL when no ordering
-#'   was recovered -- in which case `heatmap()`'s own subscript is the
-#'   identity, so the labels are used as written
+#' @param ordering The matching `rowInd`/`colInd`. Never NULL: when no
+#'   ordering was recovered the caller passes the identity, because
+#'   `heatmap()` applies a subscript either way
 #' @return Character vector in drawn order, or NULL when the caller supplied
 #'   no labels for this axis
 #' @keywords internal
 heatmap_caller_labels <- function(labels, ordering) {
   if (is.null(labels)) {
     return(NULL)
-  }
-  if (is.null(ordering)) {
-    return(as.character(labels))
   }
   as.character(labels[ordering])
 }

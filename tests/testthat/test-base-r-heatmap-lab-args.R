@@ -175,11 +175,16 @@ test_that("heatmap_caller_labels mirrors heatmap()'s own subscript", {
     c("c", "a", "b")
   )
 
-  # No ordering recovered: heatmap()'s subscript is the identity in that
-  # case, so the labels are used as written rather than dropped.
+  # No ordering recovered: the caller passes the identity rather than NULL,
+  # because heatmap() applies a subscript either way. That is also what holds
+  # the result to one label per row when the caller supplies the wrong number
+  # (raised in review of this PR).
   testthat::expect_equal(
-    maidr:::heatmap_caller_labels(c("a", "b"), NULL),
+    maidr:::heatmap_caller_labels(c("a", "b"), seq_len(2)),
     c("a", "b")
+  )
+  testthat::expect_length(
+    maidr:::heatmap_caller_labels(c("a", "b", "c", "d"), seq_len(2)), 2
   )
 
   # A short vector yields NA for the positions it cannot fill, which is
@@ -187,6 +192,9 @@ test_that("heatmap_caller_labels mirrors heatmap()'s own subscript", {
   testthat::expect_equal(
     maidr:::heatmap_caller_labels(c("a", "b"), c(1L, 3L, 2L)),
     c("a", NA, "b")
+  )
+  testthat::expect_length(
+    maidr:::heatmap_caller_labels(c("a", "b"), seq_len(4)), 4
   )
 
   # Non-character labels are coerced, because axis() renders them the same.

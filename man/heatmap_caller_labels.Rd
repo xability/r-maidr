@@ -9,9 +9,9 @@ heatmap_caller_labels(labels, ordering)
 \arguments{
 \item{labels}{The recorded `labRow=` or `labCol=` argument, or NULL}
 
-\item{ordering}{The matching `rowInd`/`colInd`, or NULL when no ordering
-was recovered -- in which case `heatmap()`'s own subscript is the
-identity, so the labels are used as written}
+\item{ordering}{The matching `rowInd`/`colInd`. Never NULL: when no
+ordering was recovered the caller passes the identity, because
+`heatmap()` applies a subscript either way}
 }
 \value{
 Character vector in drawn order, or NULL when the caller supplied
@@ -29,6 +29,8 @@ strings.
 A short or `NA`-carrying vector is passed through rather than rejected:
 `labRow[rowInd]` yields `NA` for the positions it cannot fill, and grid
 draws that as the glyphs "NA", so mirroring it keeps the announcement equal
-to the picture.
+to the picture. Subscripting is also what holds the result to one label per
+row: a caller who supplies too many gets the surplus dropped, exactly as
+`heatmap()` drops it.
 }
 \keyword{internal}
