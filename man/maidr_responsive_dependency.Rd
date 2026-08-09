@@ -10,13 +10,13 @@ maidr_responsive_dependency()
 A single htmltools::htmlDependency() object
 }
 \description{
-Returns an htmltools::htmlDependency() whose `head` payload injects a
+Returns an htmltools::htmlDependency() whose \code{head} payload injects a
 viewport meta tag, a minimal CSS reset, and rules that make the embedded
 SVG fill (or proportionally fit) the browser viewport. This is purely a
 presentational layer; the SVG content, selectors, viewBox, and embedded
-`maidr-data` attribute are untouched and the maidr JS frontend behaves
-identically. We use a dependency (rather than an inline `<style>` tag in
-the body) so the meta and style land in the document `<head>` produced by
-`htmltools::save_html()`.
+\code{maidr-data} attribute are untouched and the maidr JS frontend behaves
+identically. We use a dependency (rather than an inline \verb{<style>} tag in
+the body) so the meta and style land in the document \verb{<head>} produced by
+\code{htmltools::save_html()}.
 }
 \keyword{internal}

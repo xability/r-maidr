@@ -7,25 +7,25 @@
 run_example(example = NULL, type = c("ggplot2", "base_r"))
 }
 \arguments{
-\item{example}{Character string specifying which example to run. If `NULL`
+\item{example}{Character string specifying which example to run. If \code{NULL}
 (the default), lists all available examples.}
 
 \item{type}{Character string specifying the plot system to use.
-Either `"ggplot2"` (default) or `"base_r"`.}
+Either \code{"ggplot2"} (default) or \code{"base_r"}.}
 }
 \value{
-Invisibly returns `NULL`. Called for its side effect of displaying
-  an interactive plot in the browser or listing available examples.
+Invisibly returns \code{NULL}. Called for its side effect of displaying
+an interactive plot in the browser or listing available examples.
 }
 \description{
 Launches example plots demonstrating MAIDR's accessible visualization
-capabilities. Each example creates an interactive plot using `show()`.
+capabilities. Each example creates an interactive plot using \code{show()}.
 }
 \details{
 Available examples include various plot types such as bar charts,
 histograms, scatter plots, line plots, boxplots, heatmaps, and more.
 
-Each example script creates a plot and calls `show()` to display it
+Each example script creates a plot and calls \code{show()} to display it
 in your default web browser with full MAIDR accessibility features
 including keyboard navigation and screen reader support.
 }
@@ -43,5 +43,5 @@ if (interactive()) {
 
 }
 \seealso{
-[show()] for displaying plots, [save_html()] for saving to file
+\code{\link[=show]{show()}} for displaying plots, \code{\link[=save_html]{save_html()}} for saving to file
 }

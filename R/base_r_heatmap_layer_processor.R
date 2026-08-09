@@ -369,7 +369,7 @@ heatmap_applies_revc <- function(args) {
 #'
 #' `heatmap()` gives an explicit `labRow=`/`labCol=` priority over the
 #' matrix's own dimnames, and subscripts it by the same ordering it applies to
-#' the data: `labRow[rowInd] \%||\% rownames(x) \%||\% (1L:nr)[rowInd]`. Reading
+#' the data: `labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]`. Reading
 #' the labels off the reordered matrix therefore announced the dimnames -- or,
 #' for an unnamed matrix, bare indices -- while the axis showed the caller's
 #' strings.

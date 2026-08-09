@@ -21,6 +21,6 @@ A named list (AxisConfig), possibly empty
 \description{
 Drops the fields that are absent, so an axis only carries what its caller
 could establish. Returns a named empty list when nothing could be: passed
-to [build_axes()], that drops the axis key entirely.
+to \code{\link[=build_axes]{build_axes()}}, that drops the axis key entirely.
 }
 \keyword{internal}

@@ -14,9 +14,9 @@ The augmented ggplot (the input unchanged when nothing augments)
 }
 \description{
 Some processors need extra geoms in the rendered SVG to hang selectors on
--- violin injects a thin `geom_boxplot()` so the box-summary layer has
+-- violin injects a thin \code{geom_boxplot()} so the box-summary layer has
 something to highlight. The single-plot path does this in
-`Ggplot2PlotOrchestrator$process_layers()`; leaves of a patchwork need the
+\code{Ggplot2PlotOrchestrator$process_layers()}; leaves of a patchwork need the
 same treatment before the composition is rendered.
 }
 \keyword{internal}

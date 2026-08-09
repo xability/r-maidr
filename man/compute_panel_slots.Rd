@@ -18,11 +18,11 @@ Integer vector (one entry per group): panel slot or NA
 Maps plot groups to panel slots (1-based, in drawing order) for a
 multi-panel configuration:
 \itemize{
-  \item Groups drawn BEFORE the layout call are not part of the grid
-    (the next high-level plot starts a fresh page), so they get NA.
-  \item When more groups than panels were drawn, R flows onto a new
-    page; only the final (visible) page is exported, so groups on
-    earlier pages get NA.
+\item Groups drawn BEFORE the layout call are not part of the grid
+(the next high-level plot starts a fresh page), so they get NA.
+\item When more groups than panels were drawn, R flows onto a new
+page; only the final (visible) page is exported, so groups on
+earlier pages get NA.
 }
 }
 \keyword{internal}

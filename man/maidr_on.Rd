@@ -31,5 +31,5 @@ barplot(table(mtcars$cyl))
 }
 }
 \seealso{
-[maidr_off()] to disable MAIDR rendering
+\code{\link[=maidr_off]{maidr_off()}} to disable MAIDR rendering
 }

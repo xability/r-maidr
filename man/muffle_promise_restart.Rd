@@ -10,7 +10,7 @@ muffle_promise_restart(expr)
 \item{expr}{Expression to evaluate (lazily, inside the handler)}
 }
 \value{
-The value of `expr`
+The value of \code{expr}
 }
 \description{
 When a call fails part-way through forcing an argument, that argument's

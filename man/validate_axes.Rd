@@ -21,14 +21,14 @@ with a descriptive message.
 \details{
 Rules:
 \itemize{
-  \item \code{axes} must be NULL or a list.
-  \item Keys must be a subset of \code{\{"x","y","z"\}}.
-  \item Each axis value must be a list (AxisConfig), never a string/
-        number/array.
-  \item No \code{format}, \code{min}, \code{max}, \code{tickStep},
-        \code{fill}, or \code{level} at the top level of \code{axes}.
-  \item \code{min}, \code{max}, \code{tickStep} (when present inside an
-        axis) must be numeric scalars.
+\item \code{axes} must be NULL or a list.
+\item Keys must be a subset of \code{\{"x","y","z"\}}.
+\item Each axis value must be a list (AxisConfig), never a string/
+number/array.
+\item No \code{format}, \code{min}, \code{max}, \code{tickStep},
+\code{fill}, or \code{level} at the top level of \code{axes}.
+\item \code{min}, \code{max}, \code{tickStep} (when present inside an
+axis) must be numeric scalars.
 }
 }
 \keyword{internal}

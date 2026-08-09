@@ -9,17 +9,17 @@ recorded_axis_label(args, name, default = NULL)
 \arguments{
 \item{args}{Recorded argument list, or NULL}
 
-\item{name}{Argument to read: `"xlab"` or `"ylab"`}
+\item{name}{Argument to read: \code{"xlab"} or \code{"ylab"}}
 
 \item{default}{What this chart type can honestly say when the author said
 nothing. Pass NULL when it can say nothing: an absent label leaves the
 generic to the renderer, which is where that decision belongs.}
 }
 \value{
-Character scalar, or `default`
+Character scalar, or \code{default}
 }
 \description{
-The author's own `xlab=`/`ylab=` always wins. An empty string counts as
+The author's own \verb{xlab=}/\verb{ylab=} always wins. An empty string counts as
 unsupplied: Base R draws no title for it, so falling through to the chart
 type's default announces more than the blank would, and the renderer would
 otherwise substitute its generic "X"/"Y" anyway. This is how the

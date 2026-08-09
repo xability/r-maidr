@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{extract_body_grob_id}
 \alias{extract_body_grob_id}
-\title{Extract the body `<g>` id from a candlestick `body` selector}
+\title{Extract the body \verb{<g>} id from a candlestick \code{body} selector}
 \usage{
 extract_body_grob_id(body_selector)
 }

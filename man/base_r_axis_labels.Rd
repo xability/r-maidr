@@ -5,10 +5,10 @@
 \title{Base R Axis-Title Defaults}
 \description{
 Base R's high-level plotting functions derive their axis titles inside the
-call (`hist()` names the y axis "Frequency", `boxplot.formula()` reads both
-titles off the formula) instead of recording them, and `barplot()` and
-`pie()` draw no title at all. Either way the recorded call carries no
-`xlab=`/`ylab=`, so a processor that only reads those arguments announces a
+call (\code{hist()} names the y axis "Frequency", \code{boxplot.formula()} reads both
+titles off the formula) instead of recording them, and \code{barplot()} and
+\code{pie()} draw no title at all. Either way the recorded call carries no
+\verb{xlab=}/\verb{ylab=}, so a processor that only reads those arguments announces a
 nameless axis.
 }
 \details{

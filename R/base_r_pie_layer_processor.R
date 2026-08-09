@@ -119,7 +119,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
     #' @description Generate one selector per wedge, index-aligned to the data
     #' @param layer_info Layer information
     #' @param gt Grob tree to search
-    #' @param extracted_data Points from [extract_data()], used for the count
+    #' @param extracted_data Points from `extract_data()`, used for the count
     #' @return List of CSS selector strings, one per slice
     generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       n_slices <- length(extracted_data)

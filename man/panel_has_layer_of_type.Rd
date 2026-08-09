@@ -7,7 +7,7 @@
 panel_has_layer_of_type(panel, type)
 }
 \arguments{
-\item{panel}{A processed patchwork panel (with `$layers`)}
+\item{panel}{A processed patchwork panel (with \verb{$layers})}
 
 \item{type}{Layer type string ("candlestick", "bar", "line", ...)}
 }

@@ -13,13 +13,13 @@ panel_slot_positions(slot, panel_config)
 }
 \value{
 List of integer vectors c(row, col); empty list if the slot
-  occupies no cell
+occupies no cell
 }
 \description{
-A `layout()` matrix may name the same panel in several cells; R draws that
+A \code{layout()} matrix may name the same panel in several cells; R draws that
 panel once, spanning all of them. Returning every matching cell (in reading
 order) lets the caller advertise the panel in each cell it actually covers,
-so a spanned region is not mistaken for empty space. An `mfrow`/`mfcol`
+so a spanned region is not mistaken for empty space. An \code{mfrow}/\code{mfcol}
 grid cannot span, so it always yields exactly one cell.
 }
 \keyword{internal}

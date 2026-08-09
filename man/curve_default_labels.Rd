@@ -10,18 +10,18 @@ curve_default_labels(recorded_args)
 \item{recorded_args}{Recorded (unevaluated) argument list of the call}
 }
 \value{
-List with `x` and `y` label strings
+List with \code{x} and \code{y} label strings
 }
 \description{
 curve() computes its default labels internally and does not return them:
-the x label is `xname` ("x" unless the caller overrides it) and the y
+the x label is \code{xname} ("x" unless the caller overrides it) and the y
 label is the deparsed expression, with a bare function name rewritten as
-`fname(xname)`. Reading them off the recorded call keeps the announced
+\code{fname(xname)}. Reading them off the recorded call keeps the announced
 axes matching the drawn ones; without them a visibly labelled plot would
 be announced with two empty axis titles.
 }
 \details{
-An explicit `xlab`/`ylab` in the call wins over these defaults; the line
+An explicit \code{xlab}/\code{ylab} in the call wins over these defaults; the line
 processor applies that precedence.
 }
 \keyword{internal}

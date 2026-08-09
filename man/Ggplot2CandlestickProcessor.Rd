@@ -9,24 +9,26 @@ Candlestick Layer Processor
 Candlestick Layer Processor
 }
 \details{
-Processes candlestick chart layers produced by `tidyquant::geom_candlestick()`.
+Processes candlestick chart layers produced by \code{tidyquant::geom_candlestick()}.
 
-tidyquant's `geom_candlestick()` expands into TWO ggplot layers:
-  1. A `GeomLinerangeBC` (BC = barchart) layer drawing the high-low wicks.
-  2. A `GeomRectCS` (CS = candlestick) layer drawing the open-close bodies.
+tidyquant's \code{geom_candlestick()} expands into TWO ggplot layers:
+\enumerate{
+\item A \code{GeomLinerangeBC} (BC = barchart) layer drawing the high-low wicks.
+\item A \code{GeomRectCS} (CS = candlestick) layer drawing the open-close bodies.
+}
 
-The adapter tags the wick layer as `"skip"` so the orchestrator does not
+The adapter tags the wick layer as \code{"skip"} so the orchestrator does not
 create a separate maidr layer for it. This processor handles only the
 second (body) layer, but reads back into the wick layer's grobs to
 produce wick CSS selectors.
 
-Output type: `"candlestick"`. Each data point is a `CandlestickPoint`
-with `value`, `open`, `high`, `low`, `close`, optional `volume`,
-computed `trend` (Bull / Bear / Neutral) and `volatility` (high - low).
+Output type: \code{"candlestick"}. Each data point is a \code{CandlestickPoint}
+with \code{value}, \code{open}, \code{high}, \code{low}, \code{close}, optional \code{volume},
+computed \code{trend} (Bull / Bear / Neutral) and \code{volatility} (high - low).
 
-Selectors are emitted as a single `CandlestickSelector` object whose
-`body` and `wick` fields are arrays of per-candle CSS selectors using
-`:nth-of-type` against the rect/line elements of the gridSVG-exported
+Selectors are emitted as a single \code{CandlestickSelector} object whose
+\code{body} and \code{wick} fields are arrays of per-candle CSS selectors using
+\verb{:nth-of-type} against the rect/line elements of the gridSVG-exported
 tidyquant grobs.
 }
 \keyword{internal}
@@ -142,10 +144,10 @@ List of CandlestickPoint dicts
 \subsection{Method \code{generate_selectors()}}{
 Generate candlestick CSS selectors
 
-Returns a single `CandlestickSelector` object with `body` and `wick`
+Returns a single \code{CandlestickSelector} object with \code{body} and \code{wick}
 as single CSS group selectors (one per element kind, not per candle).
 The maidr JS layer uses these to grab all candle elements at once and
-then auto-derives `open`/`close` from body rect edges based on trend.
+then auto-derives \code{open}/\code{close} from body rect edges based on trend.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$generate_selectors(
   plot,
@@ -169,8 +171,8 @@ then auto-derives `open`/`close` from body rect edges based on trend.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-Named list with `body` and (optionally) `wick` single-string
-  selectors, or empty list if grobs cannot be located.
+Named list with \code{body} and (optionally) \code{wick} single-string
+selectors, or empty list if grobs cannot be located.
 }
 }
 \if{html}{\out{<hr>}}
@@ -181,8 +183,8 @@ Extract axes labels for candlestick layer
 
 Candlestick layer mappings are typically NULL (top-level mapping
 carries x/open/high/low/close). The base implementation only inspects
-`layer_mapping$x` and `layer_mapping$y`, which yields blank labels.
-Here we additionally fall back to `plot$mapping$x` and synthesize a
+\code{layer_mapping$x} and \code{layer_mapping$y}, which yields blank labels.
+Here we additionally fall back to \code{plot$mapping$x} and synthesize a
 "Price" y-label since OHLC has no single y mapping.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
@@ -205,7 +207,7 @@ list(x = list(label = ...), y = list(label = ...))
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-resolve_col"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-resolve_col}{}}}
 \subsection{Method \code{resolve_col()}}{
-Resolve a mapping quosure to a column name in `data`
+Resolve a mapping quosure to a column name in \code{data}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$resolve_col(mapping_expr, data)}\if{html}{\out{</div>}}
 }
@@ -278,7 +280,7 @@ The panel gTree, or NULL when it cannot be resolved
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-find_first_child_name"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-find_first_child_name}{}}}
 \subsection{Method \code{find_first_child_name()}}{
-Find the first descendant whose name matches `pattern`
+Find the first descendant whose name matches \code{pattern}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$find_first_child_name(grob, pattern)}\if{html}{\out{</div>}}
 }

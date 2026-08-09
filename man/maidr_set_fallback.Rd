@@ -49,5 +49,5 @@ maidr_set_fallback(enabled = TRUE, format = "png", warning = TRUE)
 
 }
 \seealso{
-[maidr_get_fallback()] to retrieve current settings
+\code{\link[=maidr_get_fallback]{maidr_get_fallback()}} to retrieve current settings
 }

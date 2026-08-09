@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggplot2_patchwork_utils.R
 \name{find_patchwork_panels}
 \alias{find_patchwork_panels}
-\title{Discover panels via gtable layout rows named '^panel-<num>' or '^panel-<row>-<col>'
+\title{Discover panels via gtable layout rows named '^panel-\if{html}{\out{<num>}}' or '^panel-\if{html}{\out{<row>}}-\if{html}{\out{<col>}}'
 Returns a data.frame with panel_index, name, t, l, row, col}
 \usage{
 find_patchwork_panels(gtable)
@@ -14,6 +14,6 @@ find_patchwork_panels(gtable)
 Data frame with panel information
 }
 \description{
-Discover panels via gtable layout rows named '^panel-<num>' or '^panel-<row>-<col>'
+Discover panels via gtable layout rows named '^panel-\if{html}{\out{<num>}}' or '^panel-\if{html}{\out{<row>}}-\if{html}{\out{<col>}}'
 Returns a data.frame with panel_index, name, t, l, row, col
 }

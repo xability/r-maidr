@@ -20,10 +20,10 @@ and DOM element generation order (column-major) in gridSVG.
 }
 \details{
 Visual layout (row-major):
- 1  2
- 3  4
+1  2
+3  4
 
 DOM order (column-major):
- 1  3
- 2  4
+1  3
+2  4
 }

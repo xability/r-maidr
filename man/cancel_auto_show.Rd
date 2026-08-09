@@ -7,7 +7,7 @@
 cancel_auto_show()
 }
 \description{
-Removes by NAME rather than by the index `addTaskCallback()` returned:
+Removes by NAME rather than by the index \code{addTaskCallback()} returned:
 that index is a position in R's callback list, and any other package
 adding or removing a callback in the meantime shifts it. Removing a
 stale index silently deletes an unrelated package's callback.
