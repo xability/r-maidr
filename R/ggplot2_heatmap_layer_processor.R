@@ -146,11 +146,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
             names(panel_layout),
             c("PANEL", "ROW", "COL", "SCALE_X", "SCALE_Y")
           )
+          # NA-safe, for the reason spelled out on facet_group_rows(): a bare
+          # `==` answers NA for every row whose facet value is missing, and
+          # `[` fabricates an all-NA row from an NA index, so the panel
+          # ggplot2 draws for the missing value scored no cells at all (#102).
           for (facet_var in facet_vars) {
             if (facet_var %in% names(panel_source)) {
               panel_source <- panel_source[
-                as.character(panel_source[[facet_var]]) ==
-                  as.character(panel_row[[facet_var]]), ,
+                facet_group_rows(
+                  panel_source[[facet_var]],
+                  panel_row[[facet_var]]
+                ), ,
                 drop = FALSE
               ]
             }
