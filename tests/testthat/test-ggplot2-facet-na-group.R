@@ -72,10 +72,31 @@ na_facet_panel <- function(rendered, column) {
   rendered$payload$subplots[[1]][[column]]$layers[[1]]
 }
 
+# A cell this panel's frame never supplied is emitted as JSON `null` so the
+# series stay rectangular and the highlight lands on the announced bar
+# (issue #94). That is a placeholder rather than an announced value, so it is
+# not part of what these tests count.
 na_facet_values <- function(panel) {
   sort(unlist(lapply(panel$data, function(series) {
-    vapply(series, function(point) point$y, numeric(1))
+    supplied <- Filter(function(point) !is.null(point$y), series)
+    vapply(supplied, function(point) point$y, numeric(1))
   })))
+}
+
+na_facet_placeholders <- function(panel) {
+  sum(unlist(lapply(panel$data, function(series) {
+    vapply(series, function(point) is.null(point$y), logical(1))
+  })))
+}
+
+# The discriminator between the two: a placeholder occupies a real x category,
+# whereas a row fabricated by the old NA-index subset had no category at all.
+na_facet_categories <- function(panel) {
+  unlist(lapply(panel$data, function(series) {
+    vapply(series, function(point) {
+      if (is.null(point$x)) NA_character_ else as.character(point$x)
+    }, character(1))
+  }))
 }
 
 test_that("a faceted stacked bar with an NA facet level still exports", {
@@ -103,12 +124,22 @@ test_that("an NA facet level does not leak rows into the other panels", {
     )
 
     # Every announced value comes from a row the user supplied. The old
-    # subset injected all-NA rows, so a leaked value shows up as NA here.
+    # subset injected all-NA rows, so a leaked value shows up as NA here -
+    # and, since such a row carried no category either, as an NA category.
     for (column in 1:3) {
-      values <- na_facet_values(na_facet_panel(rendered, column))
+      panel <- na_facet_panel(rendered, column)
+      values <- na_facet_values(panel)
       testthat::expect_false(anyNA(values))
       testthat::expect_true(all(values %in% na_facet_frame()$val))
+      testthat::expect_false(anyNA(na_facet_categories(panel)))
     }
+
+    # The two real panels supply every (cat, fill) cell, so nothing in them is
+    # a placeholder; the NA panel supplies only (x, u) and (y, v), so its two
+    # remaining cells are.
+    testthat::expect_equal(na_facet_placeholders(na_facet_panel(rendered, 1)), 0)
+    testthat::expect_equal(na_facet_placeholders(na_facet_panel(rendered, 2)), 0)
+    testthat::expect_equal(na_facet_placeholders(na_facet_panel(rendered, 3)), 2)
   }
 })
 

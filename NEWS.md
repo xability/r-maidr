@@ -20,6 +20,27 @@
 
 ## Bug Fixes
 
+* ggplot2: a `geom_col()` whose data is not a complete grid highlights the bar
+  it is announcing. Pre-aggregated tidy data routinely omits a combination —
+  the reason `geom_col()` exists — and both the dodged and the stacked
+  processor emitted one entry per supplied row, so the series came out ragged
+  (3 and 2 for a three-category, two-group frame). The frontend regroups one
+  flat list of rectangles across a grid it sizes from the first series, so a
+  ragged payload cross-mapped the announcement onto a bar in a different
+  category *and* a different fill group, and left the last bar of the longest
+  series with no highlight at all. A stacked chart lost a whole column on top
+  of that, and dropped an entire fill level when the first category was the
+  one missing it — that group could then not be reached at all.
+  Both processors now emit the full grid, and the stacking order is read from
+  the fullest column rather than the first. Cells the caller never supplied
+  carry `NA` rather than `0`: the frontend needs them to occupy a slot, but it
+  reads them through its missing-value path, so a screen reader hears "n is
+  missing" — not a zero the data never claimed. Each facet panel completes its
+  own frame, which also settles a panel whose rows happen to be incomplete on
+  their own. `stat = "count"` is unchanged and still reports a genuine `0` for
+  a cross-tabulation cell that counted nothing, and a frame carrying a real
+  `NA` in its `x` or `fill` column keeps its previous reading rather than
+  losing that row to a grid with no column to hold it.
 * Base R: `library(maidr); library(quantmod); chartSeries(SPY)` no longer
   fails silently and then blames the user. Attaching 'quantmod' puts
   `package:quantmod` ahead of `package:maidr` on the search path, so a bare
