@@ -1,6 +1,6 @@
-# Document-level implementation of \[inject_candlestick_open_close()\]
+# Document-level implementation of [`inject_candlestick_open_close()`](https://r.maidr.ai/reference/inject_candlestick_open_close.md)
 
-Mutates \`svg_doc\` in place (xml2 documents are references).
+Mutates `svg_doc` in place (xml2 documents are references).
 
 ## Usage
 

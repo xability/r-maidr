@@ -2,9 +2,9 @@
 
 Strips maidr-internal arguments and re-executes the call. When the
 recorded args contain unevaluated expressions (from non-standard
-evaluation, e.g. \`curve(sin(x))\` or \`plot(y ~ x, subset = g == 1)\`),
-the call is rebuilt and evaluated in the environment captured at record
-time so those expressions resolve exactly as they did originally.
+evaluation, e.g. `curve(sin(x))` or `plot(y ~ x, subset = g == 1)`), the
+call is rebuilt and evaluated in the environment captured at record time
+so those expressions resolve exactly as they did originally.
 
 ## Usage
 

@@ -138,20 +138,19 @@ Candlestick Layer Processor"><meta property="og:image" content="https://raw.gith
 
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Processes candlestick chart layers produced by `tidyquant::geom_candlestick()`.</p>
-<p>tidyquant's `geom_candlestick()` expands into TWO ggplot layers:
-  1. A `GeomLinerangeBC` (BC = barchart) layer drawing the high-low wicks.
-  2. A `GeomRectCS` (CS = candlestick) layer drawing the open-close bodies.</p>
-<p>The adapter tags the wick layer as `"skip"` so the orchestrator does not
+    <p>Processes candlestick chart layers produced by <code><a href="https://business-science.github.io/tidyquant/reference/geom_chart.html" class="external-link">tidyquant::geom_candlestick()</a></code>.</p>
+<p>tidyquant's <code>geom_candlestick()</code> expands into TWO ggplot layers:</p><ol><li><p>A <code>GeomLinerangeBC</code> (BC = barchart) layer drawing the high-low wicks.</p></li>
+<li><p>A <code>GeomRectCS</code> (CS = candlestick) layer drawing the open-close bodies.</p></li>
+</ol><p>The adapter tags the wick layer as <code>"skip"</code> so the orchestrator does not
 create a separate maidr layer for it. This processor handles only the
 second (body) layer, but reads back into the wick layer's grobs to
 produce wick CSS selectors.</p>
-<p>Output type: `"candlestick"`. Each data point is a `CandlestickPoint`
-with `value`, `open`, `high`, `low`, `close`, optional `volume`,
-computed `trend` (Bull / Bear / Neutral) and `volatility` (high - low).</p>
-<p>Selectors are emitted as a single `CandlestickSelector` object whose
-`body` and `wick` fields are arrays of per-candle CSS selectors using
-`:nth-of-type` against the rect/line elements of the gridSVG-exported
+<p>Output type: <code>"candlestick"</code>. Each data point is a <code>CandlestickPoint</code>
+with <code>value</code>, <code>open</code>, <code>high</code>, <code>low</code>, <code>close</code>, optional <code>volume</code>,
+computed <code>trend</code> (Bull / Bear / Neutral) and <code>volatility</code> (high - low).</p>
+<p>Selectors are emitted as a single <code>CandlestickSelector</code> object whose
+<code>body</code> and <code>wick</code> fields are arrays of per-candle CSS selectors using
+<code>:nth-of-type</code> against the rect/line elements of the gridSVG-exported
 tidyquant grobs.</p>
     </div>
     <div class="section level2">
@@ -277,10 +276,10 @@ tidyquant grobs.</p>
 </div><p></p><hr><a id="method-Ggplot2CandlestickProcessor-generate_selectors"></a><div class="section">
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
 <p>Generate candlestick CSS selectors</p>
-<p>Returns a single `CandlestickSelector` object with `body` and `wick`
+<p>Returns a single <code>CandlestickSelector</code> object with <code>body</code> and <code>wick</code>
 as single CSS group selectors (one per element kind, not per candle).
 The maidr JS layer uses these to grab all candle elements at once and
-then auto-derives `open`/`close` from body rect edges based on trend.</p><div class="section">
+then auto-derives <code>open</code>/<code>close</code> from body rect edges based on trend.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2CandlestickProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -312,8 +311,8 @@ then auto-derives `open`/`close` from body rect edges based on trend.</p><div cl
 </div>
 <div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>Named list with `body` and (optionally) `wick` single-string
-  selectors, or empty list if grobs cannot be located.</p>
+<p>Named list with <code>body</code> and (optionally) <code>wick</code> single-string
+selectors, or empty list if grobs cannot be located.</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2CandlestickProcessor-extract_layer_axes"></a><div class="section">
@@ -321,8 +320,8 @@ then auto-derives `open`/`close` from body rect edges based on trend.</p><div cl
 <p>Extract axes labels for candlestick layer</p>
 <p>Candlestick layer mappings are typically NULL (top-level mapping
 carries x/open/high/low/close). The base implementation only inspects
-`layer_mapping$x` and `layer_mapping$y`, which yields blank labels.
-Here we additionally fall back to `plot$mapping$x` and synthesize a
+<code>layer_mapping$x</code> and <code>layer_mapping$y</code>, which yields blank labels.
+Here we additionally fall back to <code>plot$mapping$x</code> and synthesize a
 "Price" y-label since OHLC has no single y mapping.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2CandlestickProcessor</span><span class="op">$</span><span class="fu">extract_layer_axes</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layout</span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -347,7 +346,7 @@ Here we additionally fall back to `plot$mapping$x` and synthesize a
 
 </div><p></p><hr><a id="method-Ggplot2CandlestickProcessor-resolve_col"></a><div class="section">
 <h3 id="method-resolve-col-">Method <code>resolve_col()</code><a class="anchor" aria-label="anchor" href="#method-resolve-col-"></a></h3>
-<p>Resolve a mapping quosure to a column name in `data`</p><div class="section">
+<p>Resolve a mapping quosure to a column name in <code>data</code></p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2CandlestickProcessor</span><span class="op">$</span><span class="fu">resolve_col</span><span class="op">(</span><span class="va">mapping_expr</span>, <span class="va">data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -412,7 +411,7 @@ for a single plot, where the panel is the cell literally named "panel"</p></dd>
 
 </div><p></p><hr><a id="method-Ggplot2CandlestickProcessor-find_first_child_name"></a><div class="section">
 <h3 id="method-find-first-child-name-">Method <code>find_first_child_name()</code><a class="anchor" aria-label="anchor" href="#method-find-first-child-name-"></a></h3>
-<p>Find the first descendant whose name matches `pattern`</p><div class="section">
+<p>Find the first descendant whose name matches <code>pattern</code></p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2CandlestickProcessor</span><span class="op">$</span><span class="fu">find_first_child_name</span><span class="op">(</span><span class="va">grob</span>, <span class="va">pattern</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

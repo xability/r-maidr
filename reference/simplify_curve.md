@@ -1,7 +1,7 @@
 # Adaptively simplify a 2D curve to a target number of points
 
 Uses binary search on epsilon to find the smallest tolerance that yields
-at most \`target\` retained points.
+at most `target` retained points.
 
 ## Usage
 

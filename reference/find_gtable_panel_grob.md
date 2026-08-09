@@ -2,9 +2,12 @@
 
 Without a panel context this keeps the single-plot behaviour: the cell
 literally named "panel". With one, the panel is addressed by
-\`panel_ctx\$panel_index\` into \[collect_gtable_panels()\], whose order
-matches \[find_patchwork_panels()\]. Name matching is only a fallback
-because patchwork reuses panel names across nesting levels.
+`panel_ctx$panel_index` into
+[`collect_gtable_panels()`](https://r.maidr.ai/reference/collect_gtable_panels.md),
+whose order matches
+[`find_patchwork_panels()`](https://r.maidr.ai/reference/find_patchwork_panels.md).
+Name matching is only a fallback because patchwork reuses panel names
+across nesting levels.
 
 ## Usage
 

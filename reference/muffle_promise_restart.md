@@ -20,4 +20,4 @@ muffle_promise_restart(expr)
 
 ## Value
 
-The value of \`expr\`
+The value of `expr`

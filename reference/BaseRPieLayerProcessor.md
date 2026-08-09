@@ -6,10 +6,12 @@ Base R Pie Chart Layer Processor
 
 ## Details
 
-Processes Base R \`pie()\` layers based on recorded plot calls. A pie
-layer is 1-D and flat: one point per slice, carrying the slice label as
-\`x\` and the slice magnitude as \`y\`. Percentages are derived by the
-frontend from those magnitudes, so none are emitted here.
+Processes Base R
+[`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) layers based
+on recorded plot calls. A pie layer is 1-D and flat: one point per
+slice, carrying the slice label as `x` and the slice magnitude as `y`.
+Percentages are derived by the frontend from those magnitudes, so none
+are emitted here.
 
 ## Super class
 
@@ -144,7 +146,7 @@ Extract one point per slice from the recorded call
 
 #### Returns
 
-Flat list of \`list(x = \<label\>, y = \<value\>)\` points
+Flat list of `list(x = <label>, y = <value>)` points
 
 ------------------------------------------------------------------------
 
@@ -152,11 +154,10 @@ Flat list of \`list(x = \<label\>, y = \<value\>)\` points
 
 Resolve the per-slice labels the way pie() does
 
-\`labels\` defaults to \`names(x)\`, and falls back to the slice
-position when the input is unnamed. \`pie(labels = NA)\` draws neither
-label nor leader line, but the wedges are still there and still
-navigable, so those slices are announced by position rather than as
-"NA".
+`labels` defaults to `names(x)`, and falls back to the slice position
+when the input is unnamed. `pie(labels = NA)` draws neither label nor
+leader line, but the wedges are still there and still navigable, so
+those slices are announced by position rather than as "NA".
 
 #### Usage
 
@@ -166,7 +167,7 @@ navigable, so those slices are announced by position rather than as
 
 - `values`:
 
-  The recorded \`x\` argument (names still attached)
+  The recorded `x` argument (names still attached)
 
 - `args`:
 
@@ -202,7 +203,7 @@ Generate one selector per wedge, index-aligned to the data
 
 - `extracted_data`:
 
-  Points from \[extract_data()\], used for the count
+  Points from `extract_data()`, used for the count
 
 #### Returns
 
@@ -239,9 +240,10 @@ Character vector of grob names
 Extract the axis titles for this layer
 
 x names what the slice labels mean, y what their magnitudes measure.
-\`pie()\` records neither unless the author wrote one, and a pie always
-holds labelled categories against their magnitudes, so the defaults say
-that much rather than leaving the axes nameless.
+[`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) records
+neither unless the author wrote one, and a pie always holds labelled
+categories against their magnitudes, so the defaults say that much
+rather than leaving the axes nameless.
 
 #### Usage
 

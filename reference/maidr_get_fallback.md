@@ -20,7 +20,8 @@ A list with the current fallback settings:
 
 ## See also
 
-\[maidr_set_fallback()\] to configure settings
+[`maidr_set_fallback()`](https://r.maidr.ai/reference/maidr_set_fallback.md)
+to configure settings
 
 ## Examples
 

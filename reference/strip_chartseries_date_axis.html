@@ -177,15 +177,15 @@ detect candlestick layers)</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Modified SVG content (character vector). If any guard
-  fails, returns `svg_content` unchanged.</p>
+fails, returns <code>svg_content</code> unchanged.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The relevant groups have IDs of the form
-`graphics-plot-N-bottom-axis-(line|ticks)-...`; we match by
-substring with `contains(@id, 'bottom-axis-(line|ticks)-')` and
-explicitly leave `bottom-axis-labels-` untouched.</p>
-<p>Safety: no-op when `maidr_data` contains no candlestick layers
+<code>graphics-plot-N-bottom-axis-(line|ticks)-...</code>; we match by
+substring with <code>contains(@id, 'bottom-axis-(line|ticks)-')</code> and
+explicitly leave <code>bottom-axis-labels-</code> untouched.</p>
+<p>Safety: no-op when <code>maidr_data</code> contains no candlestick layers
 (ggplot candlestick / non-candlestick plots use different SVG IDs
 and are unaffected), when xml2 is unavailable, when SVG parsing
 fails, or when no matching groups are found.</p>

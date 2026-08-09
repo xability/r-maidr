@@ -30,16 +30,16 @@ strip_chartseries_date_axis(svg_content, maidr_data)
 ## Value
 
 Modified SVG content (character vector). If any guard fails, returns
-\`svg_content\` unchanged.
+`svg_content` unchanged.
 
 ## Details
 
 The relevant groups have IDs of the form
-\`graphics-plot-N-bottom-axis-(line\|ticks)-...\`; we match by substring
-with \`contains(@id, 'bottom-axis-(line\|ticks)-')\` and explicitly
-leave \`bottom-axis-labels-\` untouched.
+`graphics-plot-N-bottom-axis-(line|ticks)-...`; we match by substring
+with `contains(@id, 'bottom-axis-(line|ticks)-')` and explicitly leave
+`bottom-axis-labels-` untouched.
 
-Safety: no-op when \`maidr_data\` contains no candlestick layers (ggplot
+Safety: no-op when `maidr_data` contains no candlestick layers (ggplot
 candlestick / non-candlestick plots use different SVG IDs and are
 unaffected), when xml2 is unavailable, when SVG parsing fails, or when
 no matching groups are found.

@@ -1,6 +1,6 @@
-# Document-level implementation of \[adjust_chartseries_bracket()\]
+# Document-level implementation of [`adjust_chartseries_bracket()`](https://r.maidr.ai/reference/adjust_chartseries_bracket.md)
 
-Mutates \`svg_doc\` in place.
+Mutates `svg_doc` in place.
 
 ## Usage
 

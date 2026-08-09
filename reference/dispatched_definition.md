@@ -1,9 +1,10 @@
 # Resolve the definition R dispatched a recorded call to
 
-\`hist\` is the motivating case from \#98: the generic is \`hist(x,
-...)\`, so matching against it leaves a positional \`breaks\` inside the
-dots. The method carries the formals that matter, and picking it by the
-first argument's class is the same choice \`UseMethod()\` made when the
+`hist` is the motivating case from \#98: the generic is `hist(x, ...)`,
+so matching against it leaves a positional `breaks` inside the dots. The
+method carries the formals that matter, and picking it by the first
+argument's class is the same choice
+[`UseMethod()`](https://rdrr.io/r/base/UseMethod.html) made when the
 call ran.
 
 ## Usage

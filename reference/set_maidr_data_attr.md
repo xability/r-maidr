@@ -1,6 +1,6 @@
 # Serialize maidr_data and set it as the SVG root's maidr-data attribute
 
-Mutates \`svg_doc\` in place.
+Mutates `svg_doc` in place.
 
 ## Usage
 

@@ -1,6 +1,6 @@
-# Return the (first) layer in \`panel\` whose type matches \`type\`
+# Return the (first) layer in `panel` whose type matches `type`
 
-Return the (first) layer in \`panel\` whose type matches \`type\`
+Return the (first) layer in `panel` whose type matches `type`
 
 ## Usage
 

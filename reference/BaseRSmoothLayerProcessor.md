@@ -1,9 +1,12 @@
 # Base R Smooth/Density Layer Processor
 
-Processes Base R smooth curves including: - Density plots:
-plot(density()) or lines(density()) - Loess smooth:
-lines(loess.smooth()) or lines(predict(loess)) - Smooth splines:
-lines(smooth.spline())
+Processes Base R smooth curves including:
+
+- Density plots: plot(density()) or lines(density())
+
+- Loess smooth: lines(loess.smooth()) or lines(predict(loess))
+
+- Smooth splines: lines(smooth.spline())
 
 ## Super class
 

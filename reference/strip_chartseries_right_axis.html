@@ -5,7 +5,7 @@ On sparse OHLC inputs (few candles spread across the plot region),
 the right-axis vertical line is positioned within the candle area
 and visually overlaps the rightmost candle, reading like a stray
 "axis through the middle" of the chart. This helper removes only
-the `right-axis-line-*` polyline; the tick marks and the price
+the right-axis-line-* polyline; the tick marks and the price
 labels themselves are preserved so the chart still communicates
 the y-axis scale visually.'><meta property="og:description" content='quantmod::chartSeries() draws a right-hand y-axis with a vertical
 axis line, tick marks, and numeric price labels (e.g. 101..106).
@@ -13,7 +13,7 @@ On sparse OHLC inputs (few candles spread across the plot region),
 the right-axis vertical line is positioned within the candle area
 and visually overlaps the rightmost candle, reading like a stray
 "axis through the middle" of the chart. This helper removes only
-the `right-axis-line-*` polyline; the tick marks and the price
+the right-axis-line-* polyline; the tick marks and the price
 labels themselves are preserved so the chart still communicates
 the y-axis scale visually.'><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><script type="application/ld+json">
 {
@@ -151,7 +151,7 @@ On sparse OHLC inputs (few candles spread across the plot region),
 the right-axis vertical line is positioned within the candle area
 and visually overlaps the rightmost candle, reading like a stray
 "axis through the middle" of the chart. This helper removes only
-the `right-axis-line-*` polyline; the tick marks and the price
+the <code>right-axis-line-*</code> polyline; the tick marks and the price
 labels themselves are preserved so the chart still communicates
 the y-axis scale visually.</p>
     </div>
@@ -177,14 +177,14 @@ detect candlestick layers)</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Modified SVG content (character vector). If any guard
-  fails, returns `svg_content` unchanged.</p>
+fails, returns <code>svg_content</code> unchanged.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The matched group has an ID of the form
-`graphics-plot-N-right-axis-line-...`; matched by substring with
-`contains(@id, 'right-axis-line-')`.</p>
-<p>Safety: no-op when `maidr_data` contains no candlestick layers
+<code>graphics-plot-N-right-axis-line-...</code>; matched by substring with
+<code>contains(@id, 'right-axis-line-')</code>.</p>
+<p>Safety: no-op when <code>maidr_data</code> contains no candlestick layers
 (ggplot candlestick / non-candlestick plots use different SVG IDs
 and are unaffected), when xml2 is unavailable, when SVG parsing
 fails, or when no matching groups are found.</p>

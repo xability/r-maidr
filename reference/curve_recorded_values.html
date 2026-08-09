@@ -157,23 +157,23 @@ evaluated once, at the moment it was made, in the frame that made it.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with `x`, `y` and `labels`, or NULL when the returned
-  value is not a usable pair of coordinate vectors</p>
+    <p>A list with <code>x</code>, <code>y</code> and <code>labels</code>, or NULL when the returned
+value is not a usable pair of coordinate vectors</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The alternative – re-deriving the points when the figure is emitted –
 means running user code a second time, later, in a rebuilt frame. That
-is the failure mode #59 fixed for `for` loops, where every panel
+is the failure mode #59 fixed for <code>for</code> loops, where every panel
 replayed the last iteration's bindings; snapshot_call_env() narrows the
 window but cannot close it, and the recorded call alone is not enough
-anyway: `from`/`to` arrive unevaluated too (`to = 2 * pi` is recorded as
+anyway: <code>from</code>/<code>to</code> arrive unevaluated too (<code>to = 2 * pi</code> is recorded as
 a call), so emit time would have to redo curve()'s own seq/log/xname
 handling on top of evaluating the expression. Reading back what was
 drawn is neither. The SVG still comes from replaying the call, so a
 deliberately non-deterministic expression can draw a second, different
 curve – that is true of every recorded call and is not made worse here.</p>
-<p>The values are stored under a `.maidr_` name, so clean_maidr_args()
+<p>The values are stored under a <code>.maidr_</code> name, so clean_maidr_args()
 drops them before the call is replayed.</p>
     </div>
 

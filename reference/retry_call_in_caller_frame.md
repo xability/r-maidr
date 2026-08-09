@@ -1,10 +1,10 @@
 # Retry a failed plot call from the caller's own frame
 
 The formula methods resolve non-standard arguments relative to
-\`parent.frame()\`: \`plot.formula()\` evaluates \`subset =\` there, and
-\`boxplot.formula()\` reaches into the caller's \`...\`. A wrapper puts
-its own frame in that position, so calls that work in plain R fail
-through maidr:
+[`parent.frame()`](https://rdrr.io/r/base/sys.parent.html):
+`plot.formula()` evaluates `subset =` there, and `boxplot.formula()`
+reaches into the caller's `...`. A wrapper puts its own frame in that
+position, so calls that work in plain R fail through maidr:
 
 ## Usage
 
@@ -25,7 +25,8 @@ retry_call_in_caller_frame(
 
 - recorded_call:
 
-  \`match.call()\` captured by the wrapper
+  [`match.call()`](https://rdrr.io/r/base/match.call.html) captured by
+  the wrapper
 
 - caller_env:
 

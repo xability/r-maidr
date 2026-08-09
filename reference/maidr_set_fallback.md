@@ -34,7 +34,8 @@ Invisibly returns a list of the previous settings.
 
 ## See also
 
-\[maidr_get_fallback()\] to retrieve current settings
+[`maidr_get_fallback()`](https://r.maidr.ai/reference/maidr_get_fallback.md)
+to retrieve current settings
 
 ## Examples
 

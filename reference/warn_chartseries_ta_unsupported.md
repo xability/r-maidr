@@ -1,4 +1,4 @@
-# Emit a one-time warning when quantmod::chartSeries() is called with a non-NULL \`TA\` argument (e.g. \`TA = "addVo()"\`).
+# Emit a one-time warning when quantmod::chartSeries() is called with a non-NULL `TA` argument (e.g. `TA = "addVo()"`).
 
 The gridSVG export pipeline used to convert chartSeries' multi-panel
 base graphics output into an accessible HTML SVG mis-handles the volume

@@ -27,4 +27,5 @@ build_axes(x = NULL, y = NULL, z = NULL)
 ## Value
 
 A canonical axes list with only non-NULL axes set. Named even when
-empty, so it serializes as the JSON object \`\` rather than as \`\[\]\`.
+empty, so it serializes as the JSON object
+[`{}`](https://rdrr.io/r/base/Paren.html) rather than as `[]`.

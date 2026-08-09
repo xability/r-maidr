@@ -7,19 +7,23 @@ Base R Candlestick Layer Processor
 ## Details
 
 Processes Base R candlestick chart layers produced by
-\`quantmod::chartSeries(x, type = "candlesticks")\`.
+`quantmod::chartSeries(x, type = "candlesticks")`.
 
-Each xts row becomes a single navigable \`CandlestickPoint\` with
-\`value\`, \`open\`, \`high\`, \`low\`, \`close\`, computed \`trend\`
-(Bull / Bear / Neutral), \`volatility\` (high - low) and optional
-\`volume\` (when \`quantmod::has.Vo()\` is \`TRUE\`).
+Each xts row becomes a single navigable `CandlestickPoint` with `value`,
+`open`, `high`, `low`, `close`, computed `trend` (Bull / Bear /
+Neutral), `volatility` (high - low) and optional `volume` (when
+[`quantmod::has.Vo()`](https://rdrr.io/pkg/quantmod/man/has.html) is
+`TRUE`).
 
 Selectors are derived from the gridSVG export of the chartSeries grob
-(captured via \`ggplotify::as.grob()\`). chartSeries draws candle bodies
-via a single vectorized \`rect()\` call (each candle body is one SVG
-\`\<rect\>\` child of \`graphics-plot-\<N\>-rect-\*\`) and upper/lower
-wicks via \`segments()\` calls (one SVG \`\<polyline\>\` per wick under
-\`graphics-plot-\<N\>-segments-\*\`).
+(captured via
+[`ggplotify::as.grob()`](https://rdrr.io/pkg/ggplotify/man/as-grob.html)).
+chartSeries draws candle bodies via a single vectorized
+[`rect()`](https://r.maidr.ai/reference/base-r-wrappers.md) call (each
+candle body is one SVG `<rect>` child of `graphics-plot-<N>-rect-*`) and
+upper/lower wicks via
+[`segments()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls
+(one SVG `<polyline>` per wick under `graphics-plot-<N>-segments-*`).
 
 ## Super class
 
@@ -114,7 +118,7 @@ Build a "bar" layer carrying volume data
 Generate selectors for the addVo() volume bar panel
 
 chartSeries(TA = "addVo()") creates a second plotting window. In the
-gridSVG export that maps to a second \`graphics-plot-\<N\>\` group
+gridSVG export that maps to a second `graphics-plot-<N>` group
 (typically N = 2). Returns a per-bar selector list so each volume bar
 can be individually highlighted on navigation; matches the bar layer
 contract used by the Base R barplot processor.
@@ -153,29 +157,35 @@ List of CandlestickPoint dicts
 
 Generate CSS selectors for the candlestick layer
 
-Returns ONE \`CandlestickSelector\` object (matching the maidr JS
-frontend contract in \`src/model/candlestick.ts::mapToSvgElements\`).
-The returned object has these named character-vector keys: - \`body\`
-length-N vector, one per-candle body-rect selector - \`wickHigh\`
-length-N vector, one per-candle upper-wick selector (omitted if only one
-segments group is present) - \`wickLow\` length-N vector, one per-candle
-lower-wick selector (omitted if only one segments group is present) -
-\`wick\` length-N vector, used as fallback when there is only one
-segments group (the frontend falls back to \`wick\` when \`wickHigh\` /
-\`wickLow\` are absent).
+Returns ONE `CandlestickSelector` object (matching the maidr JS frontend
+contract in `src/model/candlestick.ts::mapToSvgElements`). The returned
+object has these named character-vector keys:
 
-gridSVG emits a child id \`\<group-id\>.1.\<i\>\` for each primitive in
-a vectorized draw call. The frontend iterates each string array
-(\`collectElements(arr)\`) and picks the i-th element via
-\`getElementAt(\*, i)\`, so per-candle selectors are required for
+- `body` length-N vector, one per-candle body-rect selector
+
+- `wickHigh` length-N vector, one per-candle upper-wick selector
+  (omitted if only one segments group is present)
+
+- `wickLow` length-N vector, one per-candle lower-wick selector (omitted
+  if only one segments group is present)
+
+- `wick` length-N vector, used as fallback when there is only one
+  segments group (the frontend falls back to `wick` when `wickHigh` /
+  `wickLow` are absent).
+
+gridSVG emits a child id `<group-id>.1.<i>` for each primitive in a
+vectorized draw call. The frontend iterates each string array
+(`collectElements(arr)`) and picks the i-th element via
+`getElementAt(*, i)`, so per-candle selectors are required for
 single-candle highlighting on arrow-key navigation.
 
-IMPORTANT: do NOT return an array of objects (e.g. \`\[\[body, wick\],
-...\]\`). The frontend's \`Array.isArray()\` branch would then take
-\`selectors\[0\]\` (the first dict) and pass it to \`querySelectorAll\`,
-yielding a JS \`SyntaxError: '\[object Object\]' is not a valid
-selector\`. The boxplot pattern of per-item dicts does NOT apply here
-because each chart model has its own contract.
+IMPORTANT: do NOT return an array of objects (e.g.
+`[[body, wick], ...]`). The frontend's `Array.isArray()` branch would
+then take `selectors[0]` (the first dict) and pass it to
+`querySelectorAll`, yielding a JS
+`SyntaxError: '[object Object]' is not a valid selector`. The boxplot
+pattern of per-item dicts does NOT apply here because each chart model
+has its own contract.
 
 #### Usage
 
@@ -201,8 +211,9 @@ because each chart model has its own contract.
 
 #### Returns
 
-Named list (single CandlestickSelector) or \`list()\` when grobs cannot
-be located.
+Named list (single CandlestickSelector) or
+[`list()`](https://rdrr.io/r/base/list.html) when grobs cannot be
+located.
 
 ------------------------------------------------------------------------
 
@@ -254,7 +265,7 @@ Sort grob ids by trailing integer suffix
 
 ### Method `find_grob_by_name()`
 
-Find the grob node whose name matches \`id\`
+Find the grob node whose name matches `id`
 
 #### Usage
 

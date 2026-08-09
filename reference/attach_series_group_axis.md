@@ -1,10 +1,10 @@
 # Add the legend title as the z axis label for a grouped layer
 
 A grouped layer emits a per-series `z` value (the group's name), and
-MAIDR announces it as "\<z label\> is \<z value\>". Without a z label
-the frontend falls back to the generic word "Group", losing the legend
-title the plot actually shows. Single-series layers emit no z value at
-all, so they get no z label either.
+MAIDR announces it as " is ". Without a z label the frontend falls back
+to the generic word "Group", losing the legend title the plot actually
+shows. Single-series layers emit no z value at all, so they get no z
+label either.
 
 ## Usage
 

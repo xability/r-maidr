@@ -1,6 +1,6 @@
-# Document-level implementation of \[strip_chartseries_date_axis()\]
+# Document-level implementation of [`strip_chartseries_date_axis()`](https://r.maidr.ai/reference/strip_chartseries_date_axis.md)
 
-Mutates \`svg_doc\` in place.
+Mutates `svg_doc` in place.
 
 ## Usage
 

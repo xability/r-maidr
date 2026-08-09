@@ -16,4 +16,5 @@ Invisible TRUE on success
 
 ## See also
 
-\[maidr_on()\] to enable MAIDR rendering
+[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) to enable MAIDR
+rendering

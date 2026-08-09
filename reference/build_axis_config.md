@@ -2,7 +2,9 @@
 
 Drops the fields that are absent, so an axis only carries what its
 caller could establish. Returns a named empty list when nothing could
-be: passed to \[build_axes()\], that drops the axis key entirely.
+be: passed to
+[`build_axes()`](https://r.maidr.ai/reference/build_axes.md), that drops
+the axis key entirely.
 
 ## Usage
 

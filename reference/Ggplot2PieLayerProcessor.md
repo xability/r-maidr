@@ -139,6 +139,21 @@ expression that works for both
 [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
 (stat count).
 
+The extent is unsigned, though, and a negative datum is stacked *below*
+the baseline: ggplot2 builds `v = -40` as `ymin = -40, ymax = 0`, so the
+extent is 40 and the sign is gone. Reporting that would announce a slice
+the author entered as -40 as `40`, and compute its share against a total
+that swallowed it – confidently wrong, and indistinguishable from real
+data.
+
+So the sign is restored from which side of the baseline the segment sits
+on. The renderer treats a negative slice as a gap, announcing it as
+missing rather than letting it corrupt every other slice's percentage;
+laundering it here would leave that defence nothing to catch. Whether a
+producer should reject such a value outright is a separate question –
+see xability/maidr#771 – but no answer to it is served by destroying the
+sign first.
+
 #### Usage
 
     Ggplot2PieLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)

@@ -7,26 +7,29 @@ Candlestick Layer Processor
 ## Details
 
 Processes candlestick chart layers produced by
-\`tidyquant::geom_candlestick()\`.
+[`tidyquant::geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html).
 
-tidyquant's \`geom_candlestick()\` expands into TWO ggplot layers: 1. A
-\`GeomLinerangeBC\` (BC = barchart) layer drawing the high-low wicks. 2.
-A \`GeomRectCS\` (CS = candlestick) layer drawing the open-close bodies.
+tidyquant's `geom_candlestick()` expands into TWO ggplot layers:
 
-The adapter tags the wick layer as \`"skip"\` so the orchestrator does
-not create a separate maidr layer for it. This processor handles only
-the second (body) layer, but reads back into the wick layer's grobs to
+1.  A `GeomLinerangeBC` (BC = barchart) layer drawing the high-low
+    wicks.
+
+2.  A `GeomRectCS` (CS = candlestick) layer drawing the open-close
+    bodies.
+
+The adapter tags the wick layer as `"skip"` so the orchestrator does not
+create a separate maidr layer for it. This processor handles only the
+second (body) layer, but reads back into the wick layer's grobs to
 produce wick CSS selectors.
 
-Output type: \`"candlestick"\`. Each data point is a
-\`CandlestickPoint\` with \`value\`, \`open\`, \`high\`, \`low\`,
-\`close\`, optional \`volume\`, computed \`trend\` (Bull / Bear /
-Neutral) and \`volatility\` (high - low).
+Output type: `"candlestick"`. Each data point is a `CandlestickPoint`
+with `value`, `open`, `high`, `low`, `close`, optional `volume`,
+computed `trend` (Bull / Bear / Neutral) and `volatility` (high - low).
 
-Selectors are emitted as a single \`CandlestickSelector\` object whose
-\`body\` and \`wick\` fields are arrays of per-candle CSS selectors
-using \`:nth-of-type\` against the rect/line elements of the
-gridSVG-exported tidyquant grobs.
+Selectors are emitted as a single `CandlestickSelector` object whose
+`body` and `wick` fields are arrays of per-candle CSS selectors using
+`:nth-of-type` against the rect/line elements of the gridSVG-exported
+tidyquant grobs.
 
 ## Super class
 
@@ -168,11 +171,10 @@ List of CandlestickPoint dicts
 
 Generate candlestick CSS selectors
 
-Returns a single \`CandlestickSelector\` object with \`body\` and
-\`wick\` as single CSS group selectors (one per element kind, not per
-candle). The maidr JS layer uses these to grab all candle elements at
-once and then auto-derives \`open\`/\`close\` from body rect edges based
-on trend.
+Returns a single `CandlestickSelector` object with `body` and `wick` as
+single CSS group selectors (one per element kind, not per candle). The
+maidr JS layer uses these to grab all candle elements at once and then
+auto-derives `open`/`close` from body rect edges based on trend.
 
 #### Usage
 
@@ -203,8 +205,8 @@ on trend.
 
 #### Returns
 
-Named list with \`body\` and (optionally) \`wick\` single-string
-selectors, or empty list if grobs cannot be located.
+Named list with `body` and (optionally) `wick` single-string selectors,
+or empty list if grobs cannot be located.
 
 ------------------------------------------------------------------------
 
@@ -214,9 +216,9 @@ Extract axes labels for candlestick layer
 
 Candlestick layer mappings are typically NULL (top-level mapping carries
 x/open/high/low/close). The base implementation only inspects
-\`layer_mapping\$x\` and \`layer_mapping\$y\`, which yields blank
-labels. Here we additionally fall back to \`plot\$mapping\$x\` and
-synthesize a "Price" y-label since OHLC has no single y mapping.
+`layer_mapping$x` and `layer_mapping$y`, which yields blank labels. Here
+we additionally fall back to `plot$mapping$x` and synthesize a "Price"
+y-label since OHLC has no single y mapping.
 
 #### Usage
 
@@ -240,7 +242,7 @@ list(x = list(label = ...), y = list(label = ...))
 
 ### Method `resolve_col()`
 
-Resolve a mapping quosure to a column name in \`data\`
+Resolve a mapping quosure to a column name in `data`
 
 #### Usage
 
@@ -315,7 +317,7 @@ The panel gTree, or NULL when it cannot be resolved
 
 ### Method `find_first_child_name()`
 
-Find the first descendant whose name matches \`pattern\`
+Find the first descendant whose name matches `pattern`
 
 #### Usage
 

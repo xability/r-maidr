@@ -221,10 +221,10 @@ Bar Layer Processor"><meta property="og:image" content="https://raw.githubuserco
 </div><p></p><hr><a id="method-Ggplot2BarLayerProcessor-format_x_value"></a><div class="section">
 <h3 id="method-format-x-value-">Method <code>format_x_value()</code><a class="anchor" aria-label="anchor" href="#method-format-x-value-"></a></h3>
 <p>Format an x-axis value as character.</p>
-<p>Date / POSIXct / POSIXlt values are formatted via `format()` so that a
-`Date` column emits ISO date strings ("2024-01-02") rather than the
+<p>Date / POSIXct / POSIXlt values are formatted via <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> so that a
+<code>Date</code> column emits ISO date strings ("2024-01-02") rather than the
 default scale-tick labels ("Jan 02"). All other types use
-`as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
+<code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code>. Mirrors <code>Ggplot2CandlestickProcessor$format_x_value()</code>
 so candle and bar layers from the same Date column align string-wise.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">format_x_value</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -243,7 +243,7 @@ makes indexing the break labels with them legitimate.</p><div class="section">
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>panel_params</code></dt>
-<dd><p>This panel's entry from `built$layout$panel_params`</p></dd>
+<dd><p>This panel's entry from <code>built$layout$panel_params</code></p></dd>
 
 
 <dt><code>x_pos</code></dt>
@@ -290,9 +290,9 @@ makes indexing the break labels with them legitimate.</p><div class="section">
 <p>Recover user-facing x values for a non-discrete scale.</p>
 <p>Built positions on a continuous, Date or datetime scale already are
 the values, but a Date arrives as a day count. Matching them back to
-the mapped column restores the original typing so `format_x_value()`
+the mapped column restores the original typing so <code>format_x_value()</code>
 can emit "2024-01-02" rather than "19724". Mirrors the same recovery
-in `Ggplot2LineLayerProcessor`.</p><div class="section">
+in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">map_continuous_x</span><span class="op">(</span><span class="va">x_pos</span>, <span class="va">plot</span>, <span class="va">layer_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

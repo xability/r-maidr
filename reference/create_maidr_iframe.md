@@ -37,8 +37,8 @@ create_maidr_iframe(
 
 - use_cdn:
 
-  Logical. If \`TRUE\`, use CDN. If \`FALSE\`, use bundled files. If
-  \`NULL\` (default), auto-detect based on internet availability.
+  Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files. If `NULL`
+  (default), auto-detect based on internet availability.
 
 ## Value
 

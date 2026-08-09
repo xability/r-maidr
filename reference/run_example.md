@@ -1,7 +1,8 @@
 # Run MAIDR Example Plots
 
 Launches example plots demonstrating MAIDR's accessible visualization
-capabilities. Each example creates an interactive plot using \`show()\`.
+capabilities. Each example creates an interactive plot using
+[`show()`](https://r.maidr.ai/reference/show.md).
 
 ## Usage
 
@@ -13,17 +14,17 @@ run_example(example = NULL, type = c("ggplot2", "base_r"))
 
 - example:
 
-  Character string specifying which example to run. If \`NULL\` (the
+  Character string specifying which example to run. If `NULL` (the
   default), lists all available examples.
 
 - type:
 
-  Character string specifying the plot system to use. Either
-  \`"ggplot2"\` (default) or \`"base_r"\`.
+  Character string specifying the plot system to use. Either `"ggplot2"`
+  (default) or `"base_r"`.
 
 ## Value
 
-Invisibly returns \`NULL\`. Called for its side effect of displaying an
+Invisibly returns `NULL`. Called for its side effect of displaying an
 interactive plot in the browser or listing available examples.
 
 ## Details
@@ -31,13 +32,16 @@ interactive plot in the browser or listing available examples.
 Available examples include various plot types such as bar charts,
 histograms, scatter plots, line plots, boxplots, heatmaps, and more.
 
-Each example script creates a plot and calls \`show()\` to display it in
-your default web browser with full MAIDR accessibility features
-including keyboard navigation and screen reader support.
+Each example script creates a plot and calls
+[`show()`](https://r.maidr.ai/reference/show.md) to display it in your
+default web browser with full MAIDR accessibility features including
+keyboard navigation and screen reader support.
 
 ## See also
 
-\[show()\] for displaying plots, \[save_html()\] for saving to file
+[`show()`](https://r.maidr.ai/reference/show.md) for displaying plots,
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) for saving to
+file
 
 ## Examples
 

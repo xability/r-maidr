@@ -1,7 +1,7 @@
 # Resolve one axis title from a recorded Base R call
 
-The author's own \`xlab=\`/\`ylab=\` always wins. An empty string counts
-as unsupplied: Base R draws no title for it, so falling through to the
+The author's own `xlab=`/`ylab=` always wins. An empty string counts as
+unsupplied: Base R draws no title for it, so falling through to the
 chart type's default announces more than the blank would, and the
 renderer would otherwise substitute its generic "X"/"Y" anyway. This is
 how the candlestick processor has always read these arguments.
@@ -20,7 +20,7 @@ recorded_axis_label(args, name, default = NULL)
 
 - name:
 
-  Argument to read: \`"xlab"\` or \`"ylab"\`
+  Argument to read: `"xlab"` or `"ylab"`
 
 - default:
 
@@ -30,4 +30,4 @@ recorded_axis_label(args, name, default = NULL)
 
 ## Value
 
-Character scalar, or \`default\`
+Character scalar, or `default`

@@ -12,7 +12,7 @@ panel_has_layer_of_type(panel, type)
 
 - panel:
 
-  A processed patchwork panel (with \`\$layers\`)
+  A processed patchwork panel (with `$layers`)
 
 - type:
 

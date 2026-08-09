@@ -139,9 +139,9 @@ Violin Layer Processor"><meta property="og:image" content="https://raw.githubuse
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Processes violin layers (geom_violin) to extract density curve (KDE) data
-and box-summary statistics, producing two maidr layers: `violin_kde` and
-`violin_box`.</p>
-<p>The processor injects a thin `geom_boxplot(width = 0.1)` into the plot
+and box-summary statistics, producing two maidr layers: <code>violin_kde</code> and
+<code>violin_box</code>.</p>
+<p>The processor injects a thin <code>geom_boxplot(width = 0.1)</code> into the plot
 before rendering so that the SVG contains visible box elements whose
 CSS selectors can drive the violin_box highlight in the maidr frontend.</p>
     </div>
@@ -213,7 +213,7 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.</p>
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>Augmented ggplot2 object with boxplot layer added
 Process the violin layer</p>
-<p>Returns a list with `multi_layer = TRUE` and two maidr layers:
+<p>Returns a list with <code>multi_layer = TRUE</code> and two maidr layers:
 violin_box (with BoxSelector objects) and violin_kde.</p>
 </div>
 
@@ -304,9 +304,9 @@ geom_violin only stores the KDE curve, not quartiles).</p>
 Extract KDE density-curve data per violin group</p>
 <p>Uses ggplot2's built violin data (violinwidth, x, y, width columns)
 to compute left/right violin edges, applies RDP simplification to
-~30 points per violin, and includes the `width` field needed by the
-maidr frontend.  The `svg_x`/`svg_y` coordinates are injected later
-by `create_enhanced_svg()` after the grid device is drawn.</p>
+~30 points per violin, and includes the <code>width</code> field needed by the
+maidr frontend.  The <code>svg_x</code>/<code>svg_y</code> coordinates are injected later
+by <code><a href="create_enhanced_svg.html">create_enhanced_svg()</a></code> after the grid device is drawn.</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-extract_kde_data"></a><div class="section">
@@ -489,10 +489,10 @@ Determine orientation from built data</p>
 <p>The violin layer's mapping merged with the plot's</p>
 <p>Built in ggplot2's own order – the layer's own aesthetics first, then
 whatever only the plot maps – because the order is not cosmetic.
-ggplot2 numbers `group` from the interaction of a layer's discrete
+ggplot2 numbers <code>group</code> from the interaction of a layer's discrete
 columns taken in the order the mapping produced them, so a mapping
 assembled the other way round gives the injected box different group
-ids than the violin, and every lookup keyed on `group` then crosses
+ids than the violin, and every lookup keyed on <code>group</code> then crosses
 the two layers.</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">get_effective_mapping</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -515,9 +515,9 @@ the two layers.</p><div class="section">
 <h3 id="method-discrete-axis-labels-">Method <code>discrete_axis_labels()</code><a class="anchor" aria-label="anchor" href="#method-discrete-axis-labels-"></a></h3>
 <p>Break labels of whichever panel axis holds the categories</p>
 <p>The categorical axis is the discrete one, which is not always the axis
-the data is keyed on: `coord_flip()` leaves the data x-major while
+the data is keyed on: <code><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip()</a></code> leaves the data x-major while
 moving the category labels to the y axis, so reading the axis off
-`flipped_aes` alone returns the value axis' breaks and every violin is
+<code>flipped_aes</code> alone returns the value axis' breaks and every violin is
 labelled with a number.</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">discrete_axis_labels</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -534,7 +534,7 @@ labelled with a number.</p><div class="section">
 <div class="section">
 <h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>Character vector of labels, or NULL when neither axis is
-  discrete (a continuous category axis carries its value directly)</p>
+discrete (a continuous category axis carries its value directly)</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-fill_levels_by_colour"></a><div class="section">
@@ -559,7 +559,7 @@ apart.</p><div class="section">
 <div class="section">
 <h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>Named character vector (colour -&gt; level), or NULL when the plot
-  has no fill scale</p>
+has no fill scale</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-group_labels"></a><div class="section">
@@ -602,13 +602,13 @@ apart.</p><div class="section">
 </div><p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-boxplot_stats"></a><div class="section">
 <h3 id="method-boxplot-stats-">Method <code>boxplot_stats()</code><a class="anchor" aria-label="anchor" href="#method-boxplot-stats-"></a></h3>
 <p>Box statistics ggplot2 itself computed for each group</p>
-<p>The processor injects a `geom_boxplot()` so the SVG has box elements to
-highlight; that layer's `stat_boxplot` output is also the authoritative
-source for the numbers to announce. Reading it keyed by `group` avoids
+<p>The processor injects a <code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot()</a></code> so the SVG has box elements to
+highlight; that layer's <code>stat_boxplot</code> output is also the authoritative
+source for the numbers to announce. Reading it keyed by <code>group</code> avoids
 re-deriving quartiles from the original data via a rounded axis
 position and a string match on the break label – a round trip that
 silently mislabels dodged violins and finds nothing at all under
-`coord_flip()`.</p><div class="section">
+<code><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip()</a></code>.</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">boxplot_stats</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

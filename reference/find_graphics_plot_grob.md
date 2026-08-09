@@ -31,5 +31,4 @@ The name of the first matching grob, or NULL if not found
 ## Details
 
 Searches recursively through a grob tree to find a grob whose name
-matches the pattern:
-graphics-plot-\<number\>-\<element_type\>-\<number\>
+matches the pattern: graphics-plot--\<element_type\>-

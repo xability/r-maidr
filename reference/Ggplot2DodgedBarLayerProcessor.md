@@ -74,11 +74,12 @@ Inherited methods
 ### Method `resolve_aes_values()`
 
 Resolve this layer's x/y/fill aesthetics to VALUES.
-\`rlang::as_label()\` produces a display string, which doubles as a
-column name only for bare-column mappings. Evaluating the quosure
-against the data also covers expression aesthetics such as \`aes(fill =
-factor(cyl))\`, which are idiomatic ggplot2 and which the column-name
-treatment turned into \`data\[\["factor(cyl)"\]\]\`, i.e. NULL.
+[`rlang::as_label()`](https://rlang.r-lib.org/reference/as_label.html)
+produces a display string, which doubles as a column name only for
+bare-column mappings. Evaluating the quosure against the data also
+covers expression aesthetics such as `aes(fill = factor(cyl))`, which
+are idiomatic ggplot2 and which the column-name treatment turned into
+`data[["factor(cyl)"]]`, i.e. NULL.
 
 #### Usage
 
@@ -96,7 +97,7 @@ treatment turned into \`data\[\["factor(cyl)"\]\]\`, i.e. NULL.
 
 #### Returns
 
-List with \`x\`, \`y\` and \`fill\` vectors (any may be NULL)
+List with `x`, `y` and `fill` vectors (any may be NULL)
 
 ------------------------------------------------------------------------
 

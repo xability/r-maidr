@@ -100,12 +100,13 @@ Inherited methods
 
 Format an x-axis value as character.
 
-Date / POSIXct / POSIXlt values are formatted via \`format()\` so that a
-\`Date\` column emits ISO date strings ("2024-01-02") rather than the
-default scale-tick labels ("Jan 02"). All other types use
-\`as.character()\`. Mirrors
-\`Ggplot2CandlestickProcessor\$format_x_value()\` so candle and bar
-layers from the same Date column align string-wise.
+Date / POSIXct / POSIXlt values are formatted via
+[`format()`](https://rdrr.io/r/base/format.html) so that a `Date` column
+emits ISO date strings ("2024-01-02") rather than the default scale-tick
+labels ("Jan 02"). All other types use
+[`as.character()`](https://rdrr.io/r/base/character.html). Mirrors
+`Ggplot2CandlestickProcessor$format_x_value()` so candle and bar layers
+from the same Date column align string-wise.
 
 #### Usage
 
@@ -128,7 +129,7 @@ makes indexing the break labels with them legitimate.
 
 - `panel_params`:
 
-  This panel's entry from \`built\$layout\$panel_params\`
+  This panel's entry from `built$layout$panel_params`
 
 - `x_pos`:
 
@@ -174,9 +175,9 @@ Recover user-facing x values for a non-discrete scale.
 
 Built positions on a continuous, Date or datetime scale already are the
 values, but a Date arrives as a day count. Matching them back to the
-mapped column restores the original typing so \`format_x_value()\` can
+mapped column restores the original typing so `format_x_value()` can
 emit "2024-01-02" rather than "19724". Mirrors the same recovery in
-\`Ggplot2LineLayerProcessor\`.
+`Ggplot2LineLayerProcessor`.
 
 #### Usage
 

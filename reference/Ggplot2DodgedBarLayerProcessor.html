@@ -196,12 +196,12 @@ Dodged Bar Layer Processor"><meta property="og:image" content="https://raw.githu
 </div><p></p><hr><a id="method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values"></a><div class="section">
 <h3 id="method-resolve-aes-values-">Method <code>resolve_aes_values()</code><a class="anchor" aria-label="anchor" href="#method-resolve-aes-values-"></a></h3>
 <p>Resolve this layer's x/y/fill aesthetics to VALUES.
-  `rlang::as_label()` produces a display string, which doubles as a
-  column name only for bare-column mappings. Evaluating the quosure
-  against the data also covers expression aesthetics such as
-  `aes(fill = factor(cyl))`, which are idiomatic ggplot2 and which
-  the column-name treatment turned into `data[["factor(cyl)"]]`,
-  i.e. NULL.</p><div class="section">
+<code><a href="https://rlang.r-lib.org/reference/as_label.html" class="external-link">rlang::as_label()</a></code> produces a display string, which doubles as a
+column name only for bare-column mappings. Evaluating the quosure
+against the data also covers expression aesthetics such as
+<code>aes(fill = factor(cyl))</code>, which are idiomatic ggplot2 and which
+the column-name treatment turned into <code>data[["factor(cyl)"]]</code>,
+i.e. NULL.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2DodgedBarLayerProcessor</span><span class="op">$</span><span class="fu">resolve_aes_values</span><span class="op">(</span><span class="va">plot</span>, <span class="va">data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -220,18 +220,18 @@ Dodged Bar Layer Processor"><meta property="og:image" content="https://raw.githu
 </div>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>List with `x`, `y` and `fill` vectors (any may be NULL)</p>
+<p>List with <code>x</code>, <code>y</code> and <code>fill</code> vectors (any may be NULL)</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2DodgedBarLayerProcessor-discrete_level_order"></a><div class="section">
 <h3 id="method-discrete-level-order-">Method <code>discrete_level_order()</code><a class="anchor" aria-label="anchor" href="#method-discrete-level-order-"></a></h3>
 <p>Order the distinct values of an aesthetic the way ggplot2
-  lays them out, so the emitted columns line up with the drawn ones.
-  A factor follows its own level order, minus the levels nothing was
-  drawn for; anything else sorts in its own type's order. Sorting the
-  values AS TEXT, which is what this used to do, reordered the columns
-  twice over: against a factor whose levels are not alphabetical, and
-  against a number, where it puts 10 before 2.</p><div class="section">
+lays them out, so the emitted columns line up with the drawn ones.
+A factor follows its own level order, minus the levels nothing was
+drawn for; anything else sorts in its own type's order. Sorting the
+values AS TEXT, which is what this used to do, reordered the columns
+twice over: against a factor whose levels are not alphabetical, and
+against a number, where it puts 10 before 2.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2DodgedBarLayerProcessor</span><span class="op">$</span><span class="fu">discrete_level_order</span><span class="op">(</span><span class="va">values</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

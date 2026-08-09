@@ -138,9 +138,9 @@ Base R Pie Chart Layer Processor"><meta property="og:image" content="https://raw
 
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Processes Base R `pie()` layers based on recorded plot calls. A pie layer is
-1-D and flat: one point per slice, carrying the slice label as `x` and the
-slice magnitude as `y`. Percentages are derived by the frontend from those
+    <p>Processes Base R <code><a href="base-r-wrappers.html">pie()</a></code> layers based on recorded plot calls. A pie layer is
+1-D and flat: one point per slice, carrying the slice label as <code>x</code> and the
+slice magnitude as <code>y</code>. Percentages are derived by the frontend from those
 magnitudes, so none are emitted here.</p>
     </div>
     <div class="section level2">
@@ -262,14 +262,14 @@ magnitudes, so none are emitted here.</p>
 </div>
 <div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>Flat list of `list(x = &lt;label&gt;, y = &lt;value&gt;)` points</p>
+<p>Flat list of <code>list(x = &lt;label&gt;, y = &lt;value&gt;)</code> points</p>
 </div>
 
 </div><p></p><hr><a id="method-BaseRPieLayerProcessor-resolve_slice_labels"></a><div class="section">
 <h3 id="method-resolve-slice-labels-">Method <code>resolve_slice_labels()</code><a class="anchor" aria-label="anchor" href="#method-resolve-slice-labels-"></a></h3>
 <p>Resolve the per-slice labels the way pie() does</p>
-<p>`labels` defaults to `names(x)`, and falls back to the slice position
-when the input is unnamed. `pie(labels = NA)` draws neither label nor
+<p><code>labels</code> defaults to <code>names(x)</code>, and falls back to the slice position
+when the input is unnamed. <code>pie(labels = NA)</code> draws neither label nor
 leader line, but the wedges are still there and still navigable, so
 those slices are announced by position rather than as "NA".</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
@@ -279,7 +279,7 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>values</code></dt>
-<dd><p>The recorded `x` argument (names still attached)</p></dd>
+<dd><p>The recorded <code>x</code> argument (names still attached)</p></dd>
 
 
 <dt><code>args</code></dt>
@@ -315,7 +315,7 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 
 
 <dt><code>extracted_data</code></dt>
-<dd><p>Points from [extract_data()], used for the count</p></dd>
+<dd><p>Points from <code>extract_data()</code>, used for the count</p></dd>
 
 
 </dl><p></p></div>
@@ -353,7 +353,7 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 <h3 id="method-extract-axis-titles-">Method <code>extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#method-extract-axis-titles-"></a></h3>
 <p>Extract the axis titles for this layer</p>
 <p>x names what the slice labels mean, y what their magnitudes measure.
-`pie()` records neither unless the author wrote one, and a pie always
+<code><a href="base-r-wrappers.html">pie()</a></code> records neither unless the author wrote one, and a pie always
 holds labelled categories against their magnitudes, so the defaults
 say that much rather than leaving the axes nameless.</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>

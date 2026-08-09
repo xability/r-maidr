@@ -17,7 +17,8 @@ Invisible TRUE on success
 
 ## See also
 
-\[maidr_off()\] to disable MAIDR rendering
+[`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) to disable
+MAIDR rendering
 
 ## Examples
 

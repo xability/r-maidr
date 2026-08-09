@@ -1,6 +1,6 @@
-# Document-level implementation of \[strip_chartseries_right_axis()\]
+# Document-level implementation of [`strip_chartseries_right_axis()`](https://r.maidr.ai/reference/strip_chartseries_right_axis.md)
 
-Mutates \`svg_doc\` in place.
+Mutates `svg_doc` in place.
 
 ## Usage
 

@@ -245,7 +245,20 @@ declines them, and they stay bar / stacked / dodged as before.</p>
 <p>The magnitude is the segment's own extent, not the stacked <code>y</code>:
 <code>ymax - ymin</code> is what the wedge actually subtends, and it is the
 one expression that works for both <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col()</a></code> (stat identity)
-and <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar()</a></code> (stat count).</p><div class="section">
+and <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar()</a></code> (stat count).</p>
+<p>The extent is unsigned, though, and a negative datum is stacked
+<em>below</em> the baseline: ggplot2 builds <code>v = -40</code> as
+<code>ymin = -40, ymax = 0</code>, so the extent is 40 and the sign is gone.
+Reporting that would announce a slice the author entered as -40 as
+<code>40</code>, and compute its share against a total that swallowed it –
+confidently wrong, and indistinguishable from real data.</p>
+<p>So the sign is restored from which side of the baseline the segment
+sits on. The renderer treats a negative slice as a gap, announcing it
+as missing rather than letting it corrupt every other slice's
+percentage; laundering it here would leave that defence nothing to
+catch. Whether a producer should reject such a value outright is a
+separate question – see xability/maidr#771 – but no answer to it is
+served by destroying the sign first.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -321,7 +334,7 @@ row shares group -1 or 1), so no aesthetic names its wedges.</p><div class="sect
 <div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>list with <code>aes</code> (aesthetic name, or NULL) and
-  <code>column</code> (the mapped column name)</p>
+<code>column</code> (the mapped column name)</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2PieLayerProcessor-resolve_slice_labels"></a><div class="section">

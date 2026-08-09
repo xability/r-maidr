@@ -1,9 +1,13 @@
 # Final Line Layer Processor - Uses Actual SVG Structure
 
 Processes line plot layers using the actual gridSVG structure
-discovered: - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2,
-GRID.polyline.61.1.3 - Points: geom_point.points.63.1.1 through
-geom_point.points.63.1.24 (grouped by series)
+discovered:
+
+- Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2,
+  GRID.polyline.61.1.3
+
+- Points: geom_point.points.63.1.1 through geom_point.points.63.1.24
+  (grouped by series)
 
 ## Super class
 
@@ -236,17 +240,17 @@ mapped) and `column` (the mapped column name, or "group" as a fallback)
 ### Method `extract_layer_axes()`
 
 Extract axes labels for line layers, with a special case for
-moving-average geoms (e.g. \`tidyquant::geom_ma\`).
+moving-average geoms (e.g.
+[`tidyquant::geom_ma`](https://business-science.github.io/tidyquant/reference/geom_ma.html)).
 
-By default the parent \`LayerProcessor\$extract_layer_axes()\` reads the
+By default the parent `LayerProcessor$extract_layer_axes()` reads the
 y-label from the layer's aesthetic mapping. For a moving-average overlay
-typically written as \`geom_ma(aes(y = close), ma_fun = SMA, ...)\`,
-this yields the literal input-column name \`"close"\`, which is
-misleading: the value being plotted (and announced during navigation) is
-the moving average of \`close\`, not \`close\` itself. We detect
-\`GeomMA\` (the class of tidyquant's geom_ma layer) and override the
-y-label accordingly. Plain \`geom_line\` / \`geom_smooth\` overlays are
-untouched.
+typically written as `geom_ma(aes(y = close), ma_fun = SMA, ...)`, this
+yields the literal input-column name `"close"`, which is misleading: the
+value being plotted (and announced during navigation) is the moving
+average of `close`, not `close` itself. We detect `GeomMA` (the class of
+tidyquant's geom_ma layer) and override the y-label accordingly. Plain
+`geom_line` / `geom_smooth` overlays are untouched.
 
 #### Usage
 
@@ -402,12 +406,15 @@ Numeric vector the same length as `values`
 
 Format an x-axis value as character.
 
-Date / POSIXct / POSIXlt values are formatted via \`format()\` so that a
-\`Date\` column emits ISO date strings (e.g. "2024-01-02") rather than
-the underlying numeric days-since-epoch representation produced by
-\`ggplot_build()\`. All other types use \`as.character()\`. Mirrors
-\`Ggplot2BarLayerProcessor\$format_x_value()\` so bar and line layers
-from the same Date column align string-wise.
+Date / POSIXct / POSIXlt values are formatted via
+[`format()`](https://rdrr.io/r/base/format.html) so that a `Date` column
+emits ISO date strings (e.g. "2024-01-02") rather than the underlying
+numeric days-since-epoch representation produced by
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html).
+All other types use
+[`as.character()`](https://rdrr.io/r/base/character.html). Mirrors
+`Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers from
+the same Date column align string-wise.
 
 #### Usage
 
@@ -419,12 +426,12 @@ from the same Date column align string-wise.
 
 Recover the original (untransformed) x column for a layer.
 
-\`ggplot_build()\` transforms Date / POSIXct columns into numeric
-days-since-epoch on \`built\$data\[\[i\]\]\$x\`. To emit ISO strings we
-need the original column from \`plot\$data\` (or the layer's own
-\`data\`).
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+transforms Date / POSIXct columns into numeric days-since-epoch on
+`built$data[[i]]$x`. To emit ISO strings we need the original column
+from `plot$data` (or the layer's own `data`).
 
-Returns the per-row vector of x values aligned to \`built_data\` if a
+Returns the per-row vector of x values aligned to `built_data` if a
 simple column reference is found and the lengths match, otherwise NULL.
 
 #### Usage
@@ -778,7 +785,7 @@ List with single selector
 
 ### Method `line_layer_position()`
 
-Position (1-based) of this layer among line-typed layers in \`plot\`.
+Position (1-based) of this layer among line-typed layers in `plot`.
 Returns NULL if the registry-based detection fails.
 
 #### Usage

@@ -1,8 +1,12 @@
 # Augment every leaf of a patchwork composition
 
-Mirrors \[extract_patchwork_leaves()\]'s traversal so the augmented tree
-has the same leaf order. The result must be used for BOTH
-\`patchwork::patchworkGrob()\` and \[process_patchwork_plot_data()\]:
+Mirrors
+[`extract_patchwork_leaves()`](https://r.maidr.ai/reference/extract_patchwork_leaves.md)'s
+traversal so the augmented tree has the same leaf order. The result must
+be used for BOTH
+[`patchwork::patchworkGrob()`](https://patchwork.data-imaginist.com/reference/patchworkGrob.html)
+and
+[`process_patchwork_plot_data()`](https://r.maidr.ai/reference/process_patchwork_plot_data.md):
 grob names come from a global counter, so selectors computed against one
 build cannot resolve against another.
 

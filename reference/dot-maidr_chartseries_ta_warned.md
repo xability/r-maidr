@@ -1,6 +1,6 @@
 # chartSeries TA Advisory Warning State
 
-Environment used to suppress repeat chartSeries \`TA\` advisory warnings
+Environment used to suppress repeat chartSeries `TA` advisory warnings
 within a single session.
 
 ## Usage

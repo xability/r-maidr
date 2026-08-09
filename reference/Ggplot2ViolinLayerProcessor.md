@@ -8,9 +8,9 @@ Violin Layer Processor
 
 Processes violin layers (geom_violin) to extract density curve (KDE)
 data and box-summary statistics, producing two maidr layers:
-\`violin_kde\` and \`violin_box\`.
+`violin_kde` and `violin_box`.
 
-The processor injects a thin \`geom_boxplot(width = 0.1)\` into the plot
+The processor injects a thin `geom_boxplot(width = 0.1)` into the plot
 before rendering so that the SVG contains visible box elements whose CSS
 selectors can drive the violin_box highlight in the maidr frontend.
 
@@ -111,7 +111,7 @@ Inject geom_boxplot into the plot for visual box + selectors
 Augmented ggplot2 object with boxplot layer added Process the violin
 layer
 
-Returns a list with \`multi_layer = TRUE\` and two maidr layers:
+Returns a list with `multi_layer = TRUE` and two maidr layers:
 violin_box (with BoxSelector objects) and violin_kde.
 
 ------------------------------------------------------------------------
@@ -198,9 +198,10 @@ per violin group
 
 Uses ggplot2's built violin data (violinwidth, x, y, width columns) to
 compute left/right violin edges, applies RDP simplification to ~30
-points per violin, and includes the \`width\` field needed by the maidr
-frontend. The \`svg_x\`/\`svg_y\` coordinates are injected later by
-\`create_enhanced_svg()\` after the grid device is drawn.
+points per violin, and includes the `width` field needed by the maidr
+frontend. The `svg_x`/`svg_y` coordinates are injected later by
+[`create_enhanced_svg()`](https://r.maidr.ai/reference/create_enhanced_svg.md)
+after the grid device is drawn.
 
 ------------------------------------------------------------------------
 
@@ -372,10 +373,10 @@ The violin layer's mapping merged with the plot's
 
 Built in ggplot2's own order – the layer's own aesthetics first, then
 whatever only the plot maps – because the order is not cosmetic. ggplot2
-numbers \`group\` from the interaction of a layer's discrete columns
-taken in the order the mapping produced them, so a mapping assembled the
-other way round gives the injected box different group ids than the
-violin, and every lookup keyed on \`group\` then crosses the two layers.
+numbers `group` from the interaction of a layer's discrete columns taken
+in the order the mapping produced them, so a mapping assembled the other
+way round gives the injected box different group ids than the violin,
+and every lookup keyed on `group` then crosses the two layers.
 
 #### Usage
 
@@ -398,10 +399,11 @@ Named list of quosures, one per mapped aesthetic
 Break labels of whichever panel axis holds the categories
 
 The categorical axis is the discrete one, which is not always the axis
-the data is keyed on: \`coord_flip()\` leaves the data x-major while
-moving the category labels to the y axis, so reading the axis off
-\`flipped_aes\` alone returns the value axis' breaks and every violin is
-labelled with a number.
+the data is keyed on:
+[`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+leaves the data x-major while moving the category labels to the y axis,
+so reading the axis off `flipped_aes` alone returns the value axis'
+breaks and every violin is labelled with a number.
 
 #### Usage
 
@@ -487,13 +489,15 @@ Character vector of labels, one per group
 
 Box statistics ggplot2 itself computed for each group
 
-The processor injects a \`geom_boxplot()\` so the SVG has box elements
-to highlight; that layer's \`stat_boxplot\` output is also the
-authoritative source for the numbers to announce. Reading it keyed by
-\`group\` avoids re-deriving quartiles from the original data via a
-rounded axis position and a string match on the break label – a round
-trip that silently mislabels dodged violins and finds nothing at all
-under \`coord_flip()\`.
+The processor injects a
+[`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html)
+so the SVG has box elements to highlight; that layer's `stat_boxplot`
+output is also the authoritative source for the numbers to announce.
+Reading it keyed by `group` avoids re-deriving quartiles from the
+original data via a rounded axis position and a string match on the
+break label – a round trip that silently mislabels dodged violins and
+finds nothing at all under
+[`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html).
 
 #### Usage
 

@@ -1,7 +1,7 @@
 # Register MAIDR's custom print.ggplot method
 
 Stores the original ggplot2 print method and registers MAIDR's version.
-Called during \`.onLoad()\`.
+Called during `.onLoad()`.
 
 ## Usage
 
