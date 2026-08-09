@@ -20,6 +20,22 @@
 
 ## Bug Fixes
 
+* Base R: the function maidr replays a recorded call through is now always
+  the one the owning namespace holds, never maidr's own recording wrapper.
+  `find_original_function()` probed `graphics`, `stats` and `grDevices` with
+  R's default inherited lookup, and a namespace environment's parent chain
+  ends at the *search path* — so any name those namespaces do not own was
+  resolved against whatever happened to be attached, `package:maidr`
+  included. `chartSeries()` hit this: maidr's quantmod hook runs while
+  quantmod is loaded but not yet attached, so maidr sat ahead of it on the
+  path and maidr's own stub was recorded as quantmod's original. The replay
+  then called that stub, which forwarded through `...` — the corruption
+  described in the previous entry — failed, and only survived because of the
+  retry added for it. The probes are now scoped to the namespaces they name,
+  with `base` added to the chain because `plot()` lives there rather than in
+  `graphics`. The exported payload is byte-identical either way; what changes
+  is that the replay no longer takes a detour through maidr.
+
 * ggplot2: the panel a facet draws for a missing value is no longer announced
   as empty in dodged bar and heatmap plots. Both picked their panel's rows
   with `==`, which answers `NA` for exactly the rows whose facet value is
