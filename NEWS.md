@@ -32,6 +32,35 @@
   related cause: five module files opened a file-level block that was never
   terminated, so its text was absorbed into the first function documented
   below it. No user-visible behaviour changes.
+* Base R: an argument passed by position now reaches the description under the
+  name R matched it to. The patched functions are declared `function(...)`, so
+  the recorded call kept only the names the caller typed: `hist(x, 20)`
+  announced 9 Sturges bins over a picture of 22 bars, silently, while
+  `hist(x, breaks = 20)` was correct. Every recorded call is now matched
+  against the definition R dispatched to — `hist.default()` for `hist()`,
+  where `breaks` lives — before the processors read it, so `breaks`, `freq`,
+  `names.arg` and their neighbours are honoured whichever way they were
+  written. The argument R dispatches on is deliberately left exactly as the
+  caller wrote it, so `plot(y ~ x, data = d)` still reaches `plot.formula()`
+  when the figure is redrawn. A positional `type` reaches the description for
+  the first time as part of this: `plot(x, y, "l")` was read as the default
+  points and carried a selector that matched nothing, and is now the line it
+  draws. `plot(x, y, type = "b")` is read as points rather than as a line, in
+  both spellings — R draws `"b"` with a gap at every symbol, which gridSVG
+  exports under a name the line selector cannot address, so that layer used to
+  come out with no selector and no highlight at all; the symbols it also draws
+  are addressable.
+* Base R: `plot()` of a matrix, data frame or time series announces the axis
+  grid it draws. The axis code reimplemented the single-argument fallback by
+  hand and flattened the input, so `plot(cbind(1:5, c(100, 200, 300, 400, 500)))`
+  read all ten cells as y values and indexed x over 1:10: grid navigation ran
+  to 10 on an axis drawn 1 to 5, reporting every point at roughly half its
+  true horizontal position. The data itself was already right. Coordinates
+  now come from `grDevices::xy.coords()`, the same resolution the data
+  extraction trusts, so matrices, data frames, `ts` objects and list inputs
+  all announce the grid R drew — a `ts` starting in 2001 is announced
+  2001-2005 rather than 1-5, and `plot()` of a data frame gains the grid it
+  previously omitted.
 * Base R: a `heatmap()` given its own `labRow=` / `labCol=` announces those
   labels. `stats::heatmap()` resolves each axis as
   `labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]`, so the caller's
