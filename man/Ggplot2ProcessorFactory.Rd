@@ -10,18 +10,7 @@ An R6 class inheriting from ProcessorFactory
 Factory for creating ggplot2-specific processors. This factory uses the existing
 ggplot2 layer processors and wraps them in the new unified interface.
 }
-\keyword{Create}
-\keyword{Initialize}
-\keyword{a}
-\keyword{factory}
-\keyword{for}
-\keyword{ggplot2}
 \keyword{internal}
-\keyword{plot}
-\keyword{processor}
-\keyword{specific}
-\keyword{the}
-\keyword{type}
 \section{Super class}{
 \code{\link[maidr:ProcessorFactory]{maidr::ProcessorFactory}} -> \code{Ggplot2ProcessorFactory}
 }
@@ -49,6 +38,7 @@ ggplot2 layer processors and wraps them in the new unified interface.
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-new}{}}}
 \subsection{Method \code{new()}}{
+Initialize the ggplot2 processor factory
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$new()}\if{html}{\out{</div>}}
 }
@@ -58,6 +48,7 @@ ggplot2 layer processors and wraps them in the new unified interface.
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-create_processor}{}}}
 \subsection{Method \code{create_processor()}}{
+Create a processor for a specific plot type
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$create_processor(plot_type, layer_info)}\if{html}{\out{</div>}}
 }
@@ -73,39 +64,39 @@ ggplot2 layer processors and wraps them in the new unified interface.
 }
 \subsection{Returns}{
 Processor instance for the specified plot type
-Get list of supported plot types
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-get_supported_types"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_supported_types}{}}}
 \subsection{Method \code{get_supported_types()}}{
+Get list of supported plot types
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$get_supported_types()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Character vector of supported plot types
-Get the system name
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_system_name}{}}}
 \subsection{Method \code{get_system_name()}}{
+Get the system name
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$get_system_name()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 System name string
-Check if a specific processor class is available
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-is_processor_available"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-is_processor_available}{}}}
 \subsection{Method \code{is_processor_available()}}{
+Check if a specific processor class is available
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$is_processor_available(processor_class_name)}\if{html}{\out{</div>}}
 }
@@ -119,26 +110,26 @@ Check if a specific processor class is available
 }
 \subsection{Returns}{
 TRUE if available, FALSE otherwise
-Get available processor classes
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-get_available_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_available_processors}{}}}
 \subsection{Method \code{get_available_processors()}}{
+Get available processor classes
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$get_available_processors()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Character vector of available processor class names
-Create a processor with error handling
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-try_create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-try_create_processor}{}}}
 \subsection{Method \code{try_create_processor()}}{
+Create a processor with error handling
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$try_create_processor(plot_type, plot_object)}\if{html}{\out{</div>}}
 }

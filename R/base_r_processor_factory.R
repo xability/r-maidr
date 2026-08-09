@@ -1,5 +1,6 @@
 #' Base R Processor Factory
 #'
+#' @description
 #' Factory for creating Base R-specific processors. This factory creates
 #' processors for Base R plot types based on recorded plot calls.
 #'
@@ -10,12 +11,12 @@ BaseRProcessorFactory <- R6::R6Class(
   "BaseRProcessorFactory",
   inherit = ProcessorFactory,
   public = list(
-    #' Initialize the Base R processor factory
+    #' @description Initialize the Base R processor factory
     initialize = function() {
       # No additional initialization needed
     },
 
-    #' Create a processor for a specific plot type
+    #' @description Create a processor for a specific plot type
     #' @param plot_type The type of plot (e.g., "bar", "line", "point")
     #' @param layer_info Information about the layer (contains plot call and metadata)
     #' @return Processor instance for the specified plot type
@@ -43,7 +44,7 @@ BaseRProcessorFactory <- R6::R6Class(
       )
     },
 
-    #' Get list of supported plot types
+    #' @description Get list of supported plot types
     #' @return Character vector of supported plot types
     get_supported_types = function() {
       c(
@@ -64,20 +65,20 @@ BaseRProcessorFactory <- R6::R6Class(
       )
     },
 
-    #' Get the system name
+    #' @description Get the system name
     #' @return System name string
     get_system_name = function() {
       "base_r"
     },
 
-    #' Check if a specific processor class is available
+    #' @description Check if a specific processor class is available
     #' @param processor_class_name Name of the processor class
     #' @return TRUE if available, FALSE otherwise
     is_processor_available = function(processor_class_name) {
       exists(processor_class_name, mode = "function")
     },
 
-    #' Get available processor classes
+    #' @description Get available processor classes
     #' @return Character vector of available processor class names
     get_available_processors = function() {
       processor_classes <- c(
@@ -100,7 +101,7 @@ BaseRProcessorFactory <- R6::R6Class(
       names(available)[available]
     },
 
-    #' Create a processor with error handling
+    #' @description Create a processor with error handling
     #' @param plot_type The type of plot
     #' @param layer_info The layer information
     #' @return Processor instance or NULL if creation fails

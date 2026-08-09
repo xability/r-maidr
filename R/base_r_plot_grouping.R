@@ -6,6 +6,7 @@
 #' - LAYOUT calls affect multi-panel configuration
 #'
 #' @keywords internal
+NULL
 
 #' Group Device Calls into Plot Units
 #'

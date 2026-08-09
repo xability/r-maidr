@@ -11,18 +11,7 @@ Central registry for managing different plotting systems and their adapters.
 This registry allows dynamic registration and discovery of plotting systems
 and their associated adapters and processor factories.
 }
-\keyword{Processor}
-\keyword{Register}
-\keyword{Registered}
-\keyword{System}
-\keyword{a}
-\keyword{adapters}
-\keyword{factories}
 \keyword{internal}
-\keyword{new}
-\keyword{plotting}
-\keyword{system}
-\keyword{systems}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -42,6 +31,16 @@ and their associated adapters and processor factories.
 \if{html}{\out{<a id="method-PlotSystemRegistry-register_system"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-register_system}{}}}
 \subsection{Method \code{register_system()}}{
+Registered plotting systems
+
+
+System adapters
+
+
+Processor factories
+
+
+Register a new plotting system
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$register_system(system_name, adapter, processor_factory)}\if{html}{\out{</div>}}
 }
@@ -53,8 +52,7 @@ and their associated adapters and processor factories.
 
 \item{\code{adapter}}{Adapter instance for this system}
 
-\item{\code{processor_factory}}{Processor factory instance for this system
-Detect which system can handle a plot object}
+\item{\code{processor_factory}}{Processor factory instance for this system}
 }
 \if{html}{\out{</div>}}
 }
@@ -63,6 +61,7 @@ Detect which system can handle a plot object}
 \if{html}{\out{<a id="method-PlotSystemRegistry-detect_system"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-detect_system}{}}}
 \subsection{Method \code{detect_system()}}{
+Detect which system can handle a plot object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$detect_system(plot_object)}\if{html}{\out{</div>}}
 }
@@ -76,13 +75,13 @@ Detect which system can handle a plot object}
 }
 \subsection{Returns}{
 System name if found, NULL otherwise
-Get the adapter for a specific system
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_adapter"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_adapter}{}}}
 \subsection{Method \code{get_adapter()}}{
+Get the adapter for a specific system
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_adapter(system_name)}\if{html}{\out{</div>}}
 }
@@ -96,13 +95,13 @@ Get the adapter for a specific system
 }
 \subsection{Returns}{
 Adapter instance
-Get the processor factory for a specific system
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_processor_factory"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_processor_factory}{}}}
 \subsection{Method \code{get_processor_factory()}}{
+Get the processor factory for a specific system
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_processor_factory(system_name)}\if{html}{\out{</div>}}
 }
@@ -116,13 +115,13 @@ Get the processor factory for a specific system
 }
 \subsection{Returns}{
 Processor factory instance
-Get the adapter for a plot object (auto-detect system)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_adapter_for_plot"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_adapter_for_plot}{}}}
 \subsection{Method \code{get_adapter_for_plot()}}{
+Get the adapter for a plot object (auto-detect system)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_adapter_for_plot(plot_object)}\if{html}{\out{</div>}}
 }
@@ -136,13 +135,13 @@ Get the adapter for a plot object (auto-detect system)
 }
 \subsection{Returns}{
 Adapter instance
-Get the processor factory for a plot object (auto-detect system)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_processor_factory_for_plot"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_processor_factory_for_plot}{}}}
 \subsection{Method \code{get_processor_factory_for_plot()}}{
+Get the processor factory for a plot object (auto-detect system)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_processor_factory_for_plot(plot_object)}\if{html}{\out{</div>}}
 }
@@ -156,26 +155,26 @@ Get the processor factory for a plot object (auto-detect system)
 }
 \subsection{Returns}{
 Processor factory instance
-List all registered systems
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-list_systems"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-list_systems}{}}}
 \subsection{Method \code{list_systems()}}{
+List all registered systems
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$list_systems()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Character vector of registered system names
-Check if a system is registered
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-is_system_registered"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-is_system_registered}{}}}
 \subsection{Method \code{is_system_registered()}}{
+Check if a system is registered
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$is_system_registered(system_name)}\if{html}{\out{</div>}}
 }
@@ -189,13 +188,13 @@ Check if a system is registered
 }
 \subsection{Returns}{
 TRUE if registered, FALSE otherwise
-Unregister a system
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-unregister_system"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-unregister_system}{}}}
 \subsection{Method \code{unregister_system()}}{
+Unregister a system
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$unregister_system(system_name)}\if{html}{\out{</div>}}
 }

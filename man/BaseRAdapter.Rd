@@ -7,11 +7,6 @@
 An R6 class inheriting from SystemAdapter
 }
 \description{
-Base R System Adapter
-
-Base R System Adapter
-}
-\details{
 Adapter for the Base R plotting system. This adapter uses function patching
 to intercept Base R plotting calls and detect plot types.
 }

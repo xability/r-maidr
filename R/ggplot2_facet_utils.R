@@ -5,6 +5,7 @@
 #' for faceted plots in a unified way.
 #'
 #' @keywords internal
+NULL
 
 #' Process a faceted plot and return organized subplot data
 #' @param plot The faceted ggplot2 object

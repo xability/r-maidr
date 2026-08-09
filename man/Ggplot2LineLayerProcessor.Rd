@@ -4,29 +4,11 @@
 \alias{Ggplot2LineLayerProcessor}
 \title{Final Line Layer Processor - Uses Actual SVG Structure}
 \description{
-Final Line Layer Processor - Uses Actual SVG Structure
-
-Final Line Layer Processor - Uses Actual SVG Structure
-}
-\details{
 Processes line plot layers using the actual gridSVG structure discovered:
 - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
 - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
 }
-\keyword{(GRID.polyline.XX)}
-\keyword{Find}
-\keyword{Process}
-\keyword{SVG}
-\keyword{actual}
-\keyword{grob}
 \keyword{internal}
-\keyword{layer}
-\keyword{line}
-\keyword{main}
-\keyword{polyline}
-\keyword{structure}
-\keyword{the}
-\keyword{with}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
 }
@@ -98,6 +80,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
+Process the line layer with actual SVG structure
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$process(
   plot,
@@ -206,6 +189,12 @@ A line has no fill, so only the colour aesthetic is probed.
 list with \code{aes} (aesthetic spelling variants, or NULL when
   nothing is mapped) and \code{column} (the mapped column name, or
   "group" as a fallback)
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_layer_axes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_layer_axes}{}}}
+\subsection{Method \code{extract_layer_axes()}}{
 Extract axes labels for line layers, with a special case for
 moving-average geoms (e.g. `tidyquant::geom_ma`).
 
@@ -217,12 +206,6 @@ the value being plotted (and announced during navigation) is the moving
 average of `close`, not `close` itself. We detect `GeomMA` (the class of
 tidyquant's geom_ma layer) and override the y-label accordingly. Plain
 `geom_line` / `geom_smooth` overlays are untouched.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_layer_axes"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_layer_axes}{}}}
-\subsection{Method \code{extract_layer_axes()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
 }
@@ -238,13 +221,13 @@ tidyquant's geom_ma layer) and override the y-label accordingly. Plain
 }
 \subsection{Returns}{
 list(x = list(label = ...), y = list(label = ...))
-Extract data from line layer (single or multiline)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
+Extract data from line layer (single or multiline)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_data(
   plot,
@@ -386,7 +369,6 @@ the original column from `plot$data` (or the layer's own `data`).
 Returns the per-row vector of x values aligned to `built_data` if a
 simple column reference is found and the lengths match, otherwise
 NULL.
-Extract data for multiple line series
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_original_x_column(plot, built_data)}\if{html}{\out{</div>}}
 }
@@ -396,6 +378,7 @@ Extract data for multiple line series
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_multiline_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_multiline_data}{}}}
 \subsection{Method \code{extract_multiline_data()}}{
+Extract data for multiple line series
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_multiline_data(layer_data, plot)}\if{html}{\out{</div>}}
 }
@@ -411,13 +394,13 @@ Extract data for multiple line series
 }
 \subsection{Returns}{
 List of arrays, each containing series data
-Extract data for single line (backward compatibility)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-extract_single_line_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_single_line_data}{}}}
 \subsection{Method \code{extract_single_line_data()}}{
+Extract data for single line (backward compatibility)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_single_line_data(layer_data, plot = NULL)}\if{html}{\out{</div>}}
 }
@@ -431,13 +414,13 @@ Extract data for single line (backward compatibility)
 }
 \subsection{Returns}{
 List containing single series data
-Get the grouping column name from plot mappings
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_group_column"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_group_column}{}}}
 \subsection{Method \code{get_group_column()}}{
+Get the grouping column name from plot mappings
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_group_column(plot)}\if{html}{\out{</div>}}
 }
@@ -660,13 +643,13 @@ element suffixed \code{.1.<k>}.
 }
 \subsection{Returns}{
 Integer count, at least 1
-Generate selectors for multiline plots using actual structure
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_multiline_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{}}}
 \subsection{Method \code{generate_multiline_selectors()}}{
+Generate selectors for multiline plots using actual structure
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$generate_multiline_selectors(base_id, num_series)}\if{html}{\out{</div>}}
 }
@@ -682,13 +665,13 @@ Generate selectors for multiline plots using actual structure
 }
 \subsection{Returns}{
 List of selectors
-Generate selector for single line plot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_single_line_selector"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_single_line_selector}{}}}
 \subsection{Method \code{generate_single_line_selector()}}{
+Generate selector for single line plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$generate_single_line_selector(base_id)}\if{html}{\out{</div>}}
 }
@@ -702,14 +685,14 @@ Generate selector for single line plot
 }
 \subsection{Returns}{
 List with single selector
-Position (1-based) of this layer among line-typed layers in `plot`.
-Returns NULL if the registry-based detection fails.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-line_layer_position}{}}}
 \subsection{Method \code{line_layer_position()}}{
+Position (1-based) of this layer among line-typed layers in `plot`.
+Returns NULL if the registry-based detection fails.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}\if{html}{\out{</div>}}
 }
@@ -719,6 +702,7 @@ Returns NULL if the registry-based detection fails.
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_main_polyline_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-find_main_polyline_grob}{}}}
 \subsection{Method \code{find_main_polyline_grob()}}{
+Find the main polyline grob (GRID.polyline.XX)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$find_main_polyline_grob(gt)}\if{html}{\out{</div>}}
 }
@@ -732,13 +716,13 @@ Returns NULL if the registry-based detection fails.
 }
 \subsection{Returns}{
 The main polyline grob or NULL
-Check if layer needs reordering
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-needs_reordering}{}}}
 \subsection{Method \code{needs_reordering()}}{
+Check if layer needs reordering
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$needs_reordering()}\if{html}{\out{</div>}}
 }

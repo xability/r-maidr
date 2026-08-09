@@ -5,6 +5,7 @@
 #' for patchwork plots in a unified way.
 #'
 #' @keywords internal
+NULL
 
 #' Process a patchwork plot and return organized subplot data
 #' @param plot The patchwork plot object, with leaves already augmented

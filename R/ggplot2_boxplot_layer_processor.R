@@ -1,5 +1,6 @@
 #' Boxplot Layer Processor
 #'
+#' @description
 #' Processes boxplot layers (geom_boxplot) to extract statistical data and generate selectors
 #' for individual boxplot components in the SVG structure.
 #'
@@ -11,7 +12,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
     .built_cache = NULL
   ),
   public = list(
-    #' Get (and cache) the built plot data
+    #' @description Get (and cache) the built plot data
     #'
     #' ggplot_build() is expensive; extract_data, generate_selectors,
     #' determine_orientation, and map_categories_to_names all need it, so
@@ -28,7 +29,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       private$.built_cache
     },
 
-    #' Process the boxplot layer
+    #' @description Process the boxplot layer
     #' @param plot The ggplot2 object
     #' @param layout Layout information
     #' @param built Built plot data (optional)
@@ -74,7 +75,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' Extract data from boxplot layer
+    #' @description Extract data from boxplot layer
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @param panel_id Optional facet panel to restrict extraction to
@@ -177,7 +178,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       boxplot_data
     },
 
-    #' Generate selectors for boxplot elements
+    #' @description Generate selectors for boxplot elements
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
     #' @param panel_ctx Panel context for panel-scoped selection (optional)
@@ -391,7 +392,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       selectors
     },
 
-    #' Determine if the boxplot is horizontal or vertical
+    #' @description Determine if the boxplot is horizontal or vertical
     #' @param plot The ggplot2 object
     #' @return "horz" or "vert"
     determine_orientation = function(plot) {
@@ -418,7 +419,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       "vert"
     },
 
-    #' Map numeric category codes to actual category names
+    #' @description Map numeric category codes to actual category names
     #' Uses panel_params axis labels from ggplot_build to map codes to labels
     #' @param boxplot_data List of boxplot statistics
     #' @param plot The ggplot2 object
@@ -481,7 +482,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       boxplot_data
     },
 
-    #' Find the panel grob this layer draws into
+    #' @description Find the panel grob this layer draws into
     #' @param gt The gtable to search
     #' @param panel_ctx Panel context for patchwork leaves and facets; NULL
     #'   for a single plot, where the panel is the cell literally named "panel"
@@ -490,7 +491,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       find_gtable_panel_grob(gt, panel_ctx)
     },
 
-    #' Find children by type pattern
+    #' @description Find children by type pattern
     #' @param grob The grob to search
     #' @param type_pattern Pattern to match
     #' @return List of matching children
@@ -509,7 +510,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       children
     },
 
-    #' Find the outlier container within a boxplot
+    #' @description Find the outlier container within a boxplot
     #' @param gt The gtable object
     #' @param boxplot_id The boxplot container ID
     #' @return The outlier container ID or NULL
@@ -518,7 +519,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       self$find_child_by_pattern(gt, boxplot_id, "geom_point")
     },
 
-    #' Find the box container within a boxplot
+    #' @description Find the box container within a boxplot
     #' @param gt The gtable object
     #' @param boxplot_id The boxplot container ID
     #' @return The box container ID or NULL
@@ -527,7 +528,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       self$find_child_by_pattern(gt, boxplot_id, "geom_polygon")
     },
 
-    #' Find the whisker container within a boxplot
+    #' @description Find the whisker container within a boxplot
     #' @param gt The gtable object
     #' @param boxplot_id The boxplot container ID
     #' @return The whisker container ID or NULL
@@ -536,7 +537,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       self$find_child_by_pattern(gt, boxplot_id, "GRID\\.segments")
     },
 
-    #' Find the median container within a boxplot
+    #' @description Find the median container within a boxplot
     #' @param gt The gtable object
     #' @param boxplot_id The boxplot container ID
     #' @return The median container ID or NULL
@@ -545,7 +546,7 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       self$find_child_by_pattern(gt, boxplot_id, "GRID\\.segments")
     },
 
-    #' Find a child element by pattern within a container
+    #' @description Find a child element by pattern within a container
     #' @param gt The gtable object
     #' @param container_id The container ID to search within
     #' @param pattern Pattern to match

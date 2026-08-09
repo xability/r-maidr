@@ -7,11 +7,7 @@
 Processes scatter plot layers (geom_point) to extract point data and generate selectors
 for individual points in the SVG structure.
 }
-\keyword{Process}
 \keyword{internal}
-\keyword{layer}
-\keyword{point}
-\keyword{the}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2PointLayerProcessor}
 }
@@ -48,6 +44,7 @@ for individual points in the SVG structure.
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
+Process the point layer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$process(
   plot,
@@ -82,17 +79,17 @@ for individual points in the SVG structure.
 }
 \subsection{Returns}{
 List with data and selectors
-Extract axis information from the plot
-
-Returns per-axis objects with label and optional grid navigation fields
-(min, max, tickStep). Grid fields are only included when they can be
-successfully extracted from the built plot scales.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_axes_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_axes_labels}{}}}
 \subsection{Method \code{extract_axes_labels()}}{
+Extract axis information from the plot
+
+Returns per-axis objects with label and optional grid navigation fields
+(min, max, tickStep). Grid fields are only included when they can be
+successfully extracted from the built plot scales.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axes_labels(
   plot,
@@ -114,17 +111,17 @@ successfully extracted from the built plot scales.
 }
 \subsection{Returns}{
 List with x and y per-axis objects
-Extract grid navigation info (min, max, tickStep) for a single axis
-
-Attempts to extract range and tick interval from the built plot's
-panel parameters. Returns NULL if any required value cannot be
-determined, allowing graceful fallback to non-grid scatter navigation.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_axis_grid_info"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{}}}
 \subsection{Method \code{extract_axis_grid_info()}}{
+Extract grid navigation info (min, max, tickStep) for a single axis
+
+Attempts to extract range and tick interval from the built plot's
+panel parameters. Returns NULL if any required value cannot be
+determined, allowing graceful fallback to non-grid scatter navigation.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axis_grid_info(
   built,
@@ -146,13 +143,13 @@ determined, allowing graceful fallback to non-grid scatter navigation.
 }
 \subsection{Returns}{
 List with min, max, tickStep or NULL if extraction fails
-Extract data from point layer
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
+Extract data from point layer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_data(
   plot,
@@ -177,13 +174,13 @@ Extract data from point layer
 }
 \subsection{Returns}{
 List with points array and color information
-Generate selectors for point elements
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
+Generate selectors for point elements
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$generate_selectors(
   plot,
@@ -206,13 +203,13 @@ Generate selectors for point elements
 }
 \subsection{Returns}{
 List of selectors
-Find the panel grob this layer draws into
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-find_panel_grob}{}}}
 \subsection{Method \code{find_panel_grob()}}{
+Find the panel grob this layer draws into
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
 }
@@ -229,13 +226,13 @@ for a single plot, where the panel is the cell literally named "panel"}
 }
 \subsection{Returns}{
 The panel grob or NULL
-Find children by type pattern
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-find_children_by_type"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-find_children_by_type}{}}}
 \subsection{Method \code{find_children_by_type()}}{
+Find children by type pattern
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$find_children_by_type(grob, type_pattern)}\if{html}{\out{</div>}}
 }

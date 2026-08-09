@@ -3,7 +3,7 @@
 \docType{data}
 \name{.base_r_function_classes}
 \alias{.base_r_function_classes}
-\title{Base R Function Classification}
+\title{Function Classification Maps}
 \format{
 An object of class \code{list} of length 3.
 }
@@ -13,13 +13,4 @@ An object of class \code{list} of length 3.
 \description{
 Maps of function names to their classification levels
 }
-\details{
-This module classifies Base R plotting functions into categories:
-- HIGH: Main plot creation functions (barplot, hist, plot, etc.)
-- LOW: Drawing functions that add to existing plots (lines, points, etc.)
-- LAYOUT: Canvas layout functions (par, layout, etc.)
-}
-\keyword{Classification}
-\keyword{Function}
-\keyword{Maps}
 \keyword{internal}

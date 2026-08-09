@@ -50,6 +50,7 @@ warn_chartseries_ta_unsupported <- function() {
 
 #' Base R System Adapter
 #'
+#' @description
 #' Adapter for the Base R plotting system. This adapter uses function patching
 #' to intercept Base R plotting calls and detect plot types.
 #'
@@ -107,8 +108,25 @@ BaseRAdapter <- R6::R6Class(
           } else {
             # plot() default type is "p" (points/scatter)
             # plot(x, y) with two numeric vectors defaults to scatter
+            #
+            # `type = "b"` reads as points, not as a line. It draws the
+            # segments with a gap at every symbol, so gridSVG exports them
+            # under "brokenline" rather than the single "lines" polyline the
+            # line selector addresses - the layer came out with NO selector
+            # and highlighted nothing, while the points grob it also draws
+            # resolves cleanly. The `curve` branch below already reached this
+            # conclusion for the same draw types; the `plot` branch could not
+            # act on it while a positionally supplied type never arrived here
+            # at all (#98). `"o"` overplots symbols on an unbroken polyline,
+            # so it keeps the line reading, exactly as `curve` does.
+            #
+            # `"c"`, `"h"`, `"s"` and `"S"` are left as they are: they export
+            # under names the line selector cannot address either, but they
+            # draw no symbols to fall back to, so there is nothing to point
+            # at until a trace type exists for them. Their reading is
+            # unchanged from a named `type =` today.
             plot_type <- args$type
-            if (is.null(plot_type) || plot_type == "p") {
+            if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {
               "point"
             } else {
               "line"

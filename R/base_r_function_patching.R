@@ -758,6 +758,13 @@ create_function_wrapper <- function(function_name, original_function) {
       if (is.null(args_list)) {
         args_list <- as.list(this_call)[-1L]
         call_env <- snapshot_call_env(args_list, caller_env)
+      } else {
+        # Give positionally supplied arguments the names R matched them to,
+        # so every processor can read args[["breaks"]] / args[["type"]]
+        # instead of re-deriving the match by hand. Only on this path: the
+        # NSE branch above holds unevaluated expressions, and resolving the
+        # dispatched method would have to force them.
+        args_list <- match_recorded_args(FNAME, ORIG, args_list)
       }
 
       # Computation-only calls (hist(x, plot = FALSE), boxplot(x,
@@ -995,6 +1002,7 @@ create_barplot_wrapper <- function(original_function) {
         call_env = snapshot_call_env(recorded_args, caller_env)
       )
     } else {
+      args <- match_recorded_args("barplot", original_function, args)
       patched_args <- apply_barplot_patches(args)
 
       result <- do.call(original_function, patched_args)

@@ -7,33 +7,7 @@
 Processes boxplot layers (geom_boxplot) to extract statistical data and generate selectors
 for individual boxplot components in the SVG structure.
 }
-\keyword{(and}
-\keyword{Get}
-\keyword{all}
-\keyword{and}
-\keyword{at}
-\keyword{build}
-\keyword{built}
-\keyword{cache)}
-\keyword{data}
-\keyword{determine_orientation,}
-\keyword{expensive;}
-\keyword{extract_data,}
-\keyword{generate_selectors,}
-\keyword{ggplot_build()}
-\keyword{instance.}
 \keyword{internal}
-\keyword{is}
-\keyword{it,}
-\keyword{map_categories_to_names}
-\keyword{most}
-\keyword{need}
-\keyword{once}
-\keyword{per}
-\keyword{plot}
-\keyword{processor}
-\keyword{so}
-\keyword{the}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2BoxplotLayerProcessor}
 }
@@ -76,6 +50,11 @@ for individual boxplot components in the SVG structure.
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-get_built"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-get_built}{}}}
 \subsection{Method \code{get_built()}}{
+Get (and cache) the built plot data
+
+ggplot_build() is expensive; extract_data, generate_selectors,
+determine_orientation, and map_categories_to_names all need it, so
+build at most once per processor instance.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$get_built(plot, built = NULL)}\if{html}{\out{</div>}}
 }
@@ -91,13 +70,13 @@ for individual boxplot components in the SVG structure.
 }
 \subsection{Returns}{
 Built plot data
-Process the boxplot layer
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-process}{}}}
 \subsection{Method \code{process()}}{
+Process the boxplot layer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$process(
   plot,
@@ -134,13 +113,13 @@ Process the boxplot layer
 }
 \subsection{Returns}{
 List with data and selectors
-Extract data from boxplot layer
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-extract_data}{}}}
 \subsection{Method \code{extract_data()}}{
+Extract data from boxplot layer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
 }
@@ -158,13 +137,13 @@ Extract data from boxplot layer
 }
 \subsection{Returns}{
 List with boxplot statistics for each category
-Generate selectors for boxplot elements
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
+Generate selectors for boxplot elements
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$generate_selectors(
   plot,
@@ -189,13 +168,13 @@ Generate selectors for boxplot elements
 }
 \subsection{Returns}{
 List of selectors for each boxplot
-Determine if the boxplot is horizontal or vertical
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-determine_orientation"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-determine_orientation}{}}}
 \subsection{Method \code{determine_orientation()}}{
+Determine if the boxplot is horizontal or vertical
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$determine_orientation(plot)}\if{html}{\out{</div>}}
 }
@@ -209,14 +188,14 @@ Determine if the boxplot is horizontal or vertical
 }
 \subsection{Returns}{
 "horz" or "vert"
-Map numeric category codes to actual category names
-Uses panel_params axis labels from ggplot_build to map codes to labels
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-map_categories_to_names"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-map_categories_to_names}{}}}
 \subsection{Method \code{map_categories_to_names()}}{
+Map numeric category codes to actual category names
+Uses panel_params axis labels from ggplot_build to map codes to labels
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(
   boxplot_data,
@@ -238,13 +217,13 @@ Uses panel_params axis labels from ggplot_build to map codes to labels
 }
 \subsection{Returns}{
 Updated boxplot data with proper category names
-Find the panel grob this layer draws into
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_panel_grob}{}}}
 \subsection{Method \code{find_panel_grob()}}{
+Find the panel grob this layer draws into
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
 }
@@ -261,13 +240,13 @@ for a single plot, where the panel is the cell literally named "panel"}
 }
 \subsection{Returns}{
 The panel grob or NULL
-Find children by type pattern
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_children_by_type"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_children_by_type}{}}}
 \subsection{Method \code{find_children_by_type()}}{
+Find children by type pattern
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_children_by_type(grob, type_pattern)}\if{html}{\out{</div>}}
 }
@@ -283,13 +262,13 @@ Find children by type pattern
 }
 \subsection{Returns}{
 List of matching children
-Find the outlier container within a boxplot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_outlier_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_outlier_container}{}}}
 \subsection{Method \code{find_outlier_container()}}{
+Find the outlier container within a boxplot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_outlier_container(gt, boxplot_id)}\if{html}{\out{</div>}}
 }
@@ -305,13 +284,13 @@ Find the outlier container within a boxplot
 }
 \subsection{Returns}{
 The outlier container ID or NULL
-Find the box container within a boxplot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_box_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_box_container}{}}}
 \subsection{Method \code{find_box_container()}}{
+Find the box container within a boxplot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_box_container(gt, boxplot_id)}\if{html}{\out{</div>}}
 }
@@ -327,13 +306,13 @@ Find the box container within a boxplot
 }
 \subsection{Returns}{
 The box container ID or NULL
-Find the whisker container within a boxplot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_whisker_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_whisker_container}{}}}
 \subsection{Method \code{find_whisker_container()}}{
+Find the whisker container within a boxplot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_whisker_container(gt, boxplot_id)}\if{html}{\out{</div>}}
 }
@@ -349,13 +328,13 @@ Find the whisker container within a boxplot
 }
 \subsection{Returns}{
 The whisker container ID or NULL
-Find the median container within a boxplot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_median_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_median_container}{}}}
 \subsection{Method \code{find_median_container()}}{
+Find the median container within a boxplot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_median_container(gt, boxplot_id)}\if{html}{\out{</div>}}
 }
@@ -371,13 +350,13 @@ Find the median container within a boxplot
 }
 \subsection{Returns}{
 The median container ID or NULL
-Find a child element by pattern within a container
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern}{}}}
 \subsection{Method \code{find_child_by_pattern()}}{
+Find a child element by pattern within a container
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_child_by_pattern(gt, container_id, pattern)}\if{html}{\out{</div>}}
 }
