@@ -50,6 +50,14 @@ Ggplot2Adapter <- R6::R6Class(
           return("hist")
         }
 
+        # A bar layer drawn in polar coordinates with theta on y is the
+        # idiomatic ggplot2 pie: the stack's segments wrap into wedges. It
+        # must be caught before the position checks, which would otherwise
+        # claim the very same layer as a stacked bar.
+        if (self$is_pie_coord(plot_object)) {
+          return("pie")
+        }
+
         if (position_class %in% c("PositionDodge", "PositionDodge2")) {
           return("dodged_bar")
         }
@@ -101,6 +109,29 @@ Ggplot2Adapter <- R6::R6Class(
       }
 
       "unknown"
+    },
+
+    #' Check if a plot's coordinate system turns bars into pie wedges
+    #'
+    #' \code{coord_radial()} produces a CoordRadial that does NOT inherit
+    #' CoordPolar, so both class names have to be tested. \code{theta} decides
+    #' what the angle encodes: only \code{theta = "y"} maps a bar's height
+    #' onto the angle, which is a pie. \code{theta = "x"} keeps the height on
+    #' the radius, which is a coxcomb/rose - still a bar chart, just bent.
+    #'
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE when the plot is drawn as a pie, FALSE otherwise
+    is_pie_coord = function(plot_object) {
+      if (is.null(plot_object)) {
+        return(FALSE)
+      }
+
+      coord <- plot_object$coordinates
+      if (!inherits(coord, c("CoordPolar", "CoordRadial"))) {
+        return(FALSE)
+      }
+
+      identical(coord$theta, "y")
     },
 
     #' Create an orchestrator for this system (ggplot2)

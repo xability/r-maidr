@@ -149,6 +149,7 @@ BaseRAdapter <- R6::R6Class(
         },
         "hist" = "hist",
         "boxplot" = "box",
+        "pie" = "pie",
         "image" = "heat",
         "heatmap" = "heat",
         "contour" = "contour",

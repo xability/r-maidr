@@ -2,7 +2,7 @@
 
 > maidr is an R package that makes ggplot2 and Base R data visualizations accessible to blind and low-vision users through keyboard navigation, screen reader support, and sonification. Developed by the (x)Ability Design Lab at the University of Illinois Urbana-Champaign.
 
-maidr converts standard R plots into interactive HTML/SVG formats with audio sonification, braille output, and text descriptions. It supports bar charts, histograms, scatter plots, line plots, box plots, violin plots, heatmaps, density curves, faceted plots, multi-panel layouts, and multi-layered combinations. Integrates with RMarkdown and Shiny applications.
+maidr converts standard R plots into interactive HTML/SVG formats with audio sonification, braille output, and text descriptions. It supports bar charts, pie charts, histograms, scatter plots, line plots, box plots, violin plots, heatmaps, density curves, faceted plots, multi-panel layouts, and multi-layered combinations. Integrates with RMarkdown and Shiny applications.
 
 ## Docs
 - [Getting Started](https://r.maidr.ai/articles/getting-started.html): Installation and basic workflow

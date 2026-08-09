@@ -1,5 +1,20 @@
 # maidr (development version)
 
+## New Features
+
+* Pie chart support for both plotting systems. In 'ggplot2' a `geom_col()` /
+  `geom_bar()` layer drawn under `coord_polar("y")` — or `coord_radial(theta =
+  "y")` — is now recognised as a pie rather than mis-read as a stacked bar;
+  `coord_polar("x")`, which draws a coxcomb, keeps its bar behaviour. In Base R,
+  `pie()` is described directly. Each wedge is one navigable slice carrying its
+  label and its magnitude, and MAIDR derives the percentage from those values.
+* Base R `pie()` charts can be exported at all. `gridGraphics` translates the
+  wedge labels into text grobs whose `vjust` is `NA`, and gridSVG branches on
+  that value directly, so `grid.export()` aborted with "missing value where
+  TRUE/FALSE needed" and no `pie()` call could be rendered. Text grobs with an
+  NA justification are now repaired to the value grid resolves them to anyway,
+  which leaves the drawn output unchanged and every other plot type untouched.
+
 ## Bug Fixes
 
 * ggplot2: a grouped smooth is described as one series per curve.

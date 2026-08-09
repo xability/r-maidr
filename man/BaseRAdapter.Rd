@@ -10,7 +10,20 @@ An R6 class inheriting from SystemAdapter
 Adapter for the Base R plotting system. This adapter uses function patching
 to intercept Base R plotting calls and detect plot types.
 }
+\keyword{Base}
+\keyword{Check}
+\keyword{Initialize}
+\keyword{R}
+\keyword{a}
+\keyword{adapter}
+\keyword{can}
+\keyword{handle}
+\keyword{if}
 \keyword{internal}
+\keyword{object}
+\keyword{plot}
+\keyword{the}
+\keyword{this}
 \section{Super class}{
 \code{\link[maidr:SystemAdapter]{maidr::SystemAdapter}} -> \code{BaseRAdapter}
 }

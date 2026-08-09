@@ -32,6 +32,7 @@ ggplot2 functionality to work with the new extensible architecture.
 \item \href{#method-Ggplot2Adapter-new}{\code{Ggplot2Adapter$new()}}
 \item \href{#method-Ggplot2Adapter-can_handle}{\code{Ggplot2Adapter$can_handle()}}
 \item \href{#method-Ggplot2Adapter-detect_layer_type}{\code{Ggplot2Adapter$detect_layer_type()}}
+\item \href{#method-Ggplot2Adapter-is_pie_coord}{\code{Ggplot2Adapter$is_pie_coord()}}
 \item \href{#method-Ggplot2Adapter-create_orchestrator}{\code{Ggplot2Adapter$create_orchestrator()}}
 \item \href{#method-Ggplot2Adapter-get_system_name}{\code{Ggplot2Adapter$get_system_name()}}
 \item \href{#method-Ggplot2Adapter-get_adapter}{\code{Ggplot2Adapter$get_adapter()}}
@@ -88,6 +89,32 @@ Detect the type of a single layer
 }
 \subsection{Returns}{
 String indicating the layer type (e.g., "bar", "line", "point")
+Check if a plot's coordinate system turns bars into pie wedges
+
+\code{coord_radial()} produces a CoordRadial that does NOT inherit
+CoordPolar, so both class names have to be tested. \code{theta} decides
+what the angle encodes: only \code{theta = "y"} maps a bar's height
+onto the angle, which is a pie. \code{theta = "x"} keeps the height on
+the radius, which is a coxcomb/rose - still a bar chart, just bent.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-is_pie_coord"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-is_pie_coord}{}}}
+\subsection{Method \code{is_pie_coord()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$is_pie_coord(plot_object)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot_object}}{The ggplot2 plot object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+TRUE when the plot is drawn as a pie, FALSE otherwise
 Create an orchestrator for this system (ggplot2)
 }
 }
