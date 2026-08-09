@@ -120,10 +120,24 @@ BaseRPointLayerProcessor <- R6::R6Class(
       xy <- resolve_xy_args(args)
       x_data <- xy$x
       y_data <- xy$y
-      if (is.null(y_data) && is.numeric(x_data)) {
-        # plot(v): x axis is the index, y axis carries the values
-        y_data <- x_data
-        x_data <- seq_along(y_data)
+      # Let R resolve the coordinates, the way extract_data() already does.
+      # Re-deriving the single-argument fallback by hand got plot(matrix)
+      # wrong: it read all 10 cells of a 5x2 matrix as y and indexed x over
+      # 1:10, so the announced grid was twice as wide as the drawn one (#98).
+      # xy.coords() is the resolution plot() itself uses, and it covers
+      # matrices, data frames, ts and list inputs in the same step.
+      # Warnings are muffled because this is our own probe, not the user's
+      # call: categorical coordinates make xy.coords() report "NAs introduced
+      # by coercion", and the drawn plot has already had its say.
+      if (!is.language(x_data)) {
+        coords <- suppressWarnings(tryCatch(
+          grDevices::xy.coords(x_data, y_data),
+          error = function(e) NULL
+        ))
+        if (usable_xy_coords(coords)) {
+          x_data <- coords$x
+          y_data <- coords$y
+        }
       }
 
       x_grid <- self$extract_base_r_axis_grid_info(x_data, args[["xlim"]])
