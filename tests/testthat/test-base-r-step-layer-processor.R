@@ -378,6 +378,32 @@ test_that("A Base R step plot reaches the payload as type 'step'", {
   clear_base_r_state()
 })
 
+test_that("A positionally supplied type = 's' reaches the payload as step", {
+  # `plot()` is patched as `function(...)`, so the recorded call keeps only
+  # the names the caller typed and `args$type` is empty for `plot(x, y, "s")`.
+  # #113 matches every recorded call against the definition R dispatched to
+  # before detection reads it, which is what puts the third argument under
+  # `type`. Detection and the payload sit downstream of that, so this pins the
+  # seam: reverting the matching sends the layer to "point" and the step
+  # reading disappears without any error.
+  plot(1:6, c(1, 3, 3, 5, 2, 2), "s", main = "Steps", xlab = "X", ylab = "Y")
+
+  orchestrator <- maidr:::BaseRPlotOrchestrator$new(grDevices::dev.cur())
+
+  testthat::expect_false(orchestrator$should_fallback())
+
+  layer <- orchestrator$get_combined_data()[[1]][[1]]$layers[[1]]
+  testthat::expect_equal(layer$type, "step")
+  testthat::expect_equal(layer$stepDirection, "hv")
+  testthat::expect_equal(length(layer$data[[1]]), 6)
+  # One selector, addressing the `-step-` grob rather than the `-lines-` one
+  # the inherited line search would look for.
+  testthat::expect_equal(length(layer$selectors), 1)
+  testthat::expect_match(layer$selectors[[1]], "graphics-plot-1-step-1")
+
+  clear_base_r_state()
+})
+
 test_that("A Base R type = 'S' plot reports stepDirection vh", {
   plot(1:4, c(1, 2, 2, 4), type = "S", main = "Steps", xlab = "X", ylab = "Y")
 

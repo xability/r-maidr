@@ -544,16 +544,27 @@ test_that("BaseRAdapter detect_layer_type detects step plot (type = 'S')", {
 
 test_that("BaseRAdapter detect_layer_type keeps type = 'l' as line", {
   # The step branch sits ahead of the catch-all "line" mapping; make sure it
-  # only claims "s" / "S" and leaves every other non-"p" type alone.
+  # only claims "s" / "S" and leaves every other non-"p" type where the
+  # branches around it put them.
   adapter <- maidr:::BaseRAdapter$new()
 
-  for (plot_type in c("l", "b", "o", "h", "c")) {
-    layer <- list(
+  layer_for <- function(plot_type) {
+    list(
       function_name = "plot",
       args = list(1:10, rnorm(10), type = plot_type)
     )
-    testthat::expect_equal(adapter$detect_layer_type(layer), "line")
   }
+
+  for (plot_type in c("l", "o", "h", "c")) {
+    testthat::expect_equal(adapter$detect_layer_type(layer_for(plot_type)), "line")
+  }
+
+  # "b" was in that list until #113 moved it to the points branch ahead of
+  # the step test: it draws its segments with a gap at every symbol, which
+  # gridSVG exports as "brokenline", a name the line selector cannot address,
+  # so the layer used to come out with no highlight at all. The step branch
+  # must not claim it back.
+  testthat::expect_equal(adapter$detect_layer_type(layer_for("b")), "point")
 })
 
 test_that("BaseRAdapter detect_layer_type detects lines(type = 's') as step", {
