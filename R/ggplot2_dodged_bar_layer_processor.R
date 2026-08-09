@@ -208,10 +208,14 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         # `stat = "count"` layer is a cross-tabulation, and a cell it never
         # drew is a cell whose count is genuinely zero, not one whose value is
         # unknown - "no four-wheel-drive two-seaters" is a fact about the data
-        # that a sighted reader takes from the gap in the column. The
-        # stat = "identity" branch below deliberately does NOT do this: there
-        # a missing row means the caller supplied no value, and inventing a
-        # zero would invent data.
+        # that a sighted reader takes from the gap in the column. So the zero
+        # here is a DATUM, and it stays one.
+        #
+        # The stat = "identity" branch below also emits a full grid, because
+        # the frontend needs the same rectangular shape either way, but it
+        # fills its absent cells with `NA` rather than 0: there a missing row
+        # means the caller supplied no value, and a zero would invent data.
+        # See the note there for how the frontend tells the two apart.
         series <- lapply(fill_levels, function(fill_name) {
           lapply(x_levels, function(x_name) {
             list(
@@ -230,6 +234,76 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         # one, so this branch has to say so.
         attr(series, "dom_mapping") <- list(groupDirection = "forward")
         return(series)
+      }
+
+      # stat = "identity" (geom_col): one bar per row the caller supplied.
+      #
+      # A `geom_col()` frame is routinely NOT a complete grid - pre-aggregated
+      # tidy data is the reason the geom exists - and emitting only the rows
+      # that are there made the series RAGGED, which is the one shape the
+      # frontend cannot describe (issue #94). Its `mapToSvgElements` walks
+      # `barValues[0].length` columns times `barValues.length` series against a
+      # single flat node list, so a 3/2 payload cross-mapped the announcement
+      # to a bar in a different category AND a different fill group.
+      #
+      # So emit the full cartesian product, exactly as the `stat = "count"`
+      # branch above does. The cells the caller left out carry `NA`, which
+      # `set_maidr_data_attr()` serializes to JSON `null`, and that is a real
+      # value in this protocol rather than a stand-in for one:
+      #
+      #   * The frontend reads `Number(point.y)` into `barValues`, and
+      #     `Number(null)` is 0 - so the absent cell hits the `=== 0` sentinel
+      #     in the rect branch, consumes no node and is handed an empty
+      #     highlight, which keeps every other cell on its own bar.
+      #   * It reads the RAW point for the announcement, where its formatter
+      #     has a dedicated missing branch (`wrapFormat`: `o == null || NaN`
+      #     -> `missingText`, default "missing"). The reader hears
+      #     "n is missing", not the value 0.
+      #
+      # That is the distinction #87 asked for: `0` stays the honest reading of
+      # an absent `stat = "count"` cell, which genuinely counted nothing, while
+      # a row the caller never supplied reads as missing instead of inventing a
+      # zero. Verified end to end in Chromium against the bundled build.
+      x_levels <- self$discrete_level_order(x_values)
+      fill_levels <- self$discrete_level_order(fill_values)
+      cell_keys <- paste(
+        as.character(x_values),
+        as.character(fill_values),
+        sep = "\r"
+      )
+
+      # Two rows sharing an (x, fill) cell draw two rects on top of each other,
+      # and a grid has nowhere to put the second value. That is a degenerate
+      # chart rather than an incomplete one, so leave it on the row-by-row path
+      # rather than silently dropping a row to force it into a grid.
+      #
+      # A real `NA` in either aesthetic takes the same exit. `sort()` drops it
+      # from the level order, so the grid has no column or series to hold that
+      # row and would omit it entirely - `paste()` stringifies it to "NA", so
+      # the duplicate test above never notices. ggplot2 itself draws the row
+      # as its own grey "NA" category, so neither the row-by-row reading nor
+      # the grid matches the picture; this only keeps that case exactly as it
+      # was, rather than trading its wrong answer for a quieter one.
+      griddable <- anyDuplicated(cell_keys) == 0L &&
+        !anyNA(x_values) && !anyNA(fill_values)
+
+      if (griddable) {
+        values_by_cell <- setNames(as.numeric(y_values), cell_keys)
+
+        return(lapply(fill_levels, function(fill_name) {
+          lapply(x_levels, function(x_name) {
+            key <- paste(x_name, fill_name, sep = "\r")
+            list(
+              x = x_name,
+              y = if (key %in% names(values_by_cell)) {
+                values_by_cell[[key]]
+              } else {
+                NA_real_
+              },
+              z = fill_name
+            )
+          })
+        }))
       }
 
       # Split row INDICES rather than the data frame itself: indexing the

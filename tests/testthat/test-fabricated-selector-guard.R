@@ -128,6 +128,24 @@ test_that("smooth emits no selector for a facet level that drew no line", {
   expect_empty_panel_unselected(panel_selectors(processor, plot))
 })
 
+test_that("pie emits no selector for a facet level that drew no wedges", {
+  skip_if_no_ggplot2()
+
+  # A pie addresses `geom_rect.polygon.N` rather than `geom_rect.rect.N`, but
+  # the id carries the same session-wide grob counter, so the same guess would
+  # be just as wrong.
+  plot <- ggplot2::ggplot(
+    drop_false_data(),
+    ggplot2::aes(x = "", y = y, fill = fill)
+  ) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y") +
+    ggplot2::facet_wrap(~g, drop = FALSE)
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+  expect_empty_panel_unselected(panel_selectors(processor, plot))
+})
+
 test_that("dodged bar emits no selector when the panel cannot be resolved", {
   skip_if_no_ggplot2()
 
