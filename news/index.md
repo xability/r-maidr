@@ -30,6 +30,23 @@
 
 ### Bug Fixes
 
+- ggplot2: the panel a facet draws for a missing value is no longer
+  announced as empty in dodged bar and heatmap plots. Both picked their
+  panel’s rows with `==`, which answers `NA` for exactly the rows whose
+  facet value is missing, and `[` turns an `NA` index into a fabricated
+  all-`NA` row. The dodged layer was dropped from that panel’s payload
+  altogether, so arrowing into it announced nothing at all; the heatmap
+  layer survived with its row and column labels but scored no cells, so
+  it read as an empty grid. ggplot2 draws real bars and tiles there and
+  writes “NA” on the strip, so in both cases the reader was told the
+  panel was empty while a sighted reader could see it was not. Both now
+  use the same `NA`-safe row test the stacked processor was given, and
+  the panel is announced as “NA” — the two characters ggplot2 prints on
+  its strip — with a facet level literally spelled `"NA"` still kept
+  distinct from it. A dodged `stat = "count"` panel keeps its
+  rectangular cross-tabulation, so an absent combination in the restored
+  panel still reports a genuine `0`.
+
 - ggplot2: a
   [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
   whose data is not a complete grid highlights the bar it is announcing.
