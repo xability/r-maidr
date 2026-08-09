@@ -579,3 +579,215 @@ test_that("a rendered revC heatmap lists rows in drawn top-to-bottom order", {
 
   testthat::expect_equal(unlist(layer$data$y), drawn)
 })
+
+# ==============================================================================
+# Unnamed matrices: heatmap() labels the reordered matrix with the ORIGINAL
+# indices, `(1L:nr)[rowInd]`, because it takes labRow after `x <- x[rowInd,
+# colInd]` has already dropped the (absent) dimnames. maidr used to fall back
+# to a plain 1..n position sequence there, so an unnamed matrix announced a
+# systematically permuted identity while sonifying the right values.
+# ==============================================================================
+
+# Unnamed, and clustered into a non-identity ROW order (colInd stays 1..4).
+heatmap_unnamed_matrix <- function() {
+  matrix(
+    c(
+      10, 11, 12, 13,
+      90, 91, 92, 93,
+      50, 51, 52, 53,
+      20, 21, 22, 23,
+      70, 71, 72, 73
+    ),
+    nrow = 5, ncol = 4, byrow = TRUE
+  )
+}
+
+# Unnamed, and clustered into a non-identity order on BOTH axes.
+heatmap_unnamed_matrix_2d <- function() {
+  matrix(
+    c(
+      10, 40, 30, 20,
+      90, 60, 70, 80,
+      50, 20, 30, 40,
+      20, 80, 70, 30,
+      70, 10, 15, 60
+    ),
+    nrow = 5, ncol = 4, byrow = TRUE
+  )
+}
+
+# The ordering heatmap() itself uses, taken on a throwaway device so the
+# expectations are not hard-coded to one clustering implementation.
+heatmap_true_ordering <- function(m, ...) {
+  null_pdf <- tempfile(fileext = ".pdf")
+  grDevices::pdf(null_pdf)
+  on.exit(
+    {
+      grDevices::dev.off()
+      unlink(null_pdf)
+    },
+    add = TRUE
+  )
+  stats::heatmap(m, ...)
+}
+
+test_that("an unnamed reordered heatmap labels rows with the original indices", {
+  m <- heatmap_unnamed_matrix()
+  ordering <- heatmap_true_ordering(m, scale = "none")
+
+  info <- heatmap_layer_info(m, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+  data <- processor$extract_data(info)
+
+  # No revC here, so drawn top-to-bottom is the reverse of rowInd.
+  testthat::expect_equal(
+    unlist(data$y),
+    rev(as.character(ordering$rowInd))
+  )
+  # The whole point: this is NOT the plain positional sequence.
+  testthat::expect_false(
+    identical(unlist(data$y), rev(as.character(seq_len(nrow(m)))))
+  )
+  # The values stay what they already were: drawn row 1 is original row
+  # rowInd[nrow], because the grid reads top-down.
+  testthat::expect_equal(
+    unlist(data$points[[1]]),
+    unname(m[ordering$rowInd[nrow(m)], ordering$colInd])
+  )
+})
+
+test_that("an unnamed heatmap labels both axes from the ordering it draws", {
+  m <- heatmap_unnamed_matrix_2d()
+  ordering <- heatmap_true_ordering(m, scale = "none")
+
+  # Guard the fixture: this matrix must reorder its COLUMNS too, otherwise
+  # the x-axis half of this test proves nothing.
+  testthat::expect_false(identical(ordering$colInd, seq_len(ncol(m))))
+
+  info <- heatmap_layer_info(m, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+  data <- processor$extract_data(info)
+
+  testthat::expect_equal(unlist(data$x), as.character(ordering$colInd))
+  testthat::expect_equal(unlist(data$y), rev(as.character(ordering$rowInd)))
+})
+
+test_that("an unnamed symm heatmap labels rows top-down in rowInd order", {
+  # symm = TRUE makes Colv default to "Rowv", so revC applies and the drawn
+  # rows already read top-down -- labels must NOT be reversed here.
+  m <- matrix(
+    c(
+      0, 9, 1, 8,
+      9, 0, 7, 2,
+      1, 7, 0, 6,
+      8, 2, 6, 0
+    ),
+    nrow = 4, ncol = 4, byrow = TRUE
+  )
+  ordering <- heatmap_true_ordering(m, symm = TRUE, scale = "none")
+  testthat::expect_false(identical(ordering$rowInd, seq_len(nrow(m))))
+
+  info <- heatmap_layer_info(m, symm = TRUE, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+  data <- processor$extract_data(info)
+
+  testthat::expect_equal(unlist(data$y), as.character(ordering$rowInd))
+  testthat::expect_equal(unlist(data$x), as.character(ordering$colInd))
+})
+
+test_that("an unnamed unreordered heatmap keeps its 1..n labels", {
+  m <- heatmap_unnamed_matrix()
+  info <- heatmap_layer_info(m, Rowv = NA, Colv = NA, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+
+  data <- processor$extract_data(info)
+
+  # Rowv/Colv = NA means rowInd/colInd are the identity, so the labels are
+  # the plain sequence -- reversed on y, because revC does not apply.
+  testthat::expect_equal(unlist(data$y), c("5", "4", "3", "2", "1"))
+  testthat::expect_equal(unlist(data$x), c("1", "2", "3", "4"))
+})
+
+test_that("a named heatmap still carries its dimnames through unchanged", {
+  m <- heatmap_unnamed_matrix()
+  rownames(m) <- paste0("R", seq_len(nrow(m)))
+  colnames(m) <- paste0("C", seq_len(ncol(m)))
+  ordering <- heatmap_true_ordering(m, scale = "none")
+
+  info <- heatmap_layer_info(m, scale = "none")
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+  data <- processor$extract_data(info)
+
+  testthat::expect_equal(unlist(data$y), rev(rownames(m)[ordering$rowInd]))
+  testthat::expect_equal(unlist(data$x), colnames(m)[ordering$colInd])
+})
+
+test_that("image() of an unnamed matrix keeps plain positional labels", {
+  # image() does no reordering, so 1..n is genuinely what it draws.
+  m <- heatmap_unnamed_matrix()
+  info <- list(
+    index = 1,
+    function_name = "image",
+    plot_call = list(function_name = "image", args = list(x = m))
+  )
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(info)
+  data <- processor$extract_data(info)
+
+  # image() transposes: matrix rows run along x, columns along y.
+  testthat::expect_equal(unlist(data$x), as.character(seq_len(nrow(m))))
+  testthat::expect_equal(unlist(data$y), rev(as.character(seq_len(ncol(m)))))
+})
+
+test_that("a rendered unnamed heatmap lists the row labels it draws", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  m <- heatmap_unnamed_matrix()
+
+  maidr:::clear_all_device_storage()
+  grDevices::pdf(NULL)
+  heatmap(m, scale = "none")
+  file <- tempfile(fileext = ".html")
+  on.exit(
+    {
+      unlink(file)
+      maidr:::clear_all_device_storage()
+    },
+    add = TRUE
+  )
+  suppressWarnings(save_html(file = file))
+  grDevices::dev.off()
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  raw <- regmatches(
+    html, gregexpr('maidr-data="([^"]*)"', html, perl = TRUE)
+  )[[1]]
+  testthat::expect_gt(length(raw), 0)
+
+  json <- sub('"$', "", sub('^maidr-data="', "", raw[1]))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+  payload <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+  layer <- payload$subplots[[1]][[1]]$layers[[1]]
+
+  # Row labels as drawn: axis(4) text nodes, read visually top to bottom.
+  # gridSVG wraps the whole tree in translate(0, h) scale(1, -1), so a
+  # LARGER y is higher up the page.
+  doc <- xml2::read_html(html)
+  nodes <- xml2::xml_find_all(
+    doc,
+    "//*[contains(@id,'right-axis-labels')][local-name()='text']"
+  )
+  testthat::expect_equal(length(nodes), 5L)
+  label_y <- vapply(nodes, function(nd) {
+    tf <- xml2::xml_attr(xml2::xml_parent(xml2::xml_parent(nd)), "transform")
+    as.numeric(regmatches(tf, gregexpr("-?[0-9.]+", tf))[[1]])[2]
+  }, numeric(1))
+  drawn <- vapply(nodes, xml2::xml_text, character(1))[order(-label_y)]
+
+  testthat::expect_equal(unlist(layer$data$y), drawn)
+  # Guard: the drawing really is reordered, so this is not a trivial pass.
+  testthat::expect_false(identical(drawn, c("5", "4", "3", "2", "1")))
+})

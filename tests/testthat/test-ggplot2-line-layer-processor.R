@@ -730,3 +730,335 @@ test_that("multiline z label survives the full render pipeline", {
   testthat::expect_equal(layer$data[[1]][[1]]$z, "A")
   testthat::expect_equal(layer$data[[2]][[1]]$z, "B")
 })
+
+# ==============================================================================
+# One selector per series when another layer also draws polylines (issue #95)
+# ==============================================================================
+
+# A grouped `geom_line()` draws ALL of its curves as ONE polyline grob that
+# gridSVG splits into `GRID.polyline.N.1.1`, `.1.2`, `.1.3`; a `geom_smooth()`
+# beside it contributes further grobs of its own. Indexing the flat panel-wide
+# polyline list by this layer's position among line layers therefore returned a
+# single selector for a three-curve layer. The frontend's multiline trace opens
+# `mapToSvgElements(n)` with `if (!n || n.length !== this.lineValues.length)
+# return null`, so the mismatch left `highlightValues` null and the whole line
+# layer lost its highlight -- it was not merely aimed at the wrong curve.
+
+grouped_line_df <- function() {
+  data.frame(
+    x = rep(1:8, 3),
+    g = factor(rep(c("g1", "g2", "g3"), each = 8)),
+    y = c(1:8, 10 + 1:8 * 0.5, 20 - 1:8 * 0.4)
+  )
+}
+
+line_layer_payload <- function(plot, layer_index = 1) {
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = layer_index))
+  built <- ggplot2::ggplot_build(plot)
+  gt <- ggplot2::ggplot_gtable(built)
+  processor$process(plot, built$layout, built, gt)
+}
+
+# Selectors address gridSVG ids, which carry grid's session-wide grob counter,
+# so assert on the SHAPE (one per series, all distinct, all sharing this
+# layer's own base id) rather than on literal numbers.
+expect_one_selector_per_series <- function(result) {
+  selectors <- unlist(result$selectors, use.names = FALSE)
+  testthat::expect_equal(length(selectors), length(result$data))
+  testthat::expect_equal(length(unique(selectors)), length(result$data))
+  for (selector in selectors) {
+    testthat::expect_match(selector, "^#GRID\\\\\\.polyline\\\\\\.\\d+\\\\\\.1\\\\\\.\\d+$")
+  }
+  selectors
+}
+
+test_that("grouped line beside geom_smooth(se = FALSE) emits one selector per series", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(grouped_line_df(), ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE)
+
+  result <- line_layer_payload(p, layer_index = 1)
+
+  testthat::expect_equal(length(result$data), 3L)
+  selectors <- expect_one_selector_per_series(result)
+
+  # All three name curves of ONE grob -- this layer's own -- and differ only
+  # in the trailing curve index.
+  base <- unique(sub("\\\\\\.1\\\\\\.\\d+$", "", selectors))
+  testthat::expect_equal(length(base), 1L)
+  testthat::expect_equal(
+    sub("^.*\\\\\\.1\\\\\\.", "", selectors),
+    c("1", "2", "3")
+  )
+})
+
+test_that("grouped line beside geom_smooth(se = TRUE) emits one selector per series", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(grouped_line_df(), ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = TRUE)
+
+  result <- line_layer_payload(p, layer_index = 1)
+
+  testthat::expect_equal(length(result$data), 3L)
+  expect_one_selector_per_series(result)
+})
+
+test_that("the smooth layer may be drawn first without starving the line layer", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(grouped_line_df(), ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE) +
+    ggplot2::geom_line()
+
+  result <- line_layer_payload(p, layer_index = 2)
+
+  testthat::expect_equal(length(result$data), 3L)
+  selectors <- expect_one_selector_per_series(result)
+
+  # The smooth's three grobs must not be mistaken for this layer's curves:
+  # every selector belongs to the same, single grob.
+  base <- unique(sub("\\\\\\.1\\\\\\.\\d+$", "", selectors))
+  testthat::expect_equal(length(base), 1L)
+})
+
+test_that("a grouped line with no second polyline layer still emits one selector per series", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(grouped_line_df(), ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_line()
+
+  result <- line_layer_payload(p, layer_index = 1)
+
+  testthat::expect_equal(length(result$data), 3L)
+  expect_one_selector_per_series(result)
+})
+
+test_that("an ungrouped line beside a smooth keeps its single selector", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(x = 1:8, y = c(1, 3, 2, 5, 4, 7, 6, 9))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE)
+
+  result <- line_layer_payload(p, layer_index = 1)
+
+  testthat::expect_equal(length(result$data), 1L)
+  expect_one_selector_per_series(result)
+})
+
+test_that("each of two line layers in a panel resolves to its OWN polyline grob", {
+  # The shape the position-indexing branch was written for: several
+  # single-curve line overlays in one panel (candlestick + N x geom_ma).
+  # tidyquant is only in Suggests, so exercise the same grob structure with
+  # two plain geom_line() layers over a bar layer.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(x = 1:8, y = c(1, 3, 2, 5, 4, 7, 6, 9))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_col() +
+    ggplot2::geom_line() +
+    ggplot2::geom_line(ggplot2::aes(y = y * 0.5), linetype = "dashed")
+
+  first <- line_layer_payload(p, layer_index = 2)
+  second <- line_layer_payload(p, layer_index = 3)
+
+  testthat::expect_equal(length(first$selectors), 1L)
+  testthat::expect_equal(length(second$selectors), 1L)
+  testthat::expect_false(identical(first$selectors[[1]], second$selectors[[1]]))
+})
+
+test_that("no selector is emitted when the curves cannot be lined up with the series", {
+  # The honest failure mode: a wrong-length selector list silently kills the
+  # layer's highlight in the frontend, so emit nothing instead and let the
+  # caller see it.
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(grouped_line_df(), ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE)
+
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  built <- ggplot2::ggplot_build(p)
+  gt <- ggplot2::ggplot_gtable(built)
+
+  selectors <- processor$generate_selectors(
+    p, gt,
+    built = built, n_series = 7
+  )
+
+  testthat::expect_equal(length(selectors), 0L)
+})
+
+test_that("the payload a grouped line + smooth renders satisfies the JS length precondition", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(grouped_line_df(), ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE)
+
+  orchestrator <- maidr:::Ggplot2PlotOrchestrator$new(p)
+  maidr_data <- orchestrator$generate_maidr_data()
+  layers <- maidr_data$subplots[[1]][[1]]$layers
+
+  types <- vapply(layers, function(l) l$type, character(1))
+  testthat::expect_true("line" %in% types)
+
+  for (layer in layers) {
+    if (!identical(layer$type, "line")) next
+    testthat::expect_equal(
+      length(unlist(layer$selectors, use.names = FALSE)),
+      length(layer$data)
+    )
+  }
+})
+
+# ==============================================================================
+# Faceted panels under a transformed x scale
+# ==============================================================================
+
+# `ggplot_build()` records x positions in the scale's TRANSFORMED space: under
+# scale_x_log10() the data value 100 is stored as 2. A faceted panel recovers
+# the user-facing value by matching those positions against the raw column, so
+# the raw column has to make the same trip through the transformation first.
+# Without that, nothing matched and the panel announced 0/1/2/3 for an axis
+# labelled 1/10/100/1000.
+
+facet_line_x <- function(plot, panel_id) {
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  built <- ggplot2::ggplot_build(plot)
+  series <- processor$extract_data(plot, built, panel_id = panel_id)
+  lapply(series, function(points) {
+    vapply(points, function(point) point$x, character(1))
+  })
+}
+
+transformed_scale_df <- function() {
+  data.frame(
+    g = rep(c("a", "b"), each = 4),
+    x = rep(c(1, 10, 100, 1000), 2),
+    y = 1:8
+  )
+}
+
+transformed_scale_aes <- ggplot2::aes(x = x, y = y)
+
+faceted_line <- function(df = transformed_scale_df()) {
+  ggplot2::ggplot(df, transformed_scale_aes) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~g)
+}
+
+test_that("faceted panels announce data x values under scale_x_log10()", {
+  p <- faceted_line() + ggplot2::scale_x_log10()
+
+  for (panel in c(1, 2)) {
+    series <- facet_line_x(p, panel)
+    testthat::expect_length(series, 1)
+    testthat::expect_equal(series[[1]], c("1", "10", "100", "1000"))
+  }
+})
+
+test_that("faceted panels announce data x values under scale_x_sqrt()", {
+  p <- faceted_line() + ggplot2::scale_x_sqrt()
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+    )
+  }
+})
+
+test_that("faceted panels announce data x values under scale_x_reverse()", {
+  p <- faceted_line() + ggplot2::scale_x_reverse()
+
+  # A reversed axis draws 1000 leftmost, and geom_line orders its points the
+  # way it draws them, so the announced order follows the drawn line.
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1000", "100", "10", "1")
+    )
+  }
+})
+
+test_that("faceted panels announce data x values under a named transform", {
+  p <- faceted_line() + ggplot2::scale_x_continuous(trans = "log2")
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+    )
+  }
+})
+
+test_that("faceted panels keep working on an untransformed x scale", {
+  p <- faceted_line()
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+    )
+  }
+})
+
+test_that("faceted Date panels still announce ISO dates", {
+  dates <- as.Date("2024-01-01") + c(0, 10, 20, 30)
+  df <- data.frame(
+    g = rep(c("a", "b"), each = 4),
+    x = rep(dates, 2),
+    y = 1:8
+  )
+
+  for (panel in c(1, 2)) {
+    testthat::expect_equal(
+      facet_line_x(faceted_line(df), panel)[[1]],
+      c("2024-01-01", "2024-01-11", "2024-01-21", "2024-01-31")
+    )
+  }
+})
+
+test_that("every series of a faceted multiline panel is untransformed", {
+  df <- data.frame(
+    g = rep(c("a", "b"), each = 8),
+    s = rep(rep(c("s1", "s2"), each = 4), 2),
+    x = rep(c(1, 10, 100, 1000), 4),
+    y = 1:16
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y, colour = s)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~g) +
+    ggplot2::scale_x_log10()
+
+  for (panel in c(1, 2)) {
+    series <- facet_line_x(p, panel)
+    testthat::expect_length(series, 2)
+    for (points in series) {
+      testthat::expect_equal(points, c("1", "10", "100", "1000"))
+    }
+  }
+})
+
+test_that("each faceted panel reads break labels off its own scale", {
+  df <- data.frame(
+    g = rep(c("a", "b"), each = 3),
+    x = c(1, 2, 3, 1000, 2000, 3000),
+    y = 1:6
+  )
+  # An expression x aesthetic leaves no raw column to match against, so the
+  # break/label mapping is what supplies the announced value. Under
+  # scales = "free_x" it has to read the panel's own breaks; panel 1's do not
+  # reach panel 2's data at all.
+  p <- ggplot2::ggplot(df, ggplot2::aes(x + 0, y)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~g, scales = "free_x") +
+    ggplot2::scale_x_continuous(labels = function(value) paste0("<", value, ">"))
+
+  testthat::expect_equal(facet_line_x(p, 1)[[1]], c("<1>", "<2>", "<3>"))
+  testthat::expect_equal(
+    facet_line_x(p, 2)[[1]], c("<1000>", "<2000>", "<3000>")
+  )
+})

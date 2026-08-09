@@ -2,8 +2,9 @@
 
 #' Position (1-based) of a layer among the polyline-producing layers of a plot
 #'
-#' `find_all_polyline_grobs()` returns EVERY polyline in the panel, so the
-#' index used to pick one out has to be counted over the same population.
+#' `layer_polyline_grobs()` returns every polyline in the panel that no
+#' geom-named grob tree claims, so the index used to pick one out has to be
+#' counted over the same population.
 #' `geom_line()` / `geom_path()` / `tidyquant::geom_ma()` (detected as
 #' `"line"`) and `geom_step()` (detected as `"step"`) each render one polyline
 #' per layer, so both types count. Counting only `"line"` layers would index

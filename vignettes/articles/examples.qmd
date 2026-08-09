@@ -36,6 +36,7 @@ keyboard shortcuts (refer to the table below).
 | Plot Type | Best For | Example Use Case |
 |-----------|----------|------------------|
 | **Bar Chart** | Comparing categories | Sales by product |
+| **Pie Chart** | Parts of a whole | Market share by brand |
 | **Histogram** | Showing distributions | Test score frequencies |
 | **Scatter Plot** | Relationships between variables | Height vs weight |
 | **Line Plot** | Trends over time/order | Stock prices |
@@ -174,6 +175,53 @@ barplot(energy_matrix,
   main = "Renewable Energy Output by Source",
   xlab = "Year",
   ylab = "Output (GWh)"
+)
+```
+
+---
+
+## Pie Chart
+
+A pie chart splits a whole into wedges, one per category, each wedge's
+angle proportional to its share. maidr announces every slice by name and
+value, and derives its percentage of the total for you.
+
+#### ggplot2
+
+ggplot2 has no pie geom: a pie is a single stacked column bent around by
+`coord_polar("y")`, so `x` is the literal `""` and the categories go on
+`fill`. `coord_radial(theta = "y")` works the same way. Note that
+`coord_polar("x")` draws a coxcomb instead, which maidr still describes as a
+bar chart.
+
+```{r}
+market_share <- data.frame(
+  Browser = c("Chrome", "Safari", "Edge", "Firefox"),
+  Share = c(64, 19, 5, 3)
+)
+
+p <- ggplot(market_share, aes(x = "", y = Share, fill = Browser)) +
+  geom_col(width = 1) +
+  coord_polar("y") +
+  labs(
+    title = "Browser Market Share",
+    fill = "Browser",
+    y = "Share (%)"
+  ) +
+  theme_void()
+
+p
+```
+
+#### Base R
+
+```{r}
+shares <- c(Chrome = 64, Safari = 19, Edge = 5, Firefox = 3)
+pie(shares,
+  col = c("#3498db", "#2ecc71", "#9b59b6", "#e67e22"),
+  main = "Browser Market Share",
+  xlab = "Browser",
+  ylab = "Share (%)"
 )
 ```
 
@@ -628,6 +676,14 @@ The Base R path supports a plain OHLC candlestick via
 > data **without** a `Volume` column (default `TA` then becomes a
 > no-op), or pass `TA = NULL` explicitly.
 
+> **Attach order matters.** `library(quantmod)` after `library(maidr)`
+> puts `package:quantmod` ahead of `package:maidr` on the search path,
+> so a bare `chartSeries()` call reaches quantmod directly and maidr
+> never records it — the chart draws, but `show()` and `save_html()`
+> then report that no Base R plot was found. Either attach `quantmod`
+> **before** `maidr`, or call `maidr::chartSeries()` explicitly as
+> below, which works in either order.
+
 ```{r}
 #| eval: false
 library(quantmod)
@@ -646,7 +702,7 @@ TST <- xts::xts(
 )
 colnames(TST) <- c("TST.Open", "TST.High", "TST.Low", "TST.Close")
 
-chartSeries(TST, type = "candlesticks", theme = "white", name = "TST")
+maidr::chartSeries(TST, type = "candlesticks", theme = "white", name = "TST")
 ```
 
 ---

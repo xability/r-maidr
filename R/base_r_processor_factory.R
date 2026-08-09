@@ -35,6 +35,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "point" = BaseRPointLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
+        "pie" = BaseRPieLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
         "contour" = BaseRUnknownLayerProcessor$new(layer_info),
         "candlestick" = BaseRCandlestickLayerProcessor$new(layer_info),
@@ -57,6 +58,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "point",
         "hist",
         "box",
+        "pie",
         "heat",
         "contour",
         "candlestick",
@@ -90,6 +92,8 @@ BaseRProcessorFactory <- R6::R6Class(
         "BaseRPointLayerProcessor",
         "BaseRHistogramLayerProcessor",
         "BaseRBoxplotLayerProcessor",
+        "BaseRPieLayerProcessor",
+        "BaseRHeatmapLayerProcessor",
         "BaseRCandlestickLayerProcessor",
         "BaseRUnknownLayerProcessor"
         # Additional processor classes can be registered here as needed

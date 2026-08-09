@@ -293,10 +293,11 @@ test_that("Ggplot2StepLayerProcessor uses the faceted grob_id path", {
 })
 
 test_that("A line layer and a step layer target different polylines", {
-  # find_all_polyline_grobs() returns EVERY polyline in the panel, so the
-  # position used to index it must be counted over every polyline-producing
-  # layer type. Counting only "line" layers made both layers of a mixed plot
-  # resolve to the same polyline.
+  # layer_polyline_grobs() returns every polyline the panel's geom-named grob
+  # trees do not claim, and geom_step() draws a bare one, so the position used
+  # to index that list must be counted over every polyline-producing layer
+  # type. Counting only "line" layers made both layers of a mixed plot resolve
+  # to the same polyline.
   testthat::skip_if_not_installed("ggplot2")
 
   df <- data.frame(x = 1:6, y = c(1, 3, 3, 5, 2, 2))

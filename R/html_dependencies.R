@@ -16,9 +16,9 @@ maidr_cdn_url <- function() {
   sprintf("https://cdn.jsdelivr.net/npm/maidr@%s/dist", MAIDR_VERSION)
 }
 
-#' Register JS/CSS dependencies for maidr
+#' Register JS dependencies for maidr
 #'
-#' Creates HTML dependencies for MAIDR JavaScript and CSS files.
+#' Creates the HTML dependency for the MAIDR JavaScript bundle.
 #' Behavior is controlled by the `use_cdn` parameter:
 #' - If `TRUE`: Use CDN (requires internet)
 #' - If `FALSE` (default): Use local bundled files (works offline)
@@ -31,6 +31,13 @@ maidr_cdn_url <- function() {
 #' in the upper-left of the viewport. Local assets match the ggplot path that
 #' has always rendered correctly. Users who want CDN can still pass
 #' `use_cdn = TRUE` explicitly.
+#'
+#' No stylesheet is declared. MAIDR styles its interface at runtime, and
+#' since maidr 3.75.1 the published `maidr.css` is a placeholder with no
+#' rules in it. The one stylesheet that does carry rules, `maidr-math.css`
+#' (KaTeX, for LaTeX in AI chat responses), is fetched by `maidr.js` itself,
+#' resolved against the URL it was loaded from -- the CDN directory, or the
+#' `lib/` folder htmltools copies the bundle into.
 #'
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
 #'   use bundled files.
@@ -49,8 +56,7 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
       name = "maidr",
       version = MAIDR_VERSION,
       src = c(href = maidr_cdn_url()),
-      script = "maidr.js",
-      stylesheet = "maidr.css"
+      script = "maidr.js"
     )
   } else {
     # Local dependency - works offline, copies files to lib/ folder
@@ -59,8 +65,7 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
       version = MAIDR_VERSION,
       package = "maidr",
       src = sprintf("htmlwidgets/lib/maidr-%s", MAIDR_VERSION),
-      script = "maidr.js",
-      stylesheet = "maidr.css"
+      script = "maidr.js"
     )
   }
 
@@ -69,9 +74,13 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
 
 #' Get paths to local MAIDR assets
 #'
-#' Returns the file paths to the locally bundled MAIDR JavaScript and CSS files.
+#' Returns the file paths to the locally bundled MAIDR JavaScript and KaTeX
+#' stylesheet. The stylesheet is `maidr-math.css`, with its base64 web fonts
+#' stripped by `.github/scripts/fetch-maidr-bundle.sh` to keep the installed
+#' package under CRAN's size limit; KaTeX's layout rules are intact and only
+#' the glyphs fall back to system fonts.
 #'
-#' @return A named list with 'js' and 'css' file paths
+#' @return A named list with 'js' and 'math_css' file paths
 #' @keywords internal
 maidr_local_assets <- function() {
   base_path <- system.file(
@@ -81,7 +90,7 @@ maidr_local_assets <- function() {
 
   list(
     js = file.path(base_path, "maidr.js"),
-    css = file.path(base_path, "maidr.css"),
+    math_css = file.path(base_path, "maidr-math.css"),
     version = MAIDR_VERSION
   )
 }
@@ -133,8 +142,12 @@ maidr_internet_available <- function() {
 
 #' Get `<style>`/`<script>` tags with the bundled assets inlined
 #'
-#' Reads the bundled maidr.js/maidr.css once per session and caches the
+#' Reads the bundled maidr.js/maidr-math.css once per session and caches the
 #' assembled tags.
+#'
+#' KaTeX is inlined rather than left to `maidr.js` to fetch, because these
+#' tags go into a standalone document whose script is inline: it has no URL
+#' of its own, so the runtime has nothing to resolve the stylesheet against.
 #'
 #' @return A named list with `css_tag` and `js_tag` strings
 #' @keywords internal
@@ -145,7 +158,7 @@ maidr_inline_asset_tags <- function() {
   }
 
   assets <- maidr_local_assets()
-  css_content <- paste(readLines(assets$css, warn = FALSE), collapse = "\n")
+  css_content <- paste(readLines(assets$math_css, warn = FALSE), collapse = "\n")
   js_content <- paste(readLines(assets$js, warn = FALSE), collapse = "\n")
 
   tags <- list(

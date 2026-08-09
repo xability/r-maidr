@@ -79,9 +79,11 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
     add = TRUE
   )
 
-  # Render to the invisible device
+  # Render to the invisible device. The justification repair has to happen
+  # here rather than after drawing: grid.export() reads the grid display
+  # list, so only the tree that was actually drawn is the one it exports.
   grid.newpage()
-  grid.draw(gt)
+  grid.draw(repair_na_text_justification(gt))
 
   # Inject svg_x/svg_y coordinates into violin_kde layers while we have
 
@@ -129,6 +131,69 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_content <- add_maidr_data_to_svg(svg_content, maidr_data)
 
   svg_content
+}
+
+#' Repair NA text-grob justification so gridSVG can export the tree
+#'
+#' `gridGraphics::grid.echo()` translates some base graphics text into grid
+#' text grobs that leave `vjust` (and, in principle, `hjust`) as NA and defer
+#' to the grob's `just` field instead. gridSVG 1.7.7 passes the raw value to
+#' `gridSVG:::justTovjust()`, which branches on it directly and fails with
+#' "missing value where TRUE/FALSE needed", aborting `gridSVG::grid.export()`
+#' from `devGrob.text`. `graphics::pie()` is the case that bites: it labels
+#' every wedge, so before this repair no base R pie chart could be exported at
+#' all -- `pie(..., labels = NA)`, which draws no text, exported fine, which is
+#' what pins the failure on these grobs. `barplot()` and friends are
+#' unaffected because their text grobs already carry a numeric justification.
+#'
+#' Only NA components of text grobs are rewritten, so a grob that already has
+#' a usable justification passes through untouched. 0.5 is exactly what grid
+#' resolves NA to for the `just = "centre"` these grobs declare, so the drawn
+#' output is byte-identical.
+#'
+#' This is an upstream gridSVG/gridGraphics incompatibility rather than
+#' anything maidr introduced; drop this repair if gridSVG ever handles NA
+#' justification itself.
+#'
+#' @param grob A grob, gTree, gList, or gtable (or NULL)
+#' @return The same tree with NA `hjust`/`vjust` on text grobs set to 0.5
+#' @keywords internal
+repair_na_text_justification <- function(grob) {
+  if (is.null(grob)) {
+    return(grob)
+  }
+
+  if (inherits(grob, "text")) {
+    if (!is.null(grob$hjust) && anyNA(grob$hjust)) {
+      grob$hjust[is.na(grob$hjust)] <- 0.5
+    }
+    if (!is.null(grob$vjust) && anyNA(grob$vjust)) {
+      grob$vjust[is.na(grob$vjust)] <- 0.5
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gList")) {
+    for (i in seq_along(grob)) {
+      grob[[i]] <- repair_na_text_justification(grob[[i]])
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gTree") && !is.null(grob$children)) {
+    for (i in seq_along(grob$children)) {
+      grob$children[[i]] <- repair_na_text_justification(grob$children[[i]])
+    }
+  }
+
+  # Alternative child storage used by gtable and some composite grobs
+  if (!is.null(grob$grobs)) {
+    for (i in seq_along(grob$grobs)) {
+      grob$grobs[[i]] <- repair_na_text_justification(grob$grobs[[i]])
+    }
+  }
+
+  grob
 }
 
 #' Inject svg_x/svg_y coordinates into violin_kde layer data
@@ -863,6 +928,42 @@ add_maidr_data_to_svg <- function(svg_content, maidr_data) {
   svg_content
 }
 
+#' Drop `selectors` entries that carry no selector
+#'
+#' A layer that resolved no highlight target must say so by OMITTING the key,
+#' never by sending an empty list. The frontend hands `layer.selectors`
+#' straight to `document.querySelectorAll()`, and an empty array stringifies
+#' to `""`, which is a `SyntaxError` -- thrown inside the trace constructor,
+#' so the whole figure fails to initialise: no announcement, no sonification,
+#' no braille, no keyboard entry, on a chart that still looks fine. An absent
+#' key is falsy and takes the frontend's own "no selectors" path instead.
+#'
+#' Applied here rather than in each processor because every payload passes
+#' through this one point, and `list()` is the honest return value for a
+#' processor whose grob lookup found nothing.
+#'
+#' @param node A maidr-data node (list, or a leaf)
+#' @return The node with empty `selectors` entries removed
+#' @keywords internal
+drop_empty_selectors <- function(node) {
+  if (!is.list(node)) {
+    return(node)
+  }
+  # An empty BoxSelector object is still a real selector spec, so only a
+  # zero-length `selectors` is dropped -- not one whose entries are empty.
+  has_empty_selectors <- !is.null(names(node)) &&
+    "selectors" %in% names(node) &&
+    length(node$selectors) == 0
+  if (has_empty_selectors) {
+    node$selectors <- NULL
+  }
+  if (length(node) == 0) {
+    return(node)
+  }
+  node[] <- lapply(node, drop_empty_selectors)
+  node
+}
+
 #' Serialize maidr_data and set it as the SVG root's maidr-data attribute
 #'
 #' Mutates `svg_doc` in place.
@@ -872,6 +973,8 @@ add_maidr_data_to_svg <- function(svg_content, maidr_data) {
 #' @return NULL (invisible)
 #' @keywords internal
 set_maidr_data_attr <- function(svg_doc, maidr_data) {
+  maidr_data <- drop_empty_selectors(maidr_data)
+
   # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
   # moving-average line) serialize to JSON `null` rather than the string
   # `"NA"`, which `Number(point.y)` in the maidr JS frontend would coerce
@@ -1040,17 +1143,19 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
   }
 
   if (use_cdn) {
-    # CDN links - smaller HTML, relies on internet at view time
-    css_tag <- sprintf(
-      '<link rel="stylesheet" href="%s/maidr.css">',
-      maidr_cdn_url()
-    )
+    # CDN links - smaller HTML, relies on internet at view time. No
+    # stylesheet: maidr.js styles its interface at runtime and fetches
+    # maidr-math.css (KaTeX) from the directory this script tag names,
+    # so a <link> would be a request that changes nothing.
+    css_tag <- ""
     js_tag <- sprintf(
       '<script src="%s/maidr.js"></script>',
       maidr_cdn_url()
     )
   } else {
-    # Inline local content - works offline, larger HTML
+    # Inline local content - works offline, larger HTML. The script is
+    # inline here, so it has no URL to resolve KaTeX against and the
+    # stylesheet is inlined alongside it.
     assets <- maidr_inline_asset_tags()
     css_tag <- assets$css_tag
     js_tag <- assets$js_tag

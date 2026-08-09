@@ -34,6 +34,7 @@ Base R plotting systems:
 \strong{ggplot2 plots:}
 \itemize{
   \item Bar charts (simple, grouped, stacked) - \code{geom_bar()}, \code{geom_col()}
+  \item Pie charts - \code{geom_col()} / \code{geom_bar()} with \code{coord_polar("y")}
   \item Histograms - \code{geom_histogram()}
   \item Scatter plots - \code{geom_point()}
   \item Line plots - \code{geom_line()}
@@ -50,6 +51,7 @@ Base R plotting systems:
 \strong{Base R plots:}
 \itemize{
   \item Bar plots (simple, grouped, stacked) - \code{barplot()}
+  \item Pie charts - \code{pie()}
   \item Histograms - \code{hist()}
   \item Scatter and line plots - \code{plot()}, \code{points()}, \code{lines()}
   \item Step plots - \code{plot(type = "s")}, \code{plot(type = "S")}
@@ -132,11 +134,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Niranjan Kalaiselvan \email{nk46@illinois.edu}
+\strong{Maintainer}: JooYoung Seo \email{jseo1005@illinois.edu} [copyright holder]
 
 Authors:
 \itemize{
-  \item JooYoung Seo \email{jseo1005@illinois.edu} [copyright holder]
+  \item Niranjan Kalaiselvan \email{nk46@illinois.edu}
 }
 
 }

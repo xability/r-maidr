@@ -10,19 +10,19 @@ Ggplot2Adapter <- R6::R6Class(
   "Ggplot2Adapter",
   inherit = SystemAdapter,
   public = list(
-    #' Initialize the ggplot2 adapter
+    #' @description Initialize the ggplot2 adapter
     initialize = function() {
       super$initialize("ggplot2")
     },
 
-    #' Check if this adapter can handle a plot object
+    #' @description Check if this adapter can handle a plot object
     #' @param plot_object The plot object to check
     #' @return TRUE if this adapter can handle the object, FALSE otherwise
     can_handle = function(plot_object) {
       inherits(plot_object, "ggplot")
     },
 
-    #' Detect the type of a single layer
+    #' @description Detect the type of a single layer
     #' @param layer The ggplot2 layer object to analyze
     #' @param plot_object The parent plot object (for context)
     #' @return String indicating the layer type (e.g., "bar", "line", "point")
@@ -66,6 +66,16 @@ Ggplot2Adapter <- R6::R6Class(
       if (geom_class %in% c("GeomBar", "GeomCol")) {
         if (stat_class == "StatBin") {
           return("hist")
+        }
+
+        # A bar layer drawn in polar coordinates with theta on y is the
+        # idiomatic ggplot2 pie: the stack's segments wrap into wedges. It
+        # must be caught before the position checks, which would otherwise
+        # claim the very same layer as a stacked bar. A layer that spreads
+        # across several x positions is a multi-ring bullseye instead, and
+        # falls through to those very checks.
+        if (self$is_pie_coord(plot_object, layer)) {
+          return("pie")
         }
 
         if (position_class %in% c("PositionDodge", "PositionDodge2")) {
@@ -121,7 +131,109 @@ Ggplot2Adapter <- R6::R6Class(
       "unknown"
     },
 
-    #' Create an orchestrator for this system (ggplot2)
+    #' @description Check if a bar layer is drawn as pie wedges
+    #'
+    #' \code{coord_radial()} produces a CoordRadial that does NOT inherit
+    #' CoordPolar, so both class names have to be tested. \code{theta} decides
+    #' what the angle encodes: only \code{theta = "y"} maps a bar's height
+    #' onto the angle, which is a pie. \code{theta = "x"} keeps the height on
+    #' the radius, which is a coxcomb/rose - still a bar chart, just bent.
+    #'
+    #' The coordinate system alone is not enough: a polar bar layer is a pie
+    #' only when it draws ONE ring. \code{geom_col(aes(x = category))} under
+    #' \code{coord_polar("y")} draws one concentric ring per x category - a
+    #' bullseye - and a pie payload has no room for that second dimension, so
+    #' such a layer keeps the bar classification it has always had.
+    #'
+    #' @param plot_object The ggplot2 plot object
+    #' @param layer The layer being classified, or NULL for the plot's first
+    #' @return TRUE when the layer is drawn as a pie, FALSE otherwise
+    is_pie_coord = function(plot_object, layer = NULL) {
+      if (is.null(plot_object)) {
+        return(FALSE)
+      }
+
+      coord <- plot_object$coordinates
+      if (!inherits(coord, c("CoordPolar", "CoordRadial"))) {
+        return(FALSE)
+      }
+
+      if (!identical(coord$theta, "y")) {
+        return(FALSE)
+      }
+
+      self$draws_single_ring(plot_object, layer)
+    },
+
+    #' @description Check if a layer occupies a single position on x
+    #'
+    #' The ring count has to come off the BUILT data: a mapping expression
+    #' cannot say how many levels it has, and by build time ggplot2 has
+    #' already resolved every constant form - the literal \code{""}, a
+    #' one-level factor, a column holding one repeated value - to the same
+    #' single x position. Each facet panel is its own pie, so constancy is
+    #' asked of each panel separately. A build that fails answers FALSE,
+    #' leaving the layer classified the way it was before pie support.
+    #'
+    #' @param plot_object The ggplot2 plot object
+    #' @param layer The layer being classified, or NULL for the plot's first
+    #' @return TRUE when no panel holds more than one x position
+    draws_single_ring = function(plot_object, layer = NULL) {
+      layer_index <- self$find_layer_index(plot_object, layer)
+      if (is.null(layer_index)) {
+        return(FALSE)
+      }
+
+      built <- tryCatch(
+        ggplot2::ggplot_build(plot_object),
+        error = function(e) NULL
+      )
+      if (is.null(built) || length(built$data) < layer_index) {
+        return(FALSE)
+      }
+
+      built_data <- built$data[[layer_index]]
+      if (is.null(built_data$x)) {
+        return(TRUE)
+      }
+
+      panels <- if (is.null(built_data$PANEL)) {
+        rep(1L, length(built_data$x))
+      } else {
+        built_data$PANEL
+      }
+
+      all(vapply(
+        split(built_data$x, panels),
+        function(x) length(unique(x[!is.na(x)])) <= 1L,
+        logical(1)
+      ))
+    },
+
+    #' @description Locate a layer among its plot's layers
+    #' @param plot_object The ggplot2 plot object
+    #' @param layer The layer to locate, or NULL for the plot's first
+    #' @return Integer index into the plot's layers, or NULL when absent
+    find_layer_index = function(plot_object, layer = NULL) {
+      layers <- plot_object$layers
+      if (length(layers) == 0) {
+        return(NULL)
+      }
+
+      if (is.null(layer)) {
+        return(1L)
+      }
+
+      for (i in seq_along(layers)) {
+        if (identical(layers[[i]], layer)) {
+          return(i)
+        }
+      }
+
+      NULL
+    },
+
+    #' @description Create an orchestrator for this system (ggplot2)
     #' @param plot_object The ggplot2 plot object to process
     #' @return PlotOrchestrator instance
     create_orchestrator = function(plot_object) {
@@ -133,19 +245,19 @@ Ggplot2Adapter <- R6::R6Class(
       Ggplot2PlotOrchestrator$new(plot_object)
     },
 
-    #' Get the system name
+    #' @description Get the system name
     #' @return System name string
     get_system_name = function() {
       self$system_name
     },
 
-    #' Get a reference to this adapter (for use by orchestrator)
+    #' @description Get a reference to this adapter (for use by orchestrator)
     #' @return Self reference
     get_adapter = function() {
       self
     },
 
-    #' Check if plot has facets
+    #' @description Check if plot has facets
     #' @param plot_object The ggplot2 plot object
     #' @return TRUE if plot has facets, FALSE otherwise
     has_facets = function(plot_object) {
@@ -157,7 +269,7 @@ Ggplot2Adapter <- R6::R6Class(
       facet_class != "FacetNull"
     },
 
-    #' Check if plot is a patchwork plot
+    #' @description Check if plot is a patchwork plot
     #' @param plot_object The ggplot2 plot object
     #' @return TRUE if plot is patchwork, FALSE otherwise
     is_patchwork = function(plot_object) {

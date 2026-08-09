@@ -128,6 +128,24 @@ test_that("smooth emits no selector for a facet level that drew no line", {
   expect_empty_panel_unselected(panel_selectors(processor, plot))
 })
 
+test_that("pie emits no selector for a facet level that drew no wedges", {
+  skip_if_no_ggplot2()
+
+  # A pie addresses `geom_rect.polygon.N` rather than `geom_rect.rect.N`, but
+  # the id carries the same session-wide grob counter, so the same guess would
+  # be just as wrong.
+  plot <- ggplot2::ggplot(
+    drop_false_data(),
+    ggplot2::aes(x = "", y = y, fill = fill)
+  ) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y") +
+    ggplot2::facet_wrap(~g, drop = FALSE)
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+  expect_empty_panel_unselected(panel_selectors(processor, plot))
+})
+
 test_that("dodged bar emits no selector when the panel cannot be resolved", {
   skip_if_no_ggplot2()
 
@@ -214,8 +232,6 @@ test_that("an empty facet level never inherits another panel's selector", {
       return(invisible(NULL))
     }
     if ("selectors" %in% names(node)) {
-      # `x[[i]] <- NULL` deletes rather than appends, and an empty selector
-      # list unlists to NULL — which is exactly the entry under test.
       flat <- unlist(node$selectors, use.names = FALSE)
       emitted[[length(emitted) + 1]] <<- if (is.null(flat)) character(0) else flat
     }
@@ -223,8 +239,24 @@ test_that("an empty facet level never inherits another panel's selector", {
   }
   collect(payload)
 
-  testthat::expect_length(emitted, 3)
-  drawn <- unlist(Filter(function(s) length(s) > 0, emitted), use.names = FALSE)
+  # This used to assert THREE selector entries, one of them empty -- pinning
+  # the very shape that turned out to be broken (issue #89). An empty
+  # selector list serialises to `[]`, the frontend hands it to
+  # `document.querySelectorAll()`, and an empty selector raises a
+  # `SyntaxError` that kills highlighting for the whole figure. Measured in
+  # Chromium on this exact render: navigation produced 0 highlight elements
+  # against 1 before the change, plus a page error.
+  #
+  # The empty panel now contributes no layer at all, so only the two panels
+  # that drew a curve carry a selector -- which is what this test was
+  # really about: neither of them may be the other's.
+  testthat::expect_length(emitted, 2)
+  drawn <- unlist(emitted, use.names = FALSE)
   testthat::expect_length(drawn, 2)
   testthat::expect_length(unique(drawn), 2)
+
+  # And no layer anywhere may carry an empty selector list.
+  for (entry in emitted) {
+    testthat::expect_gt(length(entry), 0)
+  }
 })

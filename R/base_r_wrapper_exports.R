@@ -124,7 +124,27 @@ chartSeries <- function(...) {
 
   ensure_maidr_device()
 
-  result <- quantmod::chartSeries(...)
+  # quantmod::chartSeries() builds its own argument record with
+  # match.call(expand.dots = TRUE). Forwarding through `...` makes that
+  # record hold the dot symbols (`..3`) instead of the caller's
+  # expressions, so an explicit `TA = NULL` reaches quantmod as a `name`
+  # and dies in `sapply(chob@passed.args$TA, function(x) eval(x@call))`.
+  # Retrying with the call rebuilt in the caller's frame gives quantmod
+  # the literal arguments it expects — the same fallback the generated
+  # wrappers use (see retry_call_in_caller_frame()).
+  call_failed <- FALSE
+  result <- tryCatch(
+    quantmod::chartSeries(...),
+    error = function(e) {
+      call_failed <<- TRUE
+      e
+    }
+  )
+  if (call_failed) {
+    result <- retry_call_in_caller_frame(
+      quantmod::chartSeries, this_call, caller_env, result
+    )
+  }
 
   args_list <- tryCatch(list(...), error = function(e) NULL)
   call_env <- NULL

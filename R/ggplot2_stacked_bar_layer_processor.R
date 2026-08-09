@@ -80,13 +80,17 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       original_data <- plot$data
 
       # Facet path: restrict the original data to this panel's facet
-      # group(s) so per-panel values are extracted
+      # group(s) so per-panel values are extracted. facet_group_rows() is
+      # NA-safe on purpose - see its comment; a bare `==` fabricated an
+      # all-NA row in every panel for each missing facet value.
       if (!is.null(panel_ctx) && length(panel_ctx$facet_groups) > 0) {
         for (facet_var in names(panel_ctx$facet_groups)) {
           if (facet_var %in% names(original_data)) {
             original_data <- original_data[
-              as.character(original_data[[facet_var]]) ==
-                as.character(panel_ctx$facet_groups[[facet_var]]),
+              facet_group_rows(
+                original_data[[facet_var]],
+                panel_ctx$facet_groups[[facet_var]]
+              ),
               ,
               drop = FALSE
             ]
@@ -134,19 +138,52 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         ]
       }
 
+      # A row ggplot2 could not position - a missing value in a required
+      # aesthetic - stays in the built data with `x`, `ymin` and `ymax` set to
+      # NA rather than being deleted. It drew no rect, so it is not part of
+      # this layer, and leaving it in poisons `min(x)` below: every subsequent
+      # `x == min(x)` comparison answers NA and the stacking order comes back
+      # empty.
+      if ("x" %in% names(built_data_layer)) {
+        built_data_layer <- built_data_layer[
+          !is.na(built_data_layer$x), ,
+          drop = FALSE
+        ]
+      }
+
       if (nrow(built_data_layer) == 0) {
         return(list())
       }
 
-      # Determine stacking order from built data (bottom-to-top at first x position)
-      first_bar_data <- built_data_layer[built_data_layer$x == min(built_data_layer$x), ]
+      # Determine the stacking order (bottom-to-top) from one column's
+      # geometry. Read it off the FULLEST column, not the first one: a
+      # `geom_col()` frame need not be a complete grid, and a fill level the
+      # first column happens to lack was dropped from `stacking_order`
+      # entirely, so an entire series went unemitted - never announced, never
+      # highlighted (issue #94). Ties resolve to the smallest x, which is the
+      # first column, so a complete grid orders exactly as it always did.
+      rows_per_column <- table(built_data_layer$x)
+      fullest_x <- names(rows_per_column)[which.max(rows_per_column)]
+      first_bar_data <- built_data_layer[
+        as.character(built_data_layer$x) == fullest_x, ,
+        drop = FALSE
+      ]
       first_bar_data <- first_bar_data[order(first_bar_data$ymin), ]
 
-      if (has_y_mapping && !is.null(y_col) && y_col %in% names(original_data) &&
+      # The stat = "identity" branch reads the values out of the user's own
+      # data frame and can only pair them with the drawn rects row by row, so
+      # it is only usable while the two frames still have the same number of
+      # rows. `setNames()` does not object to a mismatch - it PADS the names
+      # with NA - so a frame ggplot2 partly discarded (one missing `y` is
+      # enough) used to yield a colour lookup full of NA names and die later
+      # in `order(NULL)`. When they no longer line up, read the built data
+      # instead: it is what was actually drawn.
+      rows_aligned <- nrow(original_data) == nrow(built_data_layer)
+
+      if (rows_aligned &&
+          has_y_mapping && !is.null(y_col) && y_col %in% names(original_data) &&
           !is.null(fill_col) && fill_col %in% names(original_data) &&
           !is.null(x_col) && x_col %in% names(original_data)) {
-        # stat="identity": original data and built data have same row count,
-        # so setNames mapping is valid
         color_to_fill <- setNames(
           as.character(original_data[[fill_col]]),
           built_data_layer$fill
@@ -156,14 +193,71 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         # Read values from original data (original approach)
         fill_groups <- split(original_data, original_data[[fill_col]])
 
+        # split() drops NA, so a fill level this lookup cannot resolve has no
+        # rows to read and must not reach `order(NULL)`.
+        stacking_order <- stacking_order[
+          !is.na(stacking_order) & stacking_order %in% names(fill_groups)
+        ]
+
+        # Only reachable when no single column holds every fill level, so the
+        # geometry above cannot place the stragglers. Appending them still
+        # beats dropping them: a series that is absent from the payload can
+        # never be announced at all.
+        stacking_order <- c(
+          stacking_order,
+          setdiff(names(fill_groups), stacking_order)
+        )
+
+        # Every series gets one entry per x category, in the layer's x order.
+        x_levels <- as.character(sort(unique(original_data[[x_col]])))
+
+        # Two rows in the same (x, fill) cell stack into two rects and a grid
+        # has nowhere to put the second value, so that degenerate frame keeps
+        # the row-by-row reading rather than losing a row to the grid.
+        #
+        # A real `NA` in either aesthetic takes the same exit, for the reason
+        # spelled out in the dodged processor: `sort()` leaves it out of
+        # `x_levels`, so the grid would drop that row without ever reporting
+        # it missing, and `paste()` hides it from the duplicate test by
+        # stringifying it to "NA". Keeping the row-by-row path leaves that
+        # case reading exactly as it did before this change.
+        cell_keys <- paste(
+          as.character(original_data[[x_col]]),
+          as.character(original_data[[fill_col]]),
+          sep = "\r"
+        )
+        griddable <- anyDuplicated(cell_keys) == 0L &&
+          !anyNA(original_data[[x_col]]) && !anyNA(original_data[[fill_col]])
+
         lapply(stacking_order, function(fill_value) {
           group_data <- fill_groups[[as.character(fill_value)]]
           group_data <- group_data[order(group_data[[x_col]]), ]
 
-          lapply(seq_len(nrow(group_data)), function(i) {
+          if (!griddable) {
+            return(lapply(seq_len(nrow(group_data)), function(i) {
+              list(
+                x = as.character(group_data[[x_col]][i]),
+                y = group_data[[y_col]][i],
+                z = as.character(fill_value)
+              )
+            }))
+          }
+
+          # `NA` here serializes to JSON `null`, which the frontend reads as 0
+          # into `barValues` - hitting the `=== 0` sentinel so the cell claims
+          # no rect - while its formatter announces the raw `null` as
+          # "missing". See the long note in the dodged processor: the absent
+          # cell has to occupy a slot for the highlight to stay on the right
+          # bar, but it must not be announced as the value zero.
+          values <- setNames(
+            group_data[[y_col]],
+            as.character(group_data[[x_col]])
+          )
+
+          lapply(x_levels, function(x_name) {
             list(
-              x = as.character(group_data[[x_col]][i]),
-              y = group_data[[y_col]][i],
+              x = x_name,
+              y = if (x_name %in% names(values)) values[[x_name]] else NA_real_,
               z = as.character(fill_value)
             )
           })
