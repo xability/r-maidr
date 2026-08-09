@@ -144,13 +144,20 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
 
       source_data <- plot$data
 
-      # Facet path: restrict to this panel's facet group(s)
+      # Facet path: restrict to this panel's facet group(s). facet_group_rows()
+      # is NA-safe on purpose - see its comment. A bare `==` answers NA for
+      # every row whose facet value is missing, and `[` turns an NA index into
+      # a fabricated all-NA row, so the panel ggplot2 draws for the missing
+      # value came back holding nothing this processor could use and the layer
+      # was dropped entirely (#102).
       if (!is.null(panel_ctx) && length(panel_ctx$facet_groups) > 0) {
         for (facet_var in names(panel_ctx$facet_groups)) {
           if (facet_var %in% names(source_data)) {
             source_data <- source_data[
-              as.character(source_data[[facet_var]]) ==
-                as.character(panel_ctx$facet_groups[[facet_var]]),
+              facet_group_rows(
+                source_data[[facet_var]],
+                panel_ctx$facet_groups[[facet_var]]
+              ),
               ,
               drop = FALSE
             ]
