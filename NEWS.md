@@ -21,6 +21,19 @@
   own frame, which also settles a panel whose rows happen to be incomplete on
   their own. `stat = "count"` is unchanged and still reports a genuine `0` for
   a cross-tabulation cell that counted nothing.
+* Base R: `heatmap()` of a matrix with no `dimnames` announces the row and
+  column identities it actually draws. `heatmap()` clusters the rows and
+  columns and then labels the reordered matrix with the *original* indices,
+  `(1L:nr)[rowInd]`; maidr instead filled unnamed axes with a plain 1..n
+  position sequence, so a default `heatmap(m)` announced "row 5" while
+  sonifying the values of original row 2. Only the labels were affected — the
+  values have been drawn from the same ordering since dendrogram support
+  landed, which left the payload internally inconsistent as well as wrong
+  against the figure. Unnamed axes now take their labels from that ordering,
+  on both the row and the column axis, and `revC` (which every `symm = TRUE`
+  call turns on) reverses labels and values together as before. Matrices that
+  carry `dimnames` are unchanged, as are `Rowv = NA, Colv = NA` heatmaps and
+  `image()`, none of which reorder anything, so 1..n is what they draw.
 * ggplot2: a grouped `geom_line()` keeps its highlight when another layer in
   the same panel also draws polylines. A grouped line draws all of its curves
   as one grob that gridSVG splits per curve, while a sibling `geom_smooth()`
