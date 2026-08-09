@@ -88,6 +88,21 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       row_names <- rownames(heat_matrix)
       col_names <- colnames(heat_matrix)
 
+      # heatmap() resolves each axis in one expression:
+      #
+      #   labRow <- labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]
+      #
+      # so the caller's own labels come FIRST and beat dimnames, and they are
+      # subscripted by the same ordering as everything else. `x` is already
+      # reordered by the time `rownames(x)` is read, which is why only the
+      # first and third arms carry a subscript.
+      if (identical(function_name, "heatmap")) {
+        caller_rows <- heatmap_caller_labels(args[["labRow"]], ordering$rowInd)
+        if (!is.null(caller_rows)) row_names <- caller_rows
+        caller_cols <- heatmap_caller_labels(args[["labCol"]], ordering$colInd)
+        if (!is.null(caller_cols)) col_names <- caller_cols
+      }
+
       # An unnamed matrix keeps no dimnames through the reorder, so fall back
       # the way heatmap() itself does: it labels the reordered matrix with
       # `(1L:nr)[rowInd]`, i.e. the ORIGINAL indices in drawn order, not with
@@ -327,4 +342,35 @@ heatmap_applies_revc <- function(args) {
     NULL
   }
   identical(colv, "Rowv")
+}
+
+#' Resolve a heatmap()'s Caller-Supplied Axis Labels
+#'
+#' `heatmap()` gives an explicit `labRow=`/`labCol=` priority over the
+#' matrix's own dimnames, and subscripts it by the same ordering it applies to
+#' the data: `labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]`. Reading
+#' the labels off the reordered matrix therefore announced the dimnames -- or,
+#' for an unnamed matrix, bare indices -- while the axis showed the caller's
+#' strings.
+#'
+#' A short or `NA`-carrying vector is passed through rather than rejected:
+#' `labRow[rowInd]` yields `NA` for the positions it cannot fill, and grid
+#' draws that as the glyphs "NA", so mirroring it keeps the announcement equal
+#' to the picture.
+#'
+#' @param labels The recorded `labRow=` or `labCol=` argument, or NULL
+#' @param ordering The matching `rowInd`/`colInd`, or NULL when no ordering
+#'   was recovered -- in which case `heatmap()`'s own subscript is the
+#'   identity, so the labels are used as written
+#' @return Character vector in drawn order, or NULL when the caller supplied
+#'   no labels for this axis
+#' @keywords internal
+heatmap_caller_labels <- function(labels, ordering) {
+  if (is.null(labels)) {
+    return(NULL)
+  }
+  if (is.null(ordering)) {
+    return(as.character(labels))
+  }
+  as.character(labels[ordering])
 }
