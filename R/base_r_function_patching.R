@@ -663,20 +663,21 @@ find_original_function <- function(function_name) {
   # `base` is in the chain because plot() lives there, not in graphics, since
   # R 4.0. quantmod is probed last and only when loaded; chartSeries is the
   # only HIGH function currently expected from it.
+  #
+  # `inherits = FALSE` below is load-bearing. A namespace environment's
+  # parent chain ends at the SEARCH PATH, so the default lookup walks
+  # straight out of `graphics` and into whatever is attached -- including
+  # `package:maidr` itself. A name graphics does not own therefore resolved
+  # to maidr's own recording wrapper, which then got stored as the
+  # "original" and handed back to the replay as the function to call.
+  # chartSeries hit this: the quantmod attach hook fires while quantmod is
+  # loaded but NOT yet attached, so maidr was ahead of it on the path.
   namespaces <- c("graphics", "stats", "grDevices", "base")
   if ("quantmod" %in% loadedNamespaces()) {
     namespaces <- c(namespaces, "quantmod")
   }
 
   for (ns in namespaces) {
-    # inherits = FALSE is load-bearing. A namespace environment's parent
-    # chain ends at the SEARCH PATH, so the default lookup walks straight
-    # out of `graphics` and into whatever is attached -- including
-    # `package:maidr` itself. A name graphics does not own therefore
-    # resolved to maidr's own recording wrapper, which then got stored as
-    # the "original" and handed back to the replay as the function to call.
-    # chartSeries hit this: the quantmod attach hook fires while quantmod is
-    # loaded but NOT yet attached, so maidr was ahead of it on the path.
     orig <- tryCatch(
       get(function_name, envir = asNamespace(ns), inherits = FALSE),
       error = function(e) NULL
