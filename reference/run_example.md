@@ -57,6 +57,7 @@ run_example()
 #>   - line
 #>   - multiline
 #>   - patchwork
+#>   - pie
 #>   - scatter
 #>   - smooth
 #>   - stacked_bar
@@ -71,6 +72,7 @@ run_example()
 #>   - histogram
 #>   - line
 #>   - multiline
+#>   - pie
 #>   - scatter
 #>   - smooth
 #>   - stacked_bar

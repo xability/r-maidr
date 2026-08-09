@@ -1,11 +1,17 @@
 # ggplot2 System Adapter
 
-Adapter for the ggplot2 plotting system. This adapter wraps the existing
-ggplot2 functionality to work with the new extensible architecture.
+ggplot2 System Adapter
+
+ggplot2 System Adapter
 
 ## Format
 
 An R6 class inheriting from SystemAdapter
+
+## Details
+
+Adapter for the ggplot2 plotting system. This adapter wraps the existing
+ggplot2 functionality to work with the new extensible architecture.
 
 ## Super class
 
@@ -21,6 +27,12 @@ An R6 class inheriting from SystemAdapter
 - [`Ggplot2Adapter$can_handle()`](#method-Ggplot2Adapter-can_handle)
 
 - [`Ggplot2Adapter$detect_layer_type()`](#method-Ggplot2Adapter-detect_layer_type)
+
+- [`Ggplot2Adapter$is_pie_coord()`](#method-Ggplot2Adapter-is_pie_coord)
+
+- [`Ggplot2Adapter$draws_single_ring()`](#method-Ggplot2Adapter-draws_single_ring)
+
+- [`Ggplot2Adapter$find_layer_index()`](#method-Ggplot2Adapter-find_layer_index)
 
 - [`Ggplot2Adapter$create_orchestrator()`](#method-Ggplot2Adapter-create_orchestrator)
 
@@ -38,6 +50,8 @@ An R6 class inheriting from SystemAdapter
 
 ### Method `new()`
 
+Initialize the ggplot2 adapter
+
 #### Usage
 
     Ggplot2Adapter$new()
@@ -45,6 +59,8 @@ An R6 class inheriting from SystemAdapter
 ------------------------------------------------------------------------
 
 ### Method `can_handle()`
+
+Check if this adapter can handle a plot object
 
 #### Usage
 
@@ -58,12 +74,13 @@ An R6 class inheriting from SystemAdapter
 
 #### Returns
 
-TRUE if this adapter can handle the object, FALSE otherwise Detect the
-type of a single layer
+TRUE if this adapter can handle the object, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `detect_layer_type()`
+
+Detect the type of a single layer
 
 #### Usage
 
@@ -81,12 +98,106 @@ type of a single layer
 
 #### Returns
 
-String indicating the layer type (e.g., "bar", "line", "point") Create
-an orchestrator for this system (ggplot2)
+String indicating the layer type (e.g., "bar", "line", "point")
+
+------------------------------------------------------------------------
+
+### Method `is_pie_coord()`
+
+Check if a bar layer is drawn as pie wedges
+
+[`coord_radial()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)
+produces a CoordRadial that does NOT inherit CoordPolar, so both class
+names have to be tested. `theta` decides what the angle encodes: only
+`theta = "y"` maps a bar's height onto the angle, which is a pie.
+`theta = "x"` keeps the height on the radius, which is a coxcomb/rose -
+still a bar chart, just bent.
+
+The coordinate system alone is not enough: a polar bar layer is a pie
+only when it draws ONE ring. `geom_col(aes(x = category))` under
+`coord_polar("y")` draws one concentric ring per x category - a
+bullseye - and a pie payload has no room for that second dimension, so
+such a layer keeps the bar classification it has always had.
+
+#### Usage
+
+    Ggplot2Adapter$is_pie_coord(plot_object, layer = NULL)
+
+#### Arguments
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+- `layer`:
+
+  The layer being classified, or NULL for the plot's first
+
+#### Returns
+
+TRUE when the layer is drawn as a pie, FALSE otherwise
+
+------------------------------------------------------------------------
+
+### Method `draws_single_ring()`
+
+Check if a layer occupies a single position on x
+
+The ring count has to come off the BUILT data: a mapping expression
+cannot say how many levels it has, and by build time ggplot2 has already
+resolved every constant form - the literal `""`, a one-level factor, a
+column holding one repeated value - to the same single x position. Each
+facet panel is its own pie, so constancy is asked of each panel
+separately. A build that fails answers FALSE, leaving the layer
+classified the way it was before pie support.
+
+#### Usage
+
+    Ggplot2Adapter$draws_single_ring(plot_object, layer = NULL)
+
+#### Arguments
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+- `layer`:
+
+  The layer being classified, or NULL for the plot's first
+
+#### Returns
+
+TRUE when no panel holds more than one x position
+
+------------------------------------------------------------------------
+
+### Method `find_layer_index()`
+
+Locate a layer among its plot's layers
+
+#### Usage
+
+    Ggplot2Adapter$find_layer_index(plot_object, layer = NULL)
+
+#### Arguments
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+- `layer`:
+
+  The layer to locate, or NULL for the plot's first
+
+#### Returns
+
+Integer index into the plot's layers, or NULL when absent
 
 ------------------------------------------------------------------------
 
 ### Method `create_orchestrator()`
+
+Create an orchestrator for this system (ggplot2)
 
 #### Usage
 
@@ -100,11 +211,13 @@ an orchestrator for this system (ggplot2)
 
 #### Returns
 
-PlotOrchestrator instance Get the system name
+PlotOrchestrator instance
 
 ------------------------------------------------------------------------
 
 ### Method `get_system_name()`
+
+Get the system name
 
 #### Usage
 
@@ -112,12 +225,13 @@ PlotOrchestrator instance Get the system name
 
 #### Returns
 
-System name string Get a reference to this adapter (for use by
-orchestrator)
+System name string
 
 ------------------------------------------------------------------------
 
 ### Method `get_adapter()`
+
+Get a reference to this adapter (for use by orchestrator)
 
 #### Usage
 
@@ -125,11 +239,13 @@ orchestrator)
 
 #### Returns
 
-Self reference Check if plot has facets
+Self reference
 
 ------------------------------------------------------------------------
 
 ### Method `has_facets()`
+
+Check if plot has facets
 
 #### Usage
 
@@ -143,12 +259,13 @@ Self reference Check if plot has facets
 
 #### Returns
 
-TRUE if plot has facets, FALSE otherwise Check if plot is a patchwork
-plot
+TRUE if plot has facets, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `is_patchwork()`
+
+Check if plot is a patchwork plot
 
 #### Usage
 

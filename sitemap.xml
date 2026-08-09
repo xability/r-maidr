@@ -17,6 +17,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRHistogramLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRLineLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRPatcher.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRPieLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRPlotOrchestrator.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRPointLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRProcessorFactory.html</loc></url>
@@ -31,6 +32,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2HeatmapLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2HistogramLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/Ggplot2PieLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2PlotOrchestrator.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2PointLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ProcessorFactory.html</loc></url>
@@ -225,6 +227,7 @@
 <url><loc>https://r.maidr.ai/reference/register_ggplot2_print_method.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr_widget.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/repair_na_text_justification.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/replay_base_r_plot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/replay_plot_call.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/replay_to_native_device.html</loc></url>

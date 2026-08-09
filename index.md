@@ -84,6 +84,7 @@ Base R:
 | Bar charts | [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html), [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Grouped/Dodged bars | `position = "dodge"` | `beside = TRUE` |
 | Stacked bars | `position = "stack"` | `beside = FALSE` |
+| Pie charts | [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)/[`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) + `coord_polar("y")` | [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Histograms | [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html) | [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Scatter plots | [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html) | [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Line plots | [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html) | `plot(type = "l")`, [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) |

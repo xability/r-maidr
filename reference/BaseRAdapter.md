@@ -1,11 +1,17 @@
 # Base R System Adapter
 
-Adapter for the Base R plotting system. This adapter uses function
-patching to intercept Base R plotting calls and detect plot types.
+Base R System Adapter
+
+Base R System Adapter
 
 ## Format
 
 An R6 class inheriting from SystemAdapter
+
+## Details
+
+Adapter for the Base R plotting system. This adapter uses function
+patching to intercept Base R plotting calls and detect plot types.
 
 ## Super class
 
@@ -50,6 +56,8 @@ An R6 class inheriting from SystemAdapter
 
 ### Method `new()`
 
+Initialize the Base R adapter
+
 #### Usage
 
     BaseRAdapter$new()
@@ -57,6 +65,8 @@ An R6 class inheriting from SystemAdapter
 ------------------------------------------------------------------------
 
 ### Method `can_handle()`
+
+Check if this adapter can handle a plot object
 
 #### Usage
 
@@ -70,12 +80,13 @@ An R6 class inheriting from SystemAdapter
 
 #### Returns
 
-TRUE if Base R plotting is active, FALSE otherwise Detect the type of a
-single layer from Base R plot calls
+TRUE if Base R plotting is active, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `detect_layer_type()`
+
+Detect the type of a single layer from Base R plot calls
 
 #### Usage
 
@@ -94,12 +105,13 @@ single layer from Base R plot calls
 #### Returns
 
 String indicating the layer type (e.g., "bar", "dodged_bar",
-"stacked_bar", "smooth", "line", "point") Check if a barplot call
-represents a dodged bar plot
+"stacked_bar", "smooth", "line", "point")
 
 ------------------------------------------------------------------------
 
 ### Method `is_dodged_barplot()`
+
+Check if a barplot call represents a dodged bar plot
 
 #### Usage
 
@@ -113,12 +125,13 @@ represents a dodged bar plot
 
 #### Returns
 
-TRUE if this is a dodged bar plot, FALSE otherwise Check if a barplot
-call represents a stacked bar plot
+TRUE if this is a dodged bar plot, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `is_stacked_barplot()`
+
+Check if a barplot call represents a stacked bar plot
 
 #### Usage
 
@@ -132,12 +145,13 @@ call represents a stacked bar plot
 
 #### Returns
 
-TRUE if this is a stacked bar plot, FALSE otherwise Create an
-orchestrator for this system (Base R)
+TRUE if this is a stacked bar plot, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### Method `create_orchestrator()`
+
+Create an orchestrator for this system (Base R)
 
 #### Usage
 
@@ -151,11 +165,13 @@ orchestrator for this system (Base R)
 
 #### Returns
 
-PlotOrchestrator instance Get the system name
+PlotOrchestrator instance
 
 ------------------------------------------------------------------------
 
 ### Method `get_system_name()`
+
+Get the system name
 
 #### Usage
 
@@ -163,12 +179,13 @@ PlotOrchestrator instance Get the system name
 
 #### Returns
 
-System name string Get a reference to this adapter (for use by
-orchestrator)
+System name string
 
 ------------------------------------------------------------------------
 
 ### Method `get_adapter()`
+
+Get a reference to this adapter (for use by orchestrator)
 
 #### Usage
 
@@ -176,11 +193,13 @@ orchestrator)
 
 #### Returns
 
-Self reference Check if plot has facets (Base R doesn't support facets)
+Self reference
 
 ------------------------------------------------------------------------
 
 ### Method `has_facets()`
+
+Check if plot has facets (Base R doesn't support facets)
 
 #### Usage
 
@@ -194,12 +213,13 @@ Self reference Check if plot has facets (Base R doesn't support facets)
 
 #### Returns
 
-FALSE (Base R doesn't support facets) Check if plot is a patchwork plot
-(Base R doesn't support patchwork)
+FALSE (Base R doesn't support facets)
 
 ------------------------------------------------------------------------
 
 ### Method `is_patchwork()`
+
+Check if plot is a patchwork plot (Base R doesn't support patchwork)
 
 #### Usage
 
@@ -213,12 +233,13 @@ FALSE (Base R doesn't support facets) Check if plot is a patchwork plot
 
 #### Returns
 
-FALSE (Base R doesn't support patchwork) Get recorded plot calls for
-processing
+FALSE (Base R doesn't support patchwork)
 
 ------------------------------------------------------------------------
 
 ### Method [`get_plot_calls()`](https://r.maidr.ai/reference/get_plot_calls.md)
+
+Get recorded plot calls for processing
 
 #### Usage
 
@@ -232,11 +253,13 @@ processing
 
 #### Returns
 
-List of recorded plot calls Clear recorded plot calls (for cleanup)
+List of recorded plot calls
 
 ------------------------------------------------------------------------
 
 ### Method [`clear_plot_calls()`](https://r.maidr.ai/reference/clear_plot_calls.md)
+
+Clear recorded plot calls (for cleanup)
 
 #### Usage
 
@@ -246,12 +269,13 @@ List of recorded plot calls Clear recorded plot calls (for cleanup)
 
 - `device_id`:
 
-  Graphics device ID (defaults to current device) Initialize function
-  patching
+  Graphics device ID (defaults to current device)
 
 ------------------------------------------------------------------------
 
 ### Method `initialize_patching()`
+
+Initialize function patching
 
 #### Usage
 
@@ -259,11 +283,13 @@ List of recorded plot calls Clear recorded plot calls (for cleanup)
 
 #### Returns
 
-NULL (invisible) Restore original functions
+NULL (invisible)
 
 ------------------------------------------------------------------------
 
 ### Method `restore_functions()`
+
+Restore original functions
 
 #### Usage
 

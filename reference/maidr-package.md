@@ -42,6 +42,12 @@ and Base R plotting systems:
   [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
   [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
 
+- Pie charts -
+  [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
+  /
+  [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
+  with `coord_polar("y")`
+
 - Histograms -
   [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html)
 
@@ -76,6 +82,9 @@ and Base R plotting systems:
 
 - Bar plots (simple, grouped, stacked) -
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+
+- Pie charts -
+  [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 
 - Histograms -
   [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md)
@@ -177,8 +186,9 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Niranjan Kalaiselvan <nk46@illinois.edu>
+**Maintainer**: JooYoung Seo <jseo1005@illinois.edu> \[copyright
+holder\]
 
 Authors:
 
-- JooYoung Seo <jseo1005@illinois.edu> \[copyright holder\]
+- Niranjan Kalaiselvan <nk46@illinois.edu>

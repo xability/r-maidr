@@ -169,6 +169,10 @@ MAIDR supports a comprehensive range of visualizations:
 ### Basic Plot Types
 
 - Bar charts (simple, grouped/dodged, stacked)
+- Pie charts — ggplot2 via
+  [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)/[`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) +
+  `coord_polar("y")`; Base R via
+  [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 - Histograms
 - Scatter plots
 - Line plots (single and multi-line)
