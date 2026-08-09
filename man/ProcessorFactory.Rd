@@ -11,17 +11,7 @@ Abstract base class for creating processors specific to different plotting syste
 Each plotting system should have its own factory implementation that creates
 the appropriate processors for different plot types.
 }
-\keyword{Abstract}
-\keyword{a}
-\keyword{create}
-\keyword{for}
 \keyword{internal}
-\keyword{method}
-\keyword{plot}
-\keyword{processor}
-\keyword{specific}
-\keyword{to}
-\keyword{type}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -36,6 +26,7 @@ the appropriate processors for different plot types.
 \if{html}{\out{<a id="method-ProcessorFactory-create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-create_processor}{}}}
 \subsection{Method \code{create_processor()}}{
+Abstract method to create a processor for a specific plot type
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$create_processor(plot_type, plot_object)}\if{html}{\out{</div>}}
 }
@@ -51,26 +42,26 @@ the appropriate processors for different plot types.
 }
 \subsection{Returns}{
 Processor instance for the specified plot type
-Abstract method to get list of supported plot types
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-get_supported_types"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-get_supported_types}{}}}
 \subsection{Method \code{get_supported_types()}}{
+Abstract method to get list of supported plot types
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$get_supported_types()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Character vector of supported plot types
-Check if a plot type is supported by this factory
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-supports_plot_type"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-supports_plot_type}{}}}
 \subsection{Method \code{supports_plot_type()}}{
+Check if a plot type is supported by this factory
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$supports_plot_type(plot_type)}\if{html}{\out{</div>}}
 }
@@ -84,13 +75,13 @@ Check if a plot type is supported by this factory
 }
 \subsection{Returns}{
 TRUE if supported, FALSE otherwise
-Get system name (should be overridden by subclasses)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-get_system_name}{}}}
 \subsection{Method \code{get_system_name()}}{
+Get system name (should be overridden by subclasses)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$get_system_name()}\if{html}{\out{</div>}}
 }

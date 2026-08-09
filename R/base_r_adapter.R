@@ -85,6 +85,7 @@ base_r_step_direction <- function(plot_type) {
 
 #' Base R System Adapter
 #'
+#' @description
 #' Adapter for the Base R plotting system. This adapter uses function patching
 #' to intercept Base R plotting calls and detect plot types.
 #'

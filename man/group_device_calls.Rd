@@ -2,7 +2,7 @@
 % Please edit documentation in R/base_r_plot_grouping.R
 \name{group_device_calls}
 \alias{group_device_calls}
-\title{Base R Plot Grouping}
+\title{Group Device Calls into Plot Units}
 \usage{
 group_device_calls(device_id = grDevices::dev.cur())
 }
@@ -13,35 +13,7 @@ group_device_calls(device_id = grDevices::dev.cur())
 List of plot groups, each containing HIGH and LOW calls
 }
 \description{
-This module groups plot calls into logical units:
-- Each HIGH-level call starts a new plot group
-- Subsequent LOW-level calls are associated with the current plot group
-- LAYOUT calls affect multi-panel configuration
+Groups all calls from a device into logical plot units.
+Each group contains one HIGH-level call and its associated LOW-level calls.
 }
-\keyword{Calls}
-\keyword{Device}
-\keyword{Each}
-\keyword{Group}
-\keyword{Groups}
-\keyword{HIGH-level}
-\keyword{LOW-level}
-\keyword{Plot}
-\keyword{Units}
-\keyword{a}
-\keyword{all}
-\keyword{and}
-\keyword{associated}
-\keyword{call}
-\keyword{calls}
-\keyword{calls.}
-\keyword{contains}
-\keyword{device}
-\keyword{from}
-\keyword{group}
 \keyword{internal}
-\keyword{into}
-\keyword{its}
-\keyword{logical}
-\keyword{one}
-\keyword{plot}
-\keyword{units.}

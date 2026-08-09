@@ -4,26 +4,11 @@
 \alias{BaseRPlotOrchestrator}
 \title{Base R Plot Orchestrator Class}
 \description{
-Base R Plot Orchestrator Class
-
-Base R Plot Orchestrator Class
-}
-\details{
 This class orchestrates the detection and processing of multiple layers
 in Base R plots. It analyzes each recorded plot call individually and combines
 the results into a comprehensive interactive plot.
 }
-\keyword{-}
-\keyword{Unified}
-\keyword{all}
-\keyword{by}
-\keyword{creation}
 \keyword{internal}
-\keyword{layer}
-\keyword{plot}
-\keyword{processor}
-\keyword{types}
-\keyword{used}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
@@ -142,6 +127,7 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-create_unified_layer_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-create_unified_layer_processor}{}}}
 \subsection{Method \code{create_unified_layer_processor()}}{
+Unified layer processor creation - used by all plot types
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$create_unified_layer_processor(layer_info)}\if{html}{\out{</div>}}
 }
@@ -155,10 +141,6 @@ the results into a comprehensive interactive plot.
 }
 \subsection{Returns}{
 Layer processor instance
-Extract Format Configuration from axis() Calls
-
-Scans logged axis() calls for format config stored by the axis wrapper.
-The wrapper stores .maidr_format_config when labels is a scales:: function.
 }
 }
 \if{html}{\out{<hr>}}
@@ -174,6 +156,10 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls}{}}}
 \subsection{Method \code{extract_format_config_from_axis_calls()}}{
+Extract Format Configuration from axis() Calls
+
+Scans logged axis() calls for format config stored by the axis wrapper.
+The wrapper stores .maidr_format_config when labels is a scales:: function.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}\if{html}{\out{</div>}}
 }

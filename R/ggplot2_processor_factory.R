@@ -1,5 +1,6 @@
 #' ggplot2 Processor Factory
 #'
+#' @description
 #' Factory for creating ggplot2-specific processors. This factory uses the existing
 #' ggplot2 layer processors and wraps them in the new unified interface.
 #'
@@ -10,12 +11,12 @@ Ggplot2ProcessorFactory <- R6::R6Class(
   "Ggplot2ProcessorFactory",
   inherit = ProcessorFactory,
   public = list(
-    #' Initialize the ggplot2 processor factory
+    #' @description Initialize the ggplot2 processor factory
     initialize = function() {
       # No additional initialization needed
     },
 
-    #' Create a processor for a specific plot type
+    #' @description Create a processor for a specific plot type
     #' @param plot_type The type of plot (e.g., "bar", "line", "point")
     #' @param layer_info Information about the layer (contains plot object and metadata)
     #' @return Processor instance for the specified plot type
@@ -45,7 +46,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
       )
     },
 
-    #' Get list of supported plot types
+    #' @description Get list of supported plot types
     #' @return Character vector of supported plot types
     get_supported_types = function() {
       c(
@@ -67,20 +68,20 @@ Ggplot2ProcessorFactory <- R6::R6Class(
       )
     },
 
-    #' Get the system name
+    #' @description Get the system name
     #' @return System name string
     get_system_name = function() {
       "ggplot2"
     },
 
-    #' Check if a specific processor class is available
+    #' @description Check if a specific processor class is available
     #' @param processor_class_name Name of the processor class
     #' @return TRUE if available, FALSE otherwise
     is_processor_available = function(processor_class_name) {
       exists(processor_class_name, mode = "function")
     },
 
-    #' Get available processor classes
+    #' @description Get available processor classes
     #' @return Character vector of available processor class names
     get_available_processors = function() {
       processor_classes <- c(
@@ -104,7 +105,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
       names(available)[available]
     },
 
-    #' Create a processor with error handling
+    #' @description Create a processor with error handling
     #' @param plot_type The type of plot
     #' @param plot_object The plot object
     #' @return Processor instance or NULL if creation fails
