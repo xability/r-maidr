@@ -4,6 +4,44 @@
 
 ### Bug Fixes
 
+- Base R:
+  [`library(maidr); library(quantmod); chartSeries(SPY)`](https://github.com/xability/r-maidr)
+  no longer fails silently and then blames the user. Attaching
+  ‘quantmod’ puts `package:quantmod` ahead of `package:maidr` on the
+  search path, so a bare
+  [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  binds to quantmod’s own function and maidr’s recording wrapper is
+  never entered: the chart drew as a plain inaccessible graphic and
+  [`show()`](https://r.maidr.ai/reference/show.md) /
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) then
+  stopped with “No Base R plots detected. Please create a plot first”,
+  which is false — a chart *was* drawn. An earlier NEWS entry claimed
+  this case was already handled; it never was, and that claim has been
+  corrected. maidr does not overwrite quantmod’s bindings to win the
+  search-path race, because that would also route quantmod’s own
+  internal
+  [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  calls through maidr’s wrapper. Instead the ordering problem is now
+  reported: attaching ‘quantmod’ after ‘maidr’ prints a startup message
+  naming the masking, and the “No Base R plots detected” error names it
+  too, in both cases pointing at the two working options — attach
+  ‘quantmod’ before ‘maidr’, or call
+  [`maidr::chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  explicitly. Attaching ‘quantmod’ first, and
+  [`maidr::chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  record and export as before.
+
+- Base R: `maidr::chartSeries(x, type = "candlesticks", TA = NULL)` no
+  longer dies with “no applicable method for `@` applied to an object of
+  class "name"” when ‘quantmod’ is loaded but not attached. quantmod
+  records its own arguments with `match.call(expand.dots = TRUE)`;
+  forwarded through maidr’s `...` that record holds the dot symbols
+  rather than the caller’s expressions, so an explicit `TA = NULL`
+  arrived as a symbol and quantmod tried to take an S4 slot from it. The
+  call is now retried with the arguments rebuilt in the caller’s frame —
+  the same fallback maidr’s generated wrappers already used, which is
+  why attaching ‘quantmod’ first was unaffected.
+
 - Base R: a
   [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) grid in
   which one panel spans several cells no longer advertises the rest of
@@ -561,8 +599,15 @@
   package’s callback could be removed instead.
 
 - Base R:
+  [`maidr::chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  is recorded even when ‘quantmod’ is loaded after ‘maidr’. (Corrected
+  in the development version: this entry originally claimed
   [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
-  calls are now recorded even when ‘quantmod’ is loaded after ‘maidr’.
+  calls were recorded whenever ‘quantmod’ was loaded after ‘maidr’,
+  which was never true of
+  [`library(quantmod)`](https://www.quantmod.com/). Attaching ‘quantmod’
+  after ‘maidr’ masks maidr’s wrapper — see the development-version
+  notes.)
 
 - ggplot2: faceted box plots, histograms, smooths, heatmaps, and
   stacked/dodged bars no longer crash with “unused arguments”; extracted

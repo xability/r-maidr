@@ -202,6 +202,7 @@
 <url><loc>https://r.maidr.ai/reference/merge_candlestick_volume_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/merge_line_layers.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/muffle_promise_restart.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/no_base_r_plots_message.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/on_high_level_call.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/on_layout_call.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/open_maidr_temp_device.html</loc></url>
@@ -216,6 +217,8 @@
 <url><loc>https://r.maidr.ai/reference/process_faceted_plot_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/process_patchwork_panel.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/process_patchwork_plot_data.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/quantmod_mask_advice.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/quantmod_masks_maidr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_intl_options.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_js_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/rdp.html</loc></url>
