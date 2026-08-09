@@ -243,6 +243,159 @@ test_that("is_pie_coord() is NULL-safe", {
   testthat::expect_equal(adapter$detect_layer_type(NULL, NULL), "unknown")
 })
 
+# ==============================================================================
+# Tier 3b: Multi-ring "bullseye" polar bars are not pies
+# ==============================================================================
+
+# geom_col(aes(x = category)) under coord_polar("y") draws one CONCENTRIC RING
+# per x category. A pie payload is flat, so the ring dimension would be lost and
+# wedges from different rings sharing a fill category would carry the same
+# label. Those layers must keep the classification they had before pie support.
+bullseye_col <- function(rings = c("R1", "R2")) {
+  df <- data.frame(
+    ring = rep(rings, each = 3),
+    sub = rep(c("a", "b", "c"), length(rings)),
+    val = seq_len(3 * length(rings))
+  )
+  ggplot2::ggplot(df, ggplot2::aes(x = ring, y = val, fill = sub)) +
+    ggplot2::geom_col()
+}
+
+bullseye <- function(rings = c("R1", "R2")) {
+  bullseye_col(rings) + ggplot2::coord_polar("y")
+}
+
+test_that("a multi-ring bullseye is not a pie", {
+  skip_if_no_ggplot2()
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- bullseye()
+
+  testthat::expect_false(adapter$is_pie_coord(p, p$layers[[1]]))
+  # Falls back to the type it would have had without the polar coord, not to
+  # "unknown": the chart keeps rendering exactly as it did before pie support.
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "stacked_bar")
+})
+
+test_that("a bullseye without a fill aesthetic falls back to a plain bar", {
+  skip_if_no_ggplot2()
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  df <- data.frame(ring = c("R1", "R2", "R3"), val = c(1, 2, 3))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = ring, y = val)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+
+  testthat::expect_false(adapter$is_pie_coord(p, p$layers[[1]]))
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "bar")
+})
+
+test_that("a single-ring bullseye IS a pie", {
+  skip_if_no_ggplot2()
+
+  # One ring is one pie, however x happens to be written.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- bullseye(rings = "R1")
+
+  testthat::expect_true(adapter$is_pie_coord(p, p$layers[[1]]))
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "pie")
+})
+
+test_that("every effectively constant x counts as a single ring", {
+  skip_if_no_ggplot2()
+
+  # The predicate reads the BUILT x, so a one-level factor, a column holding
+  # one repeated value, the literal "" and a constant number all agree.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  df <- data.frame(
+    fruit = c("Apples", "Bananas", "Cherries"),
+    units = c(30, 50, 20),
+    one_level = factor("only"),
+    same = "same",
+    stringsAsFactors = FALSE
+  )
+
+  for (x in list(
+    ggplot2::aes(x = "", y = units, fill = fruit),
+    ggplot2::aes(x = one_level, y = units, fill = fruit),
+    ggplot2::aes(x = same, y = units, fill = fruit),
+    ggplot2::aes(x = 1, y = units, fill = fruit)
+  )) {
+    p <- ggplot2::ggplot(df, x) + ggplot2::geom_col() + ggplot2::coord_polar("y")
+    testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "pie")
+  }
+})
+
+test_that("a coxcomb keeps its bar behaviour whatever x holds", {
+  skip_if_no_ggplot2()
+
+  # theta = "x" is rejected on the coordinate system alone, so the ring guard
+  # never gets a say and coord_polar("x") behaves exactly as it did before.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  many <- bullseye_col() + ggplot2::coord_polar("x")
+  one <- fruit_col() + ggplot2::coord_polar("x")
+
+  testthat::expect_false(adapter$is_pie_coord(many, many$layers[[1]]))
+  testthat::expect_false(adapter$is_pie_coord(one, one$layers[[1]]))
+  testthat::expect_equal(
+    adapter$detect_layer_type(many$layers[[1]], many), "stacked_bar"
+  )
+  testthat::expect_equal(
+    adapter$detect_layer_type(one$layers[[1]], one), "stacked_bar"
+  )
+})
+
+test_that("a faceted pie stays a pie and a faceted bullseye does not", {
+  skip_if_no_ggplot2()
+
+  # Each panel is its own pie, so the ring count is asked of each panel.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  df <- data.frame(
+    ring = rep(c("R1", "R2"), each = 3),
+    sub = rep(c("a", "b", "c"), 2),
+    val = 1:6
+  )
+
+  pie <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = val, fill = sub)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y") +
+    ggplot2::facet_wrap(~ring)
+  rings <- bullseye() + ggplot2::facet_wrap(~sub)
+
+  testthat::expect_equal(adapter$detect_layer_type(pie$layers[[1]], pie), "pie")
+  testthat::expect_equal(
+    adapter$detect_layer_type(rings$layers[[1]], rings), "stacked_bar"
+  )
+})
+
+test_that("the ring guard reads the layer it is handed, not the first one", {
+  skip_if_no_ggplot2()
+
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- ggplot2::ggplot(
+    data.frame(fruit = c("A", "B", "C"), units = c(30, 50, 20)),
+    ggplot2::aes(x = "", y = units, fill = fruit)
+  ) +
+    ggplot2::geom_blank() +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[2]], p), "pie")
+})
+
+test_that("a layer that does not belong to the plot is not a pie", {
+  skip_if_no_ggplot2()
+
+  # Without an index into the built data there is nothing to count rings in,
+  # so the guard declines rather than guessing.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  p <- fruit_pie()
+  stranger <- (fruit_col() + ggplot2::coord_polar("y"))$layers[[1]]
+
+  testthat::expect_null(adapter$find_layer_index(p, stranger))
+  testthat::expect_false(adapter$is_pie_coord(p, stranger))
+})
+
 test_that("the ggplot2 processor factory serves a pie processor", {
   skip_if_no_ggplot2()
 
@@ -285,6 +438,43 @@ test_that("Ggplot2PieLayerProcessor counts wedges for a stat = 'count' pie", {
 
   testthat::expect_equal(wedge_labels(data), c("a", "b", "c"))
   testthat::expect_equal(wedge_values(data), c(2, 1, 3))
+})
+
+test_that("fill names the wedges wherever the two aesthetics are written", {
+  skip_if_no_ggplot2()
+
+  # resolve_series_group_mapping() probes the LAYER's mapping for every
+  # aesthetic it is handed before it looks at the plot's, so fill and x have
+  # to be asked for separately. Handed together, the third plot below would
+  # let the layer's x win over the plot's fill and every wedge would be named
+  # after its position instead of its fruit.
+  df <- data.frame(fruit = c("Apples", "Bananas", "Cherries"), units = c(30, 50, 20))
+  plots <- list(
+    ggplot2::ggplot(df, ggplot2::aes(x = "", y = units, fill = fruit)) +
+      ggplot2::geom_col(),
+    ggplot2::ggplot(df, ggplot2::aes(x = "")) +
+      ggplot2::geom_col(ggplot2::aes(y = units, fill = fruit)),
+    ggplot2::ggplot(df, ggplot2::aes(y = units, fill = fruit)) +
+      ggplot2::geom_col(ggplot2::aes(x = ""))
+  )
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+  for (plot in plots) {
+    p <- plot + ggplot2::coord_polar("y")
+    built <- ggplot2::ggplot_build(p)
+
+    testthat::expect_equal(
+      processor$resolve_slice_mapping(p, processor$panel_built_data(built))$aes,
+      "fill"
+    )
+    testthat::expect_equal(
+      wedge_labels(processor$extract_data(p, built)),
+      c("Apples", "Bananas", "Cherries")
+    )
+    testthat::expect_equal(
+      processor$extract_pie_axes(p, list(), built)$x$label, "fruit"
+    )
+  }
 })
 
 test_that("Ggplot2PieLayerProcessor names wedges from an expression mapping", {

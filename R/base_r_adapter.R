@@ -59,12 +59,12 @@ BaseRAdapter <- R6::R6Class(
   "BaseRAdapter",
   inherit = SystemAdapter,
   public = list(
-    #' Initialize the Base R adapter
+    #' @description Initialize the Base R adapter
     initialize = function() {
       super$initialize("base_r")
     },
 
-    #' Check if this adapter can handle a plot object
+    #' @description Check if this adapter can handle a plot object
     #' @param plot_object The plot object to check (should be NULL for Base R)
     #' @return TRUE if Base R plotting is active, FALSE otherwise
     can_handle = function(plot_object) {
@@ -76,7 +76,7 @@ BaseRAdapter <- R6::R6Class(
       can_handle_result
     },
 
-    #' Detect the type of a single layer from Base R plot calls
+    #' @description Detect the type of a single layer from Base R plot calls
     #' @param layer The plot call entry from our logger
     #' @param plot_object The parent plot object (NULL for Base R)
     #' @return String indicating the layer type (e.g., "bar", "dodged_bar",
@@ -236,7 +236,7 @@ BaseRAdapter <- R6::R6Class(
       layer_type
     },
 
-    #' Check if a barplot call represents a dodged bar plot
+    #' @description Check if a barplot call represents a dodged bar plot
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
@@ -251,7 +251,7 @@ BaseRAdapter <- R6::R6Class(
       is_matrix && beside_true
     },
 
-    #' Check if a barplot call represents a stacked bar plot
+    #' @description Check if a barplot call represents a stacked bar plot
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
@@ -268,7 +268,7 @@ BaseRAdapter <- R6::R6Class(
       is_matrix && beside_false
     },
 
-    #' Create an orchestrator for this system (Base R)
+    #' @description Create an orchestrator for this system (Base R)
     #' @param plot_object The plot object to process (NULL for Base R)
     #' @return PlotOrchestrator instance
     create_orchestrator = function(plot_object = NULL) {
@@ -280,53 +280,53 @@ BaseRAdapter <- R6::R6Class(
       BaseRPlotOrchestrator$new(device_id = device_id)
     },
 
-    #' Get the system name
+    #' @description Get the system name
     #' @return System name string
     get_system_name = function() {
       self$system_name
     },
 
-    #' Get a reference to this adapter (for use by orchestrator)
+    #' @description Get a reference to this adapter (for use by orchestrator)
     #' @return Self reference
     get_adapter = function() {
       self
     },
 
-    #' Check if plot has facets (Base R doesn't support facets)
+    #' @description Check if plot has facets (Base R doesn't support facets)
     #' @param plot_object The plot object (ignored for Base R)
     #' @return FALSE (Base R doesn't support facets)
     has_facets = function(plot_object = NULL) {
       FALSE
     },
 
-    #' Check if plot is a patchwork plot (Base R doesn't support patchwork)
+    #' @description Check if plot is a patchwork plot (Base R doesn't support patchwork)
     #' @param plot_object The plot object (ignored for Base R)
     #' @return FALSE (Base R doesn't support patchwork)
     is_patchwork = function(plot_object = NULL) {
       FALSE
     },
 
-    #' Get recorded plot calls for processing
+    #' @description Get recorded plot calls for processing
     #' @param device_id Graphics device ID (defaults to current device)
     #' @return List of recorded plot calls
     get_plot_calls = function(device_id = grDevices::dev.cur()) {
       get_device_calls(device_id)
     },
 
-    #' Clear recorded plot calls (for cleanup)
+    #' @description Clear recorded plot calls (for cleanup)
     #' @param device_id Graphics device ID (defaults to current device)
     clear_plot_calls = function(device_id = grDevices::dev.cur()) {
       clear_device_storage(device_id)
     },
 
-    #' Initialize function patching
+    #' @description Initialize function patching
     #' @return NULL (invisible)
     initialize_patching = function() {
       initialize_base_r_patching()
       invisible(NULL)
     },
 
-    #' Restore original functions
+    #' @description Restore original functions
     #' @return NULL (invisible)
     restore_functions = function() {
       restore_original_functions()

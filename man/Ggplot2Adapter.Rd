@@ -7,22 +7,15 @@
 An R6 class inheriting from SystemAdapter
 }
 \description{
+ggplot2 System Adapter
+
+ggplot2 System Adapter
+}
+\details{
 Adapter for the ggplot2 plotting system. This adapter wraps the existing
 ggplot2 functionality to work with the new extensible architecture.
 }
-\keyword{Check}
-\keyword{Initialize}
-\keyword{a}
-\keyword{adapter}
-\keyword{can}
-\keyword{ggplot2}
-\keyword{handle}
-\keyword{if}
 \keyword{internal}
-\keyword{object}
-\keyword{plot}
-\keyword{the}
-\keyword{this}
 \section{Super class}{
 \code{\link[maidr:SystemAdapter]{maidr::SystemAdapter}} -> \code{Ggplot2Adapter}
 }
@@ -33,6 +26,8 @@ ggplot2 functionality to work with the new extensible architecture.
 \item \href{#method-Ggplot2Adapter-can_handle}{\code{Ggplot2Adapter$can_handle()}}
 \item \href{#method-Ggplot2Adapter-detect_layer_type}{\code{Ggplot2Adapter$detect_layer_type()}}
 \item \href{#method-Ggplot2Adapter-is_pie_coord}{\code{Ggplot2Adapter$is_pie_coord()}}
+\item \href{#method-Ggplot2Adapter-draws_single_ring}{\code{Ggplot2Adapter$draws_single_ring()}}
+\item \href{#method-Ggplot2Adapter-find_layer_index}{\code{Ggplot2Adapter$find_layer_index()}}
 \item \href{#method-Ggplot2Adapter-create_orchestrator}{\code{Ggplot2Adapter$create_orchestrator()}}
 \item \href{#method-Ggplot2Adapter-get_system_name}{\code{Ggplot2Adapter$get_system_name()}}
 \item \href{#method-Ggplot2Adapter-get_adapter}{\code{Ggplot2Adapter$get_adapter()}}
@@ -45,6 +40,7 @@ ggplot2 functionality to work with the new extensible architecture.
 \if{html}{\out{<a id="method-Ggplot2Adapter-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-new}{}}}
 \subsection{Method \code{new()}}{
+Initialize the ggplot2 adapter
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$new()}\if{html}{\out{</div>}}
 }
@@ -54,6 +50,7 @@ ggplot2 functionality to work with the new extensible architecture.
 \if{html}{\out{<a id="method-Ggplot2Adapter-can_handle"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-can_handle}{}}}
 \subsection{Method \code{can_handle()}}{
+Check if this adapter can handle a plot object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$can_handle(plot_object)}\if{html}{\out{</div>}}
 }
@@ -67,13 +64,13 @@ ggplot2 functionality to work with the new extensible architecture.
 }
 \subsection{Returns}{
 TRUE if this adapter can handle the object, FALSE otherwise
-Detect the type of a single layer
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-detect_layer_type"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-detect_layer_type}{}}}
 \subsection{Method \code{detect_layer_type()}}{
+Detect the type of a single layer
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$detect_layer_type(layer, plot_object)}\if{html}{\out{</div>}}
 }
@@ -89,39 +86,99 @@ Detect the type of a single layer
 }
 \subsection{Returns}{
 String indicating the layer type (e.g., "bar", "line", "point")
-Check if a plot's coordinate system turns bars into pie wedges
-
-\code{coord_radial()} produces a CoordRadial that does NOT inherit
-CoordPolar, so both class names have to be tested. \code{theta} decides
-what the angle encodes: only \code{theta = "y"} maps a bar's height
-onto the angle, which is a pie. \code{theta = "x"} keeps the height on
-the radius, which is a coxcomb/rose - still a bar chart, just bent.
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-is_pie_coord"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-is_pie_coord}{}}}
 \subsection{Method \code{is_pie_coord()}}{
+Check if a bar layer is drawn as pie wedges
+
+\code{coord_radial()} produces a CoordRadial that does NOT inherit
+CoordPolar, so both class names have to be tested. \code{theta} decides
+what the angle encodes: only \code{theta = "y"} maps a bar's height
+onto the angle, which is a pie. \code{theta = "x"} keeps the height on
+the radius, which is a coxcomb/rose - still a bar chart, just bent.
+
+The coordinate system alone is not enough: a polar bar layer is a pie
+only when it draws ONE ring. \code{geom_col(aes(x = category))} under
+\code{coord_polar("y")} draws one concentric ring per x category - a
+bullseye - and a pie payload has no room for that second dimension, so
+such a layer keeps the bar classification it has always had.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$is_pie_coord(plot_object)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$is_pie_coord(plot_object, layer = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{plot_object}}{The ggplot2 plot object}
+
+\item{\code{layer}}{The layer being classified, or NULL for the plot's first}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-TRUE when the plot is drawn as a pie, FALSE otherwise
-Create an orchestrator for this system (ggplot2)
+TRUE when the layer is drawn as a pie, FALSE otherwise
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-draws_single_ring"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-draws_single_ring}{}}}
+\subsection{Method \code{draws_single_ring()}}{
+Check if a layer occupies a single position on x
+
+The ring count has to come off the BUILT data: a mapping expression
+cannot say how many levels it has, and by build time ggplot2 has
+already resolved every constant form - the literal \code{""}, a
+one-level factor, a column holding one repeated value - to the same
+single x position. Each facet panel is its own pie, so constancy is
+asked of each panel separately. A build that fails answers FALSE,
+leaving the layer classified the way it was before pie support.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$draws_single_ring(plot_object, layer = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot_object}}{The ggplot2 plot object}
+
+\item{\code{layer}}{The layer being classified, or NULL for the plot's first}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+TRUE when no panel holds more than one x position
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-find_layer_index"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-find_layer_index}{}}}
+\subsection{Method \code{find_layer_index()}}{
+Locate a layer among its plot's layers
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$find_layer_index(plot_object, layer = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot_object}}{The ggplot2 plot object}
+
+\item{\code{layer}}{The layer to locate, or NULL for the plot's first}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Integer index into the plot's layers, or NULL when absent
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-create_orchestrator"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-create_orchestrator}{}}}
 \subsection{Method \code{create_orchestrator()}}{
+Create an orchestrator for this system (ggplot2)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$create_orchestrator(plot_object)}\if{html}{\out{</div>}}
 }
@@ -135,39 +192,39 @@ Create an orchestrator for this system (ggplot2)
 }
 \subsection{Returns}{
 PlotOrchestrator instance
-Get the system name
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-get_system_name}{}}}
 \subsection{Method \code{get_system_name()}}{
+Get the system name
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$get_system_name()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 System name string
-Get a reference to this adapter (for use by orchestrator)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-get_adapter"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-get_adapter}{}}}
 \subsection{Method \code{get_adapter()}}{
+Get a reference to this adapter (for use by orchestrator)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$get_adapter()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Self reference
-Check if plot has facets
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-has_facets"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-has_facets}{}}}
 \subsection{Method \code{has_facets()}}{
+Check if plot has facets
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$has_facets(plot_object)}\if{html}{\out{</div>}}
 }
@@ -181,13 +238,13 @@ Check if plot has facets
 }
 \subsection{Returns}{
 TRUE if plot has facets, FALSE otherwise
-Check if plot is a patchwork plot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2Adapter-is_patchwork"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2Adapter-is_patchwork}{}}}
 \subsection{Method \code{is_patchwork()}}{
+Check if plot is a patchwork plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2Adapter$is_patchwork(plot_object)}\if{html}{\out{</div>}}
 }

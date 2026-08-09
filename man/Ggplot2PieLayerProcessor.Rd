@@ -15,6 +15,13 @@ so the stack's segments become wedges. The payload is 1-D and flat -- one
 point per wedge, \code{x} the slice label and \code{y} its magnitude. The
 percentage MAIDR announces is derived from those values by the frontend, so
 this layer deliberately does not emit one.
+
+Multi-ring "bullseye" polar bars are out of scope. \code{geom_col()} with a
+non-constant x under \code{coord_polar("y")} draws one concentric ring per
+x category, and a flat list of wedges cannot carry that second dimension --
+wedges from different rings would collapse onto the same label. Those
+layers never reach this processor: \code{Ggplot2Adapter$is_pie_coord()}
+declines them, and they stay bar / stacked / dodged as before.
 }
 \keyword{internal}
 \section{Super class}{

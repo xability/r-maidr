@@ -7,6 +7,13 @@
 #' percentage MAIDR announces is derived from those values by the frontend, so
 #' this layer deliberately does not emit one.
 #'
+#' Multi-ring "bullseye" polar bars are out of scope. \code{geom_col()} with a
+#' non-constant x under \code{coord_polar("y")} draws one concentric ring per
+#' x category, and a flat list of wedges cannot carry that second dimension --
+#' wedges from different rings would collapse onto the same label. Those
+#' layers never reach this processor: \code{Ggplot2Adapter$is_pie_coord()}
+#' declines them, and they stay bar / stacked / dodged as before.
+#'
 #' @keywords internal
 Ggplot2PieLayerProcessor <- R6::R6Class(
   "Ggplot2PieLayerProcessor",
@@ -101,10 +108,25 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
         return(list(aes = NULL, column = "group"))
       }
 
+      # One aesthetic per call: `resolve_series_group_mapping()` probes the
+      # LAYER's mapping for every aesthetic it is handed before it looks at
+      # the plot's, so passing fill and x together would let a layer-level x
+      # beat a plot-level fill. Fill has to be exhausted at both levels first
+      # -- a pie's x is the constant that collapses the ring, and naming the
+      # wedges after it leaves every one of them called the same thing.
+      fill <- resolve_series_group_mapping(
+        plot,
+        self$get_layer_index(),
+        aes_groups = list("fill")
+      )
+      if (!is.null(fill$aes)) {
+        return(fill)
+      }
+
       resolve_series_group_mapping(
         plot,
         self$get_layer_index(),
-        aes_groups = list("fill", "x")
+        aes_groups = list("x")
       )
     },
 
