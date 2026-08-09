@@ -91,30 +91,31 @@ BaseRPointLayerProcessor <- R6::R6Class(
     },
     # Extract axis information from Base R plot call
     #
-    # Returns per-axis objects with label and optional grid navigation fields
-    # (min, max, tickStep). Grid fields are derived from xlim/ylim args or
-    # data range, and tick intervals via pretty(). Only included when
-    # extraction succeeds.
+    # Returns per-axis objects with an optional label and optional grid
+    # navigation fields (min, max, tickStep). Grid fields are derived from
+    # xlim/ylim args or data range, and tick intervals via pretty(). Every
+    # field is included only when extraction succeeds, and an axis that ends
+    # up with none of them is left out of the payload entirely.
     #
     # @param layer_info Layer information with recorded plot call
-    # @return List with x and y per-axis objects
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
-        return(list(
-          x = list(label = ""),
-          y = list(label = "")
-        ))
+        return(build_axes())
       }
 
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
-
-      # Build per-axis objects (always include label)
-      x_axis <- list(label = x_title)
-      y_axis <- list(label = y_title)
+      # No default title: a scatter plot's axes hold whatever the caller
+      # measured, and the call carries no name for it. plot() prints the
+      # deparsed arguments, but those are lost once the wrapper records
+      # evaluated values -- and reconstructing them would misname every
+      # single-argument form, which plot() labels "Index" against the data,
+      # or by the column names of a matrix or data frame. A guessed noun is
+      # worse than none, so the axis is left for the renderer's generic.
+      x_axis <- build_axis_config(label = recorded_axis_label(args, "xlab"))
+      y_axis <- build_axis_config(label = recorded_axis_label(args, "ylab"))
 
       # --- Optionally extract grid navigation fields ---
       xy <- resolve_xy_args(args)
@@ -158,7 +159,7 @@ BaseRPointLayerProcessor <- R6::R6Class(
         y_axis$tickStep <- y_grid$tickStep
       }
 
-      list(x = x_axis, y = y_axis)
+      build_axes(x = x_axis, y = y_axis)
     },
 
     # Extract grid navigation info for a Base R axis

@@ -90,14 +90,18 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
 
       data
     },
+    # Extract the axis titles for this layer
+    #
+    # A stacked `barplot()` records no title unless the author wrote one, and
+    # its points always carry the column category on x and the segment height
+    # on y, so the defaults name those two. The stack's own dimension is
+    # already announced per point as z; nothing in the call names the
+    # variable those groups came from, so no z title is claimed.
+    #
+    # @param layer_info Layer information
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
-      }
-      args <- layer_info$plot_call$args
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
-      build_axes(x = x_title, y = y_title)
+      base_r_categorical_axes(layer_info$plot_call$args)
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

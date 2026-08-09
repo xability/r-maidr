@@ -143,18 +143,17 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       escaped_parent <- gsub("\\.", "\\\\.", paste0(main_container, ".1"))
       paste0("#", escaped_parent, " rect")
     },
+    # Extract the axis titles for this layer
+    #
+    # Same shape as the stacked processor: `barplot(beside = TRUE)` writes no
+    # title, its points carry the column category on x and the bar height on
+    # y, and the group each bar belongs to travels with the point as z rather
+    # than as a named axis.
+    #
+    # @param layer_info Layer information
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
-      }
-
-      plot_call <- layer_info$plot_call
-      args <- plot_call$args
-
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
-
-      build_axes(x = x_title, y = y_title)
+      base_r_categorical_axes(layer_info$plot_call$args)
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

@@ -389,7 +389,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
           layer_axes <- if (!is.null(result$axes)) {
             result$axes
           } else {
-            build_axes(x = "", y = "")
+            build_axes()
           }
           group_format <- private$.format_config_by_group[[as.character(group_idx)]]
           if (!is.null(group_format)) {

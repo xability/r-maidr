@@ -273,7 +273,9 @@ test_that("BaseRUnknownLayerProcessor process returns default title", {
   testthat::expect_equal(result$title, "Unknown Plot Type")
 })
 
-test_that("BaseRUnknownLayerProcessor process returns default axes", {
+test_that("BaseRUnknownLayerProcessor claims nothing about its axes", {
+  # Nothing is known about this layer, its axes included. Emitting the
+  # generic "X"/"Y" here would only duplicate the renderer's own fallback.
   layer_info <- list(index = 1)
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
@@ -282,8 +284,9 @@ test_that("BaseRUnknownLayerProcessor process returns default axes", {
   )
 
   testthat::expect_type(result$axes, "list")
-  testthat::expect_equal(result$axes$x$label, "X")
-  testthat::expect_equal(result$axes$y$label, "Y")
+  testthat::expect_length(result$axes, 0)
+  testthat::expect_null(result$axes$x)
+  testthat::expect_null(result$axes$y)
 })
 
 test_that("BaseRUnknownLayerProcessor process returns empty data", {

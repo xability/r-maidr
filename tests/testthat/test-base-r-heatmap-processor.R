@@ -258,9 +258,11 @@ test_that("extract_axis_titles returns defaults for NULL layer_info", {
 
   result <- processor$extract_axis_titles(NULL)
 
-  testthat::expect_equal(result$x$label, "")
-  testthat::expect_equal(result$y$label, "")
-  testthat::expect_equal(result$z$label, "")
+  # Without a call there is no function to attribute a layout to, so only
+  # the colour scale -- which every layer of this type carries -- is named.
+  testthat::expect_null(result$x)
+  testthat::expect_null(result$y)
+  testthat::expect_equal(result$z$label, "value")
 })
 
 test_that("extract_axis_titles extracts xlab and ylab", {
@@ -280,8 +282,9 @@ test_that("extract_axis_titles uses defaults when labels missing", {
 
   result <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(result$x$label, "")
-  testthat::expect_equal(result$y$label, "")
+  # heatmap() draws the matrix columns along x and its rows up y.
+  testthat::expect_equal(result$x$label, "Columns")
+  testthat::expect_equal(result$y$label, "Rows")
 })
 
 # ==============================================================================

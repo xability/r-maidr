@@ -201,7 +201,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
     },
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
+        return(build_axes())
       }
 
       function_name <- layer_info$function_name
@@ -212,9 +212,10 @@ BaseRLineLayerProcessor <- R6::R6Class(
         group <- layer_info$group
         if (!is.null(group) && !is.null(group$high_call)) {
           high_args <- group$high_call$args
-          x_title <- if (!is.null(high_args$xlab)) high_args$xlab else ""
-          y_title <- if (!is.null(high_args$ylab)) high_args$ylab else ""
-          return(build_axes(x = x_title, y = y_title))
+          return(build_axes(
+            x = recorded_axis_label(high_args, "xlab"),
+            y = recorded_axis_label(high_args, "ylab")
+          ))
         }
       }
 
@@ -225,24 +226,17 @@ BaseRLineLayerProcessor <- R6::R6Class(
       # expression) rather than taking them from the call, so they are
       # recorded alongside the drawn points. An explicit xlab/ylab still
       # wins, exactly as it does inside curve().
+      #
+      # Nothing else here carries a default: a line drawn by plot() or
+      # matplot() runs over whatever the caller measured, and the recorded
+      # arguments are evaluated values that no longer name it. The renderer's
+      # generic is the honest answer, so no label is emitted.
       curve_labels <- args$.maidr_curve_data$labels
 
-      x_title <- if (!is.null(args$xlab)) {
-        args$xlab
-      } else if (!is.null(curve_labels)) {
-        curve_labels$x
-      } else {
-        ""
-      }
-      y_title <- if (!is.null(args$ylab)) {
-        args$ylab
-      } else if (!is.null(curve_labels)) {
-        curve_labels$y
-      } else {
-        ""
-      }
-
-      build_axes(x = x_title, y = y_title)
+      build_axes(
+        x = recorded_axis_label(args, "xlab", curve_labels$x),
+        y = recorded_axis_label(args, "ylab", curve_labels$y)
+      )
     },
     extract_abline_data = function(layer_info) {
       plot_call <- layer_info$plot_call
