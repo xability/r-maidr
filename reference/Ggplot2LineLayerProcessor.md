@@ -70,11 +70,21 @@ geom_point.points.63.1.24 (grouped by series)
 
 - [`Ggplot2LineLayerProcessor$generate_selectors()`](#method-Ggplot2LineLayerProcessor-generate_selectors)
 
+- [`Ggplot2LineLayerProcessor$series_count()`](#method-Ggplot2LineLayerProcessor-series_count)
+
+- [`Ggplot2LineLayerProcessor$curve_selectors()`](#method-Ggplot2LineLayerProcessor-curve_selectors)
+
+- [`Ggplot2LineLayerProcessor$find_layer_polyline_grob()`](#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob)
+
+- [`Ggplot2LineLayerProcessor$layer_polyline_grobs()`](#method-Ggplot2LineLayerProcessor-layer_polyline_grobs)
+
+- [`Ggplot2LineLayerProcessor$other_geom_grob_prefixes()`](#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes)
+
+- [`Ggplot2LineLayerProcessor$polyline_curve_count()`](#method-Ggplot2LineLayerProcessor-polyline_curve_count)
+
 - [`Ggplot2LineLayerProcessor$generate_multiline_selectors()`](#method-Ggplot2LineLayerProcessor-generate_multiline_selectors)
 
 - [`Ggplot2LineLayerProcessor$generate_single_line_selector()`](#method-Ggplot2LineLayerProcessor-generate_single_line_selector)
-
-- [`Ggplot2LineLayerProcessor$find_all_polyline_grobs()`](#method-Ggplot2LineLayerProcessor-find_all_polyline_grobs)
 
 - [`Ggplot2LineLayerProcessor$line_layer_position()`](#method-Ggplot2LineLayerProcessor-line_layer_position)
 
@@ -482,12 +492,31 @@ plot mappings
 
 #### Returns
 
-Name of the grouping column Generate selectors using actual SVG
-structure
+Name of the grouping column
 
 ------------------------------------------------------------------------
 
 ### Method `generate_selectors()`
+
+One selector per series this line layer draws.
+
+The panel-wide polyline list conflates two different things: a grouped
+[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+draws ALL of its curves as ONE `polylineGrob` whose `id` splits it
+(gridSVG then emits `GRID.polyline.N.1.1`, `.1.2`, ... per curve), while
+a second polyline-producing layer such as
+[`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+adds further grobs of its own. Indexing that flat list by this layer's
+position among line layers therefore returned one selector for a
+three-curve layer as soon as a smooth sat beside it, and the frontend's
+multiline trace refuses a selector list whose length does not equal the
+series count – so the layer lost highlighting entirely rather than
+mis-aiming it.
+
+This resolves THIS layer's own grob first and then enumerates the curves
+inside it, emitting one selector per curve. When the curves cannot be
+lined up with the series, no selector is emitted: a caller can tell an
+absent selector apart from a wrong one, a user cannot.
 
 #### Usage
 
@@ -496,7 +525,8 @@ structure
       gt = NULL,
       grob_id = NULL,
       panel_ctx = NULL,
-      built = NULL
+      built = NULL,
+      n_series = NULL
     )
 
 #### Arguments
@@ -513,10 +543,192 @@ structure
 
   Grob ID for faceted plots (optional)
 
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation
+
+- `built`:
+
+  Built plot data (optional)
+
+- `n_series`:
+
+  Number of series `extract_data()` produced, or NULL to derive it from
+  the built layer data
+
 #### Returns
 
-List of selectors for each series Generate selectors for multiline plots
-using actual structure
+List of selectors for each series
+
+------------------------------------------------------------------------
+
+### Method `series_count()`
+
+Number of series this layer draws in the given panel.
+
+Never throws: selector generation has to degrade gracefully for inputs
+`extract_data()` would reject.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$series_count(plot, built = NULL, panel_ctx = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation
+
+#### Returns
+
+Number of series, at least 1
+
+------------------------------------------------------------------------
+
+### Method `curve_selectors()`
+
+Selectors for the curves inside this layer's own grob.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$curve_selectors(plot, panel_grob, n_series)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `panel_grob`:
+
+  The panel's grob tree
+
+- `n_series`:
+
+  Number of series the layer produced
+
+#### Returns
+
+List of selectors, or NULL when the grob does not line up with the
+series
+
+------------------------------------------------------------------------
+
+### Method `find_layer_polyline_grob()`
+
+The polyline grob ggplot2 drew for THIS line layer.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$find_layer_polyline_grob(plot, panel_grob)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `panel_grob`:
+
+  The panel's grob tree
+
+#### Returns
+
+The matching grob, or NULL
+
+------------------------------------------------------------------------
+
+### Method `layer_polyline_grobs()`
+
+Panel polylines that a line layer could have drawn.
+
+`GeomPath$draw_panel()` returns a bare `polylineGrob`, so a line layer's
+grob carries grid's auto-generated `GRID.polyline.N` name with no geom
+prefix to match on – only its draw-order position identifies it. Layers
+that DO name their grob tree after their geom (`geom_smooth.gTree.N`)
+are skipped whole via
+[`geom_grob_prefix()`](https://r.maidr.ai/reference/geom_grob_prefix.md),
+the same helper the smooth processor uses to scope itself to its own
+tree; without that, the smooth's three curves are counted as line-layer
+polylines and shift every position by three. Panel grid lines are named
+after the theme element (`panel.grid.major.x..polyline.N`) and so never
+match.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$layer_polyline_grobs(plot, panel_grob)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `panel_grob`:
+
+  The panel's grob tree
+
+#### Returns
+
+List of grobs in draw order
+
+------------------------------------------------------------------------
+
+### Method `other_geom_grob_prefixes()`
+
+Grob-name prefixes belonging to the plot's OTHER geoms.
+
+This layer's own prefix is excluded so that a second layer sharing the
+geom (two
+[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+calls) is still walked.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$other_geom_grob_prefixes(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+Character vector of prefixes, possibly empty
+
+------------------------------------------------------------------------
+
+### Method `polyline_curve_count()`
+
+Number of separate curves a polyline grob draws.
+
+`polylineGrob()` splits one grob into several drawn lines via `id` /
+`id.lengths`; gridSVG renders each as its own SVG element suffixed
+`.1.<k>`.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$polyline_curve_count(grob)
+
+#### Arguments
+
+- `grob`:
+
+  A polyline grob
+
+#### Returns
+
+Integer count, at least 1 Generate selectors for multiline plots using
+actual structure
 
 ------------------------------------------------------------------------
 
@@ -556,16 +768,9 @@ List of selectors Generate selector for single line plot
 
 #### Returns
 
-List with single selector Find all polyline parent grobs
-(GRID.polyline.XX) in the panel.
-
-------------------------------------------------------------------------
-
-### Method `find_all_polyline_grobs()`
-
-#### Usage
-
-    Ggplot2LineLayerProcessor$find_all_polyline_grobs(gt)
+List with single selector Position (1-based) of this layer among
+line-typed layers in \`plot\`. Returns NULL if the registry-based
+detection fails.
 
 ------------------------------------------------------------------------
 

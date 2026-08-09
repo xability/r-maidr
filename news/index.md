@@ -4,6 +4,24 @@
 
 ### Bug Fixes
 
+- ggplot2: a grouped
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  keeps its highlight when another layer in the same panel also draws
+  polylines. A grouped line draws all of its curves as one grob that
+  gridSVG splits per curve, while a sibling
+  [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+  contributes grobs of its own; the layer’s selector was picked by
+  indexing that flat panel-wide list of grobs by the layer’s position
+  among line layers, so `geom_line(aes(colour = g)) + geom_smooth()`
+  emitted three series and one selector. The frontend requires one
+  selector per series and drops the whole layer’s highlight otherwise,
+  so nothing on screen moved as the reader walked any of the three
+  lines. The layer’s own grob is now resolved first and its curves
+  enumerated from it, giving one selector per series; two line layers in
+  one panel likewise each resolve to their own grob. When the curves
+  cannot be lined up with the series, no selector is emitted rather than
+  one of the wrong length.
+
 - ggplot2: a faceted stacked bar whose facet column contains `NA`
   exports again. ggplot2 draws a real extra panel for the missing value,
   but the per-panel subset picked its rows with `==`, which answers `NA`

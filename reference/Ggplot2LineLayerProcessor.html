@@ -191,9 +191,14 @@ Final Line Layer Processor - Uses Actual SVG Structure"><meta property="og:image
 <li><p><a href="#method-Ggplot2LineLayerProcessor-extract_single_line_data"><code>Ggplot2LineLayerProcessor$extract_single_line_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-get_group_column"><code>Ggplot2LineLayerProcessor$get_group_column()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-generate_selectors"><code>Ggplot2LineLayerProcessor$generate_selectors()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-series_count"><code>Ggplot2LineLayerProcessor$series_count()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-curve_selectors"><code>Ggplot2LineLayerProcessor$curve_selectors()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob"><code>Ggplot2LineLayerProcessor$find_layer_polyline_grob()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-layer_polyline_grobs"><code>Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes"><code>Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code></a></p></li>
+<li><p><a href="#method-Ggplot2LineLayerProcessor-polyline_curve_count"><code>Ggplot2LineLayerProcessor$polyline_curve_count()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-generate_multiline_selectors"><code>Ggplot2LineLayerProcessor$generate_multiline_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-generate_single_line_selector"><code>Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></p></li>
-<li><p><a href="#method-Ggplot2LineLayerProcessor-find_all_polyline_grobs"><code>Ggplot2LineLayerProcessor$find_all_polyline_grobs()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-line_layer_position"><code>Ggplot2LineLayerProcessor$line_layer_position()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-find_main_polyline_grob"><code>Ggplot2LineLayerProcessor$find_main_polyline_grob()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-needs_reordering"><code>Ggplot2LineLayerProcessor$needs_reordering()</code></a></p></li>
@@ -595,21 +600,35 @@ Get the grouping column name from plot mappings</p>
 </div>
 <div class="section">
 <h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
-<p>Name of the grouping column
-Generate selectors using actual SVG structure</p>
+<p>Name of the grouping column</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="method-generate-selectors-">Method <code>generate_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-selectors-"></a></h3>
-
-<div class="section">
+<p>One selector per series this line layer draws.</p>
+<p>The panel-wide polyline list conflates two different things: a
+grouped <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> draws ALL of its curves as ONE
+<code>polylineGrob</code> whose <code>id</code> splits it (gridSVG then emits
+<code>GRID.polyline.N.1.1</code>, <code>.1.2</code>, ... per curve), while a
+second polyline-producing layer such as <code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code> adds
+further grobs of its own. Indexing that flat list by this layer's
+position among line layers therefore returned one selector for a
+three-curve layer as soon as a smooth sat beside it, and the
+frontend's multiline trace refuses a selector list whose length does
+not equal the series count – so the layer lost highlighting
+entirely rather than mis-aiming it.</p>
+<p>This resolves THIS layer's own grob first and then enumerates the
+curves inside it, emitting one selector per curve. When the curves
+cannot be lined up with the series, no selector is emitted: a caller
+can tell an absent selector apart from a wrong one, a user cannot.</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grob_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  built <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_series <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -627,11 +646,186 @@ Generate selectors using actual SVG structure</p>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
 
 
+<dt><code>panel_ctx</code></dt>
+<dd><p>Panel context for panel-scoped selector generation</p></dd>
+
+
+<dt><code>built</code></dt>
+<dd><p>Built plot data (optional)</p></dd>
+
+
+<dt><code>n_series</code></dt>
+<dd><p>Number of series <code>extract_data()</code> produced, or
+NULL to derive it from the built layer data</p></dd>
+
+
 </dl><p></p></div>
 </div>
 <div class="section">
 <h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
-<p>List of selectors for each series
+<p>List of selectors for each series</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-series_count"></a><div class="section">
+<h3 id="method-series-count-">Method <code>series_count()</code><a class="anchor" aria-label="anchor" href="#method-series-count-"></a></h3>
+<p>Number of series this layer draws in the given panel.</p>
+<p>Never throws: selector generation has to degrade gracefully for
+inputs <code>extract_data()</code> would reject.</p><div class="section">
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">series_count</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+<dt><code>built</code></dt>
+<dd><p>Built plot data (optional)</p></dd>
+
+
+<dt><code>panel_ctx</code></dt>
+<dd><p>Panel context for panel-scoped selector generation</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<p>Number of series, at least 1</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-curve_selectors"></a><div class="section">
+<h3 id="method-curve-selectors-">Method <code>curve_selectors()</code><a class="anchor" aria-label="anchor" href="#method-curve-selectors-"></a></h3>
+<p>Selectors for the curves inside this layer's own grob.</p><div class="section">
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">curve_selectors</span><span class="op">(</span><span class="va">plot</span>, <span class="va">panel_grob</span>, <span class="va">n_series</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+<dt><code>panel_grob</code></dt>
+<dd><p>The panel's grob tree</p></dd>
+
+
+<dt><code>n_series</code></dt>
+<dd><p>Number of series the layer produced</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<p>List of selectors, or NULL when the grob does not line up
+  with the series</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-find_layer_polyline_grob"></a><div class="section">
+<h3 id="method-find-layer-polyline-grob-">Method <code>find_layer_polyline_grob()</code><a class="anchor" aria-label="anchor" href="#method-find-layer-polyline-grob-"></a></h3>
+<p>The polyline grob ggplot2 drew for THIS line layer.</p><div class="section">
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_layer_polyline_grob</span><span class="op">(</span><span class="va">plot</span>, <span class="va">panel_grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+<dt><code>panel_grob</code></dt>
+<dd><p>The panel's grob tree</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<p>The matching grob, or NULL</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-layer_polyline_grobs"></a><div class="section">
+<h3 id="method-layer-polyline-grobs-">Method <code>layer_polyline_grobs()</code><a class="anchor" aria-label="anchor" href="#method-layer-polyline-grobs-"></a></h3>
+<p>Panel polylines that a line layer could have drawn.</p>
+<p><code>GeomPath$draw_panel()</code> returns a bare <code>polylineGrob</code>, so a
+line layer's grob carries grid's auto-generated
+<code>GRID.polyline.N</code> name with no geom prefix to match on – only
+its draw-order position identifies it. Layers that DO name their grob
+tree after their geom (<code>geom_smooth.gTree.N</code>) are skipped whole
+via <code><a href="geom_grob_prefix.html">geom_grob_prefix()</a></code>, the same helper the smooth processor
+uses to scope itself to its own tree; without that, the smooth's
+three curves are counted as line-layer polylines and shift every
+position by three. Panel grid lines are named after the theme element
+(<code>panel.grid.major.x..polyline.N</code>) and so never match.</p><div class="section">
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">layer_polyline_grobs</span><span class="op">(</span><span class="va">plot</span>, <span class="va">panel_grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+<dt><code>panel_grob</code></dt>
+<dd><p>The panel's grob tree</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<p>List of grobs in draw order</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes"></a><div class="section">
+<h3 id="method-other-geom-grob-prefixes-">Method <code>other_geom_grob_prefixes()</code><a class="anchor" aria-label="anchor" href="#method-other-geom-grob-prefixes-"></a></h3>
+<p>Grob-name prefixes belonging to the plot's OTHER geoms.</p>
+<p>This layer's own prefix is excluded so that a second layer sharing
+the geom (two <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> calls) is still walked.</p><div class="section">
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">other_geom_grob_prefixes</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-17">Arguments<a class="anchor" aria-label="anchor" href="#arguments-17"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+<p>Character vector of prefixes, possibly empty</p>
+</div>
+
+</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-polyline_curve_count"></a><div class="section">
+<h3 id="method-polyline-curve-count-">Method <code>polyline_curve_count()</code><a class="anchor" aria-label="anchor" href="#method-polyline-curve-count-"></a></h3>
+<p>Number of separate curves a polyline grob draws.</p>
+<p><code>polylineGrob()</code> splits one grob into several drawn lines via
+<code>id</code> / <code>id.lengths</code>; gridSVG renders each as its own SVG
+element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">polyline_curve_count</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-18">Arguments<a class="anchor" aria-label="anchor" href="#arguments-18"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>A polyline grob</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
+<p>Integer count, at least 1
 Generate selectors for multiline plots using actual structure</p>
 </div>
 
@@ -639,12 +833,12 @@ Generate selectors for multiline plots using actual structure</p>
 <h3 id="method-generate-multiline-selectors-">Method <code>generate_multiline_selectors()</code><a class="anchor" aria-label="anchor" href="#method-generate-multiline-selectors-"></a></h3>
 
 <div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_multiline_selectors</span><span class="op">(</span><span class="va">base_id</span>, <span class="va">num_series</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-19">Arguments<a class="anchor" aria-label="anchor" href="#arguments-19"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>base_id</code></dt>
 <dd><p>The base ID from the grob (e.g., "61")</p></dd>
 
@@ -656,7 +850,7 @@ Generate selectors for multiline plots using actual structure</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
 <p>List of selectors
 Generate selector for single line plot</p>
 </div>
@@ -665,12 +859,12 @@ Generate selector for single line plot</p>
 <h3 id="method-generate-single-line-selector-">Method <code>generate_single_line_selector()</code><a class="anchor" aria-label="anchor" href="#method-generate-single-line-selector-"></a></h3>
 
 <div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_single_line_selector</span><span class="op">(</span><span class="va">base_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-20">Arguments<a class="anchor" aria-label="anchor" href="#arguments-20"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>base_id</code></dt>
 <dd><p>The base ID from the grob</p></dd>
 
@@ -678,25 +872,17 @@ Generate selector for single line plot</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
 <p>List with single selector
-Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
+Position (1-based) of this layer among line-typed layers in `plot`.
+Returns NULL if the registry-based detection fails.</p>
 </div>
-
-</div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-find_all_polyline_grobs"></a><div class="section">
-<h3 id="method-find-all-polyline-grobs-">Method <code>find_all_polyline_grobs()</code><a class="anchor" aria-label="anchor" href="#method-find-all-polyline-grobs-"></a></h3>
-
-<div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_all_polyline_grobs</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
 
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a><div class="section">
 <h3 id="method-line-layer-position-">Method <code>line_layer_position()</code><a class="anchor" aria-label="anchor" href="#method-line-layer-position-"></a></h3>
 
 <div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">line_layer_position</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -705,12 +891,12 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 <h3 id="method-find-main-polyline-grob-">Method <code>find_main_polyline_grob()</code><a class="anchor" aria-label="anchor" href="#method-find-main-polyline-grob-"></a></h3>
 
 <div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_main_polyline_grob</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>gt</code></dt>
 <dd><p>The gtable to search</p></dd>
 
@@ -718,7 +904,7 @@ Find all polyline parent grobs (GRID.polyline.XX) in the panel.</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
 <p>The main polyline grob or NULL
 Check if layer needs reordering</p>
 </div>
@@ -727,24 +913,24 @@ Check if layer needs reordering</p>
 <h3 id="method-needs-reordering-">Method <code>needs_reordering()</code><a class="anchor" aria-label="anchor" href="#method-needs-reordering-"></a></h3>
 
 <div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
 <p>FALSE (line plots typically don't need reordering)</p>
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
