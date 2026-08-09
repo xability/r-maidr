@@ -4,26 +4,11 @@
 \alias{Ggplot2PlotOrchestrator}
 \title{Plot Orchestrator Class}
 \description{
-Plot Orchestrator Class
-
-Plot Orchestrator Class
-}
-\details{
 This class orchestrates the detection and processing of multiple layers
 in a ggplot2 object. It analyzes each layer individually and combines
 the results into a comprehensive interactive plot.
 }
-\keyword{-}
-\keyword{Unified}
-\keyword{all}
-\keyword{by}
-\keyword{creation}
 \keyword{internal}
-\keyword{layer}
-\keyword{plot}
-\keyword{processor}
-\keyword{types}
-\keyword{used}
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
@@ -144,6 +129,7 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-create_unified_layer_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-create_unified_layer_processor}{}}}
 \subsection{Method \code{create_unified_layer_processor()}}{
+Unified layer processor creation - used by all plot types
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2PlotOrchestrator$create_unified_layer_processor(layer_info)}\if{html}{\out{</div>}}
 }

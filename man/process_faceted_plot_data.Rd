@@ -2,7 +2,7 @@
 % Please edit documentation in R/ggplot2_facet_utils.R
 \name{process_faceted_plot_data}
 \alias{process_faceted_plot_data}
-\title{Facet Processing Utilities}
+\title{Process a faceted plot and return organized subplot data}
 \usage{
 process_faceted_plot_data(plot, layout, built, gtable, format_config = NULL)
 }
@@ -21,17 +21,5 @@ process_faceted_plot_data(plot, layout, built, gtable, format_config = NULL)
 List with organized subplot data in 2D grid format
 }
 \description{
-Utility functions for processing faceted ggplot2 plots.
-These functions handle panel extraction, processing, and grid organization
-for faceted plots in a unified way.
+Process a faceted plot and return organized subplot data
 }
-\keyword{Process}
-\keyword{a}
-\keyword{and}
-\keyword{data}
-\keyword{faceted}
-\keyword{internal}
-\keyword{organized}
-\keyword{plot}
-\keyword{return}
-\keyword{subplot}

@@ -1,5 +1,6 @@
 #' Point Layer Processor
 #'
+#' @description
 #' Processes scatter plot layers (geom_point) to extract point data and generate selectors
 #' for individual points in the SVG structure.
 #'
@@ -8,7 +9,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
   "Ggplot2PointLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    #' Process the point layer
+    #' @description Process the point layer
     #' @param plot The ggplot2 object
     #' @param layout Layout information
     #' @param built Built plot data (optional)
@@ -41,7 +42,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' Extract axis information from the plot
+    #' @description Extract axis information from the plot
     #'
     #' Returns per-axis objects with label and optional grid navigation fields
     #' (min, max, tickStep). Grid fields are only included when they can be
@@ -103,7 +104,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       list(x = x_axis, y = y_axis)
     },
 
-    #' Extract grid navigation info (min, max, tickStep) for a single axis
+    #' @description Extract grid navigation info (min, max, tickStep) for a single axis
     #'
     #' Attempts to extract range and tick interval from the built plot's
     #' panel parameters. Returns NULL if any required value cannot be
@@ -184,7 +185,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' Extract data from point layer
+    #' @description Extract data from point layer
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @param scale_mapping Scale mapping for faceted plots (optional)
@@ -327,7 +328,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       points
     },
 
-    #' Generate selectors for point elements
+    #' @description Generate selectors for point elements
     #' @param plot The ggplot2 object
     #' @param gt Gtable object (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
@@ -400,7 +401,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       }
     },
 
-    #' Find the panel grob this layer draws into
+    #' @description Find the panel grob this layer draws into
     #' @param gt The gtable to search
     #' @param panel_ctx Panel context for patchwork leaves and facets; NULL
     #'   for a single plot, where the panel is the cell literally named "panel"
@@ -409,7 +410,7 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       find_gtable_panel_grob(gt, panel_ctx)
     },
 
-    #' Find children by type pattern
+    #' @description Find children by type pattern
     #' @param grob The grob to search
     #' @param type_pattern Pattern to match
     #' @return List of matching children

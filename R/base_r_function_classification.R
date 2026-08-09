@@ -6,6 +6,7 @@
 #' - LAYOUT: Canvas layout functions (par, layout, etc.)
 #'
 #' @keywords internal
+NULL
 
 #' Function Classification Maps
 #'

@@ -6,15 +6,7 @@
 \description{
 Processes Base R line plot layers based on recorded plot calls
 }
-\keyword{Get}
-\keyword{LOW-level}
-\keyword{axis}
-\keyword{axis()}
-\keyword{calls}
-\keyword{custom}
-\keyword{from}
 \keyword{internal}
-\keyword{labels}
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRLineLayerProcessor}
 }
@@ -94,6 +86,7 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_axis_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_axis_labels}{}}}
 \subsection{Method \code{get_axis_labels()}}{
+Get custom axis labels from axis() LOW-level calls
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$get_axis_labels(layer_info, axis_side = 1)}\if{html}{\out{</div>}}
 }

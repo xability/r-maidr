@@ -7,11 +7,6 @@
 An R6 class inheriting from SystemAdapter
 }
 \description{
-ggplot2 System Adapter
-
-ggplot2 System Adapter
-}
-\details{
 Adapter for the ggplot2 plotting system. This adapter wraps the existing
 ggplot2 functionality to work with the new extensible architecture.
 }

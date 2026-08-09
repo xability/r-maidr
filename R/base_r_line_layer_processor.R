@@ -1,5 +1,6 @@
 #' Base R Line Plot Layer Processor
 #'
+#' @description
 #' Processes Base R line plot layers based on recorded plot calls
 #'
 #' @keywords internal
@@ -116,7 +117,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         self$extract_single_line_data(x, y, x_labels)
       }
     },
-    #' Get custom axis labels from axis() LOW-level calls
+    #' @description Get custom axis labels from axis() LOW-level calls
     #' @param layer_info Layer information containing group data
     #' @param axis_side Which axis (1=bottom/x, 2=left/y, 3=top, 4=right)
     #' @return Character vector of labels or NULL if not found

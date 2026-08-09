@@ -4,6 +4,7 @@
 #' including active plot index, panel configuration, and plot grouping.
 #'
 #' @keywords internal
+NULL
 
 #' Get or Initialize Device State
 #'
