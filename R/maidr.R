@@ -45,10 +45,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
 
   if (is_base_r) {
     if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(
-        "No Base R plots detected. Please create a plot first ",
-        "(e.g., barplot(), plot())."
-      )
+      stop(no_base_r_plots_message(), call. = FALSE)
     }
   }
 
@@ -241,10 +238,7 @@ save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL, ...) {
 
   if (is_base_r) {
     if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(
-        "No Base R plots detected. Please create a plot first ",
-        "(e.g., barplot(), plot())."
-      )
+      stop(no_base_r_plots_message(), call. = FALSE)
     }
   }
 
