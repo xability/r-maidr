@@ -660,38 +660,26 @@ find_original_function <- function(function_name) {
     return(.maidr_patching_env$.saved_graphics_fns[[function_name]])
   }
 
-  # Try graphics namespace
-  orig <- tryCatch(
-    get(function_name, envir = asNamespace("graphics")),
-    error = function(e) NULL
-  )
-  if (!is.null(orig)) {
-    return(orig)
-  }
-
-  # Try stats namespace
-  orig <- tryCatch(
-    get(function_name, envir = asNamespace("stats")),
-    error = function(e) NULL
-  )
-  if (!is.null(orig)) {
-    return(orig)
-  }
-
-  # Try grDevices namespace
-  orig <- tryCatch(
-    get(function_name, envir = asNamespace("grDevices")),
-    error = function(e) NULL
-  )
-  if (!is.null(orig)) {
-    return(orig)
-  }
-
-  # Try quantmod namespace (only if quantmod is loaded). chartSeries
-  # is the only HIGH function we currently expect from quantmod.
+  # `base` is in the chain because plot() lives there, not in graphics, since
+  # R 4.0. quantmod is probed last and only when loaded; chartSeries is the
+  # only HIGH function currently expected from it.
+  #
+  # `inherits = FALSE` below is load-bearing. A namespace environment's
+  # parent chain ends at the SEARCH PATH, so the default lookup walks
+  # straight out of `graphics` and into whatever is attached -- including
+  # `package:maidr` itself. A name graphics does not own therefore resolved
+  # to maidr's own recording wrapper, which then got stored as the
+  # "original" and handed back to the replay as the function to call.
+  # chartSeries hit this: the quantmod attach hook fires while quantmod is
+  # loaded but NOT yet attached, so maidr was ahead of it on the path.
+  namespaces <- c("graphics", "stats", "grDevices", "base")
   if ("quantmod" %in% loadedNamespaces()) {
+    namespaces <- c(namespaces, "quantmod")
+  }
+
+  for (ns in namespaces) {
     orig <- tryCatch(
-      get(function_name, envir = asNamespace("quantmod")),
+      get(function_name, envir = asNamespace(ns), inherits = FALSE),
       error = function(e) NULL
     )
     if (!is.null(orig)) {
