@@ -129,7 +129,10 @@ BaseRPointLayerProcessor <- R6::R6Class(
       # Warnings are muffled because this is our own probe, not the user's
       # call: categorical coordinates make xy.coords() report "NAs introduced
       # by coercion", and the drawn plot has already had its say.
-      if (!is.language(x_data)) {
+      # Both aesthetics are tested, matching extract_data()'s guard above: an
+      # unevaluated argument is not a coordinate, and xy.coords() would try
+      # to coerce it. Raised in review of the PR for #98.
+      if (!is.language(x_data) && !is.language(y_data)) {
         coords <- suppressWarnings(tryCatch(
           grDevices::xy.coords(x_data, y_data),
           error = function(e) NULL
