@@ -105,13 +105,19 @@ test_that("the NA facet panel announces its own rows and nobody else's", {
 
   rendered <- na_dodged_render(dodged_plot("identity"))
 
-  # 99 and 98 are the two rows whose facet value is NA. They are the only
-  # values that may appear here, and they must not appear anywhere else.
-  testthat::expect_setequal(panel_values(rendered$panels[[3]]), c(99, 98))
+  # 99 and 98 are the two rows whose facet value is NA, and they are the only
+  # supplied values that may appear here. The panel holds (x, u) and (y, v)
+  # only, so #94's grid completes it to 2x2 and the two cells the caller
+  # never supplied come back as NA - the "missing" reading, not a zero.
+  values <- panel_values(rendered$panels[[3]])
+  testthat::expect_length(values, 4)
+  testthat::expect_setequal(values[!is.na(values)], c(99, 98))
+  testthat::expect_equal(sum(is.na(values)), 2)
+
   for (panel in 1:2) {
-    values <- panel_values(rendered$panels[[panel]])
-    testthat::expect_false(anyNA(values))
-    testthat::expect_false(any(c(99, 98) %in% values))
+    other <- panel_values(rendered$panels[[panel]])
+    testthat::expect_false(anyNA(other))
+    testthat::expect_false(any(c(99, 98) %in% other))
   }
 })
 
