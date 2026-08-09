@@ -250,3 +250,121 @@ test_that("a positional names.arg labels the bars it was written for", {
 
   testthat::expect_equal(vapply(data, function(p) p$x, character(1)), c("A", "B", "C"))
 })
+
+# ==============================================================================
+# The type= argument, which naming the dots made reachable for the first time
+# ==============================================================================
+
+# `plot(x, y, "l")` never reached detect_layer_type()'s `args$type` branch
+# before this change, so every positional type was read as the default "p".
+# Naming it routes those calls into a branch that had only ever seen the
+# `type =` spelling, and one of its answers was wrong there too: `type = "b"`
+# was typed "line" and came out with NO selector at all. R draws "b" with a
+# gap at each symbol, so gridSVG exports the segments as "brokenline" rather
+# than the single "lines" polyline the line selector addresses - while the
+# symbols it also draws resolve cleanly. That is now read as points, for both
+# spellings, which is why these tests always check the two together.
+
+plot_type_layer <- function(draw) {
+  setup_positional()
+  grDevices::pdf(NULL)
+  on.exit({
+    grDevices::dev.off()
+    setup_positional()
+  }, add = TRUE)
+  draw()
+  first_layer()
+}
+
+test_that("a positional type reads the same as the named one", {
+  for (type in c("p", "l", "b", "c", "o", "h", "s", "S")) {
+    positional <- plot_type_layer(function() plot(1:5, 6:10, type))
+    named <- plot_type_layer(function() plot(1:5, 6:10, type = type))
+
+    testthat::expect_equal(positional$type, named$type, info = type)
+    testthat::expect_equal(positional$args[["type"]], type, info = type)
+  }
+})
+
+test_that("a positional type is no longer read as the default points", {
+  # The defect: every one of these was "point" because the wrapper never saw
+  # a name to match `type` to. Guard the fixture by pinning the one that
+  # legitimately IS points, so the test cannot pass by the branch never firing.
+  testthat::expect_equal(plot_type_layer(function() plot(1:5, 6:10, "p"))$type, "point")
+  testthat::expect_equal(plot_type_layer(function() plot(1:5, 6:10, "l"))$type, "line")
+  testthat::expect_equal(plot_type_layer(function() plot(1:5, 6:10, "o"))$type, "line")
+})
+
+# Render a Base R plot and return its payload plus the exported element ids.
+plot_type_rendered <- function(draw) {
+  setup_positional()
+  file <- tempfile(fileext = ".html")
+  on.exit({
+    unlink(file)
+    setup_positional()
+  }, add = TRUE)
+
+  grDevices::pdf(NULL)
+  draw()
+  save_html(file = file)
+  grDevices::dev.off()
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  attribute <- regmatches(html, regexpr('maidr-data="([^"]*)"', html))
+  testthat::expect_length(attribute, 1)
+  json <- sub('"$', "", sub('^maidr-data="', "", attribute))
+  json <- gsub("&quot;", '"', json, fixed = TRUE)
+  json <- gsub("&lt;", "<", json, fixed = TRUE)
+  json <- gsub("&gt;", ">", json, fixed = TRUE)
+  json <- gsub("&amp;", "&", json, fixed = TRUE)
+
+  document <- xml2::read_html(file)
+  list(
+    layer = jsonlite::fromJSON(json, simplifyVector = FALSE)$subplots[[1]][[1]]$layers[[1]],
+    ids = xml2::xml_attr(xml2::xml_find_all(document, "//*[@id]"), "id")
+  )
+}
+
+test_that("type = 'b' is read as the symbols it draws, not as a line", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  for (draw in list(
+    function() plot(1:5, 6:10, "b"),
+    function() plot(1:5, 6:10, type = "b")
+  )) {
+    rendered <- plot_type_rendered(draw)
+    testthat::expect_equal(rendered$layer$type, "point")
+
+    # A line reading emitted no selector at all here, so the layer had no
+    # highlight. What is asserted is the observable that regressed: there is
+    # a selector, and the grob it names is in the export.
+    selectors <- unlist(rendered$layer$selectors)
+    testthat::expect_gt(length(selectors), 0)
+    testthat::expect_false(any(nchar(selectors) == 0))
+    testthat::expect_true(any(grepl("points", selectors, fixed = TRUE)))
+
+    # R draws "b" as broken segments, so the "lines" grob the line reading
+    # aimed at is not in the export; the points grob it does draw is.
+    testthat::expect_true(any(grepl("points", rendered$ids, fixed = TRUE)))
+  }
+})
+
+test_that("type = 'l' keeps the polyline reading its selector can address", {
+  testthat::skip_if_not_installed("xml2")
+  testthat::skip_if_not_installed("jsonlite")
+
+  # The control for the test above: "l" draws one unbroken polyline, so the
+  # line reading is right there and must survive the "b" carve-out.
+  for (draw in list(
+    function() plot(1:5, 6:10, "l"),
+    function() plot(1:5, 6:10, type = "l")
+  )) {
+    rendered <- plot_type_rendered(draw)
+    testthat::expect_equal(rendered$layer$type, "line")
+
+    selectors <- unlist(rendered$layer$selectors)
+    testthat::expect_gt(length(selectors), 0)
+    testthat::expect_true(any(grepl("lines", selectors, fixed = TRUE)))
+  }
+})

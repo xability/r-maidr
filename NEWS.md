@@ -12,7 +12,14 @@
   `names.arg` and their neighbours are honoured whichever way they were
   written. The argument R dispatches on is deliberately left exactly as the
   caller wrote it, so `plot(y ~ x, data = d)` still reaches `plot.formula()`
-  when the figure is redrawn.
+  when the figure is redrawn. A positional `type` reaches the description for
+  the first time as part of this: `plot(x, y, "l")` was read as the default
+  points and carried a selector that matched nothing, and is now the line it
+  draws. `plot(x, y, type = "b")` is read as points rather than as a line, in
+  both spellings — R draws `"b"` with a gap at every symbol, which gridSVG
+  exports under a name the line selector cannot address, so that layer used to
+  come out with no selector and no highlight at all; the symbols it also draws
+  are addressable.
 * Base R: `plot()` of a matrix, data frame or time series announces the axis
   grid it draws. The axis code reimplemented the single-argument fallback by
   hand and flattened the input, so `plot(cbind(1:5, c(100, 200, 300, 400, 500)))`
