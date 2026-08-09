@@ -50,6 +50,7 @@ warn_chartseries_ta_unsupported <- function() {
 
 #' Base R System Adapter
 #'
+#' @description
 #' Adapter for the Base R plotting system. This adapter uses function patching
 #' to intercept Base R plotting calls and detect plot types.
 #'

@@ -1,5 +1,6 @@
 #' Plot System Registry
 #'
+#' @description
 #' Central registry for managing different plotting systems and their adapters.
 #' This registry allows dynamic registration and discovery of plotting systems
 #' and their associated adapters and processor factories.
@@ -10,17 +11,17 @@
 PlotSystemRegistry <- R6::R6Class(
   "PlotSystemRegistry",
   private = list(
-    #' Registered plotting systems
+    #' @description Registered plotting systems
     .registered_systems = list(),
 
-    #' System adapters
+    #' @description System adapters
     .system_adapters = list(),
 
-    #' Processor factories
+    #' @description Processor factories
     .processor_factories = list()
   ),
   public = list(
-    #' Register a new plotting system
+    #' @description Register a new plotting system
     #' @param system_name Name of the plotting system (e.g., "ggplot2", "base_r")
     #' @param adapter Adapter instance for this system
     #' @param processor_factory Processor factory instance for this system
@@ -42,7 +43,7 @@ PlotSystemRegistry <- R6::R6Class(
       invisible(self)
     },
 
-    #' Detect which system can handle a plot object
+    #' @description Detect which system can handle a plot object
     #' @param plot_object The plot object to check
     #' @return System name if found, NULL otherwise
     detect_system = function(plot_object) {
@@ -55,7 +56,7 @@ PlotSystemRegistry <- R6::R6Class(
       NULL
     },
 
-    #' Get the adapter for a specific system
+    #' @description Get the adapter for a specific system
     #' @param system_name Name of the system
     #' @return Adapter instance
     get_adapter = function(system_name) {
@@ -65,7 +66,7 @@ PlotSystemRegistry <- R6::R6Class(
       private$.system_adapters[[system_name]]
     },
 
-    #' Get the processor factory for a specific system
+    #' @description Get the processor factory for a specific system
     #' @param system_name Name of the system
     #' @return Processor factory instance
     get_processor_factory = function(system_name) {
@@ -75,7 +76,7 @@ PlotSystemRegistry <- R6::R6Class(
       private$.processor_factories[[system_name]]
     },
 
-    #' Get the adapter for a plot object (auto-detect system)
+    #' @description Get the adapter for a plot object (auto-detect system)
     #' @param plot_object The plot object
     #' @return Adapter instance
     get_adapter_for_plot = function(plot_object) {
@@ -86,7 +87,7 @@ PlotSystemRegistry <- R6::R6Class(
       self$get_adapter(system_name)
     },
 
-    #' Get the processor factory for a plot object (auto-detect system)
+    #' @description Get the processor factory for a plot object (auto-detect system)
     #' @param plot_object The plot object
     #' @return Processor factory instance
     get_processor_factory_for_plot = function(plot_object) {
@@ -97,20 +98,20 @@ PlotSystemRegistry <- R6::R6Class(
       self$get_processor_factory(system_name)
     },
 
-    #' List all registered systems
+    #' @description List all registered systems
     #' @return Character vector of registered system names
     list_systems = function() {
       names(private$.registered_systems)
     },
 
-    #' Check if a system is registered
+    #' @description Check if a system is registered
     #' @param system_name Name of the system
     #' @return TRUE if registered, FALSE otherwise
     is_system_registered = function(system_name) {
       system_name %in% names(private$.registered_systems)
     },
 
-    #' Unregister a system
+    #' @description Unregister a system
     #' @param system_name Name of the system to unregister
     unregister_system = function(system_name) {
       if (system_name %in% names(private$.registered_systems)) {

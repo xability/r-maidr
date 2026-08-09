@@ -10,19 +10,7 @@ An R6 class inheriting from ProcessorFactory
 Factory for creating Base R-specific processors. This factory creates
 processors for Base R plot types based on recorded plot calls.
 }
-\keyword{Base}
-\keyword{Create}
-\keyword{Initialize}
-\keyword{R}
-\keyword{a}
-\keyword{factory}
-\keyword{for}
 \keyword{internal}
-\keyword{plot}
-\keyword{processor}
-\keyword{specific}
-\keyword{the}
-\keyword{type}
 \section{Super class}{
 \code{\link[maidr:ProcessorFactory]{maidr::ProcessorFactory}} -> \code{BaseRProcessorFactory}
 }
@@ -50,6 +38,7 @@ processors for Base R plot types based on recorded plot calls.
 \if{html}{\out{<a id="method-BaseRProcessorFactory-new"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-new}{}}}
 \subsection{Method \code{new()}}{
+Initialize the Base R processor factory
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$new()}\if{html}{\out{</div>}}
 }
@@ -59,6 +48,7 @@ processors for Base R plot types based on recorded plot calls.
 \if{html}{\out{<a id="method-BaseRProcessorFactory-create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-create_processor}{}}}
 \subsection{Method \code{create_processor()}}{
+Create a processor for a specific plot type
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$create_processor(plot_type, layer_info)}\if{html}{\out{</div>}}
 }
@@ -74,39 +64,39 @@ processors for Base R plot types based on recorded plot calls.
 }
 \subsection{Returns}{
 Processor instance for the specified plot type
-Get list of supported plot types
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-get_supported_types"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_supported_types}{}}}
 \subsection{Method \code{get_supported_types()}}{
+Get list of supported plot types
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$get_supported_types()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Character vector of supported plot types
-Get the system name
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_system_name}{}}}
 \subsection{Method \code{get_system_name()}}{
+Get the system name
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$get_system_name()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 System name string
-Check if a specific processor class is available
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-is_processor_available"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-is_processor_available}{}}}
 \subsection{Method \code{is_processor_available()}}{
+Check if a specific processor class is available
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$is_processor_available(processor_class_name)}\if{html}{\out{</div>}}
 }
@@ -120,26 +110,26 @@ Check if a specific processor class is available
 }
 \subsection{Returns}{
 TRUE if available, FALSE otherwise
-Get available processor classes
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-get_available_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_available_processors}{}}}
 \subsection{Method \code{get_available_processors()}}{
+Get available processor classes
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$get_available_processors()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Character vector of available processor class names
-Create a processor with error handling
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-try_create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-try_create_processor}{}}}
 \subsection{Method \code{try_create_processor()}}{
+Create a processor with error handling
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$try_create_processor(plot_type, layer_info)}\if{html}{\out{</div>}}
 }

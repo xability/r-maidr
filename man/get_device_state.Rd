@@ -2,7 +2,7 @@
 % Please edit documentation in R/base_r_state_tracking.R
 \name{get_device_state}
 \alias{get_device_state}
-\title{Base R State Tracking}
+\title{Get or Initialize Device State}
 \usage{
 get_device_state(device_id = grDevices::dev.cur())
 }
@@ -13,21 +13,6 @@ get_device_state(device_id = grDevices::dev.cur())
 Device state list
 }
 \description{
-This module tracks the plotting state for each graphics device,
-including active plot index, panel configuration, and plot grouping.
+Retrieves the state object for a specific graphics device.
 }
-\keyword{Device}
-\keyword{Get}
-\keyword{Initialize}
-\keyword{Retrieves}
-\keyword{State}
-\keyword{a}
-\keyword{device.}
-\keyword{for}
-\keyword{graphics}
 \keyword{internal}
-\keyword{object}
-\keyword{or}
-\keyword{specific}
-\keyword{state}
-\keyword{the}

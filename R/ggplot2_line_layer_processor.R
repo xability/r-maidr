@@ -1,5 +1,6 @@
 #' Final Line Layer Processor - Uses Actual SVG Structure
 #'
+#' @description
 #' Processes line plot layers using the actual gridSVG structure discovered:
 #' - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
 #' - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
@@ -12,7 +13,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
   "Ggplot2LineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
-    #' Process the line layer with actual SVG structure
+    #' @description Process the line layer with actual SVG structure
     #' @param plot The ggplot2 object
     #' @param layout Layout information
     #' @param built Built plot data (optional)
@@ -87,7 +88,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       resolve_series_group_mapping(plot, self$layer_info$index)
     },
 
-    #' Extract axes labels for line layers, with a special case for
+    #' @description Extract axes labels for line layers, with a special case for
     #' moving-average geoms (e.g. `tidyquant::geom_ma`).
     #'
     #' By default the parent `LayerProcessor$extract_layer_axes()` reads the
@@ -114,7 +115,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       axes
     },
 
-    #' Extract data from line layer (single or multiline)
+    #' @description Extract data from line layer (single or multiline)
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @param scale_mapping Scale mapping for faceted plots (optional)
@@ -420,7 +421,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       NULL
     },
 
-    #' Extract data for multiple line series
+    #' @description Extract data for multiple line series
     #' @param layer_data The built layer data
     #' @param plot The original ggplot2 object
     #' @return List of arrays, each containing series data
@@ -487,7 +488,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       series_data
     },
 
-    #' Extract data for single line (backward compatibility)
+    #' @description Extract data for single line (backward compatibility)
     #' @param layer_data The built layer data
     #' @return List containing single series data
     extract_single_line_data = function(layer_data, plot = NULL) {
@@ -528,7 +529,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       list(points)
     },
 
-    #' Get the grouping column name from plot mappings
+    #' @description Get the grouping column name from plot mappings
     #' @param plot The ggplot2 object
     #' @return Name of the grouping column
     get_group_column = function(plot) {
@@ -743,7 +744,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       1L
     },
 
-    #' Generate selectors for multiline plots using actual structure
+    #' @description Generate selectors for multiline plots using actual structure
     #' @param base_id The base ID from the grob (e.g., "61")
     #' @param num_series Number of series
     #' @return List of selectors
@@ -761,7 +762,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       selectors
     },
 
-    #' Generate selector for single line plot
+    #' @description Generate selector for single line plot
     #' @param base_id The base ID from the grob
     #' @return List with single selector
     generate_single_line_selector = function(base_id) {
@@ -770,7 +771,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       list(selector)
     },
 
-    #' Position (1-based) of this layer among line-typed layers in `plot`.
+    #' @description Position (1-based) of this layer among line-typed layers in `plot`.
     #' Returns NULL if the registry-based detection fails.
     #' @keywords internal
     line_layer_position = function(plot) {
@@ -795,7 +796,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' Find the main polyline grob (GRID.polyline.XX)
+    #' @description Find the main polyline grob (GRID.polyline.XX)
     #' @param gt The gtable to search
     #' @return The main polyline grob or NULL
     find_main_polyline_grob = function(gt) {
@@ -840,7 +841,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       find_main_polyline_recursive(panel_grob)
     },
 
-    #' Check if layer needs reordering
+    #' @description Check if layer needs reordering
     #' @return FALSE (line plots typically don't need reordering)
     needs_reordering = function() {
       FALSE

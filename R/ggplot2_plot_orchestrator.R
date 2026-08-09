@@ -1,5 +1,6 @@
 #' Plot Orchestrator Class
 #'
+#' @description
 #' This class orchestrates the detection and processing of multiple layers
 #' in a ggplot2 object. It analyzes each layer individually and combines
 #' the results into a comprehensive interactive plot.
@@ -105,7 +106,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       self$create_unified_layer_processor(layer_info)
     },
 
-    #' Unified layer processor creation - used by all plot types
+    #' @description Unified layer processor creation - used by all plot types
     #' @param layer_info Layer information
     #' @return Layer processor instance
     create_unified_layer_processor = function(layer_info) {

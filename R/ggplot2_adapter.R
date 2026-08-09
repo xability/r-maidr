@@ -1,5 +1,6 @@
 #' ggplot2 System Adapter
 #'
+#' @description
 #' Adapter for the ggplot2 plotting system. This adapter wraps the existing
 #' ggplot2 functionality to work with the new extensible architecture.
 #'
