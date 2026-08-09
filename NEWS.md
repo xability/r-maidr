@@ -20,6 +20,17 @@
 
 ## Bug Fixes
 
+* Base R: a `heatmap()` given its own `labRow=` / `labCol=` announces those
+  labels. `stats::heatmap()` resolves each axis as
+  `labRow[rowInd] %||% rownames(x) %||% (1L:nr)[rowInd]`, so the caller's
+  labels come first and beat the matrix's dimnames, and they are subscripted
+  by the same clustering order as the data. maidr implemented only the second
+  and third arms, so `heatmap(m, labRow = c("alpha", "beta", ...))` drew those
+  words on the axis and announced the bare indices `2 5 4 3 1` beside them; a
+  matrix that also carried dimnames announced the dimnames while the axis
+  showed the caller's strings. Both axes now take the supplied labels first,
+  reordered the way the drawing is. A call that passes no labels is
+  unchanged, as is `image()`, which has no such argument.
 * ggplot2: the panel a facet draws for a missing value is no longer announced
   as empty in dodged bar and heatmap plots. Both picked their panel's rows
   with `==`, which answers `NA` for exactly the rows whose facet value is
