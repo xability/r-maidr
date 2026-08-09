@@ -78,6 +78,7 @@ maidr supports a wide range of visualization types in both ggplot2 and Base R:
 | Bar charts | `geom_bar()`, `geom_col()` | `barplot()` |
 | Grouped/Dodged bars | `position = "dodge"` | `beside = TRUE` |
 | Stacked bars | `position = "stack"` | `beside = FALSE` |
+| Pie charts | `geom_col()`/`geom_bar()` + `coord_polar("y")` | `pie()` |
 | Histograms | `geom_histogram()` | `hist()` |
 | Scatter plots | `geom_point()` | `plot()` |
 | Line plots | `geom_line()` | `plot(type = "l")`, `lines()` |

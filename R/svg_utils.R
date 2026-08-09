@@ -79,9 +79,11 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
     add = TRUE
   )
 
-  # Render to the invisible device
+  # Render to the invisible device. The justification repair has to happen
+  # here rather than after drawing: grid.export() reads the grid display
+  # list, so only the tree that was actually drawn is the one it exports.
   grid.newpage()
-  grid.draw(gt)
+  grid.draw(repair_na_text_justification(gt))
 
   # Inject svg_x/svg_y coordinates into violin_kde layers while we have
 
@@ -129,6 +131,69 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   svg_content <- add_maidr_data_to_svg(svg_content, maidr_data)
 
   svg_content
+}
+
+#' Repair NA text-grob justification so gridSVG can export the tree
+#'
+#' `gridGraphics::grid.echo()` translates some base graphics text into grid
+#' text grobs that leave `vjust` (and, in principle, `hjust`) as NA and defer
+#' to the grob's `just` field instead. gridSVG 1.7.7 passes the raw value to
+#' `gridSVG:::justTovjust()`, which branches on it directly and fails with
+#' "missing value where TRUE/FALSE needed", aborting `gridSVG::grid.export()`
+#' from `devGrob.text`. `graphics::pie()` is the case that bites: it labels
+#' every wedge, so before this repair no base R pie chart could be exported at
+#' all -- `pie(..., labels = NA)`, which draws no text, exported fine, which is
+#' what pins the failure on these grobs. `barplot()` and friends are
+#' unaffected because their text grobs already carry a numeric justification.
+#'
+#' Only NA components of text grobs are rewritten, so a grob that already has
+#' a usable justification passes through untouched. 0.5 is exactly what grid
+#' resolves NA to for the `just = "centre"` these grobs declare, so the drawn
+#' output is byte-identical.
+#'
+#' This is an upstream gridSVG/gridGraphics incompatibility rather than
+#' anything maidr introduced; drop this repair if gridSVG ever handles NA
+#' justification itself.
+#'
+#' @param grob A grob, gTree, gList, or gtable (or NULL)
+#' @return The same tree with NA `hjust`/`vjust` on text grobs set to 0.5
+#' @keywords internal
+repair_na_text_justification <- function(grob) {
+  if (is.null(grob)) {
+    return(grob)
+  }
+
+  if (inherits(grob, "text")) {
+    if (!is.null(grob$hjust) && anyNA(grob$hjust)) {
+      grob$hjust[is.na(grob$hjust)] <- 0.5
+    }
+    if (!is.null(grob$vjust) && anyNA(grob$vjust)) {
+      grob$vjust[is.na(grob$vjust)] <- 0.5
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gList")) {
+    for (i in seq_along(grob)) {
+      grob[[i]] <- repair_na_text_justification(grob[[i]])
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gTree") && !is.null(grob$children)) {
+    for (i in seq_along(grob$children)) {
+      grob$children[[i]] <- repair_na_text_justification(grob$children[[i]])
+    }
+  }
+
+  # Alternative child storage used by gtable and some composite grobs
+  if (!is.null(grob$grobs)) {
+    for (i in seq_along(grob$grobs)) {
+      grob$grobs[[i]] <- repair_na_text_justification(grob$grobs[[i]])
+    }
+  }
+
+  grob
 }
 
 #' Inject svg_x/svg_y coordinates into violin_kde layer data

@@ -12,8 +12,8 @@ Description: Provides accessible, interactive visualizations through the 'MAIDR'
     (Multimodal Access and Interactive Data Representation) system. Converts
     'ggplot2' and Base R plots into accessible HTML/SVG formats with keyboard
     navigation, screen reader support, and 'sonification' capabilities. Supports
-    bar charts (simple, grouped, stacked), histograms, line plots, scatter plots,
-    box plots, violin plots, candlestick (OHLC) charts, heat maps,
+    bar charts (simple, grouped, stacked), pie charts, histograms, line plots,
+    scatter plots, box plots, violin plots, candlestick (OHLC) charts, heat maps,
     density/smooth curves, faceted plots,
     multi-panel layouts (including patchwork), and multi-layered plot combinations. Enables
     data exploration for users with visual impairments through multiple sensory
