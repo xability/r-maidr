@@ -21,6 +21,18 @@
   own frame, which also settles a panel whose rows happen to be incomplete on
   their own. `stat = "count"` is unchanged and still reports a genuine `0` for
   a cross-tabulation cell that counted nothing.
+* Base R: a `layout()` grid in which one panel spans several cells no longer
+  advertises the rest of the span as empty subplots. `layout(matrix(c(1, 1, 1,
+  2, 3, 4), 2, 3, byrow = TRUE))` draws panel 1 across the whole top row, but
+  the two cells it covered were emitted with no layers, no title and no
+  selector, so a four-panel figure announced six subplots and arrowing into
+  either cell threw in the browser instead of announcing anything. Every cell
+  a panel spans now carries that panel, so navigation across the span keeps
+  announcing and highlighting it; the panel is still one plot, reported once
+  per cell it covers. A `0` in the layout matrix, and a panel the matrix
+  declares but the user never drew, still emit an empty cell — those are
+  genuinely blank. `par(mfrow)` and `par(mfcol)` grids cannot span and are
+  unchanged.
 * Base R: `heatmap()` of a matrix with no `dimnames` announces the row and
   column identities it actually draws. `heatmap()` clusters the rows and
   columns and then labels the reordered matrix with the *original* indices,
