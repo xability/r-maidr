@@ -268,6 +268,78 @@ test_that("a dodged geom_col still asks for the default reverse walk", {
   testthat::expect_null(col_layer("middle", "dodged")$layer$domMapping)
 })
 
+# A real NA in the x or fill aesthetic is NOT an absent cell (raised in review
+# of this PR). ggplot2 draws it as its own grey "NA" category, so it is a row
+# the caller did supply - but `sort()` leaves NA out of the level order, so a
+# grid built from those levels has no slot for it and would drop it without
+# ever reporting it missing. `paste()` stringifies NA to "NA", so the duplicate
+# check cannot see it either. Both processors therefore keep the row-by-row
+# path for that frame.
+
+na_aes_frame <- function(where) {
+  frame <- data.frame(
+    x = c("p", "q", "r"), g = c("A", "B", "A"), n = c(10, 20, 30),
+    stringsAsFactors = FALSE
+  )
+  frame[[where]][3] <- NA
+  frame
+}
+
+na_aes_points <- function(frame, position) {
+  processor <- if (position == "dodge") {
+    maidr:::Ggplot2DodgedBarLayerProcessor
+  } else {
+    maidr:::Ggplot2StackedBarProcessor
+  }
+  plot <- ggplot2::ggplot(frame, col_aes) +
+    ggplot2::geom_col(position = position)
+  unlist(processor$new(list(index = 1))$extract_data(plot), recursive = FALSE)
+}
+
+test_that("a real NA in x or fill keeps the row-by-row reading", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  for (where in c("x", "g")) {
+    for (position in c("dodge", "stack")) {
+      points <- na_aes_points(na_aes_frame(where), position)
+
+      # The grid path is what introduces `NA` y values, so an absent one here
+      # is the evidence that this frame did not take it. Every point carries a
+      # value the caller supplied.
+      values <- vapply(points, function(p) as.numeric(p$y), numeric(1))
+      testthat::expect_false(
+        anyNA(values),
+        info = paste(where, position)
+      )
+      testthat::expect_true(
+        all(values %in% na_aes_frame(where)$n),
+        info = paste(where, position)
+      )
+    }
+  }
+})
+
+test_that("the NA guard is what holds those frames back, not their shape", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # Same frames with the NA replaced by a real level: (r, A) and (r, B) are
+  # still the only rows at x = r, so these are incomplete grids and the grid
+  # path must claim them. Without this control the test above would pass just
+  # as well if the grid had stopped working altogether.
+  for (where in c("x", "g")) {
+    frame <- na_aes_frame(where)
+    frame[[where]][3] <- if (where == "x") "r" else "B"
+
+    for (position in c("dodge", "stack")) {
+      values <- vapply(
+        na_aes_points(frame, position),
+        function(p) as.numeric(p$y), numeric(1)
+      )
+      testthat::expect_true(anyNA(values), info = paste(where, position))
+    }
+  }
+})
+
 faceted_gap_plot <- function() {
   ggplot2::ggplot(
     data.frame(

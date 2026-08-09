@@ -269,7 +269,18 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # and a grid has nowhere to put the second value. That is a degenerate
       # chart rather than an incomplete one, so leave it on the row-by-row path
       # rather than silently dropping a row to force it into a grid.
-      if (anyDuplicated(cell_keys) == 0L) {
+      #
+      # A real `NA` in either aesthetic takes the same exit. `sort()` drops it
+      # from the level order, so the grid has no column or series to hold that
+      # row and would omit it entirely - `paste()` stringifies it to "NA", so
+      # the duplicate test above never notices. ggplot2 itself draws the row
+      # as its own grey "NA" category, so neither the row-by-row reading nor
+      # the grid matches the picture; this only keeps that case exactly as it
+      # was, rather than trading its wrong answer for a quieter one.
+      griddable <- anyDuplicated(cell_keys) == 0L &&
+        !anyNA(x_values) && !anyNA(fill_values)
+
+      if (griddable) {
         values_by_cell <- setNames(as.numeric(y_values), cell_keys)
 
         return(lapply(fill_levels, function(fill_name) {

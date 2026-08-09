@@ -214,12 +214,20 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         # Two rows in the same (x, fill) cell stack into two rects and a grid
         # has nowhere to put the second value, so that degenerate frame keeps
         # the row-by-row reading rather than losing a row to the grid.
+        #
+        # A real `NA` in either aesthetic takes the same exit, for the reason
+        # spelled out in the dodged processor: `sort()` leaves it out of
+        # `x_levels`, so the grid would drop that row without ever reporting
+        # it missing, and `paste()` hides it from the duplicate test by
+        # stringifying it to "NA". Keeping the row-by-row path leaves that
+        # case reading exactly as it did before this change.
         cell_keys <- paste(
           as.character(original_data[[x_col]]),
           as.character(original_data[[fill_col]]),
           sep = "\r"
         )
-        griddable <- anyDuplicated(cell_keys) == 0L
+        griddable <- anyDuplicated(cell_keys) == 0L &&
+          !anyNA(original_data[[x_col]]) && !anyNA(original_data[[fill_col]])
 
         lapply(stacking_order, function(fill_value) {
           group_data <- fill_groups[[as.character(fill_value)]]

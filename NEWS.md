@@ -20,7 +20,9 @@
   missing" — not a zero the data never claimed. Each facet panel completes its
   own frame, which also settles a panel whose rows happen to be incomplete on
   their own. `stat = "count"` is unchanged and still reports a genuine `0` for
-  a cross-tabulation cell that counted nothing.
+  a cross-tabulation cell that counted nothing, and a frame carrying a real
+  `NA` in its `x` or `fill` column keeps its previous reading rather than
+  losing that row to a grid with no column to hold it.
 * Base R: a `layout()` grid in which one panel spans several cells no longer
   advertises the rest of the span as empty subplots. `layout(matrix(c(1, 1, 1,
   2, 3, 4), 2, 3, byrow = TRUE))` draws panel 1 across the whole top row, but
