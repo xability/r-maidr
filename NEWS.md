@@ -1,5 +1,23 @@
 # maidr (development version)
 
+## New Features
+
+* Pie chart support for both plotting systems. In 'ggplot2' a `geom_col()` /
+  `geom_bar()` layer drawn under `coord_polar("y")` — or `coord_radial(theta =
+  "y")` — is now recognised as a pie rather than mis-read as a stacked bar;
+  `coord_polar("x")`, which draws a coxcomb, keeps its bar behaviour. So does a
+  multi-ring "bullseye" — `geom_col(aes(x = category))` under `coord_polar("y")`
+  draws one concentric ring per x category, which a flat list of slices cannot
+  describe. In Base R, `pie()` is described directly. Each wedge is one
+  navigable slice carrying its label and its magnitude, and MAIDR derives the
+  percentage from those values.
+* Base R `pie()` charts can be exported at all. `gridGraphics` translates the
+  wedge labels into text grobs whose `vjust` is `NA`, and gridSVG branches on
+  that value directly, so `grid.export()` aborted with "missing value where
+  TRUE/FALSE needed" and no `pie()` call could be rendered. Text grobs with an
+  NA justification are now repaired to the value grid resolves them to anyway,
+  which leaves the drawn output unchanged and every other plot type untouched.
+
 ## Bug Fixes
 
 * Base R: an argument passed by position now reaches the description under the
@@ -31,6 +49,27 @@
   all announce the grid R drew — a `ts` starting in 2001 is announced
   2001-2005 rather than 1-5, and `plot()` of a data frame gains the grid it
   previously omitted.
+* ggplot2: a `geom_col()` whose data is not a complete grid highlights the bar
+  it is announcing. Pre-aggregated tidy data routinely omits a combination —
+  the reason `geom_col()` exists — and both the dodged and the stacked
+  processor emitted one entry per supplied row, so the series came out ragged
+  (3 and 2 for a three-category, two-group frame). The frontend regroups one
+  flat list of rectangles across a grid it sizes from the first series, so a
+  ragged payload cross-mapped the announcement onto a bar in a different
+  category *and* a different fill group, and left the last bar of the longest
+  series with no highlight at all. A stacked chart lost a whole column on top
+  of that, and dropped an entire fill level when the first category was the
+  one missing it — that group could then not be reached at all.
+  Both processors now emit the full grid, and the stacking order is read from
+  the fullest column rather than the first. Cells the caller never supplied
+  carry `NA` rather than `0`: the frontend needs them to occupy a slot, but it
+  reads them through its missing-value path, so a screen reader hears "n is
+  missing" — not a zero the data never claimed. Each facet panel completes its
+  own frame, which also settles a panel whose rows happen to be incomplete on
+  their own. `stat = "count"` is unchanged and still reports a genuine `0` for
+  a cross-tabulation cell that counted nothing, and a frame carrying a real
+  `NA` in its `x` or `fill` column keeps its previous reading rather than
+  losing that row to a grid with no column to hold it.
 * Base R: `library(maidr); library(quantmod); chartSeries(SPY)` no longer
   fails silently and then blames the user. Attaching 'quantmod' puts
   `package:quantmod` ahead of `package:maidr` on the search path, so a bare

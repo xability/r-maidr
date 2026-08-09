@@ -7,6 +7,11 @@
 An R6 class inheriting from SystemAdapter
 }
 \description{
+Base R System Adapter
+
+Base R System Adapter
+}
+\details{
 Adapter for the Base R plotting system. This adapter uses function patching
 to intercept Base R plotting calls and detect plot types.
 }
@@ -38,6 +43,7 @@ to intercept Base R plotting calls and detect plot types.
 \if{html}{\out{<a id="method-BaseRAdapter-new"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-new}{}}}
 \subsection{Method \code{new()}}{
+Initialize the Base R adapter
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$new()}\if{html}{\out{</div>}}
 }
@@ -47,6 +53,7 @@ to intercept Base R plotting calls and detect plot types.
 \if{html}{\out{<a id="method-BaseRAdapter-can_handle"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-can_handle}{}}}
 \subsection{Method \code{can_handle()}}{
+Check if this adapter can handle a plot object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$can_handle(plot_object)}\if{html}{\out{</div>}}
 }
@@ -60,13 +67,13 @@ to intercept Base R plotting calls and detect plot types.
 }
 \subsection{Returns}{
 TRUE if Base R plotting is active, FALSE otherwise
-Detect the type of a single layer from Base R plot calls
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-detect_layer_type"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-detect_layer_type}{}}}
 \subsection{Method \code{detect_layer_type()}}{
+Detect the type of a single layer from Base R plot calls
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$detect_layer_type(layer, plot_object = NULL)}\if{html}{\out{</div>}}
 }
@@ -83,13 +90,13 @@ Detect the type of a single layer from Base R plot calls
 \subsection{Returns}{
 String indicating the layer type (e.g., "bar", "dodged_bar",
   "stacked_bar", "smooth", "line", "point")
-Check if a barplot call represents a dodged bar plot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-is_dodged_barplot"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-is_dodged_barplot}{}}}
 \subsection{Method \code{is_dodged_barplot()}}{
+Check if a barplot call represents a dodged bar plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$is_dodged_barplot(args)}\if{html}{\out{</div>}}
 }
@@ -103,13 +110,13 @@ Check if a barplot call represents a dodged bar plot
 }
 \subsection{Returns}{
 TRUE if this is a dodged bar plot, FALSE otherwise
-Check if a barplot call represents a stacked bar plot
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-is_stacked_barplot"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-is_stacked_barplot}{}}}
 \subsection{Method \code{is_stacked_barplot()}}{
+Check if a barplot call represents a stacked bar plot
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$is_stacked_barplot(args)}\if{html}{\out{</div>}}
 }
@@ -123,13 +130,13 @@ Check if a barplot call represents a stacked bar plot
 }
 \subsection{Returns}{
 TRUE if this is a stacked bar plot, FALSE otherwise
-Create an orchestrator for this system (Base R)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-create_orchestrator"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-create_orchestrator}{}}}
 \subsection{Method \code{create_orchestrator()}}{
+Create an orchestrator for this system (Base R)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$create_orchestrator(plot_object = NULL)}\if{html}{\out{</div>}}
 }
@@ -143,39 +150,39 @@ Create an orchestrator for this system (Base R)
 }
 \subsection{Returns}{
 PlotOrchestrator instance
-Get the system name
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-get_system_name}{}}}
 \subsection{Method \code{get_system_name()}}{
+Get the system name
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$get_system_name()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 System name string
-Get a reference to this adapter (for use by orchestrator)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-get_adapter"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-get_adapter}{}}}
 \subsection{Method \code{get_adapter()}}{
+Get a reference to this adapter (for use by orchestrator)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$get_adapter()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 Self reference
-Check if plot has facets (Base R doesn't support facets)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-has_facets"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-has_facets}{}}}
 \subsection{Method \code{has_facets()}}{
+Check if plot has facets (Base R doesn't support facets)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$has_facets(plot_object = NULL)}\if{html}{\out{</div>}}
 }
@@ -189,13 +196,13 @@ Check if plot has facets (Base R doesn't support facets)
 }
 \subsection{Returns}{
 FALSE (Base R doesn't support facets)
-Check if plot is a patchwork plot (Base R doesn't support patchwork)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-is_patchwork"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-is_patchwork}{}}}
 \subsection{Method \code{is_patchwork()}}{
+Check if plot is a patchwork plot (Base R doesn't support patchwork)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$is_patchwork(plot_object = NULL)}\if{html}{\out{</div>}}
 }
@@ -209,13 +216,13 @@ Check if plot is a patchwork plot (Base R doesn't support patchwork)
 }
 \subsection{Returns}{
 FALSE (Base R doesn't support patchwork)
-Get recorded plot calls for processing
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-get_plot_calls"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-get_plot_calls}{}}}
 \subsection{Method \code{get_plot_calls()}}{
+Get recorded plot calls for processing
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$get_plot_calls(device_id = grDevices::dev.cur())}\if{html}{\out{</div>}}
 }
@@ -229,13 +236,13 @@ Get recorded plot calls for processing
 }
 \subsection{Returns}{
 List of recorded plot calls
-Clear recorded plot calls (for cleanup)
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-clear_plot_calls"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-clear_plot_calls}{}}}
 \subsection{Method \code{clear_plot_calls()}}{
+Clear recorded plot calls (for cleanup)
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$clear_plot_calls(device_id = grDevices::dev.cur())}\if{html}{\out{</div>}}
 }
@@ -243,8 +250,7 @@ Clear recorded plot calls (for cleanup)
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{device_id}}{Graphics device ID (defaults to current device)
-Initialize function patching}
+\item{\code{device_id}}{Graphics device ID (defaults to current device)}
 }
 \if{html}{\out{</div>}}
 }
@@ -253,19 +259,20 @@ Initialize function patching}
 \if{html}{\out{<a id="method-BaseRAdapter-initialize_patching"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-initialize_patching}{}}}
 \subsection{Method \code{initialize_patching()}}{
+Initialize function patching
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$initialize_patching()}\if{html}{\out{</div>}}
 }
 
 \subsection{Returns}{
 NULL (invisible)
-Restore original functions
 }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRAdapter-restore_functions"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-restore_functions}{}}}
 \subsection{Method \code{restore_functions()}}{
+Restore original functions
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$restore_functions()}\if{html}{\out{</div>}}
 }

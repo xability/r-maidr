@@ -902,9 +902,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       # An unsupported HIGH-level call is not an annotation over a chart we
       # can read -- the panel's entire content is unknown, and its grobs
-      # are not known to survive the SVG export (pie() does not). Keeping
-      # such a figure whole means it falls back to an image that is at
-      # least correct, rather than to an interactive render that may fail.
+      # are not known to survive the SVG export. Keeping such a figure whole
+      # means it falls back to an image that is at least correct, rather
+      # than to an interactive render that may fail.
       sources <- vapply(
         private$.layers[unsupported],
         function(layer) as.character(layer$source %||% "HIGH"),
