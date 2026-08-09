@@ -174,7 +174,10 @@ test_that("BaseRSmoothLayerProcessor extract_axis_titles() works", {
   testthat::expect_equal(axes$y$label, "Density")
 })
 
-test_that("BaseRSmoothLayerProcessor extract_axis_titles() handles defaults", {
+test_that("BaseRSmoothLayerProcessor names a density curve's y axis", {
+  # A curve from density() estimates a density, which is the word
+  # plot.density() prints. The smoothed variable itself has no recorded
+  # name, so x is left to the renderer.
   layer_info <- list(
     index = 1,
     plot_call = list(
@@ -186,8 +189,25 @@ test_that("BaseRSmoothLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRSmoothLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x$label, "")
-  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_null(axes$x)
+  testthat::expect_equal(axes$y$label, "Density")
+})
+
+test_that("BaseRSmoothLayerProcessor invents no default for a fitted curve", {
+  # loess.smooth() returns x/y for whatever was fitted; nothing in the call
+  # says what either axis measures.
+  layer_info <- list(
+    index = 1,
+    plot_call = list(
+      function_name = "lines",
+      args = list(stats::loess.smooth(1:20, (1:20)^2))
+    )
+  )
+
+  processor <- maidr:::BaseRSmoothLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  testthat::expect_length(axes, 0)
 })
 
 test_that("BaseRSmoothLayerProcessor extract_main_title() works", {

@@ -291,21 +291,27 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
 
       selector
     },
+    # Extract the axis titles for this layer
+    #
+    # `heatmap()` lays the matrix out one way round only -- its columns run
+    # along x and its rows up y -- so those two words are facts about the
+    # call. `image()` is not the same picture: it draws a coordinate grid,
+    # and `image(x, y, z)` puts the caller's own coordinates on those axes,
+    # so naming them after a matrix would be a guess. It gets no default.
+    #
+    # @param layer_info Layer information
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(build_axes(x = "", y = "", z = ""))
-      }
+      args <- layer_info$plot_call$args
+      is_heatmap <- identical(layer_info$function_name, "heatmap")
 
-      plot_call <- layer_info$plot_call
-      args <- plot_call$args
-
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
-      # For heatmaps, z represents the data values
-      # Use a reasonable default label for the color scale
-      z_title <- "value"
-
-      build_axes(x = x_title, y = y_title, z = z_title)
+      build_axes(
+        x = recorded_axis_label(args, "xlab", if (is_heatmap) "Columns" else NULL),
+        y = recorded_axis_label(args, "ylab", if (is_heatmap) "Rows" else NULL),
+        # For heatmaps, z represents the data values
+        # Use a reasonable default label for the color scale
+        z = "value"
+      )
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

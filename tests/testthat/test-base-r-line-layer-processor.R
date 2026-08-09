@@ -189,7 +189,10 @@ test_that("BaseRLineLayerProcessor extract_axis_titles() works", {
   testthat::expect_equal(axes$y$label, "Value")
 })
 
-test_that("BaseRLineLayerProcessor extract_axis_titles() handles defaults", {
+test_that("BaseRLineLayerProcessor extract_axis_titles() invents no default", {
+  # A line runs over whatever the caller measured, and the recorded call
+  # holds evaluated values that no longer name it. Both axes are omitted
+  # so the renderer applies its own generic.
   layer_info <- list(
     index = 1,
     function_name = "plot",
@@ -199,8 +202,8 @@ test_that("BaseRLineLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x$label, "")
-  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_null(axes$x)
+  testthat::expect_null(axes$y)
 })
 
 test_that("BaseRLineLayerProcessor extract_main_title() works", {

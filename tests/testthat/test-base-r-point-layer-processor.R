@@ -223,7 +223,11 @@ test_that("BaseRPointLayerProcessor extract_axis_titles() works", {
   testthat::expect_equal(axes$y$label, "Y Axis")
 })
 
-test_that("BaseRPointLayerProcessor extract_axis_titles() handles defaults", {
+test_that("BaseRPointLayerProcessor extract_axis_titles() invents no default", {
+  # A scatter plot's axes hold whatever the caller measured; plot() prints
+  # the deparsed arguments, which are gone by the time evaluated values are
+  # recorded. No label is emitted rather than a guessed one, but the
+  # navigation grid still is.
   layer_info <- list(
     index = 1,
     plot_call = list(
@@ -235,8 +239,10 @@ test_that("BaseRPointLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x$label, "")
-  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_null(axes$x$label)
+  testthat::expect_null(axes$y$label)
+  testthat::expect_false(is.null(axes$x$min))
+  testthat::expect_false(is.null(axes$y$min))
 })
 
 test_that("BaseRPointLayerProcessor extract_main_title() works", {
@@ -471,8 +477,9 @@ test_that("BaseRPointLayerProcessor grid info omitted for NULL data", {
   processor <- maidr:::BaseRPointLayerProcessor$new(list(index = 1))
   axes <- processor$extract_axis_titles(NULL)
 
-  testthat::expect_equal(axes$x$label, "")
-  testthat::expect_equal(axes$y$label, "")
-  testthat::expect_null(axes$x$min)
-  testthat::expect_null(axes$y$min)
+  # Nothing recorded, nothing claimed: the axes object stays empty rather
+  # than carrying blank labels.
+  testthat::expect_null(axes$x)
+  testthat::expect_null(axes$y)
+  testthat::expect_length(axes, 0)
 })

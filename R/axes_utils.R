@@ -27,6 +27,12 @@ as_axis_config <- function(value) {
     return(NULL)
   }
   if (is.list(value)) {
+    # An axis with nothing to say is not emitted at all: an empty list
+    # serializes as `[]`, and a key holding it would claim an axis config
+    # that carries neither a label nor a navigation grid.
+    if (length(value) == 0) {
+      return(NULL)
+    }
     return(value)
   }
   if (is.character(value) || is.numeric(value)) {
@@ -61,17 +67,41 @@ extract_axis_label <- function(value, default = "") {
   as.character(value)
 }
 
+#' Build a single AxisConfig
+#'
+#' Drops the fields that are absent, so an axis only carries what its caller
+#' could establish. Returns a named empty list when nothing could be: passed
+#' to [build_axes()], that drops the axis key entirely.
+#'
+#' @param label Axis label, or NULL
+#' @param min Axis minimum, or NULL
+#' @param max Axis maximum, or NULL
+#' @param tickStep Distance between ticks, or NULL
+#' @return A named list (AxisConfig), possibly empty
+#' @keywords internal
+build_axis_config <- function(label = NULL, min = NULL, max = NULL, tickStep = NULL) {
+  cfg <- structure(list(), names = character(0))
+  if (!is.null(label)) cfg$label <- as.character(label)
+  if (!is.null(min)) cfg$min <- min
+  if (!is.null(max)) cfg$max <- max
+  if (!is.null(tickStep)) cfg$tickStep <- tickStep
+  cfg
+}
+
 #' Build a canonical axes object
 #'
-#' Convenience constructor for a per-axis axes list. Drops NULL axes.
+#' Convenience constructor for a per-axis axes list. Drops NULL and empty
+#' axes, so a caller that can say nothing about an axis simply omits the key
+#' and leaves the generic to the renderer.
 #'
 #' @param x Label string or AxisConfig list for the x axis (or NULL)
 #' @param y Label string or AxisConfig list for the y axis (or NULL)
 #' @param z Label string or AxisConfig list for the z axis (or NULL)
-#' @return A canonical axes list with only non-NULL axes set
+#' @return A canonical axes list with only non-NULL axes set. Named even when
+#'   empty, so it serializes as the JSON object `{}` rather than as `[]`.
 #' @keywords internal
 build_axes <- function(x = NULL, y = NULL, z = NULL) {
-  axes <- list()
+  axes <- structure(list(), names = character(0))
   x_cfg <- as_axis_config(x)
   y_cfg <- as_axis_config(y)
   z_cfg <- as_axis_config(z)
@@ -149,10 +179,13 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
 #' @param axes Canonical axes list
 #' @param which Axis key: one of \code{"x"}, \code{"y"}, \code{"z"}
 #' @param format_obj AxisFormat list (or NULL)
-#' @param default_label Label to use if the axis slot is being created
+#' @param default_label Label to use if the axis slot is being created. NULL
+#'   (the default) creates the slot without one, so attaching a format to an
+#'   axis whose processor had no title to give does not put an empty label
+#'   back in front of the renderer's generic.
 #' @return The mutated axes list
 #' @keywords internal
-attach_axis_format <- function(axes, which, format_obj, default_label = "") {
+attach_axis_format <- function(axes, which, format_obj, default_label = NULL) {
   if (is.null(format_obj)) {
     return(axes)
   }
@@ -164,7 +197,11 @@ attach_axis_format <- function(axes, which, format_obj, default_label = "") {
     )
   }
   if (is.null(axes[[which]])) {
-    axes[[which]] <- list(label = default_label)
+    axes[[which]] <- if (is.null(default_label)) {
+      structure(list(), names = character(0))
+    } else {
+      list(label = default_label)
+    }
   } else if (!is.list(axes[[which]])) {
     # Defensive: wrap a stray bare string before mutating
     axes[[which]] <- list(label = as.character(axes[[which]]))

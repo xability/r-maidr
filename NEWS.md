@@ -20,6 +20,20 @@
 
 ## Bug Fixes
 
+* Base R charts drawn without `xlab=` / `ylab=` now announce axis titles that
+  say what the numbers mean. `pie()`, `barplot()`, `hist()` and `boxplot()`
+  derive their titles inside the call rather than recording them, so the
+  payload carried `label: ""` and every point was announced with its nouns
+  missing: " is Apples,  is 30". Each processor now emits what its call
+  actually establishes — a pie's categories against their values, a bar
+  chart's categories against their heights (swapped by `horiz = TRUE`), a
+  histogram's bins against the "Frequency" or "Density" `hist()` itself would
+  print, `boxplot(y ~ g)`'s own formula-derived titles, and the columns and
+  rows `heatmap()` draws. An author's own label always wins. Where a chart
+  can honestly say nothing — a scatter or line plot runs over whatever the
+  caller measured, and the recorded arguments no longer name it — the label
+  is omitted rather than blanked, so the renderer applies its generic
+  "X"/"Y".
 * Base R: the function maidr replays a recorded call through is now always
   the one the owning namespace holds, never maidr's own recording wrapper.
   `find_original_function()` probed `graphics`, `stats` and `grDevices` with

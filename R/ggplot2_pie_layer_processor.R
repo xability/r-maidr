@@ -57,6 +57,21 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
     #' one expression that works for both \code{geom_col()} (stat identity)
     #' and \code{geom_bar()} (stat count).
     #'
+    #' The extent is unsigned, though, and a negative datum is stacked
+    #' \emph{below} the baseline: ggplot2 builds \code{v = -40} as
+    #' \code{ymin = -40, ymax = 0}, so the extent is 40 and the sign is gone.
+    #' Reporting that would announce a slice the author entered as -40 as
+    #' \code{40}, and compute its share against a total that swallowed it --
+    #' confidently wrong, and indistinguishable from real data.
+    #'
+    #' So the sign is restored from which side of the baseline the segment
+    #' sits on. The renderer treats a negative slice as a gap, announcing it
+    #' as missing rather than letting it corrupt every other slice's
+    #' percentage; laundering it here would leave that defence nothing to
+    #' catch. Whether a producer should reject such a value outright is a
+    #' separate question -- see xability/maidr#771 -- but no answer to it is
+    #' served by destroying the sign first.
+    #'
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @param panel_id Optional facet panel to restrict extraction to
@@ -72,7 +87,15 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
       }
 
       labels <- self$resolve_slice_labels(plot, built, built_data)
-      values <- built_data$ymax - built_data$ymin
+      # A segment lying below the baseline came from a negative datum; one
+      # touching or above it did not. `ymax <= 0` is the test rather than
+      # `ymin < 0`, so a segment straddling zero -- which stacking does not
+      # produce, but a hand-built layer could -- is read as positive rather
+      # than having its sign guessed.
+      extents <- built_data$ymax - built_data$ymin
+      below <- !is.na(built_data$ymax) & built_data$ymax <= 0 &
+        !is.na(built_data$ymin) & built_data$ymin < 0
+      values <- ifelse(below, -extents, extents)
 
       lapply(seq_len(nrow(built_data)), function(i) {
         list(x = labels[[i]], y = values[[i]])

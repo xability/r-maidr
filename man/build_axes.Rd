@@ -14,9 +14,12 @@ build_axes(x = NULL, y = NULL, z = NULL)
 \item{z}{Label string or AxisConfig list for the z axis (or NULL)}
 }
 \value{
-A canonical axes list with only non-NULL axes set
+A canonical axes list with only non-NULL axes set. Named even when
+  empty, so it serializes as the JSON object `{}` rather than as `[]`.
 }
 \description{
-Convenience constructor for a per-axis axes list. Drops NULL axes.
+Convenience constructor for a per-axis axes list. Drops NULL and empty
+axes, so a caller that can say nothing about an axis simply omits the key
+and leaves the generic to the renderer.
 }
 \keyword{internal}

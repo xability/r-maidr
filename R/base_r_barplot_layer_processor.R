@@ -110,18 +110,21 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
 
       data_points
     },
+    # Extract the axis titles for this layer
+    #
+    # `barplot()` writes no title of its own, so an author who wrote none
+    # leaves both axes nameless. A bar chart always plots categories against
+    # their measured heights, whether or not the heights arrived named, so
+    # that is what the defaults say. `horiz = TRUE` puts the heights on the
+    # visual x axis -- the same swap extract_data() applies to the points.
+    #
+    # @param layer_info Layer information
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
-      }
-
-      plot_call <- layer_info$plot_call
-      args <- plot_call$args
-
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
-
-      build_axes(x = x_title, y = y_title)
+      base_r_categorical_axes(
+        layer_info$plot_call$args,
+        horizontal = self$is_horizontal(layer_info)
+      )
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
