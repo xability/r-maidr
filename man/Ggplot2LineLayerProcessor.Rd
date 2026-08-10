@@ -43,6 +43,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-extract_data}{\code{Ggplot2LineLayerProcessor$extract_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-attach_discrete_y_names}{\code{Ggplot2LineLayerProcessor$attach_discrete_y_names()}}
 \item \href{#method-Ggplot2LineLayerProcessor-normalize_point_values}{\code{Ggplot2LineLayerProcessor$normalize_point_values()}}
+\item \href{#method-Ggplot2LineLayerProcessor-panel_axis_labels}{\code{Ggplot2LineLayerProcessor$panel_axis_labels()}}
 \item \href{#method-Ggplot2LineLayerProcessor-build_level_lookup}{\code{Ggplot2LineLayerProcessor$build_level_lookup()}}
 \item \href{#method-Ggplot2LineLayerProcessor-attach_level_labels}{\code{Ggplot2LineLayerProcessor$attach_level_labels()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_layer}{\code{Ggplot2LineLayerProcessor$get_layer()}}
@@ -326,6 +327,48 @@ what drives sonification, braille and the min/max range.
 }
 \subsection{Returns}{
 The series list with numeric y values
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-panel_axis_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-panel_axis_labels}{}}}
+\subsection{Method \code{panel_axis_labels()}}{
+Read one panel's own axis labels.
+
+The labels ggplot2 drew on a panel's axis, which is what a sighted
+reader sees, and which both discrete recoveries below start from: the
+y level names in \code{build_level_lookup()}, and the x values in
+\code{recover_x_values()}. Both need the same three things to hold before
+the labels can be trusted -- present, non-empty, no \code{NA} -- so the
+check lives here rather than being spelled out at each call site.
+
+The \code{tryCatch} is not incidental: \code{get_labels()} is one of the
+accessors whose spelling has moved between ggplot2 versions, the same
+reason \code{get_x_transformation()} exists. Guarding it in one place leaves
+the next version bump one site to fix instead of two that can drift.
+
+Indexes with \verb{[[axis]]} rather than \verb{$x} / \verb{$y}: \code{$} on a list falls
+back to partial matching, so a \code{panel_params} without an \code{x} but with
+an \code{x.range} would silently hand back the range. Exact matching returns
+NULL there, which is the honest answer.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$panel_axis_labels(built, panel_index, axis)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+
+\item{\code{panel_index}}{Index into \code{built$layout$panel_params}}
+
+\item{\code{axis}}{Either \code{"x"} or \code{"y"}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Character vector of labels, or NULL when the panel has no such
+scale or its labels are unusable
 }
 }
 \if{html}{\out{<hr>}}

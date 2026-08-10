@@ -359,6 +359,46 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       series_data
     },
 
+    #' @description Read one panel's own axis labels.
+    #'
+    #' The labels ggplot2 drew on a panel's axis, which is what a sighted
+    #' reader sees, and which both discrete recoveries below start from: the
+    #' y level names in `build_level_lookup()`, and the x values in
+    #' `recover_x_values()`. Both need the same three things to hold before
+    #' the labels can be trusted -- present, non-empty, no `NA` -- so the
+    #' check lives here rather than being spelled out at each call site.
+    #'
+    #' The `tryCatch` is not incidental: `get_labels()` is one of the
+    #' accessors whose spelling has moved between ggplot2 versions, the same
+    #' reason `get_x_transformation()` exists. Guarding it in one place leaves
+    #' the next version bump one site to fix instead of two that can drift.
+    #'
+    #' Indexes with `[[axis]]` rather than `$x` / `$y`: `$` on a list falls
+    #' back to partial matching, so a `panel_params` without an `x` but with
+    #' an `x.range` would silently hand back the range. Exact matching returns
+    #' NULL there, which is the honest answer.
+    #'
+    #' @param built Built plot data
+    #' @param panel_index Index into `built$layout$panel_params`
+    #' @param axis Either `"x"` or `"y"`
+    #' @return Character vector of labels, or NULL when the panel has no such
+    #'   scale or its labels are unusable
+    panel_axis_labels = function(built, panel_index, axis) {
+      scale <- built$layout$panel_params[[panel_index]][[axis]]
+      if (is.null(scale)) {
+        return(NULL)
+      }
+
+      labels <- tryCatch(
+        as.character(scale$get_labels()),
+        error = function(e) NULL
+      )
+      if (is.null(labels) || length(labels) == 0 || anyNA(labels)) {
+        return(NULL)
+      }
+      labels
+    },
+
     #' @description Build a numeric-level to level-name lookup for the y
     #' aesthetic.
     #'
@@ -401,20 +441,11 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       }
 
       panel_index <- self$resolve_panel_index(built, panel_id)
-      y_scale <- built$layout$panel_params[[panel_index]]$y
-      if (is.null(y_scale)) {
-        return(NULL)
-      }
-
       # Not `names`: R would still resolve names()/`names<-`() correctly, since
       # a call looks past non-function bindings, but shadowing a base function
       # here reads as a bug even though it is not one.
-      level_names <- tryCatch(
-        as.character(y_scale$get_labels()),
-        error = function(e) NULL
-      )
-      if (is.null(level_names) || length(level_names) == 0 ||
-        anyNA(level_names)) {
+      level_names <- self$panel_axis_labels(built, panel_index, "y")
+      if (is.null(level_names)) {
         return(NULL)
       }
 
@@ -713,17 +744,12 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       panel_index <- self$resolve_panel_index(built, panel_id)
 
       if (inherits(built_x, "mapped_discrete")) {
-        x_scale <- built$layout$panel_params[[panel_index]]$x
-        if (is.null(x_scale)) {
+        labels <- self$panel_axis_labels(built, panel_index, "x")
+        if (is.null(labels)) {
           return(NULL)
         }
-        labels <- tryCatch(
-          as.character(x_scale$get_labels()),
-          error = function(e) NULL
-        )
         codes <- suppressWarnings(as.integer(round(as.numeric(built_x))))
-        usable <- !is.null(labels) && length(labels) > 0 && !anyNA(labels) &&
-          !anyNA(codes) && all(codes >= 1 & codes <= length(labels))
+        usable <- !anyNA(codes) && all(codes >= 1 & codes <= length(labels))
         if (!usable) {
           return(NULL)
         }
