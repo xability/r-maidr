@@ -45,12 +45,6 @@ lengths.
 \itemize{
 \item \href{#method-Ggplot2StepLayerProcessor-process}{\code{Ggplot2StepLayerProcessor$process()}}
 \item \href{#method-Ggplot2StepLayerProcessor-extract_step_direction}{\code{Ggplot2StepLayerProcessor$extract_step_direction()}}
-\item \href{#method-Ggplot2StepLayerProcessor-extract_data}{\code{Ggplot2StepLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2StepLayerProcessor-normalize_point_values}{\code{Ggplot2StepLayerProcessor$normalize_point_values()}}
-\item \href{#method-Ggplot2StepLayerProcessor-build_level_lookup}{\code{Ggplot2StepLayerProcessor$build_level_lookup()}}
-\item \href{#method-Ggplot2StepLayerProcessor-get_original_y_column}{\code{Ggplot2StepLayerProcessor$get_original_y_column()}}
-\item \href{#method-Ggplot2StepLayerProcessor-attach_level_labels}{\code{Ggplot2StepLayerProcessor$attach_level_labels()}}
-\item \href{#method-Ggplot2StepLayerProcessor-get_layer}{\code{Ggplot2StepLayerProcessor$get_layer()}}
 \item \href{#method-Ggplot2StepLayerProcessor-clone}{\code{Ggplot2StepLayerProcessor$clone()}}
 }
 }
@@ -65,8 +59,12 @@ lengths.
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_discrete_y_names"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_discrete_y_names'><code>maidr::Ggplot2LineLayerProcessor$attach_discrete_y_names()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_group_axis"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_group_axis'><code>maidr::Ggplot2LineLayerProcessor$attach_group_axis()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_level_labels"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_level_labels'><code>maidr::Ggplot2LineLayerProcessor$attach_level_labels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="build_level_lookup"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-build_level_lookup'><code>maidr::Ggplot2LineLayerProcessor$build_level_lookup()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="curve_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-curve_selectors'><code>maidr::Ggplot2LineLayerProcessor$curve_selectors()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_data'><code>maidr::Ggplot2LineLayerProcessor$extract_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_layer_axes'><code>maidr::Ggplot2LineLayerProcessor$extract_layer_axes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_multiline_data'><code>maidr::Ggplot2LineLayerProcessor$extract_multiline_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_single_line_data'><code>maidr::Ggplot2LineLayerProcessor$extract_single_line_data()</code></a></span></li>
@@ -77,12 +75,14 @@ lengths.
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_selectors'><code>maidr::Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_single_line_selector'><code>maidr::Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_group_column'><code>maidr::Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_layer'><code>maidr::Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_original_x_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_original_x_column'><code>maidr::Ggplot2LineLayerProcessor$get_original_x_column()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_x_transformation"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_x_transformation'><code>maidr::Ggplot2LineLayerProcessor$get_x_transformation()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="has_series_groups"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-has_series_groups'><code>maidr::Ggplot2LineLayerProcessor$has_series_groups()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="layer_polyline_grobs"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-layer_polyline_grobs'><code>maidr::Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="line_layer_position"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-line_layer_position'><code>maidr::Ggplot2LineLayerProcessor$line_layer_position()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-needs_reordering'><code>maidr::Ggplot2LineLayerProcessor$needs_reordering()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="normalize_point_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-normalize_point_values'><code>maidr::Ggplot2LineLayerProcessor$normalize_point_values()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="other_geom_grob_prefixes"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes'><code>maidr::Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="polyline_curve_count"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-polyline_curve_count'><code>maidr::Ggplot2LineLayerProcessor$polyline_curve_count()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="resolve_group_mapping"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-resolve_group_mapping'><code>maidr::Ggplot2LineLayerProcessor$resolve_group_mapping()</code></a></span></li>
@@ -160,175 +160,6 @@ unchanged. \code{"hv"} is both ggplot2's and MAIDR's default.
 \subsection{Returns}{
 One of "hv", "vh", "mid" (defaulting to "hv"), or NULL when the
 layer cannot be located at all.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-extract_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-Extract step data, one point per data sample.
-
-Delegates to the line processor for x/y extraction -- including the
-recovery of Date / POSIXct x columns and the dropping of NA-y rows,
-which exists so the emitted data length stays aligned with the rendered
-geometry -- then attaches the ordinal level name to each point.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$extract_data(
-  plot,
-  built = NULL,
-  scale_mapping = NULL,
-  panel_id = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of series, each a list of points with x, y and optionally
-z and label
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-normalize_point_values"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-normalize_point_values}{}}}
-\subsection{Method \code{normalize_point_values()}}{
-Coerce every point's y to a plain number.
-
-A discrete y aesthetic -- the ordinal level of a hypnogram, and the
-reason this processor exists -- makes \code{ggplot_build()} return y as a
-\code{mapped_discrete} vector. That class carries no \code{asJSON} method, so
-emitting it verbatim aborts payload serialisation with
-"No method asJSON S3 class: mapped_discrete". Stripping the class here
-keeps y a bare number, which is what the wire contract asks for and
-what drives sonification, braille and the min/max range.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$normalize_point_values(series_data)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{series_data}}{List of series produced by the line extractor}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The series list with numeric y values
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-build_level_lookup"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-build_level_lookup}{}}}
-\subsection{Method \code{build_level_lookup()}}{
-Build a numeric-level to level-name lookup for the y
-aesthetic.
-
-For a factor (or character) y aesthetic, \code{ggplot_build()} replaces the
-level with its numeric position, so \code{built$data$y} is a level \emph{code}
-and the name only survives in the original column. The lookup is keyed
-by the built y value and built from the full, unfiltered pair of
-columns, so it stays correct no matter which rows survive NA-dropping
-or panel filtering downstream.
-
-Returns NULL for a plain continuous y, in which case no \code{label} is
-emitted and the frontend announces the numeric value.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$build_level_lookup(plot, built)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Named character vector keyed by the built y value, or NULL
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-get_original_y_column"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-get_original_y_column}{}}}
-\subsection{Method \code{get_original_y_column()}}{
-Recover the original (untransformed) y column for a layer.
-
-Mirrors \code{get_original_x_column()}: looks up the y mapping on the layer
-first and then on the plot, and searches the layer's own \code{data} before
-the plot's. Returns the per-row vector aligned to \code{built_data} when a
-simple column reference is found and the lengths match, otherwise NULL.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$get_original_y_column(plot, built_data)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built_data}}{The built data frame for this layer}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The original y column, or NULL
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-attach_level_labels"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-attach_level_labels}{}}}
-\subsection{Method \code{attach_level_labels()}}{
-Attach the ordinal level name to every point of every
-series. Points whose y has no entry in the lookup are left untouched,
-so the frontend falls back to the numeric announcement for them.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$attach_level_labels(series_data, lookup)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{series_data}}{List of series produced by the line extractor}
-
-\item{\code{lookup}}{Named character vector keyed by the built y value}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The series list with \code{label} attached where known
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-get_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-get_layer}{}}}
-\subsection{Method \code{get_layer()}}{
-The ggplot2 layer this processor is responsible for.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$get_layer(plot)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The layer, or NULL when the index does not resolve
 }
 }
 \if{html}{\out{<hr>}}

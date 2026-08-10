@@ -173,18 +173,29 @@ test_that("Ggplot2StepLayerProcessor build_level_lookup returns NULL for numeric
   testthat::expect_null(processor$build_level_lookup(p, built))
 })
 
-test_that("Ggplot2StepLayerProcessor get_original_y_column finds the layer column", {
+test_that("a step layer names a dropped-level factor by what the axis draws", {
+  # A discrete scale defaults to drop = TRUE, so a factor declaring five
+  # levels of which two are drawn is coded 1..2. Naming by position in
+  # levels() would call code 2 "N2"; the axis says "Awake". The lookup reads
+  # the panel's own labels for exactly this reason.
   testthat::skip_if_not_installed("ggplot2")
 
-  p <- create_test_ggplot_hypnogram()
-  processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
+  df <- data.frame(
+    t = 1:2,
+    stage = factor(
+      c("Awake", "N3"),
+      levels = c("N3", "N2", "N1", "REM", "Awake"),
+      ordered = TRUE
+    )
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_step()
 
-  built <- ggplot2::ggplot_build(p)
-  original_y <- processor$get_original_y_column(p, built$data[[1]])
+  data <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))$extract_data(p)
 
-  testthat::expect_true(is.factor(original_y))
-  testthat::expect_equal(length(original_y), 10)
-  testthat::expect_equal(levels(original_y), c("N3", "N2", "N1", "REM", "Awake"))
+  labels <- vapply(data[[1]], function(pt) pt$label, character(1))
+  testthat::expect_equal(labels, c("Awake", "N3"))
 })
 
 # ==============================================================================

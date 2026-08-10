@@ -1062,3 +1062,158 @@ test_that("each faceted panel reads break labels off its own scale", {
     facet_line_x(p, 2)[[1]], c("<1000>", "<2000>", "<3000>")
   )
 })
+
+# ==============================================================================
+# Discrete y: the level NAME, not the level code (#121)
+# ==============================================================================
+
+hypnogram_df <- function() {
+  data.frame(
+    t = 1:6,
+    stage = factor(
+      c("Awake", "REM", "N1", "N2", "N3", "N2"),
+      levels = c("N3", "N2", "N1", "REM", "Awake"),
+      ordered = TRUE
+    )
+  )
+}
+
+test_that("a factor y on geom_line() carries the level name as label", {
+  # Without this the reader hears ggplot2's internal level code -- "5" where
+  # the axis says "Awake". y stays numeric on purpose: it drives sonification,
+  # braille and the min/max range.
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(
+    hypnogram_df(), ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_line()
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  labels <- vapply(data[[1]], function(pt) pt$label, character(1))
+  testthat::expect_equal(
+    labels, c("Awake", "REM", "N1", "N2", "N3", "N2")
+  )
+
+  # The factor's level order drives the code: N3 is level 1, Awake is 5.
+  ys <- vapply(data[[1]], function(pt) pt$y, numeric(1))
+  testthat::expect_equal(ys[[1]], 5)
+  testthat::expect_equal(ys[[5]], 1)
+})
+
+test_that("a factor y on geom_line() leaves y a bare number", {
+  # ggplot_build() returns y classed mapped_discrete. It inherits numeric, so
+  # jsonlite encodes it either way, but the wire contract asks for a plain
+  # number and a stray S3 class is one dependency bump away from mattering.
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(
+    hypnogram_df(), ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_line()
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  testthat::expect_identical(class(data[[1]][[1]]$y), "numeric")
+  testthat::expect_silent(jsonlite::toJSON(data, auto_unbox = TRUE))
+})
+
+test_that("a continuous y on geom_line() emits no label", {
+  # A number is the right announcement for a continuous y; a label would be
+  # noise. This is what keeps the fix scoped to discrete aesthetics.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(t = 1:5, v = c(2.5, 3.1, 4.0, 3.3, 2.2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(t, v)) + ggplot2::geom_line()
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  testthat::expect_null(data[[1]][[1]]$label)
+  testthat::expect_equal(data[[1]][[1]]$y, 2.5)
+})
+
+test_that("a grouped factor y keeps both the series name and the level name", {
+  # z (the series) and label (the level) are different things and must not
+  # displace one another.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = rep(1:3, 2),
+    s = factor(rep(c("A", "B", "C"), 2), levels = c("C", "B", "A")),
+    g = rep(c("x", "y"), each = 3)
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, s, colour = g, group = g)
+  ) + ggplot2::geom_line()
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  testthat::expect_equal(length(data), 2)
+  testthat::expect_equal(data[[1]][[1]]$z, "x")
+  testthat::expect_equal(data[[1]][[1]]$label, "A")
+})
+
+test_that("an unsorted geom_line() still names each level correctly", {
+  # GeomLine$setup_data() sorts the built data by (PANEL, group, x) -- that
+  # sort is the documented difference between geom_line() and geom_path() --
+  # while the caller's column keeps its own order. Pairing the two row by row
+  # therefore attaches the wrong name to the wrong code, and every other test
+  # here happens to use an already-sorted x, which hides it. Reading the names
+  # off the factor's own level vector sidesteps ordering entirely.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = c(3, 1, 2),
+    stage = factor(
+      c("N1", "N3", "N2"),
+      levels = c("N3", "N2", "N1", "REM", "Awake"),
+      ordered = TRUE
+    )
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_line()
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  # The built data is x-sorted, so the codes run 1, 2, 3 and must name the
+  # levels at those positions -- not the levels of the caller's rows 1, 2, 3.
+  pairs <- vapply(
+    data[[1]], function(pt) paste0(pt$y, "=", pt$label), character(1)
+  )
+  testthat::expect_equal(pairs, c("1=N3", "2=N2", "3=N1"))
+})
+
+test_that("a factor with unused levels is named by what the axis draws", {
+  # A discrete scale defaults to drop = TRUE. A factor declaring five levels
+  # of which two are drawn is coded 1..2, NOT by position in levels(), so
+  # naming from the factor would call code 2 "N2" while the axis says
+  # "Awake". The panel's own labels are the only source that agrees with the
+  # drawn axis, which is the whole point of the announcement.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = 1:2,
+    stage = factor(
+      c("Awake", "N3"),
+      levels = c("N3", "N2", "N1", "REM", "Awake"),
+      ordered = TRUE
+    )
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_line()
+
+  built <- ggplot2::ggplot_build(p)
+  testthat::expect_equal(
+    as.character(built$layout$panel_params[[1]]$y$get_labels()),
+    c("N3", "Awake")
+  )
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  # Built as x-sorted: t = 1 is "Awake" (code 2), t = 2 is "N3" (code 1).
+  testthat::expect_equal(data[[1]][[1]]$y, 2)
+  testthat::expect_equal(data[[1]][[1]]$label, "Awake")
+  testthat::expect_equal(data[[1]][[2]]$y, 1)
+  testthat::expect_equal(data[[1]][[2]]$label, "N3")
+})

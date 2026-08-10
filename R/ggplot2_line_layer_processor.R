@@ -267,18 +267,183 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         }
       }
 
+      series_data <- NULL
       if ("group" %in% names(layer_data)) {
         unique_groups <- unique(layer_data$group)
         # Only treat as multiline if we have more than one group
         if (length(unique_groups) > 1) {
           # Multiline plot - group by series
           series_data <- self$extract_multiline_data(layer_data, plot)
-          return(series_data)
         }
       }
+      if (is.null(series_data)) {
+        # Single line plot - maintain backward compatibility
+        series_data <- self$extract_single_line_data(layer_data, plot)
+      }
 
-      # Single line plot - maintain backward compatibility
-      return(self$extract_single_line_data(layer_data, plot))
+      self$attach_discrete_y_names(series_data, plot, built, panel_id)
+    },
+
+    #' @description Give every point the *name* of its discrete y level.
+    #'
+    #' A factor y aesthetic reaches the payload as ggplot2's internal level
+    #' code, so without this a reader hears "5" where the axis says "Awake".
+    #' `y` deliberately stays numeric -- it drives sonification, braille and
+    #' the min/max range -- and the name rides alongside as `label`.
+    #'
+    #' A continuous y is returned untouched, so no `label` is emitted and the
+    #' frontend announces the number, which is the right reading there.
+    #'
+    #' @param series_data List of series produced by the extractors above
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return The series list, labelled when y is discrete
+    attach_discrete_y_names = function(series_data, plot, built,
+                                       panel_id = NULL) {
+      series_data <- self$normalize_point_values(series_data)
+
+      lookup <- self$build_level_lookup(plot, built, panel_id)
+      if (is.null(lookup)) {
+        return(series_data)
+      }
+      self$attach_level_labels(series_data, lookup)
+    },
+
+    #' @description Coerce every point's y to a plain number.
+    #'
+    #' A discrete y aesthetic -- the ordinal level of a hypnogram, and the
+    #' reason this processor exists -- makes `ggplot_build()` return y as a
+    #' `mapped_discrete` vector. That class carries no `asJSON` method, so
+    #' emitting it verbatim aborts payload serialisation with
+    #' "No method asJSON S3 class: mapped_discrete". Stripping the class here
+    #' keeps y a bare number, which is what the wire contract asks for and
+    #' what drives sonification, braille and the min/max range.
+    #'
+    #' @param series_data List of series produced by the line extractor
+    #' @return The series list with numeric y values
+    normalize_point_values = function(series_data) {
+      for (s in seq_along(series_data)) {
+        series <- series_data[[s]]
+        for (i in seq_along(series)) {
+          point <- series[[i]]
+          # `is.numeric()` is TRUE for mapped_discrete, which inherits
+          # numeric, and FALSE for a y the extractors stringified -- so this
+          # strips the class without turning a character y into NA.
+          if (!is.null(point$y) && is.numeric(point$y)) {
+            point$y <- as.numeric(point$y)
+            series[[i]] <- point
+          }
+        }
+        series_data[[s]] <- series
+      }
+      series_data
+    },
+
+    #' @description Build a numeric-level to level-name lookup for the y
+    #' aesthetic.
+    #'
+    #' For a factor (or character) y aesthetic, `ggplot_build()` replaces the
+    #' level with its numeric position, so `built$data$y` is a level *code*
+    #' and the name has to be recovered from somewhere else.
+    #'
+    #' It is recovered from the panel's own y scale -- the very labels ggplot2
+    #' draws on the axis -- which makes the announcement agree with what a
+    #' sighted reader sees, and sidesteps two traps:
+    #'
+    #' * **Row order is not a join key.** `GeomLine$setup_data()` sorts the
+    #'   built data by (PANEL, group, x) -- that sort is the documented
+    #'   difference between `geom_line()` and `geom_path()` -- while the
+    #'   caller's column keeps its own order, so pairing them row by row
+    #'   attaches the wrong name to the wrong code.
+    #' * **Unused levels are dropped.** A discrete scale defaults to
+    #'   `drop = TRUE`, so a factor declaring five levels of which two are
+    #'   drawn is coded 1..2, not by position in `levels()`. Reading names off
+    #'   the factor would name code 2 after the second declared level rather
+    #'   than the second drawn one.
+    #'
+    #' Returns NULL for a plain continuous y, in which case no `label` is
+    #' emitted and the frontend announces the numeric value.
+    #'
+    #' @param plot The ggplot2 object (unused; kept for call-site symmetry)
+    #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional) -- each panel
+    #'   carries its own scale under `scales = "free_y"`
+    #' @return Named character vector keyed by the built y value, or NULL
+    build_level_lookup = function(plot, built, panel_id = NULL) {
+      layer_data <- built$data[[self$layer_info$index]]
+      if (is.null(layer_data) || !"y" %in% names(layer_data)) {
+        return(NULL)
+      }
+      # The built column announces its own discreteness; asking the scale
+      # would depend on an accessor that has moved between ggplot2 versions.
+      if (!inherits(layer_data$y, "mapped_discrete")) {
+        return(NULL)
+      }
+
+      panel_index <- self$resolve_panel_index(built, panel_id)
+      y_scale <- built$layout$panel_params[[panel_index]]$y
+      if (is.null(y_scale)) {
+        return(NULL)
+      }
+
+      # Not `names`: R would still resolve names()/`names<-`() correctly, since
+      # a call looks past non-function bindings, but shadowing a base function
+      # here reads as a bug even though it is not one.
+      level_names <- tryCatch(
+        as.character(y_scale$get_labels()),
+        error = function(e) NULL
+      )
+      if (is.null(level_names) || length(level_names) == 0 ||
+        anyNA(level_names)) {
+        return(NULL)
+      }
+
+      lookup <- level_names
+      names(lookup) <- as.character(seq_along(level_names))
+      lookup
+    },
+
+
+    #' @description Attach the ordinal level name to every point of every
+    #' series. Points whose y has no entry in the lookup are left untouched,
+    #' so the frontend falls back to the numeric announcement for them.
+    #'
+    #' @param series_data List of series produced by the line extractor
+    #' @param lookup Named character vector keyed by the built y value
+    #' @return The series list with `label` attached where known
+    attach_level_labels = function(series_data, lookup) {
+      for (s in seq_along(series_data)) {
+        series <- series_data[[s]]
+        for (i in seq_along(series)) {
+          point <- series[[i]]
+          if (is.null(point$y) || is.na(point$y)) {
+            next
+          }
+          key <- as.character(point$y)
+          if (!key %in% names(lookup)) {
+            next
+          }
+          point$label <- unname(lookup[[key]])
+          series[[i]] <- point
+        }
+        series_data[[s]] <- series
+      }
+      series_data
+    },
+
+    #' @description The ggplot2 layer this processor is responsible for.
+    #' @param plot The ggplot2 object
+    #' @return The layer, or NULL when the index does not resolve
+    get_layer = function(plot) {
+      if (is.null(plot) || is.null(plot$layers)) {
+        return(NULL)
+      }
+      layer_index <- self$get_layer_index()
+      if (is.null(layer_index) || layer_index > length(plot$layers)) {
+        return(NULL)
+      }
+      plot$layers[[layer_index]]
     },
 
     #' @description Resolve which entry of \code{built$layout$panel_params}

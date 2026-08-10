@@ -32,6 +32,18 @@
 
 ## Bug Fixes
 
+* ggplot2: a `geom_line()` or `geom_path()` whose y aesthetic is a factor
+  now carries the level *name* in its payload, as `label` on each point,
+  the same pairing `geom_step()` already used. `ggplot_build()` replaces
+  the level with its numeric position and the name survives only in the
+  original column, so nothing downstream could recover it before. `y`
+  stays numeric -- it drives sonification, braille and the min/max range.
+  A continuous y is untouched.
+
+  This does not change what a reader hears yet. maidr's JS line trace
+  ignores a per-point `label`; only its step trace reads one, so a factor-y
+  line chart still announces the level code. The announcement needs
+  upstream support (xability/maidr#785); this is the half r-maidr owns.
 * Fixed polyline selector assignment for plots that mix `geom_line()` and
   `geom_step()`: the layer position was counted over line layers only while
   every polyline in the panel was searched, so both layers resolved to the
