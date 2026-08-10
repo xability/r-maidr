@@ -139,7 +139,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       # gridSVG applies scale(1,-1) Y-flip for vertical plots, which
       # inverts 'top'/'bottom' edges of the IQ polygon.  Signal this via
       # domMapping.iqrDirection so the JS frontend (ViolinBoxTrace) can
-      # swap Q1/Q3 edge selection — same pattern used by BoxTrace.
+      # swap Q1/Q3 edge selection - same pattern used by BoxTrace.
       iqr_direction <- if (orientation == "vert") "reverse" else "forward"
 
       box_layer <- list(
@@ -671,10 +671,10 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
 
         if (!is.null(whisker_id)) {
           wid <- with_suffix(whisker_id)
-          # ggplot2 draws the upper whisker (Q3→ymax) first and the lower
-          # whisker (Q1→ymin) second, so in gridSVG DOM:
-          #   nth-child(1) = upper whisker → max
-          #   nth-child(2) = lower whisker → min
+          # ggplot2 draws the upper whisker (Q3->ymax) first and the lower
+          # whisker (Q1->ymin) second, so in gridSVG DOM:
+          #   nth-child(1) = upper whisker -> max
+          #   nth-child(2) = lower whisker -> min
           box_sel$max <- paste0(
             "g#", esc(wid), " > polyline:nth-child(1)"
           )

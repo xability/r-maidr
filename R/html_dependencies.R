@@ -22,7 +22,7 @@ maidr_cdn_url <- function() {
 #' Behavior is controlled by the `use_cdn` parameter:
 #' - If `TRUE`: Use CDN (requires internet)
 #' - If `FALSE` (default): Use local bundled files (works offline)
-#' - If `NULL`: Same as `FALSE` — use local bundled files
+#' - If `NULL`: Same as `FALSE` - use local bundled files
 #'
 #' We default to local bundled assets for deterministic rendering. Previously
 #' we auto-detected via `curl::has_internet()`; when internet was available

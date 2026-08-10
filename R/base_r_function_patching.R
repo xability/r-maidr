@@ -320,8 +320,8 @@ snapshot_call_env <- function(args, caller_env) {
 #' Evaluate an expression, muffling the retry's promise-restart warning
 #'
 #' When a call fails part-way through forcing an argument, that argument's
-#' promise is left interrupted. Forcing it again — which both the retry and
-#' the argument recording do — makes R warn "restarting interrupted promise
+#' promise is left interrupted. Forcing it again - which both the retry and
+#' the argument recording do - makes R warn "restarting interrupted promise
 #' evaluation". It is an artifact of retrying, not anything the user's call
 #' did, so it is muffled; every other warning passes through untouched.
 #'
@@ -471,7 +471,7 @@ initialize_base_r_patching <- function(include_low = TRUE, include_layout = TRUE
   # a later call (e.g. via a packageEvent hook for quantmod).
   lapply(fns_to_wrap, wrap_function)
 
-  # Special handling for S3 generics (lines, points) — only the first
+  # Special handling for S3 generics (lines, points) - only the first
   # call actually installs them (gated on .saved_graphics_fns).
   if (is.null(.maidr_patching_env$.saved_graphics_fns[["lines"]]) ||
       is.null(.maidr_patching_env$.saved_graphics_fns[["points"]])) {
@@ -513,7 +513,7 @@ wrap_function <- function(function_name) {
   tryCatch(
     assign(function_name, wrapper, envir = ns),
     error = function(e) {
-      # Namespace is sealed — wrapper was already installed during .onLoad
+      # Namespace is sealed - wrapper was already installed during .onLoad
       NULL
     }
   )
@@ -1178,7 +1178,7 @@ apply_barplot_sorting <- function(args) {
 #' @return NULL (invisible)
 #' @keywords internal
 restore_original_functions <- function() {
-  # Deactivate patching — wrappers will pass through to originals
+  # Deactivate patching - wrappers will pass through to originals
 
   .maidr_patching_env$.patching_active <- FALSE
 

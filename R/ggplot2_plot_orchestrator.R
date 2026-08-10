@@ -246,7 +246,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         # tagged "skip" by the adapter; the orchestrator leaves a NULL slot).
         if (is.null(result)) next
 
-        # --- Multi-layer expansion (e.g. violin → violin_box + violin_kde) ---
+        # --- Multi-layer expansion (e.g. violin -> violin_box + violin_kde) ---
         if (isTRUE(result$multi_layer) && !is.null(result$layers)) {
           for (sub in result$layers) {
             layer_counter <- layer_counter + 1

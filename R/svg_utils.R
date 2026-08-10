@@ -365,8 +365,8 @@ inject_violin_kde_svg_coords <- function(gt, maidr_data) {
           }
           # Sort points along the value axis for smooth keyboard navigation.
           # ViolinKdeTrace uses point order directly as the navigation order.
-          #   Vertical:   value axis = Y → sort by svg_y (bottom-to-top)
-          #   Horizontal: value axis = X → sort by svg_x (left-to-right)
+          #   Vertical:   value axis = Y -> sort by svg_y (bottom-to-top)
+          #   Horizontal: value axis = X -> sort by svg_x (left-to-right)
           sort_vals <- if (is_horizontal) {
             vapply(points, function(p) {
               if (!is.null(p$svg_x)) p$svg_x else NA_real_
@@ -565,8 +565,8 @@ inject_candlestick_open_close_doc <- function(svg_doc, maidr_data) {
 
       trend <- layer$data[[i]]$trend
       # In gridSVG's flipped local space, smaller raw y = lower data value.
-      # Bull (close > open): open is the lower edge → y; close → y + h.
-      # Bear (close < open): open is the higher edge → y + h; close → y.
+      # Bull (close > open): open is the lower edge -> y; close -> y + h.
+      # Bear (close < open): open is the higher edge -> y + h; close -> y.
       if (identical(trend, "Bull")) {
         open_y  <- y
         close_y <- y + h

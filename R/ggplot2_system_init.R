@@ -71,7 +71,7 @@ quantmod_mask_advice <- function() {
 #'
 #' Names the quantmod masking case when it applies: the bare
 #' "create a plot first" wording is actively misleading there, because the
-#' user *did* draw a chart — it just went to quantmod unrecorded.
+#' user *did* draw a chart - it just went to quantmod unrecorded.
 #'
 #' @return The error message string.
 #' @keywords internal
@@ -146,7 +146,7 @@ no_base_r_plots_message <- function() {
       register_ggplot2_print_method()
     },
     error = function(e) {
-      # Not critical — ggplot2 may not be installed
+      # Not critical - ggplot2 may not be installed
       NULL
     }
   )
@@ -212,7 +212,7 @@ no_base_r_plots_message <- function() {
 
   # maidr is normally attached at position 2, ahead of anything loaded
   # earlier, so this only fires for an explicit library(maidr, pos = ...).
-  # The common ordering problem — quantmod attached *after* maidr — is
+  # The common ordering problem - quantmod attached *after* maidr - is
   # caught by .maidr_quantmod_attach_hook instead.
   if (quantmod_masks_maidr()) {
     packageStartupMessage("maidr: ", quantmod_mask_advice())

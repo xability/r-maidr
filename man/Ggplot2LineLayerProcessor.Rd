@@ -908,7 +908,7 @@ Position of this layer among the polyline-producing layers.
 Delegates to \code{polyline_layer_position()}, which counts both "line" and
 "step" layers. \code{layer_polyline_grobs()} skips only the layers that name
 their grob tree after their geom, and \code{GeomStep} draws through
-\code{GeomPath$draw_panel()} — a bare \code{polylineGrob} — so a \code{geom_step()}
+\code{GeomPath$draw_panel()} - a bare \code{polylineGrob} - so a \code{geom_step()}
 sits in that candidate list exactly as a \code{geom_line()} does. Counting
 only "line" layers would therefore index the wrong polyline for \emph{both}
 layers of a plot that combines the two.

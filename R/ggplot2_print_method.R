@@ -44,7 +44,7 @@ register_ggplot2_print_method <- function() {
   }
 
   if (is.null(orig)) {
-    # ggplot2 not available — can't register
+    # ggplot2 not available - can't register
     return(invisible(NULL))
   }
 
@@ -120,11 +120,11 @@ maidr_print_ggplot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
     !isTRUE(tryCatch(orchestrator$should_fallback(), error = function(e) TRUE))
 
   if (!supported) {
-    # Unsupported plot — fall back to normal ggplot2 rendering
+    # Unsupported plot - fall back to normal ggplot2 rendering
     return(original_print(x, newpage = newpage, vp = vp, ...))
   }
 
-  # Supported plot — render in MAIDR interactive viewer, reusing the
+  # Supported plot - render in MAIDR interactive viewer, reusing the
   # orchestrator created for the support check
   rendered <- tryCatch(
     {
