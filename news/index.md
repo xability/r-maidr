@@ -46,6 +46,25 @@
 
 ### Bug Fixes
 
+- ggplot2: an unsorted
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  announces each point’s own x. The built data is sorted by
+  `(PANEL, group, x)` – that sort is the documented difference between
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  and
+  [`geom_path()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  – while the caller’s column keeps its own order, and x was recovered
+  by pairing the two row by row. Every point therefore carried another
+  point’s coordinate: a series drawn 1, 2, 3 was announced 3, 1, 2, and
+  nothing in the payload signalled it. x is now recovered from the built
+  value itself – the panel’s own labels for a discrete scale, the
+  scale’s inverse transformation for a Date or POSIXct, and the value
+  as-is for a plain number – so it cannot desynchronise. Single and
+  multi-series plots were both affected;
+  [`geom_path()`](https://ggplot2.tidyverse.org/reference/geom_path.html),
+  which does not reorder, and faceted plots, which already recovered x
+  by value, were not.
+
 - ggplot2: a
   [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
   or

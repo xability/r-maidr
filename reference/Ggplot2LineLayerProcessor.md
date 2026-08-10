@@ -68,11 +68,11 @@ discovered:
 
 - [`Ggplot2LineLayerProcessor$format_x_value()`](#method-Ggplot2LineLayerProcessor-format_x_value)
 
-- [`Ggplot2LineLayerProcessor$get_original_x_column()`](#method-Ggplot2LineLayerProcessor-get_original_x_column)
-
 - [`Ggplot2LineLayerProcessor$extract_multiline_data()`](#method-Ggplot2LineLayerProcessor-extract_multiline_data)
 
 - [`Ggplot2LineLayerProcessor$extract_single_line_data()`](#method-Ggplot2LineLayerProcessor-extract_single_line_data)
+
+- [`Ggplot2LineLayerProcessor$recover_x_values()`](#method-Ggplot2LineLayerProcessor-recover_x_values)
 
 - [`Ggplot2LineLayerProcessor$get_group_column()`](#method-Ggplot2LineLayerProcessor-get_group_column)
 
@@ -609,31 +609,17 @@ the same Date column align string-wise.
 
 ------------------------------------------------------------------------
 
-### Method `get_original_x_column()`
-
-Recover the original (untransformed) x column for a layer.
-
-[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
-transforms Date / POSIXct columns into numeric days-since-epoch on
-`built$data[[i]]$x`. To emit ISO strings we need the original column
-from `plot$data` (or the layer's own `data`).
-
-Returns the per-row vector of x values aligned to `built_data` if a
-simple column reference is found and the lengths match, otherwise NULL.
-
-#### Usage
-
-    Ggplot2LineLayerProcessor$get_original_x_column(plot, built_data)
-
-------------------------------------------------------------------------
-
 ### Method `extract_multiline_data()`
 
 Extract data for multiple line series
 
 #### Usage
 
-    Ggplot2LineLayerProcessor$extract_multiline_data(layer_data, plot)
+    Ggplot2LineLayerProcessor$extract_multiline_data(
+      layer_data,
+      plot,
+      recovered_x = NULL
+    )
 
 #### Arguments
 
@@ -644,6 +630,11 @@ Extract data for multiple line series
 - `plot`:
 
   The original ggplot2 object
+
+- `recovered_x`:
+
+  x values recovered from the built column by `recover_x_values()`,
+  aligned to `layer_data`'s rows. NULL leaves the built value in place.
 
 #### Returns
 
@@ -657,7 +648,11 @@ Extract data for single line (backward compatibility)
 
 #### Usage
 
-    Ggplot2LineLayerProcessor$extract_single_line_data(layer_data, plot = NULL)
+    Ggplot2LineLayerProcessor$extract_single_line_data(
+      layer_data,
+      plot = NULL,
+      recovered_x = NULL
+    )
 
 #### Arguments
 
@@ -665,9 +660,72 @@ Extract data for single line (backward compatibility)
 
   The built layer data
 
+- `plot`:
+
+  The original ggplot2 object. Unread since x recovery moved upstream;
+  kept for signature parity with `extract_multiline_data()` and for
+  existing call sites.
+
+- `recovered_x`:
+
+  x values recovered from the built column by `recover_x_values()`,
+  aligned to `layer_data`'s rows. NULL leaves the built value in place.
+
 #### Returns
 
 List containing single series data
+
+------------------------------------------------------------------------
+
+### Method `recover_x_values()`
+
+The x values to announce, recovered from the BUILT column.
+
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+stores x in the scale's own space – a level code for a discrete scale,
+days-since-epoch for a Date – so something has to turn it back into what
+the axis shows. The obvious route, reading the caller's column, cannot
+be indexed by the built row number: `GeomLine$setup_data()` sorts the
+built data by (PANEL, group, x), which is the documented difference
+between
+[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+and
+[`geom_path()`](https://ggplot2.tidyverse.org/reference/geom_path.html),
+while the caller's column keeps its own order. Pairing the two by
+position hands every point another point's x.
+
+Recovering from the built value instead is order-proof by construction,
+and per scale type it needs:
+
+- discrete – the panel's own x labels, indexed by the level code, the
+  same source `build_level_lookup()` uses for a discrete y
+
+- transformed (Date, POSIXct, log) – the transformation's inverse
+
+- plain numeric – nothing; the built value already IS the value
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$recover_x_values(layer_data, built, panel_id = NULL)
+
+#### Arguments
+
+- `layer_data`:
+
+  The built layer data for this layer
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+A vector aligned to `layer_data`'s rows, or NULL to leave the built
+value alone
 
 ------------------------------------------------------------------------
 
