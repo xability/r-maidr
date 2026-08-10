@@ -86,18 +86,24 @@ test_that("Orchestrator detects layer type correctly", {
 })
 
 test_that("Orchestrator detects multiple layers", {
-  testthat::skip("Multiple layer detection needs data scope fix")
-
   testthat::skip_if_not_installed("ggplot2")
 
-  # Create plot with multiple layers (use existing data in plot)
+  # `y`, not `mpg`: create_test_ggplot_bar() builds its plot on a three-row
+  # frame of x/y, so a second layer mapped to `mpg` fails in aes() before the
+  # orchestrator is ever reached. That error is what this test used to be
+  # skipped for, and it was the test's own, not the orchestrator's.
   p <- create_test_ggplot_bar() +
-    ggplot2::geom_point(ggplot2::aes(y = mpg))
+    ggplot2::geom_point(ggplot2::aes(y = y))
 
   orchestrator <- maidr:::Ggplot2PlotOrchestrator$new(p)
   layers <- orchestrator$get_layers()
 
   testthat::expect_gte(length(layers), 2)
+  # Both layers, not one of them twice: a bare count would pass either way.
+  testthat::expect_equal(
+    vapply(layers, function(layer) layer$type, character(1)),
+    c("bar", "point")
+  )
 })
 
 test_that("Layer info contains required fields", {
