@@ -44,7 +44,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-attach_discrete_y_names}{\code{Ggplot2LineLayerProcessor$attach_discrete_y_names()}}
 \item \href{#method-Ggplot2LineLayerProcessor-normalize_point_values}{\code{Ggplot2LineLayerProcessor$normalize_point_values()}}
 \item \href{#method-Ggplot2LineLayerProcessor-build_level_lookup}{\code{Ggplot2LineLayerProcessor$build_level_lookup()}}
-\item \href{#method-Ggplot2LineLayerProcessor-get_original_y_column}{\code{Ggplot2LineLayerProcessor$get_original_y_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-attach_level_labels}{\code{Ggplot2LineLayerProcessor$attach_level_labels()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_layer}{\code{Ggplot2LineLayerProcessor$get_layer()}}
 \item \href{#method-Ggplot2LineLayerProcessor-resolve_panel_index}{\code{Ggplot2LineLayerProcessor$resolve_panel_index()}}
@@ -276,7 +275,12 @@ the min/max range -- and the name rides alongside as \code{label}.
 A continuous y is returned untouched, so no \code{label} is emitted and the
 frontend announces the number, which is the right reading there.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$attach_discrete_y_names(series_data, plot, built)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$attach_discrete_y_names(
+  series_data,
+  plot,
+  built,
+  panel_id = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -287,6 +291,8 @@ frontend announces the number, which is the right reading there.
 \item{\code{plot}}{The ggplot2 object}
 
 \item{\code{built}}{Built plot data}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
 }
 \if{html}{\out{</div>}}
 }
@@ -331,55 +337,44 @@ aesthetic.
 
 For a factor (or character) y aesthetic, \code{ggplot_build()} replaces the
 level with its numeric position, so \code{built$data$y} is a level \emph{code}
-and the name only survives in the original column. The lookup is keyed
-by the built y value and built from the full, unfiltered pair of
-columns, so it stays correct no matter which rows survive NA-dropping
-or panel filtering downstream.
+and the name has to be recovered from somewhere else.
+
+It is recovered from the panel's own y scale -- the very labels ggplot2
+draws on the axis -- which makes the announcement agree with what a
+sighted reader sees, and sidesteps two traps:
+\itemize{
+\item \strong{Row order is not a join key.} \code{GeomLine$setup_data()} sorts the
+built data by (PANEL, group, x) -- that sort is the documented
+difference between \code{geom_line()} and \code{geom_path()} -- while the
+caller's column keeps its own order, so pairing them row by row
+attaches the wrong name to the wrong code.
+\item \strong{Unused levels are dropped.} A discrete scale defaults to
+\code{drop = TRUE}, so a factor declaring five levels of which two are
+drawn is coded 1..2, not by position in \code{levels()}. Reading names off
+the factor would name code 2 after the second declared level rather
+than the second drawn one.
+}
 
 Returns NULL for a plain continuous y, in which case no \code{label} is
 emitted and the frontend announces the numeric value.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$build_level_lookup(plot, built)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$build_level_lookup(plot, built, panel_id = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{plot}}{The ggplot2 object}
+\item{\code{plot}}{The ggplot2 object (unused; kept for call-site symmetry)}
 
 \item{\code{built}}{Built plot data}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional) -- each panel
+carries its own scale under \code{scales = "free_y"}}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
 Named character vector keyed by the built y value, or NULL
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_original_y_column"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_original_y_column}{}}}
-\subsection{Method \code{get_original_y_column()}}{
-Recover the original (untransformed) y column for a layer.
-
-Mirrors \code{get_original_x_column()}: looks up the y mapping on the layer
-first and then on the plot, and searches the layer's own \code{data} before
-the plot's. Returns the per-row vector aligned to \code{built_data} when a
-simple column reference is found and the lengths match, otherwise NULL.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_original_y_column(plot, built_data)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built_data}}{The built data frame for this layer}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The original y column, or NULL
 }
 }
 \if{html}{\out{<hr>}}

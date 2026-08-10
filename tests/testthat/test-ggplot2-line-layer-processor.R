@@ -1151,3 +1151,69 @@ test_that("a grouped factor y keeps both the series name and the level name", {
   testthat::expect_equal(data[[1]][[1]]$z, "x")
   testthat::expect_equal(data[[1]][[1]]$label, "A")
 })
+
+test_that("an unsorted geom_line() still names each level correctly", {
+  # GeomLine$setup_data() sorts the built data by (PANEL, group, x) -- that
+  # sort is the documented difference between geom_line() and geom_path() --
+  # while the caller's column keeps its own order. Pairing the two row by row
+  # therefore attaches the wrong name to the wrong code, and every other test
+  # here happens to use an already-sorted x, which hides it. Reading the names
+  # off the factor's own level vector sidesteps ordering entirely.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = c(3, 1, 2),
+    stage = factor(
+      c("N1", "N3", "N2"),
+      levels = c("N3", "N2", "N1", "REM", "Awake"),
+      ordered = TRUE
+    )
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_line()
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  # The built data is x-sorted, so the codes run 1, 2, 3 and must name the
+  # levels at those positions -- not the levels of the caller's rows 1, 2, 3.
+  pairs <- vapply(
+    data[[1]], function(pt) paste0(pt$y, "=", pt$label), character(1)
+  )
+  testthat::expect_equal(pairs, c("1=N3", "2=N2", "3=N1"))
+})
+
+test_that("a factor with unused levels is named by what the axis draws", {
+  # A discrete scale defaults to drop = TRUE. A factor declaring five levels
+  # of which two are drawn is coded 1..2, NOT by position in levels(), so
+  # naming from the factor would call code 2 "N2" while the axis says
+  # "Awake". The panel's own labels are the only source that agrees with the
+  # drawn axis, which is the whole point of the announcement.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = 1:2,
+    stage = factor(
+      c("Awake", "N3"),
+      levels = c("N3", "N2", "N1", "REM", "Awake"),
+      ordered = TRUE
+    )
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, stage, group = 1)
+  ) + ggplot2::geom_line()
+
+  built <- ggplot2::ggplot_build(p)
+  testthat::expect_equal(
+    as.character(built$layout$panel_params[[1]]$y$get_labels()),
+    c("N3", "Awake")
+  )
+
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  # Built as x-sorted: t = 1 is "Awake" (code 2), t = 2 is "N3" (code 1).
+  testthat::expect_equal(data[[1]][[1]]$y, 2)
+  testthat::expect_equal(data[[1]][[1]]$label, "Awake")
+  testthat::expect_equal(data[[1]][[2]]$y, 1)
+  testthat::expect_equal(data[[1]][[2]]$label, "N3")
+})

@@ -90,21 +90,6 @@ Ggplot2StepLayerProcessor <- R6::R6Class(
         return("hv")
       }
       direction
-    },
-
-
-    #' @description The ggplot2 layer this processor is responsible for.
-    #' @param plot The ggplot2 object
-    #' @return The layer, or NULL when the index does not resolve
-    get_layer = function(plot) {
-      if (is.null(plot) || is.null(plot$layers)) {
-        return(NULL)
-      }
-      layer_index <- self$get_layer_index()
-      if (is.null(layer_index) || layer_index > length(plot$layers)) {
-        return(NULL)
-      }
-      plot$layers[[layer_index]]
     }
   )
 )

@@ -281,7 +281,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         series_data <- self$extract_single_line_data(layer_data, plot)
       }
 
-      self$attach_discrete_y_names(series_data, plot, built)
+      self$attach_discrete_y_names(series_data, plot, built, panel_id)
     },
 
     #' @description Give every point the *name* of its discrete y level.
@@ -297,11 +297,13 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param series_data List of series produced by the extractors above
     #' @param plot The ggplot2 object
     #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return The series list, labelled when y is discrete
-    attach_discrete_y_names = function(series_data, plot, built) {
+    attach_discrete_y_names = function(series_data, plot, built,
+                                       panel_id = NULL) {
       series_data <- self$normalize_point_values(series_data)
 
-      lookup <- self$build_level_lookup(plot, built)
+      lookup <- self$build_level_lookup(plot, built, panel_id)
       if (is.null(lookup)) {
         return(series_data)
       }
@@ -343,91 +345,65 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #'
     #' For a factor (or character) y aesthetic, `ggplot_build()` replaces the
     #' level with its numeric position, so `built$data$y` is a level *code*
-    #' and the name only survives in the original column. The lookup is keyed
-    #' by the built y value and built from the full, unfiltered pair of
-    #' columns, so it stays correct no matter which rows survive NA-dropping
-    #' or panel filtering downstream.
+    #' and the name has to be recovered from somewhere else.
+    #'
+    #' It is recovered from the panel's own y scale -- the very labels ggplot2
+    #' draws on the axis -- which makes the announcement agree with what a
+    #' sighted reader sees, and sidesteps two traps:
+    #'
+    #' * **Row order is not a join key.** `GeomLine$setup_data()` sorts the
+    #'   built data by (PANEL, group, x) -- that sort is the documented
+    #'   difference between `geom_line()` and `geom_path()` -- while the
+    #'   caller's column keeps its own order, so pairing them row by row
+    #'   attaches the wrong name to the wrong code.
+    #' * **Unused levels are dropped.** A discrete scale defaults to
+    #'   `drop = TRUE`, so a factor declaring five levels of which two are
+    #'   drawn is coded 1..2, not by position in `levels()`. Reading names off
+    #'   the factor would name code 2 after the second declared level rather
+    #'   than the second drawn one.
     #'
     #' Returns NULL for a plain continuous y, in which case no `label` is
     #' emitted and the frontend announces the numeric value.
     #'
-    #' @param plot The ggplot2 object
+    #' @param plot The ggplot2 object (unused; kept for call-site symmetry)
     #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional) -- each panel
+    #'   carries its own scale under `scales = "free_y"`
     #' @return Named character vector keyed by the built y value, or NULL
-    build_level_lookup = function(plot, built) {
+    build_level_lookup = function(plot, built, panel_id = NULL) {
       layer_data <- built$data[[self$layer_info$index]]
       if (is.null(layer_data) || !"y" %in% names(layer_data)) {
         return(NULL)
       }
-
-      original_y <- self$get_original_y_column(plot, layer_data)
-      if (is.null(original_y)) {
-        return(NULL)
-      }
-      if (!is.factor(original_y) && !is.character(original_y)) {
+      # The built column announces its own discreteness; asking the scale
+      # would depend on an accessor that has moved between ggplot2 versions.
+      if (!inherits(layer_data$y, "mapped_discrete")) {
         return(NULL)
       }
 
-      keys <- as.character(layer_data$y)
+      panel_index <- self$resolve_panel_index(built, panel_id)
+      y_scale <- built$layout$panel_params[[panel_index]]$y
+      if (is.null(y_scale)) {
+        return(NULL)
+      }
+
       # Not `names`: R would still resolve names()/`names<-`() correctly, since
       # a call looks past non-function bindings, but shadowing a base function
       # here reads as a bug even though it is not one.
-      level_names <- as.character(original_y)
-      keep <- !is.na(layer_data$y) & !is.na(original_y)
-      if (!any(keep)) {
+      level_names <- tryCatch(
+        as.character(y_scale$get_labels()),
+        error = function(e) NULL
+      )
+      if (is.null(level_names) || length(level_names) == 0 ||
+        anyNA(level_names)) {
         return(NULL)
       }
 
-      lookup <- level_names[keep]
-      names(lookup) <- keys[keep]
-      lookup[!duplicated(names(lookup))]
+      lookup <- level_names
+      names(lookup) <- as.character(seq_along(level_names))
+      lookup
     },
 
-    #' @description Recover the original (untransformed) y column for a layer.
-    #'
-    #' Mirrors `get_original_x_column()`: looks up the y mapping on the layer
-    #' first and then on the plot, and searches the layer's own `data` before
-    #' the plot's. Returns the per-row vector aligned to `built_data` when a
-    #' simple column reference is found and the lengths match, otherwise NULL.
-    #'
-    #' @param plot The ggplot2 object
-    #' @param built_data The built data frame for this layer
-    #' @return The original y column, or NULL
-    get_original_y_column = function(plot, built_data) {
-      layer <- self$get_layer(plot)
-      if (is.null(layer)) {
-        return(NULL)
-      }
-
-      y_expr <- NULL
-      if (!is.null(layer$mapping) && !is.null(layer$mapping$y)) {
-        y_expr <- layer$mapping$y
-      } else if (!is.null(plot$mapping) && !is.null(plot$mapping$y)) {
-        y_expr <- plot$mapping$y
-      }
-      if (is.null(y_expr)) {
-        return(NULL)
-      }
-      y_col <- rlang::as_label(y_expr)
-
-      candidates <- list()
-      if (!is.null(layer$data) && is.data.frame(layer$data) &&
-        y_col %in% names(layer$data)) {
-        candidates[[length(candidates) + 1L]] <- layer$data
-      }
-      if (!is.null(plot$data) && is.data.frame(plot$data) &&
-        y_col %in% names(plot$data)) {
-        candidates[[length(candidates) + 1L]] <- plot$data
-      }
-
-      for (src in candidates) {
-        col <- src[[y_col]]
-        if (length(col) == nrow(built_data)) {
-          return(col)
-        }
-      }
-      NULL
-    },
 
     #' @description Attach the ordinal level name to every point of every
     #' series. Points whose y has no entry in the lookup are left untouched,

@@ -45,7 +45,6 @@ lengths.
 \itemize{
 \item \href{#method-Ggplot2StepLayerProcessor-process}{\code{Ggplot2StepLayerProcessor$process()}}
 \item \href{#method-Ggplot2StepLayerProcessor-extract_step_direction}{\code{Ggplot2StepLayerProcessor$extract_step_direction()}}
-\item \href{#method-Ggplot2StepLayerProcessor-get_layer}{\code{Ggplot2StepLayerProcessor$get_layer()}}
 \item \href{#method-Ggplot2StepLayerProcessor-clone}{\code{Ggplot2StepLayerProcessor$clone()}}
 }
 }
@@ -76,8 +75,8 @@ lengths.
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_selectors'><code>maidr::Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_single_line_selector'><code>maidr::Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_group_column'><code>maidr::Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_layer'><code>maidr::Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_original_x_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_original_x_column'><code>maidr::Ggplot2LineLayerProcessor$get_original_x_column()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_original_y_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_original_y_column'><code>maidr::Ggplot2LineLayerProcessor$get_original_y_column()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_x_transformation"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_x_transformation'><code>maidr::Ggplot2LineLayerProcessor$get_x_transformation()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="has_series_groups"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-has_series_groups'><code>maidr::Ggplot2LineLayerProcessor$has_series_groups()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="layer_polyline_grobs"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-layer_polyline_grobs'><code>maidr::Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></span></li>
@@ -161,26 +160,6 @@ unchanged. \code{"hv"} is both ggplot2's and MAIDR's default.
 \subsection{Returns}{
 One of "hv", "vh", "mid" (defaulting to "hv"), or NULL when the
 layer cannot be located at all.
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-get_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-get_layer}{}}}
-\subsection{Method \code{get_layer()}}{
-The ggplot2 layer this processor is responsible for.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$get_layer(plot)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The layer, or NULL when the index does not resolve
 }
 }
 \if{html}{\out{<hr>}}
