@@ -7,20 +7,42 @@ name: Update MAIDR Bundle
 # Unlike py-maidr — where the routine refresh happens inside the automated
 # release workflow so the bundle ships with each release — r-maidr has no
 # release pipeline to hook into (CRAN submissions are manual), so the
-# scheduled refresh here is what keeps ``main`` current: whatever is bundled
-# on ``main`` at submission time is what ships to CRAN. The download is
+# refresh here is what keeps ``main`` current: whatever is bundled on
+# ``main`` at submission time is what ships to CRAN. The download is
 # verified against the integrity hash published in the npm registry
 # metadata (see ``.github/scripts/fetch-maidr-bundle.sh``), so a tampered
 # CDN/registry response fails the job instead of landing on ``main``.
+#
+# Two triggers, doing different jobs. maidr's release workflow pings this
+# repository as soon as it publishes to npm, which is what makes a new
+# upstream version land promptly; the daily schedule is the backstop for a
+# ping that never arrives. Neither is redundant: without the ping a release
+# waits up to a day, and without the schedule a dropped ping waits forever.
 #
 # The commit uses the ``chore:`` prefix so a bundle refresh reads as
 # maintenance, not a feature, in the history.
 
 on:
+  repository_dispatch:
+    # Sent by maidr's release workflow the moment ``npm publish`` succeeds,
+    # so a new upstream release lands here in minutes rather than waiting
+    # for the next scheduled poll. ``client_payload.version`` names the
+    # version that was just published; the job below fetches that exact
+    # version rather than re-resolving ``latest``, which sidesteps the
+    # window where the ``latest`` dist-tag has not propagated yet.
+    #
+    # Note that repository_dispatch only ever triggers the workflow file as
+    # it exists on the default branch, so changes to this trigger take
+    # effect once they are on ``main`` and not before.
+    types: [maidr-released]
   schedule:
-    # Run daily at 9 AM UTC so new npm releases land on ``main`` within
-    # 24 hours. The commit step below is a no-op when the bundle is
-    # already current, so the daily cadence adds no commit noise.
+    # The backstop, kept deliberately. The dispatch above is one cross-repo
+    # hop that can be missed -- an expired token, a release published
+    # outside CI, a change to the sending workflow -- and the failure mode
+    # is silent, because nothing here would run at all. The daily poll
+    # bounds that miss at 24 hours instead of forever. The commit step is a
+    # no-op when the bundle is already current, so the pair costs no extra
+    # commit noise.
     - cron: '0 9 * * *'
   workflow_dispatch:
     inputs:
@@ -43,10 +65,17 @@ jobs:
       - name: Resolve, download and verify bundled assets
         id: bundle
         env:
-          # Pass the dispatch input through the environment rather than
+          # Pass the requested version through the environment rather than
           # interpolating ${{ ... }} into the script text, which would be a
-          # shell-injection surface in a job holding contents: write.
-          MAIDR_VERSION: ${{ github.event.inputs.maidr_version }}
+          # shell-injection surface in a job holding contents: write. The
+          # same reasoning covers ``client_payload``, which is written by
+          # whoever holds the sending token rather than by this repository;
+          # the script validates the version against a strict pattern before
+          # it reaches a URL or a path.
+          #
+          # Empty on a scheduled run, which is what makes the script resolve
+          # ``latest`` on its own.
+          MAIDR_VERSION: ${{ github.event.inputs.maidr_version || github.event.client_payload.version }}
         run: |
           set -euo pipefail
           # Resolve (or use the requested version), download, verify, and
