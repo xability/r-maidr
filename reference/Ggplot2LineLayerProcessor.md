@@ -50,6 +50,16 @@ discovered:
 
 - [`Ggplot2LineLayerProcessor$extract_data()`](#method-Ggplot2LineLayerProcessor-extract_data)
 
+- [`Ggplot2LineLayerProcessor$attach_discrete_y_names()`](#method-Ggplot2LineLayerProcessor-attach_discrete_y_names)
+
+- [`Ggplot2LineLayerProcessor$normalize_point_values()`](#method-Ggplot2LineLayerProcessor-normalize_point_values)
+
+- [`Ggplot2LineLayerProcessor$build_level_lookup()`](#method-Ggplot2LineLayerProcessor-build_level_lookup)
+
+- [`Ggplot2LineLayerProcessor$attach_level_labels()`](#method-Ggplot2LineLayerProcessor-attach_level_labels)
+
+- [`Ggplot2LineLayerProcessor$get_layer()`](#method-Ggplot2LineLayerProcessor-get_layer)
+
 - [`Ggplot2LineLayerProcessor$resolve_panel_index()`](#method-Ggplot2LineLayerProcessor-resolve_panel_index)
 
 - [`Ggplot2LineLayerProcessor$get_x_transformation()`](#method-Ggplot2LineLayerProcessor-get_x_transformation)
@@ -306,6 +316,183 @@ Extract data from line layer (single or multiline)
 #### Returns
 
 List of arrays, each containing series data points
+
+------------------------------------------------------------------------
+
+### Method `attach_discrete_y_names()`
+
+Give every point the *name* of its discrete y level.
+
+A factor y aesthetic reaches the payload as ggplot2's internal level
+code, so without this a reader hears "5" where the axis says "Awake".
+`y` deliberately stays numeric – it drives sonification, braille and the
+min/max range – and the name rides alongside as `label`.
+
+A continuous y is returned untouched, so no `label` is emitted and the
+frontend announces the number, which is the right reading there.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$attach_discrete_y_names(
+      series_data,
+      plot,
+      built,
+      panel_id = NULL
+    )
+
+#### Arguments
+
+- `series_data`:
+
+  List of series produced by the extractors above
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+The series list, labelled when y is discrete
+
+------------------------------------------------------------------------
+
+### Method `normalize_point_values()`
+
+Coerce every point's y to a plain number.
+
+A discrete y aesthetic – the ordinal level of a hypnogram, and the
+reason this processor exists – makes
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+return y as a `mapped_discrete` vector. That class carries no `asJSON`
+method, so emitting it verbatim aborts payload serialisation with "No
+method asJSON S3 class: mapped_discrete". Stripping the class here keeps
+y a bare number, which is what the wire contract asks for and what
+drives sonification, braille and the min/max range.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$normalize_point_values(series_data)
+
+#### Arguments
+
+- `series_data`:
+
+  List of series produced by the line extractor
+
+#### Returns
+
+The series list with numeric y values
+
+------------------------------------------------------------------------
+
+### Method `build_level_lookup()`
+
+Build a numeric-level to level-name lookup for the y aesthetic.
+
+For a factor (or character) y aesthetic,
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+replaces the level with its numeric position, so `built$data$y` is a
+level *code* and the name has to be recovered from somewhere else.
+
+It is recovered from the panel's own y scale – the very labels ggplot2
+draws on the axis – which makes the announcement agree with what a
+sighted reader sees, and sidesteps two traps:
+
+- **Row order is not a join key.** `GeomLine$setup_data()` sorts the
+  built data by (PANEL, group, x) – that sort is the documented
+  difference between
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  and
+  [`geom_path()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  – while the caller's column keeps its own order, so pairing them row
+  by row attaches the wrong name to the wrong code.
+
+- **Unused levels are dropped.** A discrete scale defaults to
+  `drop = TRUE`, so a factor declaring five levels of which two are
+  drawn is coded 1..2, not by position in
+  [`levels()`](https://rdrr.io/r/base/levels.html). Reading names off
+  the factor would name code 2 after the second declared level rather
+  than the second drawn one.
+
+Returns NULL for a plain continuous y, in which case no `label` is
+emitted and the frontend announces the numeric value.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$build_level_lookup(plot, built, panel_id = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object (unused; kept for call-site symmetry)
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional) – each panel carries its own
+  scale under `scales = "free_y"`
+
+#### Returns
+
+Named character vector keyed by the built y value, or NULL
+
+------------------------------------------------------------------------
+
+### Method `attach_level_labels()`
+
+Attach the ordinal level name to every point of every series. Points
+whose y has no entry in the lookup are left untouched, so the frontend
+falls back to the numeric announcement for them.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$attach_level_labels(series_data, lookup)
+
+#### Arguments
+
+- `series_data`:
+
+  List of series produced by the line extractor
+
+- `lookup`:
+
+  Named character vector keyed by the built y value
+
+#### Returns
+
+The series list with `label` attached where known
+
+------------------------------------------------------------------------
+
+### Method `get_layer()`
+
+The ggplot2 layer this processor is responsible for.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$get_layer(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+The layer, or NULL when the index does not resolve
 
 ------------------------------------------------------------------------
 

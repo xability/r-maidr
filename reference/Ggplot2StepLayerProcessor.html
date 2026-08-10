@@ -172,12 +172,6 @@ lengths.</p>
 
 <ul><li><p><a href="#method-Ggplot2StepLayerProcessor-process"><code>Ggplot2StepLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-Ggplot2StepLayerProcessor-extract_step_direction"><code>Ggplot2StepLayerProcessor$extract_step_direction()</code></a></p></li>
-<li><p><a href="#method-Ggplot2StepLayerProcessor-extract_data"><code>Ggplot2StepLayerProcessor$extract_data()</code></a></p></li>
-<li><p><a href="#method-Ggplot2StepLayerProcessor-normalize_point_values"><code>Ggplot2StepLayerProcessor$normalize_point_values()</code></a></p></li>
-<li><p><a href="#method-Ggplot2StepLayerProcessor-build_level_lookup"><code>Ggplot2StepLayerProcessor$build_level_lookup()</code></a></p></li>
-<li><p><a href="#method-Ggplot2StepLayerProcessor-get_original_y_column"><code>Ggplot2StepLayerProcessor$get_original_y_column()</code></a></p></li>
-<li><p><a href="#method-Ggplot2StepLayerProcessor-attach_level_labels"><code>Ggplot2StepLayerProcessor$attach_level_labels()</code></a></p></li>
-<li><p><a href="#method-Ggplot2StepLayerProcessor-get_layer"><code>Ggplot2StepLayerProcessor$get_layer()</code></a></p></li>
 <li><p><a href="#method-Ggplot2StepLayerProcessor-clone"><code>Ggplot2StepLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
@@ -187,8 +181,12 @@ lengths.</p>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href="LayerProcessor.html#method-needs_augmentation"><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href="LayerProcessor.html#method-reorder_layer_data"><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href="LayerProcessor.html#method-set_last_result"><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_discrete_y_names"><a href="Ggplot2LineLayerProcessor.html#method-attach_discrete_y_names"><code>maidr::Ggplot2LineLayerProcessor$attach_discrete_y_names()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_group_axis"><a href="Ggplot2LineLayerProcessor.html#method-attach_group_axis"><code>maidr::Ggplot2LineLayerProcessor$attach_group_axis()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_level_labels"><a href="Ggplot2LineLayerProcessor.html#method-attach_level_labels"><code>maidr::Ggplot2LineLayerProcessor$attach_level_labels()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="build_level_lookup"><a href="Ggplot2LineLayerProcessor.html#method-build_level_lookup"><code>maidr::Ggplot2LineLayerProcessor$build_level_lookup()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="curve_selectors"><a href="Ggplot2LineLayerProcessor.html#method-curve_selectors"><code>maidr::Ggplot2LineLayerProcessor$curve_selectors()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_data"><a href="Ggplot2LineLayerProcessor.html#method-extract_data"><code>maidr::Ggplot2LineLayerProcessor$extract_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_layer_axes"><a href="Ggplot2LineLayerProcessor.html#method-extract_layer_axes"><code>maidr::Ggplot2LineLayerProcessor$extract_layer_axes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_multiline_data"><a href="Ggplot2LineLayerProcessor.html#method-extract_multiline_data"><code>maidr::Ggplot2LineLayerProcessor$extract_multiline_data()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_single_line_data"><a href="Ggplot2LineLayerProcessor.html#method-extract_single_line_data"><code>maidr::Ggplot2LineLayerProcessor$extract_single_line_data()</code></a></span></li>
@@ -199,12 +197,14 @@ lengths.</p>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href="Ggplot2LineLayerProcessor.html#method-generate_selectors"><code>maidr::Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href="Ggplot2LineLayerProcessor.html#method-generate_single_line_selector"><code>maidr::Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href="Ggplot2LineLayerProcessor.html#method-get_group_column"><code>maidr::Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href="Ggplot2LineLayerProcessor.html#method-get_layer"><code>maidr::Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_original_x_column"><a href="Ggplot2LineLayerProcessor.html#method-get_original_x_column"><code>maidr::Ggplot2LineLayerProcessor$get_original_x_column()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_x_transformation"><a href="Ggplot2LineLayerProcessor.html#method-get_x_transformation"><code>maidr::Ggplot2LineLayerProcessor$get_x_transformation()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="has_series_groups"><a href="Ggplot2LineLayerProcessor.html#method-has_series_groups"><code>maidr::Ggplot2LineLayerProcessor$has_series_groups()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="layer_polyline_grobs"><a href="Ggplot2LineLayerProcessor.html#method-layer_polyline_grobs"><code>maidr::Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="line_layer_position"><a href="Ggplot2LineLayerProcessor.html#method-line_layer_position"><code>maidr::Ggplot2LineLayerProcessor$line_layer_position()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="needs_reordering"><a href="Ggplot2LineLayerProcessor.html#method-needs_reordering"><code>maidr::Ggplot2LineLayerProcessor$needs_reordering()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="normalize_point_values"><a href="Ggplot2LineLayerProcessor.html#method-normalize_point_values"><code>maidr::Ggplot2LineLayerProcessor$normalize_point_values()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="other_geom_grob_prefixes"><a href="Ggplot2LineLayerProcessor.html#method-other_geom_grob_prefixes"><code>maidr::Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="polyline_curve_count"><a href="Ggplot2LineLayerProcessor.html#method-polyline_curve_count"><code>maidr::Ggplot2LineLayerProcessor$polyline_curve_count()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="resolve_group_mapping"><a href="Ggplot2LineLayerProcessor.html#method-resolve_group_mapping"><code>maidr::Ggplot2LineLayerProcessor$resolve_group_mapping()</code></a></span></li>
@@ -294,191 +294,15 @@ unchanged. <code>"hv"</code> is both ggplot2's and MAIDR's default.</p><div clas
 layer cannot be located at all.</p>
 </div>
 
-</div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-extract_data"></a><div class="section">
-<h3 id="method-extract-data-">Method <code>extract_data()</code><a class="anchor" aria-label="anchor" href="#method-extract-data-"></a></h3>
-<p>Extract step data, one point per data sample.</p>
-<p>Delegates to the line processor for x/y extraction – including the
-recovery of Date / POSIXct x columns and the dropping of NA-y rows,
-which exists so the emitted data length stays aligned with the rendered
-geometry – then attaches the ordinal level name to each point.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
-<span>  <span class="va">plot</span>,</span>
-<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-
-<dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
-
-
-<dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
-
-
-<dt><code>panel_id</code></dt>
-<dd><p>Panel ID for faceted plots (optional)</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>List of series, each a list of points with x, y and optionally
-z and label</p>
-</div>
-
-</div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-normalize_point_values"></a><div class="section">
-<h3 id="method-normalize-point-values-">Method <code>normalize_point_values()</code><a class="anchor" aria-label="anchor" href="#method-normalize-point-values-"></a></h3>
-<p>Coerce every point's y to a plain number.</p>
-<p>A discrete y aesthetic – the ordinal level of a hypnogram, and the
-reason this processor exists – makes <code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code> return y as a
-<code>mapped_discrete</code> vector. That class carries no <code>asJSON</code> method, so
-emitting it verbatim aborts payload serialisation with
-"No method asJSON S3 class: mapped_discrete". Stripping the class here
-keeps y a bare number, which is what the wire contract asks for and
-what drives sonification, braille and the min/max range.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">normalize_point_values</span><span class="op">(</span><span class="va">series_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>series_data</code></dt>
-<dd><p>List of series produced by the line extractor</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>The series list with numeric y values</p>
-</div>
-
-</div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-build_level_lookup"></a><div class="section">
-<h3 id="method-build-level-lookup-">Method <code>build_level_lookup()</code><a class="anchor" aria-label="anchor" href="#method-build-level-lookup-"></a></h3>
-<p>Build a numeric-level to level-name lookup for the y
-aesthetic.</p>
-<p>For a factor (or character) y aesthetic, <code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code> replaces the
-level with its numeric position, so <code>built$data$y</code> is a level <em>code</em>
-and the name only survives in the original column. The lookup is keyed
-by the built y value and built from the full, unfiltered pair of
-columns, so it stays correct no matter which rows survive NA-dropping
-or panel filtering downstream.</p>
-<p>Returns NULL for a plain continuous y, in which case no <code>label</code> is
-emitted and the frontend announces the numeric value.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">build_level_lookup</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-
-<dt><code>built</code></dt>
-<dd><p>Built plot data</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>Named character vector keyed by the built y value, or NULL</p>
-</div>
-
-</div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-get_original_y_column"></a><div class="section">
-<h3 id="method-get-original-y-column-">Method <code>get_original_y_column()</code><a class="anchor" aria-label="anchor" href="#method-get-original-y-column-"></a></h3>
-<p>Recover the original (untransformed) y column for a layer.</p>
-<p>Mirrors <code>get_original_x_column()</code>: looks up the y mapping on the layer
-first and then on the plot, and searches the layer's own <code>data</code> before
-the plot's. Returns the per-row vector aligned to <code>built_data</code> when a
-simple column reference is found and the lengths match, otherwise NULL.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">get_original_y_column</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-
-<dt><code>built_data</code></dt>
-<dd><p>The built data frame for this layer</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>The original y column, or NULL</p>
-</div>
-
-</div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-attach_level_labels"></a><div class="section">
-<h3 id="method-attach-level-labels-">Method <code>attach_level_labels()</code><a class="anchor" aria-label="anchor" href="#method-attach-level-labels-"></a></h3>
-<p>Attach the ordinal level name to every point of every
-series. Points whose y has no entry in the lookup are left untouched,
-so the frontend falls back to the numeric announcement for them.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">attach_level_labels</span><span class="op">(</span><span class="va">series_data</span>, <span class="va">lookup</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>series_data</code></dt>
-<dd><p>List of series produced by the line extractor</p></dd>
-
-
-<dt><code>lookup</code></dt>
-<dd><p>Named character vector keyed by the built y value</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
-<p>The series list with <code>label</code> attached where known</p>
-</div>
-
-</div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-get_layer"></a><div class="section">
-<h3 id="method-get-layer-">Method <code>get_layer()</code><a class="anchor" aria-label="anchor" href="#method-get-layer-"></a></h3>
-<p>The ggplot2 layer this processor is responsible for.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">get_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-
-</dl><p></p></div>
-</div>
-<div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
-<p>The layer, or NULL when the index does not resolve</p>
-</div>
-
 </div><p></p><hr><a id="method-Ggplot2StepLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
