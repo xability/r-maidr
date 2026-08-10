@@ -693,12 +693,29 @@ List with single selector
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-line_layer_position}{}}}
 \subsection{Method \code{line_layer_position()}}{
-Position (1-based) of this layer among line-typed layers in \code{plot}.
-Returns NULL if the registry-based detection fails.
+Position of this layer among the polyline-producing layers.
+
+Delegates to \code{polyline_layer_position()}, which counts both "line" and
+"step" layers. \code{layer_polyline_grobs()} skips only the layers that name
+their grob tree after their geom, and \code{GeomStep} draws through
+\code{GeomPath$draw_panel()} — a bare \code{polylineGrob} — so a \code{geom_step()}
+sits in that candidate list exactly as a \code{geom_line()} does. Counting
+only "line" layers would therefore index the wrong polyline for \emph{both}
+layers of a plot that combines the two.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The 1-based position, or NULL if registry-based detection fails
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_main_polyline_grob"></a>}}

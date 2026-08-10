@@ -2,6 +2,18 @@
 
 ## New Features
 
+* Added step plot support for 'ggplot2' (`geom_step()`) and Base R
+  (`plot(type = "s")`, `plot(type = "S")`, and the `lines()` equivalents).
+  A step plot describes a value that is piecewise constant — held across an
+  interval and then jumped — such as the sleep stage of a hypnogram.
+* Step layers emit one data point per data sample, never one per stairstep
+  vertex, and report the layer's step convention as `stepDirection`
+  (`"hv"` / `"vh"` / `"mid"` from `geom_step(direction = )`; `"hv"` for Base R
+  `type = "s"` and `"vh"` for `type = "S"`).
+* When a step layer's y aesthetic is an ordinal factor, each point carries the
+  level *name* as `label`, so the frontend announces "REM" rather than the
+  numeric level code while `y` stays numeric for sonification, braille and the
+  min/max range.
 * Pie chart support for both plotting systems. In 'ggplot2' a `geom_col()` /
   `geom_bar()` layer drawn under `coord_polar("y")` — or `coord_radial(theta =
   "y")` — is now recognised as a pie rather than mis-read as a stacked bar;
@@ -20,6 +32,10 @@
 
 ## Bug Fixes
 
+* Fixed polyline selector assignment for plots that mix `geom_line()` and
+  `geom_step()`: the layer position was counted over line layers only while
+  every polyline in the panel was searched, so both layers resolved to the
+  same polyline and highlighted the wrong geometry.
 * Base R charts drawn without `xlab=` / `ylab=` now announce axis titles that
   say what the numbers mean. `pie()`, `barplot()`, `hist()` and `boxplot()`
   derive their titles inside the call rather than recording them, so the
@@ -49,7 +65,6 @@
   with `base` added to the chain because `plot()` lives there rather than in
   `graphics`. The exported payload is byte-identical either way; what changes
   is that the replay no longer takes a detour through maidr.
-
 * Documentation: the internal R6 class reference pages no longer carry
   keyword entries made of ordinary English words. An R6 method docblock that
   opens with untagged title text instead of `@description` makes roxygen2
@@ -117,7 +132,6 @@
   still kept distinct from it. A dodged `stat = "count"` panel keeps its
   rectangular cross-tabulation, so an absent combination in the restored panel
   still reports a genuine `0`.
-
 * ggplot2: a `geom_col()` whose data is not a complete grid highlights the bar
   it is announcing. Pre-aggregated tidy data routinely omits a combination —
   the reason `geom_col()` exists — and both the dodged and the stacked

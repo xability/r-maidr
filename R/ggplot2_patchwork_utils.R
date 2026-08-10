@@ -668,6 +668,15 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
             }
           }
 
+          # A step layer is a single-layer result, so the carry above --
+          # deliberately scoped to expanded results -- does not reach it. Its
+          # hv/vh/mid convention is a layer-level sibling of axes/data, and
+          # this entry is rebuilt field by field, so without this the
+          # direction is dropped from every patchworked step plot.
+          if (!expanded && !is.null(sub$stepDirection)) {
+            layer_entry$stepDirection <- sub$stepDirection
+          }
+
           layers[[length(layers) + 1]] <- layer_entry
         }
       }

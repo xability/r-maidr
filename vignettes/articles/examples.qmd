@@ -40,6 +40,7 @@ keyboard shortcuts (refer to the table below).
 | **Histogram** | Showing distributions | Test score frequencies |
 | **Scatter Plot** | Relationships between variables | Height vs weight |
 | **Line Plot** | Trends over time/order | Stock prices |
+| **Step Plot** | Piecewise-constant state over time | A sleep-stage hypnogram |
 | **Box Plot** | Distribution comparison | Salary by department |
 | **Violin Plot** | Distribution shape comparison | Gene expression by group |
 | **Candlestick (OHLC)** | Financial OHLC time-series | Stock price movements |
@@ -466,6 +467,76 @@ p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   theme_minimal()
 
 p
+```
+
+---
+
+## Step Plot
+
+A step plot suits a value that is **piecewise constant**: it is held across an
+interval and then jumps, rather than drifting between samples the way a line
+implies. The canonical case is a **hypnogram** — the sleep stage a sleep study
+scores for each epoch of the night.
+
+MAIDR reports the layer's step convention (`hv`, `vh`, or `mid`) so the
+description says where the value jumps, and offers a **Transitions** rotor mode
+that moves between the moments the level changes rather than sample by sample.
+
+When the y aesthetic is an ordinal factor, the level *name* is announced
+("REM", "N2", "Awake") while the numeric level still drives sonification and
+braille — so the shape of the night is audible and the stage is speakable.
+
+#### ggplot2
+
+```{r}
+hypnogram <- data.frame(
+  hour = seq(0, 7.5, by = 0.5),
+  stage = factor(
+    c(
+      "Awake", "N1", "N2", "N3", "N3", "N2", "REM", "N2",
+      "N3", "N3", "N2", "REM", "N2", "N1", "REM", "Awake"
+    ),
+    levels = c("N3", "N2", "N1", "REM", "Awake")
+  )
+)
+
+p <- ggplot(hypnogram, aes(x = hour, y = stage, group = 1)) +
+  geom_step(direction = "hv", color = "steelblue", linewidth = 1) +
+  scale_x_continuous(breaks = 0:8) +
+  labs(
+    title = "Overnight Hypnogram",
+    x = "Hours after lights out",
+    y = "Sleep stage"
+  ) +
+  theme_minimal()
+
+p
+```
+
+`geom_step(direction = )` accepts `"hv"` (the default — hold, then jump at the
+next x), `"vh"` (jump at the current x, then hold), and `"mid"` (jump midway
+between x values). All three are passed through to MAIDR unchanged.
+
+#### Base R
+
+`plot(type = "s")` draws the horizontal segment first, matching `"hv"`;
+`plot(type = "S")` draws the vertical segment first, matching `"vh"`.
+
+```{r}
+hours <- seq(0, 7.5, by = 0.5)
+stage_names <- c("N3", "N2", "N1", "REM", "Awake")
+stage <- c(
+  5, 3, 2, 1, 1, 2, 4, 2,
+  1, 1, 2, 4, 2, 3, 4, 5
+)
+
+plot(hours, stage,
+  type = "s", col = "steelblue", lwd = 2,
+  main = "Overnight Hypnogram",
+  xlab = "Hours after lights out", ylab = "Sleep stage",
+  yaxt = "n"
+)
+axis(2, at = seq_along(stage_names), labels = stage_names, las = 1)
 ```
 
 ---

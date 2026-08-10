@@ -26,6 +26,7 @@ Processes Base R line plot layers based on recorded plot calls
 \item \href{#method-BaseRLineLayerProcessor-extract_main_title}{\code{BaseRLineLayerProcessor$extract_main_title()}}
 \item \href{#method-BaseRLineLayerProcessor-generate_selectors}{\code{BaseRLineLayerProcessor$generate_selectors()}}
 \item \href{#method-BaseRLineLayerProcessor-find_lines_grobs}{\code{BaseRLineLayerProcessor$find_lines_grobs()}}
+\item \href{#method-BaseRLineLayerProcessor-selector_grob_type}{\code{BaseRLineLayerProcessor$selector_grob_type()}}
 \item \href{#method-BaseRLineLayerProcessor-generate_selectors_from_grob}{\code{BaseRLineLayerProcessor$generate_selectors_from_grob()}}
 \item \href{#method-BaseRLineLayerProcessor-clone}{\code{BaseRLineLayerProcessor$clone()}}
 }
@@ -186,6 +187,15 @@ Character vector of labels or NULL if not found
   group_index,
   grob_type = "lines"
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-selector_grob_type"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-selector_grob_type}{}}}
+\subsection{Method \code{selector_grob_type()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRLineLayerProcessor$selector_grob_type(layer_info)}\if{html}{\out{</div>}}
 }
 
 }

@@ -36,6 +36,24 @@ Ggplot2Adapter <- R6::R6Class(
       stat_class <- class(layer$stat)[1]
       position_class <- class(layer$position)[1]
 
+      # geom_step() draws a stairstep: the value is piecewise constant, held
+      # across an interval and then jumped, rather than interpolated between
+      # samples the way a line implies. GeomStep *inherits* GeomPath, so this
+      # branch must come before the line branch below; and the comparison must
+      # stay on class(...)[1] (an inherits() test would swallow step into
+      # "line" and silently mis-describe the data).
+      #
+      # GeomStep is also the default geom of `stat_ecdf()`, and a computed
+      # stat is a different plot: StatEcdf returns its rows in input order
+      # (GeomStep only sorts them later, inside draw_panel) and pads them with
+      # -Inf / Inf, so the emitted samples would neither match the drawn
+      # polyline nor carry usable x values. Only an identity stat is claimed
+      # here; anything else keeps returning "unknown" and so keeps the
+      # static-image fallback it had before step support existed.
+      if (geom_class == "GeomStep" && stat_class == "StatIdentity") {
+        return("step")
+      }
+
       # GeomMA comes from tidyquant::geom_ma() and inherits from GeomLine.
       # We treat it as a regular line layer so moving averages overlaid on
       # a candlestick chart are detected and rendered alongside the candles.
