@@ -2,7 +2,7 @@
 
 Names the quantmod masking case when it applies: the bare "create a plot
 first" wording is actively misleading there, because the user *did* draw
-a chart — it just went to quantmod unrecorded.
+a chart - it just went to quantmod unrecorded.
 
 ## Usage
 

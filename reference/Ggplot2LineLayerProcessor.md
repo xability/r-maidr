@@ -1036,8 +1036,8 @@ Delegates to
 [`polyline_layer_position()`](https://r.maidr.ai/reference/polyline_layer_position.md),
 which counts both "line" and "step" layers. `layer_polyline_grobs()`
 skips only the layers that name their grob tree after their geom, and
-`GeomStep` draws through `GeomPath$draw_panel()` — a bare `polylineGrob`
-— so a
+`GeomStep` draws through `GeomPath$draw_panel()` - a bare
+`polylineGrob` - so a
 [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
 sits in that candidate list exactly as a
 [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)

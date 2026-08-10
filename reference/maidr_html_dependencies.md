@@ -7,7 +7,7 @@ controlled by the `use_cdn` parameter:
 
 - If `FALSE` (default): Use local bundled files (works offline)
 
-- If `NULL`: Same as `FALSE` — use local bundled files
+- If `NULL`: Same as `FALSE` - use local bundled files
 
 ## Usage
 

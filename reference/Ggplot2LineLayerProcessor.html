@@ -1090,7 +1090,7 @@ element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
 <p>Delegates to <code><a href="polyline_layer_position.html">polyline_layer_position()</a></code>, which counts both "line" and
 "step" layers. <code>layer_polyline_grobs()</code> skips only the layers that name
 their grob tree after their geom, and <code>GeomStep</code> draws through
-<code>GeomPath$draw_panel()</code> — a bare <code>polylineGrob</code> — so a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_step()</a></code>
+<code>GeomPath$draw_panel()</code> - a bare <code>polylineGrob</code> - so a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_step()</a></code>
 sits in that candidate list exactly as a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> does. Counting
 only "line" layers would therefore index the wrong polyline for <em>both</em>
 layers of a plot that combines the two.</p><div class="section">

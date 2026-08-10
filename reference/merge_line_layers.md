@@ -18,8 +18,8 @@ overlap. The dedupe-and-trim below is kept as a backstop, not as the
 mechanism: it used to be load-bearing, because the generator discovered
 *all* polyline grobs in the panel and handed every one of N line layers
 the same length-N set. What still has to hold after merging is the
-frontend precondition `selectors.length === data.length` — one selector
-per merged series — which is why the trim below stays. There is
+frontend precondition `selectors.length === data.length`, one selector
+per merged series, which is why the trim below stays. There is
 deliberately no pad: a short list fails that precondition and the
 frontend drops the layer's highlight rather than aiming it at the wrong
 curve.
