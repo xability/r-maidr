@@ -17,8 +17,8 @@ The panel gTree, or NULL when it cannot be resolved
 \description{
 Without a panel context this keeps the single-plot behaviour: the cell
 literally named "panel". With one, the panel is addressed by
-`panel_ctx$panel_index` into [collect_gtable_panels()], whose order matches
-[find_patchwork_panels()]. Name matching is only a fallback because
+\code{panel_ctx$panel_index} into \code{\link[=collect_gtable_panels]{collect_gtable_panels()}}, whose order matches
+\code{\link[=find_patchwork_panels]{find_patchwork_panels()}}. Name matching is only a fallback because
 patchwork reuses panel names across nesting levels.
 }
 \keyword{internal}

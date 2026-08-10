@@ -9,29 +9,29 @@ ggplot2 Step Layer Processor
 ggplot2 Step Layer Processor
 }
 \details{
-Processes `geom_step()` layers. A step chart is piecewise constant: the
+Processes \code{geom_step()} layers. A step chart is piecewise constant: the
 value is held across an interval and then jumps, rather than being
 interpolated between samples the way a line implies. The canonical case is
 a hypnogram -- an ordinal sleep stage (Awake / REM / N1 / N2 / N3) against
 time.
 
 Everything about extracting x/y and locating the rendered polyline is the
-same as for a line, so this class inherits `Ggplot2LineLayerProcessor` and
+same as for a line, so this class inherits \code{Ggplot2LineLayerProcessor} and
 adds only what a step layer has that a line layer does not:
 
 \itemize{
-  \item `stepDirection` -- the `hv` / `vh` / `mid` convention the layer was
-    drawn with, emitted as a sibling of `axes` and `data` on the layer.
-  \item a per-point `label` -- the *name* of the ordinal level, so the
-    frontend announces "REM" rather than the numeric level code that
-    encodes it. `y` stays numeric because it drives sonification, braille
-    and the min/max range.
+\item \code{stepDirection} -- the \code{hv} / \code{vh} / \code{mid} convention the layer was
+drawn with, emitted as a sibling of \code{axes} and \code{data} on the layer.
+\item a per-point \code{label} -- the \emph{name} of the ordinal level, so the
+frontend announces "REM" rather than the numeric level code that
+encodes it. \code{y} stays numeric because it drives sonification, braille
+and the min/max range.
 }
 
-One data point is emitted per data *sample*, never one per stairstep
-vertex. `ggplot2` expands the stairsteps inside `GeomStep$draw_panel()`, so
-the rendered polyline carries `2n - 1` vertices (`hv` / `vh`) or `2n`
-(`mid`) for `n` samples; the MAIDR frontend's `StepTrace` maps those
+One data point is emitted per data \emph{sample}, never one per stairstep
+vertex. \code{ggplot2} expands the stairsteps inside \code{GeomStep$draw_panel()}, so
+the rendered polyline carries \verb{2n - 1} vertices (\code{hv} / \code{vh}) or \verb{2n}
+(\code{mid}) for \code{n} samples; the MAIDR frontend's \code{StepTrace} maps those
 vertices back onto the samples. Emitting vertex-level data to "match" the
 polyline would double every level and misreport transitions and run
 lengths.
@@ -141,11 +141,11 @@ List with data, selectors, title, axes, type and stepDirection
 \subsection{Method \code{extract_step_direction()}}{
 Read the step convention this layer was drawn with.
 
-`geom_step(direction = )` is a formal of `GeomStep$draw_panel()`, so
-ggplot2 files it under `layer$geom_params$direction` rather than
-`layer$aes_params` or the layer's mapping. The three accepted values
-(`"hv"`, `"vh"`, `"mid"`) are exactly MAIDR's, so they pass through
-unchanged. `"hv"` is both ggplot2's and MAIDR's default.
+\code{geom_step(direction = )} is a formal of \code{GeomStep$draw_panel()}, so
+ggplot2 files it under \code{layer$geom_params$direction} rather than
+\code{layer$aes_params} or the layer's mapping. The three accepted values
+(\code{"hv"}, \code{"vh"}, \code{"mid"}) are exactly MAIDR's, so they pass through
+unchanged. \code{"hv"} is both ggplot2's and MAIDR's default.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$extract_step_direction(plot)}\if{html}{\out{</div>}}
 }
@@ -159,7 +159,7 @@ unchanged. `"hv"` is both ggplot2's and MAIDR's default.
 }
 \subsection{Returns}{
 One of "hv", "vh", "mid" (defaulting to "hv"), or NULL when the
-  layer cannot be located at all.
+layer cannot be located at all.
 }
 }
 \if{html}{\out{<hr>}}
@@ -196,7 +196,7 @@ geometry -- then attaches the ordinal level name to each point.
 }
 \subsection{Returns}{
 List of series, each a list of points with x, y and optionally
-  z and label
+z and label
 }
 }
 \if{html}{\out{<hr>}}
@@ -206,8 +206,8 @@ List of series, each a list of points with x, y and optionally
 Coerce every point's y to a plain number.
 
 A discrete y aesthetic -- the ordinal level of a hypnogram, and the
-reason this processor exists -- makes `ggplot_build()` return y as a
-`mapped_discrete` vector. That class carries no `asJSON` method, so
+reason this processor exists -- makes \code{ggplot_build()} return y as a
+\code{mapped_discrete} vector. That class carries no \code{asJSON} method, so
 emitting it verbatim aborts payload serialisation with
 "No method asJSON S3 class: mapped_discrete". Stripping the class here
 keeps y a bare number, which is what the wire contract asks for and
@@ -234,14 +234,14 @@ The series list with numeric y values
 Build a numeric-level to level-name lookup for the y
 aesthetic.
 
-For a factor (or character) y aesthetic, `ggplot_build()` replaces the
-level with its numeric position, so `built$data$y` is a level *code*
+For a factor (or character) y aesthetic, \code{ggplot_build()} replaces the
+level with its numeric position, so \code{built$data$y} is a level \emph{code}
 and the name only survives in the original column. The lookup is keyed
 by the built y value and built from the full, unfiltered pair of
 columns, so it stays correct no matter which rows survive NA-dropping
 or panel filtering downstream.
 
-Returns NULL for a plain continuous y, in which case no `label` is
+Returns NULL for a plain continuous y, in which case no \code{label} is
 emitted and the frontend announces the numeric value.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$build_level_lookup(plot, built)}\if{html}{\out{</div>}}
@@ -266,9 +266,9 @@ Named character vector keyed by the built y value, or NULL
 \subsection{Method \code{get_original_y_column()}}{
 Recover the original (untransformed) y column for a layer.
 
-Mirrors `get_original_x_column()`: looks up the y mapping on the layer
-first and then on the plot, and searches the layer's own `data` before
-the plot's. Returns the per-row vector aligned to `built_data` when a
+Mirrors \code{get_original_x_column()}: looks up the y mapping on the layer
+first and then on the plot, and searches the layer's own \code{data} before
+the plot's. Returns the per-row vector aligned to \code{built_data} when a
 simple column reference is found and the lengths match, otherwise NULL.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$get_original_y_column(plot, built_data)}\if{html}{\out{</div>}}
@@ -308,7 +308,7 @@ so the frontend falls back to the numeric announcement for them.
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-The series list with `label` attached where known
+The series list with \code{label} attached where known
 }
 }
 \if{html}{\out{<hr>}}

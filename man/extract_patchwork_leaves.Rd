@@ -13,7 +13,7 @@ extract_patchwork_leaves(node)
 List of leaf ggplot objects
 }
 \description{
-The order matches panel discovery order in [find_patchwork_panels()]
+The order matches panel discovery order in \code{\link[=find_patchwork_panels]{find_patchwork_panels()}}
 (patches first, then the plot carried by the patchwork object itself),
 which is how leaves are paired with panels.
 }

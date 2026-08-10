@@ -14,7 +14,7 @@ detect candlestick layers)}
 }
 \value{
 Modified SVG content (character vector). If any guard
-  fails, returns `svg_content` unchanged.
+fails, returns \code{svg_content} unchanged.
 }
 \description{
 quantmod::chartSeries() draws a right-hand y-axis with a vertical
@@ -23,16 +23,16 @@ On sparse OHLC inputs (few candles spread across the plot region),
 the right-axis vertical line is positioned within the candle area
 and visually overlaps the rightmost candle, reading like a stray
 "axis through the middle" of the chart. This helper removes only
-the `right-axis-line-*` polyline; the tick marks and the price
+the \verb{right-axis-line-*} polyline; the tick marks and the price
 labels themselves are preserved so the chart still communicates
 the y-axis scale visually.
 }
 \details{
 The matched group has an ID of the form
-`graphics-plot-N-right-axis-line-...`; matched by substring with
-`contains(@id, 'right-axis-line-')`.
+\code{graphics-plot-N-right-axis-line-...}; matched by substring with
+\verb{contains(@id, 'right-axis-line-')}.
 
-Safety: no-op when `maidr_data` contains no candlestick layers
+Safety: no-op when \code{maidr_data} contains no candlestick layers
 (ggplot candlestick / non-candlestick plots use different SVG IDs
 and are unaffected), when xml2 is unavailable, when SVG parsing
 fails, or when no matching groups are found.

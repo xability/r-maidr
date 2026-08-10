@@ -20,6 +20,6 @@ Logical vector of length N (TRUE = keep this point)
 }
 \description{
 Uses binary search on epsilon to find the smallest tolerance that
-yields at most `target` retained points.
+yields at most \code{target} retained points.
 }
 \keyword{internal}

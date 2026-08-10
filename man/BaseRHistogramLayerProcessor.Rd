@@ -16,10 +16,13 @@ and selector generation logic.
 \itemize{
 \item \href{#method-BaseRHistogramLayerProcessor-process}{\code{BaseRHistogramLayerProcessor$process()}}
 \item \href{#method-BaseRHistogramLayerProcessor-extract_data}{\code{BaseRHistogramLayerProcessor$extract_data()}}
+\item \href{#method-BaseRHistogramLayerProcessor-recompute_histogram}{\code{BaseRHistogramLayerProcessor$recompute_histogram()}}
+\item \href{#method-BaseRHistogramLayerProcessor-is_frequency}{\code{BaseRHistogramLayerProcessor$is_frequency()}}
 \item \href{#method-BaseRHistogramLayerProcessor-generate_selectors}{\code{BaseRHistogramLayerProcessor$generate_selectors()}}
 \item \href{#method-BaseRHistogramLayerProcessor-find_rect_grobs}{\code{BaseRHistogramLayerProcessor$find_rect_grobs()}}
 \item \href{#method-BaseRHistogramLayerProcessor-generate_selectors_from_grob}{\code{BaseRHistogramLayerProcessor$generate_selectors_from_grob()}}
 \item \href{#method-BaseRHistogramLayerProcessor-extract_axis_titles}{\code{BaseRHistogramLayerProcessor$extract_axis_titles()}}
+\item \href{#method-BaseRHistogramLayerProcessor-frequency_label}{\code{BaseRHistogramLayerProcessor$frequency_label()}}
 \item \href{#method-BaseRHistogramLayerProcessor-extract_main_title}{\code{BaseRHistogramLayerProcessor$extract_main_title()}}
 \item \href{#method-BaseRHistogramLayerProcessor-clone}{\code{BaseRHistogramLayerProcessor$clone()}}
 }
@@ -65,6 +68,24 @@ and selector generation logic.
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-recompute_histogram"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-recompute_histogram}{}}}
+\subsection{Method \code{recompute_histogram()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$recompute_histogram(args)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-is_frequency"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-is_frequency}{}}}
+\subsection{Method \code{is_frequency()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$is_frequency(args, hist_obj = NULL)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-generate_selectors}{}}}
 \subsection{Method \code{generate_selectors()}}{
@@ -100,6 +121,15 @@ and selector generation logic.
 \subsection{Method \code{extract_axis_titles()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-frequency_label"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-frequency_label}{}}}
+\subsection{Method \code{frequency_label()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$frequency_label(args)}\if{html}{\out{</div>}}
 }
 
 }

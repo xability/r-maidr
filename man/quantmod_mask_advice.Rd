@@ -10,7 +10,7 @@ quantmod_mask_advice()
 A single advice string.
 }
 \description{
-Shared by `.onAttach`, the quantmod attach hook and the
+Shared by \code{.onAttach}, the quantmod attach hook and the
 "No Base R plots detected" errors so the wording stays in one place.
 }
 \keyword{internal}

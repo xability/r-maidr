@@ -16,13 +16,13 @@ understand data visualizations through multiple sensory modalities.
 \section{Main Functions}{
 
 \itemize{
-  \item \code{\link{show}}: Display an interactive MAIDR plot in the browser or RStudio Viewer
-  \item \code{\link{save_html}}: Save a plot as a standalone HTML file
-  \item \code{\link{run_example}}: Run interactive example plots
-  \item \code{\link{maidr_on}}: Enable automatic MAIDR interception in RMarkdown
-  \item \code{\link{maidr_off}}: Disable automatic MAIDR interception
-  \item \code{\link{render_maidr}}: Render MAIDR plots in Shiny applications
-  \item \code{\link{maidr_output}}: Create MAIDR output container for Shiny UI
+\item \code{\link{show}}: Display an interactive MAIDR plot in the browser or RStudio Viewer
+\item \code{\link{save_html}}: Save a plot as a standalone HTML file
+\item \code{\link{run_example}}: Run interactive example plots
+\item \code{\link{maidr_on}}: Enable automatic MAIDR interception in RMarkdown
+\item \code{\link{maidr_off}}: Disable automatic MAIDR interception
+\item \code{\link{render_maidr}}: Render MAIDR plots in Shiny applications
+\item \code{\link{maidr_output}}: Create MAIDR output container for Shiny UI
 }
 }
 
@@ -33,42 +33,42 @@ Base R plotting systems:
 
 \strong{ggplot2 plots:}
 \itemize{
-  \item Bar charts (simple, grouped, stacked) - \code{geom_bar()}, \code{geom_col()}
-  \item Pie charts - \code{geom_col()} / \code{geom_bar()} with \code{coord_polar("y")}
-  \item Histograms - \code{geom_histogram()}
-  \item Scatter plots - \code{geom_point()}
-  \item Line plots - \code{geom_line()}
-  \item Step plots - \code{geom_step()}
-  \item Box plots - \code{geom_boxplot()}
-  \item Violin plots - \code{geom_violin()}
-  \item Heat maps - \code{geom_tile()}
-  \item Density/smooth curves - \code{geom_density()}, \code{geom_smooth()}
-  \item Faceted plots - \code{facet_wrap()}, \code{facet_grid()}
-  \item Multi-panel layouts (via 'patchwork' package)
-  \item Multi-layered plot combinations
+\item Bar charts (simple, grouped, stacked) - \code{geom_bar()}, \code{geom_col()}
+\item Pie charts - \code{geom_col()} / \code{geom_bar()} with \code{coord_polar("y")}
+\item Histograms - \code{geom_histogram()}
+\item Scatter plots - \code{geom_point()}
+\item Line plots - \code{geom_line()}
+\item Step plots - \code{geom_step()}
+\item Box plots - \code{geom_boxplot()}
+\item Violin plots - \code{geom_violin()}
+\item Heat maps - \code{geom_tile()}
+\item Density/smooth curves - \code{geom_density()}, \code{geom_smooth()}
+\item Faceted plots - \code{facet_wrap()}, \code{facet_grid()}
+\item Multi-panel layouts (via 'patchwork' package)
+\item Multi-layered plot combinations
 }
 
 \strong{Base R plots:}
 \itemize{
-  \item Bar plots (simple, grouped, stacked) - \code{barplot()}
-  \item Pie charts - \code{pie()}
-  \item Histograms - \code{hist()}
-  \item Scatter and line plots - \code{plot()}, \code{points()}, \code{lines()}
-  \item Step plots - \code{plot(type = "s")}, \code{plot(type = "S")}
-  \item Box plots - \code{boxplot()}
-  \item Heat maps - \code{image()}, \code{heatmap()}
-  \item Multi-panel layouts - \code{par(mfrow)}, \code{par(mfcol)}
+\item Bar plots (simple, grouped, stacked) - \code{barplot()}
+\item Pie charts - \code{pie()}
+\item Histograms - \code{hist()}
+\item Scatter and line plots - \code{plot()}, \code{points()}, \code{lines()}
+\item Step plots - \code{plot(type = "s")}, \code{plot(type = "S")}
+\item Box plots - \code{boxplot()}
+\item Heat maps - \code{image()}, \code{heatmap()}
+\item Multi-panel layouts - \code{par(mfrow)}, \code{par(mfcol)}
 }
 }
 
 \section{Accessibility Features}{
 
 \itemize{
-  \item \strong{Keyboard Navigation}: Use arrow keys to explore data points
-  \item \strong{Screen Reader Support}: ARIA labels and live regions for announcements
-  \item \strong{Sonification}: Audio representation of data patterns
-  \item \strong{Text Summaries}: Automatic statistical descriptions
-  \item \strong{Grid Navigation}: Efficient exploration of scatter plots
+\item \strong{Keyboard Navigation}: Use arrow keys to explore data points
+\item \strong{Screen Reader Support}: ARIA labels and live regions for announcements
+\item \strong{Sonification}: Audio representation of data patterns
+\item \strong{Text Summaries}: Automatic statistical descriptions
+\item \strong{Grid Navigation}: Efficient exploration of scatter plots
 }
 }
 
@@ -76,10 +76,10 @@ Base R plotting systems:
 
 The package integrates seamlessly with:
 \itemize{
-  \item \strong{RStudio}: Direct display in the Viewer pane
-  \item \strong{RMarkdown/Quarto}: Automatic rendering with \code{maidr_on()}
-  \item \strong{Shiny}: Interactive plots in Shiny apps via \code{render_maidr()}
-  \item \strong{Standalone HTML}: Export plots for sharing with \code{save_html()}
+\item \strong{RStudio}: Direct display in the Viewer pane
+\item \strong{RMarkdown/Quarto}: Automatic rendering with \code{maidr_on()}
+\item \strong{Shiny}: Interactive plots in Shiny apps via \code{render_maidr()}
+\item \strong{Standalone HTML}: Export plots for sharing with \code{save_html()}
 }
 }
 
@@ -116,11 +116,11 @@ show()
 \section{Learn More}{
 
 \itemize{
-  \item Package website: \url{https://r.maidr.ai/}
-  \item MAIDR project: \url{https://maidr.ai/}
-  \item GitHub repository: \url{https://github.com/xability/r-maidr}
-  \item Get started: \code{vignette("getting-started", package = "maidr")}
-  \item Shiny integration: \code{vignette("shiny-integration", package = "maidr")}
+\item Package website: \url{https://r.maidr.ai/}
+\item MAIDR project: \url{https://maidr.ai/}
+\item GitHub repository: \url{https://github.com/xability/r-maidr}
+\item Get started: \code{vignette("getting-started", package = "maidr")}
+\item Shiny integration: \code{vignette("shiny-integration", package = "maidr")}
 }
 }
 

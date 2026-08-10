@@ -5,9 +5,11 @@
 \title{Base R Smooth/Density Layer Processor}
 \description{
 Processes Base R smooth curves including:
-- Density plots: plot(density()) or lines(density())
-- Loess smooth: lines(loess.smooth()) or lines(predict(loess))
-- Smooth splines: lines(smooth.spline())
+\itemize{
+\item Density plots: plot(density()) or lines(density())
+\item Loess smooth: lines(loess.smooth()) or lines(predict(loess))
+\item Smooth splines: lines(smooth.spline())
+}
 }
 \keyword{internal}
 \section{Super class}{

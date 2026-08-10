@@ -18,6 +18,7 @@ and generating selectors for boxplot components.
 \item \href{#method-BaseRBoxplotLayerProcessor-extract_data}{\code{BaseRBoxplotLayerProcessor$extract_data()}}
 \item \href{#method-BaseRBoxplotLayerProcessor-generate_selectors}{\code{BaseRBoxplotLayerProcessor$generate_selectors()}}
 \item \href{#method-BaseRBoxplotLayerProcessor-extract_axis_titles}{\code{BaseRBoxplotLayerProcessor$extract_axis_titles()}}
+\item \href{#method-BaseRBoxplotLayerProcessor-extract_formula_labels}{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}
 \item \href{#method-BaseRBoxplotLayerProcessor-extract_main_title}{\code{BaseRBoxplotLayerProcessor$extract_main_title()}}
 \item \href{#method-BaseRBoxplotLayerProcessor-determine_orientation}{\code{BaseRBoxplotLayerProcessor$determine_orientation()}}
 \item \href{#method-BaseRBoxplotLayerProcessor-clone}{\code{BaseRBoxplotLayerProcessor$clone()}}
@@ -82,6 +83,15 @@ and generating selectors for boxplot components.
 \subsection{Method \code{extract_axis_titles()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$extract_axis_titles(layer_info)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_formula_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_formula_labels}{}}}
+\subsection{Method \code{extract_formula_labels()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args)}\if{html}{\out{</div>}}
 }
 
 }

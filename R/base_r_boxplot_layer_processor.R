@@ -312,15 +312,86 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
 
       selectors
     },
+    # Extract the axis titles for this layer
+    #
+    # `boxplot()` records no title unless the author wrote one, but the
+    # formula method derives both from the formula itself and draws them, so
+    # a `y ~ g` call already names its axes: the response on the value axis
+    # and the grouping terms on the category axis. Everything else falls back
+    # to what a box plot always shows -- groups against their distributions.
+    # `horizontal = TRUE` swaps which visual axis is which, exactly as
+    # boxplot.formula()'s own defaults do.
+    #
+    # @param layer_info Layer information
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
-      }
       args <- layer_info$plot_call$args
+      horizontal <- self$determine_orientation(layer_info) == "horz"
+
+      formula_labels <- self$extract_formula_labels(args)
+      if (is.null(formula_labels)) {
+        return(base_r_categorical_axes(args, horizontal = horizontal))
+      }
+
       build_axes(
-        x = if (!is.null(args$xlab)) args$xlab else "",
-        y = if (!is.null(args$ylab)) args$ylab else ""
+        x = recorded_axis_label(
+          args, "xlab",
+          if (horizontal) formula_labels$response else formula_labels$groups
+        ),
+        y = recorded_axis_label(
+          args, "ylab",
+          if (horizontal) formula_labels$groups else formula_labels$response
+        )
       )
+    },
+
+    # Read the axis titles boxplot.formula() derives from its formula
+    #
+    # `boxplot.formula()` builds them out of the model frame's column names:
+    # the response column names the value axis and the remaining columns,
+    # joined with " : ", name the category axis. Building the same model
+    # frame reproduces the drawn titles for expressions (`log(mpg) ~ cyl`)
+    # and for `.` alike, where deparsing the formula's terms would not.
+    #
+    # @param args Recorded argument list
+    # @return List with `response` and `groups`, or NULL when this call is
+    #   not the formula method or the model frame cannot be rebuilt
+    extract_formula_labels = function(args) {
+      # boxplot()'s formula method names its first formal `formula`, and
+      # match_recorded_args() leaves the dispatch argument as the author
+      # wrote it, so a positional call records it unnamed.
+      formula <- args[["formula"]]
+      if (is.null(formula) && length(args) > 0) {
+        formula <- args[[1]]
+      }
+      if (!inherits(formula, "formula") || length(formula) != 3L) {
+        return(NULL)
+      }
+
+      model_frame <- tryCatch(
+        stats::model.frame(formula, data = args[["data"]]),
+        error = function(e) NULL
+      )
+      if (is.null(model_frame)) {
+        return(NULL)
+      }
+
+      response <- attr(attr(model_frame, "terms"), "response")
+      if (is.null(response) || response < 1) {
+        return(NULL)
+      }
+
+      labels <- list(
+        response = names(model_frame)[response],
+        groups = paste(names(model_frame)[-response], collapse = " : ")
+      )
+      # A formula with no grouping term (`y ~ 1`) names only one axis, which
+      # is no better than the generic pair.
+      if (!nzchar(labels$response) || !nzchar(labels$groups)) {
+        return(NULL)
+      }
+
+      labels
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

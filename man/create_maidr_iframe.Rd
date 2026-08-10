@@ -21,8 +21,8 @@ create_maidr_iframe(
 
 \item{plot_id}{Unique identifier for the plot}
 
-\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-If `NULL` (default), auto-detect based on internet availability.}
+\item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE}, use bundled files.
+If \code{NULL} (default), auto-detect based on internet availability.}
 }
 \value{
 Character string of iframe HTML

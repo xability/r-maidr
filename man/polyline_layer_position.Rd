@@ -9,19 +9,19 @@ polyline_layer_position(plot, layer_index)
 \arguments{
 \item{plot}{The ggplot2 object.}
 
-\item{layer_index}{Index of the layer of interest in `plot$layers`.}
+\item{layer_index}{Index of the layer of interest in \code{plot$layers}.}
 }
 \value{
 The 1-based position, or NULL when the layer produces no polyline
-  or registry-based detection fails.
+or registry-based detection fails.
 }
 \description{
-`layer_polyline_grobs()` returns every polyline in the panel that no
+\code{layer_polyline_grobs()} returns every polyline in the panel that no
 geom-named grob tree claims, so the index used to pick one out has to be
 counted over the same population.
-`geom_line()` / `geom_path()` / `tidyquant::geom_ma()` (detected as
-`"line"`) and `geom_step()` (detected as `"step"`) each render one polyline
-per layer, so both types count. Counting only `"line"` layers would index
-the wrong polyline for *both* layers of a plot that combines the two.
+\code{geom_line()} / \code{geom_path()} / \code{tidyquant::geom_ma()} (detected as
+\code{"line"}) and \code{geom_step()} (detected as \code{"step"}) each render one polyline
+per layer, so both types count. Counting only \code{"line"} layers would index
+the wrong polyline for \emph{both} layers of a plot that combines the two.
 }
 \keyword{internal}

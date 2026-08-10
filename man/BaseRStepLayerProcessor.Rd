@@ -9,17 +9,17 @@ Base R Step Plot Layer Processor
 Base R Step Plot Layer Processor
 }
 \details{
-Processes Base R stairstep layers -- `plot(x, y, type = "s")`,
-`plot(x, y, type = "S")` and the `lines()` equivalents. A step chart is
+Processes Base R stairstep layers -- \code{plot(x, y, type = "s")},
+\code{plot(x, y, type = "S")} and the \code{lines()} equivalents. A step chart is
 piecewise constant: the value is held across an interval and then jumps,
 rather than being interpolated between samples the way a line implies.
 
 Data extraction, axis titles, the main title and polyline selector
 generation are identical to a line layer, so this class inherits
-`BaseRLineLayerProcessor` and adds only the step-specific reporting: the
-layer `type` and the `stepDirection` convention the call requested.
+\code{BaseRLineLayerProcessor} and adds only the step-specific reporting: the
+layer \code{type} and the \code{stepDirection} convention the call requested.
 
-One data point is emitted per data *sample*, never one per stairstep
+One data point is emitted per data \emph{sample}, never one per stairstep
 vertex -- the MAIDR frontend maps the rendered polyline's corner vertices
 back onto the samples itself.
 }
@@ -116,10 +116,10 @@ List with data, selectors, type, title, axes and stepDirection
 \subsection{Method \code{extract_step_direction()}}{
 Read the step convention the recorded call requested.
 
-`type = "s"` draws the horizontal segment first (MAIDR's `"hv"`) and
-`type = "S"` draws the vertical segment first (`"vh"`). The two are not
-interchangeable, so an unrecognised or absent `type` yields NULL and
-the caller omits `stepDirection` rather than guessing.
+\code{type = "s"} draws the horizontal segment first (MAIDR's \code{"hv"}) and
+\code{type = "S"} draws the vertical segment first (\code{"vh"}). The two are not
+interchangeable, so an unrecognised or absent \code{type} yields NULL and
+the caller omits \code{stepDirection} rather than guessing.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRStepLayerProcessor$extract_step_direction(layer_info)}\if{html}{\out{</div>}}
 }
@@ -141,12 +141,12 @@ the caller omits `stepDirection` rather than guessing.
 \subsection{Method \code{selector_grob_type()}}{
 Draw a step layer's selectors from the stairstep grobs.
 
-gridGraphics names a grob after the `type` letter that drew it, so a
-stairstep lands under `graphics-plot-N-step-M` (`type = "s"`) or
-`graphics-plot-N-Step-M` (`type = "S"`) -- never under the `-lines-`
+gridGraphics names a grob after the \code{type} letter that drew it, so a
+stairstep lands under \code{graphics-plot-N-step-M} (\code{type = "s"}) or
+\code{graphics-plot-N-Step-M} (\code{type = "S"}) -- never under the \verb{-lines-}
 name the inherited line search looks for. Without this override a Base
 R step layer emits zero selectors, and the frontend's
-`selectors.length === series count` precondition then drops the
+\verb{selectors.length === series count} precondition then drops the
 layer's highlighting entirely.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{BaseRStepLayerProcessor$selector_grob_type(layer_info)}\if{html}{\out{</div>}}

@@ -24,8 +24,8 @@ contract.}
 }
 \value{
 list with \code{aes} (the winning spelling variants, or NULL when
-  nothing is mapped) and \code{column} (the mapped column name, or
-  "group" as a fallback)
+nothing is mapped) and \code{column} (the mapped column name, or
+"group" as a fallback)
 }
 \description{
 Mirrors ggplot2's precedence: the layer's own mapping wins over the

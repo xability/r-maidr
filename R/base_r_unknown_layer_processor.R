@@ -23,7 +23,11 @@ BaseRUnknownLayerProcessor <- R6::R6Class(
         selectors = selectors,
         type = "unknown",
         title = "Unknown Plot Type",
-        axes = build_axes(x = "X", y = "Y")
+        # Nothing is known about this layer, its axes included. Emitting the
+        # generic "X"/"Y" here would only duplicate the renderer's own
+        # fallback, and would do it from the side that cannot tell whether
+        # something better exists.
+        axes = build_axes()
       )
     },
     needs_reordering = function() {

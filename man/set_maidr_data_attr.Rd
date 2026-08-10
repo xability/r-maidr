@@ -15,6 +15,6 @@ set_maidr_data_attr(svg_doc, maidr_data)
 NULL (invisible)
 }
 \description{
-Mutates `svg_doc` in place.
+Mutates \code{svg_doc} in place.
 }
 \keyword{internal}

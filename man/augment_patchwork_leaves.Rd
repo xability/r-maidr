@@ -13,9 +13,9 @@ augment_patchwork_leaves(node)
 The same structure with each leaf augmented
 }
 \description{
-Mirrors [extract_patchwork_leaves()]'s traversal so the augmented tree has
+Mirrors \code{\link[=extract_patchwork_leaves]{extract_patchwork_leaves()}}'s traversal so the augmented tree has
 the same leaf order. The result must be used for BOTH
-`patchwork::patchworkGrob()` and [process_patchwork_plot_data()]: grob names
+\code{patchwork::patchworkGrob()} and \code{\link[=process_patchwork_plot_data]{process_patchwork_plot_data()}}: grob names
 come from a global counter, so selectors computed against one build cannot
 resolve against another.
 }

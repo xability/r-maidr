@@ -2,20 +2,20 @@
 % Please edit documentation in R/base_r_adapter.R
 \name{base_r_step_direction}
 \alias{base_r_step_direction}
-\title{Map a Base R `type` argument onto a MAIDR step direction}
+\title{Map a Base R \code{type} argument onto a MAIDR step direction}
 \usage{
 base_r_step_direction(plot_type)
 }
 \arguments{
-\item{plot_type}{The `type` argument recorded from the plot call.}
+\item{plot_type}{The \code{type} argument recorded from the plot call.}
 }
 \value{
-`"hv"`, `"vh"`, or NULL.
+\code{"hv"}, \code{"vh"}, or NULL.
 }
 \description{
-`type = "s"` draws the horizontal segment first, which is MAIDR's `"hv"`;
-`type = "S"` draws the vertical segment first, which is `"vh"`. Any other
-value returns NULL so the caller can omit `stepDirection` rather than
+\code{type = "s"} draws the horizontal segment first, which is MAIDR's \code{"hv"};
+\code{type = "S"} draws the vertical segment first, which is \code{"vh"}. Any other
+value returns NULL so the caller can omit \code{stepDirection} rather than
 assert a convention the call never asked for.
 }
 \keyword{internal}

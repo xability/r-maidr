@@ -119,21 +119,21 @@ Same as the original Base R function (invisibly when applicable).
 MAIDR wraps standard Base R graphics functions to intercept plot calls
 and enable accessible, interactive visualizations. When the maidr package
 is loaded, these wrappers automatically replace the standard functions
-on the search path, recording plot data so that [show()] can render
+on the search path, recording plot data so that \code{\link[=show]{show()}} can render
 accessible versions.
 
 The wrappers are transparent: they call the original graphics functions
-and return the same results. When patching is disabled (via [maidr_off()]),
+and return the same results. When patching is disabled (via \code{\link[=maidr_off]{maidr_off()}}),
 they pass through directly to the originals with no overhead.
 }
 \details{
 These stub definitions are overwritten during package loading by the
-actual wrapper implementations created in [initialize_base_r_patching()].
+actual wrapper implementations created in \code{\link[=initialize_base_r_patching]{initialize_base_r_patching()}}.
 They exist here solely to generate the necessary NAMESPACE exports
 via roxygen2.
 }
 \seealso{
-[show()] for displaying accessible plots, [maidr_on()],
-  [maidr_off()] for controlling patching
+\code{\link[=show]{show()}} for displaying accessible plots, \code{\link[=maidr_on]{maidr_on()}},
+\code{\link[=maidr_off]{maidr_off()}} for controlling patching
 }
 \keyword{internal}

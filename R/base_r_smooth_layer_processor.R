@@ -124,29 +124,40 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
 
       list(selector)
     },
+    # Extract the axis titles for this layer
+    #
+    # The x axis holds whatever variable was smoothed, which the recorded
+    # arguments no longer name, so it carries no default. The y axis does
+    # when the curve came from `density()`: that estimate is a density, and
+    # plot.density() prints exactly that word.
+    #
+    # @param layer_info Layer information
+    # @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
+        return(build_axes())
       }
+
+      args <- layer_info$plot_call$args
+      is_density <- length(args) > 0 && inherits(args[[1]], "density")
+      y_default <- if (is_density) "Density" else NULL
 
       # For smooth layers, get axis labels from the HIGH-level call (plot/hist) in the same group
       # since lines() doesn't have xlab/ylab parameters
       group <- layer_info$group
       if (!is.null(group) && !is.null(group$high_call)) {
         high_args <- group$high_call$args
-        x_title <- if (!is.null(high_args$xlab)) high_args$xlab else ""
-        y_title <- if (!is.null(high_args$ylab)) high_args$ylab else ""
-        return(build_axes(x = x_title, y = y_title))
+        return(build_axes(
+          x = recorded_axis_label(high_args, "xlab"),
+          y = recorded_axis_label(high_args, "ylab", y_default)
+        ))
       }
 
       # Fallback to current layer args (for standalone smooth plots)
-      plot_call <- layer_info$plot_call
-      args <- plot_call$args
-
-      x_title <- if (!is.null(args$xlab)) args$xlab else ""
-      y_title <- if (!is.null(args$ylab)) args$ylab else ""
-
-      build_axes(x = x_title, y = y_title)
+      build_axes(
+        x = recorded_axis_label(args, "xlab"),
+        y = recorded_axis_label(args, "ylab", y_default)
+      )
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

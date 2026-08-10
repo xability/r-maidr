@@ -2,20 +2,20 @@
 % Please edit documentation in R/base_r_adapter.R
 \name{is_step_plot_type}
 \alias{is_step_plot_type}
-\title{Does a Base R `type` argument request a stairstep?}
+\title{Does a Base R \code{type} argument request a stairstep?}
 \usage{
 is_step_plot_type(plot_type)
 }
 \arguments{
-\item{plot_type}{The `type` argument recorded from the plot call (may be
+\item{plot_type}{The \code{type} argument recorded from the plot call (may be
 NULL when the caller did not pass one).}
 }
 \value{
-`TRUE` when `plot_type` is `"s"` or `"S"`, otherwise `FALSE`.
+\code{TRUE} when \code{plot_type} is \code{"s"} or \code{"S"}, otherwise \code{FALSE}.
 }
 \description{
-`graphics::plot()` and `graphics::lines()` draw stairsteps for
-`type = "s"` (horizontal segment first) and `type = "S"` (vertical segment
+\code{graphics::plot()} and \code{graphics::lines()} draw stairsteps for
+\code{type = "s"} (horizontal segment first) and \code{type = "S"} (vertical segment
 first). The comparison is case-sensitive because those two letters mean
 different things.
 }

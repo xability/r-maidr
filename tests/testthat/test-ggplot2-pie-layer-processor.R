@@ -686,3 +686,57 @@ test_that("a rendered ggplot2 pie carries the flat wire format", {
   )
   testthat::expect_length(nodes, 3L)
 })
+
+# A negative datum is stacked below the baseline, so the segment's extent is
+# its magnitude and the sign lives only in which side of zero it sits on.
+# Reporting the extent announced a slice entered as -40 as `40`, and computed
+# its share against a total that had swallowed it. The renderer treats a
+# negative slice as a gap; laundering the sign here left that nothing to catch.
+
+test_that("a negative slice keeps its sign", {
+  df <- data.frame(f = c("A", "B", "C"), v = c(60, -40, 30))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = v, fill = f)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+
+  data <- Ggplot2PieLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  expect_equal(vapply(data, function(pt) pt$y, numeric(1)), c(60, -40, 30))
+})
+
+test_that("an all-positive pie is unchanged", {
+  df <- data.frame(f = c("A", "B", "C"), v = c(60, 40, 30))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = v, fill = f)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+
+  data <- Ggplot2PieLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  expect_equal(vapply(data, function(pt) pt$y, numeric(1)), c(60, 40, 30))
+})
+
+test_that("a zero slice is not given a sign", {
+  # ymin == ymax == 0 for a zero datum, so a test on `ymin < 0` alone would
+  # be fine here but `ymax <= 0` alone would wrongly negate it.
+  df <- data.frame(f = c("A", "B", "C"), v = c(60, 0, 30))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = v, fill = f)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+
+  data <- Ggplot2PieLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  expect_equal(vapply(data, function(pt) pt$y, numeric(1)), c(60, 0, 30))
+})
+
+test_that("the negative reaches the emitted payload, not just extract_data", {
+  df <- data.frame(f = c("A", "B", "C"), v = c(60, -40, 30))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = v, fill = f)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+  file <- tempfile(fileext = ".html")
+  save_html(p, file = file)
+
+  html <- paste(readLines(file, warn = FALSE), collapse = "")
+
+  expect_match(html, "-40")
+})

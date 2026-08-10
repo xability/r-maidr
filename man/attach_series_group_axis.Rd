@@ -32,7 +32,7 @@ The axes list, with z added when the layer is grouped
 }
 \description{
 A grouped layer emits a per-series \code{z} value (the group's name), and
-MAIDR announces it as "<z label> is <z value>". Without a z label the
+MAIDR announces it as "\if{html}{\out{<z label>}} is \if{html}{\out{<z value>}}". Without a z label the
 frontend falls back to the generic word "Group", losing the legend title the
 plot actually shows. Single-series layers emit no z value at all, so they
 get no z label either.

@@ -213,9 +213,13 @@ test_that("BaseRHeatmapLayerProcessor extract_axis_titles() works", {
   testthat::expect_equal(axes$z$label, "value") # Default z label
 })
 
-test_that("BaseRHeatmapLayerProcessor extract_axis_titles() handles defaults", {
+test_that("BaseRHeatmapLayerProcessor extract_axis_titles() leaves image() axes unnamed", {
+  # image(x, y, z) puts the caller's own coordinates on the axes, so nothing
+  # about the call establishes what they hold. The axes are omitted rather
+  # than blanked, which leaves the generic to the renderer.
   layer_info <- list(
     index = 1,
+    function_name = "image",
     plot_call = list(
       function_name = "image",
       args = structure(list(matrix(1:4, 2, 2)), names = "")
@@ -225,9 +229,46 @@ test_that("BaseRHeatmapLayerProcessor extract_axis_titles() handles defaults", {
   processor <- maidr:::BaseRHeatmapLayerProcessor$new(layer_info)
   axes <- processor$extract_axis_titles(layer_info)
 
-  testthat::expect_equal(axes$x$label, "")
-  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_null(axes$x)
+  testthat::expect_null(axes$y)
   testthat::expect_equal(axes$z$label, "value")
+})
+
+test_that("BaseRHeatmapLayerProcessor names the dimensions heatmap() draws", {
+  # heatmap() lays a matrix out one way round only: columns along x, rows up
+  # the y axis. Neither is a guess about the data.
+  layer_info <- list(
+    index = 1,
+    function_name = "heatmap",
+    plot_call = list(
+      function_name = "heatmap",
+      args = list(matrix(1:4, 2, 2))
+    )
+  )
+
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  testthat::expect_equal(axes$x$label, "Columns")
+  testthat::expect_equal(axes$y$label, "Rows")
+  testthat::expect_equal(axes$z$label, "value")
+})
+
+test_that("BaseRHeatmapLayerProcessor lets a heatmap() caller's labels win", {
+  layer_info <- list(
+    index = 1,
+    function_name = "heatmap",
+    plot_call = list(
+      function_name = "heatmap",
+      args = list(matrix(1:4, 2, 2), xlab = "Samples", ylab = "Genes")
+    )
+  )
+
+  processor <- maidr:::BaseRHeatmapLayerProcessor$new(layer_info)
+  axes <- processor$extract_axis_titles(layer_info)
+
+  testthat::expect_equal(axes$x$label, "Samples")
+  testthat::expect_equal(axes$y$label, "Genes")
 })
 
 test_that("BaseRHeatmapLayerProcessor extract_main_title() works", {

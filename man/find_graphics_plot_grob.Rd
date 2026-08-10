@@ -23,5 +23,5 @@ Find grob by element type pattern
 }
 \details{
 Searches recursively through a grob tree to find a grob whose name matches
-the pattern: graphics-plot-<number>-<element_type>-<number>
+the pattern: graphics-plot-\if{html}{\out{<number>}}-<element_type>-\if{html}{\out{<number>}}
 }

@@ -8,6 +8,6 @@ register_ggplot2_print_method()
 }
 \description{
 Stores the original ggplot2 print method and registers MAIDR's version.
-Called during `.onLoad()`.
+Called during \code{.onLoad()}.
 }
 \keyword{internal}

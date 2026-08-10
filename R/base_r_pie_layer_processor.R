@@ -119,7 +119,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
     #' @description Generate one selector per wedge, index-aligned to the data
     #' @param layer_info Layer information
     #' @param gt Grob tree to search
-    #' @param extracted_data Points from [extract_data()], used for the count
+    #' @param extracted_data Points from `extract_data()`, used for the count
     #' @return List of CSS selector strings, one per slice
     generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       n_slices <- length(extracted_data)
@@ -195,19 +195,14 @@ BaseRPieLayerProcessor <- R6::R6Class(
     #' @description Extract the axis titles for this layer
     #'
     #' x names what the slice labels mean, y what their magnitudes measure.
+    #' `pie()` records neither unless the author wrote one, and a pie always
+    #' holds labelled categories against their magnitudes, so the defaults
+    #' say that much rather than leaving the axes nameless.
     #'
     #' @param layer_info Layer information
     #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(build_axes(x = "", y = ""))
-      }
-
-      args <- layer_info$plot_call$args
-      build_axes(
-        x = if (!is.null(args$xlab)) args$xlab else "",
-        y = if (!is.null(args$ylab)) args$ylab else ""
-      )
+      base_r_categorical_axes(layer_info$plot_call$args)
     },
 
     #' @description Extract the main title for this layer

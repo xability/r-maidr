@@ -10,13 +10,13 @@ heatmap_applies_revc(args)
 \item{args}{Recorded heatmap() arguments}
 }
 \value{
-TRUE when `revC` applies, i.e. the drawn rows read top-down
+TRUE when \code{revC} applies, i.e. the drawn rows read top-down
 }
 \description{
-`heatmap()` normally puts reordered row 1 at the bottom of the y axis, but
-its `revC` argument flips the drawing so row 1 lands at the top. `revC` is
-not part of the ordering `heatmap()` returns, and it defaults to
-`identical(Colv, "Rowv")` -- which is TRUE for every `symm = TRUE` call,
-since `Colv` itself defaults to `"Rowv"` there.
+\code{heatmap()} normally puts reordered row 1 at the bottom of the y axis, but
+its \code{revC} argument flips the drawing so row 1 lands at the top. \code{revC} is
+not part of the ordering \code{heatmap()} returns, and it defaults to
+\code{identical(Colv, "Rowv")} -- which is TRUE for every \code{symm = TRUE} call,
+since \code{Colv} itself defaults to \code{"Rowv"} there.
 }
 \keyword{internal}

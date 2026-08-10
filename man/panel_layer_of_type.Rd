@@ -2,11 +2,11 @@
 % Please edit documentation in R/ggplot2_patchwork_utils.R
 \name{panel_layer_of_type}
 \alias{panel_layer_of_type}
-\title{Return the (first) layer in `panel` whose type matches `type`}
+\title{Return the (first) layer in \code{panel} whose type matches \code{type}}
 \usage{
 panel_layer_of_type(panel, type)
 }
 \description{
-Return the (first) layer in `panel` whose type matches `type`
+Return the (first) layer in \code{panel} whose type matches \code{type}
 }
 \keyword{internal}

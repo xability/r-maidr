@@ -3,7 +3,7 @@
 \name{warn_chartseries_ta_unsupported}
 \alias{warn_chartseries_ta_unsupported}
 \title{Emit a one-time warning when quantmod::chartSeries() is called with a
-non-NULL `TA` argument (e.g. `TA = "addVo()"`).}
+non-NULL \code{TA} argument (e.g. \code{TA = "addVo()"}).}
 \usage{
 warn_chartseries_ta_unsupported()
 }

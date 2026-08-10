@@ -14,28 +14,29 @@ match_recorded_args(function_name, definition, args)
 \item{args}{Recorded argument list of evaluated values}
 }
 \value{
-`args` with the names R matched, in the recorded order
+\code{args} with the names R matched, in the recorded order
 }
 \description{
-A wrapper declared `function(...)` sees only the names the user typed, so
-`hist(x, 20)` records an unnamed `20` and every processor asking for
-`args[["breaks"]]` comes up empty. Running the recorded arguments through
-`match.call()` against the definition R actually dispatched to restores
+A wrapper declared \verb{function(...)} sees only the names the user typed, so
+\code{hist(x, 20)} records an unnamed \code{20} and every processor asking for
+\code{args[["breaks"]]} comes up empty. Running the recorded arguments through
+\code{match.call()} against the definition R actually dispatched to restores
 the names R itself assigned, once, for every processor.
 }
 \details{
 Two properties are preserved deliberately:
-
-* **Order.** `match.call()` reorders arguments into formal order; the
-  recorded list keeps the user's order and only gains names. Replay does
-  `do.call()`, which honours names regardless of position, while
-  `apply_barplot_sorting()` and friends still find the height in slot 1.
-* **The dispatch argument stays exactly as written.** S3 dispatch happens
-  on the first argument of the *generic*, and methods are free to rename
-  it: `plot.formula()` calls it `formula`, not `x`. Naming a positional
-  first argument would therefore break replay in one direction or the
-  other (`plot(x = mpg ~ wt)` never reaches `plot.formula()`, and
-  `plot(formula = ...)` never satisfies the generic). Leaving it untouched
-  makes the replayed call dispatch byte-identically to the user's.
+\itemize{
+\item \strong{Order.} \code{match.call()} reorders arguments into formal order; the
+recorded list keeps the user's order and only gains names. Replay does
+\code{do.call()}, which honours names regardless of position, while
+\code{apply_barplot_sorting()} and friends still find the height in slot 1.
+\item \strong{The dispatch argument stays exactly as written.} S3 dispatch happens
+on the first argument of the \emph{generic}, and methods are free to rename
+it: \code{plot.formula()} calls it \code{formula}, not \code{x}. Naming a positional
+first argument would therefore break replay in one direction or the
+other (\code{plot(x = mpg ~ wt)} never reaches \code{plot.formula()}, and
+\code{plot(formula = ...)} never satisfies the generic). Leaving it untouched
+makes the replayed call dispatch byte-identically to the user's.
+}
 }
 \keyword{internal}

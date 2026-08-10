@@ -90,8 +90,9 @@ test_that("BaseRPieLayerProcessor handles NULL layer_info", {
 
   testthat::expect_length(processor$extract_data(NULL), 0L)
   testthat::expect_equal(processor$extract_main_title(NULL), "")
-  testthat::expect_equal(processor$extract_axis_titles(NULL)$x$label, "")
-  testthat::expect_equal(processor$extract_axis_titles(NULL)$y$label, "")
+  # What a pie's axes hold is a property of the chart type, not of the call.
+  testthat::expect_equal(processor$extract_axis_titles(NULL)$x$label, "Category")
+  testthat::expect_equal(processor$extract_axis_titles(NULL)$y$label, "Value")
 })
 
 test_that("BaseRPieLayerProcessor handles a missing or non-numeric x", {
@@ -186,15 +187,37 @@ test_that("BaseRPieLayerProcessor resolves a named x argument", {
 })
 
 test_that("BaseRPieLayerProcessor defaults its axis titles and main title", {
+  # pie() writes no axis title, so an author who wrote none leaves both
+  # nameless. A pie always holds labelled categories against their
+  # magnitudes, so that is what the defaults say -- the words py-maidr's
+  # pie chart uses too.
   info <- pie_layer_info(c(1, 2))
   processor <- maidr:::BaseRPieLayerProcessor$new(info)
 
   axes <- processor$extract_axis_titles(info)
 
   testthat::expect_named(axes, c("x", "y"))
-  testthat::expect_equal(axes$x$label, "")
-  testthat::expect_equal(axes$y$label, "")
+  testthat::expect_equal(axes$x$label, "Category")
+  testthat::expect_equal(axes$y$label, "Value")
   testthat::expect_equal(processor$extract_main_title(info), "")
+})
+
+test_that("BaseRPieLayerProcessor lets an author's axis titles win", {
+  info <- pie_layer_info(c(1, 2), xlab = "Fruit", ylab = "Units")
+  axes <- maidr:::BaseRPieLayerProcessor$new(info)$extract_axis_titles(info)
+
+  testthat::expect_equal(axes$x$label, "Fruit")
+  testthat::expect_equal(axes$y$label, "Units")
+})
+
+test_that("BaseRPieLayerProcessor treats a blank axis title as unwritten", {
+  # pie(xlab = "") draws no title at all, so the default is no less true
+  # than it is for a call that omitted the argument.
+  info <- pie_layer_info(c(1, 2), xlab = "", ylab = "")
+  axes <- maidr:::BaseRPieLayerProcessor$new(info)$extract_axis_titles(info)
+
+  testthat::expect_equal(axes$x$label, "Category")
+  testthat::expect_equal(axes$y$label, "Value")
 })
 
 # ==============================================================================

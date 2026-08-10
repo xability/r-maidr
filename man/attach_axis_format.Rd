@@ -4,7 +4,7 @@
 \alias{attach_axis_format}
 \title{Attach a format object to a specific axis}
 \usage{
-attach_axis_format(axes, which, format_obj, default_label = "")
+attach_axis_format(axes, which, format_obj, default_label = NULL)
 }
 \arguments{
 \item{axes}{Canonical axes list}
@@ -13,7 +13,10 @@ attach_axis_format(axes, which, format_obj, default_label = "")
 
 \item{format_obj}{AxisFormat list (or NULL)}
 
-\item{default_label}{Label to use if the axis slot is being created}
+\item{default_label}{Label to use if the axis slot is being created. NULL
+(the default) creates the slot without one, so attaching a format to an
+axis whose processor had no title to give does not put an empty label
+back in front of the renderer's generic.}
 }
 \value{
 The mutated axes list

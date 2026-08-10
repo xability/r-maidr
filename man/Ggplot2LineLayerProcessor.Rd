@@ -5,8 +5,10 @@
 \title{Final Line Layer Processor - Uses Actual SVG Structure}
 \description{
 Processes line plot layers using the actual gridSVG structure discovered:
-- Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
-- Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
+\itemize{
+\item Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
+\item Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
+}
 }
 \keyword{internal}
 \section{Super class}{
@@ -187,8 +189,8 @@ A line has no fill, so only the colour aesthetic is probed.
 }
 \subsection{Returns}{
 list with \code{aes} (aesthetic spelling variants, or NULL when
-  nothing is mapped) and \code{column} (the mapped column name, or
-  "group" as a fallback)
+nothing is mapped) and \code{column} (the mapped column name, or
+"group" as a fallback)
 }
 }
 \if{html}{\out{<hr>}}
@@ -196,16 +198,16 @@ list with \code{aes} (aesthetic spelling variants, or NULL when
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-extract_layer_axes}{}}}
 \subsection{Method \code{extract_layer_axes()}}{
 Extract axes labels for line layers, with a special case for
-moving-average geoms (e.g. `tidyquant::geom_ma`).
+moving-average geoms (e.g. \code{tidyquant::geom_ma}).
 
-By default the parent `LayerProcessor$extract_layer_axes()` reads the
+By default the parent \code{LayerProcessor$extract_layer_axes()} reads the
 y-label from the layer's aesthetic mapping. For a moving-average
-overlay typically written as `geom_ma(aes(y = close), ma_fun = SMA, ...)`,
-this yields the literal input-column name `"close"`, which is misleading:
+overlay typically written as \code{geom_ma(aes(y = close), ma_fun = SMA, ...)},
+this yields the literal input-column name \code{"close"}, which is misleading:
 the value being plotted (and announced during navigation) is the moving
-average of `close`, not `close` itself. We detect `GeomMA` (the class of
+average of \code{close}, not \code{close} itself. We detect \code{GeomMA} (the class of
 tidyquant's geom_ma layer) and override the y-label accordingly. Plain
-`geom_line` / `geom_smooth` overlays are untouched.
+\code{geom_line} / \code{geom_smooth} overlays are untouched.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
 }
@@ -345,11 +347,11 @@ Numeric vector the same length as \code{values}
 \subsection{Method \code{format_x_value()}}{
 Format an x-axis value as character.
 
-Date / POSIXct / POSIXlt values are formatted via `format()` so that a
-`Date` column emits ISO date strings (e.g. "2024-01-02") rather than
+Date / POSIXct / POSIXlt values are formatted via \code{format()} so that a
+\code{Date} column emits ISO date strings (e.g. "2024-01-02") rather than
 the underlying numeric days-since-epoch representation produced by
-`ggplot_build()`. All other types use `as.character()`. Mirrors
-`Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers
+\code{ggplot_build()}. All other types use \code{as.character()}. Mirrors
+\code{Ggplot2BarLayerProcessor$format_x_value()} so bar and line layers
 from the same Date column align string-wise.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
@@ -362,11 +364,11 @@ from the same Date column align string-wise.
 \subsection{Method \code{get_original_x_column()}}{
 Recover the original (untransformed) x column for a layer.
 
-`ggplot_build()` transforms Date / POSIXct columns into numeric
-days-since-epoch on `built$data[[i]]$x`. To emit ISO strings we need
-the original column from `plot$data` (or the layer's own `data`).
+\code{ggplot_build()} transforms Date / POSIXct columns into numeric
+days-since-epoch on \code{built$data[[i]]$x}. To emit ISO strings we need
+the original column from \code{plot$data} (or the layer's own \code{data}).
 
-Returns the per-row vector of x values aligned to `built_data` if a
+Returns the per-row vector of x values aligned to \code{built_data} if a
 simple column reference is found and the lengths match, otherwise
 NULL.
 \subsection{Usage}{
@@ -540,7 +542,7 @@ Selectors for the curves inside this layer's own grob.
 }
 \subsection{Returns}{
 List of selectors, or NULL when the grob does not line up
-  with the series
+with the series
 }
 }
 \if{html}{\out{<hr>}}
@@ -693,12 +695,12 @@ List with single selector
 \subsection{Method \code{line_layer_position()}}{
 Position of this layer among the polyline-producing layers.
 
-Delegates to `polyline_layer_position()`, which counts both "line" and
-"step" layers. `layer_polyline_grobs()` skips only the layers that name
-their grob tree after their geom, and `GeomStep` draws through
-`GeomPath$draw_panel()` — a bare `polylineGrob` — so a `geom_step()`
-sits in that candidate list exactly as a `geom_line()` does. Counting
-only "line" layers would therefore index the wrong polyline for *both*
+Delegates to \code{polyline_layer_position()}, which counts both "line" and
+"step" layers. \code{layer_polyline_grobs()} skips only the layers that name
+their grob tree after their geom, and \code{GeomStep} draws through
+\code{GeomPath$draw_panel()} — a bare \code{polylineGrob} — so a \code{geom_step()}
+sits in that candidate list exactly as a \code{geom_line()} does. Counting
+only "line" layers would therefore index the wrong polyline for \emph{both}
 layers of a plot that combines the two.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}\if{html}{\out{</div>}}

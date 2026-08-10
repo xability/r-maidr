@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{adjust_chartseries_bracket_doc}
 \alias{adjust_chartseries_bracket_doc}
-\title{Document-level implementation of [adjust_chartseries_bracket()]}
+\title{Document-level implementation of \code{\link[=adjust_chartseries_bracket]{adjust_chartseries_bracket()}}}
 \usage{
 adjust_chartseries_bracket_doc(svg_doc)
 }
@@ -13,6 +13,6 @@ adjust_chartseries_bracket_doc(svg_doc)
 TRUE if the document was modified
 }
 \description{
-Mutates `svg_doc` in place.
+Mutates \code{svg_doc} in place.
 }
 \keyword{internal}

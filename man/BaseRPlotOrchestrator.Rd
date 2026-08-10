@@ -355,7 +355,7 @@ Panels rendered without accessible data
 
 \subsection{Returns}{
 Integer vector of 1-based panel numbers, empty when the whole
-  figure renders normally or falls back as a whole
+figure renders normally or falls back as a whole
 }
 }
 \if{html}{\out{<hr>}}

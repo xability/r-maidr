@@ -9,8 +9,8 @@ create_standalone_html(svg_content, use_cdn = NULL)
 \arguments{
 \item{svg_content}{Character vector of SVG content with maidr-data attribute}
 
-\item{use_cdn}{Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-If `NULL` (default), auto-detect based on internet availability.}
+\item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE}, use bundled files.
+If \code{NULL} (default), auto-detect based on internet availability.}
 }
 \value{
 Character string of complete HTML document

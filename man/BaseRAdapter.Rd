@@ -84,7 +84,7 @@ Detect the type of a single layer from Base R plot calls
 }
 \subsection{Returns}{
 String indicating the layer type (e.g., "bar", "dodged_bar",
-  "stacked_bar", "smooth", "line", "point")
+"stacked_bar", "smooth", "line", "point")
 }
 }
 \if{html}{\out{<hr>}}
