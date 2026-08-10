@@ -136,7 +136,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       # Cell VALUES, in contrast, must come from this panel's rows only.
       # `built_data` is filtered to the panel but `original_data` is not, so
       # the (x, y) lookup below matched rows in every panel and took the
-      # first one — each panel reported panel 1's values.
+      # first one - each panel reported panel 1's values.
       panel_source <- original_data
       panel_layout <- built$layout$layout
       if (!is.null(panel_id) && !is.null(panel_layout)) {

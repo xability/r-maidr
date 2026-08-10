@@ -19,7 +19,7 @@ Behavior is controlled by the \code{use_cdn} parameter:
 \itemize{
 \item If \code{TRUE}: Use CDN (requires internet)
 \item If \code{FALSE} (default): Use local bundled files (works offline)
-\item If \code{NULL}: Same as \code{FALSE} — use local bundled files
+\item If \code{NULL}: Same as \code{FALSE} - use local bundled files
 }
 }
 \details{

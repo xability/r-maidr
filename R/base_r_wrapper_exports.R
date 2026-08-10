@@ -130,7 +130,7 @@ chartSeries <- function(...) {
   # expressions, so an explicit `TA = NULL` reaches quantmod as a `name`
   # and dies in `sapply(chob@passed.args$TA, function(x) eval(x@call))`.
   # Retrying with the call rebuilt in the caller's frame gives quantmod
-  # the literal arguments it expects — the same fallback the generated
+  # the literal arguments it expects - the same fallback the generated
   # wrappers use (see retry_call_in_caller_frame()).
   call_failed <- FALSE
   result <- tryCatch(

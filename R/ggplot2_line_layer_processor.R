@@ -1000,7 +1000,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' Delegates to `polyline_layer_position()`, which counts both "line" and
     #' "step" layers. `layer_polyline_grobs()` skips only the layers that name
     #' their grob tree after their geom, and `GeomStep` draws through
-    #' `GeomPath$draw_panel()` — a bare `polylineGrob` — so a `geom_step()`
+    #' `GeomPath$draw_panel()` - a bare `polylineGrob` - so a `geom_step()`
     #' sits in that candidate list exactly as a `geom_line()` does. Counting
     #' only "line" layers would therefore index the wrong polyline for *both*
     #' layers of a plot that combines the two.
