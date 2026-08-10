@@ -542,6 +542,10 @@ Extract data for multiple line series
 \item{\code{layer_data}}{The built layer data}
 
 \item{\code{plot}}{The original ggplot2 object}
+
+\item{\code{recovered_x}}{x values recovered from the built column by
+\code{recover_x_values()}, aligned to \code{layer_data}'s rows. NULL
+leaves the built value in place.}
 }
 \if{html}{\out{</div>}}
 }
@@ -566,6 +570,14 @@ Extract data for single line (backward compatibility)
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{layer_data}}{The built layer data}
+
+\item{\code{plot}}{The original ggplot2 object. Unread since x recovery moved
+upstream; kept for signature parity with
+\code{extract_multiline_data()} and for existing call sites.}
+
+\item{\code{recovered_x}}{x values recovered from the built column by
+\code{recover_x_values()}, aligned to \code{layer_data}'s rows. NULL
+leaves the built value in place.}
 }
 \if{html}{\out{</div>}}
 }

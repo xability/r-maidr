@@ -566,6 +566,9 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @description Extract data for multiple line series
     #' @param layer_data The built layer data
     #' @param plot The original ggplot2 object
+    #' @param recovered_x x values recovered from the built column by
+    #'   \code{recover_x_values()}, aligned to \code{layer_data}'s rows. NULL
+    #'   leaves the built value in place.
     #' @return List of arrays, each containing series data
     extract_multiline_data = function(layer_data, plot, recovered_x = NULL) {
       unique_groups <- sort(unique(layer_data$group))
@@ -634,6 +637,12 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
     #' @description Extract data for single line (backward compatibility)
     #' @param layer_data The built layer data
+    #' @param plot The original ggplot2 object. Unread since x recovery moved
+    #'   upstream; kept for signature parity with
+    #'   \code{extract_multiline_data()} and for existing call sites.
+    #' @param recovered_x x values recovered from the built column by
+    #'   \code{recover_x_values()}, aligned to \code{layer_data}'s rows. NULL
+    #'   leaves the built value in place.
     #' @return List containing single series data
     extract_single_line_data = function(layer_data, plot = NULL,
                                         recovered_x = NULL) {
