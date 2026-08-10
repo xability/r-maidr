@@ -126,6 +126,15 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       has_y_mapping <- !is.null(y_quo)
       y_col <- if (has_y_mapping) rlang::as_label(y_quo) else NULL
 
+      # `position = "fill"` rescales every category to a common height, so the
+      # value the chart draws is a share and NOT the number sitting in the
+      # user's data frame. That matters twice below: the stat = "identity"
+      # branch reads `y` straight out of `original_data`, and the built-data
+      # branch prefers `stat_count()`'s untouched `count` column. Both would
+      # hand back tallies for a chart made entirely of proportions, so a
+      # normalized layer has to take the geometry route and subtract.
+      is_normalized <- identical(self$layer_info$type, "stacked_normalized_bar")
+
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
@@ -180,7 +189,7 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       # instead: it is what was actually drawn.
       rows_aligned <- nrow(original_data) == nrow(built_data_layer)
 
-      if (rows_aligned &&
+      if (!is_normalized && rows_aligned &&
           has_y_mapping && !is.null(y_col) && y_col %in% names(original_data) &&
           !is.null(fill_col) && fill_col %in% names(original_data) &&
           !is.null(x_col) && x_col %in% names(original_data)) {
@@ -316,9 +325,24 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
             hex_color
           }
 
-          # Create a lookup of x_pos -> count for this fill color
+          # Create a lookup of x_pos -> value for this fill color.
+          #
+          # `count` is the raw tally `stat_count()` computed, and it is the
+          # right value for a stacked bar but the wrong one for a filled bar.
+          # `position = "fill"` rescales each category to a common height, so
+          # what the chart actually draws is every segment's *share* — while
+          # `count` keeps the untouched tally alongside it. Reading `count`
+          # there would announce counts for a chart made entirely of
+          # proportions, and the running total maidr.js derives would come out
+          # as the category total instead of the 1 the bar is drawn to.
+          # `geom_col()` has no `count` column at all and already falls
+          # through to the same subtraction once it reaches here.
           vals <- setNames(
-            if ("count" %in% names(group_rows)) group_rows$count else (group_rows$ymax - group_rows$ymin),
+            if (!is_normalized && "count" %in% names(group_rows)) {
+              group_rows$count
+            } else {
+              group_rows$ymax - group_rows$ymin
+            },
             group_rows$x
           )
 

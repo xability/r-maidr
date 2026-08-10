@@ -31,6 +31,10 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "bar" = Ggplot2BarLayerProcessor$new(layer_info),
         "dodged_bar" = Ggplot2DodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = Ggplot2StackedBarProcessor$new(layer_info),
+        # A filled bar is a stacked bar whose segments have been rescaled to
+        # shares, so it is extracted by the same processor; only the emitted
+        # type and the value it reads off the built data differ.
+        "stacked_normalized_bar" = Ggplot2StackedBarProcessor$new(layer_info),
         "pie" = Ggplot2PieLayerProcessor$new(layer_info),
         "hist" = Ggplot2HistogramLayerProcessor$new(layer_info),
         "line" = Ggplot2LineLayerProcessor$new(layer_info),
@@ -54,6 +58,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "bar",
         "dodged_bar",
         "stacked_bar",
+        "stacked_normalized_bar",
         "pie",
         "hist",
         "line",
