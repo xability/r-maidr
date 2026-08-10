@@ -136,6 +136,21 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # scales = "free_x" each panel carries its own breaks and labels.
       panel_index <- self$resolve_panel_index(built, panel_id)
 
+      # Recover x while `layer_data$x` is still the raw built column: the
+      # mapping below rewrites it into axis labels, and the recovery needs
+      # the scale-space value it started as.
+      #
+      # Non-faceted only. The faceted branch recovers x by VALUE -- through
+      # sort(unique(...)) and the panel's break/label mapping -- so it never
+      # had the row-order defect, and it is what honours a caller's own
+      # `labels =` formatter. Overriding it here would announce the raw
+      # datum where the axis shows the formatted label.
+      recovered_x <- if (is.null(panel_id)) {
+        self$recover_x_values(layer_data, built, panel_id)
+      } else {
+        NULL
+      }
+
       # For faceted plots, get x values from original data or scale mapping
       if (!is.null(panel_id)) {
         # For faceted plots, we need to get the actual x values from the original data
@@ -273,12 +288,16 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         # Only treat as multiline if we have more than one group
         if (length(unique_groups) > 1) {
           # Multiline plot - group by series
-          series_data <- self$extract_multiline_data(layer_data, plot)
+          series_data <- self$extract_multiline_data(
+            layer_data, plot, recovered_x
+          )
         }
       }
       if (is.null(series_data)) {
         # Single line plot - maintain backward compatibility
-        series_data <- self$extract_single_line_data(layer_data, plot)
+        series_data <- self$extract_single_line_data(
+          layer_data, plot, recovered_x
+        )
       }
 
       self$attach_discrete_y_names(series_data, plot, built, panel_id)
@@ -543,62 +562,25 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       as.character(x)
     },
 
-    #' @description Recover the original (untransformed) x column for a layer.
-    #'
-    #' `ggplot_build()` transforms Date / POSIXct columns into numeric
-    #' days-since-epoch on `built$data[[i]]$x`. To emit ISO strings we need
-    #' the original column from `plot$data` (or the layer's own `data`).
-    #'
-    #' Returns the per-row vector of x values aligned to `built_data` if a
-    #' simple column reference is found and the lengths match, otherwise
-    #' NULL.
-    get_original_x_column = function(plot, built_data) {
-      layer_index <- self$layer_info$index
-      layer <- plot$layers[[layer_index]]
-
-      x_expr <- NULL
-      if (!is.null(layer$mapping) && !is.null(layer$mapping$x)) {
-        x_expr <- layer$mapping$x
-      } else if (!is.null(plot$mapping) && !is.null(plot$mapping$x)) {
-        x_expr <- plot$mapping$x
-      }
-      if (is.null(x_expr)) {
-        return(NULL)
-      }
-      x_col <- rlang::as_label(x_expr)
-
-      candidates <- list()
-      if (!is.null(layer$data) && is.data.frame(layer$data) &&
-        x_col %in% names(layer$data)) {
-        candidates[[length(candidates) + 1L]] <- layer$data
-      }
-      if (!is.null(plot$data) && is.data.frame(plot$data) &&
-        x_col %in% names(plot$data)) {
-        candidates[[length(candidates) + 1L]] <- plot$data
-      }
-
-      for (src in candidates) {
-        col <- src[[x_col]]
-        if (length(col) == nrow(built_data)) {
-          return(col)
-        }
-      }
-      NULL
-    },
 
     #' @description Extract data for multiple line series
     #' @param layer_data The built layer data
     #' @param plot The original ggplot2 object
+    #' @param recovered_x x values recovered from the built column by
+    #'   \code{recover_x_values()}, aligned to \code{layer_data}'s rows. NULL
+    #'   leaves the built value in place.
     #' @return List of arrays, each containing series data
-    extract_multiline_data = function(layer_data, plot) {
+    extract_multiline_data = function(layer_data, plot, recovered_x = NULL) {
       unique_groups <- sort(unique(layer_data$group))
       unique_categories <- resolve_series_group_names(
         plot, layer_data$group, self$get_group_column(plot)
       )
 
-      # Recover original (Date/POSIXct-typed) x column when available so we
-      # emit ISO date strings rather than numeric days-since-epoch.
-      orig_x <- self$get_original_x_column(plot, layer_data)
+      # Recovered from the built column upstream so a Date reads as an ISO
+      # string rather than days-since-epoch -- and so the value belongs to
+      # the row it is announced with. `.row_idx` below indexes THIS frame,
+      # which is why orig_x has to be aligned to it, not to the caller.
+      orig_x <- recovered_x
 
       # Split built data by group, preserving row indices for orig_x lookup.
       layer_data$.row_idx <- seq_len(nrow(layer_data))
@@ -655,13 +637,18 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
     #' @description Extract data for single line (backward compatibility)
     #' @param layer_data The built layer data
+    #' @param plot The original ggplot2 object. Unread since x recovery moved
+    #'   upstream; kept for signature parity with
+    #'   \code{extract_multiline_data()} and for existing call sites.
+    #' @param recovered_x x values recovered from the built column by
+    #'   \code{recover_x_values()}, aligned to \code{layer_data}'s rows. NULL
+    #'   leaves the built value in place.
     #' @return List containing single series data
-    extract_single_line_data = function(layer_data, plot = NULL) {
-      # Recover original (Date/POSIXct-typed) x column when available.
-      orig_x <- NULL
-      if (!is.null(plot)) {
-        orig_x <- self$get_original_x_column(plot, layer_data)
-      }
+    extract_single_line_data = function(layer_data, plot = NULL,
+                                        recovered_x = NULL) {
+      # Recovered from the built column upstream, so it is aligned to these
+      # rows by construction rather than by the caller's row order.
+      orig_x <- recovered_x
 
       # Determine which rows have a non-NA y. The rendered polyline only
       # contains coordinates for non-NA y points; emitting NA-y rows would
@@ -692,6 +679,78 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       }
 
       list(points)
+    },
+
+    #' @description The x values to announce, recovered from the BUILT column.
+    #'
+    #' `ggplot_build()` stores x in the scale's own space -- a level code for
+    #' a discrete scale, days-since-epoch for a Date -- so something has to
+    #' turn it back into what the axis shows. The obvious route, reading the
+    #' caller's column, cannot be indexed by the built row number:
+    #' `GeomLine$setup_data()` sorts the built data by (PANEL, group, x),
+    #' which is the documented difference between `geom_line()` and
+    #' `geom_path()`, while the caller's column keeps its own order. Pairing
+    #' the two by position hands every point another point's x.
+    #'
+    #' Recovering from the built value instead is order-proof by
+    #' construction, and per scale type it needs:
+    #'
+    #' * discrete -- the panel's own x labels, indexed by the level code, the
+    #'   same source `build_level_lookup()` uses for a discrete y
+    #' * transformed (Date, POSIXct, log) -- the transformation's inverse
+    #' * plain numeric -- nothing; the built value already IS the value
+    #'
+    #' @param layer_data The built layer data for this layer
+    #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return A vector aligned to `layer_data`'s rows, or NULL to leave the
+    #'   built value alone
+    recover_x_values = function(layer_data, built, panel_id = NULL) {
+      if (is.null(layer_data) || !"x" %in% names(layer_data)) {
+        return(NULL)
+      }
+      built_x <- layer_data$x
+      panel_index <- self$resolve_panel_index(built, panel_id)
+
+      if (inherits(built_x, "mapped_discrete")) {
+        x_scale <- built$layout$panel_params[[panel_index]]$x
+        if (is.null(x_scale)) {
+          return(NULL)
+        }
+        labels <- tryCatch(
+          as.character(x_scale$get_labels()),
+          error = function(e) NULL
+        )
+        codes <- suppressWarnings(as.integer(round(as.numeric(built_x))))
+        usable <- !is.null(labels) && length(labels) > 0 && !anyNA(labels) &&
+          !anyNA(codes) && all(codes >= 1 & codes <= length(labels))
+        if (!usable) {
+          return(NULL)
+        }
+        return(labels[codes])
+      }
+
+      transformation <- self$get_x_transformation(built, panel_index)
+      if (!is.null(transformation) &&
+        !identical(transformation$name, "identity") &&
+        is.function(transformation$inverse)) {
+        recovered <- tryCatch(
+          transformation$inverse(as.numeric(built_x)),
+          error = function(e) NULL
+        )
+        if (!is.null(recovered) && length(recovered) == length(built_x)) {
+          return(recovered)
+        }
+      }
+
+      # Plain continuous: the built value already IS the value. Returned
+      # rather than left NULL so the caller announces the datum instead of
+      # the axis tick label the mapping downstream would substitute -- which
+      # is what the old caller's-column path did, only without the row skew.
+      if (is.numeric(built_x)) {
+        return(as.numeric(built_x))
+      }
+      NULL
     },
 
     #' @description Get the grouping column name from plot mappings
