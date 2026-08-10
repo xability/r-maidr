@@ -863,12 +863,30 @@ element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
 
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a><div class="section">
 <h3 id="method-line-layer-position-">Method <code>line_layer_position()</code><a class="anchor" aria-label="anchor" href="#method-line-layer-position-"></a></h3>
-<p>Position (1-based) of this layer among line-typed layers in <code>plot</code>.
-Returns NULL if the registry-based detection fails.</p><div class="section">
+<p>Position of this layer among the polyline-producing layers.</p>
+<p>Delegates to <code><a href="polyline_layer_position.html">polyline_layer_position()</a></code>, which counts both "line" and
+"step" layers. <code>layer_polyline_grobs()</code> skips only the layers that name
+their grob tree after their geom, and <code>GeomStep</code> draws through
+<code>GeomPath$draw_panel()</code> — a bare <code>polylineGrob</code> — so a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_step()</a></code>
+sits in that candidate list exactly as a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> does. Counting
+only "line" layers would therefore index the wrong polyline for <em>both</em>
+layers of a plot that combines the two.</p><div class="section">
 <h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">line_layer_position</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
+<p>The 1-based position, or NULL if registry-based detection fails</p>
+</div>
 
 </div><p></p><hr><a id="method-Ggplot2LineLayerProcessor-find_main_polyline_grob"></a><div class="section">
 <h3 id="method-find-main-polyline-grob-">Method <code>find_main_polyline_grob()</code><a class="anchor" aria-label="anchor" href="#method-find-main-polyline-grob-"></a></h3>
@@ -878,7 +896,7 @@ Returns NULL if the registry-based detection fails.</p><div class="section">
 </div>
 
 <div class="section">
-<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>gt</code></dt>
 <dd><p>The gtable to search</p></dd>
 
@@ -886,7 +904,7 @@ Returns NULL if the registry-based detection fails.</p><div class="section">
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
+<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
 <p>The main polyline grob or NULL</p>
 </div>
 
@@ -898,7 +916,7 @@ Returns NULL if the registry-based detection fails.</p><div class="section">
 </div>
 
 <div class="section">
-<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
+<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
 <p>FALSE (line plots typically don't need reordering)</p>
 </div>
 
@@ -910,7 +928,7 @@ Returns NULL if the registry-based detection fails.</p><div class="section">
 </div>
 
 <div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

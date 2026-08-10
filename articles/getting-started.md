@@ -176,6 +176,10 @@ MAIDR supports a comprehensive range of visualizations:
 - Histograms
 - Scatter plots
 - Line plots (single and multi-line)
+- Step plots —
+  [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  in ggplot2, `plot(type = "s")` / `plot(type = "S")` in Base R — for
+  values that are piecewise constant, such as a sleep-stage hypnogram
 - Box plots
 - Violin plots (ggplot2 only)
 - Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional

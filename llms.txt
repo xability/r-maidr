@@ -88,6 +88,7 @@ Base R:
 | Histograms | [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html) | [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Scatter plots | [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html) | [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Line plots | [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html) | `plot(type = "l")`, [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Step plots | [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html) | `plot(type = "s")`, `plot(type = "S")` |
 | Box plots | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html) | [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Heatmaps | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html) | [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Violin plots | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html) | — |

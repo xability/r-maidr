@@ -23,6 +23,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRProcessorFactory.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSmoothLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStackedBarLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRStepLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRUnknownLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2Adapter.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2BarLayerProcessor.html</loc></url>
@@ -38,6 +39,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2ProcessorFactory.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2SmoothLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2StackedBarProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2UnknownLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ViolinLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/LayerProcessor.html</loc></url>
@@ -62,6 +64,7 @@
 <url><loc>https://r.maidr.ai/reference/base-r-wrappers.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base_r_axis_labels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base_r_categorical_axes.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/base_r_step_direction.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_axis_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_format_config.html</loc></url>
@@ -180,6 +183,7 @@
 <url><loc>https://r.maidr.ai/reference/is_multipanel_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_patching_active.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_patching_enabled.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_step_plot_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_volume_only_bar_panel.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_wrapped_leaf.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
@@ -219,6 +223,7 @@
 <url><loc>https://r.maidr.ai/reference/panel_layer_of_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/panel_slot_positions.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/perpendicular_distance.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/polyline_layer_position.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/prefix_to_currency_code.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/print_ggplot_natively.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/process_facet_panel.html</loc></url>

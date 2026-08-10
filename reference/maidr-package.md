@@ -57,6 +57,9 @@ and Base R plotting systems:
 - Line plots -
   [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
 
+- Step plots -
+  [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+
 - Box plots -
   [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html)
 
@@ -93,6 +96,8 @@ and Base R plotting systems:
   [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`points()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+
+- Step plots - `plot(type = "s")`, `plot(type = "S")`
 
 - Box plots -
   [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)

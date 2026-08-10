@@ -37,6 +37,8 @@ Processes Base R line plot layers based on recorded plot calls
 
 - [`BaseRLineLayerProcessor$find_lines_grobs()`](#method-BaseRLineLayerProcessor-find_lines_grobs)
 
+- [`BaseRLineLayerProcessor$selector_grob_type()`](#method-BaseRLineLayerProcessor-selector_grob_type)
+
 - [`BaseRLineLayerProcessor$generate_selectors_from_grob()`](#method-BaseRLineLayerProcessor-generate_selectors_from_grob)
 
 - [`BaseRLineLayerProcessor$clone()`](#method-BaseRLineLayerProcessor-clone)
@@ -186,6 +188,14 @@ Character vector of labels or NULL if not found
       group_index,
       grob_type = "lines"
     )
+
+------------------------------------------------------------------------
+
+### Method `selector_grob_type()`
+
+#### Usage
+
+    BaseRLineLayerProcessor$selector_grob_type(layer_info)
 
 ------------------------------------------------------------------------
 

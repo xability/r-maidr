@@ -65,6 +65,7 @@ run_example()
 #>   - scatter
 #>   - smooth
 #>   - stacked_bar
+#>   - step
 #>   - violin
 #> 
 #> base_r examples:
@@ -80,6 +81,7 @@ run_example()
 #>   - scatter
 #>   - smooth
 #>   - stacked_bar
+#>   - step
 #> 
 #> Usage:
 #>   run_example("bar")                 # Run ggplot2 bar chart
