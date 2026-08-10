@@ -41,6 +41,12 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-resolve_group_mapping}{\code{Ggplot2LineLayerProcessor$resolve_group_mapping()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_layer_axes}{\code{Ggplot2LineLayerProcessor$extract_layer_axes()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_data}{\code{Ggplot2LineLayerProcessor$extract_data()}}
+\item \href{#method-Ggplot2LineLayerProcessor-attach_discrete_y_names}{\code{Ggplot2LineLayerProcessor$attach_discrete_y_names()}}
+\item \href{#method-Ggplot2LineLayerProcessor-normalize_point_values}{\code{Ggplot2LineLayerProcessor$normalize_point_values()}}
+\item \href{#method-Ggplot2LineLayerProcessor-build_level_lookup}{\code{Ggplot2LineLayerProcessor$build_level_lookup()}}
+\item \href{#method-Ggplot2LineLayerProcessor-get_original_y_column}{\code{Ggplot2LineLayerProcessor$get_original_y_column()}}
+\item \href{#method-Ggplot2LineLayerProcessor-attach_level_labels}{\code{Ggplot2LineLayerProcessor$attach_level_labels()}}
+\item \href{#method-Ggplot2LineLayerProcessor-get_layer}{\code{Ggplot2LineLayerProcessor$get_layer()}}
 \item \href{#method-Ggplot2LineLayerProcessor-resolve_panel_index}{\code{Ggplot2LineLayerProcessor$resolve_panel_index()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_x_transformation}{\code{Ggplot2LineLayerProcessor$get_x_transformation()}}
 \item \href{#method-Ggplot2LineLayerProcessor-transform_x_values}{\code{Ggplot2LineLayerProcessor$transform_x_values()}}
@@ -254,6 +260,170 @@ Extract data from line layer (single or multiline)
 }
 \subsection{Returns}{
 List of arrays, each containing series data points
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-attach_discrete_y_names"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-attach_discrete_y_names}{}}}
+\subsection{Method \code{attach_discrete_y_names()}}{
+Give every point the \emph{name} of its discrete y level.
+
+A factor y aesthetic reaches the payload as ggplot2's internal level
+code, so without this a reader hears "5" where the axis says "Awake".
+\code{y} deliberately stays numeric -- it drives sonification, braille and
+the min/max range -- and the name rides alongside as \code{label}.
+
+A continuous y is returned untouched, so no \code{label} is emitted and the
+frontend announces the number, which is the right reading there.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$attach_discrete_y_names(series_data, plot, built)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{series_data}}{List of series produced by the extractors above}
+
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The series list, labelled when y is discrete
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-normalize_point_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-normalize_point_values}{}}}
+\subsection{Method \code{normalize_point_values()}}{
+Coerce every point's y to a plain number.
+
+A discrete y aesthetic -- the ordinal level of a hypnogram, and the
+reason this processor exists -- makes \code{ggplot_build()} return y as a
+\code{mapped_discrete} vector. That class carries no \code{asJSON} method, so
+emitting it verbatim aborts payload serialisation with
+"No method asJSON S3 class: mapped_discrete". Stripping the class here
+keeps y a bare number, which is what the wire contract asks for and
+what drives sonification, braille and the min/max range.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$normalize_point_values(series_data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{series_data}}{List of series produced by the line extractor}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The series list with numeric y values
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-build_level_lookup"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-build_level_lookup}{}}}
+\subsection{Method \code{build_level_lookup()}}{
+Build a numeric-level to level-name lookup for the y
+aesthetic.
+
+For a factor (or character) y aesthetic, \code{ggplot_build()} replaces the
+level with its numeric position, so \code{built$data$y} is a level \emph{code}
+and the name only survives in the original column. The lookup is keyed
+by the built y value and built from the full, unfiltered pair of
+columns, so it stays correct no matter which rows survive NA-dropping
+or panel filtering downstream.
+
+Returns NULL for a plain continuous y, in which case no \code{label} is
+emitted and the frontend announces the numeric value.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$build_level_lookup(plot, built)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built}}{Built plot data}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Named character vector keyed by the built y value, or NULL
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_original_y_column"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_original_y_column}{}}}
+\subsection{Method \code{get_original_y_column()}}{
+Recover the original (untransformed) y column for a layer.
+
+Mirrors \code{get_original_x_column()}: looks up the y mapping on the layer
+first and then on the plot, and searches the layer's own \code{data} before
+the plot's. Returns the per-row vector aligned to \code{built_data} when a
+simple column reference is found and the lengths match, otherwise NULL.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_original_y_column(plot, built_data)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+
+\item{\code{built_data}}{The built data frame for this layer}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The original y column, or NULL
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-attach_level_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-attach_level_labels}{}}}
+\subsection{Method \code{attach_level_labels()}}{
+Attach the ordinal level name to every point of every
+series. Points whose y has no entry in the lookup are left untouched,
+so the frontend falls back to the numeric announcement for them.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$attach_level_labels(series_data, lookup)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{series_data}}{List of series produced by the line extractor}
+
+\item{\code{lookup}}{Named character vector keyed by the built y value}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The series list with \code{label} attached where known
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_layer}{}}}
+\subsection{Method \code{get_layer()}}{
+The ggplot2 layer this processor is responsible for.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_layer(plot)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The layer, or NULL when the index does not resolve
 }
 }
 \if{html}{\out{<hr>}}

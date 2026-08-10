@@ -32,6 +32,14 @@
 
 ## Bug Fixes
 
+* ggplot2: a `geom_line()` or `geom_path()` whose y aesthetic is a factor
+  announces the level *name* rather than ggplot2's internal level code. A
+  hypnogram-shaped line chart read out "5" where the axis showed "Awake",
+  because the name survives only in the original column once
+  `ggplot_build()` has replaced the level with its position. `y` stays
+  numeric -- it drives sonification, braille and the min/max range -- and
+  the name rides alongside as `label`, the same pairing `geom_step()`
+  already used. A continuous y is untouched and still announces its number.
 * Fixed polyline selector assignment for plots that mix `geom_line()` and
   `geom_step()`: the layer position was counted over line layers only while
   every polyline in the panel was searched, so both layers resolved to the
