@@ -53,6 +53,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-get_original_x_column}{\code{Ggplot2LineLayerProcessor$get_original_x_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_multiline_data}{\code{Ggplot2LineLayerProcessor$extract_multiline_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_single_line_data}{\code{Ggplot2LineLayerProcessor$extract_single_line_data()}}
+\item \href{#method-Ggplot2LineLayerProcessor-recover_x_values}{\code{Ggplot2LineLayerProcessor$recover_x_values()}}
 \item \href{#method-Ggplot2LineLayerProcessor-get_group_column}{\code{Ggplot2LineLayerProcessor$get_group_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-generate_selectors}{\code{Ggplot2LineLayerProcessor$generate_selectors()}}
 \item \href{#method-Ggplot2LineLayerProcessor-series_count}{\code{Ggplot2LineLayerProcessor$series_count()}}
@@ -547,7 +548,11 @@ NULL.
 \subsection{Method \code{extract_multiline_data()}}{
 Extract data for multiple line series
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_multiline_data(layer_data, plot)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_multiline_data(
+  layer_data,
+  plot,
+  recovered_x = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -569,7 +574,11 @@ List of arrays, each containing series data
 \subsection{Method \code{extract_single_line_data()}}{
 Extract data for single line (backward compatibility)
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_single_line_data(layer_data, plot = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$extract_single_line_data(
+  layer_data,
+  plot = NULL,
+  recovered_x = NULL
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -581,6 +590,49 @@ Extract data for single line (backward compatibility)
 }
 \subsection{Returns}{
 List containing single series data
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-recover_x_values"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-recover_x_values}{}}}
+\subsection{Method \code{recover_x_values()}}{
+The x values to announce, recovered from the BUILT column.
+
+\code{ggplot_build()} stores x in the scale's own space -- a level code for
+a discrete scale, days-since-epoch for a Date -- so something has to
+turn it back into what the axis shows. The obvious route, reading the
+caller's column, cannot be indexed by the built row number:
+\code{GeomLine$setup_data()} sorts the built data by (PANEL, group, x),
+which is the documented difference between \code{geom_line()} and
+\code{geom_path()}, while the caller's column keeps its own order. Pairing
+the two by position hands every point another point's x.
+
+Recovering from the built value instead is order-proof by
+construction, and per scale type it needs:
+\itemize{
+\item discrete -- the panel's own x labels, indexed by the level code, the
+same source \code{build_level_lookup()} uses for a discrete y
+\item transformed (Date, POSIXct, log) -- the transformation's inverse
+\item plain numeric -- nothing; the built value already IS the value
+}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$recover_x_values(layer_data, built, panel_id = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{layer_data}}{The built layer data for this layer}
+
+\item{\code{built}}{Built plot data}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A vector aligned to \code{layer_data}'s rows, or NULL to leave the
+built value alone
 }
 }
 \if{html}{\out{<hr>}}

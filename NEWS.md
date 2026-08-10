@@ -32,6 +32,18 @@
 
 ## Bug Fixes
 
+* ggplot2: an unsorted `geom_line()` announces each point's own x. The
+  built data is sorted by `(PANEL, group, x)` -- that sort is the documented
+  difference between `geom_line()` and `geom_path()` -- while the caller's
+  column keeps its own order, and x was recovered by pairing the two row by
+  row. Every point therefore carried another point's coordinate: a series
+  drawn 1, 2, 3 was announced 3, 1, 2, and nothing in the payload signalled
+  it. x is now recovered from the built value itself -- the panel's own
+  labels for a discrete scale, the scale's inverse transformation for a Date
+  or POSIXct, and the value as-is for a plain number -- so it cannot
+  desynchronise. Single and multi-series plots were both affected;
+  `geom_path()`, which does not reorder, and faceted plots, which already
+  recovered x by value, were not.
 * ggplot2: a `geom_line()` or `geom_path()` whose y aesthetic is a factor
   now carries the level *name* in its payload, as `label` on each point,
   the same pairing `geom_step()` already used. `ggplot_build()` replaces

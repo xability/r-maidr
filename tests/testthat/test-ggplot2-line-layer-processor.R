@@ -1217,3 +1217,99 @@ test_that("a factor with unused levels is named by what the axis draws", {
   testthat::expect_equal(data[[1]][[2]]$y, 1)
   testthat::expect_equal(data[[1]][[2]]$label, "N3")
 })
+
+# ==============================================================================
+# Unsorted x: every point keeps its own coordinate (#123)
+# ==============================================================================
+
+line_x <- function(p, panel = NULL) {
+  data <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))$extract_data(
+    p, panel_id = panel
+  )
+  lapply(data, function(series) {
+    vapply(series, function(pt) as.character(pt$x), character(1))
+  })
+}
+
+test_that("an unsorted geom_line() announces each point's own x", {
+  # GeomLine$setup_data() sorts the built data by (PANEL, group, x). Pairing
+  # that against the caller's column by row number hands every point another
+  # point's coordinate -- a reader is told the series runs 3, 1, 2 when it is
+  # drawn 1, 2, 3, and nothing in the payload signals it.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(t = c(3, 1, 2), v = c(30, 10, 20))
+  p <- ggplot2::ggplot(df, ggplot2::aes(t, v)) + ggplot2::geom_line()
+
+  testthat::expect_equal(
+    as.numeric(ggplot2::ggplot_build(p)$data[[1]]$x), c(1, 2, 3)
+  )
+  testthat::expect_equal(line_x(p)[[1]], c("1", "2", "3"))
+})
+
+test_that("an unsorted discrete x is named by what the axis draws", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = factor(c("c", "a", "b"), levels = c("a", "b", "c")),
+    v = c(3, 1, 2)
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, v, group = 1)
+  ) + ggplot2::geom_line()
+
+  testthat::expect_equal(line_x(p)[[1]], c("a", "b", "c"))
+})
+
+test_that("an unsorted Date x survives as a date, in drawn order", {
+  # The built column is days-since-epoch, so the recovery has to invert the
+  # scale's transformation rather than read the caller's column.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = as.Date(c("2024-01-03", "2024-01-01", "2024-01-02")),
+    v = c(3, 1, 2)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(t, v)) + ggplot2::geom_line()
+
+  testthat::expect_equal(
+    line_x(p)[[1]], c("2024-01-01", "2024-01-02", "2024-01-03")
+  )
+})
+
+test_that("an unsorted multi-series geom_line() keeps each series aligned", {
+  # Both series come out of one built frame, so a row-indexed lookup
+  # scrambles them identically -- which reads as plausible until compared
+  # with the built x.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = c(3, 1, 2, 3, 1, 2),
+    v = c(30, 10, 20, 31, 11, 21),
+    g = rep(c("a", "b"), each = 3)
+  )
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(t, v, colour = g, group = g)
+  ) + ggplot2::geom_line()
+
+  xs <- line_x(p)
+  testthat::expect_equal(length(xs), 2)
+  testthat::expect_equal(xs[[1]], c("1", "2", "3"))
+  testthat::expect_equal(xs[[2]], c("1", "2", "3"))
+})
+
+test_that("geom_path() keeps the caller's order, which is its contract", {
+  # geom_path() connects observations in the order they appear; geom_line()
+  # in order of x. GeomPath$setup_data() does not reorder, so this must stay
+  # 3, 1, 2 -- it is the control that proves the fix did not simply sort
+  # everything.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(t = c(3, 1, 2), v = c(30, 10, 20))
+  p <- ggplot2::ggplot(df, ggplot2::aes(t, v)) + ggplot2::geom_path()
+
+  testthat::expect_equal(
+    as.numeric(ggplot2::ggplot_build(p)$data[[1]]$x), c(3, 1, 2)
+  )
+  testthat::expect_equal(line_x(p)[[1]], c("3", "1", "2"))
+})
