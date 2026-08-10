@@ -97,6 +97,29 @@ html_file_stacked <- file.path(output_dir, "example_stacked_bar_plot_ggplot2.htm
 result_stacked <- save_html(p_stacked, file = html_file_stacked)
 cat("Stacked bar plot (comma):", if (file.exists(html_file_stacked)) "OK" else "FAIL", "\n")
 
+# Test 3b: 100% stacked bar. The same data as above with `position = "fill"`,
+# which rescales every region to a common height so the segments read as
+# shares of that region rather than as sales volumes. MAIDR emits this as
+# `stacked_normalized_bar`, and the percent axis labels match the values the
+# layer carries.
+p_normalized <- ggplot(stacked_data, aes(x = Region, y = Sales, fill = Type)) +
+  geom_bar(stat = "identity", position = position_fill()) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(
+    title = "Regional Sales Mix by Channel",
+    x = "Region",
+    y = "Share of Regional Sales"
+  )
+
+html_file_normalized <- file.path(
+  output_dir, "example_normalized_stacked_bar_plot_ggplot2.html"
+)
+result_normalized <- save_html(p_normalized, file = html_file_normalized)
+cat(
+  "100% stacked bar (percent):",
+  if (file.exists(html_file_normalized)) "OK" else "FAIL", "\n"
+)
+
 # Test 4: Histogram with FIXED decimal formatting
 cat("\n=== TEST 4: Histogram (Fixed Decimal Formatting) ===\n")
 set.seed(42)
