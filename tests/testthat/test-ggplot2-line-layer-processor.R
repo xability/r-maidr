@@ -1313,3 +1313,30 @@ test_that("geom_path() keeps the caller's order, which is its contract", {
   )
   testthat::expect_equal(line_x(p)[[1]], c("3", "1", "2"))
 })
+
+test_that("an unsorted faceted geom_line() is left to the faceted recovery", {
+  # The faceted branch recovers x by VALUE -- through sort(unique(...)) and
+  # the panel's break/label mapping -- so it never had the row-order defect,
+  # and recover_x_values() is deliberately skipped there. This pins that
+  # guard under the same unsorted input the non-faceted tests use: each
+  # panel must still announce its own drawn order.
+  #
+  # It asserts the datum rather than a labels = formatter's output on
+  # purpose. The faceted branch honours a formatter only when it cannot
+  # resolve a raw column -- the neighbouring free-scale test gets "<1>"
+  # because its x is the expression `x + 0`. With a plain column it
+  # announces the value, and that is what must not change here.
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    t = c(3, 1, 2, 3, 1, 2),
+    v = c(30, 10, 20, 31, 11, 21),
+    f = rep(c("p", "q"), each = 3)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(t, v)) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~f)
+
+  testthat::expect_equal(line_x(p, 1)[[1]], c("1", "2", "3"))
+  testthat::expect_equal(line_x(p, 2)[[1]], c("1", "2", "3"))
+})

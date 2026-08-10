@@ -562,48 +562,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       as.character(x)
     },
 
-    #' @description Recover the original (untransformed) x column for a layer.
-    #'
-    #' `ggplot_build()` transforms Date / POSIXct columns into numeric
-    #' days-since-epoch on `built$data[[i]]$x`. To emit ISO strings we need
-    #' the original column from `plot$data` (or the layer's own `data`).
-    #'
-    #' Returns the per-row vector of x values aligned to `built_data` if a
-    #' simple column reference is found and the lengths match, otherwise
-    #' NULL.
-    get_original_x_column = function(plot, built_data) {
-      layer_index <- self$layer_info$index
-      layer <- plot$layers[[layer_index]]
-
-      x_expr <- NULL
-      if (!is.null(layer$mapping) && !is.null(layer$mapping$x)) {
-        x_expr <- layer$mapping$x
-      } else if (!is.null(plot$mapping) && !is.null(plot$mapping$x)) {
-        x_expr <- plot$mapping$x
-      }
-      if (is.null(x_expr)) {
-        return(NULL)
-      }
-      x_col <- rlang::as_label(x_expr)
-
-      candidates <- list()
-      if (!is.null(layer$data) && is.data.frame(layer$data) &&
-        x_col %in% names(layer$data)) {
-        candidates[[length(candidates) + 1L]] <- layer$data
-      }
-      if (!is.null(plot$data) && is.data.frame(plot$data) &&
-        x_col %in% names(plot$data)) {
-        candidates[[length(candidates) + 1L]] <- plot$data
-      }
-
-      for (src in candidates) {
-        col <- src[[x_col]]
-        if (length(col) == nrow(built_data)) {
-          return(col)
-        }
-      }
-      NULL
-    },
 
     #' @description Extract data for multiple line series
     #' @param layer_data The built layer data

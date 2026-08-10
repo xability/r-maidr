@@ -50,7 +50,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \item \href{#method-Ggplot2LineLayerProcessor-get_x_transformation}{\code{Ggplot2LineLayerProcessor$get_x_transformation()}}
 \item \href{#method-Ggplot2LineLayerProcessor-transform_x_values}{\code{Ggplot2LineLayerProcessor$transform_x_values()}}
 \item \href{#method-Ggplot2LineLayerProcessor-format_x_value}{\code{Ggplot2LineLayerProcessor$format_x_value()}}
-\item \href{#method-Ggplot2LineLayerProcessor-get_original_x_column}{\code{Ggplot2LineLayerProcessor$get_original_x_column()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_multiline_data}{\code{Ggplot2LineLayerProcessor$extract_multiline_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-extract_single_line_data}{\code{Ggplot2LineLayerProcessor$extract_single_line_data()}}
 \item \href{#method-Ggplot2LineLayerProcessor-recover_x_values}{\code{Ggplot2LineLayerProcessor$recover_x_values()}}
@@ -521,24 +520,6 @@ the underlying numeric days-since-epoch representation produced by
 from the same Date column align string-wise.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-get_original_x_column"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-get_original_x_column}{}}}
-\subsection{Method \code{get_original_x_column()}}{
-Recover the original (untransformed) x column for a layer.
-
-\code{ggplot_build()} transforms Date / POSIXct columns into numeric
-days-since-epoch on \code{built$data[[i]]$x}. To emit ISO strings we need
-the original column from \code{plot$data} (or the layer's own \code{data}).
-
-Returns the per-row vector of x values aligned to \code{built_data} if a
-simple column reference is found and the lengths match, otherwise
-NULL.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2LineLayerProcessor$get_original_x_column(plot, built_data)}\if{html}{\out{</div>}}
 }
 
 }
