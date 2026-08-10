@@ -54,6 +54,8 @@ discovered:
 
 - [`Ggplot2LineLayerProcessor$normalize_point_values()`](#method-Ggplot2LineLayerProcessor-normalize_point_values)
 
+- [`Ggplot2LineLayerProcessor$panel_axis_labels()`](#method-Ggplot2LineLayerProcessor-panel_axis_labels)
+
 - [`Ggplot2LineLayerProcessor$build_level_lookup()`](#method-Ggplot2LineLayerProcessor-build_level_lookup)
 
 - [`Ggplot2LineLayerProcessor$attach_level_labels()`](#method-Ggplot2LineLayerProcessor-attach_level_labels)
@@ -390,6 +392,52 @@ drives sonification, braille and the min/max range.
 #### Returns
 
 The series list with numeric y values
+
+------------------------------------------------------------------------
+
+### Method `panel_axis_labels()`
+
+Read one panel's own axis labels.
+
+The labels ggplot2 drew on a panel's axis, which is what a sighted
+reader sees, and which both discrete recoveries below start from: the y
+level names in `build_level_lookup()`, and the x values in
+`recover_x_values()`. Both need the same three things to hold before the
+labels can be trusted – present, non-empty, no `NA` – so the check lives
+here rather than being spelled out at each call site.
+
+The `tryCatch` is not incidental: `get_labels()` is one of the accessors
+whose spelling has moved between ggplot2 versions, the same reason
+`get_x_transformation()` exists. Guarding it in one place leaves the
+next version bump one site to fix instead of two that can drift.
+
+Indexes with `[[axis]]` rather than `$x` / `$y`: `$` on a list falls
+back to partial matching, so a `panel_params` without an `x` but with an
+`x.range` would silently hand back the range. Exact matching returns
+NULL there, which is the honest answer.
+
+#### Usage
+
+    Ggplot2LineLayerProcessor$panel_axis_labels(built, panel_index, axis)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `panel_index`:
+
+  Index into `built$layout$panel_params`
+
+- `axis`:
+
+  Either `"x"` or `"y"`
+
+#### Returns
+
+Character vector of labels, or NULL when the panel has no such scale or
+its labels are unusable
 
 ------------------------------------------------------------------------
 
