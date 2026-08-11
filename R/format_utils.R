@@ -146,6 +146,44 @@ extract_from_scales_closure <- function(label_func) {
   build_format_config(format_type, prefix, suffix, accuracy, digits)
 }
 
+#' Declare a String's Encoding as UTF-8
+#'
+#' The currency symbols in this file are written as `\uXXXX` escapes, which
+#' always produce UTF-8 bytes. What varies is whether R *marks* them: in a
+#' UTF-8 session it does, and in a `C` session it leaves them `"unknown"`.
+#' A prefix arriving from `readr`, `jsonlite` or `read.csv(encoding =)` is
+#' marked `"UTF-8"` either way, so in a non-UTF-8 session the two sides
+#' disagree and `match()` -- which translates to the native encoding first,
+#' where a euro has no representation -- misses on identical bytes. Every
+#' non-dollar currency then fell through to the `USD` default, and a euro
+#' axis was announced as dollars (#139).
+#'
+#' Declaring the encoding states what the bytes already are; it does not
+#' convert them. `enc2utf8()` is not a substitute -- it reads an `"unknown"`
+#' string as native and mistranslates these keys.
+#'
+#' @param x A character vector.
+#' @return `x`, marked as UTF-8.
+#' @keywords internal
+#' @noRd
+as_utf8 <- function(x) {
+  Encoding(x) <- "UTF-8"
+  x
+}
+
+#' Currency Symbols Recognised as a Prefix
+#'
+#' Shared by [detect_scales_format_type()] and [prefix_to_currency_code()] so
+#' the test that decides something is a currency cannot drift from the map
+#' that names which one.
+#'
+#' @keywords internal
+#' @noRd
+CURRENCY_SYMBOLS <- c(
+  "$", "\u20ac", "\u00a3", "\u00a5", "\u20b9",
+  "\u20a9", "\u20bd", "\u20aa", "\u20b1", "\u0e3f"
+)
+
 #' Detect Format Type from scales Closure Parameters
 #'
 #' @param prefix Prefix string from closure
@@ -166,10 +204,10 @@ detect_scales_format_type <- function(prefix, suffix, digits, scale, accuracy) {
     return("percent")
   }
 
-  # Currency: common currency symbols as prefix
-  currency_symbols <- c("$", "\u20ac", "\u00a3", "\u00a5", "\u20b9",
-                        "\u20a9", "\u20bd", "\u20aa", "\u20b1", "\u0e3f")
-  if (!is.null(prefix) && (prefix %in% currency_symbols ||
+  # Currency: common currency symbols as prefix.  Both sides are declared
+  # UTF-8 so the comparison does not depend on the session locale -- see
+  # `as_utf8()`.
+  if (!is.null(prefix) && (as_utf8(prefix) %in% as_utf8(CURRENCY_SYMBOLS) ||
       grepl("^[A-Z]{0,2}\\$", prefix))) {
     return("currency")
   }
@@ -252,32 +290,45 @@ prefix_to_currency_code <- function(prefix) {
     return("USD")
   }
 
-  # Common currency mappings
-  currency_map <- list(
-    "$" = "USD",
-    "\u20ac" = "EUR", # Euro sign
-    "\u00a3" = "GBP", # Pound sign
-    "\u00a5" = "JPY", # Yen sign
-    "\u20b9" = "INR", # Indian Rupee sign
-    "\u20a9" = "KRW", # Korean Won sign
-    "\u20bd" = "RUB", # Russian Ruble sign
-    "R$" = "BRL", # Brazilian Real
-    "CHF" = "CHF", # Swiss Franc
-    "C$" = "CAD", # Canadian Dollar
-    "A$" = "AUD", # Australian Dollar
-    "NZ$" = "NZD", # New Zealand Dollar
-    "HK$" = "HKD", # Hong Kong Dollar
-    "S$" = "SGD", # Singapore Dollar
-    "\u20aa" = "ILS", # Israeli Shekel sign
-    "\u20b1" = "PHP", # Philippine Peso sign
-    "\u0e3f" = "THB", # Thai Baht sign
-    "kr" = "SEK", # Swedish Krona (also NOK, DKK)
-    "z\u0142" = "PLN" # Polish Zloty
+  # Two parallel vectors rather than a named list.  A `\uXXXX` escape in a
+  # *tag* position -- `list("\u20ac" = "EUR")` -- is not stored as the euro at
+  # all outside a UTF-8 session: a tag becomes a symbol, symbols must be
+  # representable in the native encoding, and R substitutes the placeholder
+  # text `<U+20AC>`.  So the key was already destroyed at parse time and no
+  # comparison could have recovered it (#139).  The same escape in an ordinary
+  # string keeps its bytes and its UTF-8 mark, which is why the vectors below
+  # survive where the tags did not.
+  prefixes <- c(
+    "$",
+    "\u20ac", # Euro sign
+    "\u00a3", # Pound sign
+    "\u00a5", # Yen sign
+    "\u20b9", # Indian Rupee sign
+    "\u20a9", # Korean Won sign
+    "\u20bd", # Russian Ruble sign
+    "R$", # Brazilian Real
+    "CHF", # Swiss Franc
+    "C$", # Canadian Dollar
+    "A$", # Australian Dollar
+    "NZ$", # New Zealand Dollar
+    "HK$", # Hong Kong Dollar
+    "S$", # Singapore Dollar
+    "\u20aa", # Israeli Shekel sign
+    "\u20b1", # Philippine Peso sign
+    "\u0e3f", # Thai Baht sign
+    "kr", # Swedish Krona (also NOK, DKK)
+    "z\u0142" # Polish Zloty
+  )
+  codes <- c(
+    "USD", "EUR", "GBP", "JPY", "INR", "KRW", "RUB", "BRL", "CHF", "CAD",
+    "AUD", "NZD", "HKD", "SGD", "ILS", "PHP", "THB", "SEK", "PLN"
   )
 
-  # Return mapped code or the prefix itself as fallback
-  if (prefix %in% names(currency_map)) {
-    return(currency_map[[prefix]])
+  # Declared on both sides so the comparison does not depend on the session
+  # locale either -- see `as_utf8()`.
+  matched <- match(as_utf8(prefix), as_utf8(prefixes))
+  if (!is.na(matched)) {
+    return(codes[[matched]])
   }
 
   # If prefix looks like an ISO code (3 uppercase letters), use it directly
