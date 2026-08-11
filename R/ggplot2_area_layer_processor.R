@@ -79,10 +79,95 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
 
       list(
         data = series,
+        selectors = self$generate_selectors(plot, gt, panel_ctx, length(series)),
         title = if (!is.null(layout$title)) layout$title else "",
         axes = axes,
         type = self$resolve_area_type(plot, series)
       )
+    },
+
+    #' @description One selector per band, so navigation highlights a band.
+    #'
+    #' `geom_area` draws each series as its own `geom_ribbon.gTree` holding a
+    #' filled `GRID.polygon`, which is the granularity the consumer wants:
+    #' `AreaTrace` extends the line trace, whose multi-series highlight needs
+    #' one selector per series and discards a list whose length disagrees.
+    #'
+    #' The polygon rather than the outline polyline each ribbon also draws:
+    #' the band is the mark a reader is being pointed at, and outlining it
+    #' would highlight a hairline around the shape instead of the shape.
+    #'
+    #' The existing curve machinery does not transfer.
+    #' `Ggplot2LineLayerProcessor$curve_selectors()` counts curves inside one
+    #' auto-named polyline grob, and `layer_polyline_grobs()` deliberately
+    #' skips geom-named gTrees to avoid miscounting -- an area layer being
+    #' exactly the shape that helper excludes.
+    #'
+    #' Emits nothing rather than a short or mispaired list, for the reason
+    #' every processor here gives: the caller can tell an empty selector list
+    #' apart from a wrong one, and a user cannot.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object
+    #' @param panel_ctx Panel context for panel-scoped selector generation
+    #' @param n_series How many bands the data reports
+    #' @return A list of selectors, one per band, or an empty list
+    generate_selectors = function(plot, gt = NULL, panel_ctx = NULL,
+                                  n_series = 0L) {
+      if (is.null(gt) || n_series < 1L) {
+        return(list())
+      }
+
+      tree <- tryCatch(
+        self$find_layer_grob_tree(plot, gt, panel_ctx),
+        error = function(e) NULL
+      )
+      if (is.null(tree) || !inherits(tree, "gTree")) {
+        return(list())
+      }
+
+      polygons <- self$band_polygon_names(tree)
+      if (length(polygons) != n_series) {
+        # A band the geom did not draw, or one it drew twice. Either way the
+        # pairing between series and mark is no longer positional, and a
+        # highlight that lands on the neighbouring band is worse than none.
+        return(list())
+      }
+
+      lapply(polygons, function(name) {
+        # gridSVG suffixes the grob's group with ".1" and puts the drawn
+        # element inside it.
+        paste0("#", gsub("\\.", "\\\\.", paste0(name, ".1")), " polygon")
+      })
+    },
+
+    #' @description Names of the band polygon grobs inside a grob, in draw
+    #' order, which is series order.
+    #'
+    #' Matches the auto-generated `GRID.polygon.N` name exactly rather than by
+    #' prefix, so a theme element's own polygon -- named after the element,
+    #' not after grid's counter -- cannot be collected as a band. Anchoring
+    #' both ends is what keeps this from widening the way a `grepl` on a bare
+    #' prefix would.
+    #'
+    #' @param grob A grob to walk
+    #' @return Character vector of grob names
+    band_polygon_names = function(grob) {
+      out <- character(0)
+      if (!is.null(grob$name) && grepl("^GRID\\.polygon\\.\\d+$", grob$name)) {
+        out <- c(out, grob$name)
+      }
+      if (inherits(grob, "gTree")) {
+        for (child in grob$children) {
+          out <- c(out, self$band_polygon_names(child))
+        }
+      }
+      if (inherits(grob, "gList")) {
+        for (i in seq_along(grob)) {
+          out <- c(out, self$band_polygon_names(grob[[i]]))
+        }
+      }
+      out
     },
 
     #' @description Decide which of the three area types this layer is.
@@ -228,7 +313,7 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      index <- self$layer_info$layer_index
+      index <- self$get_layer_index()
       layer <- if (!is.null(index) && index <= length(plot$layers)) {
         plot$layers[[index]]
       } else {

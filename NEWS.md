@@ -16,6 +16,17 @@
   rows whose x the layer was given are described. A filled area
   (`position = "fill"`) is distinguished for the same reason a filled bar is,
   and `geom_area(stat = "density")` keeps being read as the smooth it is.
+* Area layers highlight the band under the cursor. `geom_area()` draws each
+  series as its own ribbon holding a filled polygon, which is exactly the
+  granularity the consumer needs -- one selector per series, since the area
+  trace extends the line trace and discards a selector list whose length
+  disagrees with the data. The existing curve machinery could not supply it:
+  it counts curves inside one auto-named polyline grob and deliberately skips
+  geom-named trees, an area layer being the shape that rule excludes. A count
+  that does not match the data withdraws the selectors entirely rather than
+  emitting a short list, because a highlight on the neighbouring band tells a
+  reader the wrong thing about every value it announces, and only an absence
+  is distinguishable from a correct list.
 * Error bar support for 'ggplot2'. `geom_errorbar()`, `geom_errorbarh()`,
   `geom_linerange()`, `geom_pointrange()` and `geom_crossbar()` are now emitted
   as `error_bar` layers rather than falling through unclassified, so the
@@ -82,6 +93,17 @@
 
 ## Bug Fixes
 
+* ggplot2: `geom_area()` and the error bar geoms emitted no data at all. Two
+  helpers shared by every layer processor read the layer's position from
+  `layer_info$layer_index`, while all six places that build a `layer_info`
+  name that field `index` -- so both resolved to nothing for every processor
+  the orchestrator creates, and the layers they serve rendered with an empty
+  `data` array. Not a wrong reading: no reading, and no error anywhere on the
+  path. Both now read through `get_layer_index()`, which was already the
+  accessor for that field. The unit tests did not catch it because each
+  builds its own `layer_info` and supplied the key the helpers expected, so
+  the lookup succeeded in the tests and failed in the product; the regression
+  test renders a chart through the real pipeline instead.
 * ggplot2: an unsorted `geom_line()` announces each point's own x. The
   built data is sorted by `(PANEL, group, x)` -- that sort is the documented
   difference between `geom_line()` and `geom_path()` -- while the caller's

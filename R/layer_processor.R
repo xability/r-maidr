@@ -68,7 +68,7 @@ LayerProcessor <- R6::R6Class(
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return A data frame of computed aesthetics, or NULL
     get_layer_built_data = function(built, panel_id = NULL) {
-      index <- self$layer_info$layer_index
+      index <- self$get_layer_index()
       if (is.null(index) || index > length(built$data)) {
         return(NULL)
       }
@@ -103,11 +103,84 @@ LayerProcessor <- R6::R6Class(
       if (is.null(plot) || is.null(plot$layers)) {
         return(NULL)
       }
-      index <- self$layer_info$layer_index
+      index <- self$get_layer_index()
       if (is.null(index) || index > length(plot$layers)) {
         return(NULL)
       }
       plot$layers[[index]]
+    },
+
+    #' @description Find the grob tree ggplot2 drew for this layer.
+    #'
+    #' ggplot2 names a layer's grob after its geom
+    #' (\code{geom_smooth.gTree.5}), so the tree is located by that prefix
+    #' and, when the plot repeats the geom, by this layer's position among
+    #' the layers sharing it. Scoping to the layer's own tree is what keeps a
+    #' sibling layer's grobs out of whatever the caller counts inside it.
+    #'
+    #' Lives here rather than on one processor because two now need it and
+    #' the walk is the same walk -- the argument that moved
+    #' \code{get_own_layer()} and \code{get_layer_built_data()} here before
+    #' it. What differs between callers is only which layer they are looking
+    #' for, and that is the \code{target} argument; the smooth processor
+    #' passes a resolved index because it may describe a layer other than its
+    #' own, and everything else takes the default.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object
+    #' @param panel_ctx Panel context for panel-scoped selector generation
+    #' @param target Index of the layer to find; defaults to this one's
+    #' @return The matching grob, or NULL
+    find_layer_grob_tree = function(plot, gt, panel_ctx = NULL, target = NULL) {
+      if (is.null(target)) {
+        target <- self$get_layer_index()
+      }
+      if (is.null(plot) || is.null(plot$layers) || is.null(target) ||
+        target < 1L || target > length(plot$layers)) {
+        return(NULL)
+      }
+
+      prefix <- geom_grob_prefix(plot$layers[[target]]$geom)
+
+      position <- 0L
+      for (i in seq_along(plot$layers)) {
+        if (identical(geom_grob_prefix(plot$layers[[i]]$geom), prefix)) {
+          position <- position + 1L
+          if (i == target) break
+        }
+      }
+
+      roots <- if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
+        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+        if (is.null(panel_grob)) list() else list(panel_grob)
+      } else if ("grobs" %in% names(gt)) {
+        gt$grobs
+      } else {
+        list(gt)
+      }
+
+      pattern <- paste0("^", prefix, "\\.")
+      matches <- list()
+      collect <- function(grob) {
+        if (!is.null(grob$name) && grepl(pattern, grob$name)) {
+          # Do not descend: a match is the whole layer's tree.
+          matches[[length(matches) + 1L]] <<- grob
+          return(invisible(NULL))
+        }
+        if (inherits(grob, "gTree")) {
+          for (child in grob$children) collect(child)
+        }
+        if (inherits(grob, "gList")) {
+          for (i in seq_along(grob)) collect(grob[[i]])
+        }
+        invisible(NULL)
+      }
+      for (root in roots) collect(root)
+
+      if (position < 1L || position > length(matches)) {
+        return(NULL)
+      }
+      matches[[position]]
     },
 
     #' @description Check if this layer needs reordering (OPTIONAL - default: FALSE)

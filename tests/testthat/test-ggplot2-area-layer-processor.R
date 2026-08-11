@@ -272,7 +272,11 @@ test_that("a continuous x whose values cannot be read keeps every row", {
 
   built <- ggplot2::ggplot_build(plot)
   processor <- Ggplot2AreaLayerProcessor$new(
-    list(layer_index = 1L, geom_class = "GeomArea", stat_class = "StatAlign")
+    # `index` is the key every production site sets; a processor built with
+    # anything else resolves no layer, and the assertions below would then
+    # pass because nothing was found rather than because the axis is
+    # unreadable.
+    list(index = 1L, geom_class = "GeomArea", stat_class = "StatAlign")
   )
 
   testthat::expect_null(processor$source_x_values(built))
@@ -284,4 +288,66 @@ test_that("a continuous x whose values cannot be read keeps every row", {
 
   testthat::expect_identical(nrow(kept), nrow(layer_data))
   testthat::expect_true(any(layer_data$x != round(layer_data$x)))
+})
+
+test_that("each band gets its own selector, in series order", {
+  # `geom_area` draws one `geom_ribbon.gTree` per series, each holding a
+  # filled polygon -- the granularity `AreaTrace` needs, since it extends the
+  # line trace and that discards a selector list whose length disagrees with
+  # the data.
+  df <- area_data()
+  plot <- ggplot(df, aes(year, val, fill = grp, group = grp)) + geom_area()
+  built <- ggplot2::ggplot_build(plot)
+  gt <- ggplot2::ggplot_gtable(built)
+  processor <- Ggplot2AreaLayerProcessor$new(list(index = 1L))
+
+  selectors <- processor$generate_selectors(plot, gt, NULL, 2L)
+
+  testthat::expect_length(selectors, 2)
+  for (selector in selectors) {
+    # The polygon, not the outline polyline each ribbon also draws.
+    testthat::expect_match(selector, "polygon$")
+    # gridSVG escapes the dots in an id, and the id is the grob's name with a
+    # `.1` suffix. Read from the drawn grobs rather than guessed: the counter
+    # in `GRID.polygon.N` is session-wide, so a guessed name lands on another
+    # panel's marks when it lands at all.
+    testthat::expect_match(selector, "^#GRID\\\\\\.polygon\\\\\\.[0-9]+\\\\\\.1 polygon$")
+  }
+  testthat::expect_false(identical(selectors[[1]], selectors[[2]]))
+})
+
+test_that("a mismatched band count withdraws the selectors entirely", {
+  # A short or mispaired list is worse than none: the consumer cannot tell
+  # one from a correct one, and a highlight on the neighbouring band tells
+  # the reader the wrong thing about every value it announces.
+  df <- area_data()
+  plot <- ggplot(df, aes(year, val, fill = grp, group = grp)) + geom_area()
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(plot))
+  processor <- Ggplot2AreaLayerProcessor$new(list(index = 1L))
+
+  testthat::expect_length(processor$generate_selectors(plot, gt, NULL, 3L), 0)
+  testthat::expect_length(processor$generate_selectors(plot, NULL, NULL, 2L), 0)
+  testthat::expect_length(processor$generate_selectors(plot, gt, NULL, 0L), 0)
+})
+
+test_that("a sibling layer's marks are not counted as bands", {
+  # The layer's own grob tree is what is walked, so a `geom_line()` drawn
+  # beside the area contributes no polygon and shifts no pairing.
+  df <- area_data()
+  plot <- ggplot(df, aes(year, val, fill = grp, group = grp)) +
+    geom_area() +
+    geom_line()
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(plot))
+  processor <- Ggplot2AreaLayerProcessor$new(list(index = 1L))
+
+  testthat::expect_length(processor$generate_selectors(plot, gt, NULL, 2L), 2)
+})
+
+test_that("a single-series area still gets its one selector", {
+  df <- data.frame(year = 2000:2003, val = c(3, 5, 4, 7))
+  plot <- ggplot(df, aes(year, val)) + geom_area()
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(plot))
+  processor <- Ggplot2AreaLayerProcessor$new(list(index = 1L))
+
+  testthat::expect_length(processor$generate_selectors(plot, gt, NULL, 1L), 1)
 })

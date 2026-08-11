@@ -31,6 +31,7 @@ interface that all layer processors must implement.
 \item \href{#method-LayerProcessor-generate_selectors}{\code{LayerProcessor$generate_selectors()}}
 \item \href{#method-LayerProcessor-get_layer_built_data}{\code{LayerProcessor$get_layer_built_data()}}
 \item \href{#method-LayerProcessor-get_own_layer}{\code{LayerProcessor$get_own_layer()}}
+\item \href{#method-LayerProcessor-find_layer_grob_tree}{\code{LayerProcessor$find_layer_grob_tree()}}
 \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
 \item \href{#method-LayerProcessor-reorder_layer_data}{\code{LayerProcessor$reorder_layer_data()}}
 \item \href{#method-LayerProcessor-augment_plot}{\code{LayerProcessor$augment_plot()}}
@@ -207,6 +208,45 @@ find its layer has a reading to fall back on and no crash to justify.
 The layer, or NULL when the index does not resolve
 }
 }
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-find_layer_grob_tree"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-find_layer_grob_tree}{}}}
+\subsection{\code{LayerProcessor$find_layer_grob_tree()}}{
+  Find the grob tree ggplot2 drew for this layer.
+
+ggplot2 names a layer's grob after its geom
+(\code{geom_smooth.gTree.5}), so the tree is located by that prefix
+and, when the plot repeats the geom, by this layer's position among
+the layers sharing it. Scoping to the layer's own tree is what keeps a
+sibling layer's grobs out of whatever the caller counts inside it.
+
+Lives here rather than on one processor because two now need it and
+the walk is the same walk -- the argument that moved
+\code{get_own_layer()} and \code{get_layer_built_data()} here before
+it. What differs between callers is only which layer they are looking
+for, and that is the \code{target} argument; the smooth processor
+passes a resolved index because it may describe a layer other than its
+own, and everything else takes the default.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$find_layer_grob_tree(plot, gt, panel_ctx = NULL, target = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+      \item{\code{target}}{Index of the layer to find; defaults to this one's}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The matching grob, or NULL
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-LayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-LayerProcessor-needs_reordering}{}}}
