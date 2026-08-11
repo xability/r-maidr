@@ -130,6 +130,8 @@ BaseRAdapter <- R6::R6Class(
         "barplot" = {
           if (self$is_dodged_barplot(args)) {
             "dodged_bar"
+          } else if (self$is_normalized_barplot(args)) {
+            "stacked_normalized_bar"
           } else if (self$is_stacked_barplot(args)) {
             "stacked_bar"
           } else {
@@ -334,6 +336,50 @@ BaseRAdapter <- R6::R6Class(
       beside_false <- if (is.null(beside)) TRUE else !isTRUE(beside)
 
       is_matrix && beside_false
+    },
+
+    #' @description Check if a barplot call draws a 100% stacked bar
+    #'
+    #' Base R has no `position = "fill"` to read: `barplot()` takes no
+    #' normalisation argument at all, and the idiomatic way to draw a 100%
+    #' stacked bar is to normalise the matrix first, as
+    #' `barplot(prop.table(m, 2))`. The only signal left is the drawn geometry.
+    #'
+    #' So this reads what the chart shows rather than guessing what the author
+    #' meant, and the two are the same thing here: when every column sums to 1,
+    #' every bar is drawn to a common full height and each segment is that
+    #' category's share. A chart like that IS a 100% stacked bar whatever the
+    #' numbers were before they reached `barplot()`.
+    #'
+    #' Deliberately narrow. It does not also accept columns summing to 100,
+    #' because a matrix of raw counts can total 100 by coincidence and nothing
+    #' about the drawing would distinguish that from percentages. And it needs
+    #' two or more rows, because a single series stacked against nothing is not
+    #' a stack.
+    #'
+    #' @param args The arguments from the barplot call
+    #' @return TRUE if every column of the height matrix sums to 1
+    is_normalized_barplot = function(args) {
+      if (!self$is_stacked_barplot(args)) {
+        return(FALSE)
+      }
+
+      height <- args[[1]]
+      if (nrow(height) < 2) {
+        return(FALSE)
+      }
+
+      sums <- colSums(height, na.rm = TRUE)
+      if (length(sums) == 0 || !all(is.finite(sums))) {
+        return(FALSE)
+      }
+
+      # `prop.table()` divides, so the columns land near 1 rather than on it.
+      isTRUE(all.equal(
+        unname(sums),
+        rep(1, length(sums)),
+        tolerance = 1e-8
+      ))
     },
 
     #' @description Create an orchestrator for this system (Base R)
