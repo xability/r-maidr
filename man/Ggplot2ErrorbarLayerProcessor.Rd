@@ -55,7 +55,6 @@ interval.
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer}{\code{Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-extract_interval_data}{\code{Ggplot2ErrorbarLayerProcessor$extract_interval_data()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-resolve_estimates}{\code{Ggplot2ErrorbarLayerProcessor$resolve_estimates()}}
-    \item \href{#method-Ggplot2ErrorbarLayerProcessor-get_own_layer}{\code{Ggplot2ErrorbarLayerProcessor$get_own_layer()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-resolve_category_labels}{\code{Ggplot2ErrorbarLayerProcessor$resolve_category_labels()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-category_axis_labels}{\code{Ggplot2ErrorbarLayerProcessor$category_axis_labels()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-clone}{\code{Ggplot2ErrorbarLayerProcessor$clone()}}
@@ -68,6 +67,7 @@ interval.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
@@ -252,32 +252,6 @@ is: a layer that carries \code{y} always uses the value the chart drew.
   \subsection{Returns}{
     A numeric vector of estimates, or NULL when neither the estimate
 nor a pair of bounds is present
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-get_own_layer"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-get_own_layer}{}}}
-\subsection{\code{Ggplot2ErrorbarLayerProcessor$get_own_layer()}}{
-  Resolve this processor's own ggplot2 layer.
-
-\code{Ggplot2LineLayerProcessor} has a \code{get_layer()}, but this class inherits
-the point processor, which does not -- so it resolves its own rather
-than inheriting from a sibling for one method.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2ErrorbarLayerProcessor$get_own_layer(plot)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The layer, or NULL when the index does not resolve
   }
 }
 

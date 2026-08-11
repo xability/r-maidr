@@ -231,25 +231,6 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       (as.numeric(layer_data[[min_col]]) + as.numeric(layer_data[[max_col]])) / 2
     },
 
-    #' @description Resolve this processor's own ggplot2 layer.
-    #'
-    #' `Ggplot2LineLayerProcessor` has a `get_layer()`, but this class inherits
-    #' the point processor, which does not -- so it resolves its own rather
-    #' than inheriting from a sibling for one method.
-    #'
-    #' @param plot The ggplot2 object
-    #' @return The layer, or NULL when the index does not resolve
-    get_own_layer = function(plot) {
-      if (is.null(plot) || is.null(plot$layers)) {
-        return(NULL)
-      }
-      index <- self$layer_info$layer_index
-      if (is.null(index) || index > length(plot$layers)) {
-        return(NULL)
-      }
-      plot$layers[[index]]
-    },
-
     #' @description Recover the names behind a discrete category axis.
     #'
     #' ggplot2 maps a discrete axis onto integer positions before it computes
