@@ -135,6 +135,20 @@ Ggplot2Adapter <- R6::R6Class(
         return("candlestick")
       }
 
+      # ggplot2's uncertainty geoms. They all compute the same interval
+      # aesthetics (ymin/ymax, or xmin/xmax when horizontal), so one processor
+      # reads every one of them.
+      #
+      # GeomCrossbar and GeomPointrange do NOT inherit GeomErrorbar, and
+      # GeomErrorbarh is its own class rather than a flipped GeomErrorbar, so
+      # this has to be a membership test rather than an inherits() check.
+      if (geom_class %in% c(
+        "GeomErrorbar", "GeomErrorbarh", "GeomLinerange",
+        "GeomPointrange", "GeomCrossbar"
+      )) {
+        return("error_bar")
+      }
+
       if (geom_class == "GeomText") {
         return("skip")
       }

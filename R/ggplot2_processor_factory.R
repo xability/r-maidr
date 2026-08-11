@@ -43,6 +43,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "heat" = Ggplot2HeatmapLayerProcessor$new(layer_info),
         "point" = Ggplot2PointLayerProcessor$new(layer_info),
         "box" = Ggplot2BoxplotLayerProcessor$new(layer_info),
+        "error_bar" = Ggplot2ErrorbarLayerProcessor$new(layer_info),
         "violin" = Ggplot2ViolinLayerProcessor$new(layer_info),
         "candlestick" = Ggplot2CandlestickProcessor$new(layer_info),
         # For unknown types, use the generic processor
@@ -67,6 +68,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "heat",
         "point",
         "box",
+        "error_bar",
         "violin",
         "candlestick",
         "unknown"
