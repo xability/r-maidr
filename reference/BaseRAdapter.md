@@ -26,6 +26,8 @@ An R6 class inheriting from SystemAdapter
 
 - [`BaseRAdapter$is_stacked_barplot()`](#method-BaseRAdapter-is_stacked_barplot)
 
+- [`BaseRAdapter$is_normalized_barplot()`](#method-BaseRAdapter-is_normalized_barplot)
+
 - [`BaseRAdapter$create_orchestrator()`](#method-BaseRAdapter-create_orchestrator)
 
 - [`BaseRAdapter$get_system_name()`](#method-BaseRAdapter-get_system_name)
@@ -140,6 +142,45 @@ Check if a barplot call represents a stacked bar plot
 #### Returns
 
 TRUE if this is a stacked bar plot, FALSE otherwise
+
+------------------------------------------------------------------------
+
+### Method `is_normalized_barplot()`
+
+Check if a barplot call draws a 100% stacked bar
+
+Base R has no `position = "fill"` to read:
+[`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) takes no
+normalisation argument at all, and the idiomatic way to draw a 100%
+stacked bar is to normalise the matrix first, as
+`barplot(prop.table(m, 2))`. The only signal left is the drawn geometry.
+
+So this reads what the chart shows rather than guessing what the author
+meant, and the two are the same thing here: when every column sums to 1,
+every bar is drawn to a common full height and each segment is that
+category's share. A chart like that IS a 100% stacked bar whatever the
+numbers were before they reached
+[`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md).
+
+Deliberately narrow. It does not also accept columns summing to 100,
+because a matrix of raw counts can total 100 by coincidence and nothing
+about the drawing would distinguish that from percentages. And it needs
+two or more rows, because a single series stacked against nothing is not
+a stack.
+
+#### Usage
+
+    BaseRAdapter$is_normalized_barplot(args)
+
+#### Arguments
+
+- `args`:
+
+  The arguments from the barplot call
+
+#### Returns
+
+TRUE if every column of the height matrix sums to 1
 
 ------------------------------------------------------------------------
 
