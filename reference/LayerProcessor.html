@@ -163,6 +163,8 @@ interface that all layer processors must implement.</p>
 <li><p><a href="#method-LayerProcessor-process"><code>LayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-extract_data"><code>LayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-generate_selectors"><code>LayerProcessor$generate_selectors()</code></a></p></li>
+<li><p><a href="#method-LayerProcessor-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></p></li>
+<li><p><a href="#method-LayerProcessor-get_own_layer"><code>LayerProcessor$get_own_layer()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-needs_reordering"><code>LayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-reorder_layer_data"><code>LayerProcessor$reorder_layer_data()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-augment_plot"><code>LayerProcessor$augment_plot()</code></a></p></li>
@@ -306,27 +308,79 @@ interface that all layer processors must implement.</p>
 <p>List of selectors</p>
 </div>
 
+</div><p></p><hr><a id="method-LayerProcessor-get_layer_built_data"></a><div class="section">
+<h3 id="method-get-layer-built-data-">Method <code>get_layer_built_data()</code><a class="anchor" aria-label="anchor" href="#method-get-layer-built-data-"></a></h3>
+<p>Read this layer's rows out of the built plot.</p>
+<p>Scoped to one panel when asked. A faceted plot puts every panel's rows
+in one frame, so a layer that took all of them would describe the whole
+facet grid as one series.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">get_layer_built_data</span><span class="op">(</span><span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+
+<dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>A data frame of computed aesthetics, or NULL</p>
+</div>
+
+</div><p></p><hr><a id="method-LayerProcessor-get_own_layer"></a><div class="section">
+<h3 id="method-get-own-layer-">Method <code>get_own_layer()</code><a class="anchor" aria-label="anchor" href="#method-get-own-layer-"></a></h3>
+<p>Resolve the plot layer this processor was built for.</p>
+<p>Every processor knows its index and several need the layer itself –
+for its geom, its position or its own <code>data</code> – so the lookup lives
+here rather than being copied into each. Answers NULL rather than
+erroring when the index does not resolve, since a caller that cannot
+find its layer has a reading to fall back on and no crash to justify.</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">get_own_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>The layer, or NULL when the index does not resolve</p>
+</div>
+
 </div><p></p><hr><a id="method-LayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="method-needs-reordering-">Method <code>needs_reordering()</code><a class="anchor" aria-label="anchor" href="#method-needs-reordering-"></a></h3>
 <p>Check if this layer needs reordering (OPTIONAL - default: FALSE)</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>Logical indicating if reordering is needed</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-reorder_layer_data"></a><div class="section">
 <h3 id="method-reorder-layer-data-">Method <code>reorder_layer_data()</code><a class="anchor" aria-label="anchor" href="#method-reorder-layer-data-"></a></h3>
 <p>Reorder layer data (OPTIONAL - default: no-op)</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">reorder_layer_data</span><span class="op">(</span><span class="va">data</span>, <span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data</code></dt>
 <dd><p>data.frame effective for this layer</p></dd>
 
@@ -338,7 +392,7 @@ interface that all layer processors must implement.</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>Reordered data</p>
 </div>
 
@@ -348,12 +402,12 @@ interface that all layer processors must implement.</p>
 <p>Called by the orchestrator before ggplot_build/ggplotGrob. Allows a
 processor to inject additional geom layers (e.g., a boxplot inside a
 violin) so they appear in the SVG and can be targeted by selectors.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">augment_plot</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object to augment</p></dd>
 
@@ -361,43 +415,43 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>The (possibly augmented) ggplot2 object</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-needs_augmentation"></a><div class="section">
 <h3 id="method-needs-augmentation-">Method <code>needs_augmentation()</code><a class="anchor" aria-label="anchor" href="#method-needs-augmentation-"></a></h3>
 <p>Check if this processor needs to augment the plot</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">needs_augmentation</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>Logical</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-get_layer_index"></a><div class="section">
 <h3 id="method-get-layer-index-">Method <code>get_layer_index()</code><a class="anchor" aria-label="anchor" href="#method-get-layer-index-"></a></h3>
 <p>Get layer index</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">get_layer_index</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>Layer index</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-set_last_result"></a><div class="section">
 <h3 id="method-set-last-result-">Method <code>set_last_result()</code><a class="anchor" aria-label="anchor" href="#method-set-last-result-"></a></h3>
 <p>Store the last processed result (used by orchestrator)</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">set_last_result</span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>result</code></dt>
 <dd><p>The result to store</p></dd>
 
@@ -408,12 +462,12 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 </div><p></p><hr><a id="method-LayerProcessor-get_last_result"></a><div class="section">
 <h3 id="method-get-last-result-">Method <code>get_last_result()</code><a class="anchor" aria-label="anchor" href="#method-get-last-result-"></a></h3>
 <p>Get the last processed result</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">get_last_result</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>The last result</p>
 </div>
 
@@ -424,12 +478,12 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 <code>list(x = list(label = "..."), y = list(label = "..."))</code>.</p>
 <p>Bare strings, top-level <code>format</code>/<code>min</code>/<code>max</code>/<code>tickStep</code>/
 <code>fill</code>/<code>level</code>, and any non-{x,y,z} keys are NOT permitted.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">extract_layer_axes</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layout</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot object</p></dd>
 
@@ -441,19 +495,19 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>Named list with <code>x</code> and <code>y</code> AxisConfig objects</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-apply_scale_mapping"></a><div class="section">
 <h3 id="method-apply-scale-mapping-">Method <code><a href="apply_scale_mapping.html">apply_scale_mapping()</a></code><a class="anchor" aria-label="anchor" href="#method-apply-scale-mapping-"></a></h3>
 <p>Apply scale mapping to numeric values</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">apply_scale_mapping</span><span class="op">(</span><span class="va">numeric_values</span>, <span class="va">scale_mapping</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>numeric_values</code></dt>
 <dd><p>Vector of numeric values</p></dd>
 
@@ -465,19 +519,19 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Mapped values</p>
 </div>
 
 </div><p></p><hr><a id="method-LayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

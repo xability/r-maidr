@@ -31,6 +31,10 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$generate_selectors()`](#method-LayerProcessor-generate_selectors)
 
+- [`LayerProcessor$get_layer_built_data()`](#method-LayerProcessor-get_layer_built_data)
+
+- [`LayerProcessor$get_own_layer()`](#method-LayerProcessor-get_own_layer)
+
 - [`LayerProcessor$needs_reordering()`](#method-LayerProcessor-needs_reordering)
 
 - [`LayerProcessor$reorder_layer_data()`](#method-LayerProcessor-reorder_layer_data)
@@ -183,6 +187,60 @@ Generate selectors for the layer (MUST be implemented by subclasses)
 #### Returns
 
 List of selectors
+
+------------------------------------------------------------------------
+
+### Method `get_layer_built_data()`
+
+Read this layer's rows out of the built plot.
+
+Scoped to one panel when asked. A faceted plot puts every panel's rows
+in one frame, so a layer that took all of them would describe the whole
+facet grid as one series.
+
+#### Usage
+
+    LayerProcessor$get_layer_built_data(built, panel_id = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+A data frame of computed aesthetics, or NULL
+
+------------------------------------------------------------------------
+
+### Method `get_own_layer()`
+
+Resolve the plot layer this processor was built for.
+
+Every processor knows its index and several need the layer itself – for
+its geom, its position or its own `data` – so the lookup lives here
+rather than being copied into each. Answers NULL rather than erroring
+when the index does not resolve, since a caller that cannot find its
+layer has a reading to fall back on and no crash to justify.
+
+#### Usage
+
+    LayerProcessor$get_own_layer(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+The layer, or NULL when the index does not resolve
 
 ------------------------------------------------------------------------
 

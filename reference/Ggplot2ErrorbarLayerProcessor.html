@@ -241,11 +241,9 @@ interval.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-process"><code>Ggplot2ErrorbarLayerProcessor$process()</code></a></p></li>
-<li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-get_layer_built_data"><code>Ggplot2ErrorbarLayerProcessor$get_layer_built_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer"><code>Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-extract_interval_data"><code>Ggplot2ErrorbarLayerProcessor$extract_interval_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-resolve_estimates"><code>Ggplot2ErrorbarLayerProcessor$resolve_estimates()</code></a></p></li>
-<li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-get_own_layer"><code>Ggplot2ErrorbarLayerProcessor$get_own_layer()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-resolve_category_labels"><code>Ggplot2ErrorbarLayerProcessor$resolve_category_labels()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-category_axis_labels"><code>Ggplot2ErrorbarLayerProcessor$category_axis_labels()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-clone"><code>Ggplot2ErrorbarLayerProcessor$clone()</code></a></p></li>
@@ -253,7 +251,9 @@ interval.</p>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href="LayerProcessor.html#method-extract_layer_axes"><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href="LayerProcessor.html#method-get_layer_index"><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href="LayerProcessor.html#method-get_own_layer"><code>LayerProcessor$get_own_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href="LayerProcessor.html#method-initialize"><code>LayerProcessor$initialize()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href="LayerProcessor.html#method-needs_augmentation"><code>LayerProcessor$needs_augmentation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href="LayerProcessor.html#method-needs_reordering"><code>LayerProcessor$needs_reordering()</code></a></span></li>
@@ -314,38 +314,16 @@ interval.</p>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-get_layer_built_data"></a><div class="section">
-<h3 id="ggplot-errorbarlayerprocessor-get-layer-built-data-"><code>Ggplot2ErrorbarLayerProcessor$get_layer_built_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-get-layer-built-data-"></a></h3>
-<p>Read this layer's rows out of the built plot.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">get_layer_built_data</span><span class="op">(</span><span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>built</code></dt>
-<dd><p>Built plot data</p></dd>
-
-      <dt><code>panel_id</code></dt>
-<dd><p>Panel ID for faceted plots (optional)</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>A data frame of computed aesthetics, or NULL</p>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-is-horizontal-layer-"><code>Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-is-horizontal-layer-"></a></h3>
 <p>Decide whether the interval runs along x rather than y.</p>
 <p>Reads <code>flipped_aes</code> when the built data carries it, and falls back to
 the geom class for <code><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbarh()</a></code>, which is horizontal by
 construction and therefore has no such column to read.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">is_horizontal_layer</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layer_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -355,7 +333,7 @@ construction and therefore has no such column to read.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>TRUE when the interval spans the x axis</p>
 </div>
 
@@ -373,7 +351,7 @@ horizontal chart with no interval at all.</p>
 <p>A row missing its bounds still emits its estimate. A one-sided interval
 is a real chart, and dropping the point for want of its other half
 would lose the estimate too.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">extract_interval_data</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
 <span>  <span class="va">layer_data</span>,</span>
@@ -381,7 +359,7 @@ would lose the estimate too.</p><div class="section">
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -397,7 +375,7 @@ would lose the estimate too.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>A list of MAIDR interval points</p>
 </div>
 
@@ -418,7 +396,7 @@ rather than a claim about an unobserved estimate, and it is what keeps
 the bounds – which are the real data here – reachable at all. It is
 NOT the mean for an asymmetric interval, and nothing here pretends it
 is: a layer that carries <code>y</code> always uses the value the chart drew.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">resolve_estimates</span><span class="op">(</span></span>
 <span>  <span class="va">layer_data</span>,</span>
 <span>  <span class="va">value_col</span>,</span>
@@ -426,7 +404,7 @@ is: a layer that carries <code>y</code> always uses the value the chart drew.</p
 <span>  <span class="va">max_col</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_data</code></dt>
 <dd><p>This layer's computed rows</p></dd>
 
@@ -442,31 +420,9 @@ is: a layer that carries <code>y</code> always uses the value the chart drew.</p
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>A numeric vector of estimates, or NULL when neither the estimate
 nor a pair of bounds is present</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-get_own_layer"></a><div class="section">
-<h3 id="ggplot-errorbarlayerprocessor-get-own-layer-"><code>Ggplot2ErrorbarLayerProcessor$get_own_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-get-own-layer-"></a></h3>
-<p>Resolve this processor's own ggplot2 layer.</p>
-<p><code>Ggplot2LineLayerProcessor</code> has a <code>get_layer()</code>, but this class inherits
-the point processor, which does not – so it resolves its own rather
-than inheriting from a sibling for one method.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">get_own_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>The layer, or NULL when the index does not resolve</p>
 </div>
 
 </div>
@@ -482,7 +438,7 @@ positions are assigned in the scale's order, not the data's, so they do
 not even read as row numbers.</p>
 <p>The labels come from the panel's scale rather than from the data frame,
 which is what makes the position an index into them.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">resolve_category_labels</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
 <span>  <span class="va">layer_data</span>,</span>
@@ -490,7 +446,7 @@ which is what makes the position an index into them.</p><div class="section">
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -506,7 +462,7 @@ which is what makes the position an index into them.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>A list of labels – strings for a discrete axis, numbers for a
 continuous one</p>
 </div>
@@ -516,14 +472,14 @@ continuous one</p>
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-category_axis_labels"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-category-axis-labels-"><code>Ggplot2ErrorbarLayerProcessor$category_axis_labels()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-category-axis-labels-"></a></h3>
 <p>Read the break labels of the category axis, when discrete.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">category_axis_labels</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
 <span>  <span class="va">category_col</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -536,7 +492,7 @@ continuous one</p>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>A character vector of labels, or NULL on a continuous axis</p>
 </div>
 
@@ -545,10 +501,10 @@ continuous one</p>
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-clone-"><code>Ggplot2ErrorbarLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

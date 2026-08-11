@@ -4,6 +4,26 @@
 
 ### New Features
 
+- Area chart support for ‘ggplot2’.
+  [`geom_area()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html)
+  is now emitted as an `area`, `stacked_area` or
+  `stacked_normalized_area` layer rather than falling through
+  unclassified, so an area chart carries data at all – and the stacked
+  variants keep two numbers apart that a line layer would conflate: the
+  band’s *height* is the series’ own value while its *top edge* is the
+  running total, and the reader is told which is which. Two things about
+  ‘ggplot2’’s computed data make this easy to read wrongly and both are
+  silent: the `y` column is the cumulative top rather than the value,
+  and
+  [`geom_area()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html)
+  defaults to `stat = "align"`, whose interpolation and baseline-closing
+  vertices outnumber the observations three to one – so a four-year
+  chart would otherwise announce twelve points per series, including a
+  reading at “year 2000.003”. Only the rows whose x the layer was given
+  are described. A filled area (`position = "fill"`) is distinguished
+  for the same reason a filled bar is, and `geom_area(stat = "density")`
+  keeps being read as the smooth it is.
+
 - Error bar support for ‘ggplot2’.
   [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html),
   [`geom_errorbarh()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html),

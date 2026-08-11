@@ -57,15 +57,11 @@ as vertical and emit the cap heights as the interval.
 
 - [`Ggplot2ErrorbarLayerProcessor$process()`](#method-Ggplot2ErrorbarLayerProcessor-process)
 
-- [`Ggplot2ErrorbarLayerProcessor$get_layer_built_data()`](#method-Ggplot2ErrorbarLayerProcessor-get_layer_built_data)
-
 - [`Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()`](#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer)
 
 - [`Ggplot2ErrorbarLayerProcessor$extract_interval_data()`](#method-Ggplot2ErrorbarLayerProcessor-extract_interval_data)
 
 - [`Ggplot2ErrorbarLayerProcessor$resolve_estimates()`](#method-Ggplot2ErrorbarLayerProcessor-resolve_estimates)
-
-- [`Ggplot2ErrorbarLayerProcessor$get_own_layer()`](#method-Ggplot2ErrorbarLayerProcessor-get_own_layer)
 
 - [`Ggplot2ErrorbarLayerProcessor$resolve_category_labels()`](#method-Ggplot2ErrorbarLayerProcessor-resolve_category_labels)
 
@@ -79,7 +75,9 @@ Inherited methods
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
 - [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
 - [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
 - [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
 - [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
 - [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
@@ -148,30 +146,6 @@ Process the error bar layer.
 #### Returns
 
 List with data, axes, type and orientation
-
-------------------------------------------------------------------------
-
-### `Ggplot2ErrorbarLayerProcessor$get_layer_built_data()`
-
-Read this layer's rows out of the built plot.
-
-#### Usage
-
-    Ggplot2ErrorbarLayerProcessor$get_layer_built_data(built, panel_id = NULL)
-
-#### Arguments
-
-- `built`:
-
-  Built plot data
-
-- `panel_id`:
-
-  Panel ID for faceted plots (optional)
-
-#### Returns
-
-A data frame of computed aesthetics, or NULL
 
 ------------------------------------------------------------------------
 
@@ -305,30 +279,6 @@ layer that carries `y` always uses the value the chart drew.
 
 A numeric vector of estimates, or NULL when neither the estimate nor a
 pair of bounds is present
-
-------------------------------------------------------------------------
-
-### `Ggplot2ErrorbarLayerProcessor$get_own_layer()`
-
-Resolve this processor's own ggplot2 layer.
-
-`Ggplot2LineLayerProcessor` has a `get_layer()`, but this class inherits
-the point processor, which does not – so it resolves its own rather than
-inheriting from a sibling for one method.
-
-#### Usage
-
-    Ggplot2ErrorbarLayerProcessor$get_own_layer(plot)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object
-
-#### Returns
-
-The layer, or NULL when the index does not resolve
 
 ------------------------------------------------------------------------
 
