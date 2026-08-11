@@ -85,34 +85,6 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' @description Read this layer's rows out of the built plot.
-    #' @param built Built plot data
-    #' @param panel_id Panel ID for faceted plots (optional)
-    #' @return A data frame of computed aesthetics, or NULL
-    get_layer_built_data = function(built, panel_id = NULL) {
-      index <- self$layer_info$layer_index
-      if (is.null(index) || index > length(built$data)) {
-        return(NULL)
-      }
-
-      layer_data <- built$data[[index]]
-      if (is.null(layer_data) || nrow(layer_data) == 0) {
-        return(NULL)
-      }
-
-      # A faceted plot puts every panel's rows in one frame, so a layer that
-      # took all of them would describe the whole facet grid as one series.
-      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
-        subset <- layer_data[as.character(layer_data$PANEL) ==
-          as.character(panel_id), , drop = FALSE]
-        if (nrow(subset) > 0) {
-          return(subset)
-        }
-      }
-
-      layer_data
-    },
-
     #' @description Decide which of the three area types this layer is.
     #'
     #' `position = "fill"` rescales every column to a common height, so a
@@ -207,20 +179,30 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       source_x <- self$source_x_values(built)
-      if (is.null(source_x) || length(source_x) == 0) {
-        return(layer_data)
+      keep <- if (is.null(source_x) || length(source_x) == 0) {
+        # A discrete axis, or one whose source values could not be recovered.
+        # Its data sits on whole-numbered positions and `StatAlign`'s inserted
+        # vertices do not, so the integers are the rows the chart was given.
+        layer_data$x == round(layer_data$x)
+      } else {
+        layer_data$x %in% source_x
       }
 
-      keep <- layer_data$x %in% source_x
-      if (!any(keep)) {
+      if (!any(keep, na.rm = TRUE)) {
         return(layer_data)
       }
-      layer_data[keep, , drop = FALSE]
+      layer_data[which(keep), , drop = FALSE]
     },
 
     #' @description Read the x values the layer was given, before any stat.
+    #'
+    #' Answers NULL for a discrete axis rather than guessing its positions:
+    #' those are assigned by the scale, and reconstructing them from the data
+    #' column would drift the moment a factor level appeared in one and not
+    #' the other. The caller has an exact rule for that case.
+    #'
     #' @param built Built plot data
-    #' @return A vector of x values, or NULL when they cannot be recovered
+    #' @return The numeric x values, or NULL for a discrete or unreadable axis
     source_x_values = function(built) {
       plot <- built$plot
       if (is.null(plot)) {
@@ -255,9 +237,17 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       values <- data[[column]]
-      # A discrete x is drawn at integer positions, so the built rows carry
-      # those rather than the labels the source column holds.
-      if (is.numeric(values)) unique(values) else seq_along(unique(values))
+      if (is.numeric(values)) {
+        return(unique(values))
+      }
+
+      # A discrete x is drawn at integer positions assigned by the *scale*,
+      # not by the data, so reconstructing them from the column would go wrong
+      # the moment a factor level is present in one and absent from the other.
+      # NULL says so, and the caller falls back to the integer rule, which
+      # needs no reconstruction: whatever positions the scale chose, they are
+      # whole numbers, and `StatAlign`'s inserted vertices are not.
+      NULL
     },
 
     #' @description The band's own height at one row.

@@ -229,3 +229,25 @@ test_that("a filled density curve stays a smooth, not an area", {
     "smooth"
   )
 })
+
+test_that("a discrete x keeps its categories and drops the padding", {
+  # A discrete axis is drawn at positions the *scale* assigns, so they cannot
+  # be reconstructed from the data column -- a factor level present in one and
+  # absent from the other would shift every position. What holds regardless is
+  # that those positions are whole numbers and StatAlign's inserted vertices
+  # are not.
+  df <- data.frame(
+    q = factor(rep(c("Q1", "Q2", "Q3"), 2), levels = c("Q1", "Q2", "Q3", "Q4")),
+    grp = rep(c("a", "b"), each = 3),
+    val = c(3, 5, 4, 2, 3, 6)
+  )
+
+  result <- area_process(ggplot(df, aes(q, val, fill = grp, group = grp)) + geom_area())
+
+  testthat::expect_length(result$data, 2)
+  for (series in result$data) {
+    testthat::expect_length(series, 3)
+  }
+  # The unused 'Q4' level does not become a phantom column.
+  testthat::expect_equal(series_values(result, 1), c(3, 5, 4))
+})

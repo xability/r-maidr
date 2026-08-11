@@ -106,6 +106,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "Ggplot2StackedBarProcessor",
         "Ggplot2PieLayerProcessor",
         "Ggplot2LineLayerProcessor",
+        "Ggplot2AreaLayerProcessor",
         "Ggplot2StepLayerProcessor",
         "Ggplot2PointLayerProcessor",
         "Ggplot2HistogramLayerProcessor",

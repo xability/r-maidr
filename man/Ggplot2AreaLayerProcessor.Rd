@@ -56,7 +56,6 @@ which is verified to give the same answer as \code{stat = "identity"}.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2AreaLayerProcessor-process}{\code{Ggplot2AreaLayerProcessor$process()}}
-    \item \href{#method-Ggplot2AreaLayerProcessor-get_layer_built_data}{\code{Ggplot2AreaLayerProcessor$get_layer_built_data()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-resolve_area_type}{\code{Ggplot2AreaLayerProcessor$resolve_area_type()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-extract_series}{\code{Ggplot2AreaLayerProcessor$extract_series()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices}{\code{Ggplot2AreaLayerProcessor$drop_alignment_vertices()}}
@@ -75,6 +74,7 @@ which is verified to give the same answer as \code{stat = "identity"}.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
@@ -149,29 +149,6 @@ which is verified to give the same answer as \code{stat = "identity"}.
   }
   \subsection{Returns}{
     List with data, axes and type
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-get_layer_built_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-get_layer_built_data}{}}}
-\subsection{\code{Ggplot2AreaLayerProcessor$get_layer_built_data()}}{
-  Read this layer's rows out of the built plot.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2AreaLayerProcessor$get_layer_built_data(built, panel_id = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{built}}{Built plot data}
-      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A data frame of computed aesthetics, or NULL
   }
 }
 
@@ -275,6 +252,11 @@ fails.
 \if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-source_x_values}{}}}
 \subsection{\code{Ggplot2AreaLayerProcessor$source_x_values()}}{
   Read the x values the layer was given, before any stat.
+
+Answers NULL for a discrete axis rather than guessing its positions:
+those are assigned by the scale, and reconstructing them from the data
+column would drift the moment a factor level appeared in one and not
+the other. The caller has an exact rule for that case.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2AreaLayerProcessor$source_x_values(built)}
@@ -288,7 +270,7 @@ fails.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A vector of x values, or NULL when they cannot be recovered
+    The numeric x values, or NULL for a discrete or unreadable axis
   }
 }
 

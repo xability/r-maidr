@@ -51,7 +51,6 @@ interval.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-process}{\code{Ggplot2ErrorbarLayerProcessor$process()}}
-    \item \href{#method-Ggplot2ErrorbarLayerProcessor-get_layer_built_data}{\code{Ggplot2ErrorbarLayerProcessor$get_layer_built_data()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer}{\code{Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-extract_interval_data}{\code{Ggplot2ErrorbarLayerProcessor$extract_interval_data()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-resolve_estimates}{\code{Ggplot2ErrorbarLayerProcessor$resolve_estimates()}}
@@ -66,6 +65,7 @@ interval.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
@@ -116,29 +116,6 @@ interval.
   }
   \subsection{Returns}{
     List with data, axes, type and orientation
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-get_layer_built_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-get_layer_built_data}{}}}
-\subsection{\code{Ggplot2ErrorbarLayerProcessor$get_layer_built_data()}}{
-  Read this layer's rows out of the built plot.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2ErrorbarLayerProcessor$get_layer_built_data(built, panel_id = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{built}}{Built plot data}
-      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A data frame of computed aesthetics, or NULL
   }
 }
 
