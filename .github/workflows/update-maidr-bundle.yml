@@ -57,6 +57,20 @@ permissions:
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
+    # Two triggers means two runs can be in flight at once -- the daily cron
+    # and a dispatch arriving while it works -- and both push to ``main``.
+    # The second push is then a non-fast-forward against a checkout taken
+    # before the first landed, and the run fails.
+    #
+    # Nothing is corrupted when that happens and the next run recovers, since
+    # both were installing the same bundle. It is still a red run for a
+    # condition this repository can simply decline to enter, and the schedules
+    # no longer keep them apart: the cron is fixed at 09:00 UTC, but an
+    # off-schedule upstream release fires a dispatch at any hour.
+    #
+    # Queuing, not cancelling, since the default is to wait. A run held behind
+    # another then finds the bundle already current and commits nothing.
+    concurrency: update-maidr-bundle
 
     steps:
       - name: Checkout repository
