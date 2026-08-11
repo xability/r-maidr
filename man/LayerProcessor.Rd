@@ -29,6 +29,8 @@ interface that all layer processors must implement.
 \item \href{#method-LayerProcessor-process}{\code{LayerProcessor$process()}}
 \item \href{#method-LayerProcessor-extract_data}{\code{LayerProcessor$extract_data()}}
 \item \href{#method-LayerProcessor-generate_selectors}{\code{LayerProcessor$generate_selectors()}}
+\item \href{#method-LayerProcessor-get_layer_built_data}{\code{LayerProcessor$get_layer_built_data()}}
+\item \href{#method-LayerProcessor-get_own_layer}{\code{LayerProcessor$get_own_layer()}}
 \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
 \item \href{#method-LayerProcessor-reorder_layer_data}{\code{LayerProcessor$reorder_layer_data()}}
 \item \href{#method-LayerProcessor-augment_plot}{\code{LayerProcessor$augment_plot()}}
@@ -151,6 +153,58 @@ Generate selectors for the layer (MUST be implemented by subclasses)
 }
 \subsection{Returns}{
 List of selectors
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-get_layer_built_data"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-get_layer_built_data}{}}}
+\subsection{Method \code{get_layer_built_data()}}{
+Read this layer's rows out of the built plot.
+
+Scoped to one panel when asked. A faceted plot puts every panel's rows
+in one frame, so a layer that took all of them would describe the whole
+facet grid as one series.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$get_layer_built_data(built, panel_id = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{built}}{Built plot data}
+
+\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A data frame of computed aesthetics, or NULL
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-get_own_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-get_own_layer}{}}}
+\subsection{Method \code{get_own_layer()}}{
+Resolve the plot layer this processor was built for.
+
+Every processor knows its index and several need the layer itself --
+for its geom, its position or its own \code{data} -- so the lookup lives
+here rather than being copied into each. Answers NULL rather than
+erroring when the index does not resolve, since a caller that cannot
+find its layer has a reading to fall back on and no crash to justify.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{LayerProcessor$get_own_layer(plot)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plot}}{The ggplot2 object}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The layer, or NULL when the index does not resolve
 }
 }
 \if{html}{\out{<hr>}}

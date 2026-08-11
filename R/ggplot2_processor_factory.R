@@ -38,6 +38,12 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "pie" = Ggplot2PieLayerProcessor$new(layer_info),
         "hist" = Ggplot2HistogramLayerProcessor$new(layer_info),
         "line" = Ggplot2LineLayerProcessor$new(layer_info),
+        "area" = Ggplot2AreaLayerProcessor$new(layer_info),
+        # The three area variants differ in how their bands relate, not in
+        # where the numbers are read from, so one processor emits all three
+        # and decides the type from the layer's position.
+        "stacked_area" = Ggplot2AreaLayerProcessor$new(layer_info),
+        "stacked_normalized_area" = Ggplot2AreaLayerProcessor$new(layer_info),
         "step" = Ggplot2StepLayerProcessor$new(layer_info),
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
         "heat" = Ggplot2HeatmapLayerProcessor$new(layer_info),
@@ -63,6 +69,9 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "pie",
         "hist",
         "line",
+        "area",
+        "stacked_area",
+        "stacked_normalized_area",
         "step",
         "smooth",
         "heat",
@@ -97,6 +106,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "Ggplot2StackedBarProcessor",
         "Ggplot2PieLayerProcessor",
         "Ggplot2LineLayerProcessor",
+        "Ggplot2AreaLayerProcessor",
         "Ggplot2StepLayerProcessor",
         "Ggplot2PointLayerProcessor",
         "Ggplot2HistogramLayerProcessor",

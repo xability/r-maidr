@@ -80,34 +80,6 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       )
     },
 
-    #' @description Read this layer's rows out of the built plot.
-    #' @param built Built plot data
-    #' @param panel_id Panel ID for faceted plots (optional)
-    #' @return A data frame of computed aesthetics, or NULL
-    get_layer_built_data = function(built, panel_id = NULL) {
-      index <- self$layer_info$layer_index
-      if (is.null(index) || index > length(built$data)) {
-        return(NULL)
-      }
-
-      layer_data <- built$data[[index]]
-      if (is.null(layer_data) || nrow(layer_data) == 0) {
-        return(NULL)
-      }
-
-      # A faceted plot puts every panel's rows in one frame, so a layer that
-      # took all of them would describe the whole facet grid as one series.
-      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
-        subset <- layer_data[as.character(layer_data$PANEL) ==
-          as.character(panel_id), , drop = FALSE]
-        if (nrow(subset) > 0) {
-          return(subset)
-        }
-      }
-
-      layer_data
-    },
-
     #' @description Decide whether the interval runs along x rather than y.
     #'
     #' Reads `flipped_aes` when the built data carries it, and falls back to
@@ -229,25 +201,6 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       }
 
       (as.numeric(layer_data[[min_col]]) + as.numeric(layer_data[[max_col]])) / 2
-    },
-
-    #' @description Resolve this processor's own ggplot2 layer.
-    #'
-    #' `Ggplot2LineLayerProcessor` has a `get_layer()`, but this class inherits
-    #' the point processor, which does not -- so it resolves its own rather
-    #' than inheriting from a sibling for one method.
-    #'
-    #' @param plot The ggplot2 object
-    #' @return The layer, or NULL when the index does not resolve
-    get_own_layer = function(plot) {
-      if (is.null(plot) || is.null(plot$layers)) {
-        return(NULL)
-      }
-      index <- self$layer_info$layer_index
-      if (is.null(index) || index > length(plot$layers)) {
-        return(NULL)
-      }
-      plot$layers[[index]]
     },
 
     #' @description Recover the names behind a discrete category axis.

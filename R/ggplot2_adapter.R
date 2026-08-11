@@ -57,6 +57,27 @@ Ggplot2Adapter <- R6::R6Class(
       # GeomMA comes from tidyquant::geom_ma() and inherits from GeomLine.
       # We treat it as a regular line layer so moving averages overlaid on
       # a candlestick chart are detected and rendered alongside the candles.
+      # GeomArea inherits GeomRibbon, which inherits GeomPath -- so this must
+      # come before the line branch, and must stay a class(...)[1] comparison
+      # rather than an inherits() test, or an area layer would be swallowed as
+      # a line and announce its cumulative band tops as values.
+      # Only an identity-ish stat is claimed. `geom_area()` defaults to
+      # StatAlign, but the geom is also how a filled density curve is drawn --
+      # `geom_area(stat = "density")` is a smooth, and its rows are a computed
+      # curve rather than the observations an area chart carries. Same rule
+      # GeomStep follows above, and for the same reason.
+      if (geom_class == "GeomArea" &&
+        stat_class %in% c("StatAlign", "StatIdentity")) {
+        if (identical(position_class, "PositionFill")) {
+          return("stacked_normalized_area")
+        }
+        # Whether the bands stack is not knowable from the position alone: a
+        # single-series chart is drawn with PositionStack too and has nothing
+        # stacked on it. The processor decides from the series it emits, and
+        # both types route to it.
+        return("area")
+      }
+
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
         return("line")
       }

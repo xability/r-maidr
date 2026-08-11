@@ -58,6 +58,58 @@ LayerProcessor <- R6::R6Class(
       stop("generate_selectors() method must be implemented by subclasses", call. = FALSE)
     },
 
+    #' @description Read this layer's rows out of the built plot.
+    #'
+    #' Scoped to one panel when asked. A faceted plot puts every panel's rows
+    #' in one frame, so a layer that took all of them would describe the whole
+    #' facet grid as one series.
+    #'
+    #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return A data frame of computed aesthetics, or NULL
+    get_layer_built_data = function(built, panel_id = NULL) {
+      index <- self$layer_info$layer_index
+      if (is.null(index) || index > length(built$data)) {
+        return(NULL)
+      }
+
+      layer_data <- built$data[[index]]
+      if (is.null(layer_data) || nrow(layer_data) == 0) {
+        return(NULL)
+      }
+
+      if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
+        subset <- layer_data[as.character(layer_data$PANEL) ==
+          as.character(panel_id), , drop = FALSE]
+        if (nrow(subset) > 0) {
+          return(subset)
+        }
+      }
+
+      layer_data
+    },
+
+    #' @description Resolve the plot layer this processor was built for.
+    #'
+    #' Every processor knows its index and several need the layer itself --
+    #' for its geom, its position or its own `data` -- so the lookup lives
+    #' here rather than being copied into each. Answers NULL rather than
+    #' erroring when the index does not resolve, since a caller that cannot
+    #' find its layer has a reading to fall back on and no crash to justify.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return The layer, or NULL when the index does not resolve
+    get_own_layer = function(plot) {
+      if (is.null(plot) || is.null(plot$layers)) {
+        return(NULL)
+      }
+      index <- self$layer_info$layer_index
+      if (is.null(index) || index > length(plot$layers)) {
+        return(NULL)
+      }
+      plot$layers[[index]]
+    },
+
     #' @description Check if this layer needs reordering (OPTIONAL - default: FALSE)
     #' @return Logical indicating if reordering is needed
     needs_reordering = function() {
