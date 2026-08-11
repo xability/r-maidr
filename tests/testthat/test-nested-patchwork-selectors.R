@@ -8,7 +8,7 @@
 #
 # These tests pin the emitted payload for the geoms that were affected:
 # every layer must carry selectors, every selector must address an element
-# of the exported SVG, and the marks it addresses must be the leaf's own —
+# of the exported SVG, and the marks it addresses must be the leaf's own -
 # a lookup that lands on a neighbour's panel resolves just as happily.
 
 skip_if_no_patchwork <- function() {

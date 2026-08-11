@@ -456,7 +456,7 @@ test_that("Ggplot2StepLayerProcessor labels every series of a multi-series step"
 
 # ==============================================================================
 # Tier 6: Orchestrator integration (assert on the emitted layer, not on
-# "rendering succeeded" — an undetected geom_step degrades silently to a
+# "rendering succeeded" - an undetected geom_step degrades silently to a
 # static PNG)
 # ==============================================================================
 

@@ -4,7 +4,7 @@
 # selector generation, axis labels, and end-to-end orchestration.
 
 # ==============================================================================
-# Helpers (local — not added to global helper.R because tidyquant is Suggests)
+# Helpers (local - not added to global helper.R because tidyquant is Suggests)
 # ==============================================================================
 
 create_test_candlestick_df <- function() {
