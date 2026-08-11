@@ -179,13 +179,23 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       source_x <- self$source_x_values(built)
-      keep <- if (is.null(source_x) || length(source_x) == 0) {
-        # A discrete axis, or one whose source values could not be recovered.
-        # Its data sits on whole-numbered positions and `StatAlign`'s inserted
-        # vertices do not, so the integers are the rows the chart was given.
+      if (is.null(source_x)) {
+        # The lookup failed and the axis could be anything. Filtering on a
+        # rule chosen for one kind of axis would drop real rows from the
+        # other, so keep the layer whole -- a noisy reading, but not a wrong
+        # one.
+        return(layer_data)
+      }
+
+      keep <- if (identical(source_x$kind, "discrete")) {
+        # A discrete axis sits on whole-numbered positions assigned by the
+        # scale, and `StatAlign`'s inserted vertices do not, so the integers
+        # are the rows the chart was given.
         layer_data$x == round(layer_data$x)
+      } else if (length(source_x$values) == 0) {
+        return(layer_data)
       } else {
-        layer_data$x %in% source_x
+        layer_data$x %in% source_x$values
       }
 
       if (!any(keep, na.rm = TRUE)) {
@@ -196,13 +206,22 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
 
     #' @description Read the x values the layer was given, before any stat.
     #'
-    #' Answers NULL for a discrete axis rather than guessing its positions:
+    #' Reports a discrete axis as such rather than guessing its positions:
     #' those are assigned by the scale, and reconstructing them from the data
     #' column would drift the moment a factor level appeared in one and not
     #' the other. The caller has an exact rule for that case.
     #'
+    #' "Discrete" and "could not be read" are answered differently, because
+    #' the caller must do different things with them. The integer rule that is
+    #' exact for a discrete axis would silently drop the fractional rows of a
+    #' continuous one, and an x mapped through an expression -- `aes(x = year
+    #' / 2)`, say -- resolves to no column and lands here while still being
+    #' continuous. Collapsing the two into one NULL is how that axis loses
+    #' half its data to a rule that was never about it.
+    #'
     #' @param built Built plot data
-    #' @return The numeric x values, or NULL for a discrete or unreadable axis
+    #' @return `list(kind = "discrete")`, `list(kind = "numeric", values =)`,
+    #'   or NULL when the axis could not be read at all
     source_x_values = function(built) {
       plot <- built$plot
       if (is.null(plot)) {
@@ -238,16 +257,16 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
 
       values <- data[[column]]
       if (is.numeric(values)) {
-        return(unique(values))
+        return(list(kind = "numeric", values = unique(values)))
       }
 
       # A discrete x is drawn at integer positions assigned by the *scale*,
       # not by the data, so reconstructing them from the column would go wrong
       # the moment a factor level is present in one and absent from the other.
-      # NULL says so, and the caller falls back to the integer rule, which
-      # needs no reconstruction: whatever positions the scale chose, they are
-      # whole numbers, and `StatAlign`'s inserted vertices are not.
-      NULL
+      # Naming the kind lets the caller apply the rule that needs no
+      # reconstruction: whatever positions the scale chose, they are whole
+      # numbers, and `StatAlign`'s inserted vertices are not.
+      list(kind = "discrete")
     },
 
     #' @description The band's own height at one row.

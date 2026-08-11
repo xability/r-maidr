@@ -253,10 +253,18 @@ fails.
 \subsection{\code{Ggplot2AreaLayerProcessor$source_x_values()}}{
   Read the x values the layer was given, before any stat.
 
-Answers NULL for a discrete axis rather than guessing its positions:
+Reports a discrete axis as such rather than guessing its positions:
 those are assigned by the scale, and reconstructing them from the data
 column would drift the moment a factor level appeared in one and not
 the other. The caller has an exact rule for that case.
+
+"Discrete" and "could not be read" are answered differently, because
+the caller must do different things with them. The integer rule that is
+exact for a discrete axis would silently drop the fractional rows of a
+continuous one, and an x mapped through an expression -- \code{aes(x = year
+/ 2)}, say -- resolves to no column and lands here while still being
+continuous. Collapsing the two into one NULL is how that axis loses
+half its data to a rule that was never about it.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2AreaLayerProcessor$source_x_values(built)}
@@ -270,7 +278,8 @@ the other. The caller has an exact rule for that case.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    The numeric x values, or NULL for a discrete or unreadable axis
+    \code{list(kind = "discrete")}, \code{list(kind = "numeric", values =)},
+or NULL when the axis could not be read at all
   }
 }
 

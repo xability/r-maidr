@@ -251,3 +251,37 @@ test_that("a discrete x keeps its categories and drops the padding", {
   # The unused 'Q4' level does not become a phantom column.
   testthat::expect_equal(series_values(result, 1), c(3, 5, 4))
 })
+
+test_that("a continuous x whose values cannot be read keeps every row", {
+  # `source_x_values()` cannot answer for an x mapped through an expression:
+  # `mapped_column()` unwraps `factor(...)` and a bare column name, and this
+  # is neither. The axis is still continuous, so the whole-number rule that
+  # is exact for a discrete axis would drop the fractional halves and keep
+  # the integral ones -- half the chart, silently, and no way to tell from
+  # the output that anything went missing.
+  #
+  # The documented behaviour for an unreadable axis is to keep the layer
+  # whole. Noisy beats wrong: the padding vertices read as extra points, but
+  # every observation is still there.
+  df <- data.frame(
+    year = rep(c(2000, 2001, 2002, 2003), 2),
+    grp = rep(c("a", "b"), each = 4),
+    val = c(3, 5, 4, 7, 2, 3, 6, 5)
+  )
+  plot <- ggplot(df, aes(year / 2, val, fill = grp, group = grp)) + geom_area()
+
+  built <- ggplot2::ggplot_build(plot)
+  processor <- Ggplot2AreaLayerProcessor$new(
+    list(layer_index = 1L, geom_class = "GeomArea", stat_class = "StatAlign")
+  )
+
+  testthat::expect_null(processor$source_x_values(built))
+
+  # 2000/2 = 1000 is whole; 2001/2 = 1000.5 is not. Filtering on whole
+  # numbers would keep the first and lose the second.
+  layer_data <- built$data[[1]]
+  kept <- processor$drop_alignment_vertices(built, layer_data)
+
+  testthat::expect_identical(nrow(kept), nrow(layer_data))
+  testthat::expect_true(any(layer_data$x != round(layer_data$x)))
+})
