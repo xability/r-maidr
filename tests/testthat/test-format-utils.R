@@ -2,7 +2,7 @@
 #
 # A `\uXXXX` escape behaves differently depending on where it sits. In an
 # ordinary string it keeps its bytes and its UTF-8 mark in every locale. In a
-# *tag* -- `list("€" = "EUR")` -- it becomes a symbol, symbols must be
+# *tag* -- `list("\\u20ac" = "EUR")` -- it becomes a symbol, symbols must be
 # representable in the native encoding, and outside a UTF-8 session R stores
 # the placeholder text `<U+20AC>` instead. The key is then gone before any
 # comparison runs, and every non-dollar currency fell through to the `USD`
@@ -106,7 +106,7 @@ test_that("a currency prefix resolves however its encoding is declared", {
 })
 
 test_that("an unknown prefix still falls back rather than erroring", {
-  expect_equal(prefix_to_currency_code("₿"), "USD") # Bitcoin sign
+  expect_equal(prefix_to_currency_code("\u20bf"), "USD") # Bitcoin sign
   expect_equal(prefix_to_currency_code(NULL), "USD")
   expect_equal(prefix_to_currency_code(""), "USD")
   expect_equal(prefix_to_currency_code("SEK"), "SEK") # ISO code passthrough
@@ -118,7 +118,7 @@ test_that("an unknown prefix still falls back rather than erroring", {
 
 test_that("no non-ASCII escape sits in a tag position in R/", {
   # The behavioural cases above only bite in a `C` locale, and a future
-  # `list("€" = ...)` written on a UTF-8 machine would pass every test
+  # `list("\\u20ac" = ...)` written on a UTF-8 machine would pass every test
   # here while being broken for the same readers as before. This case bites
   # in any locale, because it reads the source rather than running it.
   sources <- list.files(
