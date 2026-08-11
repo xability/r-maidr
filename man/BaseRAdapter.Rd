@@ -22,6 +22,7 @@ to intercept Base R plotting calls and detect plot types.
 \item \href{#method-BaseRAdapter-detect_layer_type}{\code{BaseRAdapter$detect_layer_type()}}
 \item \href{#method-BaseRAdapter-is_dodged_barplot}{\code{BaseRAdapter$is_dodged_barplot()}}
 \item \href{#method-BaseRAdapter-is_stacked_barplot}{\code{BaseRAdapter$is_stacked_barplot()}}
+\item \href{#method-BaseRAdapter-is_normalized_barplot}{\code{BaseRAdapter$is_normalized_barplot()}}
 \item \href{#method-BaseRAdapter-create_orchestrator}{\code{BaseRAdapter$create_orchestrator()}}
 \item \href{#method-BaseRAdapter-get_system_name}{\code{BaseRAdapter$get_system_name()}}
 \item \href{#method-BaseRAdapter-get_adapter}{\code{BaseRAdapter$get_adapter()}}
@@ -125,6 +126,43 @@ Check if a barplot call represents a stacked bar plot
 }
 \subsection{Returns}{
 TRUE if this is a stacked bar plot, FALSE otherwise
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRAdapter-is_normalized_barplot"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRAdapter-is_normalized_barplot}{}}}
+\subsection{Method \code{is_normalized_barplot()}}{
+Check if a barplot call draws a 100\% stacked bar
+
+Base R has no \code{position = "fill"} to read: \code{barplot()} takes no
+normalisation argument at all, and the idiomatic way to draw a 100\%
+stacked bar is to normalise the matrix first, as
+\code{barplot(prop.table(m, 2))}. The only signal left is the drawn geometry.
+
+So this reads what the chart shows rather than guessing what the author
+meant, and the two are the same thing here: when every column sums to 1,
+every bar is drawn to a common full height and each segment is that
+category's share. A chart like that IS a 100\% stacked bar whatever the
+numbers were before they reached \code{barplot()}.
+
+Deliberately narrow. It does not also accept columns summing to 100,
+because a matrix of raw counts can total 100 by coincidence and nothing
+about the drawing would distinguish that from percentages. And it needs
+two or more rows, because a single series stacked against nothing is not
+a stack.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BaseRAdapter$is_normalized_barplot(args)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{args}}{The arguments from the barplot call}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+TRUE if every column of the height matrix sums to 1
 }
 }
 \if{html}{\out{<hr>}}

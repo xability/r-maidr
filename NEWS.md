@@ -12,6 +12,17 @@
   follow the type: a filled layer reports the drawn share rather than
   `stat_count()`'s untouched `count` column or the pre-rescale `y` from the
   user's own data frame.
+* 100% stacked bar support for Base R. `barplot()` takes no normalisation
+  argument at all — the idiomatic 100% stacked bar is written by normalising
+  the matrix first, as `barplot(prop.table(m, 2))` — so the classification
+  reads the drawn geometry instead: a stacked barplot whose every column sums
+  to 1 is emitted as `stacked_normalized_bar`. Deliberately narrow, and it
+  claims nothing it cannot read. Columns summing to 100 stay a plain stacked
+  bar, because a matrix of counts can total 100 by coincidence and the drawing
+  does not distinguish that from percentages; a single-row matrix stays one
+  too, since a series stacked against nothing is not a stack. The values need
+  no adjustment here, unlike the 'ggplot2' case above: they already are the
+  drawn shares.
 
 * Added step plot support for 'ggplot2' (`geom_step()`) and Base R
   (`plot(type = "s")`, `plot(type = "S")`, and the `lines()` equivalents).
