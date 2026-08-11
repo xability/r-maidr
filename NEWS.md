@@ -2,6 +2,17 @@
 
 ## New Features
 
+* 100% stacked bar support for 'ggplot2'. A bar layer drawn with
+  `position = "fill"` is now emitted as `stacked_normalized_bar` rather than
+  being classified alongside `position = "stack"`. Filling rescales every
+  category to a common height, so a segment's value is its *share* of that
+  category and every bar totals 1 by construction; read as a plain stacked bar
+  those shares were announced as counts, implying the categories had equal
+  totals — the one thing a filled bar is drawn to deny. The emitted values now
+  follow the type: a filled layer reports the drawn share rather than
+  `stat_count()`'s untouched `count` column or the pre-rescale `y` from the
+  user's own data frame.
+
 * Added step plot support for 'ggplot2' (`geom_step()`) and Base R
   (`plot(type = "s")`, `plot(type = "S")`, and the `lines()` equivalents).
   A step plot describes a value that is piecewise constant — held across an

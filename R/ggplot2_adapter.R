@@ -89,6 +89,16 @@ Ggplot2Adapter <- R6::R6Class(
           has_fill <- (!is.null(layer_mapping) && !is.null(layer_mapping$fill)) ||
             (!is.null(plot_mapping) && !is.null(plot_mapping$fill))
           if (has_fill) {
+            # position = "fill" rescales every category to a common height, so
+            # a segment's value is its share of that category and every bar
+            # totals 1 by construction. Reading it as a plain stacked bar
+            # announces those shares as if they were counts and implies the
+            # categories have equal totals, which is the one thing a filled
+            # bar is drawn to deny. maidr.js has carried the distinct type
+            # since SegmentedTrace began serving NORMALIZED alongside STACKED.
+            if (position_class == "PositionFill") {
+              return("stacked_normalized_bar")
+            }
             return("stacked_bar")
           }
         }
