@@ -4,6 +4,19 @@
 
 ### New Features
 
+- 100% stacked bar support for ‘ggplot2’. A bar layer drawn with
+  `position = "fill"` is now emitted as `stacked_normalized_bar` rather
+  than being classified alongside `position = "stack"`. Filling rescales
+  every category to a common height, so a segment’s value is its *share*
+  of that category and every bar totals 1 by construction; read as a
+  plain stacked bar those shares were announced as counts, implying the
+  categories had equal totals — the one thing a filled bar is drawn to
+  deny. The emitted values now follow the type: a filled layer reports
+  the drawn share rather than
+  [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)’s
+  untouched `count` column or the pre-rescale `y` from the user’s own
+  data frame.
+
 - Added step plot support for ‘ggplot2’
   ([`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html))
   and Base R (`plot(type = "s")`, `plot(type = "S")`, and the
@@ -11,15 +24,18 @@
   equivalents). A step plot describes a value that is piecewise constant
   — held across an interval and then jumped — such as the sleep stage of
   a hypnogram.
+
 - Step layers emit one data point per data sample, never one per
   stairstep vertex, and report the layer’s step convention as
   `stepDirection` (`"hv"` / `"vh"` / `"mid"` from
   `geom_step(direction = )`; `"hv"` for Base R `type = "s"` and `"vh"`
   for `type = "S"`).
+
 - When a step layer’s y aesthetic is an ordinal factor, each point
   carries the level *name* as `label`, so the frontend announces “REM”
   rather than the numeric level code while `y` stays numeric for
   sonification, braille and the min/max range.
+
 - Pie chart support for both plotting systems. In ‘ggplot2’ a
   [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
   /
@@ -34,6 +50,7 @@
   described directly. Each wedge is one navigable slice carrying its
   label and its magnitude, and MAIDR derives the percentage from those
   values.
+
 - Base R [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   charts can be exported at all. `gridGraphics` translates the wedge
   labels into text grobs whose `vjust` is `NA`, and gridSVG branches on
