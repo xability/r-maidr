@@ -4,7 +4,7 @@
 # instead of returning `list()` the way bar, point, boxplot, line, heatmap
 # and candlestick do. Every id these processors address carries grid's
 # session-wide grob counter (`geom_rect.rect.N`, `GRID.polyline.N`), so a
-# guessed N is right only by coincidence — and the coincidence is the bad
+# guessed N is right only by coincidence - and the coincidence is the bad
 # case, not the good one: in the composition below the smooth fallback
 # produced a selector byte-identical to the FIRST panel's, so the empty
 # panel highlighted another panel's fitted line while the payload still

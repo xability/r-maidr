@@ -4,7 +4,7 @@
 # the unknown processor.
 
 # ==============================================================================
-# Helpers (local — tidyquant is in Suggests)
+# Helpers (local - tidyquant is in Suggests)
 # ==============================================================================
 
 create_test_candlestick_ma_df <- function() {

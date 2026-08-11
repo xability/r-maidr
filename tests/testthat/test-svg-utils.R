@@ -387,7 +387,7 @@ test_that("the CDN branch links no stylesheet", {
   html <- maidr:::create_standalone_html(svg_fixture(), use_cdn = TRUE)
 
   # The script tag's own URL is what maidr.js resolves maidr-math.css
-  # against, so a <link> would be a request that changes nothing — and
+  # against, so a <link> would be a request that changes nothing - and
   # since maidr 3.75.1 maidr.css has no rules in it to change anything with.
   testthat::expect_false(grepl("maidr.css", html, fixed = TRUE))
   testthat::expect_false(grepl("rel=\"stylesheet\"", html, fixed = TRUE))

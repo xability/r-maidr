@@ -5,7 +5,7 @@
 # fallback when quantmod / xts is unavailable.
 
 # ==============================================================================
-# Helpers (local — quantmod, xts and zoo are Suggests)
+# Helpers (local - quantmod, xts and zoo are Suggests)
 # ==============================================================================
 
 skip_if_no_quantmod <- function() {
@@ -115,7 +115,7 @@ test_that("factory advertises 'candlestick' in supported types", {
 })
 
 # ==============================================================================
-# Tier 3: extract_data — trend, volatility, volume
+# Tier 3: extract_data - trend, volatility, volume
 # ==============================================================================
 
 test_that("extract_data returns one point per OHLC row with required fields", {
@@ -373,7 +373,7 @@ test_that("generate_selectors emits a single CandlestickSelector with per-candle
   testthat::expect_type(selectors, "list")
   testthat::expect_true(!is.null(names(selectors)))
   testthat::expect_true("body" %in% names(selectors))
-  # Two segments groups in the stub → wickHigh + wickLow keys present.
+  # Two segments groups in the stub -> wickHigh + wickLow keys present.
   testthat::expect_true("wickHigh" %in% names(selectors))
   testthat::expect_true("wickLow" %in% names(selectors))
   # `wick` (the fallback key) should NOT be present when both wickHigh/Low are.
@@ -391,8 +391,8 @@ test_that("generate_selectors emits a single CandlestickSelector with per-candle
   # wickHigh / wickLow are length-N character vectors targeting the two
   # distinct segments groups. quantmod chartSeries (chartSeries.chob.R
   # L169-173) calls segments() for LOWER wick FIRST, then UPPER wick:
-  #   seg_ids[[1L]] = "...-segments-1" = LOWER wick (→ wickLow)
-  #   seg_ids[[2L]] = "...-segments-2" = UPPER wick (→ wickHigh)
+  #   seg_ids[[1L]] = "...-segments-1" = LOWER wick (-> wickLow)
+  #   seg_ids[[2L]] = "...-segments-2" = UPPER wick (-> wickHigh)
   testthat::expect_type(selectors$wickHigh, "character")
   testthat::expect_equal(length(selectors$wickHigh), 4L)
   testthat::expect_type(selectors$wickLow, "character")

@@ -12,7 +12,7 @@
 #      and volume y-values are embedded into each candlestick data point.
 
 # ==============================================================================
-# Helpers (local — tidyquant and patchwork are Suggests)
+# Helpers (local - tidyquant and patchwork are Suggests)
 # ==============================================================================
 
 create_test_ohlcv_df <- function() {
