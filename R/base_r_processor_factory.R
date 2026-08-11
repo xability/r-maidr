@@ -30,6 +30,9 @@ BaseRProcessorFactory <- R6::R6Class(
         "bar" = BaseRBarplotLayerProcessor$new(layer_info),
         "dodged_bar" = BaseRDodgedBarLayerProcessor$new(layer_info),
         "stacked_bar" = BaseRStackedBarLayerProcessor$new(layer_info),
+        # Same extraction as a plain stack: base R has no normalisation
+        # argument, so the values already are the drawn shares.
+        "stacked_normalized_bar" = BaseRStackedBarLayerProcessor$new(layer_info),
         "smooth" = BaseRSmoothLayerProcessor$new(layer_info),
         "line" = BaseRLineLayerProcessor$new(layer_info),
         "step" = BaseRStepLayerProcessor$new(layer_info),
@@ -53,6 +56,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "bar",
         "dodged_bar",
         "stacked_bar",
+        "stacked_normalized_bar",
         "smooth",
         "line",
         "step",

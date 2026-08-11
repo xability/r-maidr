@@ -27,7 +27,15 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
       list(
         data = data,
         selectors = selectors,
-        type = "stacked_bar",
+        # A 100% stacked bar is extracted by this same processor -- the values
+        # are already the drawn shares, since base R has no `position = "fill"`
+        # and the author normalised the matrix before calling `barplot()`. Only
+        # the emitted type differs, so read it rather than hardcoding one.
+        type = if (identical(self$layer_info$type, "stacked_normalized_bar")) {
+          "stacked_normalized_bar"
+        } else {
+          "stacked_bar"
+        },
         title = title,
         axes = axes,
         domMapping = list(groupDirection = "forward")
