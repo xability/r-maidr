@@ -102,6 +102,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "Ggplot2HistogramLayerProcessor",
         "Ggplot2SmoothLayerProcessor",
         "Ggplot2BoxplotLayerProcessor",
+        "Ggplot2ErrorbarLayerProcessor",
         "Ggplot2ViolinLayerProcessor",
         "Ggplot2CandlestickProcessor",
         "Ggplot2HeatmapLayerProcessor",

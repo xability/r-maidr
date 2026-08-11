@@ -166,14 +166,17 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       min_col <- if (isTRUE(is_horizontal)) "xmin" else "ymin"
       max_col <- if (isTRUE(is_horizontal)) "xmax" else "ymax"
 
-      if (!all(c(value_col, category_col) %in% names(layer_data))) {
+      if (!category_col %in% names(layer_data)) {
         return(list())
       }
 
       categories <- self$resolve_category_labels(
         built, layer_data, category_col, panel_id
       )
-      values <- layer_data[[value_col]]
+      values <- self$resolve_estimates(layer_data, value_col, min_col, max_col)
+      if (is.null(values)) {
+        return(list())
+      }
       lower <- if (min_col %in% names(layer_data)) layer_data[[min_col]] else NULL
       upper <- if (max_col %in% names(layer_data)) layer_data[[max_col]] else NULL
 
@@ -192,6 +195,40 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       }
 
       points
+    },
+
+    #' @description Resolve the estimate each interval is centred on.
+    #'
+    #' The estimate aesthetic is **optional** on these geoms, and leaving it
+    #' out is idiomatic rather than exotic:
+    #' `geom_errorbar(aes(x, ymin, ymax))` layered over a `geom_col()` is the
+    #' standard way to draw a bar chart with error bars, and it builds with no
+    #' `y` column at all. `geom_linerange()` is the same. Requiring the column
+    #' dropped every such layer silently -- no interval, no estimate, no error.
+    #'
+    #' When it is absent the chart genuinely draws no estimate, only a span, so
+    #' the centre of that span is used. That is a property of the drawn bar
+    #' rather than a claim about an unobserved estimate, and it is what keeps
+    #' the bounds -- which are the real data here -- reachable at all. It is
+    #' NOT the mean for an asymmetric interval, and nothing here pretends it
+    #' is: a layer that carries `y` always uses the value the chart drew.
+    #'
+    #' @param layer_data This layer's computed rows
+    #' @param value_col The estimate column for this orientation
+    #' @param min_col The lower bound column for this orientation
+    #' @param max_col The upper bound column for this orientation
+    #' @return A numeric vector of estimates, or NULL when neither the estimate
+    #'   nor a pair of bounds is present
+    resolve_estimates = function(layer_data, value_col, min_col, max_col) {
+      if (value_col %in% names(layer_data)) {
+        return(as.numeric(layer_data[[value_col]]))
+      }
+
+      if (!all(c(min_col, max_col) %in% names(layer_data))) {
+        return(NULL)
+      }
+
+      (as.numeric(layer_data[[min_col]]) + as.numeric(layer_data[[max_col]])) / 2
     },
 
     #' @description Resolve this processor's own ggplot2 layer.

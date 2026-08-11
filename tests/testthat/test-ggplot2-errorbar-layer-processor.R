@@ -166,6 +166,49 @@ test_that("a horizontal layer reads the same magnitudes as a vertical one", {
 })
 
 # ==============================================================================
+# The estimate aesthetic is optional
+# ==============================================================================
+
+test_that("a layer with no estimate still emits its interval", {
+  # `geom_errorbar(aes(x, ymin, ymax))` over a `geom_col()` is the standard way
+  # to draw a bar chart with error bars, and it builds with no `y` column at
+  # all. Requiring one dropped every such layer silently: no interval, no
+  # estimate, no error -- the whole layer just vanished.
+  df <- eb_data()
+
+  for (layer in list(geom_errorbar(), geom_linerange())) {
+    result <- eb_process(ggplot(df, aes(g, ymin = lo, ymax = hi)) + layer)
+
+    testthat::expect_length(result$data, 3)
+    testthat::expect_equal(result$data[[1]]$yMin, 3.8)
+    testthat::expect_equal(result$data[[1]]$yMax, 4.6)
+  }
+})
+
+test_that("an absent estimate falls back to the centre of the drawn span", {
+  # The chart draws a span and no estimate, so the span's centre is what is
+  # reported -- a property of the drawn bar, not a claim about an unobserved
+  # mean. Asserted on the ASYMMETRIC sample, where the centre (5.3) and the
+  # real mean (5.1) differ, so a fixture that happened to be symmetric could
+  # not make this look right by accident.
+  result <- eb_process(
+    ggplot(eb_data(), aes(g, ymin = lo, ymax = hi)) + geom_errorbar()
+  )
+
+  testthat::expect_equal(result$data[[2]]$y, 5.3)
+})
+
+test_that("a layer that carries an estimate never substitutes the centre", {
+  # The same asymmetric sample, this time with `y` mapped: the drawn value
+  # must win over the derived one.
+  result <- eb_process(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_errorbar()
+  )
+
+  testthat::expect_equal(result$data[[2]]$y, 5.1)
+})
+
+# ==============================================================================
 # Degenerate inputs
 # ==============================================================================
 
@@ -182,6 +225,27 @@ test_that("a layer with no bounds still emits its estimates", {
     vapply(result$data, function(point) point$y, numeric(1)),
     c(4.2, 5.1, 7.3)
   )
+})
+
+test_that("every geom reads its flipped built data, not just errorbar", {
+  # GeomPointrange and GeomCrossbar do not inherit GeomErrorbar -- which is why
+  # detection needs a membership test -- so their flipped built-data shapes are
+  # pinned rather than assumed to match geom_errorbar's.
+  df <- eb_data()
+
+  for (layer in list(
+    geom_pointrange(orientation = "y"),
+    geom_crossbar(orientation = "y"),
+    geom_linerange(orientation = "y")
+  )) {
+    result <- eb_process(
+      ggplot(df, aes(y, g, xmin = lo, xmax = hi)) + layer
+    )
+
+    testthat::expect_equal(result$orientation, "horz")
+    testthat::expect_equal(result$data[[1]]$yMin, 3.8)
+    testthat::expect_equal(result$data[[1]]$yMax, 4.6)
+  }
 })
 
 test_that("an empty layer yields no points rather than erroring", {

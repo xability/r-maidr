@@ -2,6 +2,20 @@
 
 ## New Features
 
+* Error bar support for 'ggplot2'. `geom_errorbar()`, `geom_errorbarh()`,
+  `geom_linerange()`, `geom_pointrange()` and `geom_crossbar()` are now emitted
+  as `error_bar` layers rather than falling through unclassified, so the
+  interval a chart draws is navigable instead of silently dropped -- and the
+  interval is usually the finding, since whether two group means differ is
+  answered by whether theirs overlap. The bounds are read from the pair the
+  layer's orientation says is the interval: 'ggplot2' computes *both* pairs for
+  most of these geoms, and on a vertical layer `xmin`/`xmax` are the cap width,
+  a styling parameter rather than data. Horizontal layers are recognised both
+  ways 'ggplot2' records them, since `geom_errorbarh()` carries no
+  `flipped_aes` column to read. The estimate aesthetic is optional throughout:
+  `geom_errorbar(aes(x, ymin, ymax))` over a `geom_col()` is idiomatic and
+  builds with no `y` column, so such a layer reports the centre of the drawn
+  span rather than being dropped.
 * 100% stacked bar support for 'ggplot2'. A bar layer drawn with
   `position = "fill"` is now emitted as `stacked_normalized_bar` rather than
   being classified alongside `position = "stack"`. Filling rescales every
