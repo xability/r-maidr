@@ -121,6 +121,24 @@ test_that("Ggplot2PieLayerProcessor handles a zero-row layer", {
     ggplot2::geom_col() +
     ggplot2::coord_polar("y")
 
+  # Some ggplot2 versions cannot build this plot at all -- 3.4.4 raises
+  # "replacement has length zero" from `expand_limits_discrete_trans()`,
+  # with or without the polar coord. That is upstream and reproduces on a
+  # bare `ggplot_build()` with no maidr in the picture, so there is nothing
+  # here for this processor to get right or wrong. Skipped by asking the
+  # question rather than by naming a version, because the version this was
+  # fixed in has not been bisected.
+  built <- tryCatch(
+    suppressWarnings(ggplot2::ggplot_build(p)),
+    error = function(condition) condition
+  )
+  if (inherits(built, "error")) {
+    testthat::skip(paste0(
+      "ggplot2 ", as.character(utils::packageVersion("ggplot2")),
+      " cannot build a zero-row discrete-x plot: ", conditionMessage(built)
+    ))
+  }
+
   processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
   data <- suppressWarnings(processor$extract_data(p))
 
@@ -585,9 +603,16 @@ test_that("Ggplot2PieLayerProcessor takes a stat-derived y label from the layout
 test_that("Ggplot2PieLayerProcessor selects the polygon grob, not the rect grob", {
   skip_if_no_ggplot2()
 
-  # In polar coordinates the whole layer is one polygonGrob whose sub-polygons
-  # are grouped by id; the geom_rect.rect.<N> the cartesian bar layers look
-  # for is never drawn.
+  # In polar coordinates the wedges are polygons; the geom_rect.rect.<N> the
+  # cartesian bar layers look for is never drawn.
+  #
+  # Which polygon grob depends on the ggplot2 version, and the difference is
+  # why #151 existed. Some versions draw one `geom_rect.polygon.<N>` holding
+  # every wedge grouped by id; ggplot2 3.4.4 draws a `geom_rect.gTree.<N>`
+  # holding one `geom_polygon.polygon.<N>` per wedge, and nothing named
+  # `geom_rect.polygon` anywhere. Either is a container whose `<polygon>`
+  # descendants are the wedges, which is what the selector addresses -- so
+  # this asserts the shape both produce rather than the name one of them has.
   p <- fruit_pie()
   gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
 
@@ -595,7 +620,28 @@ test_that("Ggplot2PieLayerProcessor selects the polygon grob, not the rect grob"
   selectors <- processor$generate_selectors(p, gt)
 
   testthat::expect_length(selectors, 1L)
-  testthat::expect_match(selectors[[1]], "^#geom_rect\\\\\\.polygon\\\\\\.[0-9]+\\\\\\.1 polygon$")
+  testthat::expect_match(
+    selectors[[1]],
+    "^#geom_rect\\\\\\.(polygon|gTree)\\\\\\.[0-9]+\\\\\\.1 polygon$"
+  )
+})
+
+test_that("a pie whose layer drew nothing gets no selector", {
+  skip_if_no_ggplot2()
+
+  # The gTree branch must require a polygon rather than settle for the tree.
+  # A `geom_rect` layer that drew no wedges has nothing to point at, and
+  # naming its tree would emit a selector resolving to nothing -- which the
+  # caller cannot tell from a working one.
+  p <- ggplot2::ggplot(
+    data.frame(fruit = c("Apples", "Bananas"), n = c(3, 5)),
+    ggplot2::aes(fruit, n)
+  ) + ggplot2::geom_point()
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+
+  testthat::expect_equal(processor$generate_selectors(p, gt), list())
 })
 
 test_that("Ggplot2PieLayerProcessor scopes its selector to a facet panel", {

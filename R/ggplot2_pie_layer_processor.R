@@ -323,22 +323,53 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
       list(paste0("#", escaped_svg_id, " polygon"))
     },
 
-    #' @description Find this layer's wedge polygon grob within a grob tree
+    #' @description Find the grob whose \code{<polygon>} descendants are the wedges
     #'
-    #' Matches on the \code{geom_rect.polygon} prefix, which the polar grill's
-    #' own polygon (named \code{GRID.polygon.<N>} under \code{coord_radial()})
-    #' does not carry.
+    #' ggplot2 does not draw a polar bar layer the same way across versions,
+    #' and the difference is not cosmetic. Verified against real
+    #' \code{gridSVG::grid.export()} output:
+    #'
+    #' \itemize{
+    #'   \item One \code{geom_rect.polygon.<N>} grob holding every wedge,
+    #'     grouped by id. This is what the lookup was written for.
+    #'   \item A \code{geom_rect.gTree.<N>} holding **one
+    #'     \code{geom_polygon.polygon.<N>} grob per wedge}. On ggplot2 3.4.4
+    #'     this is what a pie draws, and nothing named
+    #'     \code{geom_rect.polygon} exists anywhere in the tree -- so the
+    #'     lookup found nothing, \code{generate_selectors()} returned an empty
+    #'     list, and **a pie highlighted nothing at all** (#151).
+    #' }
+    #'
+    #' Either way the answer is a container whose \code{<polygon>} descendants
+    #' are the wedges in slice order, so the caller's descendant selector
+    #' resolves against both without knowing which it got.
+    #'
+    #' The polar grill draws a polygon of its own under
+    #' \code{coord_radial()}, named \code{GRID.polygon.<N>}; neither branch
+    #' carries a name that matches it.
     #'
     #' @param grob Grob to search
     #' @return Grob name, or NULL when the tree holds none
     find_polygon_grob = function(grob) {
+      named <- self$find_named_polygon_grob(grob)
+      if (!is.null(named)) {
+        return(named)
+      }
+      self$find_wedge_container(grob)
+    },
+
+    #' @description Find a single grob holding every wedge, if there is one.
+    #'
+    #' @param grob Grob to search
+    #' @return Grob name, or NULL
+    find_named_polygon_grob = function(grob) {
       if (!is.null(grob$name) && grepl("geom_rect\\.polygon", grob$name)) {
         return(grob$name)
       }
 
       if ("children" %in% names(grob)) {
         for (child in grob$children) {
-          result <- self$find_polygon_grob(child)
+          result <- self$find_named_polygon_grob(child)
           if (!is.null(result)) {
             return(result)
           }
@@ -346,6 +377,53 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
       }
 
       NULL
+    },
+
+    #' @description Find the layer tree whose polygon children are the wedges.
+    #'
+    #' Requires the tree to actually hold a polygon. A \code{geom_rect} gTree
+    #' that drew none is a layer with nothing to point at, and naming it would
+    #' emit a selector resolving to nothing -- which the caller cannot tell
+    #' apart from a working one, and a reader cannot tell apart from a bug.
+    #'
+    #' @param grob Grob to search
+    #' @return Grob name, or NULL
+    find_wedge_container = function(grob) {
+      if (!is.null(grob$name) && grepl("^geom_rect\\.gTree", grob$name) &&
+        self$holds_polygon(grob)) {
+        return(grob$name)
+      }
+
+      if ("children" %in% names(grob)) {
+        for (child in grob$children) {
+          result <- self$find_wedge_container(child)
+          if (!is.null(result)) {
+            return(result)
+          }
+        }
+      }
+
+      NULL
+    },
+
+    #' @description Whether a grob tree draws at least one polygon.
+    #'
+    #' @param grob Grob to search
+    #' @return TRUE when the tree holds a polygon grob
+    holds_polygon = function(grob) {
+      if (identical(class(grob)[1], "polygon")) {
+        return(TRUE)
+      }
+
+      if ("children" %in% names(grob)) {
+        for (child in grob$children) {
+          if (self$holds_polygon(child)) {
+            return(TRUE)
+          }
+        }
+      }
+
+      FALSE
     }
   )
 )
