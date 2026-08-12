@@ -258,3 +258,174 @@ test_that("an empty layer yields no points rather than erroring", {
 
   testthat::expect_equal(processor$extract_interval_data(NULL, NULL, FALSE), list())
 })
+
+# ==============================================================================
+# Selectors (issue #145)
+# ==============================================================================
+#
+# A layer with no selectors sonifies, announces and brailles correctly and
+# highlights nothing, so no assertion on data or announcements can see the
+# gap. These are written against the drawn grob instead.
+#
+# `ErrorBarTrace.mapToSvgElements` discards a selector list whose flattened
+# length is not exactly the number of points, so "how many elements does this
+# address" is the whole contract, and every case below asserts it.
+
+# Build a layer's payload with the gtable it was drawn from, which is what
+# `process()` needs before it can name a grob.
+eb_process_drawn <- function(plot) {
+  processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(
+    list(layer_index = 1, index = 1, plot = plot)
+  )
+  processor$process(
+    plot, NULL, ggplot2::ggplot_build(plot), ggplot2::ggplotGrob(plot)
+  )
+}
+
+# The `<g>` id a selector addresses, unescaped.
+eb_selector_id <- function(selector) {
+  gsub("\\\\", "", sub("^[a-zA-Z]*#", "", sub(" .*$", "", selector)))
+}
+
+test_that("every uncertainty geom addresses one element per sample", {
+  df <- eb_data()
+  mapping <- aes(g, y, ymin = lo, ymax = hi)
+
+  plots <- list(
+    errorbar = ggplot(df, mapping) + geom_errorbar(width = 0.2),
+    linerange = ggplot(df, mapping) + geom_linerange(),
+    pointrange = ggplot(df, mapping) + geom_pointrange(),
+    crossbar = ggplot(df, mapping) + geom_crossbar(),
+    errorbarh = ggplot(df, aes(y, g, xmin = lo, xmax = hi)) +
+      geom_errorbarh(height = 0.2)
+  )
+
+  for (name in names(plots)) {
+    result <- eb_process_drawn(plots[[name]])
+
+    testthat::expect_length(result$data, 3)
+    # One selector, not one per sample: gridSVG groups a grob's elements
+    # under a single `<g>`, so the samples are a stride through its children.
+    testthat::expect_length(result$selectors, 1)
+    testthat::expect_true(
+      grepl("^g#", result$selectors[[1]]),
+      info = paste(name, "addresses a group")
+    )
+  }
+})
+
+test_that("an unnamed geom_errorbar grob is still addressed", {
+  # The reason this issue existed. geom_errorbar() draws `GRID.polyline.N`
+  # with no geom prefix, so every name-matching search reaches it last or not
+  # at all -- and it is the most common of the five.
+  result <- eb_process_drawn(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_errorbar(width = 0.2)
+  )
+
+  testthat::expect_match(eb_selector_id(result$selectors[[1]]), "^GRID\\.polyline\\.")
+})
+
+test_that("geom_errorbar addresses its whisker, not one of its caps", {
+  # A bar is drawn as three elements -- cap, whisker, cap -- so addressing
+  # the group's children directly would resolve to three times the samples
+  # and the trace would discard the lot. The stride picks the middle one.
+  result <- eb_process_drawn(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_errorbar(width = 0.2)
+  )
+
+  testthat::expect_match(result$selectors[[1]], "nth-child(3n+2)", fixed = TRUE)
+})
+
+test_that("a geom drawing one element per sample takes no stride", {
+  # The counterpart: a linerange draws exactly one line per sample, so a
+  # stride here would address a third of them.
+  result <- eb_process_drawn(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_linerange()
+  )
+
+  testthat::expect_false(grepl("nth-child", result$selectors[[1]], fixed = TRUE))
+})
+
+test_that("a pointrange is highlighted by the range rather than the point", {
+  # Its gTree holds the whisker and the estimate as siblings, both one per
+  # sample. The whisker is the one that spans the interval the reader is
+  # navigating.
+  result <- eb_process_drawn(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_pointrange()
+  )
+
+  testthat::expect_match(eb_selector_id(result$selectors[[1]]), "^geom_linerange\\.segments\\.")
+})
+
+test_that("a crossbar is highlighted by its box rather than its middle line", {
+  result <- eb_process_drawn(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_crossbar()
+  )
+
+  testthat::expect_match(eb_selector_id(result$selectors[[1]]), "^geom_polygon\\.polygon\\.")
+})
+
+test_that("an error bar beside another layer addresses its own marks", {
+  # geom_col() + geom_errorbar() is the standard way to draw this chart, and
+  # the errorbar is the second layer. Resolving it by position rather than by
+  # name is only sound if the position is the layer's own.
+  df <- eb_data()
+  plot <- ggplot(df, aes(g)) +
+    geom_col(aes(y = y)) +
+    geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.2)
+  processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(
+    list(layer_index = 2, index = 2, plot = plot)
+  )
+
+  result <- processor$process(
+    plot, NULL, ggplot2::ggplot_build(plot), ggplot2::ggplotGrob(plot)
+  )
+
+  testthat::expect_length(result$selectors, 1)
+  # The bars are a `rect` grob; picking that one up would highlight the
+  # estimates while the reader navigates the interval.
+  testthat::expect_match(eb_selector_id(result$selectors[[1]]), "^GRID\\.polyline\\.")
+})
+
+test_that("a layer drawing nothing beside it does not shift the lookup", {
+  # A layer with no rows still takes its slot in the panel as a zeroGrob, so
+  # the positional lookup has to count it. If it did not, this would address
+  # the layer before the error bar.
+  df <- eb_data()
+  plot <- ggplot(df, aes(g)) +
+    geom_point(data = df[0, ], aes(y = y)) +
+    geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.2)
+  processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(
+    list(layer_index = 2, index = 2, plot = plot)
+  )
+
+  result <- processor$process(
+    plot, NULL, ggplot2::ggplot_build(plot), ggplot2::ggplotGrob(plot)
+  )
+
+  testthat::expect_length(result$selectors, 1)
+  testthat::expect_match(eb_selector_id(result$selectors[[1]]), "^GRID\\.polyline\\.")
+})
+
+test_that("no gtable yields no selectors rather than a guessed one", {
+  # A selector that resolves to the wrong element highlights somewhere else,
+  # which a reader cannot tell from the right answer. An empty list is the
+  # only honest response to not knowing.
+  result <- eb_process(
+    ggplot(eb_data(), aes(g, y, ymin = lo, ymax = hi)) + geom_errorbar()
+  )
+
+  testthat::expect_equal(result$selectors, list())
+})
+
+test_that("an empty layer emits no selector for its no points", {
+  empty <- data.frame(
+    g = character(0), y = numeric(0), lo = numeric(0), hi = numeric(0)
+  )
+  result <- eb_process_drawn(
+    ggplot(empty, aes(g, y, ymin = lo, ymax = hi)) + geom_errorbar()
+  )
+
+  testthat::expect_equal(result$data, list())
+  testthat::expect_equal(result$selectors, list())
+})

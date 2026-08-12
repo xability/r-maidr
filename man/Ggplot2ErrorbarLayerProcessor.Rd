@@ -52,6 +52,13 @@ interval.
   \itemize{
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-process}{\code{Ggplot2ErrorbarLayerProcessor$process()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer}{\code{Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-generate_selectors}{\code{Ggplot2ErrorbarLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-find_interval_grob}{\code{Ggplot2ErrorbarLayerProcessor$find_interval_grob()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob}{\code{Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-interval_grob_shape}{\code{Ggplot2ErrorbarLayerProcessor$interval_grob_shape()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-grob_point_groups}{\code{Ggplot2ErrorbarLayerProcessor$grob_point_groups()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-drawn_run_count}{\code{Ggplot2ErrorbarLayerProcessor$drawn_run_count()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-interval_selector}{\code{Ggplot2ErrorbarLayerProcessor$interval_selector()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-extract_interval_data}{\code{Ggplot2ErrorbarLayerProcessor$extract_interval_data()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-resolve_estimates}{\code{Ggplot2ErrorbarLayerProcessor$resolve_estimates()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-resolve_category_labels}{\code{Ggplot2ErrorbarLayerProcessor$resolve_category_labels()}}
@@ -64,8 +71,8 @@ interval.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
@@ -79,7 +86,6 @@ interval.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2PointLayerProcessor" data-id="extract_data"><a href='../../maidr/html/Ggplot2PointLayerProcessor.html#method-Ggplot2PointLayerProcessor-extract_data'><code>Ggplot2PointLayerProcessor$extract_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2PointLayerProcessor" data-id="find_children_by_type"><a href='../../maidr/html/Ggplot2PointLayerProcessor.html#method-Ggplot2PointLayerProcessor-find_children_by_type'><code>Ggplot2PointLayerProcessor$find_children_by_type()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2PointLayerProcessor" data-id="find_panel_grob"><a href='../../maidr/html/Ggplot2PointLayerProcessor.html#method-Ggplot2PointLayerProcessor-find_panel_grob'><code>Ggplot2PointLayerProcessor$find_panel_grob()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2PointLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/Ggplot2PointLayerProcessor.html#method-Ggplot2PointLayerProcessor-generate_selectors'><code>Ggplot2PointLayerProcessor$generate_selectors()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -144,6 +150,246 @@ construction and therefore has no such column to read.
   }
   \subsection{Returns}{
     TRUE when the interval spans the x axis
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-generate_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-generate_selectors}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$generate_selectors()}}{
+  Address the drawn interval, one SVG element per sample.
+
+\code{ErrorBarTrace.mapToSvgElements} resolves the selectors and requires
+the flattened result to be exactly as long as the emitted data; any
+other length is discarded and the layer highlights nothing (#145). So
+the job here is one element per sample, in the order the data was
+emitted -- not one per bound, and not the container.
+
+The five geoms do not draw alike, and the differences are not
+cosmetic. Verified against real \code{gridSVG::grid.export()} output on
+ggplot2 3.4.4:
+
+\itemize{
+\item \code{geom_linerange()} -- a \code{segments} grob named after the geom;
+one \verb{<polyline>} per sample.
+\item \code{geom_pointrange()} -- a gTree holding that same \code{segments}
+grob and a \code{points} grob. The whisker is the one that spans the
+interval, so it is the one addressed.
+\item \code{geom_crossbar()} -- a gTree holding a \code{polygon} grob (the box)
+and a \code{segments} grob (the middle line). The box is the sample.
+\item \code{geom_errorbar()} / \code{geom_errorbarh()} -- \strong{an unnamed
+\code{polyline}}, \code{GRID.polyline.N}, carrying no geom prefix at all,
+and drawing \emph{three} elements per sample: a cap, the whisker, the
+other cap.
+}
+
+Both of those last two facts are why this could not reuse the
+inherited \code{generate_selectors()}: it matches \code{geom_point.points} by
+name, which reaches none of these, and a name-prefix search reaches
+\code{geom_errorbar()} least of all.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  grob_id = NULL,
+  panel_ctx = NULL,
+  sample_count = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (unused; the drawn grob is
+resolved from the panel, which is what the unnamed polyline needs)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+      \item{\code{sample_count}}{How many points this layer emitted}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list holding one CSS selector, or an empty list
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-find_interval_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-find_interval_grob}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$find_interval_grob()}}{
+  Find the grob whose children are the samples.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$find_interval_grob(plot, gt, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The grob one of whose child elements is drawn per sample, or
+NULL when it cannot be resolved
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()}}{
+  Resolve the drawn grob of a layer ggplot2 left unnamed.
+
+\code{geom_errorbar()} and \code{geom_errorbarh()} draw a bare
+\code{GRID.polyline.N}, so there is no name to match on and
+\code{find_layer_grob_tree()} returns NULL for them. Position is the
+remaining handle: ggplot2 lays a panel out as the grill, a leading
+\code{zeroGrob}, \strong{one child per layer in layer order}, a trailing
+\code{zeroGrob} and the border. A layer that draws nothing still takes its
+slot as a \code{zeroGrob}, so the correspondence survives an empty layer
+beside this one.
+
+The leading blank is found by class rather than by an absent name: a
+\code{zeroGrob} is named, and its name is the four characters \code{"NULL"}.
+
+It is deliberately narrow. The result has to be a \code{polyline} for a
+geom that is known to draw one, because a positional hit on the wrong
+layer would highlight another layer's marks -- worse than the missing
+highlight this fixes, since a reader can hear nothing but cannot hear
+wrongness.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob(
+  plot,
+  gt,
+  panel_ctx = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The layer's polyline grob, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-interval_grob_shape"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-interval_grob_shape}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$interval_grob_shape()}}{
+  Count the samples a grob draws, and the elements each takes.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$interval_grob_shape(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob resolved for this layer}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of \code{samples} and \code{per_sample}, or NULL when the grob is
+not one of the shapes this has been verified against
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-grob_point_groups"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-grob_point_groups}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$grob_point_groups()}}{
+  Split a grob's points into one index vector per sample.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$grob_point_groups(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{A \code{polygon} or \code{polyline} grob}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of index vectors in drawing order, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-drawn_run_count"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-drawn_run_count}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$drawn_run_count()}}{
+  Count the elements one sample of a grob is drawn as.
+
+grid breaks a polyline at a missing point, and \code{geom_errorbar()} uses
+that: its eight points per sample are \verb{cap, NA, whisker, NA, cap}, so
+the export carries three elements for the one bar. A run needs two
+points to be a line at all, and a shorter one draws nothing.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$drawn_run_count(grob, index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{A \code{polygon} or \code{polyline} grob}
+      \item{\code{index}}{The point indices belonging to one sample}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    How many elements that sample is drawn as
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-interval_selector"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-interval_selector}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$interval_selector()}}{
+  Build the CSS selector for one element per sample.
+
+gridSVG wraps each grob in a \verb{<g>} named after it with a \code{.1} suffix
+and writes its elements inside in drawing order, so the samples are
+addressable as a stride through that group's children.
+
+Only the two strides that have been checked against an export are
+emitted: one element per sample, and the three a \code{geom_errorbar()}
+draws, of which the middle one is the whisker spanning the interval --
+the cap either side of it says nothing a reader is navigating to. Any
+other stride returns NULL and the layer goes back to highlighting
+nothing, which is the honest answer for a shape nobody has looked at.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$interval_selector(grob_name, per_sample)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob_name}}{The drawn grob's name}
+      \item{\code{per_sample}}{How many elements each sample is drawn as}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A CSS selector, or NULL
   }
 }
 
