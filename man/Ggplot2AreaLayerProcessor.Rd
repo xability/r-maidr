@@ -58,6 +58,8 @@ which is verified to give the same answer as \code{stat = "identity"}.
     \item \href{#method-Ggplot2AreaLayerProcessor-process}{\code{Ggplot2AreaLayerProcessor$process()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-resolve_area_type}{\code{Ggplot2AreaLayerProcessor$resolve_area_type()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-extract_series}{\code{Ggplot2AreaLayerProcessor$extract_series()}}
+    \item \href{#method-Ggplot2AreaLayerProcessor-generate_selectors}{\code{Ggplot2AreaLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2AreaLayerProcessor-band_polygon_names}{\code{Ggplot2AreaLayerProcessor$band_polygon_names()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices}{\code{Ggplot2AreaLayerProcessor$drop_alignment_vertices()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-source_x_values}{\code{Ggplot2AreaLayerProcessor$source_x_values()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-band_height}{\code{Ggplot2AreaLayerProcessor$band_height()}}
@@ -74,6 +76,7 @@ which is verified to give the same answer as \code{stat = "identity"}.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
@@ -211,6 +214,84 @@ and announces the two separately.
   }
   \subsection{Returns}{
     A list of series, each a list of MAIDR points
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-generate_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-generate_selectors}{}}}
+\subsection{\code{Ggplot2AreaLayerProcessor$generate_selectors()}}{
+  One selector per band, so navigation highlights a band.
+
+\code{geom_area} draws each series as its own \code{geom_ribbon.gTree} holding a
+filled \code{GRID.polygon}, which is the granularity the consumer wants:
+\code{AreaTrace} extends the line trace, whose multi-series highlight needs
+one selector per series and discards a list whose length disagrees.
+
+The polygon rather than the outline polyline each ribbon also draws:
+the band is the mark a reader is being pointed at, and outlining it
+would highlight a hairline around the shape instead of the shape.
+
+The existing curve machinery does not transfer.
+\code{Ggplot2LineLayerProcessor$curve_selectors()} counts curves inside one
+auto-named polyline grob, and \code{layer_polyline_grobs()} deliberately
+skips geom-named gTrees to avoid miscounting -- an area layer being
+exactly the shape that helper excludes.
+
+Emits nothing rather than a short or mispaired list, for the reason
+every processor here gives: the caller can tell an empty selector list
+apart from a wrong one, and a user cannot.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2AreaLayerProcessor$generate_selectors(
+  plot,
+  gt = NULL,
+  panel_ctx = NULL,
+  n_series = 0L
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+      \item{\code{n_series}}{How many bands the data reports}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of selectors, one per band, or an empty list
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-band_polygon_names"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-band_polygon_names}{}}}
+\subsection{\code{Ggplot2AreaLayerProcessor$band_polygon_names()}}{
+  Names of the band polygon grobs inside a grob, in draw
+order, which is series order.
+
+Matches the auto-generated \code{GRID.polygon.N} name exactly rather than by
+prefix, so a theme element's own polygon -- named after the element,
+not after grid's counter -- cannot be collected as a band. Anchoring
+both ends is what keeps this from widening the way a \code{grepl} on a bare
+prefix would.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2AreaLayerProcessor$band_polygon_names(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{A grob to walk}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
   }
 }
 

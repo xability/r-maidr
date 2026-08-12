@@ -356,33 +356,38 @@ Character vector of grob names
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-find_layer_grob_tree"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-find_layer_grob_tree}{}}}
-\subsection{Method \code{find_layer_grob_tree()}}{
-Find the grob tree ggplot2 drew for this layer.
+\subsection{\code{Ggplot2SmoothLayerProcessor$find_layer_grob_tree()}}{
+  Find the grob tree ggplot2 drew for this layer.
 
-ggplot2 names a layer's grob after its geom (\code{geom_smooth.gTree.5}),
-so the tree is located by that prefix and, when the plot repeats the
-geom, by this layer's position among the layers sharing it. Scoping to
-the layer's own tree keeps a sibling \code{geom_line()} polyline out of
-the per-group chunking.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2SmoothLayerProcessor$find_layer_grob_tree(plot, gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
+Defers to the base walk and supplies the one thing this processor does
+differently: which layer to look for. \code{resolve_target_layer()} may
+answer a layer other than this processor's own, which is why the target
+cannot simply be the layer index the base class would use.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2SmoothLayerProcessor$find_layer_grob_tree(
+  plot,
+  gt,
+  panel_ctx = NULL,
+  target = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+      \item{\code{target}}{Index of the layer to find; resolved when absent}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The matching grob, or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{gt}}{Gtable object}
-
-\item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The matching grob, or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-clone}{}}}
