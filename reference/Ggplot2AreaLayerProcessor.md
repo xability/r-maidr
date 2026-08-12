@@ -61,6 +61,10 @@ which is verified to give the same answer as `stat = "identity"`.
 
 - [`Ggplot2AreaLayerProcessor$extract_series()`](#method-Ggplot2AreaLayerProcessor-extract_series)
 
+- [`Ggplot2AreaLayerProcessor$generate_selectors()`](#method-Ggplot2AreaLayerProcessor-generate_selectors)
+
+- [`Ggplot2AreaLayerProcessor$band_polygon_names()`](#method-Ggplot2AreaLayerProcessor-band_polygon_names)
+
 - [`Ggplot2AreaLayerProcessor$drop_alignment_vertices()`](#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices)
 
 - [`Ggplot2AreaLayerProcessor$source_x_values()`](#method-Ggplot2AreaLayerProcessor-source_x_values)
@@ -84,6 +88,7 @@ Inherited methods
 - [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
 - [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
 - [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
 - [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
@@ -246,6 +251,89 @@ and announces the two separately.
 #### Returns
 
 A list of series, each a list of MAIDR points
+
+------------------------------------------------------------------------
+
+### `Ggplot2AreaLayerProcessor$generate_selectors()`
+
+One selector per band, so navigation highlights a band.
+
+`geom_area` draws each series as its own `geom_ribbon.gTree` holding a
+filled `GRID.polygon`, which is the granularity the consumer wants:
+`AreaTrace` extends the line trace, whose multi-series highlight needs
+one selector per series and discards a list whose length disagrees.
+
+The polygon rather than the outline polyline each ribbon also draws: the
+band is the mark a reader is being pointed at, and outlining it would
+highlight a hairline around the shape instead of the shape.
+
+The existing curve machinery does not transfer.
+`Ggplot2LineLayerProcessor$curve_selectors()` counts curves inside one
+auto-named polyline grob, and `layer_polyline_grobs()` deliberately
+skips geom-named gTrees to avoid miscounting – an area layer being
+exactly the shape that helper excludes.
+
+Emits nothing rather than a short or mispaired list, for the reason
+every processor here gives: the caller can tell an empty selector list
+apart from a wrong one, and a user cannot.
+
+#### Usage
+
+    Ggplot2AreaLayerProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      panel_ctx = NULL,
+      n_series = 0L
+    )
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation
+
+- `n_series`:
+
+  How many bands the data reports
+
+#### Returns
+
+A list of selectors, one per band, or an empty list
+
+------------------------------------------------------------------------
+
+### `Ggplot2AreaLayerProcessor$band_polygon_names()`
+
+Names of the band polygon grobs inside a grob, in draw order, which is
+series order.
+
+Matches the auto-generated `GRID.polygon.N` name exactly rather than by
+prefix, so a theme element's own polygon – named after the element, not
+after grid's counter – cannot be collected as a band. Anchoring both
+ends is what keeps this from widening the way a `grepl` on a bare prefix
+would.
+
+#### Usage
+
+    Ggplot2AreaLayerProcessor$band_polygon_names(grob)
+
+#### Arguments
+
+- `grob`:
+
+  A grob to walk
+
+#### Returns
+
+Character vector of grob names
 
 ------------------------------------------------------------------------
 

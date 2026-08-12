@@ -35,6 +35,8 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$get_own_layer()`](#method-LayerProcessor-get_own_layer)
 
+- [`LayerProcessor$find_layer_grob_tree()`](#method-LayerProcessor-find_layer_grob_tree)
+
 - [`LayerProcessor$needs_reordering()`](#method-LayerProcessor-needs_reordering)
 
 - [`LayerProcessor$reorder_layer_data()`](#method-LayerProcessor-reorder_layer_data)
@@ -241,6 +243,52 @@ layer has a reading to fall back on and no crash to justify.
 #### Returns
 
 The layer, or NULL when the index does not resolve
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$find_layer_grob_tree()`
+
+Find the grob tree ggplot2 drew for this layer.
+
+ggplot2 names a layer's grob after its geom (`geom_smooth.gTree.5`), so
+the tree is located by that prefix and, when the plot repeats the geom,
+by this layer's position among the layers sharing it. Scoping to the
+layer's own tree is what keeps a sibling layer's grobs out of whatever
+the caller counts inside it.
+
+Lives here rather than on one processor because two now need it and the
+walk is the same walk – the argument that moved `get_own_layer()` and
+`get_layer_built_data()` here before it. What differs between callers is
+only which layer they are looking for, and that is the `target`
+argument; the smooth processor passes a resolved index because it may
+describe a layer other than its own, and everything else takes the
+default.
+
+#### Usage
+
+    LayerProcessor$find_layer_grob_tree(plot, gt, panel_ctx = NULL, target = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation
+
+- `target`:
+
+  Index of the layer to find; defaults to this one's
+
+#### Returns
+
+The matching grob, or NULL
 
 ------------------------------------------------------------------------
 

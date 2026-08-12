@@ -393,20 +393,23 @@ Character vector of grob names
 
 ------------------------------------------------------------------------
 
-### Method `find_layer_grob_tree()`
+### `Ggplot2SmoothLayerProcessor$find_layer_grob_tree()`
 
 Find the grob tree ggplot2 drew for this layer.
 
-ggplot2 names a layer's grob after its geom (`geom_smooth.gTree.5`), so
-the tree is located by that prefix and, when the plot repeats the geom,
-by this layer's position among the layers sharing it. Scoping to the
-layer's own tree keeps a sibling
-[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
-polyline out of the per-group chunking.
+Defers to the base walk and supplies the one thing this processor does
+differently: which layer to look for. `resolve_target_layer()` may
+answer a layer other than this processor's own, which is why the target
+cannot simply be the layer index the base class would use.
 
 #### Usage
 
-    Ggplot2SmoothLayerProcessor$find_layer_grob_tree(plot, gt, panel_ctx = NULL)
+    Ggplot2SmoothLayerProcessor$find_layer_grob_tree(
+      plot,
+      gt,
+      panel_ctx = NULL,
+      target = NULL
+    )
 
 #### Arguments
 
@@ -421,6 +424,10 @@ polyline out of the per-group chunking.
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation
+
+- `target`:
+
+  Index of the layer to find; resolved when absent
 
 #### Returns
 

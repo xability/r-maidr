@@ -496,39 +496,43 @@ element (<code>panel.grid.major.x..polyline.N</code>), not <code>GRID.polyline.N
 </div>
 
 </div><p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-find_layer_grob_tree"></a><div class="section">
-<h3 id="method-find-layer-grob-tree-">Method <code>find_layer_grob_tree()</code><a class="anchor" aria-label="anchor" href="#method-find-layer-grob-tree-"></a></h3>
+<h3 id="ggplot-smoothlayerprocessor-find-layer-grob-tree-"><code>Ggplot2SmoothLayerProcessor$find_layer_grob_tree()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-find-layer-grob-tree-"></a></h3>
 <p>Find the grob tree ggplot2 drew for this layer.</p>
-<p>ggplot2 names a layer's grob after its geom (<code>geom_smooth.gTree.5</code>),
-so the tree is located by that prefix and, when the plot repeats the
-geom, by this layer's position among the layers sharing it. Scoping to
-the layer's own tree keeps a sibling <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> polyline out of
-the per-group chunking.</p><div class="section">
+<p>Defers to the base walk and supplies the one thing this processor does
+differently: which layer to look for. <code>resolve_target_layer()</code> may
+answer a layer other than this processor's own, which is why the target
+cannot simply be the layer index the base class would use.</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">find_layer_grob_tree</span><span class="op">(</span><span class="va">plot</span>, <span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">find_layer_grob_tree</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  <span class="va">gt</span>,</span>
+<span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  target <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
 <h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
-
-<dt><code>gt</code></dt>
+      <dt><code>gt</code></dt>
 <dd><p>Gtable object</p></dd>
 
-
-<dt><code>panel_ctx</code></dt>
+      <dt><code>panel_ctx</code></dt>
 <dd><p>Panel context for panel-scoped selector generation</p></dd>
+
+      <dt><code>target</code></dt>
+<dd><p>Index of the layer to find; resolved when absent</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>The matching grob, or NULL</p>
 </div>
 
-</div><p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-clone"></a><div class="section">
+</div>
+
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>

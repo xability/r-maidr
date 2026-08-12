@@ -267,6 +267,8 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
 <p></p><ul><li><p><a href="#method-Ggplot2AreaLayerProcessor-process"><code>Ggplot2AreaLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-resolve_area_type"><code>Ggplot2AreaLayerProcessor$resolve_area_type()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-extract_series"><code>Ggplot2AreaLayerProcessor$extract_series()</code></a></p></li>
+<li><p><a href="#method-Ggplot2AreaLayerProcessor-generate_selectors"><code>Ggplot2AreaLayerProcessor$generate_selectors()</code></a></p></li>
+<li><p><a href="#method-Ggplot2AreaLayerProcessor-band_polygon_names"><code>Ggplot2AreaLayerProcessor$band_polygon_names()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices"><code>Ggplot2AreaLayerProcessor$drop_alignment_vertices()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-source_x_values"><code>Ggplot2AreaLayerProcessor$source_x_values()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-band_height"><code>Ggplot2AreaLayerProcessor$band_height()</code></a></p></li>
@@ -279,6 +281,7 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href="LayerProcessor.html#method-get_layer_index"><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href="LayerProcessor.html#method-get_own_layer"><code>LayerProcessor$get_own_layer()</code></a></span></li>
@@ -425,6 +428,79 @@ and announces the two separately.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-generate_selectors"></a><div class="section">
+<h3 id="ggplot-arealayerprocessor-generate-selectors-"><code>Ggplot2AreaLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-generate-selectors-"></a></h3>
+<p>One selector per band, so navigation highlights a band.</p>
+<p><code>geom_area</code> draws each series as its own <code>geom_ribbon.gTree</code> holding a
+filled <code>GRID.polygon</code>, which is the granularity the consumer wants:
+<code>AreaTrace</code> extends the line trace, whose multi-series highlight needs
+one selector per series and discards a list whose length disagrees.</p>
+<p>The polygon rather than the outline polyline each ribbon also draws:
+the band is the mark a reader is being pointed at, and outlining it
+would highlight a hairline around the shape instead of the shape.</p>
+<p>The existing curve machinery does not transfer.
+<code>Ggplot2LineLayerProcessor$curve_selectors()</code> counts curves inside one
+auto-named polyline grob, and <code>layer_polyline_grobs()</code> deliberately
+skips geom-named gTrees to avoid miscounting – an area layer being
+exactly the shape that helper excludes.</p>
+<p>Emits nothing rather than a short or mispaired list, for the reason
+every processor here gives: the caller can tell an empty selector list
+apart from a wrong one, and a user cannot.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  n_series <span class="op">=</span> <span class="fl">0L</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable object</p></dd>
+
+      <dt><code>panel_ctx</code></dt>
+<dd><p>Panel context for panel-scoped selector generation</p></dd>
+
+      <dt><code>n_series</code></dt>
+<dd><p>How many bands the data reports</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>A list of selectors, one per band, or an empty list</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-band_polygon_names"></a><div class="section">
+<h3 id="ggplot-arealayerprocessor-band-polygon-names-"><code>Ggplot2AreaLayerProcessor$band_polygon_names()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-band-polygon-names-"></a></h3>
+<p>Names of the band polygon grobs inside a grob, in draw
+order, which is series order.</p>
+<p>Matches the auto-generated <code>GRID.polygon.N</code> name exactly rather than by
+prefix, so a theme element's own polygon – named after the element,
+not after grid's counter – cannot be collected as a band. Anchoring
+both ends is what keeps this from widening the way a <code>grepl</code> on a bare
+prefix would.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">band_polygon_names</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>A grob to walk</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>Character vector of grob names</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-drop_alignment_vertices"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-drop-alignment-vertices-"><code>Ggplot2AreaLayerProcessor$drop_alignment_vertices()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-drop-alignment-vertices-"></a></h3>
 <p>Keep only the rows the chart was given.</p>
@@ -436,10 +512,10 @@ to give the same rows <code>stat = "identity"</code> produces.</p>
 losing the chart – a noisy reading being better than none – which is
 why this returns the input unchanged rather than empty when the lookup
 fails.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">drop_alignment_vertices</span><span class="op">(</span><span class="va">built</span>, <span class="va">layer_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -449,7 +525,7 @@ fails.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>The data-bearing rows</p>
 </div>
 
@@ -469,17 +545,17 @@ continuous one, and an x mapped through an expression – <code>aes(x = year
 / 2)</code>, say – resolves to no column and lands here while still being
 continuous. Collapsing the two into one NULL is how that axis loses
 half its data to a rule that was never about it.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">source_x_values</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p><code>list(kind = "discrete")</code>, <code>list(kind = "numeric", values =)</code>,
 or NULL when the axis could not be read at all</p>
 </div>
@@ -491,10 +567,10 @@ or NULL when the axis could not be read at all</p>
 <p>The band's own height at one row.</p>
 <p>Falls back to <code>y</code> when the edges are absent, since an unstacked layer
 whose baseline is the axis draws a band of exactly that height.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">band_height</span><span class="op">(</span><span class="va">rows</span>, <span class="va">i</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>rows</code></dt>
 <dd><p>The rows of one series</p></dd>
 
@@ -504,7 +580,7 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>The series' value at that row</p>
 </div>
 
@@ -513,10 +589,10 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-resolve_series_labels"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-resolve-series-labels-"><code>Ggplot2AreaLayerProcessor$resolve_series_labels()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-resolve-series-labels-"></a></h3>
 <p>Name each series after its fill level.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">resolve_series_labels</span><span class="op">(</span><span class="va">built</span>, <span class="va">rows</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -529,7 +605,7 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>A named list of group key to label</p>
 </div>
 
@@ -538,17 +614,17 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-fill_levels"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-fill-levels-"><code>Ggplot2AreaLayerProcessor$fill_levels()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-fill-levels-"></a></h3>
 <p>The fill levels, in the order ggplot2 numbered the groups.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">fill_levels</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>A character vector of levels, possibly empty</p>
 </div>
 
@@ -557,10 +633,10 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-attach_fill_axis"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-attach-fill-axis-"><code>Ggplot2AreaLayerProcessor$attach_fill_axis()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-attach-fill-axis-"></a></h3>
 <p>Add the legend title as the z axis, when there is one.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">attach_fill_axis</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, <span class="va">axes</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -576,7 +652,7 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>The axes, with <code>z</code> added when a fill legend exists</p>
 </div>
 
@@ -589,17 +665,17 @@ whose baseline is the axis draws a band of exactly that height.</p><div class="s
 column the data actually holds is its argument – so the call is
 unwrapped rather than labelled, which would give <code>"factor(year)"</code> and
 match nothing.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">mapped_column</span><span class="op">(</span><span class="va">quo</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>quo</code></dt>
 <dd><p>The mapped quosure, or NULL</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>The column name, or NULL when there is no mapping</p>
 </div>
 
@@ -608,17 +684,17 @@ match nothing.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-scalar"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-scalar-"><code>Ggplot2AreaLayerProcessor$scalar()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-scalar-"></a></h3>
 <p>Convert one coordinate to a JSON-safe scalar.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">scalar</span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>value</code></dt>
 <dd><p>A coordinate read off the built data</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>A number, or a string when the coordinate is not numeric</p>
 </div>
 
@@ -627,10 +703,10 @@ match nothing.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-clone-"><code>Ggplot2AreaLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
