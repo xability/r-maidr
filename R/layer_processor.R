@@ -69,7 +69,7 @@ LayerProcessor <- R6::R6Class(
     #' @return A data frame of computed aesthetics, or NULL
     get_layer_built_data = function(built, panel_id = NULL) {
       index <- self$get_layer_index()
-      if (is.null(index) || index > length(built$data)) {
+      if (is.null(index) || index < 1L || index > length(built$data)) {
         return(NULL)
       }
 
@@ -104,7 +104,7 @@ LayerProcessor <- R6::R6Class(
         return(NULL)
       }
       index <- self$get_layer_index()
-      if (is.null(index) || index > length(plot$layers)) {
+      if (is.null(index) || index < 1L || index > length(plot$layers)) {
         return(NULL)
       }
       plot$layers[[index]]

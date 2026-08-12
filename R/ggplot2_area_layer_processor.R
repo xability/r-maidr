@@ -314,7 +314,8 @@ Ggplot2AreaLayerProcessor <- R6::R6Class(
       }
 
       index <- self$get_layer_index()
-      layer <- if (!is.null(index) && index <= length(plot$layers)) {
+      layer <- if (!is.null(index) && index >= 1L &&
+        index <= length(plot$layers)) {
         plot$layers[[index]]
       } else {
         NULL
