@@ -38,7 +38,8 @@ area_frame <- function() {
 #' @param plot A ggplot2 object
 #' @return The layer's emitted list
 rendered_layer <- function(plot) {
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
   save_html(plot, file)
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
 
