@@ -27,10 +27,31 @@ jobs:
 
       # actionlint validates the workflow YAML and shellchecks inline `run`
       # blocks, catching the class of shell/quoting bugs this automation
-      # is prone to. Both the installer script and the release artifact it
-      # downloads are pinned to a tagged version so the bytes fetched here
-      # are reviewable and cannot change out from under the job.
-      - name: actionlint
+      # is prone to. The release artifact is pinned by version AND by digest,
+      # so the bytes are reviewable and cannot change out from under the job.
+      #
+      # It is fetched directly rather than through upstream's
+      # `download-actionlint.bash`. That script's own curl has no `--fail`,
+      # so a transient error response is written to the file and unpacked:
+      # the job then dies on `gzip: stdin: not in gzip format` and reports a
+      # network blip as a lint failure on an unrelated pull request. That is
+      # not hypothetical -- it is what this step did on the run that
+      # prompted the change, having downloaded 107 bytes of error page.
+      # `--fail` turns that into a non-zero exit, `--retry-all-errors` stops
+      # it happening at all, and the checksum then means what it says: a
+      # mismatch is a supply-chain question, not a flaky download. Same fix
+      # as xability/maidr#854.
+      - name: Install actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
         run: |
-          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
-          ./actionlint -color
+          curl --fail --silent --show-error --location \
+            --retry 5 --retry-all-errors --retry-delay 2 \
+            --output actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum --check
+          tar xzf actionlint.tar.gz actionlint
+
+      - name: actionlint
+        run: ./actionlint -color
