@@ -122,7 +122,7 @@ interval.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    List with data, axes, type and orientation
+    List with data, selectors, axes, type and orientation
   }
 }
 

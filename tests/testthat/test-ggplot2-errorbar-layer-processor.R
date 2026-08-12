@@ -429,3 +429,65 @@ test_that("an empty layer emits no selector for its no points", {
   testthat::expect_equal(result$data, list())
   testthat::expect_equal(result$selectors, list())
 })
+
+test_that("two error bar layers in one panel address different marks", {
+  # The case the positional lookup is most likely to get wrong: neither layer
+  # has a name to match on, so nothing but position tells them apart. If it
+  # counted from the wrong anchor, both would resolve to the first polyline
+  # and the second layer would highlight the first layer's whiskers -- which
+  # resolves, and looks healthy, and is wrong.
+  df <- eb_data()
+  plot <- ggplot(df, aes(g)) +
+    geom_errorbar(aes(ymin = lo, ymax = hi), width = 0.2) +
+    geom_errorbar(aes(ymin = lo - 1, ymax = hi + 1), width = 0.4)
+
+  selectors <- lapply(seq_len(2), function(index) {
+    processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(
+      list(layer_index = index, index = index, plot = plot)
+    )
+    processor$process(
+      plot, NULL, ggplot2::ggplot_build(plot), ggplot2::ggplotGrob(plot)
+    )$selectors
+  })
+
+  testthat::expect_length(selectors[[1]], 1)
+  testthat::expect_length(selectors[[2]], 1)
+  testthat::expect_false(identical(selectors[[1]], selectors[[2]]))
+})
+
+test_that("an error bar beside a geom of another family still resolves", {
+  # geom_linerange() is found by name and geom_errorbar() by position, so this
+  # is the case where the two lookups have to agree about which layer is which.
+  df <- eb_data()
+  plot <- ggplot(df, aes(g, y, ymin = lo, ymax = hi)) +
+    geom_errorbar(width = 0.2) +
+    geom_linerange()
+
+  first <- maidr:::Ggplot2ErrorbarLayerProcessor$new(
+    list(layer_index = 1, index = 1, plot = plot)
+  )$process(plot, NULL, ggplot2::ggplot_build(plot), ggplot2::ggplotGrob(plot))
+  second <- maidr:::Ggplot2ErrorbarLayerProcessor$new(
+    list(layer_index = 2, index = 2, plot = plot)
+  )$process(plot, NULL, ggplot2::ggplot_build(plot), ggplot2::ggplotGrob(plot))
+
+  testthat::expect_match(eb_selector_id(first$selectors[[1]]), "^GRID\\.polyline\\.")
+  testthat::expect_match(
+    eb_selector_id(second$selectors[[1]]), "^geom_linerange\\.segments\\."
+  )
+})
+
+test_that("a theme that draws no grid does not move the lookup", {
+  # The positional anchor is the leading zeroGrob rather than the grill, so a
+  # theme that renders the background differently must not shift it. Worth
+  # pinning rather than assuming: the anchor is the one part of this that
+  # depends on ggplot2's internal panel layout.
+  df <- eb_data()
+  base <- ggplot(df, aes(g, y, ymin = lo, ymax = hi)) + geom_errorbar(width = 0.2)
+
+  for (plot in list(base + theme_void(), base + theme(panel.grid = element_blank()))) {
+    result <- eb_process_drawn(plot)
+
+    testthat::expect_length(result$selectors, 1)
+    testthat::expect_match(eb_selector_id(result$selectors[[1]]), "^GRID\\.polyline\\.")
+  }
+})

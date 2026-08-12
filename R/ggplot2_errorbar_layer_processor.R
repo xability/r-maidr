@@ -54,7 +54,7 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @param panel_ctx Panel context for panel-scoped selectors (optional)
-    #' @return List with data, axes, type and orientation
+    #' @return List with data, selectors, axes, type and orientation
     process = function(plot,
                        layout,
                        built = NULL,
@@ -270,16 +270,12 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
     interval_grob_shape = function(grob) {
       kind <- class(grob)[1]
 
-      if (kind %in% c("segments", "points")) {
-        n <- if (identical(kind, "segments")) {
-          length(grob$x0)
-        } else {
-          length(grob$x)
-        }
+      if (identical(kind, "segments")) {
+        n <- length(grob$x0)
         if (n < 1L) {
           return(NULL)
         }
-        return(list(samples = as.integer(n), per_sample = 1L))
+        return(list(samples = n, per_sample = 1L))
       }
 
       if (!kind %in% c("polygon", "polyline")) {
