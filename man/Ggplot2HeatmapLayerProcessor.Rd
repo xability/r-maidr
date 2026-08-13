@@ -16,6 +16,10 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
     \item \href{#method-Ggplot2HeatmapLayerProcessor-process}{\code{Ggplot2HeatmapLayerProcessor$process()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-needs_reordering}{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-is_binned_layer}{\code{Ggplot2HeatmapLayerProcessor$is_binned_layer()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_binned_data}{\code{Ggplot2HeatmapLayerProcessor$extract_binned_data()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-format_bin_edge}{\code{Ggplot2HeatmapLayerProcessor$format_bin_edge()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-bin_labels}{\code{Ggplot2HeatmapLayerProcessor$bin_labels()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_data}{\code{Ggplot2HeatmapLayerProcessor$extract_data()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-generate_selectors}{\code{Ggplot2HeatmapLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-clone}{\code{Ggplot2HeatmapLayerProcessor$clone()}}
@@ -96,6 +100,132 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
       \item{\code{plot}}{full ggplot object (for mappings)}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-is_binned_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-is_binned_layer}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$is_binned_layer()}}{
+  Report whether this layer's grid was computed by a stat.
+
+\code{geom_bin_2d()} is \code{GeomTile} + \code{StatBin2d}, so it arrives here
+classified as a heatmap -- correctly, since a rectangular bin grid
+is one. What differs is where the grid comes from: a \code{geom_tile()}
+heatmap is handed one in \code{plot$data}, and a binned one has its
+computed for it.
+
+Matched on the stat rather than on the presence of a \code{count}
+column, because a tidy heatmap whose value column happens to be
+named \code{count} is not a binned layer and must not take that path.
+Reached through \code{get_own_layer()}, which already answers "is there
+a layer at my index?" -- a second bounds check here would be a
+second place for the answer to change.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$is_binned_layer(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when the layer's stat computes a 2D bin grid
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-extract_binned_data"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-extract_binned_data}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$extract_binned_data()}}{
+  Read a computed 2D bin grid out of the built data.
+
+The built data \emph{is} the grid: one row per drawn tile, carrying the
+bin's count and its edges. Only the bins that hold something are
+present, so the full rectangle is rebuilt from the distinct
+positions and the empty cells left missing rather than scored zero
+-- an empty bin genuinely counted nothing, but the frontend reads a
+zero as "no rect here" for highlighting, and every cell of a
+heatmap has one.
+
+Axis labels are the bin's coordinate \emph{range}, not its index: "a
+count of 4" means nothing without "between -2.2 and -1.1", and the
+range is what a sighted reader gets from the axis (#136).
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$extract_binned_data(built_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built_data}}{This layer's computed data, already panel-filtered}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same shape \code{extract_data} returns for a tidy heatmap
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-format_bin_edge"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-format_bin_edge}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$format_bin_edge()}}{
+  Render one bin edge as a short, readable number.
+
+Bin edges are floating point and print at full precision by
+default -- "-1.1076174999999999 to 1.1076180000000001e-07" is an
+announcement nobody can hold in their head. Rounded to a few
+significant figures, and trimmed, so the label reads as a
+coordinate rather than as a machine number.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$format_bin_edge(value)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{value}}{A single numeric bin edge or centre}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A length-1 character string
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-bin_labels"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-bin_labels}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$bin_labels()}}{
+  Label each bin by the range it covers.
+
+\code{xmin}/\code{xmax} are computed alongside the count, so the range costs
+nothing to report and is the only thing that makes the count
+meaningful. Falls back to the bin centre when the edges are absent,
+which is still a coordinate rather than an index.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$bin_labels(built_data, positions, axis)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built_data}}{This layer's computed data}
+      \item{\code{positions}}{The distinct bin centres, sorted}
+      \item{\code{axis}}{\code{"x"} or \code{"y"}}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character labels, one per position, in the same order
   }
 }
 

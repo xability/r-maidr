@@ -44,6 +44,18 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         return(data)
       }
 
+      # Not for a computed bin grid. Below, the first two columns are made
+      # into factors so the tiles sort into DOM order -- correct when they
+      # are the heatmap's categories, and destructive when they are raw
+      # continuous observations: ggplot2 then maps 200 data points to 200
+      # *discrete* positions, and `StatBin2d` bins those integers instead
+      # of the numbers, producing one bin per observation. That is what
+      # made a four-by-four binned scatter come out as a 200x200 grid
+      # labelled "0.5 to 1.5", "1.5 to 2.5", and so on (#136).
+      if (self$is_binned_layer(plot)) {
+        return(data)
+      }
+
       x_col <- names(data)[1]
       y_col <- names(data)[2]
 
@@ -74,6 +86,135 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 
       reordered_data
     },
+    #' @description Report whether this layer's grid was computed by a stat.
+    #'
+    #'   `geom_bin_2d()` is `GeomTile` + `StatBin2d`, so it arrives here
+    #'   classified as a heatmap -- correctly, since a rectangular bin grid
+    #'   is one. What differs is where the grid comes from: a `geom_tile()`
+    #'   heatmap is handed one in `plot$data`, and a binned one has its
+    #'   computed for it.
+    #'
+    #'   Matched on the stat rather than on the presence of a `count`
+    #'   column, because a tidy heatmap whose value column happens to be
+    #'   named `count` is not a binned layer and must not take that path.
+    #'   Reached through `get_own_layer()`, which already answers "is there
+    #'   a layer at my index?" -- a second bounds check here would be a
+    #'   second place for the answer to change.
+    #' @param plot The ggplot object
+    #' @return `TRUE` when the layer's stat computes a 2D bin grid
+    is_binned_layer = function(plot) {
+      layer <- self$get_own_layer(plot)
+      if (is.null(layer)) {
+        return(FALSE)
+      }
+      identical(class(layer$stat)[1], "StatBin2d")
+    },
+    #' @description Read a computed 2D bin grid out of the built data.
+    #'
+    #'   The built data *is* the grid: one row per drawn tile, carrying the
+    #'   bin's count and its edges. Only the bins that hold something are
+    #'   present, so the full rectangle is rebuilt from the distinct
+    #'   positions and the empty cells left missing rather than scored zero
+    #'   -- an empty bin genuinely counted nothing, but the frontend reads a
+    #'   zero as "no rect here" for highlighting, and every cell of a
+    #'   heatmap has one.
+    #'
+    #'   Axis labels are the bin's coordinate *range*, not its index: "a
+    #'   count of 4" means nothing without "between -2.2 and -1.1", and the
+    #'   range is what a sighted reader gets from the axis (#136).
+    #' @param built_data This layer's computed data, already panel-filtered
+    #' @return The same shape `extract_data` returns for a tidy heatmap
+    extract_binned_data = function(built_data) {
+      if (nrow(built_data) == 0 || !all(c("x", "y") %in% names(built_data))) {
+        return(list(points = list(), x = character(0), y = character(0),
+                    fill_label = "count"))
+      }
+
+      # `count` is what `stat_bin_2d()` computes, and `value` is the same
+      # number under ggplot2 3.x's spelling -- checked rather than assumed:
+      # on 3.4.4 both columns are present and identical row for row. So the
+      # label below is "count" either way, and reading `value` is a
+      # fallback for a build that stops emitting `count` rather than a
+      # different quantity.
+      #
+      # `fill` is never it: that is the mapped colour, not a number.
+      value_col <- if ("count" %in% names(built_data)) {
+        "count"
+      } else if ("value" %in% names(built_data)) {
+        "value"
+      } else {
+        NULL
+      }
+      if (is.null(value_col)) {
+        return(list(points = list(), x = character(0), y = character(0),
+                    fill_label = "count"))
+      }
+
+      x_positions <- sort(unique(built_data$x))
+      y_positions <- sort(unique(built_data$y))
+
+      scores <- matrix(
+        NA_real_,
+        nrow = length(y_positions),
+        ncol = length(x_positions)
+      )
+      for (i in seq_len(nrow(built_data))) {
+        row <- match(built_data$y[i], y_positions)
+        col <- match(built_data$x[i], x_positions)
+        scores[row, col] <- as.numeric(built_data[[value_col]][i])
+      }
+
+      # Bottom row first, matching the DOM order the tidy path also emits.
+      y_labels <- rev(self$bin_labels(built_data, y_positions, "y"))
+      points <- rev(lapply(seq_len(nrow(scores)), function(i) as.numeric(scores[i, ])))
+
+      list(
+        points = points,
+        x = self$bin_labels(built_data, x_positions, "x"),
+        y = y_labels,
+        fill_label = "count"
+      )
+    },
+    #' @description Render one bin edge as a short, readable number.
+    #'
+    #'   Bin edges are floating point and print at full precision by
+    #'   default -- "-1.1076174999999999 to 1.1076180000000001e-07" is an
+    #'   announcement nobody can hold in their head. Rounded to a few
+    #'   significant figures, and trimmed, so the label reads as a
+    #'   coordinate rather than as a machine number.
+    #' @param value A single numeric bin edge or centre
+    #' @return A length-1 character string
+    format_bin_edge = function(value) {
+      format(signif(value, 4), trim = TRUE, scientific = FALSE)
+    },
+    #' @description Label each bin by the range it covers.
+    #'
+    #'   `xmin`/`xmax` are computed alongside the count, so the range costs
+    #'   nothing to report and is the only thing that makes the count
+    #'   meaningful. Falls back to the bin centre when the edges are absent,
+    #'   which is still a coordinate rather than an index.
+    #' @param built_data This layer's computed data
+    #' @param positions The distinct bin centres, sorted
+    #' @param axis `"x"` or `"y"`
+    #' @return Character labels, one per position, in the same order
+    bin_labels = function(built_data, positions, axis) {
+      min_col <- paste0(axis, "min")
+      max_col <- paste0(axis, "max")
+      has_edges <- all(c(min_col, max_col) %in% names(built_data))
+
+      vapply(positions, function(position) {
+        if (!has_edges) {
+          return(self$format_bin_edge(position))
+        }
+        row <- which(built_data[[axis]] == position)[1]
+        lower <- built_data[[min_col]][row]
+        upper <- built_data[[max_col]][row]
+        if (is.na(lower) || is.na(upper)) {
+          return(self$format_bin_edge(position))
+        }
+        paste0(self$format_bin_edge(lower), " to ", self$format_bin_edge(upper))
+      }, character(1))
+    },
     extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
@@ -84,6 +225,18 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
 
       if (!is.null(panel_id) && "PANEL" %in% names(built_data)) {
         built_data <- built_data[built_data$PANEL == panel_id, , drop = FALSE]
+      }
+
+      # A computed 2D bin layer is already a grid, and reconstructing one
+      # from the source columns cannot work: everything below assumes a
+      # `geom_tile()` heatmap built from tidy data, one row per cell. On a
+      # binned scatter the source columns are the raw observations, so the
+      # axis levels come out as one per data point and the built x is a bin
+      # *centre* that matches none of them -- a complete, well-formed and
+      # entirely empty grid, 200x200 of missing against 18 drawn tiles
+      # (#136).
+      if (self$is_binned_layer(plot)) {
+        return(self$extract_binned_data(built_data))
       }
 
       original_data <- plot$data
