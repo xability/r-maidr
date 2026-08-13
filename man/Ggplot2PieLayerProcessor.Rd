@@ -34,6 +34,9 @@ declines them, and they stay bar / stacked / dodged as before.
     \item \href{#method-Ggplot2PieLayerProcessor-scale_labels}{\code{Ggplot2PieLayerProcessor$scale_labels()}}
     \item \href{#method-Ggplot2PieLayerProcessor-extract_pie_axes}{\code{Ggplot2PieLayerProcessor$extract_pie_axes()}}
     \item \href{#method-Ggplot2PieLayerProcessor-generate_selectors}{\code{Ggplot2PieLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-resolve_layer_polygon_grob}{\code{Ggplot2PieLayerProcessor$resolve_layer_polygon_grob()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-collect_polygon_grobs}{\code{Ggplot2PieLayerProcessor$collect_polygon_grobs()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-find_own_polygon_grob}{\code{Ggplot2PieLayerProcessor$find_own_polygon_grob()}}
     \item \href{#method-Ggplot2PieLayerProcessor-find_polygon_grob}{\code{Ggplot2PieLayerProcessor$find_polygon_grob()}}
     \item \href{#method-Ggplot2PieLayerProcessor-find_named_polygon_grob}{\code{Ggplot2PieLayerProcessor$find_named_polygon_grob()}}
     \item \href{#method-Ggplot2PieLayerProcessor-find_wedge_container}{\code{Ggplot2PieLayerProcessor$find_wedge_container()}}
@@ -343,13 +346,61 @@ order.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-find_polygon_grob"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-find_polygon_grob}{}}}
-\subsection{\code{Ggplot2PieLayerProcessor$find_polygon_grob()}}{
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-resolve_layer_polygon_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-resolve_layer_polygon_grob}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$resolve_layer_polygon_grob()}}{
   
+
+
+  Pick the wedge container belonging to \emph{this} layer
+
+A panel can hold more than one polar \code{geom_rect} layer -- two
+\code{geom_col()}s under \code{coord_polar()} is an ordinary way to
+draw a ring over a pie -- and a search that takes the first match
+hands every layer the first layer's wedges. Those selectors resolve,
+and the payload looks healthy, and the outline is on the wrong marks.
+
+\code{LayerProcessor$find_layer_grob_tree()} cannot be reused for
+this: it matches on the geom's own class, and a \code{geom_col()}
+layer is \code{GeomCol} while the grob it draws is named after
+\code{geom_rect}. So the containers are collected in drawing order --
+which is layer order -- and indexed.
+
+When the counts do not line up the answer is no selector rather than
+a guess, for the reason \code{generate_selectors()} already gives: a
+wrong selector highlights another layer's wedges, and the caller can
+tell an empty list from a wrong one where a reader cannot.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2PieLayerProcessor$find_polygon_grob(grob)}
+    \preformatted{Ggplot2PieLayerProcessor$resolve_layer_polygon_grob(plot, roots)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object, or NULL when the caller has none}
+      \item{\code{roots}}{Grobs to search, in drawing order}
+      \item{\code{grob}}{Grob to search}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Grob name, or NULL when the tree holds none
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-collect_polygon_grobs"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-collect_polygon_grobs}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$collect_polygon_grobs()}}{
+  Every wedge container in a grob tree, in drawing order
+
+One entry per layer that drew wedges. A match is not descended into:
+the container is the whole layer's wedges, and its children are the
+individual ones.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$collect_polygon_grobs(grob)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -360,7 +411,40 @@ order.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    Grob name, or NULL when the tree holds none
+    Character vector of grob names, possibly empty
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-find_own_polygon_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-find_own_polygon_grob}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$find_own_polygon_grob()}}{
+  Whether this grob is itself a wedge container
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$find_own_polygon_grob(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{Grob to test}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Grob name, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-find_polygon_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-find_polygon_grob}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$find_polygon_grob()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$find_polygon_grob(grob)}
+    \if{html}{\out{</div>}}
   }
 }
 

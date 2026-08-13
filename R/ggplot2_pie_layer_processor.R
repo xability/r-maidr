@@ -290,20 +290,18 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      polygon_grob <- NULL
-
+      roots <- list()
       if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
         # Facet / patchwork path: scope the search to this panel's grob
         panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
         if (!is.null(panel_grob)) {
-          polygon_grob <- self$find_polygon_grob(panel_grob)
+          roots <- list(panel_grob)
         }
       } else if ("grobs" %in% names(gt)) {
-        for (grob in gt$grobs) {
-          polygon_grob <- self$find_polygon_grob(grob)
-          if (!is.null(polygon_grob)) break
-        }
+        roots <- gt$grobs
       }
+
+      polygon_grob <- self$resolve_layer_polygon_grob(plot, roots)
 
       # No polygon grob means this layer drew no wedges here: an empty facet
       # level, a zero-row layer, a coord that renders no polygons. The layer
@@ -350,7 +348,96 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
     #'
     #' @param grob Grob to search
     #' @return Grob name, or NULL when the tree holds none
+    #' @description Pick the wedge container belonging to *this* layer
+    #'
+    #' A panel can hold more than one polar \code{geom_rect} layer -- two
+    #' \code{geom_col()}s under \code{coord_polar()} is an ordinary way to
+    #' draw a ring over a pie -- and a search that takes the first match
+    #' hands every layer the first layer's wedges. Those selectors resolve,
+    #' and the payload looks healthy, and the outline is on the wrong marks.
+    #'
+    #' \code{LayerProcessor$find_layer_grob_tree()} cannot be reused for
+    #' this: it matches on the geom's own class, and a \code{geom_col()}
+    #' layer is \code{GeomCol} while the grob it draws is named after
+    #' \code{geom_rect}. So the containers are collected in drawing order --
+    #' which is layer order -- and indexed.
+    #'
+    #' When the counts do not line up the answer is no selector rather than
+    #' a guess, for the reason \code{generate_selectors()} already gives: a
+    #' wrong selector highlights another layer's wedges, and the caller can
+    #' tell an empty list from a wrong one where a reader cannot.
+    #'
+    #' @param plot The ggplot2 object, or NULL when the caller has none
+    #' @param roots Grobs to search, in drawing order
+    #' @return Grob name, or NULL
+    resolve_layer_polygon_grob = function(plot, roots) {
+      containers <- unlist(
+        lapply(roots, function(root) self$collect_polygon_grobs(root)),
+        use.names = FALSE
+      )
+      if (length(containers) == 0L) {
+        return(NULL)
+      }
+      if (length(containers) == 1L) {
+        return(containers[[1]])
+      }
+
+      index <- self$get_layer_index()
+      layers <- if (is.null(plot)) NULL else plot$layers
+      if (is.null(layers) || length(containers) != length(layers) ||
+        is.null(index) || index < 1L || index > length(containers)) {
+        return(NULL)
+      }
+      containers[[index]]
+    },
+
+    #' @description Every wedge container in a grob tree, in drawing order
+    #'
+    #' One entry per layer that drew wedges. A match is not descended into:
+    #' the container is the whole layer's wedges, and its children are the
+    #' individual ones.
+    #'
+    #' @param grob Grob to search
+    #' @return Character vector of grob names, possibly empty
+    collect_polygon_grobs = function(grob) {
+      if (is.null(grob)) {
+        return(character(0))
+      }
+
+      own <- self$find_own_polygon_grob(grob)
+      if (!is.null(own)) {
+        return(own)
+      }
+
+      found <- character(0)
+      if ("children" %in% names(grob)) {
+        for (child in grob$children) {
+          found <- c(found, self$collect_polygon_grobs(child))
+        }
+      }
+      found
+    },
+
+    #' @description Whether this grob is itself a wedge container
+    #' @param grob Grob to test
+    #' @return Grob name, or NULL
+    find_own_polygon_grob = function(grob) {
+      if (is.null(grob$name)) {
+        return(NULL)
+      }
+      if (grepl("^geom_rect\\.polygon", grob$name)) {
+        return(grob$name)
+      }
+      if (grepl("^geom_rect\\.gTree", grob$name) && self$holds_polygon(grob)) {
+        return(grob$name)
+      }
+      NULL
+    },
+
     find_polygon_grob = function(grob) {
+      if (is.null(grob)) {
+        return(NULL)
+      }
       named <- self$find_named_polygon_grob(grob)
       if (!is.null(named)) {
         return(named)
@@ -363,7 +450,7 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
     #' @param grob Grob to search
     #' @return Grob name, or NULL
     find_named_polygon_grob = function(grob) {
-      if (!is.null(grob$name) && grepl("geom_rect\\.polygon", grob$name)) {
+      if (!is.null(grob$name) && grepl("^geom_rect\\.polygon", grob$name)) {
         return(grob$name)
       }
 

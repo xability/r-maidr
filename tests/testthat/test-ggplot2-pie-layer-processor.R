@@ -786,3 +786,48 @@ test_that("the negative reaches the emitted payload, not just extract_data", {
 
   expect_match(html, "-40")
 })
+
+test_that("two polar layers in one panel address different wedges", {
+  skip_if_no_ggplot2()
+
+  # A ring drawn over a pie is two geom_col() layers under one coord_polar(),
+  # and a search that takes the first container hands both of them the first
+  # layer's wedges. Those selectors resolve, and the payload looks healthy,
+  # and the outline sits on the wrong marks -- which is worse than the empty
+  # list this issue was about.
+  df <- data.frame(fruit = c("Apples", "Bananas", "Cherries"), n = c(3, 5, 2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = n, fill = fruit)) +
+    ggplot2::geom_col() +
+    ggplot2::geom_col(alpha = 0.3) +
+    ggplot2::coord_polar("y")
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
+
+  selectors <- lapply(seq_len(2), function(index) {
+    maidr:::Ggplot2PieLayerProcessor$new(
+      list(index = index)
+    )$generate_selectors(p, gt)
+  })
+
+  testthat::expect_length(selectors[[1]], 1L)
+  testthat::expect_length(selectors[[2]], 1L)
+  testthat::expect_false(identical(selectors[[1]], selectors[[2]]))
+})
+
+test_that("an ambiguous panel gets no selector rather than a guess", {
+  skip_if_no_ggplot2()
+
+  # Two containers and three layers: the drawing order no longer says which
+  # container belongs to which layer, and the third layer drew no wedges. A
+  # positional guess here lands on another layer's marks.
+  df <- data.frame(fruit = c("Apples", "Bananas", "Cherries"), n = c(3, 5, 2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = n, fill = fruit)) +
+    ggplot2::geom_col() +
+    ggplot2::geom_col(alpha = 0.3) +
+    ggplot2::geom_text(ggplot2::aes(label = fruit), position = "stack") +
+    ggplot2::coord_polar("y")
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+
+  testthat::expect_equal(processor$generate_selectors(p, gt), list())
+})
