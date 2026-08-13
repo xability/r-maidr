@@ -138,6 +138,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item JooYoung Seo \email{jseo1005@illinois.edu} [copyright holder]
   \item Niranjan Kalaiselvan \email{nk46@illinois.edu}
 }
 

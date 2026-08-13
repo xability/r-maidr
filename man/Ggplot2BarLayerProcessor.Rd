@@ -4,52 +4,49 @@
 \alias{Ggplot2BarLayerProcessor}
 \title{Bar Layer Processor}
 \description{
-Bar Layer Processor
-
-Bar Layer Processor
-}
-\details{
 Processes bar plot layers with complete logic included
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2BarLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2BarLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2BarLayerProcessor-process}{\code{Ggplot2BarLayerProcessor$process()}}
-\item \href{#method-Ggplot2BarLayerProcessor-needs_reordering}{\code{Ggplot2BarLayerProcessor$needs_reordering()}}
-\item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
-\item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
-\item \href{#method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{\code{Ggplot2BarLayerProcessor$panel_x_is_discrete()}}
-\item \href{#method-Ggplot2BarLayerProcessor-map_discrete_x}{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}
-\item \href{#method-Ggplot2BarLayerProcessor-map_continuous_x}{\code{Ggplot2BarLayerProcessor$map_continuous_x()}}
-\item \href{#method-Ggplot2BarLayerProcessor-generate_selectors}{\code{Ggplot2BarLayerProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2BarLayerProcessor-clone}{\code{Ggplot2BarLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2BarLayerProcessor-process}{\code{Ggplot2BarLayerProcessor$process()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-needs_reordering}{\code{Ggplot2BarLayerProcessor$needs_reordering()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-format_x_value}{\code{Ggplot2BarLayerProcessor$format_x_value()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{\code{Ggplot2BarLayerProcessor$panel_x_is_discrete()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-map_discrete_x}{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-map_continuous_x}{\code{Ggplot2BarLayerProcessor$map_continuous_x()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-generate_selectors}{\code{Ggplot2BarLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-clone}{\code{Ggplot2BarLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$process(
+\subsection{\code{Ggplot2BarLayerProcessor$process()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -58,166 +55,220 @@ Processes bar plot layers with complete logic included
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-needs_reordering}{}}}
-\subsection{Method \code{needs_reordering()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$needs_reordering()}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BarLayerProcessor$needs_reordering()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$needs_reordering()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-reorder_layer_data}{}}}
-\subsection{Method \code{reorder_layer_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$reorder_layer_data(data, plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$reorder_layer_data(data, plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data}}{data.frame effective for this layer}
+      \item{\code{plot}}{full ggplot object (for mappings)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$extract_data(
+\subsection{\code{Ggplot2BarLayerProcessor$extract_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$extract_data(
   plot,
   built = NULL,
   scale_mapping = NULL,
   panel_id = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-format_x_value"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-format_x_value}{}}}
-\subsection{Method \code{format_x_value()}}{
-Format an x-axis value as character.
+\subsection{\code{Ggplot2BarLayerProcessor$format_x_value()}}{
+  Format an x-axis value as character.
 
 Date / POSIXct / POSIXlt values are formatted via \code{format()} so that a
 \code{Date} column emits ISO date strings ("2024-01-02") rather than the
 default scale-tick labels ("Jan 02"). All other types use
 \code{as.character()}. Mirrors \code{Ggplot2CandlestickProcessor$format_x_value()}
 so candle and bar layers from the same Date column align string-wise.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-panel_x_is_discrete"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-panel_x_is_discrete}{}}}
-\subsection{Method \code{panel_x_is_discrete()}}{
-Does this panel draw x on a discrete scale?
+\subsection{\code{Ggplot2BarLayerProcessor$panel_x_is_discrete()}}{
+  Does this panel draw x on a discrete scale?
 
 Only a discrete scale numbers its built positions 1..n, which is what
 makes indexing the break labels with them legitimate.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$panel_x_is_discrete(panel_params, x_pos, panel_labels)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$panel_x_is_discrete(panel_params, x_pos, panel_labels)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel_params}}{This panel's entry from \code{built$layout$panel_params}}
+      \item{\code{x_pos}}{Built x positions for this panel}
+      \item{\code{panel_labels}}{This panel's x break labels, or NULL}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE for a discrete x scale
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{panel_params}}{This panel's entry from \code{built$layout$panel_params}}
-
-\item{\code{x_pos}}{Built x positions for this panel}
-
-\item{\code{panel_labels}}{This panel's x break labels, or NULL}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE for a discrete x scale
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-map_discrete_x"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-map_discrete_x}{}}}
-\subsection{Method \code{map_discrete_x()}}{
-Label discrete built positions with this panel's breaks.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$map_discrete_x(x_pos, panel_labels)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}{
+  Label discrete built positions with this panel's breaks.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$map_discrete_x(x_pos, panel_labels)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x_pos}}{Built x positions for this panel}
+      \item{\code{panel_labels}}{This panel's x break labels, or NULL}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of x labels
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x_pos}}{Built x positions for this panel}
-
-\item{\code{panel_labels}}{This panel's x break labels, or NULL}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of x labels
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-map_continuous_x"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-map_continuous_x}{}}}
-\subsection{Method \code{map_continuous_x()}}{
-Recover user-facing x values for a non-discrete scale.
+\subsection{\code{Ggplot2BarLayerProcessor$map_continuous_x()}}{
+  Recover user-facing x values for a non-discrete scale.
 
 Built positions on a continuous, Date or datetime scale already are
 the values, but a Date arrives as a day count. Matching them back to
 the mapped column restores the original typing so \code{format_x_value()}
 can emit "2024-01-02" rather than "19724". Mirrors the same recovery
 in \code{Ggplot2LineLayerProcessor}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$map_continuous_x(x_pos, plot, layer_index)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$map_continuous_x(x_pos, plot, layer_index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x_pos}}{Built x positions for this panel}
+      \item{\code{plot}}{The ggplot object}
+      \item{\code{layer_index}}{Index of this layer within the plot}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of x labels
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{x_pos}}{Built x positions for this panel}
-
-\item{\code{plot}}{The ggplot object}
-
-\item{\code{layer_index}}{Index of this layer within the plot}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of x labels
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$generate_selectors(
+\subsection{\code{Ggplot2BarLayerProcessor$generate_selectors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
   grob_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BarLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BarLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

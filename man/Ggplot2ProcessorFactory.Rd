@@ -12,156 +12,168 @@ ggplot2 layer processors and wraps them in the new unified interface.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:ProcessorFactory]{maidr::ProcessorFactory}} -> \code{Ggplot2ProcessorFactory}
+\code{\link[maidr:ProcessorFactory]{ProcessorFactory}} -> \code{Ggplot2ProcessorFactory}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2ProcessorFactory-new}{\code{Ggplot2ProcessorFactory$new()}}
-\item \href{#method-Ggplot2ProcessorFactory-create_processor}{\code{Ggplot2ProcessorFactory$create_processor()}}
-\item \href{#method-Ggplot2ProcessorFactory-get_supported_types}{\code{Ggplot2ProcessorFactory$get_supported_types()}}
-\item \href{#method-Ggplot2ProcessorFactory-get_system_name}{\code{Ggplot2ProcessorFactory$get_system_name()}}
-\item \href{#method-Ggplot2ProcessorFactory-is_processor_available}{\code{Ggplot2ProcessorFactory$is_processor_available()}}
-\item \href{#method-Ggplot2ProcessorFactory-get_available_processors}{\code{Ggplot2ProcessorFactory$get_available_processors()}}
-\item \href{#method-Ggplot2ProcessorFactory-try_create_processor}{\code{Ggplot2ProcessorFactory$try_create_processor()}}
-\item \href{#method-Ggplot2ProcessorFactory-clone}{\code{Ggplot2ProcessorFactory$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2ProcessorFactory-initialize}{\code{Ggplot2ProcessorFactory$new()}}
+    \item \href{#method-Ggplot2ProcessorFactory-create_processor}{\code{Ggplot2ProcessorFactory$create_processor()}}
+    \item \href{#method-Ggplot2ProcessorFactory-get_supported_types}{\code{Ggplot2ProcessorFactory$get_supported_types()}}
+    \item \href{#method-Ggplot2ProcessorFactory-get_system_name}{\code{Ggplot2ProcessorFactory$get_system_name()}}
+    \item \href{#method-Ggplot2ProcessorFactory-is_processor_available}{\code{Ggplot2ProcessorFactory$is_processor_available()}}
+    \item \href{#method-Ggplot2ProcessorFactory-get_available_processors}{\code{Ggplot2ProcessorFactory$get_available_processors()}}
+    \item \href{#method-Ggplot2ProcessorFactory-try_create_processor}{\code{Ggplot2ProcessorFactory$try_create_processor()}}
+    \item \href{#method-Ggplot2ProcessorFactory-clone}{\code{Ggplot2ProcessorFactory$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="ProcessorFactory" data-id="supports_plot_type"><a href='../../maidr/html/ProcessorFactory.html#method-ProcessorFactory-supports_plot_type'><code>maidr::ProcessorFactory$supports_plot_type()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="ProcessorFactory" data-id="supports_plot_type"><a href='../../maidr/html/ProcessorFactory.html#method-ProcessorFactory-supports_plot_type'><code>ProcessorFactory$supports_plot_type()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2ProcessorFactory-new"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the ggplot2 processor factory
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$new()}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-Ggplot2ProcessorFactory-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-initialize}{}}}
+\subsection{\code{Ggplot2ProcessorFactory$new()}}{
+  Initialize the ggplot2 processor factory
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$new()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-create_processor}{}}}
-\subsection{Method \code{create_processor()}}{
-Create a processor for a specific plot type
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$create_processor(plot_type, layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$create_processor()}}{
+  Create a processor for a specific plot type
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$create_processor(plot_type, layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_type}}{The type of plot (e.g., "bar", "line", "point")}
+      \item{\code{layer_info}}{Information about the layer (contains plot object and metadata)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor instance for the specified plot type
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_type}}{The type of plot (e.g., "bar", "line", "point")}
-
-\item{\code{layer_info}}{Information about the layer (contains plot object and metadata)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor instance for the specified plot type
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-get_supported_types"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_supported_types}{}}}
-\subsection{Method \code{get_supported_types()}}{
-Get list of supported plot types
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$get_supported_types()}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$get_supported_types()}}{
+  Get list of supported plot types
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$get_supported_types()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of supported plot types
+  }
 }
 
-\subsection{Returns}{
-Character vector of supported plot types
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_system_name}{}}}
-\subsection{Method \code{get_system_name()}}{
-Get the system name
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$get_system_name()}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$get_system_name()}}{
+  Get the system name
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$get_system_name()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    System name string
+  }
 }
 
-\subsection{Returns}{
-System name string
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-is_processor_available"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-is_processor_available}{}}}
-\subsection{Method \code{is_processor_available()}}{
-Check if a specific processor class is available
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$is_processor_available(processor_class_name)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$is_processor_available()}}{
+  Check if a specific processor class is available
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$is_processor_available(processor_class_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{processor_class_name}}{Name of the processor class}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if available, FALSE otherwise
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{processor_class_name}}{Name of the processor class}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if available, FALSE otherwise
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-get_available_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_available_processors}{}}}
-\subsection{Method \code{get_available_processors()}}{
-Get available processor classes
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$get_available_processors()}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$get_available_processors()}}{
+  Get available processor classes
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$get_available_processors()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of available processor class names
+  }
 }
 
-\subsection{Returns}{
-Character vector of available processor class names
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-try_create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-try_create_processor}{}}}
-\subsection{Method \code{try_create_processor()}}{
-Create a processor with error handling
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$try_create_processor(plot_type, plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$try_create_processor()}}{
+  Create a processor with error handling
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$try_create_processor(plot_type, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_type}}{The type of plot}
+      \item{\code{plot_object}}{The plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor instance or NULL if creation fails
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_type}}{The type of plot}
-
-\item{\code{plot_object}}{The plot object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor instance or NULL if creation fails
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2ProcessorFactory-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2ProcessorFactory$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2ProcessorFactory$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ProcessorFactory$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

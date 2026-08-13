@@ -4,11 +4,6 @@
 \alias{Ggplot2StepLayerProcessor}
 \title{ggplot2 Step Layer Processor}
 \description{
-ggplot2 Step Layer Processor
-
-ggplot2 Step Layer Processor
-}
-\details{
 Processes \code{geom_step()} layers. A step chart is piecewise constant: the
 value is held across an interval and then jumps, rather than being
 interpolated between samples the way a line implies. The canonical case is
@@ -38,68 +33,70 @@ lengths.
 }
 \keyword{internal}
 \section{Super classes}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{\link[maidr:Ggplot2LineLayerProcessor]{maidr::Ggplot2LineLayerProcessor}} -> \code{Ggplot2StepLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{\link[maidr:Ggplot2LineLayerProcessor]{Ggplot2LineLayerProcessor}} -> \code{Ggplot2StepLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2StepLayerProcessor-process}{\code{Ggplot2StepLayerProcessor$process()}}
-\item \href{#method-Ggplot2StepLayerProcessor-extract_step_direction}{\code{Ggplot2StepLayerProcessor$extract_step_direction()}}
-\item \href{#method-Ggplot2StepLayerProcessor-clone}{\code{Ggplot2StepLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2StepLayerProcessor-process}{\code{Ggplot2StepLayerProcessor$process()}}
+    \item \href{#method-Ggplot2StepLayerProcessor-extract_step_direction}{\code{Ggplot2StepLayerProcessor$extract_step_direction()}}
+    \item \href{#method-Ggplot2StepLayerProcessor-clone}{\code{Ggplot2StepLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_discrete_y_names"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_discrete_y_names'><code>maidr::Ggplot2LineLayerProcessor$attach_discrete_y_names()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_group_axis"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_group_axis'><code>maidr::Ggplot2LineLayerProcessor$attach_group_axis()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_level_labels"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_level_labels'><code>maidr::Ggplot2LineLayerProcessor$attach_level_labels()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="build_level_lookup"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-build_level_lookup'><code>maidr::Ggplot2LineLayerProcessor$build_level_lookup()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="curve_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-curve_selectors'><code>maidr::Ggplot2LineLayerProcessor$curve_selectors()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_data'><code>maidr::Ggplot2LineLayerProcessor$extract_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_layer_axes'><code>maidr::Ggplot2LineLayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_multiline_data'><code>maidr::Ggplot2LineLayerProcessor$extract_multiline_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_single_line_data'><code>maidr::Ggplot2LineLayerProcessor$extract_single_line_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="find_layer_polyline_grob"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob'><code>maidr::Ggplot2LineLayerProcessor$find_layer_polyline_grob()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="find_main_polyline_grob"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-find_main_polyline_grob'><code>maidr::Ggplot2LineLayerProcessor$find_main_polyline_grob()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="format_x_value"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-format_x_value'><code>maidr::Ggplot2LineLayerProcessor$format_x_value()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_multiline_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_multiline_selectors'><code>maidr::Ggplot2LineLayerProcessor$generate_multiline_selectors()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_selectors'><code>maidr::Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_single_line_selector'><code>maidr::Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_group_column'><code>maidr::Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_layer'><code>maidr::Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_x_transformation"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_x_transformation'><code>maidr::Ggplot2LineLayerProcessor$get_x_transformation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="has_series_groups"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-has_series_groups'><code>maidr::Ggplot2LineLayerProcessor$has_series_groups()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="layer_polyline_grobs"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-layer_polyline_grobs'><code>maidr::Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="line_layer_position"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-line_layer_position'><code>maidr::Ggplot2LineLayerProcessor$line_layer_position()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-needs_reordering'><code>maidr::Ggplot2LineLayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="normalize_point_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-normalize_point_values'><code>maidr::Ggplot2LineLayerProcessor$normalize_point_values()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="other_geom_grob_prefixes"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes'><code>maidr::Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="panel_axis_labels"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-panel_axis_labels'><code>maidr::Ggplot2LineLayerProcessor$panel_axis_labels()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="polyline_curve_count"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-polyline_curve_count'><code>maidr::Ggplot2LineLayerProcessor$polyline_curve_count()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="recover_x_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-recover_x_values'><code>maidr::Ggplot2LineLayerProcessor$recover_x_values()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="resolve_group_mapping"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-resolve_group_mapping'><code>maidr::Ggplot2LineLayerProcessor$resolve_group_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="resolve_panel_index"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-resolve_panel_index'><code>maidr::Ggplot2LineLayerProcessor$resolve_panel_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="series_count"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-series_count'><code>maidr::Ggplot2LineLayerProcessor$series_count()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="transform_x_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-transform_x_values'><code>maidr::Ggplot2LineLayerProcessor$transform_x_values()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_discrete_y_names"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_discrete_y_names'><code>Ggplot2LineLayerProcessor$attach_discrete_y_names()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_group_axis"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_group_axis'><code>Ggplot2LineLayerProcessor$attach_group_axis()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="attach_level_labels"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-attach_level_labels'><code>Ggplot2LineLayerProcessor$attach_level_labels()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="build_level_lookup"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-build_level_lookup'><code>Ggplot2LineLayerProcessor$build_level_lookup()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="curve_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-curve_selectors'><code>Ggplot2LineLayerProcessor$curve_selectors()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_data'><code>Ggplot2LineLayerProcessor$extract_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_layer_axes'><code>Ggplot2LineLayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_multiline_data'><code>Ggplot2LineLayerProcessor$extract_multiline_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-extract_single_line_data'><code>Ggplot2LineLayerProcessor$extract_single_line_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="find_layer_polyline_grob"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob'><code>Ggplot2LineLayerProcessor$find_layer_polyline_grob()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="find_main_polyline_grob"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-find_main_polyline_grob'><code>Ggplot2LineLayerProcessor$find_main_polyline_grob()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="format_x_value"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-format_x_value'><code>Ggplot2LineLayerProcessor$format_x_value()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_multiline_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_multiline_selectors'><code>Ggplot2LineLayerProcessor$generate_multiline_selectors()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_selectors'><code>Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_single_line_selector'><code>Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_group_column'><code>Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_layer'><code>Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_x_transformation"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_x_transformation'><code>Ggplot2LineLayerProcessor$get_x_transformation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="has_series_groups"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-has_series_groups'><code>Ggplot2LineLayerProcessor$has_series_groups()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="layer_polyline_grobs"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-layer_polyline_grobs'><code>Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="line_layer_position"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-line_layer_position'><code>Ggplot2LineLayerProcessor$line_layer_position()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-needs_reordering'><code>Ggplot2LineLayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="normalize_point_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-normalize_point_values'><code>Ggplot2LineLayerProcessor$normalize_point_values()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="other_geom_grob_prefixes"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes'><code>Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="panel_axis_labels"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-panel_axis_labels'><code>Ggplot2LineLayerProcessor$panel_axis_labels()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="polyline_curve_count"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-polyline_curve_count'><code>Ggplot2LineLayerProcessor$polyline_curve_count()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="recover_x_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-recover_x_values'><code>Ggplot2LineLayerProcessor$recover_x_values()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="resolve_group_mapping"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-resolve_group_mapping'><code>Ggplot2LineLayerProcessor$resolve_group_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="resolve_panel_index"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-resolve_panel_index'><code>Ggplot2LineLayerProcessor$resolve_panel_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="series_count"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-series_count'><code>Ggplot2LineLayerProcessor$series_count()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="transform_x_values"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-transform_x_values'><code>Ggplot2LineLayerProcessor$transform_x_values()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the step layer.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$process(
+\subsection{\code{Ggplot2StepLayerProcessor$process()}}{
+  Process the step layer.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2StepLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -108,76 +105,74 @@ Process the step layer.
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with data, selectors, title, axes, type and stepDirection
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
-
-\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-
-\item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with data, selectors, title, axes, type and stepDirection
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-extract_step_direction"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-extract_step_direction}{}}}
-\subsection{Method \code{extract_step_direction()}}{
-Read the step convention this layer was drawn with.
+\subsection{\code{Ggplot2StepLayerProcessor$extract_step_direction()}}{
+  Read the step convention this layer was drawn with.
 
 \code{geom_step(direction = )} is a formal of \code{GeomStep$draw_panel()}, so
 ggplot2 files it under \code{layer$geom_params$direction} rather than
 \code{layer$aes_params} or the layer's mapping. The three accepted values
 (\code{"hv"}, \code{"vh"}, \code{"mid"}) are exactly MAIDR's, so they pass through
 unchanged. \code{"hv"} is both ggplot2's and MAIDR's default.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$extract_step_direction(plot)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2StepLayerProcessor$extract_step_direction(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One of "hv", "vh", "mid" (defaulting to "hv"), or NULL when the
+layer cannot be located at all.
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-One of "hv", "vh", "mid" (defaulting to "hv"), or NULL when the
-layer cannot be located at all.
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2StepLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2StepLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2StepLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

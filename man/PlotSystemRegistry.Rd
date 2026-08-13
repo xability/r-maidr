@@ -14,214 +14,232 @@ and their associated adapters and processor factories.
 \keyword{internal}
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-PlotSystemRegistry-register_system}{\code{PlotSystemRegistry$register_system()}}
-\item \href{#method-PlotSystemRegistry-detect_system}{\code{PlotSystemRegistry$detect_system()}}
-\item \href{#method-PlotSystemRegistry-get_adapter}{\code{PlotSystemRegistry$get_adapter()}}
-\item \href{#method-PlotSystemRegistry-get_processor_factory}{\code{PlotSystemRegistry$get_processor_factory()}}
-\item \href{#method-PlotSystemRegistry-get_adapter_for_plot}{\code{PlotSystemRegistry$get_adapter_for_plot()}}
-\item \href{#method-PlotSystemRegistry-get_processor_factory_for_plot}{\code{PlotSystemRegistry$get_processor_factory_for_plot()}}
-\item \href{#method-PlotSystemRegistry-list_systems}{\code{PlotSystemRegistry$list_systems()}}
-\item \href{#method-PlotSystemRegistry-is_system_registered}{\code{PlotSystemRegistry$is_system_registered()}}
-\item \href{#method-PlotSystemRegistry-unregister_system}{\code{PlotSystemRegistry$unregister_system()}}
-\item \href{#method-PlotSystemRegistry-clone}{\code{PlotSystemRegistry$clone()}}
-}
+  \itemize{
+    \item \href{#method-PlotSystemRegistry-register_system}{\code{PlotSystemRegistry$register_system()}}
+    \item \href{#method-PlotSystemRegistry-detect_system}{\code{PlotSystemRegistry$detect_system()}}
+    \item \href{#method-PlotSystemRegistry-get_adapter}{\code{PlotSystemRegistry$get_adapter()}}
+    \item \href{#method-PlotSystemRegistry-get_processor_factory}{\code{PlotSystemRegistry$get_processor_factory()}}
+    \item \href{#method-PlotSystemRegistry-get_adapter_for_plot}{\code{PlotSystemRegistry$get_adapter_for_plot()}}
+    \item \href{#method-PlotSystemRegistry-get_processor_factory_for_plot}{\code{PlotSystemRegistry$get_processor_factory_for_plot()}}
+    \item \href{#method-PlotSystemRegistry-list_systems}{\code{PlotSystemRegistry$list_systems()}}
+    \item \href{#method-PlotSystemRegistry-is_system_registered}{\code{PlotSystemRegistry$is_system_registered()}}
+    \item \href{#method-PlotSystemRegistry-unregister_system}{\code{PlotSystemRegistry$unregister_system()}}
+    \item \href{#method-PlotSystemRegistry-clone}{\code{PlotSystemRegistry$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-register_system"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-register_system}{}}}
-\subsection{Method \code{register_system()}}{
-Registered plotting systems
+\subsection{\code{PlotSystemRegistry$register_system()}}{
+  Registered plotting systems
 
 
-System adapters
+  System adapters
 
 
-Processor factories
+  Processor factories
 
 
-Register a new plotting system
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$register_system(system_name, adapter, processor_factory)}\if{html}{\out{</div>}}
+  Register a new plotting system
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$register_system(system_name, adapter, processor_factory)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{system_name}}{Name of the plotting system (e.g., "ggplot2", "base_r")}
+      \item{\code{adapter}}{Adapter instance for this system}
+      \item{\code{processor_factory}}{Processor factory instance for this system}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{system_name}}{Name of the plotting system (e.g., "ggplot2", "base_r")}
-
-\item{\code{adapter}}{Adapter instance for this system}
-
-\item{\code{processor_factory}}{Processor factory instance for this system}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-detect_system"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-detect_system}{}}}
-\subsection{Method \code{detect_system()}}{
-Detect which system can handle a plot object
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$detect_system(plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$detect_system()}}{
+  Detect which system can handle a plot object
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$detect_system(plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_object}}{The plot object to check}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    System name if found, NULL otherwise
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_object}}{The plot object to check}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-System name if found, NULL otherwise
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_adapter"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_adapter}{}}}
-\subsection{Method \code{get_adapter()}}{
-Get the adapter for a specific system
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_adapter(system_name)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$get_adapter()}}{
+  Get the adapter for a specific system
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$get_adapter(system_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{system_name}}{Name of the system}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Adapter instance
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{system_name}}{Name of the system}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Adapter instance
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_processor_factory"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_processor_factory}{}}}
-\subsection{Method \code{get_processor_factory()}}{
-Get the processor factory for a specific system
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_processor_factory(system_name)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$get_processor_factory()}}{
+  Get the processor factory for a specific system
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$get_processor_factory(system_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{system_name}}{Name of the system}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor factory instance
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{system_name}}{Name of the system}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor factory instance
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_adapter_for_plot"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_adapter_for_plot}{}}}
-\subsection{Method \code{get_adapter_for_plot()}}{
-Get the adapter for a plot object (auto-detect system)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_adapter_for_plot(plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$get_adapter_for_plot()}}{
+  Get the adapter for a plot object (auto-detect system)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$get_adapter_for_plot(plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_object}}{The plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Adapter instance
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_object}}{The plot object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Adapter instance
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-get_processor_factory_for_plot"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-get_processor_factory_for_plot}{}}}
-\subsection{Method \code{get_processor_factory_for_plot()}}{
-Get the processor factory for a plot object (auto-detect system)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$get_processor_factory_for_plot(plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$get_processor_factory_for_plot()}}{
+  Get the processor factory for a plot object (auto-detect system)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$get_processor_factory_for_plot(plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_object}}{The plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor factory instance
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_object}}{The plot object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor factory instance
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-list_systems"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-list_systems}{}}}
-\subsection{Method \code{list_systems()}}{
-List all registered systems
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$list_systems()}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$list_systems()}}{
+  List all registered systems
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$list_systems()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of registered system names
+  }
 }
 
-\subsection{Returns}{
-Character vector of registered system names
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-is_system_registered"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-is_system_registered}{}}}
-\subsection{Method \code{is_system_registered()}}{
-Check if a system is registered
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$is_system_registered(system_name)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$is_system_registered()}}{
+  Check if a system is registered
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$is_system_registered(system_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{system_name}}{Name of the system}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if registered, FALSE otherwise
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{system_name}}{Name of the system}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if registered, FALSE otherwise
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-unregister_system"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-unregister_system}{}}}
-\subsection{Method \code{unregister_system()}}{
-Unregister a system
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$unregister_system(system_name)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$unregister_system()}}{
+  Unregister a system
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$unregister_system(system_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{system_name}}{Name of the system to unregister}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{system_name}}{Name of the system to unregister}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PlotSystemRegistry-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-PlotSystemRegistry-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PlotSystemRegistry$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{PlotSystemRegistry$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{PlotSystemRegistry$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

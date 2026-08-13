@@ -14,97 +14,106 @@ the appropriate processors for different plot types.
 \keyword{internal}
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-ProcessorFactory-create_processor}{\code{ProcessorFactory$create_processor()}}
-\item \href{#method-ProcessorFactory-get_supported_types}{\code{ProcessorFactory$get_supported_types()}}
-\item \href{#method-ProcessorFactory-supports_plot_type}{\code{ProcessorFactory$supports_plot_type()}}
-\item \href{#method-ProcessorFactory-get_system_name}{\code{ProcessorFactory$get_system_name()}}
-\item \href{#method-ProcessorFactory-clone}{\code{ProcessorFactory$clone()}}
-}
+  \itemize{
+    \item \href{#method-ProcessorFactory-create_processor}{\code{ProcessorFactory$create_processor()}}
+    \item \href{#method-ProcessorFactory-get_supported_types}{\code{ProcessorFactory$get_supported_types()}}
+    \item \href{#method-ProcessorFactory-supports_plot_type}{\code{ProcessorFactory$supports_plot_type()}}
+    \item \href{#method-ProcessorFactory-get_system_name}{\code{ProcessorFactory$get_system_name()}}
+    \item \href{#method-ProcessorFactory-clone}{\code{ProcessorFactory$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-create_processor}{}}}
-\subsection{Method \code{create_processor()}}{
-Abstract method to create a processor for a specific plot type
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$create_processor(plot_type, plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{ProcessorFactory$create_processor()}}{
+  Abstract method to create a processor for a specific plot type
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ProcessorFactory$create_processor(plot_type, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_type}}{The type of plot (e.g., "bar", "line", "point")}
+      \item{\code{plot_object}}{The plot object to process}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor instance for the specified plot type
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_type}}{The type of plot (e.g., "bar", "line", "point")}
-
-\item{\code{plot_object}}{The plot object to process}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor instance for the specified plot type
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-get_supported_types"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-get_supported_types}{}}}
-\subsection{Method \code{get_supported_types()}}{
-Abstract method to get list of supported plot types
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$get_supported_types()}\if{html}{\out{</div>}}
+\subsection{\code{ProcessorFactory$get_supported_types()}}{
+  Abstract method to get list of supported plot types
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ProcessorFactory$get_supported_types()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of supported plot types
+  }
 }
 
-\subsection{Returns}{
-Character vector of supported plot types
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-supports_plot_type"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-supports_plot_type}{}}}
-\subsection{Method \code{supports_plot_type()}}{
-Check if a plot type is supported by this factory
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$supports_plot_type(plot_type)}\if{html}{\out{</div>}}
+\subsection{\code{ProcessorFactory$supports_plot_type()}}{
+  Check if a plot type is supported by this factory
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ProcessorFactory$supports_plot_type(plot_type)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_type}}{The plot type to check}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if supported, FALSE otherwise
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_type}}{The plot type to check}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if supported, FALSE otherwise
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-get_system_name}{}}}
-\subsection{Method \code{get_system_name()}}{
-Get system name (should be overridden by subclasses)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$get_system_name()}\if{html}{\out{</div>}}
+\subsection{\code{ProcessorFactory$get_system_name()}}{
+  Get system name (should be overridden by subclasses)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ProcessorFactory$get_system_name()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    System name string
+  }
 }
 
-\subsection{Returns}{
-System name string
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ProcessorFactory-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-ProcessorFactory-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ProcessorFactory$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{ProcessorFactory$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{ProcessorFactory$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
