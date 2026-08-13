@@ -127,7 +127,13 @@ Ggplot2Adapter <- R6::R6Class(
         return("bar")
       }
 
-      if (geom_class == "GeomTile") {
+      # ggplot2 4.0 gave `geom_bin_2d()` a geom of its own, GeomBin2d, where
+      # 3.x drew it with a plain GeomTile. It is the same tile grid and still
+      # a heatmap, so both names land here. Matched by name rather than by
+      # inherits(), to match every other branch in this function and because
+      # the symbol does not exist on 3.x. The same release left
+      # `stat_summary_2d()` on GeomTile, so nothing else moves with it.
+      if (geom_class %in% c("GeomTile", "GeomBin2d")) {
         return("heat")
       }
 

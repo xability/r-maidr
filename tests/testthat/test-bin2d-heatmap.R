@@ -171,6 +171,35 @@ test_that("a tidy geom_tile heatmap is unchanged", {
   testthat::expect_equal(bin2d_counts(layer), c(1, 2, 3, 4, 5, 6))
 })
 
+test_that("a binned scatter reaches the heatmap processor at all", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # ggplot2 4.0 gave `geom_bin_2d()` a geom of its own -- GeomBin2d, a
+  # subclass of GeomTile -- and the adapter matches the first class name, so
+  # on 4.x the layer stopped being a heatmap and became `unknown`. An unknown
+  # layer is dropped rather than described, so where 3.x emitted the wrong
+  # grid, 4.x emitted no `maidr-data` at all: a chart with nothing to read.
+  #
+  # This is upstream of everything else in this file. Without it the tests
+  # above do not fail on their subject, they fail on the layer's absence.
+  plot <- bin2d_plot()
+  adapter <- maidr:::Ggplot2Adapter$new()
+
+  testthat::expect_equal(
+    adapter$detect_layer_type(plot$layers[[1]], plot), "heat"
+  )
+
+  # The branch still does the job it was widened from.
+  frame <- expand.grid(row = c("a", "b"), col = c("x", "y"))
+  frame$score <- c(1, 2, 3, 4)
+  tidy <- ggplot2::ggplot(frame, ggplot2::aes(col, row, fill = score)) +
+    ggplot2::geom_tile()
+
+  testthat::expect_equal(
+    adapter$detect_layer_type(tidy$layers[[1]], tidy), "heat"
+  )
+})
+
 test_that("the binned path is chosen by the stat, not by a column name", {
   testthat::skip_if_not_installed("ggplot2")
 
