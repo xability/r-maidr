@@ -1,17 +1,11 @@
 # Dodged Bar Layer Processor
 
-Dodged Bar Layer Processor
-
-Dodged Bar Layer Processor
-
-## Details
-
 Processes dodged bar plot layers with complete logic included
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2DodgedBarLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2DodgedBarLayerProcessor`
 
 ## Methods
 
@@ -23,8 +17,6 @@ Processes dodged bar plot layers with complete logic included
 
 - [`Ggplot2DodgedBarLayerProcessor$resolve_aes_values()`](#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values)
 
-- [`Ggplot2DodgedBarLayerProcessor$discrete_level_order()`](#method-Ggplot2DodgedBarLayerProcessor-discrete_level_order)
-
 - [`Ggplot2DodgedBarLayerProcessor$reorder_layer_data()`](#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data)
 
 - [`Ggplot2DodgedBarLayerProcessor$extract_data()`](#method-Ggplot2DodgedBarLayerProcessor-extract_data)
@@ -35,18 +27,21 @@ Processes dodged bar plot layers with complete logic included
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2DodgedBarLayerProcessor$process()`
 
 #### Usage
 
@@ -61,9 +56,39 @@ Inherited methods
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `Ggplot2DodgedBarLayerProcessor$needs_reordering()`
 
 #### Usage
 
@@ -71,7 +96,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `resolve_aes_values()`
+### `Ggplot2DodgedBarLayerProcessor$resolve_aes_values()`
 
 Resolve this layer's x/y/fill aesthetics to VALUES.
 [`rlang::as_label()`](https://rlang.r-lib.org/reference/as_label.html)
@@ -101,41 +126,25 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 
 ------------------------------------------------------------------------
 
-### Method `discrete_level_order()`
-
-Order the distinct values of an aesthetic the way ggplot2 lays them out,
-so the emitted columns line up with the drawn ones. A factor follows its
-own level order, minus the levels nothing was drawn for; anything else
-sorts in its own type's order. Sorting the values AS TEXT, which is what
-this used to do, reordered the columns twice over: against a factor
-whose levels are not alphabetical, and against a number, where it puts
-10 before 2.
-
-#### Usage
-
-    Ggplot2DodgedBarLayerProcessor$discrete_level_order(values)
-
-#### Arguments
-
-- `values`:
-
-  A vector of aesthetic values
-
-#### Returns
-
-Character vector of the observed levels, in drawn order
-
-------------------------------------------------------------------------
-
-### Method `reorder_layer_data()`
+### `Ggplot2DodgedBarLayerProcessor$reorder_layer_data()`
 
 #### Usage
 
     Ggplot2DodgedBarLayerProcessor$reorder_layer_data(data, plot)
 
+#### Arguments
+
+- `data`:
+
+  data.frame effective for this layer
+
+- `plot`:
+
+  full ggplot object (for mappings)
+
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2DodgedBarLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -145,9 +154,19 @@ Character vector of the observed levels, in drawn order
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2DodgedBarLayerProcessor$generate_selectors()`
 
 #### Usage
 
@@ -157,9 +176,23 @@ Character vector of the observed levels, in drawn order
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2DodgedBarLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

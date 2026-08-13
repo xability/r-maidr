@@ -104,6 +104,7 @@
 <url><loc>https://r.maidr.ai/reference/data_has_series_groups.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/detect_panel_configuration.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/detect_scales_format_type.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/discrete_level_order.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dispatched_definition.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html_file.html</loc></url>
@@ -191,6 +192,8 @@
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/level_keys.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/level_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/locate_binding_env.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/log_plot_call_to_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr-options.html</loc></url>
