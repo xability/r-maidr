@@ -211,6 +211,81 @@ test_that("the regrouping carries the built rows with it", {
   testthat::expect_false(identical(lattice$order, seq_len(nrow(built))))
 })
 
+test_that("the axes are named for what was mapped, however it was named", {
+  skip_if_no_hex()
+
+  # Resolved through `resolve_legend_label()` -- the package's own
+  # "`labs()` override, then the layer's mapping, then the plot's" chain --
+  # rather than a second implementation of it here.
+  named <- hex_plot() + ggplot2::labs(x = "First", y = "Second")
+  layer <- hex_render(named)$layer
+  testthat::expect_equal(layer$axes$x$label, "First")
+  testthat::expect_equal(layer$axes$y$label, "Second")
+
+  # No `labs()`: the mapped expressions, which is what ggplot2 prints.
+  plain <- hex_render(hex_plot())$layer
+  testthat::expect_equal(plain$axes$x$label, "x")
+  testthat::expect_equal(plain$axes$y$label, "y")
+
+  # Mapped on the layer rather than on the plot. This passes through the
+  # *first* step rather than the second: ggplot2 records every layer's
+  # mapping in `built$plot$labels` while building, so the override path
+  # already answers. Asserted for the outcome, not as evidence about which
+  # branch ran.
+  frame <- hex_frame()
+  names(frame) <- c("width", "height")
+  on_layer <- ggplot2::ggplot(frame) +
+    ggplot2::geom_hex(ggplot2::aes(x = width, y = height), bins = 4)
+  processor <- maidr:::Ggplot2HexbinLayerProcessor$new(list(index = 1))
+  testthat::expect_equal(
+    processor$extract_axes(on_layer, ggplot2::ggplot_build(on_layer))$x$label,
+    "width"
+  )
+
+  # The one place the shared chain differs from reading the label directly:
+  # a blank override falls through to the mapped name. An axis announced as
+  # the empty string is worse than one announced as its column.
+  blanked <- hex_plot() + ggplot2::labs(x = "")
+  testthat::expect_equal(
+    processor$extract_axes(blanked, ggplot2::ggplot_build(blanked))$x$label,
+    "x"
+  )
+})
+
+test_that("two hexbin layers each address their own hexagons", {
+  skip_if_no_hex()
+
+  # A first match for `geom_hex.polygon` anywhere in the panel is the wrong
+  # grob for every layer but the first: the second layer would highlight the
+  # first one's hexagons while announcing its own counts. Silent, because
+  # both lists are the right length and every count is real.
+  #
+  # `find_layer_grob_tree()` on the base class disambiguates by position
+  # among the layers sharing a geom, which is what it is for.
+  plot <- ggplot2::ggplot(hex_frame(), hex_aes) +
+    ggplot2::geom_hex(bins = 3) +
+    ggplot2::geom_hex(bins = 6)
+  gt <- ggplot2::ggplotGrob(plot)
+  built <- ggplot2::ggplot_build(plot)
+
+  grobs <- character(0)
+  sizes <- integer(0)
+  for (index in 1:2) {
+    processor <- maidr:::Ggplot2HexbinLayerProcessor$new(list(index = index))
+    lattice <- processor$extract_data(plot, built)
+    selectors <- processor$generate_selectors(gt, plot, NULL, lattice$order)
+
+    testthat::expect_length(selectors, length(lattice$order))
+    grobs <- c(grobs, sub("\\.1\\.[0-9]+$", "", selectors[[1]]))
+    sizes <- c(sizes, length(lattice$order))
+  }
+
+  # Different grobs, and different lattices -- the second is the finer one,
+  # so a shared grob would also be the wrong length for it.
+  testthat::expect_equal(length(unique(grobs)), 2L)
+  testthat::expect_lt(sizes[1], sizes[2])
+})
+
 test_that("a lattice with nothing in it emits nothing rather than a shape", {
   testthat::skip_if_not_installed("ggplot2")
 

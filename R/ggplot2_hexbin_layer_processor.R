@@ -141,21 +141,24 @@ Ggplot2HexbinLayerProcessor <- R6::R6Class(
     #'   here rather than read from the legend title, which says "count" for
     #'   the default and would say \code{after_stat(density)} for a chart that
     #'   is still counting into the same cells.
+    #'
+    #'   x and y go through \code{resolve_legend_label()}, which is the
+    #'   package's existing "\code{labs()} override, then the layer's own
+    #'   mapping, then the plot's" chain. Its documented caution -- that
+    #'   \code{labs()} records a title even for an unmapped aesthetic, so only
+    #'   ask about one the layer is grouped by -- does not bite here:
+    #'   \code{stat_binhex()} cannot compute without both positions, so both
+    #'   are always mapped.
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @return An axes payload with x, y and z
     extract_axes = function(plot, built = NULL) {
-      labels <- if (!is.null(built)) built$plot$labels else plot$labels
       axis_label <- function(aes) {
-        label <- labels[[aes]]
-        if (is.null(label) || !is.character(label) || length(label) != 1L) {
-          mapped <- plot$mapping[[aes]]
-          if (is.null(mapped)) {
-            return(aes)
-          }
-          return(rlang::as_label(mapped))
-        }
-        label
+        label <- resolve_legend_label(
+          plot, built,
+          aes_names = aes, layer_index = self$get_layer_index()
+        )
+        if (is.null(label)) aes else label
       }
 
       build_axes(x = axis_label("x"), y = axis_label("y"), z = "count")
@@ -190,12 +193,19 @@ Ggplot2HexbinLayerProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-      if (is.null(panel_grob)) {
+      # This layer's own tree, not the first `geom_hex` in the panel. Two
+      # `geom_hex()` layers -- overlaid at different bin sizes, say -- would
+      # otherwise both resolve to the first one's polygons, and the second
+      # layer would highlight the first layer's hexagons while announcing its
+      # own counts. `find_layer_grob_tree()` disambiguates by position among
+      # the layers sharing a geom, which is the whole reason it lives on the
+      # base class.
+      tree <- self$find_layer_grob_tree(plot, gt, panel_ctx)
+      if (is.null(tree)) {
         return(list())
       }
 
-      grob_name <- self$find_hex_polygon_name(panel_grob)
+      grob_name <- self$find_hex_polygon_name(tree)
       if (is.null(grob_name)) {
         return(list())
       }
@@ -210,8 +220,10 @@ Ggplot2HexbinLayerProcessor <- R6::R6Class(
     #'
     #'   \code{GeomHex} draws every hexagon in one \code{polygonGrob}, so there
     #'   is a single name to find rather than one per bin. Searched depth-first
-    #'   because the layer's grobs sit inside a gTree of their own.
-    #' @param grob The panel grob to search
+    #'   because the layer's grobs sit inside a gTree of their own -- and the
+    #'   caller passes that tree rather than the panel, so a first match is
+    #'   this layer's rather than some other hexbin's.
+    #' @param grob The layer's grob tree to search
     #' @return The grob name, or NULL when the layer drew nothing
     find_hex_polygon_name = function(grob) {
       found <- NULL

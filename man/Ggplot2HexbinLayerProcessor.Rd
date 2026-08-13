@@ -123,6 +123,14 @@ what \code{stat_binhex()} computes and what the fill encodes. Named
 here rather than read from the legend title, which says "count" for
 the default and would say \code{after_stat(density)} for a chart that
 is still counting into the same cells.
+
+x and y go through \code{resolve_legend_label()}, which is the
+package's existing "\code{labs()} override, then the layer's own
+mapping, then the plot's" chain. Its documented caution -- that
+\code{labs()} records a title even for an unmapped aesthetic, so only
+ask about one the layer is grouped by -- does not bite here:
+\code{stat_binhex()} cannot compute without both positions, so both
+are always mapped.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HexbinLayerProcessor$extract_axes(plot, built = NULL)}
@@ -190,7 +198,9 @@ found rather than a guess at its name.
 
 \code{GeomHex} draws every hexagon in one \code{polygonGrob}, so there
 is a single name to find rather than one per bin. Searched depth-first
-because the layer's grobs sit inside a gTree of their own.
+because the layer's grobs sit inside a gTree of their own -- and the
+caller passes that tree rather than the panel, so a first match is
+this layer's rather than some other hexbin's.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HexbinLayerProcessor$find_hex_polygon_name(grob)}
@@ -199,7 +209,7 @@ because the layer's grobs sit inside a gTree of their own.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{grob}}{The panel grob to search}
+      \item{\code{grob}}{The layer's grob tree to search}
     }
     \if{html}{\out{</div>}}
   }
