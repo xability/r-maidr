@@ -8,7 +8,3 @@ within a single session.
 ``` r
 .maidr_chartseries_ta_warned
 ```
-
-## Format
-
-An object of class `environment` of length 1.

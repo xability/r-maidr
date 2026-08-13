@@ -1,11 +1,5 @@
 # Base R Candlestick Layer Processor
 
-Base R Candlestick Layer Processor
-
-Base R Candlestick Layer Processor
-
-## Details
-
 Processes Base R candlestick chart layers produced by
 `quantmod::chartSeries(x, type = "candlesticks")`.
 
@@ -27,8 +21,8 @@ upper/lower wicks via
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `BaseRCandlestickLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`BaseRCandlestickLayerProcessor`
 
 ## Methods
 
@@ -66,20 +60,23 @@ upper/lower wicks via
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `BaseRCandlestickLayerProcessor$process()`
 
 #### Usage
 
@@ -91,9 +88,27 @@ Inherited methods
       layer_info = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
 ------------------------------------------------------------------------
 
-### Method `has_add_vo()`
+### `BaseRCandlestickLayerProcessor$has_add_vo()`
 
 Detect whether the chartSeries call requests addVo()
 
@@ -103,7 +118,7 @@ Detect whether the chartSeries call requests addVo()
 
 ------------------------------------------------------------------------
 
-### Method `build_volume_layer()`
+### `BaseRCandlestickLayerProcessor$build_volume_layer()`
 
 Build a "bar" layer carrying volume data
 
@@ -113,7 +128,7 @@ Build a "bar" layer carrying volume data
 
 ------------------------------------------------------------------------
 
-### Method `generate_volume_selectors()`
+### `BaseRCandlestickLayerProcessor$generate_volume_selectors()`
 
 Generate selectors for the addVo() volume bar panel
 
@@ -133,7 +148,7 @@ contract used by the Base R barplot processor.
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `BaseRCandlestickLayerProcessor$extract_data()`
 
 Extract OHLC data points from the chartSeries call
 
@@ -153,7 +168,7 @@ List of CandlestickPoint dicts
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `BaseRCandlestickLayerProcessor$generate_selectors()`
 
 Generate CSS selectors for the candlestick layer
 
@@ -217,7 +232,7 @@ located.
 
 ------------------------------------------------------------------------
 
-### Method `extract_axis_titles()`
+### `BaseRCandlestickLayerProcessor$extract_axis_titles()`
 
 #### Usage
 
@@ -225,7 +240,7 @@ located.
 
 ------------------------------------------------------------------------
 
-### Method `extract_main_title()`
+### `BaseRCandlestickLayerProcessor$extract_main_title()`
 
 #### Usage
 
@@ -233,7 +248,7 @@ located.
 
 ------------------------------------------------------------------------
 
-### Method `format_x_values()`
+### `BaseRCandlestickLayerProcessor$format_x_values()`
 
 Format a vector of x-axis index values to character
 
@@ -243,7 +258,7 @@ Format a vector of x-axis index values to character
 
 ------------------------------------------------------------------------
 
-### Method `collect_grob_names()`
+### `BaseRCandlestickLayerProcessor$collect_grob_names()`
 
 Recursively collect all grob names in a grob tree
 
@@ -253,7 +268,7 @@ Recursively collect all grob names in a grob tree
 
 ------------------------------------------------------------------------
 
-### Method `sort_ids()`
+### `BaseRCandlestickLayerProcessor$sort_ids()`
 
 Sort grob ids by trailing integer suffix
 
@@ -263,7 +278,7 @@ Sort grob ids by trailing integer suffix
 
 ------------------------------------------------------------------------
 
-### Method `find_grob_by_name()`
+### `BaseRCandlestickLayerProcessor$find_grob_by_name()`
 
 Find the grob node whose name matches `id`
 
@@ -273,7 +288,7 @@ Find the grob node whose name matches `id`
 
 ------------------------------------------------------------------------
 
-### Method `grob_coord_count()`
+### `BaseRCandlestickLayerProcessor$grob_coord_count()`
 
 Count the number of primitive coordinates a grob carries
 
@@ -283,7 +298,7 @@ Count the number of primitive coordinates a grob carries
 
 ------------------------------------------------------------------------
 
-### Method `pick_largest_child_group()`
+### `BaseRCandlestickLayerProcessor$pick_largest_child_group()`
 
 Pick the rect-id whose grob has the most coordinates
 
@@ -293,7 +308,7 @@ Pick the rect-id whose grob has the most coordinates
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRCandlestickLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

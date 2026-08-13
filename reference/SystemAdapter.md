@@ -1,18 +1,12 @@
 # System Adapter Base Class
 
-System Adapter Base Class
-
-System Adapter Base Class
+Abstract base class for adapting different plotting systems to the
+unified maidr interface. Each plotting system (ggplot2, base R, lattice,
+etc.) should have its own adapter implementation.
 
 ## Format
 
 An R6 class
-
-## Details
-
-Abstract base class for adapting different plotting systems to the
-unified maidr interface. Each plotting system (ggplot2, base R, lattice,
-etc.) should have its own adapter implementation.
 
 ## Public fields
 
@@ -24,7 +18,7 @@ etc.) should have its own adapter implementation.
 
 ### Public methods
 
-- [`SystemAdapter$new()`](#method-SystemAdapter-new)
+- [`SystemAdapter$new()`](#method-SystemAdapter-initialize)
 
 - [`SystemAdapter$can_handle()`](#method-SystemAdapter-can_handle)
 
@@ -34,7 +28,7 @@ etc.) should have its own adapter implementation.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `SystemAdapter$new()`
 
 Initialize the adapter
 
@@ -51,7 +45,7 @@ Initialize the adapter
 
 ------------------------------------------------------------------------
 
-### Method `can_handle()`
+### `SystemAdapter$can_handle()`
 
 #### Usage
 
@@ -70,7 +64,7 @@ method to create an orchestrator for this system
 
 ------------------------------------------------------------------------
 
-### Method `create_orchestrator()`
+### `SystemAdapter$create_orchestrator()`
 
 #### Usage
 
@@ -88,7 +82,7 @@ Orchestrator instance specific to this system
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `SystemAdapter$clone()`
 
 The objects of this class are cloneable with this method.
 

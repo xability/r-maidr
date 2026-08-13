@@ -1,11 +1,5 @@
 # Violin Layer Processor
 
-Violin Layer Processor
-
-Violin Layer Processor
-
-## Details
-
 Processes violin layers (geom_violin) to extract density curve (KDE)
 data and box-summary statistics, producing two maidr layers:
 `violin_kde` and `violin_box`.
@@ -16,8 +10,8 @@ selectors can drive the violin_box highlight in the maidr frontend.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2ViolinLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2ViolinLayerProcessor`
 
 ## Methods
 
@@ -71,18 +65,21 @@ selectors can drive the violin_box highlight in the maidr frontend.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `needs_augmentation()`
+### `Ggplot2ViolinLayerProcessor$needs_augmentation()`
 
 Violin needs to inject a boxplot layer
 
@@ -92,7 +89,7 @@ Violin needs to inject a boxplot layer
 
 ------------------------------------------------------------------------
 
-### Method `augment_plot()`
+### `Ggplot2ViolinLayerProcessor$augment_plot()`
 
 Inject geom_boxplot into the plot for visual box + selectors
 
@@ -116,7 +113,7 @@ violin_box (with BoxSelector objects) and violin_kde.
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2ViolinLayerProcessor$process()`
 
 #### Usage
 
@@ -175,7 +172,7 @@ geom_violin only stores the KDE curve, not quartiles).
 
 ------------------------------------------------------------------------
 
-### Method `extract_box_data()`
+### `Ggplot2ViolinLayerProcessor$extract_box_data()`
 
 #### Usage
 
@@ -205,7 +202,7 @@ after the grid device is drawn.
 
 ------------------------------------------------------------------------
 
-### Method `extract_kde_data()`
+### `Ggplot2ViolinLayerProcessor$extract_kde_data()`
 
 #### Usage
 
@@ -235,7 +232,7 @@ compute the left/right edges, then applies RDP simplification.
 
 ------------------------------------------------------------------------
 
-### Method `simplify_violin_kde()`
+### `Ggplot2ViolinLayerProcessor$simplify_violin_kde()`
 
 #### Usage
 
@@ -272,7 +269,7 @@ for violin polygons (for violin_kde layer)
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2ViolinLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -282,9 +279,23 @@ for violin polygons (for violin_kde layer)
       scale_mapping = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2ViolinLayerProcessor$generate_selectors()`
 
 #### Usage
 
@@ -324,7 +335,7 @@ lowerOutliers, upperOutliers.
 
 ------------------------------------------------------------------------
 
-### Method `generate_box_selectors()`
+### `Ggplot2ViolinLayerProcessor$generate_box_selectors()`
 
 #### Usage
 
@@ -359,7 +370,7 @@ List of BoxSelector objects Determine orientation from built data
 
 ------------------------------------------------------------------------
 
-### Method `determine_orientation()`
+### `Ggplot2ViolinLayerProcessor$determine_orientation()`
 
 #### Usage
 
@@ -367,7 +378,7 @@ List of BoxSelector objects Determine orientation from built data
 
 ------------------------------------------------------------------------
 
-### Method `get_effective_mapping()`
+### `Ggplot2ViolinLayerProcessor$get_effective_mapping()`
 
 The violin layer's mapping merged with the plot's
 
@@ -394,7 +405,7 @@ Named list of quosures, one per mapped aesthetic
 
 ------------------------------------------------------------------------
 
-### Method `discrete_axis_labels()`
+### `Ggplot2ViolinLayerProcessor$discrete_axis_labels()`
 
 Break labels of whichever panel axis holds the categories
 
@@ -422,7 +433,7 @@ continuous category axis carries its value directly)
 
 ------------------------------------------------------------------------
 
-### Method `fill_levels_by_colour()`
+### `Ggplot2ViolinLayerProcessor$fill_levels_by_colour()`
 
 Map each mapped fill colour back to the level it came from
 
@@ -448,7 +459,7 @@ fill scale
 
 ------------------------------------------------------------------------
 
-### Method `group_labels()`
+### `Ggplot2ViolinLayerProcessor$group_labels()`
 
 Announceable label for each drawn violin
 
@@ -485,7 +496,7 @@ Character vector of labels, one per group
 
 ------------------------------------------------------------------------
 
-### Method `boxplot_stats()`
+### `Ggplot2ViolinLayerProcessor$boxplot_stats()`
 
 Box statistics ggplot2 itself computed for each group
 
@@ -519,7 +530,7 @@ data.frame of the boxplot layer's built data, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_boxplot_layer_index()`
+### `Ggplot2ViolinLayerProcessor$find_boxplot_layer_index()`
 
 Find the boxplot layer index in the augmented plot
 
@@ -539,7 +550,7 @@ Integer index of the boxplot layer, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_panel_grob()`
+### `Ggplot2ViolinLayerProcessor$find_panel_grob()`
 
 Find the panel grob this layer draws into
 
@@ -564,7 +575,7 @@ The panel gTree, or NULL when it cannot be resolved
 
 ------------------------------------------------------------------------
 
-### Method `find_grob_ids()`
+### `Ggplot2ViolinLayerProcessor$find_grob_ids()`
 
 Recursively find all grob IDs matching a pattern
 
@@ -588,7 +599,7 @@ Character vector of unique matching grob names
 
 ------------------------------------------------------------------------
 
-### Method `find_direct_children()`
+### `Ggplot2ViolinLayerProcessor$find_direct_children()`
 
 Find direct children of a named parent matching a pattern
 
@@ -616,7 +627,7 @@ Character vector of matching child names
 
 ------------------------------------------------------------------------
 
-### Method `find_grob_by_id()`
+### `Ggplot2ViolinLayerProcessor$find_grob_by_id()`
 
 Find a grob by its name (recursive)
 
@@ -640,7 +651,7 @@ The matching grob, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_desc_by_pattern()`
+### `Ggplot2ViolinLayerProcessor$find_desc_by_pattern()`
 
 Find the first descendant matching a pattern under a named parent
 
@@ -668,7 +679,7 @@ The first matching name, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_all_desc_by_pattern()`
+### `Ggplot2ViolinLayerProcessor$find_all_desc_by_pattern()`
 
 Find all descendants matching a pattern under a named parent
 
@@ -696,7 +707,7 @@ Character vector of matching descendant names
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2ViolinLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

@@ -8,7 +8,3 @@ the console automatically renders it in the MAIDR interactive viewer.
 ``` r
 .maidr_ggplot_state
 ```
-
-## Format
-
-An object of class `environment` of length 2.

@@ -9,14 +9,14 @@ An R6 class inheriting from SystemAdapter
 
 ## Super class
 
-[`maidr::SystemAdapter`](https://r.maidr.ai/reference/SystemAdapter.md)
--\> `Ggplot2Adapter`
+[`SystemAdapter`](https://r.maidr.ai/reference/SystemAdapter.md) -\>
+`Ggplot2Adapter`
 
 ## Methods
 
 ### Public methods
 
-- [`Ggplot2Adapter$new()`](#method-Ggplot2Adapter-new)
+- [`Ggplot2Adapter$new()`](#method-Ggplot2Adapter-initialize)
 
 - [`Ggplot2Adapter$can_handle()`](#method-Ggplot2Adapter-can_handle)
 
@@ -42,7 +42,7 @@ An R6 class inheriting from SystemAdapter
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Ggplot2Adapter$new()`
 
 Initialize the ggplot2 adapter
 
@@ -52,7 +52,7 @@ Initialize the ggplot2 adapter
 
 ------------------------------------------------------------------------
 
-### Method `can_handle()`
+### `Ggplot2Adapter$can_handle()`
 
 Check if this adapter can handle a plot object
 
@@ -72,7 +72,7 @@ TRUE if this adapter can handle the object, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `detect_layer_type()`
+### `Ggplot2Adapter$detect_layer_type()`
 
 Detect the type of a single layer
 
@@ -96,7 +96,7 @@ String indicating the layer type (e.g., "bar", "line", "point")
 
 ------------------------------------------------------------------------
 
-### Method `is_pie_coord()`
+### `Ggplot2Adapter$is_pie_coord()`
 
 Check if a bar layer is drawn as pie wedges
 
@@ -133,7 +133,7 @@ TRUE when the layer is drawn as a pie, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `draws_single_ring()`
+### `Ggplot2Adapter$draws_single_ring()`
 
 Check if a layer occupies a single position on x
 
@@ -165,7 +165,7 @@ TRUE when no panel holds more than one x position
 
 ------------------------------------------------------------------------
 
-### Method `find_layer_index()`
+### `Ggplot2Adapter$find_layer_index()`
 
 Locate a layer among its plot's layers
 
@@ -189,7 +189,7 @@ Integer index into the plot's layers, or NULL when absent
 
 ------------------------------------------------------------------------
 
-### Method `create_orchestrator()`
+### `Ggplot2Adapter$create_orchestrator()`
 
 Create an orchestrator for this system (ggplot2)
 
@@ -209,7 +209,7 @@ PlotOrchestrator instance
 
 ------------------------------------------------------------------------
 
-### Method `get_system_name()`
+### `Ggplot2Adapter$get_system_name()`
 
 Get the system name
 
@@ -223,7 +223,7 @@ System name string
 
 ------------------------------------------------------------------------
 
-### Method `get_adapter()`
+### `Ggplot2Adapter$get_adapter()`
 
 Get a reference to this adapter (for use by orchestrator)
 
@@ -237,7 +237,7 @@ Self reference
 
 ------------------------------------------------------------------------
 
-### Method `has_facets()`
+### `Ggplot2Adapter$has_facets()`
 
 Check if plot has facets
 
@@ -257,7 +257,7 @@ TRUE if plot has facets, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `is_patchwork()`
+### `Ggplot2Adapter$is_patchwork()`
 
 Check if plot is a patchwork plot
 
@@ -277,7 +277,7 @@ TRUE if plot is patchwork, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2Adapter$clone()`
 
 The objects of this class are cloneable with this method.
 

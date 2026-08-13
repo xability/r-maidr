@@ -11,8 +11,8 @@ discovered:
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2LineLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2LineLayerProcessor`
 
 ## Public fields
 
@@ -106,18 +106,21 @@ discovered:
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2LineLayerProcessor$process()`
 
 Process the line layer with actual SVG structure
 
@@ -164,13 +167,17 @@ Process the line layer with actual SVG structure
 
   Panel ID for faceted plots (optional)
 
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 #### Returns
 
 List with data and selectors
 
 ------------------------------------------------------------------------
 
-### Method `attach_group_axis()`
+### `Ggplot2LineLayerProcessor$attach_group_axis()`
 
 Add the legend title as the z axis label for a multi-series line layer.
 
@@ -206,7 +213,7 @@ The axes list, with z added when the layer is grouped
 
 ------------------------------------------------------------------------
 
-### Method `has_series_groups()`
+### `Ggplot2LineLayerProcessor$has_series_groups()`
 
 Report whether extracted data is split into named series.
 
@@ -226,7 +233,7 @@ TRUE when there is more than one series and points carry z
 
 ------------------------------------------------------------------------
 
-### Method `resolve_group_mapping()`
+### `Ggplot2LineLayerProcessor$resolve_group_mapping()`
 
 Resolve the aesthetic that splits this layer into series.
 
@@ -249,7 +256,7 @@ mapped) and `column` (the mapped column name, or "group" as a fallback)
 
 ------------------------------------------------------------------------
 
-### Method `extract_layer_axes()`
+### `Ggplot2LineLayerProcessor$extract_layer_axes()`
 
 Extract axes labels for line layers, with a special case for
 moving-average geoms (e.g.
@@ -284,7 +291,7 @@ list(x = list(label = ...), y = list(label = ...))
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2LineLayerProcessor$extract_data()`
 
 Extract data from line layer (single or multiline)
 
@@ -321,7 +328,7 @@ List of arrays, each containing series data points
 
 ------------------------------------------------------------------------
 
-### Method `attach_discrete_y_names()`
+### `Ggplot2LineLayerProcessor$attach_discrete_y_names()`
 
 Give every point the *name* of its discrete y level.
 
@@ -366,7 +373,7 @@ The series list, labelled when y is discrete
 
 ------------------------------------------------------------------------
 
-### Method `normalize_point_values()`
+### `Ggplot2LineLayerProcessor$normalize_point_values()`
 
 Coerce every point's y to a plain number.
 
@@ -395,7 +402,7 @@ The series list with numeric y values
 
 ------------------------------------------------------------------------
 
-### Method `panel_axis_labels()`
+### `Ggplot2LineLayerProcessor$panel_axis_labels()`
 
 Read one panel's own axis labels.
 
@@ -441,7 +448,7 @@ its labels are unusable
 
 ------------------------------------------------------------------------
 
-### Method `build_level_lookup()`
+### `Ggplot2LineLayerProcessor$build_level_lookup()`
 
 Build a numeric-level to level-name lookup for the y aesthetic.
 
@@ -498,7 +505,7 @@ Named character vector keyed by the built y value, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `attach_level_labels()`
+### `Ggplot2LineLayerProcessor$attach_level_labels()`
 
 Attach the ordinal level name to every point of every series. Points
 whose y has no entry in the lookup are left untouched, so the frontend
@@ -524,7 +531,7 @@ The series list with `label` attached where known
 
 ------------------------------------------------------------------------
 
-### Method `get_layer()`
+### `Ggplot2LineLayerProcessor$get_layer()`
 
 The ggplot2 layer this processor is responsible for.
 
@@ -544,7 +551,7 @@ The layer, or NULL when the index does not resolve
 
 ------------------------------------------------------------------------
 
-### Method `resolve_panel_index()`
+### `Ggplot2LineLayerProcessor$resolve_panel_index()`
 
 Resolve which entry of `built$layout$panel_params` describes a facet
 panel.
@@ -573,7 +580,7 @@ Integer index guaranteed to be in range
 
 ------------------------------------------------------------------------
 
-### Method `get_x_transformation()`
+### `Ggplot2LineLayerProcessor$get_x_transformation()`
 
 The transformation a panel's x scale applies to positions.
 
@@ -605,7 +612,7 @@ A scales transform object, or NULL when none is available
 
 ------------------------------------------------------------------------
 
-### Method `transform_x_values()`
+### `Ggplot2LineLayerProcessor$transform_x_values()`
 
 Project raw x values into the space
 [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
@@ -637,7 +644,7 @@ Numeric vector the same length as `values`
 
 ------------------------------------------------------------------------
 
-### Method `format_x_value()`
+### `Ggplot2LineLayerProcessor$format_x_value()`
 
 Format an x-axis value as character.
 
@@ -657,7 +664,7 @@ the same Date column align string-wise.
 
 ------------------------------------------------------------------------
 
-### Method `extract_multiline_data()`
+### `Ggplot2LineLayerProcessor$extract_multiline_data()`
 
 Extract data for multiple line series
 
@@ -690,7 +697,7 @@ List of arrays, each containing series data
 
 ------------------------------------------------------------------------
 
-### Method `extract_single_line_data()`
+### `Ggplot2LineLayerProcessor$extract_single_line_data()`
 
 Extract data for single line (backward compatibility)
 
@@ -725,7 +732,7 @@ List containing single series data
 
 ------------------------------------------------------------------------
 
-### Method `recover_x_values()`
+### `Ggplot2LineLayerProcessor$recover_x_values()`
 
 The x values to announce, recovered from the BUILT column.
 
@@ -777,7 +784,7 @@ value alone
 
 ------------------------------------------------------------------------
 
-### Method `get_group_column()`
+### `Ggplot2LineLayerProcessor$get_group_column()`
 
 Get the grouping column name from plot mappings
 
@@ -797,7 +804,7 @@ Name of the grouping column
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2LineLayerProcessor$generate_selectors()`
 
 One selector per series this line layer draws.
 
@@ -863,7 +870,7 @@ List of selectors for each series
 
 ------------------------------------------------------------------------
 
-### Method `series_count()`
+### `Ggplot2LineLayerProcessor$series_count()`
 
 Number of series this layer draws in the given panel.
 
@@ -894,7 +901,7 @@ Number of series, at least 1
 
 ------------------------------------------------------------------------
 
-### Method `curve_selectors()`
+### `Ggplot2LineLayerProcessor$curve_selectors()`
 
 Selectors for the curves inside this layer's own grob.
 
@@ -923,7 +930,7 @@ series
 
 ------------------------------------------------------------------------
 
-### Method `find_layer_polyline_grob()`
+### `Ggplot2LineLayerProcessor$find_layer_polyline_grob()`
 
 The polyline grob ggplot2 drew for THIS line layer.
 
@@ -947,7 +954,7 @@ The matching grob, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `layer_polyline_grobs()`
+### `Ggplot2LineLayerProcessor$layer_polyline_grobs()`
 
 Panel polylines that a line layer could have drawn.
 
@@ -983,7 +990,7 @@ List of grobs in draw order
 
 ------------------------------------------------------------------------
 
-### Method `other_geom_grob_prefixes()`
+### `Ggplot2LineLayerProcessor$other_geom_grob_prefixes()`
 
 Grob-name prefixes belonging to the plot's OTHER geoms.
 
@@ -1008,7 +1015,7 @@ Character vector of prefixes, possibly empty
 
 ------------------------------------------------------------------------
 
-### Method `polyline_curve_count()`
+### `Ggplot2LineLayerProcessor$polyline_curve_count()`
 
 Number of separate curves a polyline grob draws.
 
@@ -1032,7 +1039,7 @@ Integer count, at least 1
 
 ------------------------------------------------------------------------
 
-### Method `generate_multiline_selectors()`
+### `Ggplot2LineLayerProcessor$generate_multiline_selectors()`
 
 Generate selectors for multiline plots using actual structure
 
@@ -1056,7 +1063,7 @@ List of selectors
 
 ------------------------------------------------------------------------
 
-### Method `generate_single_line_selector()`
+### `Ggplot2LineLayerProcessor$generate_single_line_selector()`
 
 Generate selector for single line plot
 
@@ -1076,7 +1083,7 @@ List with single selector
 
 ------------------------------------------------------------------------
 
-### Method `line_layer_position()`
+### `Ggplot2LineLayerProcessor$line_layer_position()`
 
 Position of this layer among the polyline-producing layers.
 
@@ -1108,7 +1115,7 @@ The 1-based position, or NULL if registry-based detection fails
 
 ------------------------------------------------------------------------
 
-### Method `find_main_polyline_grob()`
+### `Ggplot2LineLayerProcessor$find_main_polyline_grob()`
 
 Find the main polyline grob (GRID.polyline.XX)
 
@@ -1128,7 +1135,7 @@ The main polyline grob or NULL
 
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `Ggplot2LineLayerProcessor$needs_reordering()`
 
 Check if layer needs reordering
 
@@ -1142,7 +1149,7 @@ FALSE (line plots typically don't need reordering)
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2LineLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

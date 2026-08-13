@@ -1,17 +1,11 @@
 # Smooth Layer Processor
 
-Smooth Layer Processor
-
-Smooth Layer Processor
-
-## Details
-
 Processes smooth plot layers with complete logic included
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2SmoothLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2SmoothLayerProcessor`
 
 ## Methods
 
@@ -47,20 +41,22 @@ Processes smooth plot layers with complete logic included
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2SmoothLayerProcessor$process()`
 
 #### Usage
 
@@ -75,9 +71,39 @@ Inherited methods
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `group_aes()`
+### `Ggplot2SmoothLayerProcessor$group_aes()`
 
 Grouping aesthetics that split this layer into curves.
 
@@ -106,7 +132,7 @@ List of aesthetic-name vectors, in precedence order
 
 ------------------------------------------------------------------------
 
-### Method `attach_group_axis()`
+### `Ggplot2SmoothLayerProcessor$attach_group_axis()`
 
 Add the legend title as the z axis label when the layer is split into
 per-group curves.
@@ -143,7 +169,7 @@ The axes list, with z added when the layer is grouped
 
 ------------------------------------------------------------------------
 
-### Method `resolve_target_layer()`
+### `Ggplot2SmoothLayerProcessor$resolve_target_layer()`
 
 Resolve which layer of the plot this processor describes.
 
@@ -167,7 +193,7 @@ Index into `plot$layers`
 
 ------------------------------------------------------------------------
 
-### Method `layer_built_data()`
+### `Ggplot2SmoothLayerProcessor$layer_built_data()`
 
 Built data for this layer, restricted to one facet panel.
 
@@ -199,7 +225,7 @@ A data frame of built rows
 
 ------------------------------------------------------------------------
 
-### Method `series_group_ids()`
+### `Ggplot2SmoothLayerProcessor$series_group_ids()`
 
 Distinct group ids when the layer draws more than one curve.
 
@@ -219,7 +245,7 @@ Sorted group ids, or an empty vector for a single-curve layer
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2SmoothLayerProcessor$extract_data()`
 
 Extract one series per drawn curve.
 
@@ -252,7 +278,7 @@ List of series, each a list of points
 
 ------------------------------------------------------------------------
 
-### Method `curve_points()`
+### `Ggplot2SmoothLayerProcessor$curve_points()`
 
 Turn built rows into MAIDR points.
 
@@ -276,7 +302,7 @@ List of points
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2SmoothLayerProcessor$generate_selectors()`
 
 #### Usage
 
@@ -288,9 +314,23 @@ List of points
       panel_id = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `series_group_count()`
+### `Ggplot2SmoothLayerProcessor$series_group_count()`
 
 Number of curves this layer draws in the given panel.
 
@@ -325,7 +365,7 @@ Number of groups, or 0 when the layer draws a single curve
 
 ------------------------------------------------------------------------
 
-### Method `grouped_curve_selectors()`
+### `Ggplot2SmoothLayerProcessor$grouped_curve_selectors()`
 
 One selector per curve for a layer split into groups.
 
@@ -371,7 +411,7 @@ List of selectors, or NULL when the grob tree does not line up
 
 ------------------------------------------------------------------------
 
-### Method `polyline_grob_names()`
+### `Ggplot2SmoothLayerProcessor$polyline_grob_names()`
 
 Names of the curve polyline grobs inside a grob, in draw order. Panel
 grid lines are excluded: they are named after the theme element
@@ -435,7 +475,7 @@ The matching grob, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2SmoothLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

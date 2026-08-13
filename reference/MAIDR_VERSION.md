@@ -7,7 +7,3 @@ MAIDR JavaScript library version bundled with this package
 ``` r
 MAIDR_VERSION
 ```
-
-## Format
-
-An object of class `character` of length 1.

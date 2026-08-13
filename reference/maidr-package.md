@@ -196,4 +196,6 @@ holder\]
 
 Authors:
 
+- JooYoung Seo <jseo1005@illinois.edu> \[copyright holder\]
+
 - Niranjan Kalaiselvan <nk46@illinois.edu>

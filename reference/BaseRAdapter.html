@@ -142,15 +142,14 @@ to intercept Base R plotting calls and detect plot types.</p>
     </div>
     <div class="section level2">
     <h2 id="super-class">Super class<a class="anchor" aria-label="anchor" href="#super-class"></a></h2>
-    <p><code><a href="SystemAdapter.html">maidr::SystemAdapter</a></code> -&gt; <code>BaseRAdapter</code></p>
+    <p><code><a href="SystemAdapter.html">SystemAdapter</a></code> -&gt; <code>BaseRAdapter</code></p>
     </div>
     <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
-
-<ul><li><p><a href="#method-BaseRAdapter-new"><code>BaseRAdapter$new()</code></a></p></li>
+<p></p><ul><li><p><a href="#method-BaseRAdapter-initialize"><code>BaseRAdapter$new()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-can_handle"><code>BaseRAdapter$can_handle()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-detect_layer_type"><code>BaseRAdapter$detect_layer_type()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-is_dodged_barplot"><code>BaseRAdapter$is_dodged_barplot()</code></a></p></li>
@@ -166,101 +165,97 @@ to intercept Base R plotting calls and detect plot types.</p>
 <li><p><a href="#method-BaseRAdapter-initialize_patching"><code>BaseRAdapter$initialize_patching()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-restore_functions"><code>BaseRAdapter$restore_functions()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-clone"><code>BaseRAdapter$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-BaseRAdapter-new"></a><div class="section">
-<h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
+</ul></div><p></p><hr><a id="method-BaseRAdapter-initialize"></a><div class="section">
+<h3 id="baseradapter-new-"><code>BaseRAdapter$new()</code><a class="anchor" aria-label="anchor" href="#baseradapter-new-"></a></h3>
 <p>Initialize the Base R adapter</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/BaseRAdapter.html">BaseRAdapter</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+</div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-can_handle"></a><div class="section">
-<h3 id="method-can-handle-">Method <code>can_handle()</code><a class="anchor" aria-label="anchor" href="#method-can-handle-"></a></h3>
+<p></p><hr><a id="method-BaseRAdapter-can_handle"></a><div class="section">
+<h3 id="baseradapter-can-handle-"><code>BaseRAdapter$can_handle()</code><a class="anchor" aria-label="anchor" href="#baseradapter-can-handle-"></a></h3>
 <p>Check if this adapter can handle a plot object</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">can_handle</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object to check (should be NULL for Base R)</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>TRUE if Base R plotting is active, FALSE otherwise</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-detect_layer_type"></a><div class="section">
-<h3 id="method-detect-layer-type-">Method <code>detect_layer_type()</code><a class="anchor" aria-label="anchor" href="#method-detect-layer-type-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-detect_layer_type"></a><div class="section">
+<h3 id="baseradapter-detect-layer-type-"><code>BaseRAdapter$detect_layer_type()</code><a class="anchor" aria-label="anchor" href="#baseradapter-detect-layer-type-"></a></h3>
 <p>Detect the type of a single layer from Base R plot calls</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">detect_layer_type</span><span class="op">(</span><span class="va">layer</span>, plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer</code></dt>
 <dd><p>The plot call entry from our logger</p></dd>
 
-
-<dt><code>plot_object</code></dt>
+      <dt><code>plot_object</code></dt>
 <dd><p>The parent plot object (NULL for Base R)</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>String indicating the layer type (e.g., "bar", "dodged_bar",
 "stacked_bar", "smooth", "line", "point")</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-is_dodged_barplot"></a><div class="section">
-<h3 id="method-is-dodged-barplot-">Method <code>is_dodged_barplot()</code><a class="anchor" aria-label="anchor" href="#method-is-dodged-barplot-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-is_dodged_barplot"></a><div class="section">
+<h3 id="baseradapter-is-dodged-barplot-"><code>BaseRAdapter$is_dodged_barplot()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-dodged-barplot-"></a></h3>
 <p>Check if a barplot call represents a dodged bar plot</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_dodged_barplot</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>The arguments from the barplot call</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>TRUE if this is a dodged bar plot, FALSE otherwise</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-is_stacked_barplot"></a><div class="section">
-<h3 id="method-is-stacked-barplot-">Method <code>is_stacked_barplot()</code><a class="anchor" aria-label="anchor" href="#method-is-stacked-barplot-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-is_stacked_barplot"></a><div class="section">
+<h3 id="baseradapter-is-stacked-barplot-"><code>BaseRAdapter$is_stacked_barplot()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-stacked-barplot-"></a></h3>
 <p>Check if a barplot call represents a stacked bar plot</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_stacked_barplot</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>The arguments from the barplot call</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>TRUE if this is a stacked bar plot, FALSE otherwise</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-is_normalized_barplot"></a><div class="section">
-<h3 id="method-is-normalized-barplot-">Method <code>is_normalized_barplot()</code><a class="anchor" aria-label="anchor" href="#method-is-normalized-barplot-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-is_normalized_barplot"></a><div class="section">
+<h3 id="baseradapter-is-normalized-barplot-"><code>BaseRAdapter$is_normalized_barplot()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-normalized-barplot-"></a></h3>
 <p>Check if a barplot call draws a 100% stacked bar</p>
 <p>Base R has no <code>position = "fill"</code> to read: <code><a href="base-r-wrappers.html">barplot()</a></code> takes no
 normalisation argument at all, and the idiomatic way to draw a 100%
@@ -278,133 +273,126 @@ two or more rows, because a single series stacked against nothing is not
 a stack.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_normalized_barplot</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>The arguments from the barplot call</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>TRUE if every column of the height matrix sums to 1</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-create_orchestrator"></a><div class="section">
-<h3 id="method-create-orchestrator-">Method <code>create_orchestrator()</code><a class="anchor" aria-label="anchor" href="#method-create-orchestrator-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-create_orchestrator"></a><div class="section">
+<h3 id="baseradapter-create-orchestrator-"><code>BaseRAdapter$create_orchestrator()</code><a class="anchor" aria-label="anchor" href="#baseradapter-create-orchestrator-"></a></h3>
 <p>Create an orchestrator for this system (Base R)</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">create_orchestrator</span><span class="op">(</span>plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object to process (NULL for Base R)</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>PlotOrchestrator instance</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-get_system_name"></a><div class="section">
-<h3 id="method-get-system-name-">Method <code>get_system_name()</code><a class="anchor" aria-label="anchor" href="#method-get-system-name-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-get_system_name"></a><div class="section">
+<h3 id="baseradapter-get-system-name-"><code>BaseRAdapter$get_system_name()</code><a class="anchor" aria-label="anchor" href="#baseradapter-get-system-name-"></a></h3>
 <p>Get the system name</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">get_system_name</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>System name string</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-get_adapter"></a><div class="section">
-<h3 id="method-get-adapter-">Method <code>get_adapter()</code><a class="anchor" aria-label="anchor" href="#method-get-adapter-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-get_adapter"></a><div class="section">
+<h3 id="baseradapter-get-adapter-"><code>BaseRAdapter$get_adapter()</code><a class="anchor" aria-label="anchor" href="#baseradapter-get-adapter-"></a></h3>
 <p>Get a reference to this adapter (for use by orchestrator)</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">get_adapter</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>Self reference</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-has_facets"></a><div class="section">
-<h3 id="method-has-facets-">Method <code>has_facets()</code><a class="anchor" aria-label="anchor" href="#method-has-facets-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-has_facets"></a><div class="section">
+<h3 id="baseradapter-has-facets-"><code>BaseRAdapter$has_facets()</code><a class="anchor" aria-label="anchor" href="#baseradapter-has-facets-"></a></h3>
 <p>Check if plot has facets (Base R doesn't support facets)</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">has_facets</span><span class="op">(</span>plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object (ignored for Base R)</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>FALSE (Base R doesn't support facets)</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-is_patchwork"></a><div class="section">
-<h3 id="method-is-patchwork-">Method <code>is_patchwork()</code><a class="anchor" aria-label="anchor" href="#method-is-patchwork-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-is_patchwork"></a><div class="section">
+<h3 id="baseradapter-is-patchwork-"><code>BaseRAdapter$is_patchwork()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-patchwork-"></a></h3>
 <p>Check if plot is a patchwork plot (Base R doesn't support patchwork)</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_patchwork</span><span class="op">(</span>plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object (ignored for Base R)</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>FALSE (Base R doesn't support patchwork)</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-get_plot_calls"></a><div class="section">
-<h3 id="method-get-plot-calls-">Method <code><a href="get_plot_calls.html">get_plot_calls()</a></code><a class="anchor" aria-label="anchor" href="#method-get-plot-calls-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-get_plot_calls"></a><div class="section">
+<h3 id="baseradapter-get-plot-calls-"><code>BaseRAdapter$get_plot_calls()</code><a class="anchor" aria-label="anchor" href="#baseradapter-get-plot-calls-"></a></h3>
 <p>Get recorded plot calls for processing</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">get_plot_calls</span><span class="op">(</span>device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>device_id</code></dt>
 <dd><p>Graphics device ID (defaults to current device)</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>List of recorded plot calls</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-clear_plot_calls"></a><div class="section">
-<h3 id="method-clear-plot-calls-">Method <code><a href="clear_plot_calls.html">clear_plot_calls()</a></code><a class="anchor" aria-label="anchor" href="#method-clear-plot-calls-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-clear_plot_calls"></a><div class="section">
+<h3 id="baseradapter-clear-plot-calls-"><code>BaseRAdapter$clear_plot_calls()</code><a class="anchor" aria-label="anchor" href="#baseradapter-clear-plot-calls-"></a></h3>
 <p>Clear recorded plot calls (for cleanup)</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">clear_plot_calls</span><span class="op">(</span>device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>device_id</code></dt>
 <dd><p>Graphics device ID (defaults to current device)</p></dd>
@@ -413,38 +401,38 @@ a stack.</p><div class="section">
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-initialize_patching"></a><div class="section">
-<h3 id="method-initialize-patching-">Method <code>initialize_patching()</code><a class="anchor" aria-label="anchor" href="#method-initialize-patching-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-initialize_patching"></a><div class="section">
+<h3 id="baseradapter-initialize-patching-"><code>BaseRAdapter$initialize_patching()</code><a class="anchor" aria-label="anchor" href="#baseradapter-initialize-patching-"></a></h3>
 <p>Initialize function patching</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">initialize_patching</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>NULL (invisible)</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-restore_functions"></a><div class="section">
-<h3 id="method-restore-functions-">Method <code>restore_functions()</code><a class="anchor" aria-label="anchor" href="#method-restore-functions-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-restore_functions"></a><div class="section">
+<h3 id="baseradapter-restore-functions-"><code>BaseRAdapter$restore_functions()</code><a class="anchor" aria-label="anchor" href="#baseradapter-restore-functions-"></a></h3>
 <p>Restore original functions</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">restore_functions</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>NULL (invisible)</p>
 </div>
 
-</div><p></p><hr><a id="method-BaseRAdapter-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-clone"></a><div class="section">
+<h3 id="baseradapter-clone-"><code>BaseRAdapter$clone()</code><a class="anchor" aria-label="anchor" href="#baseradapter-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
@@ -454,6 +442,7 @@ a stack.</p><div class="section">
 </div>
 
 </div>
+
 
     </div>
 

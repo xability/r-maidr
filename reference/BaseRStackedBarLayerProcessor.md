@@ -6,8 +6,8 @@ been applied by the `SortingPatcher`.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `BaseRStackedBarLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`BaseRStackedBarLayerProcessor`
 
 ## Methods
 
@@ -31,19 +31,22 @@ been applied by the `SortingPatcher`.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `BaseRStackedBarLayerProcessor$process()`
 
 #### Usage
 
@@ -59,9 +62,39 @@ Inherited methods
       layer_info = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `BaseRStackedBarLayerProcessor$needs_reordering()`
 
 #### Usage
 
@@ -69,7 +102,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `BaseRStackedBarLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -77,7 +110,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `extract_axis_titles()`
+### `BaseRStackedBarLayerProcessor$extract_axis_titles()`
 
 #### Usage
 
@@ -85,7 +118,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `extract_main_title()`
+### `BaseRStackedBarLayerProcessor$extract_main_title()`
 
 #### Usage
 
@@ -93,7 +126,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `BaseRStackedBarLayerProcessor$generate_selectors()`
 
 #### Usage
 
@@ -103,9 +136,15 @@ Inherited methods
       extracted_data = NULL
     )
 
+#### Arguments
+
+- `gt`:
+
+  Gtable object (optional)
+
 ------------------------------------------------------------------------
 
-### Method `find_rect_groups()`
+### `BaseRStackedBarLayerProcessor$find_rect_groups()`
 
 #### Usage
 
@@ -113,7 +152,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRStackedBarLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

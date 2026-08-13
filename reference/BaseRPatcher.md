@@ -17,7 +17,7 @@ responsibility pattern
 
 ------------------------------------------------------------------------
 
-### Method `can_patch()`
+### `BaseRPatcher$can_patch()`
 
 #### Usage
 
@@ -25,7 +25,7 @@ responsibility pattern
 
 ------------------------------------------------------------------------
 
-### Method `apply_patch()`
+### `BaseRPatcher$apply_patch()`
 
 #### Usage
 
@@ -33,7 +33,7 @@ responsibility pattern
 
 ------------------------------------------------------------------------
 
-### Method `get_name()`
+### `BaseRPatcher$get_name()`
 
 #### Usage
 
@@ -41,7 +41,7 @@ responsibility pattern
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRPatcher$clone()`
 
 The objects of this class are cloneable with this method.
 

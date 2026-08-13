@@ -1,11 +1,5 @@
 # Candlestick Layer Processor
 
-Candlestick Layer Processor
-
-Candlestick Layer Processor
-
-## Details
-
 Processes candlestick chart layers produced by
 [`tidyquant::geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html).
 
@@ -33,8 +27,8 @@ tidyquant grobs.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2CandlestickProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2CandlestickProcessor`
 
 ## Methods
 
@@ -66,19 +60,22 @@ tidyquant grobs.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2CandlestickProcessor$process()`
 
 Process the candlestick layer
 
@@ -135,7 +132,7 @@ Maidr candlestick layer list
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2CandlestickProcessor$extract_data()`
 
 Extract OHLC data points from the plot
 
@@ -167,7 +164,7 @@ List of CandlestickPoint dicts
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2CandlestickProcessor$generate_selectors()`
 
 Generate candlestick CSS selectors
 
@@ -210,7 +207,7 @@ or empty list if grobs cannot be located.
 
 ------------------------------------------------------------------------
 
-### Method `extract_layer_axes()`
+### `Ggplot2CandlestickProcessor$extract_layer_axes()`
 
 Extract axes labels for candlestick layer
 
@@ -240,7 +237,7 @@ list(x = list(label = ...), y = list(label = ...))
 
 ------------------------------------------------------------------------
 
-### Method `resolve_col()`
+### `Ggplot2CandlestickProcessor$resolve_col()`
 
 Resolve a mapping quosure to a column name in `data`
 
@@ -250,7 +247,7 @@ Resolve a mapping quosure to a column name in `data`
 
 ------------------------------------------------------------------------
 
-### Method `format_x_value()`
+### `Ggplot2CandlestickProcessor$format_x_value()`
 
 Format an x-axis value as character
 
@@ -260,7 +257,7 @@ Format an x-axis value as character
 
 ------------------------------------------------------------------------
 
-### Method `get_effective_mapping()`
+### `Ggplot2CandlestickProcessor$get_effective_mapping()`
 
 Get the effective mapping (layer mapping merged on top)
 
@@ -270,7 +267,7 @@ Get the effective mapping (layer mapping merged on top)
 
 ------------------------------------------------------------------------
 
-### Method `get_original_data()`
+### `Ggplot2CandlestickProcessor$get_original_data()`
 
 Get original data for the layer (falls back to plot\$data)
 
@@ -280,7 +277,7 @@ Get original data for the layer (falls back to plot\$data)
 
 ------------------------------------------------------------------------
 
-### Method `count_candles()`
+### `Ggplot2CandlestickProcessor$count_candles()`
 
 Count candles from the original data
 
@@ -290,7 +287,7 @@ Count candles from the original data
 
 ------------------------------------------------------------------------
 
-### Method `find_panel_grob()`
+### `Ggplot2CandlestickProcessor$find_panel_grob()`
 
 Find the panel grob this layer draws into
 
@@ -315,7 +312,7 @@ The panel gTree, or NULL when it cannot be resolved
 
 ------------------------------------------------------------------------
 
-### Method `find_first_child_name()`
+### `Ggplot2CandlestickProcessor$find_first_child_name()`
 
 Find the first descendant whose name matches `pattern`
 
@@ -325,7 +322,7 @@ Find the first descendant whose name matches `pattern`
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2CandlestickProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

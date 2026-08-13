@@ -5,8 +5,8 @@ and selector generation logic.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `BaseRHistogramLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`BaseRHistogramLayerProcessor`
 
 ## Methods
 
@@ -36,20 +36,23 @@ and selector generation logic.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `BaseRHistogramLayerProcessor$process()`
 
 #### Usage
 
@@ -61,9 +64,27 @@ Inherited methods
       layer_info = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `BaseRHistogramLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -71,7 +92,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `recompute_histogram()`
+### `BaseRHistogramLayerProcessor$recompute_histogram()`
 
 #### Usage
 
@@ -79,7 +100,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `is_frequency()`
+### `BaseRHistogramLayerProcessor$is_frequency()`
 
 #### Usage
 
@@ -87,15 +108,21 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `BaseRHistogramLayerProcessor$generate_selectors()`
 
 #### Usage
 
     BaseRHistogramLayerProcessor$generate_selectors(layer_info, gt = NULL)
 
+#### Arguments
+
+- `gt`:
+
+  Gtable object (optional)
+
 ------------------------------------------------------------------------
 
-### Method `find_rect_grobs()`
+### `BaseRHistogramLayerProcessor$find_rect_grobs()`
 
 #### Usage
 
@@ -103,7 +130,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors_from_grob()`
+### `BaseRHistogramLayerProcessor$generate_selectors_from_grob()`
 
 #### Usage
 
@@ -114,7 +141,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `extract_axis_titles()`
+### `BaseRHistogramLayerProcessor$extract_axis_titles()`
 
 #### Usage
 
@@ -122,7 +149,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `frequency_label()`
+### `BaseRHistogramLayerProcessor$frequency_label()`
 
 #### Usage
 
@@ -130,7 +157,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `extract_main_title()`
+### `BaseRHistogramLayerProcessor$extract_main_title()`
 
 #### Usage
 
@@ -138,7 +165,7 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRHistogramLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

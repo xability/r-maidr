@@ -9,7 +9,3 @@ accumulation.
 ``` r
 .maidr_base_r_session
 ```
-
-## Format
-
-An object of class `environment` of length 2.

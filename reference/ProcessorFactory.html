@@ -148,88 +148,82 @@ the appropriate processors for different plot types.</p>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
-
-<ul><li><p><a href="#method-ProcessorFactory-create_processor"><code>ProcessorFactory$create_processor()</code></a></p></li>
+<p></p><ul><li><p><a href="#method-ProcessorFactory-create_processor"><code>ProcessorFactory$create_processor()</code></a></p></li>
 <li><p><a href="#method-ProcessorFactory-get_supported_types"><code>ProcessorFactory$get_supported_types()</code></a></p></li>
 <li><p><a href="#method-ProcessorFactory-supports_plot_type"><code>ProcessorFactory$supports_plot_type()</code></a></p></li>
 <li><p><a href="#method-ProcessorFactory-get_system_name"><code>ProcessorFactory$get_system_name()</code></a></p></li>
 <li><p><a href="#method-ProcessorFactory-clone"><code>ProcessorFactory$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-ProcessorFactory-create_processor"></a><div class="section">
-<h3 id="method-create-processor-">Method <code>create_processor()</code><a class="anchor" aria-label="anchor" href="#method-create-processor-"></a></h3>
+<h3 id="processorfactory-create-processor-"><code>ProcessorFactory$create_processor()</code><a class="anchor" aria-label="anchor" href="#processorfactory-create-processor-"></a></h3>
 <p>Abstract method to create a processor for a specific plot type</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">create_processor</span><span class="op">(</span><span class="va">plot_type</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_type</code></dt>
 <dd><p>The type of plot (e.g., "bar", "line", "point")</p></dd>
 
-
-<dt><code>plot_object</code></dt>
+      <dt><code>plot_object</code></dt>
 <dd><p>The plot object to process</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>Processor instance for the specified plot type</p>
 </div>
 
-</div><p></p><hr><a id="method-ProcessorFactory-get_supported_types"></a><div class="section">
-<h3 id="method-get-supported-types-">Method <code>get_supported_types()</code><a class="anchor" aria-label="anchor" href="#method-get-supported-types-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-ProcessorFactory-get_supported_types"></a><div class="section">
+<h3 id="processorfactory-get-supported-types-"><code>ProcessorFactory$get_supported_types()</code><a class="anchor" aria-label="anchor" href="#processorfactory-get-supported-types-"></a></h3>
 <p>Abstract method to get list of supported plot types</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">get_supported_types</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>Character vector of supported plot types</p>
 </div>
 
-</div><p></p><hr><a id="method-ProcessorFactory-supports_plot_type"></a><div class="section">
-<h3 id="method-supports-plot-type-">Method <code>supports_plot_type()</code><a class="anchor" aria-label="anchor" href="#method-supports-plot-type-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-ProcessorFactory-supports_plot_type"></a><div class="section">
+<h3 id="processorfactory-supports-plot-type-"><code>ProcessorFactory$supports_plot_type()</code><a class="anchor" aria-label="anchor" href="#processorfactory-supports-plot-type-"></a></h3>
 <p>Check if a plot type is supported by this factory</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">supports_plot_type</span><span class="op">(</span><span class="va">plot_type</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_type</code></dt>
 <dd><p>The plot type to check</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>TRUE if supported, FALSE otherwise</p>
 </div>
 
-</div><p></p><hr><a id="method-ProcessorFactory-get_system_name"></a><div class="section">
-<h3 id="method-get-system-name-">Method <code>get_system_name()</code><a class="anchor" aria-label="anchor" href="#method-get-system-name-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-ProcessorFactory-get_system_name"></a><div class="section">
+<h3 id="processorfactory-get-system-name-"><code>ProcessorFactory$get_system_name()</code><a class="anchor" aria-label="anchor" href="#processorfactory-get-system-name-"></a></h3>
 <p>Get system name (should be overridden by subclasses)</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">get_system_name</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>System name string</p>
 </div>
 
-</div><p></p><hr><a id="method-ProcessorFactory-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-ProcessorFactory-clone"></a><div class="section">
+<h3 id="processorfactory-clone-"><code>ProcessorFactory$clone()</code><a class="anchor" aria-label="anchor" href="#processorfactory-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ProcessorFactory</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
@@ -239,6 +233,7 @@ the appropriate processors for different plot types.</p>
 </div>
 
 </div>
+
 
     </div>
 

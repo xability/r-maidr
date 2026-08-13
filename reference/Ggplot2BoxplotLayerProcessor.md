@@ -6,8 +6,8 @@ structure.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2BoxplotLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2BoxplotLayerProcessor`
 
 ## Methods
 
@@ -43,20 +43,23 @@ structure.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `get_built()`
+### `Ggplot2BoxplotLayerProcessor$get_built()`
 
 Get (and cache) the built plot data
 
@@ -84,7 +87,7 @@ Built plot data
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2BoxplotLayerProcessor$process()`
 
 Process the boxplot layer
 
@@ -141,7 +144,7 @@ List with data and selectors
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2BoxplotLayerProcessor$extract_data()`
 
 Extract data from boxplot layer
 
@@ -169,7 +172,7 @@ List with boxplot statistics for each category
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2BoxplotLayerProcessor$generate_selectors()`
 
 Generate selectors for boxplot elements
 
@@ -206,7 +209,7 @@ List of selectors for each boxplot
 
 ------------------------------------------------------------------------
 
-### Method `determine_orientation()`
+### `Ggplot2BoxplotLayerProcessor$determine_orientation()`
 
 Determine if the boxplot is horizontal or vertical
 
@@ -226,7 +229,7 @@ Determine if the boxplot is horizontal or vertical
 
 ------------------------------------------------------------------------
 
-### Method `map_categories_to_names()`
+### `Ggplot2BoxplotLayerProcessor$map_categories_to_names()`
 
 Map numeric category codes to actual category names Uses panel_params
 axis labels from ggplot_build to map codes to labels
@@ -259,7 +262,7 @@ Updated boxplot data with proper category names
 
 ------------------------------------------------------------------------
 
-### Method `find_panel_grob()`
+### `Ggplot2BoxplotLayerProcessor$find_panel_grob()`
 
 Find the panel grob this layer draws into
 
@@ -284,7 +287,7 @@ The panel grob or NULL
 
 ------------------------------------------------------------------------
 
-### Method [`find_children_by_type()`](https://r.maidr.ai/reference/find_children_by_type.md)
+### `Ggplot2BoxplotLayerProcessor$find_children_by_type()`
 
 Find children by type pattern
 
@@ -308,7 +311,7 @@ List of matching children
 
 ------------------------------------------------------------------------
 
-### Method `find_outlier_container()`
+### `Ggplot2BoxplotLayerProcessor$find_outlier_container()`
 
 Find the outlier container within a boxplot
 
@@ -332,7 +335,7 @@ The outlier container ID or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_box_container()`
+### `Ggplot2BoxplotLayerProcessor$find_box_container()`
 
 Find the box container within a boxplot
 
@@ -356,7 +359,7 @@ The box container ID or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_whisker_container()`
+### `Ggplot2BoxplotLayerProcessor$find_whisker_container()`
 
 Find the whisker container within a boxplot
 
@@ -380,7 +383,7 @@ The whisker container ID or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_median_container()`
+### `Ggplot2BoxplotLayerProcessor$find_median_container()`
 
 Find the median container within a boxplot
 
@@ -404,7 +407,7 @@ The median container ID or NULL
 
 ------------------------------------------------------------------------
 
-### Method `find_child_by_pattern()`
+### `Ggplot2BoxplotLayerProcessor$find_child_by_pattern()`
 
 Find a child element by pattern within a container
 
@@ -432,7 +435,7 @@ The matching child ID or NULL
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2BoxplotLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

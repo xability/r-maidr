@@ -7,7 +7,3 @@ Maps of function names to their classification levels
 ``` r
 .base_r_function_classes
 ```
-
-## Format
-
-An object of class `list` of length 3.

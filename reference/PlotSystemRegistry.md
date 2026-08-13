@@ -34,7 +34,7 @@ An R6 class
 
 ------------------------------------------------------------------------
 
-### Method `register_system()`
+### `PlotSystemRegistry$register_system()`
 
 Registered plotting systems
 
@@ -64,7 +64,7 @@ Register a new plotting system
 
 ------------------------------------------------------------------------
 
-### Method `detect_system()`
+### `PlotSystemRegistry$detect_system()`
 
 Detect which system can handle a plot object
 
@@ -84,7 +84,7 @@ System name if found, NULL otherwise
 
 ------------------------------------------------------------------------
 
-### Method `get_adapter()`
+### `PlotSystemRegistry$get_adapter()`
 
 Get the adapter for a specific system
 
@@ -104,7 +104,7 @@ Adapter instance
 
 ------------------------------------------------------------------------
 
-### Method `get_processor_factory()`
+### `PlotSystemRegistry$get_processor_factory()`
 
 Get the processor factory for a specific system
 
@@ -124,7 +124,7 @@ Processor factory instance
 
 ------------------------------------------------------------------------
 
-### Method `get_adapter_for_plot()`
+### `PlotSystemRegistry$get_adapter_for_plot()`
 
 Get the adapter for a plot object (auto-detect system)
 
@@ -144,7 +144,7 @@ Adapter instance
 
 ------------------------------------------------------------------------
 
-### Method `get_processor_factory_for_plot()`
+### `PlotSystemRegistry$get_processor_factory_for_plot()`
 
 Get the processor factory for a plot object (auto-detect system)
 
@@ -164,7 +164,7 @@ Processor factory instance
 
 ------------------------------------------------------------------------
 
-### Method `list_systems()`
+### `PlotSystemRegistry$list_systems()`
 
 List all registered systems
 
@@ -178,7 +178,7 @@ Character vector of registered system names
 
 ------------------------------------------------------------------------
 
-### Method `is_system_registered()`
+### `PlotSystemRegistry$is_system_registered()`
 
 Check if a system is registered
 
@@ -198,7 +198,7 @@ TRUE if registered, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `unregister_system()`
+### `PlotSystemRegistry$unregister_system()`
 
 Unregister a system
 
@@ -214,7 +214,7 @@ Unregister a system
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `PlotSystemRegistry$clone()`
 
 The objects of this class are cloneable with this method.
 

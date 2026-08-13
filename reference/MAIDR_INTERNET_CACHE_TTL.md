@@ -10,7 +10,3 @@ looking at it.
 ``` r
 MAIDR_INTERNET_CACHE_TTL
 ```
-
-## Format
-
-An object of class `numeric` of length 1.

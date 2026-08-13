@@ -9,14 +9,14 @@ An R6 class inheriting from ProcessorFactory
 
 ## Super class
 
-[`maidr::ProcessorFactory`](https://r.maidr.ai/reference/ProcessorFactory.md)
+[`ProcessorFactory`](https://r.maidr.ai/reference/ProcessorFactory.md)
 -\> `BaseRProcessorFactory`
 
 ## Methods
 
 ### Public methods
 
-- [`BaseRProcessorFactory$new()`](#method-BaseRProcessorFactory-new)
+- [`BaseRProcessorFactory$new()`](#method-BaseRProcessorFactory-initialize)
 
 - [`BaseRProcessorFactory$create_processor()`](#method-BaseRProcessorFactory-create_processor)
 
@@ -34,11 +34,11 @@ An R6 class inheriting from ProcessorFactory
 
 Inherited methods
 
-- [`maidr::ProcessorFactory$supports_plot_type()`](https://r.maidr.ai/reference/ProcessorFactory.html#method-supports_plot_type)
+- [`ProcessorFactory$supports_plot_type()`](https://r.maidr.ai/reference/ProcessorFactory.html#method-supports_plot_type)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `BaseRProcessorFactory$new()`
 
 Initialize the Base R processor factory
 
@@ -48,7 +48,7 @@ Initialize the Base R processor factory
 
 ------------------------------------------------------------------------
 
-### Method `create_processor()`
+### `BaseRProcessorFactory$create_processor()`
 
 Create a processor for a specific plot type
 
@@ -72,7 +72,7 @@ Processor instance for the specified plot type
 
 ------------------------------------------------------------------------
 
-### Method `get_supported_types()`
+### `BaseRProcessorFactory$get_supported_types()`
 
 Get list of supported plot types
 
@@ -86,7 +86,7 @@ Character vector of supported plot types
 
 ------------------------------------------------------------------------
 
-### Method `get_system_name()`
+### `BaseRProcessorFactory$get_system_name()`
 
 Get the system name
 
@@ -100,7 +100,7 @@ System name string
 
 ------------------------------------------------------------------------
 
-### Method `is_processor_available()`
+### `BaseRProcessorFactory$is_processor_available()`
 
 Check if a specific processor class is available
 
@@ -120,7 +120,7 @@ TRUE if available, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `get_available_processors()`
+### `BaseRProcessorFactory$get_available_processors()`
 
 Get available processor classes
 
@@ -134,7 +134,7 @@ Character vector of available processor class names
 
 ------------------------------------------------------------------------
 
-### Method `try_create_processor()`
+### `BaseRProcessorFactory$try_create_processor()`
 
 Create a processor with error handling
 
@@ -158,7 +158,7 @@ Processor instance or NULL if creation fails
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRProcessorFactory$clone()`
 
 The objects of this class are cloneable with this method.
 

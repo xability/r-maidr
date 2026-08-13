@@ -5,8 +5,8 @@ generate selectors for individual points in the SVG structure.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2PointLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2PointLayerProcessor`
 
 ## Methods
 
@@ -30,20 +30,23 @@ generate selectors for individual points in the SVG structure.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2PointLayerProcessor$process()`
 
 Process the point layer
 
@@ -90,13 +93,17 @@ Process the point layer
 
   Panel ID for faceted plots (optional)
 
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 #### Returns
 
 List with data and selectors
 
 ------------------------------------------------------------------------
 
-### Method `extract_axes_labels()`
+### `Ggplot2PointLayerProcessor$extract_axes_labels()`
 
 Extract axis information from the plot
 
@@ -132,7 +139,7 @@ List with x and y per-axis objects
 
 ------------------------------------------------------------------------
 
-### Method `extract_axis_grid_info()`
+### `Ggplot2PointLayerProcessor$extract_axis_grid_info()`
 
 Extract grid navigation info (min, max, tickStep) for a single axis
 
@@ -168,7 +175,7 @@ List with min, max, tickStep or NULL if extraction fails
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2PointLayerProcessor$extract_data()`
 
 Extract data from point layer
 
@@ -205,7 +212,7 @@ List with points array and color information
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2PointLayerProcessor$generate_selectors()`
 
 Generate selectors for point elements
 
@@ -232,13 +239,17 @@ Generate selectors for point elements
 
   Grob ID for faceted plots (optional)
 
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 #### Returns
 
 List of selectors
 
 ------------------------------------------------------------------------
 
-### Method `find_panel_grob()`
+### `Ggplot2PointLayerProcessor$find_panel_grob()`
 
 Find the panel grob this layer draws into
 
@@ -263,7 +274,7 @@ The panel grob or NULL
 
 ------------------------------------------------------------------------
 
-### Method [`find_children_by_type()`](https://r.maidr.ai/reference/find_children_by_type.md)
+### `Ggplot2PointLayerProcessor$find_children_by_type()`
 
 Find children by type pattern
 
@@ -287,7 +298,7 @@ List of matching children
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2PointLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

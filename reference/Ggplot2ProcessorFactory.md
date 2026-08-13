@@ -10,14 +10,14 @@ An R6 class inheriting from ProcessorFactory
 
 ## Super class
 
-[`maidr::ProcessorFactory`](https://r.maidr.ai/reference/ProcessorFactory.md)
+[`ProcessorFactory`](https://r.maidr.ai/reference/ProcessorFactory.md)
 -\> `Ggplot2ProcessorFactory`
 
 ## Methods
 
 ### Public methods
 
-- [`Ggplot2ProcessorFactory$new()`](#method-Ggplot2ProcessorFactory-new)
+- [`Ggplot2ProcessorFactory$new()`](#method-Ggplot2ProcessorFactory-initialize)
 
 - [`Ggplot2ProcessorFactory$create_processor()`](#method-Ggplot2ProcessorFactory-create_processor)
 
@@ -35,11 +35,11 @@ An R6 class inheriting from ProcessorFactory
 
 Inherited methods
 
-- [`maidr::ProcessorFactory$supports_plot_type()`](https://r.maidr.ai/reference/ProcessorFactory.html#method-supports_plot_type)
+- [`ProcessorFactory$supports_plot_type()`](https://r.maidr.ai/reference/ProcessorFactory.html#method-supports_plot_type)
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Ggplot2ProcessorFactory$new()`
 
 Initialize the ggplot2 processor factory
 
@@ -49,7 +49,7 @@ Initialize the ggplot2 processor factory
 
 ------------------------------------------------------------------------
 
-### Method `create_processor()`
+### `Ggplot2ProcessorFactory$create_processor()`
 
 Create a processor for a specific plot type
 
@@ -73,7 +73,7 @@ Processor instance for the specified plot type
 
 ------------------------------------------------------------------------
 
-### Method `get_supported_types()`
+### `Ggplot2ProcessorFactory$get_supported_types()`
 
 Get list of supported plot types
 
@@ -87,7 +87,7 @@ Character vector of supported plot types
 
 ------------------------------------------------------------------------
 
-### Method `get_system_name()`
+### `Ggplot2ProcessorFactory$get_system_name()`
 
 Get the system name
 
@@ -101,7 +101,7 @@ System name string
 
 ------------------------------------------------------------------------
 
-### Method `is_processor_available()`
+### `Ggplot2ProcessorFactory$is_processor_available()`
 
 Check if a specific processor class is available
 
@@ -121,7 +121,7 @@ TRUE if available, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `get_available_processors()`
+### `Ggplot2ProcessorFactory$get_available_processors()`
 
 Get available processor classes
 
@@ -135,7 +135,7 @@ Character vector of available processor class names
 
 ------------------------------------------------------------------------
 
-### Method `try_create_processor()`
+### `Ggplot2ProcessorFactory$try_create_processor()`
 
 Create a processor with error handling
 
@@ -159,7 +159,7 @@ Processor instance or NULL if creation fails
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2ProcessorFactory$clone()`
 
 The objects of this class are cloneable with this method.
 

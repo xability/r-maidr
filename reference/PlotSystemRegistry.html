@@ -148,8 +148,7 @@ and their associated adapters and processor factories.</p>
 
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
-
-<ul><li><p><a href="#method-PlotSystemRegistry-register_system"><code>PlotSystemRegistry$register_system()</code></a></p></li>
+<p></p><ul><li><p><a href="#method-PlotSystemRegistry-register_system"><code>PlotSystemRegistry$register_system()</code></a></p></li>
 <li><p><a href="#method-PlotSystemRegistry-detect_system"><code>PlotSystemRegistry$detect_system()</code></a></p></li>
 <li><p><a href="#method-PlotSystemRegistry-get_adapter"><code>PlotSystemRegistry$get_adapter()</code></a></p></li>
 <li><p><a href="#method-PlotSystemRegistry-get_processor_factory"><code>PlotSystemRegistry$get_processor_factory()</code></a></p></li>
@@ -160,7 +159,7 @@ and their associated adapters and processor factories.</p>
 <li><p><a href="#method-PlotSystemRegistry-unregister_system"><code>PlotSystemRegistry$unregister_system()</code></a></p></li>
 <li><p><a href="#method-PlotSystemRegistry-clone"><code>PlotSystemRegistry$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-PlotSystemRegistry-register_system"></a><div class="section">
-<h3 id="method-register-system-">Method <code>register_system()</code><a class="anchor" aria-label="anchor" href="#method-register-system-"></a></h3>
+<h3 id="plotsystemregistry-register-system-"><code>PlotSystemRegistry$register_system()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-register-system-"></a></h3>
 <p>Registered plotting systems</p>
 
 <p>System adapters</p>
@@ -170,165 +169,155 @@ and their associated adapters and processor factories.</p>
 <p>Register a new plotting system</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">register_system</span><span class="op">(</span><span class="va">system_name</span>, <span class="va">adapter</span>, <span class="va">processor_factory</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>system_name</code></dt>
 <dd><p>Name of the plotting system (e.g., "ggplot2", "base_r")</p></dd>
 
-
-<dt><code>adapter</code></dt>
+      <dt><code>adapter</code></dt>
 <dd><p>Adapter instance for this system</p></dd>
 
-
-<dt><code>processor_factory</code></dt>
+      <dt><code>processor_factory</code></dt>
 <dd><p>Processor factory instance for this system</p></dd>
 
 
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-detect_system"></a><div class="section">
-<h3 id="method-detect-system-">Method <code>detect_system()</code><a class="anchor" aria-label="anchor" href="#method-detect-system-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-detect_system"></a><div class="section">
+<h3 id="plotsystemregistry-detect-system-"><code>PlotSystemRegistry$detect_system()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-detect-system-"></a></h3>
 <p>Detect which system can handle a plot object</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">detect_system</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object to check</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>System name if found, NULL otherwise</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-get_adapter"></a><div class="section">
-<h3 id="method-get-adapter-">Method <code>get_adapter()</code><a class="anchor" aria-label="anchor" href="#method-get-adapter-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-get_adapter"></a><div class="section">
+<h3 id="plotsystemregistry-get-adapter-"><code>PlotSystemRegistry$get_adapter()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-get-adapter-"></a></h3>
 <p>Get the adapter for a specific system</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">get_adapter</span><span class="op">(</span><span class="va">system_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>system_name</code></dt>
 <dd><p>Name of the system</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>Adapter instance</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-get_processor_factory"></a><div class="section">
-<h3 id="method-get-processor-factory-">Method <code>get_processor_factory()</code><a class="anchor" aria-label="anchor" href="#method-get-processor-factory-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-get_processor_factory"></a><div class="section">
+<h3 id="plotsystemregistry-get-processor-factory-"><code>PlotSystemRegistry$get_processor_factory()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-get-processor-factory-"></a></h3>
 <p>Get the processor factory for a specific system</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">get_processor_factory</span><span class="op">(</span><span class="va">system_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>system_name</code></dt>
 <dd><p>Name of the system</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>Processor factory instance</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-get_adapter_for_plot"></a><div class="section">
-<h3 id="method-get-adapter-for-plot-">Method <code>get_adapter_for_plot()</code><a class="anchor" aria-label="anchor" href="#method-get-adapter-for-plot-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-get_adapter_for_plot"></a><div class="section">
+<h3 id="plotsystemregistry-get-adapter-for-plot-"><code>PlotSystemRegistry$get_adapter_for_plot()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-get-adapter-for-plot-"></a></h3>
 <p>Get the adapter for a plot object (auto-detect system)</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">get_adapter_for_plot</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>Adapter instance</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-get_processor_factory_for_plot"></a><div class="section">
-<h3 id="method-get-processor-factory-for-plot-">Method <code>get_processor_factory_for_plot()</code><a class="anchor" aria-label="anchor" href="#method-get-processor-factory-for-plot-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-get_processor_factory_for_plot"></a><div class="section">
+<h3 id="plotsystemregistry-get-processor-factory-for-plot-"><code>PlotSystemRegistry$get_processor_factory_for_plot()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-get-processor-factory-for-plot-"></a></h3>
 <p>Get the processor factory for a plot object (auto-detect system)</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">get_processor_factory_for_plot</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>Processor factory instance</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-list_systems"></a><div class="section">
-<h3 id="method-list-systems-">Method <code>list_systems()</code><a class="anchor" aria-label="anchor" href="#method-list-systems-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-list_systems"></a><div class="section">
+<h3 id="plotsystemregistry-list-systems-"><code>PlotSystemRegistry$list_systems()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-list-systems-"></a></h3>
 <p>List all registered systems</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">list_systems</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>Character vector of registered system names</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-is_system_registered"></a><div class="section">
-<h3 id="method-is-system-registered-">Method <code>is_system_registered()</code><a class="anchor" aria-label="anchor" href="#method-is-system-registered-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-is_system_registered"></a><div class="section">
+<h3 id="plotsystemregistry-is-system-registered-"><code>PlotSystemRegistry$is_system_registered()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-is-system-registered-"></a></h3>
 <p>Check if a system is registered</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">is_system_registered</span><span class="op">(</span><span class="va">system_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>system_name</code></dt>
 <dd><p>Name of the system</p></dd>
 
 
 </dl><p></p></div>
-</div>
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>TRUE if registered, FALSE otherwise</p>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-unregister_system"></a><div class="section">
-<h3 id="method-unregister-system-">Method <code>unregister_system()</code><a class="anchor" aria-label="anchor" href="#method-unregister-system-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-unregister_system"></a><div class="section">
+<h3 id="plotsystemregistry-unregister-system-"><code>PlotSystemRegistry$unregister_system()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-unregister-system-"></a></h3>
 <p>Unregister a system</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">unregister_system</span><span class="op">(</span><span class="va">system_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>system_name</code></dt>
 <dd><p>Name of the system to unregister</p></dd>
@@ -337,14 +326,14 @@ and their associated adapters and processor factories.</p>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-PlotSystemRegistry-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+</div>
+
+<p></p><hr><a id="method-PlotSystemRegistry-clone"></a><div class="section">
+<h3 id="plotsystemregistry-clone-"><code>PlotSystemRegistry$clone()</code><a class="anchor" aria-label="anchor" href="#plotsystemregistry-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PlotSystemRegistry</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div>
-
-<div class="section">
+</div><p></p><div class="section">
 <h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
@@ -354,6 +343,7 @@ and their associated adapters and processor factories.</p>
 </div>
 
 </div>
+
 
     </div>
 

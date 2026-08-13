@@ -1,11 +1,5 @@
 # Base R Pie Chart Layer Processor
 
-Base R Pie Chart Layer Processor
-
-Base R Pie Chart Layer Processor
-
-## Details
-
 Processes Base R
 [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) layers based
 on recorded plot calls. A pie layer is 1-D and flat: one point per
@@ -15,8 +9,8 @@ are emitted here.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `BaseRPieLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`BaseRPieLayerProcessor`
 
 ## Methods
 
@@ -42,19 +36,22 @@ are emitted here.
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `BaseRPieLayerProcessor$process()`
 
 Process the pie layer
 
@@ -116,7 +113,7 @@ List with data, selectors, type, title and axes
 
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `BaseRPieLayerProcessor$needs_reordering()`
 
 Pie slices are emitted in drawing order (see extract_data)
 
@@ -130,7 +127,7 @@ FALSE
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `BaseRPieLayerProcessor$extract_data()`
 
 Extract one point per slice from the recorded call
 
@@ -150,7 +147,7 @@ Flat list of `list(x = <label>, y = <value>)` points
 
 ------------------------------------------------------------------------
 
-### Method `resolve_slice_labels()`
+### `BaseRPieLayerProcessor$resolve_slice_labels()`
 
 Resolve the per-slice labels the way pie() does
 
@@ -179,7 +176,7 @@ Character vector with one label per slice
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `BaseRPieLayerProcessor$generate_selectors()`
 
 Generate one selector per wedge, index-aligned to the data
 
@@ -211,7 +208,7 @@ List of CSS selector strings, one per slice
 
 ------------------------------------------------------------------------
 
-### Method `find_polygon_grobs()`
+### `BaseRPieLayerProcessor$find_polygon_grobs()`
 
 Recursively collect this plot's wedge polygon grob names
 
@@ -235,7 +232,7 @@ Character vector of grob names
 
 ------------------------------------------------------------------------
 
-### Method `extract_axis_titles()`
+### `BaseRPieLayerProcessor$extract_axis_titles()`
 
 Extract the axis titles for this layer
 
@@ -261,7 +258,7 @@ Canonical axes list
 
 ------------------------------------------------------------------------
 
-### Method `extract_main_title()`
+### `BaseRPieLayerProcessor$extract_main_title()`
 
 Extract the main title for this layer
 
@@ -281,7 +278,7 @@ Character scalar
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRPieLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

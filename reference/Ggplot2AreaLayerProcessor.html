@@ -265,10 +265,10 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2AreaLayerProcessor-process"><code>Ggplot2AreaLayerProcessor$process()</code></a></p></li>
-<li><p><a href="#method-Ggplot2AreaLayerProcessor-resolve_area_type"><code>Ggplot2AreaLayerProcessor$resolve_area_type()</code></a></p></li>
-<li><p><a href="#method-Ggplot2AreaLayerProcessor-extract_series"><code>Ggplot2AreaLayerProcessor$extract_series()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-generate_selectors"><code>Ggplot2AreaLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-band_polygon_names"><code>Ggplot2AreaLayerProcessor$band_polygon_names()</code></a></p></li>
+<li><p><a href="#method-Ggplot2AreaLayerProcessor-resolve_area_type"><code>Ggplot2AreaLayerProcessor$resolve_area_type()</code></a></p></li>
+<li><p><a href="#method-Ggplot2AreaLayerProcessor-extract_series"><code>Ggplot2AreaLayerProcessor$extract_series()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices"><code>Ggplot2AreaLayerProcessor$drop_alignment_vertices()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-source_x_values"><code>Ggplot2AreaLayerProcessor$source_x_values()</code></a></p></li>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-band_height"><code>Ggplot2AreaLayerProcessor$band_height()</code></a></p></li>
@@ -280,8 +280,8 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
 <li><p><a href="#method-Ggplot2AreaLayerProcessor-clone"><code>Ggplot2AreaLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href="LayerProcessor.html#method-get_layer_index"><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href="LayerProcessor.html#method-get_own_layer"><code>LayerProcessor$get_own_layer()</code></a></span></li>
@@ -302,7 +302,6 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="find_main_polyline_grob"><a href="Ggplot2LineLayerProcessor.html#method-find_main_polyline_grob"><code>Ggplot2LineLayerProcessor$find_main_polyline_grob()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="format_x_value"><a href="Ggplot2LineLayerProcessor.html#method-format_x_value"><code>Ggplot2LineLayerProcessor$format_x_value()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_multiline_selectors"><a href="Ggplot2LineLayerProcessor.html#method-generate_multiline_selectors"><code>Ggplot2LineLayerProcessor$generate_multiline_selectors()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href="Ggplot2LineLayerProcessor.html#method-generate_selectors"><code>Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href="Ggplot2LineLayerProcessor.html#method-generate_single_line_selector"><code>Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href="Ggplot2LineLayerProcessor.html#method-get_group_column"><code>Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href="Ggplot2LineLayerProcessor.html#method-get_layer"><code>Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
@@ -369,65 +368,6 @@ which is verified to give the same answer as <code>stat = "identity"</code>.</p>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-resolve_area_type"></a><div class="section">
-<h3 id="ggplot-arealayerprocessor-resolve-area-type-"><code>Ggplot2AreaLayerProcessor$resolve_area_type()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-resolve-area-type-"></a></h3>
-<p>Decide which of the three area types this layer is.</p>
-<p><code>position = "fill"</code> rescales every column to a common height, so a
-band's height is its share of that column and every column totals 1 by
-construction. Reading that as a plain stacked area would announce the
-shares as if they were values and imply the columns have equal totals,
-which is the one thing a filled chart is drawn to deny – the same
-distinction <code>stacked_normalized_bar</code> draws for bars.</p>
-<p>A single series has nothing stacked on it whatever its position, so it
-is a plain area: announcing a running total equal to the value at every
-point would be noise.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">resolve_area_type</span><span class="op">(</span><span class="va">plot</span>, <span class="va">series</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-      <dt><code>series</code></dt>
-<dd><p>The emitted series</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>One of "area", "stacked_area", "stacked_normalized_area"</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-extract_series"></a><div class="section">
-<h3 id="ggplot-arealayerprocessor-extract-series-"><code>Ggplot2AreaLayerProcessor$extract_series()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-extract-series-"></a></h3>
-<p>Build the MAIDR series for this layer.</p>
-<p>Emits each series' <strong>own</strong> value rather than the cumulative band top,
-because MAIDR's area trace sums the series to reach the running total
-and announces the two separately.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">extract_series</span><span class="op">(</span><span class="va">built</span>, <span class="va">layer_data</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>built</code></dt>
-<dd><p>Built plot data</p></dd>
-
-      <dt><code>layer_data</code></dt>
-<dd><p>This layer's computed rows</p></dd>
-
-      <dt><code>panel_id</code></dt>
-<dd><p>Panel ID for faceted plots (optional)</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>A list of series, each a list of MAIDR points</p>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-Ggplot2AreaLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-arealayerprocessor-generate-selectors-"><code>Ggplot2AreaLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-generate-selectors-"></a></h3>
 <p>One selector per band, so navigation highlights a band.</p>
@@ -446,7 +386,7 @@ exactly the shape that helper excludes.</p>
 <p>Emits nothing rather than a short or mispaired list, for the reason
 every processor here gives: the caller can tell an empty selector list
 apart from a wrong one, and a user cannot.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -454,7 +394,7 @@ apart from a wrong one, and a user cannot.</p><div class="section">
 <span>  n_series <span class="op">=</span> <span class="fl">0L</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -470,7 +410,7 @@ apart from a wrong one, and a user cannot.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>A list of selectors, one per band, or an empty list</p>
 </div>
 
@@ -485,18 +425,77 @@ prefix, so a theme element's own polygon – named after the element,
 not after grid's counter – cannot be collected as a band. Anchoring
 both ends is what keeps this from widening the way a <code>grepl</code> on a bare
 prefix would.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">band_polygon_names</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>A grob to walk</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>Character vector of grob names</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-resolve_area_type"></a><div class="section">
+<h3 id="ggplot-arealayerprocessor-resolve-area-type-"><code>Ggplot2AreaLayerProcessor$resolve_area_type()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-resolve-area-type-"></a></h3>
+<p>Decide which of the three area types this layer is.</p>
+<p><code>position = "fill"</code> rescales every column to a common height, so a
+band's height is its share of that column and every column totals 1 by
+construction. Reading that as a plain stacked area would announce the
+shares as if they were values and imply the columns have equal totals,
+which is the one thing a filled chart is drawn to deny – the same
+distinction <code>stacked_normalized_bar</code> draws for bars.</p>
+<p>A single series has nothing stacked on it whatever its position, so it
+is a plain area: announcing a running total equal to the value at every
+point would be noise.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">resolve_area_type</span><span class="op">(</span><span class="va">plot</span>, <span class="va">series</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>series</code></dt>
+<dd><p>The emitted series</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>One of "area", "stacked_area", "stacked_normalized_area"</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2AreaLayerProcessor-extract_series"></a><div class="section">
+<h3 id="ggplot-arealayerprocessor-extract-series-"><code>Ggplot2AreaLayerProcessor$extract_series()</code><a class="anchor" aria-label="anchor" href="#ggplot-arealayerprocessor-extract-series-"></a></h3>
+<p>Build the MAIDR series for this layer.</p>
+<p>Emits each series' <strong>own</strong> value rather than the cumulative band top,
+because MAIDR's area trace sums the series to reach the running total
+and announces the two separately.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2AreaLayerProcessor</span><span class="op">$</span><span class="fu">extract_series</span><span class="op">(</span><span class="va">built</span>, <span class="va">layer_data</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+      <dt><code>layer_data</code></dt>
+<dd><p>This layer's computed rows</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>A list of series, each a list of MAIDR points</p>
 </div>
 
 </div>
@@ -541,8 +540,7 @@ the other. The caller has an exact rule for that case.</p>
 <p>"Discrete" and "could not be read" are answered differently, because
 the caller must do different things with them. The integer rule that is
 exact for a discrete axis would silently drop the fractional rows of a
-continuous one, and an x mapped through an expression – <code>aes(x = year
-/ 2)</code>, say – resolves to no column and lands here while still being
+continuous one, and an x mapped through an expression – <code>aes(x = year / 2)</code>, say – resolves to no column and lands here while still being
 continuous. Collapsing the two into one NULL is how that axis loses
 half its data to a rule that was never about it.</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>

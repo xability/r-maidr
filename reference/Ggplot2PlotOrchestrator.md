@@ -60,7 +60,7 @@ the results into a comprehensive interactive plot.
 
 ### Public methods
 
-- [`Ggplot2PlotOrchestrator$new()`](#method-Ggplot2PlotOrchestrator-new)
+- [`Ggplot2PlotOrchestrator$new()`](#method-Ggplot2PlotOrchestrator-initialize)
 
 - [`Ggplot2PlotOrchestrator$detect_layers()`](#method-Ggplot2PlotOrchestrator-detect_layers)
 
@@ -108,15 +108,21 @@ the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `Ggplot2PlotOrchestrator$new()`
 
 #### Usage
 
     Ggplot2PlotOrchestrator$new(plot)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object being processed
+
 ------------------------------------------------------------------------
 
-### Method `detect_layers()`
+### `Ggplot2PlotOrchestrator$detect_layers()`
 
 #### Usage
 
@@ -124,7 +130,7 @@ the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `analyze_single_layer()`
+### `Ggplot2PlotOrchestrator$analyze_single_layer()`
 
 #### Usage
 
@@ -132,7 +138,7 @@ the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `determine_layer_type()`
+### `Ggplot2PlotOrchestrator$determine_layer_type()`
 
 #### Usage
 
@@ -140,7 +146,7 @@ the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `create_layer_processors()`
+### `Ggplot2PlotOrchestrator$create_layer_processors()`
 
 #### Usage
 
@@ -148,7 +154,7 @@ the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `create_layer_processor()`
+### `Ggplot2PlotOrchestrator$create_layer_processor()`
 
 #### Usage
 
@@ -156,7 +162,7 @@ the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `create_unified_layer_processor()`
+### `Ggplot2PlotOrchestrator$create_unified_layer_processor()`
 
 Unified layer processor creation - used by all plot types
 
@@ -176,7 +182,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `process_layers()`
+### `Ggplot2PlotOrchestrator$process_layers()`
 
 #### Usage
 
@@ -184,7 +190,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `extract_layout()`
+### `Ggplot2PlotOrchestrator$extract_layout()`
 
 #### Usage
 
@@ -192,7 +198,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `combine_layer_results()`
+### `Ggplot2PlotOrchestrator$combine_layer_results()`
 
 #### Usage
 
@@ -200,7 +206,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `generate_maidr_data()`
+### `Ggplot2PlotOrchestrator$generate_maidr_data()`
 
 #### Usage
 
@@ -208,7 +214,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `get_gtable()`
+### `Ggplot2PlotOrchestrator$get_gtable()`
 
 #### Usage
 
@@ -216,7 +222,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `get_layout()`
+### `Ggplot2PlotOrchestrator$get_layout()`
 
 #### Usage
 
@@ -224,7 +230,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `get_combined_data()`
+### `Ggplot2PlotOrchestrator$get_combined_data()`
 
 #### Usage
 
@@ -232,7 +238,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `get_layer_processors()`
+### `Ggplot2PlotOrchestrator$get_layer_processors()`
 
 #### Usage
 
@@ -240,7 +246,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `get_layers()`
+### `Ggplot2PlotOrchestrator$get_layers()`
 
 #### Usage
 
@@ -248,7 +254,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `is_patchwork_plot()`
+### `Ggplot2PlotOrchestrator$is_patchwork_plot()`
 
 Check if the plot is a patchwork composition
 
@@ -262,7 +268,7 @@ Logical indicating if the plot is a patchwork plot
 
 ------------------------------------------------------------------------
 
-### Method `is_faceted_plot()`
+### `Ggplot2PlotOrchestrator$is_faceted_plot()`
 
 Check if the plot is faceted
 
@@ -276,7 +282,7 @@ Logical indicating if the plot is faceted
 
 ------------------------------------------------------------------------
 
-### Method `process_faceted_plot()`
+### `Ggplot2PlotOrchestrator$process_faceted_plot()`
 
 Process a faceted plot using utility functions
 
@@ -290,7 +296,7 @@ NULL (sets internal state)
 
 ------------------------------------------------------------------------
 
-### Method `process_patchwork_plot()`
+### `Ggplot2PlotOrchestrator$process_patchwork_plot()`
 
 Process a patchwork multipanel plot using utility functions
 
@@ -304,7 +310,7 @@ NULL (sets internal state)
 
 ------------------------------------------------------------------------
 
-### Method `has_unsupported_layers()`
+### `Ggplot2PlotOrchestrator$has_unsupported_layers()`
 
 Check if any layers are unsupported (unknown type)
 
@@ -318,7 +324,7 @@ Logical indicating if there are unsupported layers
 
 ------------------------------------------------------------------------
 
-### Method `should_fallback()`
+### `Ggplot2PlotOrchestrator$should_fallback()`
 
 Determine if the plot should fall back to image rendering
 
@@ -332,7 +338,7 @@ Logical indicating if fallback should be used
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2PlotOrchestrator$clone()`
 
 The objects of this class are cloneable with this method.
 

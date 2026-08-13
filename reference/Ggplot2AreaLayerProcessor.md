@@ -57,13 +57,13 @@ which is verified to give the same answer as `stat = "identity"`.
 
 - [`Ggplot2AreaLayerProcessor$process()`](#method-Ggplot2AreaLayerProcessor-process)
 
-- [`Ggplot2AreaLayerProcessor$resolve_area_type()`](#method-Ggplot2AreaLayerProcessor-resolve_area_type)
-
-- [`Ggplot2AreaLayerProcessor$extract_series()`](#method-Ggplot2AreaLayerProcessor-extract_series)
-
 - [`Ggplot2AreaLayerProcessor$generate_selectors()`](#method-Ggplot2AreaLayerProcessor-generate_selectors)
 
 - [`Ggplot2AreaLayerProcessor$band_polygon_names()`](#method-Ggplot2AreaLayerProcessor-band_polygon_names)
+
+- [`Ggplot2AreaLayerProcessor$resolve_area_type()`](#method-Ggplot2AreaLayerProcessor-resolve_area_type)
+
+- [`Ggplot2AreaLayerProcessor$extract_series()`](#method-Ggplot2AreaLayerProcessor-extract_series)
 
 - [`Ggplot2AreaLayerProcessor$drop_alignment_vertices()`](#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices)
 
@@ -87,8 +87,8 @@ Inherited methods
 
 - [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
 - [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
 - [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
 - [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
@@ -109,7 +109,6 @@ Inherited methods
 - [`Ggplot2LineLayerProcessor$find_main_polyline_grob()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-find_main_polyline_grob)
 - [`Ggplot2LineLayerProcessor$format_x_value()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-format_x_value)
 - [`Ggplot2LineLayerProcessor$generate_multiline_selectors()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-generate_multiline_selectors)
-- [`Ggplot2LineLayerProcessor$generate_selectors()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-generate_selectors)
 - [`Ggplot2LineLayerProcessor$generate_single_line_selector()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-generate_single_line_selector)
 - [`Ggplot2LineLayerProcessor$get_group_column()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-get_group_column)
 - [`Ggplot2LineLayerProcessor$get_layer()`](https://r.maidr.ai/reference/Ggplot2LineLayerProcessor.html#method-get_layer)
@@ -184,73 +183,6 @@ Process the area layer.
 #### Returns
 
 List with data, axes and type
-
-------------------------------------------------------------------------
-
-### `Ggplot2AreaLayerProcessor$resolve_area_type()`
-
-Decide which of the three area types this layer is.
-
-`position = "fill"` rescales every column to a common height, so a
-band's height is its share of that column and every column totals 1 by
-construction. Reading that as a plain stacked area would announce the
-shares as if they were values and imply the columns have equal totals,
-which is the one thing a filled chart is drawn to deny – the same
-distinction `stacked_normalized_bar` draws for bars.
-
-A single series has nothing stacked on it whatever its position, so it
-is a plain area: announcing a running total equal to the value at every
-point would be noise.
-
-#### Usage
-
-    Ggplot2AreaLayerProcessor$resolve_area_type(plot, series)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object
-
-- `series`:
-
-  The emitted series
-
-#### Returns
-
-One of "area", "stacked_area", "stacked_normalized_area"
-
-------------------------------------------------------------------------
-
-### `Ggplot2AreaLayerProcessor$extract_series()`
-
-Build the MAIDR series for this layer.
-
-Emits each series' **own** value rather than the cumulative band top,
-because MAIDR's area trace sums the series to reach the running total
-and announces the two separately.
-
-#### Usage
-
-    Ggplot2AreaLayerProcessor$extract_series(built, layer_data, panel_id = NULL)
-
-#### Arguments
-
-- `built`:
-
-  Built plot data
-
-- `layer_data`:
-
-  This layer's computed rows
-
-- `panel_id`:
-
-  Panel ID for faceted plots (optional)
-
-#### Returns
-
-A list of series, each a list of MAIDR points
 
 ------------------------------------------------------------------------
 
@@ -334,6 +266,73 @@ would.
 #### Returns
 
 Character vector of grob names
+
+------------------------------------------------------------------------
+
+### `Ggplot2AreaLayerProcessor$resolve_area_type()`
+
+Decide which of the three area types this layer is.
+
+`position = "fill"` rescales every column to a common height, so a
+band's height is its share of that column and every column totals 1 by
+construction. Reading that as a plain stacked area would announce the
+shares as if they were values and imply the columns have equal totals,
+which is the one thing a filled chart is drawn to deny – the same
+distinction `stacked_normalized_bar` draws for bars.
+
+A single series has nothing stacked on it whatever its position, so it
+is a plain area: announcing a running total equal to the value at every
+point would be noise.
+
+#### Usage
+
+    Ggplot2AreaLayerProcessor$resolve_area_type(plot, series)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `series`:
+
+  The emitted series
+
+#### Returns
+
+One of "area", "stacked_area", "stacked_normalized_area"
+
+------------------------------------------------------------------------
+
+### `Ggplot2AreaLayerProcessor$extract_series()`
+
+Build the MAIDR series for this layer.
+
+Emits each series' **own** value rather than the cumulative band top,
+because MAIDR's area trace sums the series to reach the running total
+and announces the two separately.
+
+#### Usage
+
+    Ggplot2AreaLayerProcessor$extract_series(built, layer_data, panel_id = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `layer_data`:
+
+  This layer's computed rows
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+A list of series, each a list of MAIDR points
 
 ------------------------------------------------------------------------
 

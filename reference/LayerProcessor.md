@@ -1,11 +1,5 @@
 # Abstract Layer Processor Interface
 
-Abstract Layer Processor Interface
-
-Abstract Layer Processor Interface
-
-## Details
-
 This is the abstract base class for all layer processors. It defines the
 interface that all layer processors must implement.
 
@@ -23,7 +17,7 @@ interface that all layer processors must implement.
 
 ### Public methods
 
-- [`LayerProcessor$new()`](#method-LayerProcessor-new)
+- [`LayerProcessor$new()`](#method-LayerProcessor-initialize)
 
 - [`LayerProcessor$process()`](#method-LayerProcessor-process)
 
@@ -59,7 +53,7 @@ interface that all layer processors must implement.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `LayerProcessor$new()`
 
 Initialize the layer processor
 
@@ -75,7 +69,7 @@ Initialize the layer processor
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `LayerProcessor$process()`
 
 Process the layer (MUST be implemented by subclasses)
 
@@ -127,7 +121,7 @@ List with data and selectors
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `LayerProcessor$extract_data()`
 
 Extract data from the layer (MUST be implemented by subclasses)
 
@@ -155,7 +149,7 @@ Extracted data
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `LayerProcessor$generate_selectors()`
 
 Generate selectors for the layer (MUST be implemented by subclasses)
 
@@ -192,7 +186,7 @@ List of selectors
 
 ------------------------------------------------------------------------
 
-### Method `get_layer_built_data()`
+### `LayerProcessor$get_layer_built_data()`
 
 Read this layer's rows out of the built plot.
 
@@ -220,7 +214,7 @@ A data frame of computed aesthetics, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_own_layer()`
+### `LayerProcessor$get_own_layer()`
 
 Resolve the plot layer this processor was built for.
 
@@ -292,7 +286,7 @@ The matching grob, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `LayerProcessor$needs_reordering()`
 
 Check if this layer needs reordering (OPTIONAL - default: FALSE)
 
@@ -306,7 +300,7 @@ Logical indicating if reordering is needed
 
 ------------------------------------------------------------------------
 
-### Method `reorder_layer_data()`
+### `LayerProcessor$reorder_layer_data()`
 
 Reorder layer data (OPTIONAL - default: no-op)
 
@@ -330,7 +324,7 @@ Reordered data
 
 ------------------------------------------------------------------------
 
-### Method `augment_plot()`
+### `LayerProcessor$augment_plot()`
 
 Augment the plot before building (OPTIONAL - default: no-op)
 
@@ -354,7 +348,7 @@ The (possibly augmented) ggplot2 object
 
 ------------------------------------------------------------------------
 
-### Method `needs_augmentation()`
+### `LayerProcessor$needs_augmentation()`
 
 Check if this processor needs to augment the plot
 
@@ -368,7 +362,7 @@ Logical
 
 ------------------------------------------------------------------------
 
-### Method `get_layer_index()`
+### `LayerProcessor$get_layer_index()`
 
 Get layer index
 
@@ -382,7 +376,7 @@ Layer index
 
 ------------------------------------------------------------------------
 
-### Method `set_last_result()`
+### `LayerProcessor$set_last_result()`
 
 Store the last processed result (used by orchestrator)
 
@@ -398,7 +392,7 @@ Store the last processed result (used by orchestrator)
 
 ------------------------------------------------------------------------
 
-### Method `get_last_result()`
+### `LayerProcessor$get_last_result()`
 
 Get the last processed result
 
@@ -412,7 +406,7 @@ The last result
 
 ------------------------------------------------------------------------
 
-### Method `extract_layer_axes()`
+### `LayerProcessor$extract_layer_axes()`
 
 Extract axes labels for this specific layer
 
@@ -442,7 +436,7 @@ Named list with `x` and `y` AxisConfig objects
 
 ------------------------------------------------------------------------
 
-### Method [`apply_scale_mapping()`](https://r.maidr.ai/reference/apply_scale_mapping.md)
+### `LayerProcessor$apply_scale_mapping()`
 
 Apply scale mapping to numeric values
 
@@ -466,7 +460,7 @@ Mapped values
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `LayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

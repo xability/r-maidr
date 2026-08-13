@@ -9,7 +9,3 @@ processing by the MAIDR system.
 ``` r
 .maidr_patching_env
 ```
-
-## Format
-
-An object of class `environment` of length 5.

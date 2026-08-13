@@ -25,7 +25,7 @@ An R6 class
 
 ------------------------------------------------------------------------
 
-### Method `create_processor()`
+### `ProcessorFactory$create_processor()`
 
 Abstract method to create a processor for a specific plot type
 
@@ -49,7 +49,7 @@ Processor instance for the specified plot type
 
 ------------------------------------------------------------------------
 
-### Method `get_supported_types()`
+### `ProcessorFactory$get_supported_types()`
 
 Abstract method to get list of supported plot types
 
@@ -63,7 +63,7 @@ Character vector of supported plot types
 
 ------------------------------------------------------------------------
 
-### Method `supports_plot_type()`
+### `ProcessorFactory$supports_plot_type()`
 
 Check if a plot type is supported by this factory
 
@@ -83,7 +83,7 @@ TRUE if supported, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `get_system_name()`
+### `ProcessorFactory$get_system_name()`
 
 Get system name (should be overridden by subclasses)
 
@@ -97,7 +97,7 @@ System name string
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `ProcessorFactory$clone()`
 
 The objects of this class are cloneable with this method.
 

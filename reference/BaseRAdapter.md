@@ -9,14 +9,14 @@ An R6 class inheriting from SystemAdapter
 
 ## Super class
 
-[`maidr::SystemAdapter`](https://r.maidr.ai/reference/SystemAdapter.md)
--\> `BaseRAdapter`
+[`SystemAdapter`](https://r.maidr.ai/reference/SystemAdapter.md) -\>
+`BaseRAdapter`
 
 ## Methods
 
 ### Public methods
 
-- [`BaseRAdapter$new()`](#method-BaseRAdapter-new)
+- [`BaseRAdapter$new()`](#method-BaseRAdapter-initialize)
 
 - [`BaseRAdapter$can_handle()`](#method-BaseRAdapter-can_handle)
 
@@ -50,7 +50,7 @@ An R6 class inheriting from SystemAdapter
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `BaseRAdapter$new()`
 
 Initialize the Base R adapter
 
@@ -60,7 +60,7 @@ Initialize the Base R adapter
 
 ------------------------------------------------------------------------
 
-### Method `can_handle()`
+### `BaseRAdapter$can_handle()`
 
 Check if this adapter can handle a plot object
 
@@ -80,7 +80,7 @@ TRUE if Base R plotting is active, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `detect_layer_type()`
+### `BaseRAdapter$detect_layer_type()`
 
 Detect the type of a single layer from Base R plot calls
 
@@ -105,7 +105,7 @@ String indicating the layer type (e.g., "bar", "dodged_bar",
 
 ------------------------------------------------------------------------
 
-### Method `is_dodged_barplot()`
+### `BaseRAdapter$is_dodged_barplot()`
 
 Check if a barplot call represents a dodged bar plot
 
@@ -125,7 +125,7 @@ TRUE if this is a dodged bar plot, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `is_stacked_barplot()`
+### `BaseRAdapter$is_stacked_barplot()`
 
 Check if a barplot call represents a stacked bar plot
 
@@ -145,7 +145,7 @@ TRUE if this is a stacked bar plot, FALSE otherwise
 
 ------------------------------------------------------------------------
 
-### Method `is_normalized_barplot()`
+### `BaseRAdapter$is_normalized_barplot()`
 
 Check if a barplot call draws a 100% stacked bar
 
@@ -184,7 +184,7 @@ TRUE if every column of the height matrix sums to 1
 
 ------------------------------------------------------------------------
 
-### Method `create_orchestrator()`
+### `BaseRAdapter$create_orchestrator()`
 
 Create an orchestrator for this system (Base R)
 
@@ -204,7 +204,7 @@ PlotOrchestrator instance
 
 ------------------------------------------------------------------------
 
-### Method `get_system_name()`
+### `BaseRAdapter$get_system_name()`
 
 Get the system name
 
@@ -218,7 +218,7 @@ System name string
 
 ------------------------------------------------------------------------
 
-### Method `get_adapter()`
+### `BaseRAdapter$get_adapter()`
 
 Get a reference to this adapter (for use by orchestrator)
 
@@ -232,7 +232,7 @@ Self reference
 
 ------------------------------------------------------------------------
 
-### Method `has_facets()`
+### `BaseRAdapter$has_facets()`
 
 Check if plot has facets (Base R doesn't support facets)
 
@@ -252,7 +252,7 @@ FALSE (Base R doesn't support facets)
 
 ------------------------------------------------------------------------
 
-### Method `is_patchwork()`
+### `BaseRAdapter$is_patchwork()`
 
 Check if plot is a patchwork plot (Base R doesn't support patchwork)
 
@@ -272,7 +272,7 @@ FALSE (Base R doesn't support patchwork)
 
 ------------------------------------------------------------------------
 
-### Method [`get_plot_calls()`](https://r.maidr.ai/reference/get_plot_calls.md)
+### `BaseRAdapter$get_plot_calls()`
 
 Get recorded plot calls for processing
 
@@ -292,7 +292,7 @@ List of recorded plot calls
 
 ------------------------------------------------------------------------
 
-### Method [`clear_plot_calls()`](https://r.maidr.ai/reference/clear_plot_calls.md)
+### `BaseRAdapter$clear_plot_calls()`
 
 Clear recorded plot calls (for cleanup)
 
@@ -308,7 +308,7 @@ Clear recorded plot calls (for cleanup)
 
 ------------------------------------------------------------------------
 
-### Method `initialize_patching()`
+### `BaseRAdapter$initialize_patching()`
 
 Initialize function patching
 
@@ -322,7 +322,7 @@ NULL (invisible)
 
 ------------------------------------------------------------------------
 
-### Method `restore_functions()`
+### `BaseRAdapter$restore_functions()`
 
 Restore original functions
 
@@ -336,7 +336,7 @@ NULL (invisible)
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRAdapter$clone()`
 
 The objects of this class are cloneable with this method.
 

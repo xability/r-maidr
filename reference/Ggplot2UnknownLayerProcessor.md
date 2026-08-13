@@ -4,8 +4,8 @@ Handles unsupported layer types gracefully by returning empty data
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2UnknownLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2UnknownLayerProcessor`
 
 ## Methods
 
@@ -21,20 +21,23 @@ Handles unsupported layer types gracefully by returning empty data
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2UnknownLayerProcessor$process()`
 
 #### Usage
 
@@ -49,9 +52,39 @@ Inherited methods
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2UnknownLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -61,9 +94,23 @@ Inherited methods
       scale_mapping = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2UnknownLayerProcessor$generate_selectors()`
 
 #### Usage
 
@@ -74,9 +121,27 @@ Inherited methods
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2UnknownLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

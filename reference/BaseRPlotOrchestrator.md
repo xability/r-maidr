@@ -60,7 +60,7 @@ combines the results into a comprehensive interactive plot.
 
 ### Public methods
 
-- [`BaseRPlotOrchestrator$new()`](#method-BaseRPlotOrchestrator-new)
+- [`BaseRPlotOrchestrator$new()`](#method-BaseRPlotOrchestrator-initialize)
 
 - [`BaseRPlotOrchestrator$detect_layers()`](#method-BaseRPlotOrchestrator-detect_layers)
 
@@ -114,7 +114,7 @@ combines the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `new()`
+### `BaseRPlotOrchestrator$new()`
 
 #### Usage
 
@@ -122,7 +122,7 @@ combines the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `detect_layers()`
+### `BaseRPlotOrchestrator$detect_layers()`
 
 #### Usage
 
@@ -130,7 +130,7 @@ combines the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `analyze_single_layer()`
+### `BaseRPlotOrchestrator$analyze_single_layer()`
 
 #### Usage
 
@@ -142,7 +142,7 @@ combines the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `create_layer_processors()`
+### `BaseRPlotOrchestrator$create_layer_processors()`
 
 #### Usage
 
@@ -150,7 +150,7 @@ combines the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `create_layer_processor()`
+### `BaseRPlotOrchestrator$create_layer_processor()`
 
 #### Usage
 
@@ -158,7 +158,7 @@ combines the results into a comprehensive interactive plot.
 
 ------------------------------------------------------------------------
 
-### Method `create_unified_layer_processor()`
+### `BaseRPlotOrchestrator$create_unified_layer_processor()`
 
 Unified layer processor creation - used by all plot types
 
@@ -178,7 +178,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `process_layers()`
+### `BaseRPlotOrchestrator$process_layers()`
 
 #### Usage
 
@@ -186,7 +186,7 @@ Layer processor instance
 
 ------------------------------------------------------------------------
 
-### Method `extract_format_config_from_axis_calls()`
+### `BaseRPlotOrchestrator$extract_format_config_from_axis_calls()`
 
 Extract Format Configuration from axis() Calls
 
@@ -204,7 +204,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `extract_layout()`
+### `BaseRPlotOrchestrator$extract_layout()`
 
 #### Usage
 
@@ -212,7 +212,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `combine_layer_results()`
+### `BaseRPlotOrchestrator$combine_layer_results()`
 
 #### Usage
 
@@ -220,7 +220,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `generate_maidr_data()`
+### `BaseRPlotOrchestrator$generate_maidr_data()`
 
 #### Usage
 
@@ -228,7 +228,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_layout()`
+### `BaseRPlotOrchestrator$get_layout()`
 
 #### Usage
 
@@ -236,7 +236,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_combined_data()`
+### `BaseRPlotOrchestrator$get_combined_data()`
 
 #### Usage
 
@@ -244,7 +244,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_layer_processors()`
+### `BaseRPlotOrchestrator$get_layer_processors()`
 
 #### Usage
 
@@ -252,7 +252,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_layers()`
+### `BaseRPlotOrchestrator$get_layers()`
 
 #### Usage
 
@@ -260,7 +260,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method [`get_plot_calls()`](https://r.maidr.ai/reference/get_plot_calls.md)
+### `BaseRPlotOrchestrator$get_plot_calls()`
 
 #### Usage
 
@@ -268,7 +268,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_gtable()`
+### `BaseRPlotOrchestrator$get_gtable()`
 
 #### Usage
 
@@ -276,7 +276,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `get_grob_for_layer()`
+### `BaseRPlotOrchestrator$get_grob_for_layer()`
 
 #### Usage
 
@@ -284,7 +284,7 @@ A list with x and/or y format configurations, or NULL
 
 ------------------------------------------------------------------------
 
-### Method `unsupported_layer_flags()`
+### `BaseRPlotOrchestrator$unsupported_layer_flags()`
 
 Flag each detected layer maidr cannot process
 
@@ -303,7 +303,7 @@ Logical vector, one entry per detected layer
 
 ------------------------------------------------------------------------
 
-### Method `has_unsupported_layers()`
+### `BaseRPlotOrchestrator$has_unsupported_layers()`
 
 Check if any HIGH-level layers are unsupported (unknown type)
 
@@ -317,7 +317,7 @@ Logical indicating if there are unsupported layers
 
 ------------------------------------------------------------------------
 
-### Method `unsupported_group_indices()`
+### `BaseRPlotOrchestrator$unsupported_group_indices()`
 
 Plot groups holding a layer maidr cannot process
 
@@ -331,7 +331,7 @@ Integer vector of plot-group indices, in ascending order
 
 ------------------------------------------------------------------------
 
-### Method `resolve_fallback_scope()`
+### `BaseRPlotOrchestrator$resolve_fallback_scope()`
 
 Work out how far an unsupported layer reaches
 
@@ -354,7 +354,7 @@ Invisible NULL; the scope is cached on the orchestrator
 
 ------------------------------------------------------------------------
 
-### Method `is_group_scoped_out()`
+### `BaseRPlotOrchestrator$is_group_scoped_out()`
 
 Check whether a plot group is scoped out of the payload
 
@@ -374,7 +374,7 @@ TRUE when the group's panel falls back on its own
 
 ------------------------------------------------------------------------
 
-### Method `fallback_panels()`
+### `BaseRPlotOrchestrator$fallback_panels()`
 
 Panels rendered without accessible data
 
@@ -389,7 +389,7 @@ renders normally or falls back as a whole
 
 ------------------------------------------------------------------------
 
-### Method `should_fallback()`
+### `BaseRPlotOrchestrator$should_fallback()`
 
 Determine if the plot should fall back to image rendering
 
@@ -403,7 +403,7 @@ Logical indicating if fallback should be used
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRPlotOrchestrator$clone()`
 
 The objects of this class are cloneable with this method.
 

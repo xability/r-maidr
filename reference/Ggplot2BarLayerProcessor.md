@@ -1,17 +1,11 @@
 # Bar Layer Processor
 
-Bar Layer Processor
-
-Bar Layer Processor
-
-## Details
-
 Processes bar plot layers with complete logic included
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2BarLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2BarLayerProcessor`
 
 ## Methods
 
@@ -39,18 +33,21 @@ Processes bar plot layers with complete logic included
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2BarLayerProcessor$process()`
 
 #### Usage
 
@@ -65,9 +62,39 @@ Inherited methods
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `Ggplot2BarLayerProcessor$needs_reordering()`
 
 #### Usage
 
@@ -75,15 +102,25 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
-### Method `reorder_layer_data()`
+### `Ggplot2BarLayerProcessor$reorder_layer_data()`
 
 #### Usage
 
     Ggplot2BarLayerProcessor$reorder_layer_data(data, plot)
 
+#### Arguments
+
+- `data`:
+
+  data.frame effective for this layer
+
+- `plot`:
+
+  full ggplot object (for mappings)
+
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2BarLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -94,9 +131,23 @@ Inherited methods
       panel_id = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
 ------------------------------------------------------------------------
 
-### Method `format_x_value()`
+### `Ggplot2BarLayerProcessor$format_x_value()`
 
 Format an x-axis value as character.
 
@@ -114,7 +165,7 @@ from the same Date column align string-wise.
 
 ------------------------------------------------------------------------
 
-### Method `panel_x_is_discrete()`
+### `Ggplot2BarLayerProcessor$panel_x_is_discrete()`
 
 Does this panel draw x on a discrete scale?
 
@@ -145,7 +196,7 @@ TRUE for a discrete x scale
 
 ------------------------------------------------------------------------
 
-### Method `map_discrete_x()`
+### `Ggplot2BarLayerProcessor$map_discrete_x()`
 
 Label discrete built positions with this panel's breaks.
 
@@ -169,7 +220,7 @@ Character vector of x labels
 
 ------------------------------------------------------------------------
 
-### Method `map_continuous_x()`
+### `Ggplot2BarLayerProcessor$map_continuous_x()`
 
 Recover user-facing x values for a non-discrete scale.
 
@@ -203,7 +254,7 @@ Character vector of x labels
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2BarLayerProcessor$generate_selectors()`
 
 #### Usage
 
@@ -214,9 +265,27 @@ Character vector of x labels
       panel_ctx = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2BarLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

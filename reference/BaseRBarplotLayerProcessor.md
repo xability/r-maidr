@@ -1,17 +1,11 @@
 # Base R Bar Plot Layer Processor
 
-Base R Bar Plot Layer Processor
-
-Base R Bar Plot Layer Processor
-
-## Details
-
 Processes Base R bar plot layers based on recorded plot calls
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `BaseRBarplotLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`BaseRBarplotLayerProcessor`
 
 ## Methods
 
@@ -39,19 +33,22 @@ Processes Base R bar plot layers based on recorded plot calls
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `BaseRBarplotLayerProcessor$process()`
 
 #### Usage
 
@@ -67,9 +64,39 @@ Inherited methods
       layer_info = NULL
     )
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layout`:
+
+  Layout information
+
+- `built`:
+
+  Built plot data (optional)
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `scale_mapping`:
+
+  Scale mapping for faceted plots (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
 ------------------------------------------------------------------------
 
-### Method `is_horizontal()`
+### `BaseRBarplotLayerProcessor$is_horizontal()`
 
 Check whether this barplot call used horiz = TRUE
 
@@ -89,7 +116,7 @@ Logical
 
 ------------------------------------------------------------------------
 
-### Method `needs_reordering()`
+### `BaseRBarplotLayerProcessor$needs_reordering()`
 
 #### Usage
 
@@ -97,7 +124,7 @@ Logical
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `BaseRBarplotLayerProcessor$extract_data()`
 
 #### Usage
 
@@ -105,7 +132,7 @@ Logical
 
 ------------------------------------------------------------------------
 
-### Method `extract_axis_titles()`
+### `BaseRBarplotLayerProcessor$extract_axis_titles()`
 
 #### Usage
 
@@ -113,7 +140,7 @@ Logical
 
 ------------------------------------------------------------------------
 
-### Method `extract_main_title()`
+### `BaseRBarplotLayerProcessor$extract_main_title()`
 
 #### Usage
 
@@ -121,15 +148,21 @@ Logical
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `BaseRBarplotLayerProcessor$generate_selectors()`
 
 #### Usage
 
     BaseRBarplotLayerProcessor$generate_selectors(layer_info, gt = NULL)
 
+#### Arguments
+
+- `gt`:
+
+  Gtable object (optional)
+
 ------------------------------------------------------------------------
 
-### Method `find_rect_grobs()`
+### `BaseRBarplotLayerProcessor$find_rect_grobs()`
 
 Recursively find rect grobs in the grob tree (like ggplot2 does)
 
@@ -153,7 +186,7 @@ Character vector of grob names
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors_from_grob()`
+### `BaseRBarplotLayerProcessor$generate_selectors_from_grob()`
 
 Generate selectors from grob tree (like ggplot2 does)
 
@@ -177,7 +210,7 @@ List of selectors
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `BaseRBarplotLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 
