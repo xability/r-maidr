@@ -145,6 +145,10 @@
 <p></p><ul><li><p><a href="#method-Ggplot2HeatmapLayerProcessor-process"><code>Ggplot2HeatmapLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-needs_reordering"><code>Ggplot2HeatmapLayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data"><code>Ggplot2HeatmapLayerProcessor$reorder_layer_data()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-is_binned_layer"><code>Ggplot2HeatmapLayerProcessor$is_binned_layer()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-extract_binned_data"><code>Ggplot2HeatmapLayerProcessor$extract_binned_data()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-format_bin_edge"><code>Ggplot2HeatmapLayerProcessor$format_bin_edge()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HeatmapLayerProcessor-bin_labels"><code>Ggplot2HeatmapLayerProcessor$bin_labels()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-extract_data"><code>Ggplot2HeatmapLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-generate_selectors"><code>Ggplot2HeatmapLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HeatmapLayerProcessor-clone"><code>Ggplot2HeatmapLayerProcessor$clone()</code></a></p></li>
@@ -230,13 +234,125 @@
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-is_binned_layer"></a><div class="section">
+<h3 id="ggplot-heatmaplayerprocessor-is-binned-layer-"><code>Ggplot2HeatmapLayerProcessor$is_binned_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-is-binned-layer-"></a></h3>
+<p>Report whether this layer's grid was computed by a stat.</p>
+<p><code><a href="https://ggplot2.tidyverse.org/reference/geom_bin_2d.html" class="external-link">geom_bin_2d()</a></code> is <code>GeomTile</code> + <code>StatBin2d</code>, so it arrives here
+classified as a heatmap – correctly, since a rectangular bin grid
+is one. What differs is where the grid comes from: a <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code>
+heatmap is handed one in <code>plot$data</code>, and a binned one has its
+computed for it.</p>
+<p>Matched on the stat rather than on the presence of a <code>count</code>
+column, because a tidy heatmap whose value column happens to be
+named <code>count</code> is not a binned layer and must not take that path.
+Reached through <code>get_own_layer()</code>, which already answers "is there
+a layer at my index?" – a second bounds check here would be a
+second place for the answer to change.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">is_binned_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p><code>TRUE</code> when the layer's stat computes a 2D bin grid</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-extract_binned_data"></a><div class="section">
+<h3 id="ggplot-heatmaplayerprocessor-extract-binned-data-"><code>Ggplot2HeatmapLayerProcessor$extract_binned_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-extract-binned-data-"></a></h3>
+<p>Read a computed 2D bin grid out of the built data.</p>
+<p>The built data <em>is</em> the grid: one row per drawn tile, carrying the
+bin's count and its edges. Only the bins that hold something are
+present, so the full rectangle is rebuilt from the distinct
+positions and the empty cells left missing rather than scored zero
+– an empty bin genuinely counted nothing, but the frontend reads a
+zero as "no rect here" for highlighting, and every cell of a
+heatmap has one.</p>
+<p>Axis labels are the bin's coordinate <em>range</em>, not its index: "a
+count of 4" means nothing without "between -2.2 and -1.1", and the
+range is what a sighted reader gets from the axis (#136).</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">extract_binned_data</span><span class="op">(</span><span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built_data</code></dt>
+<dd><p>This layer's computed data, already panel-filtered</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>The same shape <code>extract_data</code> returns for a tidy heatmap</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-format_bin_edge"></a><div class="section">
+<h3 id="ggplot-heatmaplayerprocessor-format-bin-edge-"><code>Ggplot2HeatmapLayerProcessor$format_bin_edge()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-format-bin-edge-"></a></h3>
+<p>Render one bin edge as a short, readable number.</p>
+<p>Bin edges are floating point and print at full precision by
+default – "-1.1076174999999999 to 1.1076180000000001e-07" is an
+announcement nobody can hold in their head. Rounded to a few
+significant figures, and trimmed, so the label reads as a
+coordinate rather than as a machine number.</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">format_bin_edge</span><span class="op">(</span><span class="va">value</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>value</code></dt>
+<dd><p>A single numeric bin edge or centre</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>A length-1 character string</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-bin_labels"></a><div class="section">
+<h3 id="ggplot-heatmaplayerprocessor-bin-labels-"><code>Ggplot2HeatmapLayerProcessor$bin_labels()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-bin-labels-"></a></h3>
+<p>Label each bin by the range it covers.</p>
+<p><code>xmin</code>/<code>xmax</code> are computed alongside the count, so the range costs
+nothing to report and is the only thing that makes the count
+meaningful. Falls back to the bin centre when the edges are absent,
+which is still a coordinate rather than an index.</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">bin_labels</span><span class="op">(</span><span class="va">built_data</span>, <span class="va">positions</span>, <span class="va">axis</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built_data</code></dt>
+<dd><p>This layer's computed data</p></dd>
+
+      <dt><code>positions</code></dt>
+<dd><p>The distinct bin centres, sorted</p></dd>
+
+      <dt><code>axis</code></dt>
+<dd><p><code>"x"</code> or <code>"y"</code></p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>Character labels, one per position, in the same order</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-heatmaplayerprocessor-extract-data-"><code>Ggplot2HeatmapLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-extract-data-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -252,14 +368,14 @@
 <p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-heatmaplayerprocessor-generate-selectors-"><code>Ggplot2HeatmapLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-generate-selectors-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -278,10 +394,10 @@
 <p></p><hr><a id="method-Ggplot2HeatmapLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-heatmaplayerprocessor-clone-"><code>Ggplot2HeatmapLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-heatmaplayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HeatmapLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
