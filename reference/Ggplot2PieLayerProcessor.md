@@ -1,11 +1,5 @@
 # Pie Layer Processor
 
-Pie Layer Processor
-
-Pie Layer Processor
-
-## Details
-
 Processes the ggplot2 idiom for a pie chart: a
 [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) /
 [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
@@ -26,8 +20,8 @@ stacked / dodged as before.
 
 ## Super class
 
-[`maidr::LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md)
--\> `Ggplot2PieLayerProcessor`
+[`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
+`Ggplot2PieLayerProcessor`
 
 ## Methods
 
@@ -51,26 +45,37 @@ stacked / dodged as before.
 
 - [`Ggplot2PieLayerProcessor$generate_selectors()`](#method-Ggplot2PieLayerProcessor-generate_selectors)
 
-- [`Ggplot2PieLayerProcessor$find_polygon_grob()`](#method-Ggplot2PieLayerProcessor-find_polygon_grob)
+- [`Ggplot2PieLayerProcessor$layer_slot_grob()`](#method-Ggplot2PieLayerProcessor-layer_slot_grob)
+
+- [`Ggplot2PieLayerProcessor$sole_wedge_container()`](#method-Ggplot2PieLayerProcessor-sole_wedge_container)
+
+- [`Ggplot2PieLayerProcessor$collect_polygon_grobs()`](#method-Ggplot2PieLayerProcessor-collect_polygon_grobs)
+
+- [`Ggplot2PieLayerProcessor$find_own_polygon_grob()`](#method-Ggplot2PieLayerProcessor-find_own_polygon_grob)
+
+- [`Ggplot2PieLayerProcessor$holds_polygon()`](#method-Ggplot2PieLayerProcessor-holds_polygon)
 
 - [`Ggplot2PieLayerProcessor$clone()`](#method-Ggplot2PieLayerProcessor-clone)
 
 Inherited methods
 
-- [`maidr::LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
-- [`maidr::LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
-- [`maidr::LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`maidr::LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
-- [`maidr::LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
-- [`maidr::LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
-- [`maidr::LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
-- [`maidr::LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
-- [`maidr::LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
-- [`maidr::LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
+- [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
+- [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
+- [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
+- [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
+- [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
+- [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
+- [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_reordering)
+- [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 
 ------------------------------------------------------------------------
 
-### Method `process()`
+### `Ggplot2PieLayerProcessor$process()`
 
 Process the pie layer
 
@@ -127,7 +132,7 @@ List with data, selectors, title, axes and type
 
 ------------------------------------------------------------------------
 
-### Method `extract_data()`
+### `Ggplot2PieLayerProcessor$extract_data()`
 
 Extract one point per wedge
 
@@ -178,7 +183,7 @@ List of `list(x, y)` points, one per wedge
 
 ------------------------------------------------------------------------
 
-### Method `panel_built_data()`
+### `Ggplot2PieLayerProcessor$panel_built_data()`
 
 Rows of this layer's built data, optionally one panel's
 
@@ -202,7 +207,7 @@ data.frame of built rows for this layer
 
 ------------------------------------------------------------------------
 
-### Method `resolve_slice_mapping()`
+### `Ggplot2PieLayerProcessor$resolve_slice_mapping()`
 
 Resolve the aesthetic whose categories name the wedges
 
@@ -232,7 +237,7 @@ column name)
 
 ------------------------------------------------------------------------
 
-### Method `resolve_slice_labels()`
+### `Ggplot2PieLayerProcessor$resolve_slice_labels()`
 
 Name each wedge after the category it draws
 
@@ -268,7 +273,7 @@ Character vector, one label per wedge
 
 ------------------------------------------------------------------------
 
-### Method `slice_categories()`
+### `Ggplot2PieLayerProcessor$slice_categories()`
 
 Categories of the aesthetic that splits the wedges
 
@@ -304,7 +309,7 @@ Character vector of categories, or NULL when neither source has any
 
 ------------------------------------------------------------------------
 
-### Method `scale_labels()`
+### `Ggplot2PieLayerProcessor$scale_labels()`
 
 Break labels of the scale backing an aesthetic
 
@@ -328,7 +333,7 @@ Character vector of labels, or NULL when the scale has none
 
 ------------------------------------------------------------------------
 
-### Method `extract_pie_axes()`
+### `Ggplot2PieLayerProcessor$extract_pie_axes()`
 
 Build the canonical axes for a pie layer
 
@@ -367,7 +372,7 @@ Canonical axes list with x and y
 
 ------------------------------------------------------------------------
 
-### Method `generate_selectors()`
+### `Ggplot2PieLayerProcessor$generate_selectors()`
 
 Generate the wedge selector for this layer
 
@@ -402,18 +407,87 @@ List holding one selector, or an empty list
 
 ------------------------------------------------------------------------
 
-### Method `find_polygon_grob()`
+### `Ggplot2PieLayerProcessor$layer_slot_grob()`
 
-Find this layer's wedge polygon grob within a grob tree
+The grob slot belonging to *this* layer
 
-Matches on the `geom_rect.polygon` prefix, which the polar grill's own
-polygon (named `GRID.polygon.<N>` under
-[`coord_radial()`](https://ggplot2.tidyverse.org/reference/coord_radial.html))
-does not carry.
+ggplot2 lays a panel out as the grill, a leading `zeroGrob`, **one child
+per layer in layer order**, a trailing `zeroGrob` and the axis tree. So
+the slot is the handle: layer *k* owns the *k*th child after the leading
+blank, whether or not it drew anything.
+
+It matters because a panel can hold more than one polar `geom_rect`
+layer – two
+[`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)s
+under
+[`coord_polar()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)
+is an ordinary way to draw a ring over a pie – and a search that takes
+the first container hands every layer the first layer's wedges. Those
+selectors resolve, and the payload looks healthy, and the outline is on
+the wrong marks.
+
+`LayerProcessor$find_layer_grob_tree()` cannot be reused for this: it
+matches on the geom's own class, and a
+[`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
+layer is `GeomCol` while the grob it draws is named after `geom_rect`.
+Counting containers instead of slots does not work either – a
+[`geom_text()`](https://ggplot2.tidyverse.org/reference/geom_text.html)
+label layer occupies a slot and draws no container, so the counts stop
+lining up and both rings of an annotated pie lose their selectors.
 
 #### Usage
 
-    Ggplot2PieLayerProcessor$find_polygon_grob(grob)
+    Ggplot2PieLayerProcessor$layer_slot_grob(panel)
+
+#### Arguments
+
+- `panel`:
+
+  The panel grob, or NULL
+
+#### Returns
+
+This layer's grob, or NULL when the slot cannot be established
+
+------------------------------------------------------------------------
+
+### `Ggplot2PieLayerProcessor$sole_wedge_container()`
+
+The one wedge container in a tree, when there is exactly one
+
+The fallback for when the slot lookup cannot resolve – a panel shape
+with no leading blank, or a caller handing over a gtable rather than a
+panel. Correct whenever the search finds a single container, which is
+every chart that is only a pie; ambiguous otherwise, and ambiguous means
+no selector for the reason `generate_selectors()` gives.
+
+#### Usage
+
+    Ggplot2PieLayerProcessor$sole_wedge_container(roots)
+
+#### Arguments
+
+- `roots`:
+
+  Grobs to search
+
+#### Returns
+
+Grob name, or NULL
+
+------------------------------------------------------------------------
+
+### `Ggplot2PieLayerProcessor$collect_polygon_grobs()`
+
+Every wedge container in a grob tree, in drawing order
+
+One entry per layer that drew wedges. A match is not descended into: the
+container is the whole layer's wedges, and its children are the
+individual ones.
+
+#### Usage
+
+    Ggplot2PieLayerProcessor$collect_polygon_grobs(grob)
 
 #### Arguments
 
@@ -423,11 +497,75 @@ does not carry.
 
 #### Returns
 
-Grob name, or NULL when the tree holds none
+Character vector of grob names, possibly empty
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Ggplot2PieLayerProcessor$find_own_polygon_grob()`
+
+Whether this grob is itself a wedge container
+
+ggplot2 does not draw a polar bar layer the same way across versions,
+and the difference is not cosmetic. Verified against real
+[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
+output:
+
+- One `geom_rect.polygon.<N>` grob holding every wedge, grouped by id.
+  This is what the lookup was written for.
+
+- A `geom_rect.gTree.<N>` holding **one `geom_polygon.polygon.<N>` grob
+  per wedge**. On ggplot2 3.4.4 this is what a pie draws, and nothing
+  named `geom_rect.polygon` exists anywhere in the tree – so the lookup
+  found nothing, `generate_selectors()` returned an empty list, and **a
+  pie highlighted nothing at all** (#151).
+
+Either way the answer is a container whose `<polygon>` descendants are
+the wedges in slice order, so the caller's descendant selector resolves
+against both without knowing which it got.
+
+The polar grill draws a polygon of its own under
+[`coord_radial()`](https://ggplot2.tidyverse.org/reference/coord_radial.html),
+named `GRID.polygon.<N>`; neither branch carries a name that matches it.
+The gTree branch also requires a polygon to be there: a `geom_rect`
+layer that drew none has nothing to point at.
+
+#### Usage
+
+    Ggplot2PieLayerProcessor$find_own_polygon_grob(grob)
+
+#### Arguments
+
+- `grob`:
+
+  Grob to test
+
+#### Returns
+
+Grob name, or NULL
+
+------------------------------------------------------------------------
+
+### `Ggplot2PieLayerProcessor$holds_polygon()`
+
+Whether a grob tree draws at least one polygon.
+
+#### Usage
+
+    Ggplot2PieLayerProcessor$holds_polygon(grob)
+
+#### Arguments
+
+- `grob`:
+
+  Grob to search
+
+#### Returns
+
+TRUE when the tree holds a polygon grob
+
+------------------------------------------------------------------------
+
+### `Ggplot2PieLayerProcessor$clone()`
 
 The objects of this class are cloneable with this method.
 

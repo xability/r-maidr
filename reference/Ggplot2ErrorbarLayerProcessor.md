@@ -59,6 +59,20 @@ as vertical and emit the cap heights as the interval.
 
 - [`Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()`](#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer)
 
+- [`Ggplot2ErrorbarLayerProcessor$generate_selectors()`](#method-Ggplot2ErrorbarLayerProcessor-generate_selectors)
+
+- [`Ggplot2ErrorbarLayerProcessor$find_interval_grob()`](#method-Ggplot2ErrorbarLayerProcessor-find_interval_grob)
+
+- [`Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()`](#method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob)
+
+- [`Ggplot2ErrorbarLayerProcessor$interval_grob_shape()`](#method-Ggplot2ErrorbarLayerProcessor-interval_grob_shape)
+
+- [`Ggplot2ErrorbarLayerProcessor$grob_point_groups()`](#method-Ggplot2ErrorbarLayerProcessor-grob_point_groups)
+
+- [`Ggplot2ErrorbarLayerProcessor$drawn_run_count()`](#method-Ggplot2ErrorbarLayerProcessor-drawn_run_count)
+
+- [`Ggplot2ErrorbarLayerProcessor$interval_selector()`](#method-Ggplot2ErrorbarLayerProcessor-interval_selector)
+
 - [`Ggplot2ErrorbarLayerProcessor$extract_interval_data()`](#method-Ggplot2ErrorbarLayerProcessor-extract_interval_data)
 
 - [`Ggplot2ErrorbarLayerProcessor$resolve_estimates()`](#method-Ggplot2ErrorbarLayerProcessor-resolve_estimates)
@@ -74,8 +88,8 @@ Inherited methods
 - [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
-- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
 - [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
 - [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
 - [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
@@ -89,7 +103,6 @@ Inherited methods
 - [`Ggplot2PointLayerProcessor$extract_data()`](https://r.maidr.ai/reference/Ggplot2PointLayerProcessor.html#method-extract_data)
 - [`Ggplot2PointLayerProcessor$find_children_by_type()`](https://r.maidr.ai/reference/Ggplot2PointLayerProcessor.html#method-find_children_by_type)
 - [`Ggplot2PointLayerProcessor$find_panel_grob()`](https://r.maidr.ai/reference/Ggplot2PointLayerProcessor.html#method-find_panel_grob)
-- [`Ggplot2PointLayerProcessor$generate_selectors()`](https://r.maidr.ai/reference/Ggplot2PointLayerProcessor.html#method-generate_selectors)
 
 ------------------------------------------------------------------------
 
@@ -146,7 +159,7 @@ Process the error bar layer.
 
 #### Returns
 
-List with data, axes, type and orientation
+List with data, selectors, axes, type and orientation
 
 ------------------------------------------------------------------------
 
@@ -177,6 +190,272 @@ read.
 #### Returns
 
 TRUE when the interval spans the x axis
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$generate_selectors()`
+
+Address the drawn interval, one SVG element per sample.
+
+`ErrorBarTrace.mapToSvgElements` resolves the selectors and requires the
+flattened result to be exactly as long as the emitted data; any other
+length is discarded and the layer highlights nothing (#145). So the job
+here is one element per sample, in the order the data was emitted – not
+one per bound, and not the container.
+
+The five geoms do not draw alike, and the differences are not cosmetic.
+Verified against real
+[`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
+output on ggplot2 3.4.4:
+
+- [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  – a `segments` grob named after the geom; one `<polyline>` per sample.
+
+- [`geom_pointrange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  – a gTree holding that same `segments` grob and a `points` grob. The
+  whisker is the one that spans the interval, so it is the one
+  addressed.
+
+- [`geom_crossbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  – a gTree holding a `polygon` grob (the box) and a `segments` grob
+  (the middle line). The box is the sample.
+
+- [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  /
+  [`geom_errorbarh()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  – **an unnamed `polyline`**, `GRID.polyline.N`, carrying no geom
+  prefix at all, and drawing *three* elements per sample: a cap, the
+  whisker, the other cap.
+
+Both of those last two facts are why this could not reuse the inherited
+`generate_selectors()`: it matches `geom_point.points` by name, which
+reaches none of these, and a name-prefix search reaches
+[`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+least of all.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$generate_selectors(
+      plot,
+      gt = NULL,
+      grob_id = NULL,
+      panel_ctx = NULL,
+      sample_count = NULL
+    )
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object (optional)
+
+- `grob_id`:
+
+  Grob ID for faceted plots (unused; the drawn grob is resolved from the
+  panel, which is what the unnamed polyline needs)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selectors (optional)
+
+- `sample_count`:
+
+  How many points this layer emitted
+
+#### Returns
+
+A list holding one CSS selector, or an empty list
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$find_interval_grob()`
+
+Find the grob whose children are the samples.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$find_interval_grob(plot, gt, panel_ctx = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selectors (optional)
+
+#### Returns
+
+The grob one of whose child elements is drawn per sample, or NULL when
+it cannot be resolved
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()`
+
+Resolve the drawn grob of a layer ggplot2 left unnamed.
+
+[`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+and
+[`geom_errorbarh()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+draw a bare `GRID.polyline.N`, so there is no name to match on and
+`find_layer_grob_tree()` returns NULL for them. Position is the
+remaining handle: ggplot2 lays a panel out as the grill, a leading
+`zeroGrob`, **one child per layer in layer order**, a trailing
+`zeroGrob` and the border. A layer that draws nothing still takes its
+slot as a `zeroGrob`, so the correspondence survives an empty layer
+beside this one.
+
+The leading blank is found by class rather than by an absent name: a
+`zeroGrob` is named, and its name is the four characters `"NULL"`.
+
+It is deliberately narrow. The result has to be a `polyline` for a geom
+that is known to draw one, because a positional hit on the wrong layer
+would highlight another layer's marks – worse than the missing highlight
+this fixes, since a reader can hear nothing but cannot hear wrongness.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob(
+      plot,
+      gt,
+      panel_ctx = NULL
+    )
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selectors (optional)
+
+#### Returns
+
+The layer's polyline grob, or NULL
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$interval_grob_shape()`
+
+Count the samples a grob draws, and the elements each takes.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$interval_grob_shape(grob)
+
+#### Arguments
+
+- `grob`:
+
+  The grob resolved for this layer
+
+#### Returns
+
+A list of `samples` and `per_sample`, or NULL when the grob is not one
+of the shapes this has been verified against
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$grob_point_groups()`
+
+Split a grob's points into one index vector per sample.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$grob_point_groups(grob)
+
+#### Arguments
+
+- `grob`:
+
+  A `polygon` or `polyline` grob
+
+#### Returns
+
+A list of index vectors in drawing order, or NULL
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$drawn_run_count()`
+
+Count the elements one sample of a grob is drawn as.
+
+grid breaks a polyline at a missing point, and
+[`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+uses that: its eight points per sample are `cap, NA, whisker, NA, cap`,
+so the export carries three elements for the one bar. A run needs two
+points to be a line at all, and a shorter one draws nothing.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$drawn_run_count(grob, index)
+
+#### Arguments
+
+- `grob`:
+
+  A `polygon` or `polyline` grob
+
+- `index`:
+
+  The point indices belonging to one sample
+
+#### Returns
+
+How many elements that sample is drawn as
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$interval_selector()`
+
+Build the CSS selector for one element per sample.
+
+gridSVG wraps each grob in a `<g>` named after it with a `.1` suffix and
+writes its elements inside in drawing order, so the samples are
+addressable as a stride through that group's children.
+
+Only the two strides that have been checked against an export are
+emitted: one element per sample, and the three a
+[`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+draws, of which the middle one is the whisker spanning the interval –
+the cap either side of it says nothing a reader is navigating to. Any
+other stride returns NULL and the layer goes back to highlighting
+nothing, which is the honest answer for a shape nobody has looked at.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$interval_selector(grob_name, per_sample)
+
+#### Arguments
+
+- `grob_name`:
+
+  The drawn grob's name
+
+- `per_sample`:
+
+  How many elements each sample is drawn as
+
+#### Returns
+
+A CSS selector, or NULL
 
 ------------------------------------------------------------------------
 
