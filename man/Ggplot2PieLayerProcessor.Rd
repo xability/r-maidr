@@ -4,11 +4,6 @@
 \alias{Ggplot2PieLayerProcessor}
 \title{Pie Layer Processor}
 \description{
-Pie Layer Processor
-
-Pie Layer Processor
-}
-\details{
 Processes the ggplot2 idiom for a pie chart: a \code{geom_col()} /
 \code{geom_bar()} layer drawn in polar coordinates with theta mapped to y,
 so the stack's segments become wedges. The payload is 1-D and flat -- one
@@ -25,47 +20,53 @@ declines them, and they stay bar / stacked / dodged as before.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2PieLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2PieLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2PieLayerProcessor-process}{\code{Ggplot2PieLayerProcessor$process()}}
-\item \href{#method-Ggplot2PieLayerProcessor-extract_data}{\code{Ggplot2PieLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2PieLayerProcessor-panel_built_data}{\code{Ggplot2PieLayerProcessor$panel_built_data()}}
-\item \href{#method-Ggplot2PieLayerProcessor-resolve_slice_mapping}{\code{Ggplot2PieLayerProcessor$resolve_slice_mapping()}}
-\item \href{#method-Ggplot2PieLayerProcessor-resolve_slice_labels}{\code{Ggplot2PieLayerProcessor$resolve_slice_labels()}}
-\item \href{#method-Ggplot2PieLayerProcessor-slice_categories}{\code{Ggplot2PieLayerProcessor$slice_categories()}}
-\item \href{#method-Ggplot2PieLayerProcessor-scale_labels}{\code{Ggplot2PieLayerProcessor$scale_labels()}}
-\item \href{#method-Ggplot2PieLayerProcessor-extract_pie_axes}{\code{Ggplot2PieLayerProcessor$extract_pie_axes()}}
-\item \href{#method-Ggplot2PieLayerProcessor-generate_selectors}{\code{Ggplot2PieLayerProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2PieLayerProcessor-find_polygon_grob}{\code{Ggplot2PieLayerProcessor$find_polygon_grob()}}
-\item \href{#method-Ggplot2PieLayerProcessor-clone}{\code{Ggplot2PieLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2PieLayerProcessor-process}{\code{Ggplot2PieLayerProcessor$process()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-extract_data}{\code{Ggplot2PieLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-panel_built_data}{\code{Ggplot2PieLayerProcessor$panel_built_data()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-resolve_slice_mapping}{\code{Ggplot2PieLayerProcessor$resolve_slice_mapping()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-resolve_slice_labels}{\code{Ggplot2PieLayerProcessor$resolve_slice_labels()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-slice_categories}{\code{Ggplot2PieLayerProcessor$slice_categories()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-scale_labels}{\code{Ggplot2PieLayerProcessor$scale_labels()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-extract_pie_axes}{\code{Ggplot2PieLayerProcessor$extract_pie_axes()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-generate_selectors}{\code{Ggplot2PieLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-layer_slot_grob}{\code{Ggplot2PieLayerProcessor$layer_slot_grob()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-sole_wedge_container}{\code{Ggplot2PieLayerProcessor$sole_wedge_container()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-collect_polygon_grobs}{\code{Ggplot2PieLayerProcessor$collect_polygon_grobs()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-find_own_polygon_grob}{\code{Ggplot2PieLayerProcessor$find_own_polygon_grob()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-holds_polygon}{\code{Ggplot2PieLayerProcessor$holds_polygon()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-clone}{\code{Ggplot2PieLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>maidr::LayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the pie layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$process(
+\subsection{\code{Ggplot2PieLayerProcessor$process()}}{
+  Process the pie layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -74,39 +75,33 @@ Process the pie layer
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with data, selectors, title, axes and type
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
-
-\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-
-\item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with data, selectors, title, axes and type
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-Extract one point per wedge
+\subsection{\code{Ggplot2PieLayerProcessor$extract_data()}}{
+  Extract one point per wedge
 
 The magnitude is the segment's own extent, not the stacked \code{y}:
 \code{ymax - ymin} is what the wedge actually subtends, and it is the
@@ -127,80 +122,82 @@ percentage; laundering it here would leave that defence nothing to
 catch. Whether a producer should reject such a value outright is a
 separate question -- see xability/maidr#771 -- but no answer to it is
 served by destroying the sign first.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Optional facet panel to restrict extraction to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of \code{list(x, y)} points, one per wedge
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{panel_id}}{Optional facet panel to restrict extraction to}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of \code{list(x, y)} points, one per wedge
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-panel_built_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-panel_built_data}{}}}
-\subsection{Method \code{panel_built_data()}}{
-Rows of this layer's built data, optionally one panel's
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$panel_built_data(built, panel_id = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2PieLayerProcessor$panel_built_data()}}{
+  Rows of this layer's built data, optionally one panel's
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$panel_built_data(built, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_id}}{Optional facet panel to restrict the rows to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    data.frame of built rows for this layer
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{built}}{Built plot data}
-
-\item{\code{panel_id}}{Optional facet panel to restrict the rows to}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-data.frame of built rows for this layer
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-resolve_slice_mapping"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-resolve_slice_mapping}{}}}
-\subsection{Method \code{resolve_slice_mapping()}}{
-Resolve the aesthetic whose categories name the wedges
+\subsection{\code{Ggplot2PieLayerProcessor$resolve_slice_mapping()}}{
+  Resolve the aesthetic whose categories name the wedges
 
 Fill is probed before x because the idiomatic pie maps x to the literal
 \code{""} and carries the categories on fill. A layer whose built rows
 do not each sit in their own group is not split by any aesthetic (every
 row shares group -1 or 1), so no aesthetic names its wedges.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$resolve_slice_mapping(plot, built_data)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built_data}}{This layer's built rows}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-list with \code{aes} (aesthetic name, or NULL) and
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$resolve_slice_mapping(plot, built_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built_data}}{This layer's built rows}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    list with \code{aes} (aesthetic name, or NULL) and
 \code{column} (the mapped column name)
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-resolve_slice_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-resolve_slice_labels}{}}}
-\subsection{Method \code{resolve_slice_labels()}}{
-Name each wedge after the category it draws
+\subsection{\code{Ggplot2PieLayerProcessor$resolve_slice_labels()}}{
+  Name each wedge after the category it draws
 
 \code{ggplot_build()} has already replaced the grouping column with
 integer group ids, assigned in the sorted order of that column's
@@ -209,30 +206,30 @@ labels BY the id, rather than by position among the ids present, is
 what stops a facet panel that is missing a category from shifting every
 remaining wedge's label by one. Wedges the scale cannot name fall back
 to their position.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$resolve_slice_labels(plot, built, built_data)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$resolve_slice_labels(plot, built, built_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{built_data}}{This layer's built rows}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector, one label per wedge
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data}
-
-\item{\code{built_data}}{This layer's built rows}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector, one label per wedge
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-slice_categories"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-slice_categories}{}}}
-\subsection{Method \code{slice_categories()}}{
-Categories of the aesthetic that splits the wedges
+\subsection{\code{Ggplot2PieLayerProcessor$slice_categories()}}{
+  Categories of the aesthetic that splits the wedges
 
 The scale is asked first, because a mapping written as an expression --
 \code{aes(fill = factor(cyl))} -- has no column to read. A discrete
@@ -240,52 +237,53 @@ POSITION scale keeps its labels in \code{panel_params} instead, and
 \code{coord_polar()} publishes none of those under x, so the mapped
 column is the fallback. Both list the categories in the same sorted
 order the group ids were assigned in.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$slice_categories(plot, built, slice)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$slice_categories(plot, built, slice)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{slice}}{Slice mapping from \code{resolve_slice_mapping()}}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of categories, or NULL when neither source has any
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data}
-
-\item{\code{slice}}{Slice mapping from \code{resolve_slice_mapping()}}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of categories, or NULL when neither source has any
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-scale_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-scale_labels}{}}}
-\subsection{Method \code{scale_labels()}}{
-Break labels of the scale backing an aesthetic
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$scale_labels(built, aes_name)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2PieLayerProcessor$scale_labels()}}{
+  Break labels of the scale backing an aesthetic
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$scale_labels(built, aes_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{aes_name}}{Aesthetic whose scale to read}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of labels, or NULL when the scale has none
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{built}}{Built plot data}
-
-\item{\code{aes_name}}{Aesthetic whose scale to read}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of labels, or NULL when the scale has none
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-extract_pie_axes"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-extract_pie_axes}{}}}
-\subsection{Method \code{extract_pie_axes()}}{
-Build the canonical axes for a pie layer
+\subsection{\code{Ggplot2PieLayerProcessor$extract_pie_axes()}}{
+  Build the canonical axes for a pie layer
 
 \code{x} names what the wedge labels mean and \code{y} what their
 magnitudes measure. Since the labels come off the slice aesthetic, its
@@ -293,32 +291,31 @@ legend title is the x label -- resolved the same way the stacked bar
 layer resolves its z label. The y label is taken from the layout, which
 reads the BUILT plot's labels and so already carries a stat-derived
 name such as "count".
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$extract_pie_axes(plot, layout, built, panel_id = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$extract_pie_axes(plot, layout, built, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_id}}{Optional facet panel to restrict extraction to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list with x and y
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Built plot data}
-
-\item{\code{panel_id}}{Optional facet panel to restrict extraction to}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Canonical axes list with x and y
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-Generate the wedge selector for this layer
+\subsection{\code{Ggplot2PieLayerProcessor$generate_selectors()}}{
+  Generate the wedge selector for this layer
 
 In polar coordinates the whole layer is ONE \code{polygonGrob} named
 \code{geom_rect.polygon.<N>} whose sub-polygons are grouped by
@@ -327,64 +324,208 @@ draws. gridSVG exports it as \code{<g id="geom_rect.polygon.<N>.1">}
 with one \code{<polygon>} child per wedge, emitted in built-row order,
 so a single descendant selector resolves to the N elements in slice
 order.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$generate_selectors(plot, gt = NULL, panel_ctx = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$generate_selectors(plot, gt = NULL, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List holding one selector, or an empty list
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List holding one selector, or an empty list
-}
-}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-find_polygon_grob"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-find_polygon_grob}{}}}
-\subsection{Method \code{find_polygon_grob()}}{
-Find this layer's wedge polygon grob within a grob tree
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-layer_slot_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-layer_slot_grob}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$layer_slot_grob()}}{
+  The grob slot belonging to \emph{this} layer
 
-Matches on the \code{geom_rect.polygon} prefix, which the polar grill's
-own polygon (named \code{GRID.polygon.<N>} under \code{coord_radial()})
-does not carry.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$find_polygon_grob(grob)}\if{html}{\out{</div>}}
+ggplot2 lays a panel out as the grill, a leading \code{zeroGrob},
+\strong{one child per layer in layer order}, a trailing
+\code{zeroGrob} and the axis tree. So the slot is the handle: layer
+\emph{k} owns the \emph{k}th child after the leading blank, whether or
+not it drew anything.
+
+It matters because a panel can hold more than one polar
+\code{geom_rect} layer -- two \code{geom_col()}s under
+\code{coord_polar()} is an ordinary way to draw a ring over a pie --
+and a search that takes the first container hands every layer the first
+layer's wedges. Those selectors resolve, and the payload looks healthy,
+and the outline is on the wrong marks.
+
+\code{LayerProcessor$find_layer_grob_tree()} cannot be reused for this:
+it matches on the geom's own class, and a \code{geom_col()} layer is
+\code{GeomCol} while the grob it draws is named after
+\code{geom_rect}. Counting containers instead of slots does not work
+either -- a \code{geom_text()} label layer occupies a slot and draws no
+container, so the counts stop lining up and both rings of an annotated
+pie lose their selectors.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$layer_slot_grob(panel)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel}}{The panel grob, or NULL}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    This layer's grob, or NULL when the slot cannot be established
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{grob}}{Grob to search}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-sole_wedge_container"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-sole_wedge_container}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$sole_wedge_container()}}{
+  The one wedge container in a tree, when there is exactly one
+
+The fallback for when the slot lookup cannot resolve -- a panel shape
+with no leading blank, or a caller handing over a gtable rather than a
+panel. Correct whenever the search finds a single container, which is
+every chart that is only a pie; ambiguous otherwise, and ambiguous
+means no selector for the reason \code{generate_selectors()} gives.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$sole_wedge_container(roots)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{roots}}{Grobs to search}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Grob name, or NULL
+  }
 }
-\if{html}{\out{</div>}}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-collect_polygon_grobs"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-collect_polygon_grobs}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$collect_polygon_grobs()}}{
+  Every wedge container in a grob tree, in drawing order
+
+One entry per layer that drew wedges. A match is not descended into:
+the container is the whole layer's wedges, and its children are the
+individual ones.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$collect_polygon_grobs(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{Grob to search}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names, possibly empty
+  }
 }
-\subsection{Returns}{
-Grob name, or NULL when the tree holds none
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-find_own_polygon_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-find_own_polygon_grob}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$find_own_polygon_grob()}}{
+  Whether this grob is itself a wedge container
+
+ggplot2 does not draw a polar bar layer the same way across versions,
+and the difference is not cosmetic. Verified against real
+\code{gridSVG::grid.export()} output:
+
+\itemize{
+\item One \code{geom_rect.polygon.<N>} grob holding every wedge,
+grouped by id. This is what the lookup was written for.
+\item A \code{geom_rect.gTree.<N>} holding \strong{one
+\code{geom_polygon.polygon.<N>} grob per wedge}. On ggplot2 3.4.4
+this is what a pie draws, and nothing named
+\code{geom_rect.polygon} exists anywhere in the tree -- so the
+lookup found nothing, \code{generate_selectors()} returned an empty
+list, and \strong{a pie highlighted nothing at all} (#151).
 }
+
+Either way the answer is a container whose \code{<polygon>} descendants
+are the wedges in slice order, so the caller's descendant selector
+resolves against both without knowing which it got.
+
+The polar grill draws a polygon of its own under
+\code{coord_radial()}, named \code{GRID.polygon.<N>}; neither branch
+carries a name that matches it. The gTree branch also requires a
+polygon to be there: a \code{geom_rect} layer that drew none has
+nothing to point at.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$find_own_polygon_grob(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{Grob to test}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Grob name, or NULL
+  }
 }
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-holds_polygon"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-holds_polygon}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$holds_polygon()}}{
+  Whether a grob tree draws at least one polygon.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$holds_polygon(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{Grob to search}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the tree holds a polygon grob
+  }
+}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PieLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2PieLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
