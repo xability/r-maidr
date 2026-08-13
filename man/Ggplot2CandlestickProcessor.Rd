@@ -4,11 +4,6 @@
 \alias{Ggplot2CandlestickProcessor}
 \title{Candlestick Layer Processor}
 \description{
-Candlestick Layer Processor
-
-Candlestick Layer Processor
-}
-\details{
 Processes candlestick chart layers produced by \code{tidyquant::geom_candlestick()}.
 
 tidyquant's \code{geom_candlestick()} expands into TWO ggplot layers:
@@ -33,47 +28,49 @@ tidyquant grobs.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2CandlestickProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2CandlestickProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2CandlestickProcessor-process}{\code{Ggplot2CandlestickProcessor$process()}}
-\item \href{#method-Ggplot2CandlestickProcessor-extract_data}{\code{Ggplot2CandlestickProcessor$extract_data()}}
-\item \href{#method-Ggplot2CandlestickProcessor-generate_selectors}{\code{Ggplot2CandlestickProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2CandlestickProcessor-extract_layer_axes}{\code{Ggplot2CandlestickProcessor$extract_layer_axes()}}
-\item \href{#method-Ggplot2CandlestickProcessor-resolve_col}{\code{Ggplot2CandlestickProcessor$resolve_col()}}
-\item \href{#method-Ggplot2CandlestickProcessor-format_x_value}{\code{Ggplot2CandlestickProcessor$format_x_value()}}
-\item \href{#method-Ggplot2CandlestickProcessor-get_effective_mapping}{\code{Ggplot2CandlestickProcessor$get_effective_mapping()}}
-\item \href{#method-Ggplot2CandlestickProcessor-get_original_data}{\code{Ggplot2CandlestickProcessor$get_original_data()}}
-\item \href{#method-Ggplot2CandlestickProcessor-count_candles}{\code{Ggplot2CandlestickProcessor$count_candles()}}
-\item \href{#method-Ggplot2CandlestickProcessor-find_panel_grob}{\code{Ggplot2CandlestickProcessor$find_panel_grob()}}
-\item \href{#method-Ggplot2CandlestickProcessor-find_first_child_name}{\code{Ggplot2CandlestickProcessor$find_first_child_name()}}
-\item \href{#method-Ggplot2CandlestickProcessor-clone}{\code{Ggplot2CandlestickProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2CandlestickProcessor-process}{\code{Ggplot2CandlestickProcessor$process()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-extract_data}{\code{Ggplot2CandlestickProcessor$extract_data()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-generate_selectors}{\code{Ggplot2CandlestickProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-extract_layer_axes}{\code{Ggplot2CandlestickProcessor$extract_layer_axes()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-resolve_col}{\code{Ggplot2CandlestickProcessor$resolve_col()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-format_x_value}{\code{Ggplot2CandlestickProcessor$format_x_value()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-get_effective_mapping}{\code{Ggplot2CandlestickProcessor$get_effective_mapping()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-get_original_data}{\code{Ggplot2CandlestickProcessor$get_original_data()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-count_candles}{\code{Ggplot2CandlestickProcessor$count_candles()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-find_panel_grob}{\code{Ggplot2CandlestickProcessor$find_panel_grob()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-find_first_child_name}{\code{Ggplot2CandlestickProcessor$find_first_child_name()}}
+    \item \href{#method-Ggplot2CandlestickProcessor-clone}{\code{Ggplot2CandlestickProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>maidr::LayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the candlestick layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$process(
+\subsection{\code{Ggplot2CandlestickProcessor$process()}}{
+  Process the candlestick layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -82,225 +79,234 @@ Process the candlestick layer
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{scale_mapping}}{Scale mapping (unused for candlestick)}
+      \item{\code{grob_id}}{Grob ID (faceting; not yet supported for candlestick)}
+      \item{\code{panel_id}}{Panel id (patchwork; accepted for signature parity)}
+      \item{\code{panel_ctx}}{Panel context (faceting; not yet supported)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Maidr candlestick layer list
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Built plot data}
-
-\item{\code{gt}}{Gtable object}
-
-\item{\code{scale_mapping}}{Scale mapping (unused for candlestick)}
-
-\item{\code{grob_id}}{Grob ID (faceting; not yet supported for candlestick)}
-
-\item{\code{panel_id}}{Panel id (patchwork; accepted for signature parity)}
-
-\item{\code{panel_ctx}}{Panel context (faceting; not yet supported)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Maidr candlestick layer list
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-Extract OHLC data points from the plot
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$extract_data(
+\subsection{\code{Ggplot2CandlestickProcessor$extract_data()}}{
+  Extract OHLC data points from the plot
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$extract_data(
   plot,
   built = NULL,
   scale_mapping = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{scale_mapping}}{Unused}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of CandlestickPoint dicts
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{ggplot2 object}
-
-\item{\code{built}}{Built plot data}
-
-\item{\code{scale_mapping}}{Unused}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of CandlestickPoint dicts
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-Generate candlestick CSS selectors
+\subsection{\code{Ggplot2CandlestickProcessor$generate_selectors()}}{
+  Generate candlestick CSS selectors
 
 Returns a single \code{CandlestickSelector} object with \code{body} and \code{wick}
 as single CSS group selectors (one per element kind, not per candle).
 The maidr JS layer uses these to grab all candle elements at once and
 then auto-derives \code{open}/\code{close} from body rect edges based on trend.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$generate_selectors(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$generate_selectors(
   plot,
   gt = NULL,
   grob_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{ggplot2 object}
-
-\item{\code{gt}}{Gtable object}
-
-\item{\code{grob_id}}{Grob ID (faceting)}
-
-\item{\code{panel_ctx}}{Panel context (faceting)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Named list with \code{body} and (optionally) \code{wick} single-string
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{grob_id}}{Grob ID (faceting)}
+      \item{\code{panel_ctx}}{Panel context (faceting)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Named list with \code{body} and (optionally) \code{wick} single-string
 selectors, or empty list if grobs cannot be located.
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-extract_layer_axes"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-extract_layer_axes}{}}}
-\subsection{Method \code{extract_layer_axes()}}{
-Extract axes labels for candlestick layer
+\subsection{\code{Ggplot2CandlestickProcessor$extract_layer_axes()}}{
+  Extract axes labels for candlestick layer
 
 Candlestick layer mappings are typically NULL (top-level mapping
 carries x/open/high/low/close). The base implementation only inspects
 \code{layer_mapping$x} and \code{layer_mapping$y}, which yields blank labels.
 Here we additionally fall back to \code{plot$mapping$x} and synthesize a
 "Price" y-label since OHLC has no single y mapping.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$extract_layer_axes(plot, layout)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$extract_layer_axes(plot, layout)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{ggplot2 object}
+      \item{\code{layout}}{Layout information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    list(x = list(label = ...), y = list(label = ...))
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-list(x = list(label = ...), y = list(label = ...))
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-resolve_col"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-resolve_col}{}}}
-\subsection{Method \code{resolve_col()}}{
-Resolve a mapping quosure to a column name in \code{data}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$resolve_col(mapping_expr, data)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$resolve_col()}}{
+  Resolve a mapping quosure to a column name in \code{data}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$resolve_col(mapping_expr, data)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-format_x_value"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-format_x_value}{}}}
-\subsection{Method \code{format_x_value()}}{
-Format an x-axis value as character
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$format_x_value(x)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$format_x_value()}}{
+  Format an x-axis value as character
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$format_x_value(x)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-get_effective_mapping"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-get_effective_mapping}{}}}
-\subsection{Method \code{get_effective_mapping()}}{
-Get the effective mapping (layer mapping merged on top)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$get_effective_mapping(plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$get_effective_mapping()}}{
+  Get the effective mapping (layer mapping merged on top)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$get_effective_mapping(plot)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-get_original_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-get_original_data}{}}}
-\subsection{Method \code{get_original_data()}}{
-Get original data for the layer (falls back to plot$data)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$get_original_data(plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$get_original_data()}}{
+  Get original data for the layer (falls back to plot$data)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$get_original_data(plot)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-count_candles"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-count_candles}{}}}
-\subsection{Method \code{count_candles()}}{
-Count candles from the original data
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$count_candles(plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$count_candles()}}{
+  Count candles from the original data
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$count_candles(plot)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-find_panel_grob}{}}}
-\subsection{Method \code{find_panel_grob()}}{
-Find the panel grob this layer draws into
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{Gtable object}
-
-\item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
+\subsection{\code{Ggplot2CandlestickProcessor$find_panel_grob()}}{
+  Find the panel grob this layer draws into
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$find_panel_grob(gt, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
 for a single plot, where the panel is the cell literally named "panel"}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The panel gTree, or NULL when it cannot be resolved
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The panel gTree, or NULL when it cannot be resolved
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-find_first_child_name"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-find_first_child_name}{}}}
-\subsection{Method \code{find_first_child_name()}}{
-Find the first descendant whose name matches \code{pattern}
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$find_first_child_name(grob, pattern)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$find_first_child_name()}}{
+  Find the first descendant whose name matches \code{pattern}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$find_first_child_name(grob, pattern)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2CandlestickProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2CandlestickProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2CandlestickProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2CandlestickProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2CandlestickProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

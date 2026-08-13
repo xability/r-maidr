@@ -56,10 +56,10 @@ which is verified to give the same answer as \code{stat = "identity"}.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2AreaLayerProcessor-process}{\code{Ggplot2AreaLayerProcessor$process()}}
-    \item \href{#method-Ggplot2AreaLayerProcessor-resolve_area_type}{\code{Ggplot2AreaLayerProcessor$resolve_area_type()}}
-    \item \href{#method-Ggplot2AreaLayerProcessor-extract_series}{\code{Ggplot2AreaLayerProcessor$extract_series()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-generate_selectors}{\code{Ggplot2AreaLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-band_polygon_names}{\code{Ggplot2AreaLayerProcessor$band_polygon_names()}}
+    \item \href{#method-Ggplot2AreaLayerProcessor-resolve_area_type}{\code{Ggplot2AreaLayerProcessor$resolve_area_type()}}
+    \item \href{#method-Ggplot2AreaLayerProcessor-extract_series}{\code{Ggplot2AreaLayerProcessor$extract_series()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-drop_alignment_vertices}{\code{Ggplot2AreaLayerProcessor$drop_alignment_vertices()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-source_x_values}{\code{Ggplot2AreaLayerProcessor$source_x_values()}}
     \item \href{#method-Ggplot2AreaLayerProcessor-band_height}{\code{Ggplot2AreaLayerProcessor$band_height()}}
@@ -75,8 +75,8 @@ which is verified to give the same answer as \code{stat = "identity"}.
 <ul>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
@@ -97,7 +97,6 @@ which is verified to give the same answer as \code{stat = "identity"}.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="find_main_polyline_grob"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-find_main_polyline_grob'><code>Ggplot2LineLayerProcessor$find_main_polyline_grob()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="format_x_value"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-format_x_value'><code>Ggplot2LineLayerProcessor$format_x_value()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_multiline_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_multiline_selectors'><code>Ggplot2LineLayerProcessor$generate_multiline_selectors()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_selectors'><code>Ggplot2LineLayerProcessor$generate_selectors()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-generate_single_line_selector'><code>Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_group_column"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_group_column'><code>Ggplot2LineLayerProcessor$get_group_column()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="Ggplot2LineLayerProcessor" data-id="get_layer"><a href='../../maidr/html/Ggplot2LineLayerProcessor.html#method-Ggplot2LineLayerProcessor-get_layer'><code>Ggplot2LineLayerProcessor$get_layer()</code></a></span></li>
@@ -152,68 +151,6 @@ which is verified to give the same answer as \code{stat = "identity"}.
   }
   \subsection{Returns}{
     List with data, axes and type
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-resolve_area_type"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-resolve_area_type}{}}}
-\subsection{\code{Ggplot2AreaLayerProcessor$resolve_area_type()}}{
-  Decide which of the three area types this layer is.
-
-\code{position = "fill"} rescales every column to a common height, so a
-band's height is its share of that column and every column totals 1 by
-construction. Reading that as a plain stacked area would announce the
-shares as if they were values and imply the columns have equal totals,
-which is the one thing a filled chart is drawn to deny -- the same
-distinction \code{stacked_normalized_bar} draws for bars.
-
-A single series has nothing stacked on it whatever its position, so it
-is a plain area: announcing a running total equal to the value at every
-point would be noise.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2AreaLayerProcessor$resolve_area_type(plot, series)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{series}}{The emitted series}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    One of "area", "stacked_area", "stacked_normalized_area"
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-extract_series"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-extract_series}{}}}
-\subsection{\code{Ggplot2AreaLayerProcessor$extract_series()}}{
-  Build the MAIDR series for this layer.
-
-Emits each series' \strong{own} value rather than the cumulative band top,
-because MAIDR's area trace sums the series to reach the running total
-and announces the two separately.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2AreaLayerProcessor$extract_series(built, layer_data, panel_id = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{built}}{Built plot data}
-      \item{\code{layer_data}}{This layer's computed rows}
-      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of series, each a list of MAIDR points
   }
 }
 
@@ -296,6 +233,68 @@ prefix would.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-resolve_area_type"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-resolve_area_type}{}}}
+\subsection{\code{Ggplot2AreaLayerProcessor$resolve_area_type()}}{
+  Decide which of the three area types this layer is.
+
+\code{position = "fill"} rescales every column to a common height, so a
+band's height is its share of that column and every column totals 1 by
+construction. Reading that as a plain stacked area would announce the
+shares as if they were values and imply the columns have equal totals,
+which is the one thing a filled chart is drawn to deny -- the same
+distinction \code{stacked_normalized_bar} draws for bars.
+
+A single series has nothing stacked on it whatever its position, so it
+is a plain area: announcing a running total equal to the value at every
+point would be noise.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2AreaLayerProcessor$resolve_area_type(plot, series)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{series}}{The emitted series}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One of "area", "stacked_area", "stacked_normalized_area"
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-extract_series"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-extract_series}{}}}
+\subsection{\code{Ggplot2AreaLayerProcessor$extract_series()}}{
+  Build the MAIDR series for this layer.
+
+Emits each series' \strong{own} value rather than the cumulative band top,
+because MAIDR's area trace sums the series to reach the running total
+and announces the two separately.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2AreaLayerProcessor$extract_series(built, layer_data, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{layer_data}}{This layer's computed rows}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of series, each a list of MAIDR points
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2AreaLayerProcessor-drop_alignment_vertices"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2AreaLayerProcessor-drop_alignment_vertices}{}}}
 \subsection{\code{Ggplot2AreaLayerProcessor$drop_alignment_vertices()}}{
@@ -342,8 +341,7 @@ the other. The caller has an exact rule for that case.
 "Discrete" and "could not be read" are answered differently, because
 the caller must do different things with them. The integer rule that is
 exact for a discrete axis would silently drop the fractional rows of a
-continuous one, and an x mapped through an expression -- \code{aes(x = year
-/ 2)}, say -- resolves to no column and lands here while still being
+continuous one, and an x mapped through an expression -- \code{aes(x = year / 2)}, say -- resolves to no column and lands here while still being
 continuous. Collapsing the two into one NULL is how that axis loses
 half its data to a rule that was never about it.
   \subsection{Usage}{

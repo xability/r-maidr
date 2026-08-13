@@ -9,76 +9,79 @@ for individual boxplot components in the SVG structure.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2BoxplotLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2BoxplotLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2BoxplotLayerProcessor-get_built}{\code{Ggplot2BoxplotLayerProcessor$get_built()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-process}{\code{Ggplot2BoxplotLayerProcessor$process()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-extract_data}{\code{Ggplot2BoxplotLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-generate_selectors}{\code{Ggplot2BoxplotLayerProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-determine_orientation}{\code{Ggplot2BoxplotLayerProcessor$determine_orientation()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-map_categories_to_names}{\code{Ggplot2BoxplotLayerProcessor$map_categories_to_names()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_panel_grob}{\code{Ggplot2BoxplotLayerProcessor$find_panel_grob()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_children_by_type}{\code{Ggplot2BoxplotLayerProcessor$find_children_by_type()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_outlier_container}{\code{Ggplot2BoxplotLayerProcessor$find_outlier_container()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_box_container}{\code{Ggplot2BoxplotLayerProcessor$find_box_container()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_whisker_container}{\code{Ggplot2BoxplotLayerProcessor$find_whisker_container()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_median_container}{\code{Ggplot2BoxplotLayerProcessor$find_median_container()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern}{\code{Ggplot2BoxplotLayerProcessor$find_child_by_pattern()}}
-\item \href{#method-Ggplot2BoxplotLayerProcessor-clone}{\code{Ggplot2BoxplotLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-get_built}{\code{Ggplot2BoxplotLayerProcessor$get_built()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-process}{\code{Ggplot2BoxplotLayerProcessor$process()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-extract_data}{\code{Ggplot2BoxplotLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-generate_selectors}{\code{Ggplot2BoxplotLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-determine_orientation}{\code{Ggplot2BoxplotLayerProcessor$determine_orientation()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-map_categories_to_names}{\code{Ggplot2BoxplotLayerProcessor$map_categories_to_names()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_panel_grob}{\code{Ggplot2BoxplotLayerProcessor$find_panel_grob()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_children_by_type}{\code{Ggplot2BoxplotLayerProcessor$find_children_by_type()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_outlier_container}{\code{Ggplot2BoxplotLayerProcessor$find_outlier_container()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_box_container}{\code{Ggplot2BoxplotLayerProcessor$find_box_container()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_whisker_container}{\code{Ggplot2BoxplotLayerProcessor$find_whisker_container()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_median_container}{\code{Ggplot2BoxplotLayerProcessor$find_median_container()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern}{\code{Ggplot2BoxplotLayerProcessor$find_child_by_pattern()}}
+    \item \href{#method-Ggplot2BoxplotLayerProcessor-clone}{\code{Ggplot2BoxplotLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>maidr::LayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-get_built"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-get_built}{}}}
-\subsection{Method \code{get_built()}}{
-Get (and cache) the built plot data
+\subsection{\code{Ggplot2BoxplotLayerProcessor$get_built()}}{
+  Get (and cache) the built plot data
 
 ggplot_build() is expensive; extract_data, generate_selectors,
 determine_orientation, and map_categories_to_names all need it, so
 build at most once per processor instance.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$get_built(plot, built = NULL)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$get_built(plot, built = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Optionally a pre-built plot to adopt}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Built plot data
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Optionally a pre-built plot to adopt}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Built plot data
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the boxplot layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$process(
+\subsection{\code{Ggplot2BoxplotLayerProcessor$process()}}{
+  Process the boxplot layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -87,310 +90,313 @@ Process the boxplot layer
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with data and selectors
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
-
-\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-
-\item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with data and selectors
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-Extract data from boxplot layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$extract_data()}}{
+  Extract data from boxplot layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Optional facet panel to restrict extraction to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with boxplot statistics for each category
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{panel_id}}{Optional facet panel to restrict extraction to}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with boxplot statistics for each category
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-Generate selectors for boxplot elements
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$generate_selectors(
+\subsection{\code{Ggplot2BoxplotLayerProcessor$generate_selectors()}}{
+  Generate selectors for boxplot elements
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
   panel_ctx = NULL,
   panel_id = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selection (optional)}
+      \item{\code{panel_id}}{Optional facet panel to restrict outlier counts to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors for each boxplot
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{panel_ctx}}{Panel context for panel-scoped selection (optional)}
-
-\item{\code{panel_id}}{Optional facet panel to restrict outlier counts to}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of selectors for each boxplot
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-determine_orientation"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-determine_orientation}{}}}
-\subsection{Method \code{determine_orientation()}}{
-Determine if the boxplot is horizontal or vertical
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$determine_orientation(plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$determine_orientation()}}{
+  Determine if the boxplot is horizontal or vertical
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$determine_orientation(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "horz" or "vert"
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-"horz" or "vert"
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-map_categories_to_names"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-map_categories_to_names}{}}}
-\subsection{Method \code{map_categories_to_names()}}{
-Map numeric category codes to actual category names
+\subsection{\code{Ggplot2BoxplotLayerProcessor$map_categories_to_names()}}{
+  Map numeric category codes to actual category names
 Uses panel_params axis labels from ggplot_build to map codes to labels
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$map_categories_to_names(
   boxplot_data,
   plot,
   panel_id = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{boxplot_data}}{List of boxplot statistics}
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{panel_id}}{Optional facet panel whose scale supplies the labels}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Updated boxplot data with proper category names
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{boxplot_data}}{List of boxplot statistics}
-
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{panel_id}}{Optional facet panel whose scale supplies the labels}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Updated boxplot data with proper category names
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_panel_grob}{}}}
-\subsection{Method \code{find_panel_grob()}}{
-Find the panel grob this layer draws into
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable to search}
-
-\item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_panel_grob()}}{
+  Find the panel grob this layer draws into
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable to search}
+      \item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
 for a single plot, where the panel is the cell literally named "panel"}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The panel grob or NULL
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The panel grob or NULL
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_children_by_type"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_children_by_type}{}}}
-\subsection{Method \code{find_children_by_type()}}{
-Find children by type pattern
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_children_by_type(grob, type_pattern)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_children_by_type()}}{
+  Find children by type pattern
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_children_by_type(grob, type_pattern)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob to search}
+      \item{\code{type_pattern}}{Pattern to match}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of matching children
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{grob}}{The grob to search}
-
-\item{\code{type_pattern}}{Pattern to match}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of matching children
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_outlier_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_outlier_container}{}}}
-\subsection{Method \code{find_outlier_container()}}{
-Find the outlier container within a boxplot
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_outlier_container(gt, boxplot_id)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_outlier_container()}}{
+  Find the outlier container within a boxplot
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_outlier_container(gt, boxplot_id)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable object}
+      \item{\code{boxplot_id}}{The boxplot container ID}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The outlier container ID or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable object}
-
-\item{\code{boxplot_id}}{The boxplot container ID}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The outlier container ID or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_box_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_box_container}{}}}
-\subsection{Method \code{find_box_container()}}{
-Find the box container within a boxplot
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_box_container(gt, boxplot_id)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_box_container()}}{
+  Find the box container within a boxplot
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_box_container(gt, boxplot_id)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable object}
+      \item{\code{boxplot_id}}{The boxplot container ID}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The box container ID or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable object}
-
-\item{\code{boxplot_id}}{The boxplot container ID}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The box container ID or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_whisker_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_whisker_container}{}}}
-\subsection{Method \code{find_whisker_container()}}{
-Find the whisker container within a boxplot
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_whisker_container(gt, boxplot_id)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_whisker_container()}}{
+  Find the whisker container within a boxplot
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_whisker_container(gt, boxplot_id)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable object}
+      \item{\code{boxplot_id}}{The boxplot container ID}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The whisker container ID or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable object}
-
-\item{\code{boxplot_id}}{The boxplot container ID}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The whisker container ID or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_median_container"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_median_container}{}}}
-\subsection{Method \code{find_median_container()}}{
-Find the median container within a boxplot
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_median_container(gt, boxplot_id)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_median_container()}}{
+  Find the median container within a boxplot
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_median_container(gt, boxplot_id)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable object}
+      \item{\code{boxplot_id}}{The boxplot container ID}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The median container ID or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable object}
-
-\item{\code{boxplot_id}}{The boxplot container ID}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The median container ID or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-find_child_by_pattern}{}}}
-\subsection{Method \code{find_child_by_pattern()}}{
-Find a child element by pattern within a container
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$find_child_by_pattern(gt, container_id, pattern)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$find_child_by_pattern()}}{
+  Find a child element by pattern within a container
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$find_child_by_pattern(gt, container_id, pattern)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable object}
+      \item{\code{container_id}}{The container ID to search within}
+      \item{\code{pattern}}{Pattern to match}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The matching child ID or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable object}
-
-\item{\code{container_id}}{The container ID to search within}
-
-\item{\code{pattern}}{Pattern to match}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The matching child ID or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BoxplotLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BoxplotLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2BoxplotLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2BoxplotLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BoxplotLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

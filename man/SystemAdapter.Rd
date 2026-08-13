@@ -7,104 +7,107 @@
 An R6 class
 }
 \description{
-System Adapter Base Class
-
-System Adapter Base Class
-}
-\details{
 Abstract base class for adapting different plotting systems to the unified
 maidr interface. Each plotting system (ggplot2, base R, lattice, etc.) should
 have its own adapter implementation.
 }
 \keyword{internal}
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{system_name}}{Name of the plotting system}
-}
-\if{html}{\out{</div>}}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{system_name}}{Name of the plotting system}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-SystemAdapter-new}{\code{SystemAdapter$new()}}
-\item \href{#method-SystemAdapter-can_handle}{\code{SystemAdapter$can_handle()}}
-\item \href{#method-SystemAdapter-create_orchestrator}{\code{SystemAdapter$create_orchestrator()}}
-\item \href{#method-SystemAdapter-clone}{\code{SystemAdapter$clone()}}
-}
+  \itemize{
+    \item \href{#method-SystemAdapter-initialize}{\code{SystemAdapter$new()}}
+    \item \href{#method-SystemAdapter-can_handle}{\code{SystemAdapter$can_handle()}}
+    \item \href{#method-SystemAdapter-create_orchestrator}{\code{SystemAdapter$create_orchestrator()}}
+    \item \href{#method-SystemAdapter-clone}{\code{SystemAdapter$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SystemAdapter-new"></a>}}
-\if{latex}{\out{\hypertarget{method-SystemAdapter-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the adapter
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SystemAdapter$new(system_name)}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-SystemAdapter-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-SystemAdapter-initialize}{}}}
+\subsection{\code{SystemAdapter$new()}}{
+  Initialize the adapter
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SystemAdapter$new(system_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{system_name}}{Name of the plotting system
+Abstract method to check if this adapter can handle a plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{system_name}}{Name of the plotting system
-Abstract method to check if this adapter can handle a plot object}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SystemAdapter-can_handle"></a>}}
 \if{latex}{\out{\hypertarget{method-SystemAdapter-can_handle}{}}}
-\subsection{Method \code{can_handle()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SystemAdapter$can_handle(plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{SystemAdapter$can_handle()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SystemAdapter$can_handle(plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_object}}{The plot object to check}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if this adapter can handle the object, FALSE otherwise
+Abstract method to create an orchestrator for this system
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_object}}{The plot object to check}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if this adapter can handle the object, FALSE otherwise
-Abstract method to create an orchestrator for this system
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SystemAdapter-create_orchestrator"></a>}}
 \if{latex}{\out{\hypertarget{method-SystemAdapter-create_orchestrator}{}}}
-\subsection{Method \code{create_orchestrator()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SystemAdapter$create_orchestrator(plot_object)}\if{html}{\out{</div>}}
+\subsection{\code{SystemAdapter$create_orchestrator()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SystemAdapter$create_orchestrator(plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_object}}{The plot object to process}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Orchestrator instance specific to this system
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_object}}{The plot object to process}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Orchestrator instance specific to this system
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SystemAdapter-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-SystemAdapter-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SystemAdapter$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{SystemAdapter$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{SystemAdapter$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

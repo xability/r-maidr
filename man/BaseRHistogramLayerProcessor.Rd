@@ -9,154 +9,194 @@ and selector generation logic.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRHistogramLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{BaseRHistogramLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BaseRHistogramLayerProcessor-process}{\code{BaseRHistogramLayerProcessor$process()}}
-\item \href{#method-BaseRHistogramLayerProcessor-extract_data}{\code{BaseRHistogramLayerProcessor$extract_data()}}
-\item \href{#method-BaseRHistogramLayerProcessor-recompute_histogram}{\code{BaseRHistogramLayerProcessor$recompute_histogram()}}
-\item \href{#method-BaseRHistogramLayerProcessor-is_frequency}{\code{BaseRHistogramLayerProcessor$is_frequency()}}
-\item \href{#method-BaseRHistogramLayerProcessor-generate_selectors}{\code{BaseRHistogramLayerProcessor$generate_selectors()}}
-\item \href{#method-BaseRHistogramLayerProcessor-find_rect_grobs}{\code{BaseRHistogramLayerProcessor$find_rect_grobs()}}
-\item \href{#method-BaseRHistogramLayerProcessor-generate_selectors_from_grob}{\code{BaseRHistogramLayerProcessor$generate_selectors_from_grob()}}
-\item \href{#method-BaseRHistogramLayerProcessor-extract_axis_titles}{\code{BaseRHistogramLayerProcessor$extract_axis_titles()}}
-\item \href{#method-BaseRHistogramLayerProcessor-frequency_label}{\code{BaseRHistogramLayerProcessor$frequency_label()}}
-\item \href{#method-BaseRHistogramLayerProcessor-extract_main_title}{\code{BaseRHistogramLayerProcessor$extract_main_title()}}
-\item \href{#method-BaseRHistogramLayerProcessor-clone}{\code{BaseRHistogramLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-BaseRHistogramLayerProcessor-process}{\code{BaseRHistogramLayerProcessor$process()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-extract_data}{\code{BaseRHistogramLayerProcessor$extract_data()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-recompute_histogram}{\code{BaseRHistogramLayerProcessor$recompute_histogram()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-is_frequency}{\code{BaseRHistogramLayerProcessor$is_frequency()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-generate_selectors}{\code{BaseRHistogramLayerProcessor$generate_selectors()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-find_rect_grobs}{\code{BaseRHistogramLayerProcessor$find_rect_grobs()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-generate_selectors_from_grob}{\code{BaseRHistogramLayerProcessor$generate_selectors_from_grob()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-extract_axis_titles}{\code{BaseRHistogramLayerProcessor$extract_axis_titles()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-frequency_label}{\code{BaseRHistogramLayerProcessor$frequency_label()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-extract_main_title}{\code{BaseRHistogramLayerProcessor$extract_main_title()}}
+    \item \href{#method-BaseRHistogramLayerProcessor-clone}{\code{BaseRHistogramLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>maidr::LayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$process(
+\subsection{\code{BaseRHistogramLayerProcessor$process()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$process(
   plot,
   layout,
   built = NULL,
   gt = NULL,
   layer_info = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$extract_data(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$extract_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$extract_data(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-recompute_histogram"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-recompute_histogram}{}}}
-\subsection{Method \code{recompute_histogram()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$recompute_histogram(args)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$recompute_histogram()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$recompute_histogram(args)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-is_frequency"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-is_frequency}{}}}
-\subsection{Method \code{is_frequency()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$is_frequency(args, hist_obj = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$is_frequency()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$is_frequency(args, hist_obj = NULL)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$generate_selectors(layer_info, gt = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$generate_selectors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$generate_selectors(layer_info, gt = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{Gtable object (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-find_rect_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-find_rect_grobs}{}}}
-\subsection{Method \code{find_rect_grobs()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$find_rect_grobs(grob, call_index)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$find_rect_grobs()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$find_rect_grobs(grob, call_index)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-generate_selectors_from_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-generate_selectors_from_grob}{}}}
-\subsection{Method \code{generate_selectors_from_grob()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$generate_selectors_from_grob(
+\subsection{\code{BaseRHistogramLayerProcessor$generate_selectors_from_grob()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$generate_selectors_from_grob(
   grob,
   call_index = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_axis_titles}{}}}
-\subsection{Method \code{extract_axis_titles()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$extract_axis_titles()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-frequency_label"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-frequency_label}{}}}
-\subsection{Method \code{frequency_label()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$frequency_label(args)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$frequency_label()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$frequency_label(args)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_main_title}{}}}
-\subsection{Method \code{extract_main_title()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$extract_main_title(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$extract_main_title()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$extract_main_title(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRHistogramLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRHistogramLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRHistogramLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

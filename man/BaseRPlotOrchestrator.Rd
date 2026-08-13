@@ -10,303 +10,345 @@ the results into a comprehensive interactive plot.
 }
 \keyword{internal}
 \section{Public fields}{
-\if{html}{\out{<div class="r6-fields">}}
-\describe{
-\item{\code{plot_calls}}{List of recorded Base R plot calls}
+  \if{html}{\out{<div class="r6-fields">}}
+  \describe{
+    \item{\code{plot_calls}}{List of recorded Base R plot calls}
 
-\item{\code{layers}}{List of detected layer information}
+    \item{\code{layers}}{List of detected layer information}
 
-\item{\code{layer_processors}}{List of layer-specific processors}
+    \item{\code{layer_processors}}{List of layer-specific processors}
 
-\item{\code{combined_data}}{Combined data from all layers}
+    \item{\code{combined_data}}{Combined data from all layers}
 
-\item{\code{combined_selectors}}{Combined selectors from all layers}
+    \item{\code{combined_selectors}}{Combined selectors from all layers}
 
-\item{\code{layout}}{Layout information from the plot}
-}
-\if{html}{\out{</div>}}
+    \item{\code{layout}}{Layout information from the plot}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
-\if{html}{\out{<div class="r6-active-bindings">}}
-\describe{
-\item{\code{plot_calls}}{List of recorded Base R plot calls}
+  \if{html}{\out{<div class="r6-active-bindings">}}
+  \describe{
+    \item{\code{plot_calls}}{List of recorded Base R plot calls}
 
-\item{\code{layers}}{List of detected layer information}
+    \item{\code{layers}}{List of detected layer information}
 
-\item{\code{layer_processors}}{List of layer-specific processors}
+    \item{\code{layer_processors}}{List of layer-specific processors}
 
-\item{\code{combined_data}}{Combined data from all layers}
+    \item{\code{combined_data}}{Combined data from all layers}
 
-\item{\code{combined_selectors}}{Combined selectors from all layers}
+    \item{\code{combined_selectors}}{Combined selectors from all layers}
 
-\item{\code{layout}}{Layout information from the plot}
-}
-\if{html}{\out{</div>}}
+    \item{\code{layout}}{Layout information from the plot}
+  }
+  \if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BaseRPlotOrchestrator-new}{\code{BaseRPlotOrchestrator$new()}}
-\item \href{#method-BaseRPlotOrchestrator-detect_layers}{\code{BaseRPlotOrchestrator$detect_layers()}}
-\item \href{#method-BaseRPlotOrchestrator-analyze_single_layer}{\code{BaseRPlotOrchestrator$analyze_single_layer()}}
-\item \href{#method-BaseRPlotOrchestrator-create_layer_processors}{\code{BaseRPlotOrchestrator$create_layer_processors()}}
-\item \href{#method-BaseRPlotOrchestrator-create_layer_processor}{\code{BaseRPlotOrchestrator$create_layer_processor()}}
-\item \href{#method-BaseRPlotOrchestrator-create_unified_layer_processor}{\code{BaseRPlotOrchestrator$create_unified_layer_processor()}}
-\item \href{#method-BaseRPlotOrchestrator-process_layers}{\code{BaseRPlotOrchestrator$process_layers()}}
-\item \href{#method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls}{\code{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}}
-\item \href{#method-BaseRPlotOrchestrator-extract_layout}{\code{BaseRPlotOrchestrator$extract_layout()}}
-\item \href{#method-BaseRPlotOrchestrator-combine_layer_results}{\code{BaseRPlotOrchestrator$combine_layer_results()}}
-\item \href{#method-BaseRPlotOrchestrator-generate_maidr_data}{\code{BaseRPlotOrchestrator$generate_maidr_data()}}
-\item \href{#method-BaseRPlotOrchestrator-get_layout}{\code{BaseRPlotOrchestrator$get_layout()}}
-\item \href{#method-BaseRPlotOrchestrator-get_combined_data}{\code{BaseRPlotOrchestrator$get_combined_data()}}
-\item \href{#method-BaseRPlotOrchestrator-get_layer_processors}{\code{BaseRPlotOrchestrator$get_layer_processors()}}
-\item \href{#method-BaseRPlotOrchestrator-get_layers}{\code{BaseRPlotOrchestrator$get_layers()}}
-\item \href{#method-BaseRPlotOrchestrator-get_plot_calls}{\code{BaseRPlotOrchestrator$get_plot_calls()}}
-\item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
-\item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
-\item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
-\item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
-\item \href{#method-BaseRPlotOrchestrator-unsupported_group_indices}{\code{BaseRPlotOrchestrator$unsupported_group_indices()}}
-\item \href{#method-BaseRPlotOrchestrator-resolve_fallback_scope}{\code{BaseRPlotOrchestrator$resolve_fallback_scope()}}
-\item \href{#method-BaseRPlotOrchestrator-is_group_scoped_out}{\code{BaseRPlotOrchestrator$is_group_scoped_out()}}
-\item \href{#method-BaseRPlotOrchestrator-fallback_panels}{\code{BaseRPlotOrchestrator$fallback_panels()}}
-\item \href{#method-BaseRPlotOrchestrator-should_fallback}{\code{BaseRPlotOrchestrator$should_fallback()}}
-\item \href{#method-BaseRPlotOrchestrator-clone}{\code{BaseRPlotOrchestrator$clone()}}
-}
+  \itemize{
+    \item \href{#method-BaseRPlotOrchestrator-initialize}{\code{BaseRPlotOrchestrator$new()}}
+    \item \href{#method-BaseRPlotOrchestrator-detect_layers}{\code{BaseRPlotOrchestrator$detect_layers()}}
+    \item \href{#method-BaseRPlotOrchestrator-analyze_single_layer}{\code{BaseRPlotOrchestrator$analyze_single_layer()}}
+    \item \href{#method-BaseRPlotOrchestrator-create_layer_processors}{\code{BaseRPlotOrchestrator$create_layer_processors()}}
+    \item \href{#method-BaseRPlotOrchestrator-create_layer_processor}{\code{BaseRPlotOrchestrator$create_layer_processor()}}
+    \item \href{#method-BaseRPlotOrchestrator-create_unified_layer_processor}{\code{BaseRPlotOrchestrator$create_unified_layer_processor()}}
+    \item \href{#method-BaseRPlotOrchestrator-process_layers}{\code{BaseRPlotOrchestrator$process_layers()}}
+    \item \href{#method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls}{\code{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}}
+    \item \href{#method-BaseRPlotOrchestrator-extract_layout}{\code{BaseRPlotOrchestrator$extract_layout()}}
+    \item \href{#method-BaseRPlotOrchestrator-combine_layer_results}{\code{BaseRPlotOrchestrator$combine_layer_results()}}
+    \item \href{#method-BaseRPlotOrchestrator-generate_maidr_data}{\code{BaseRPlotOrchestrator$generate_maidr_data()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_layout}{\code{BaseRPlotOrchestrator$get_layout()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_combined_data}{\code{BaseRPlotOrchestrator$get_combined_data()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_layer_processors}{\code{BaseRPlotOrchestrator$get_layer_processors()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_layers}{\code{BaseRPlotOrchestrator$get_layers()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_plot_calls}{\code{BaseRPlotOrchestrator$get_plot_calls()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
+    \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
+    \item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
+    \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
+    \item \href{#method-BaseRPlotOrchestrator-unsupported_group_indices}{\code{BaseRPlotOrchestrator$unsupported_group_indices()}}
+    \item \href{#method-BaseRPlotOrchestrator-resolve_fallback_scope}{\code{BaseRPlotOrchestrator$resolve_fallback_scope()}}
+    \item \href{#method-BaseRPlotOrchestrator-is_group_scoped_out}{\code{BaseRPlotOrchestrator$is_group_scoped_out()}}
+    \item \href{#method-BaseRPlotOrchestrator-fallback_panels}{\code{BaseRPlotOrchestrator$fallback_panels()}}
+    \item \href{#method-BaseRPlotOrchestrator-should_fallback}{\code{BaseRPlotOrchestrator$should_fallback()}}
+    \item \href{#method-BaseRPlotOrchestrator-clone}{\code{BaseRPlotOrchestrator$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BaseRPlotOrchestrator-new"></a>}}
-\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-new}{}}}
-\subsection{Method \code{new()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$new(device_id = grDevices::dev.cur())}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-initialize}{}}}
+\subsection{\code{BaseRPlotOrchestrator$new()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$new(device_id = grDevices::dev.cur())}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-detect_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-detect_layers}{}}}
-\subsection{Method \code{detect_layers()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$detect_layers()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$detect_layers()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$detect_layers()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-analyze_single_layer"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-analyze_single_layer}{}}}
-\subsection{Method \code{analyze_single_layer()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$analyze_single_layer(
+\subsection{\code{BaseRPlotOrchestrator$analyze_single_layer()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$analyze_single_layer(
   plot_call,
   layer_index,
   group = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-create_layer_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-create_layer_processors}{}}}
-\subsection{Method \code{create_layer_processors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$create_layer_processors()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$create_layer_processors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$create_layer_processors()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-create_layer_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-create_layer_processor}{}}}
-\subsection{Method \code{create_layer_processor()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$create_layer_processor(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$create_layer_processor()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$create_layer_processor(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-create_unified_layer_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-create_unified_layer_processor}{}}}
-\subsection{Method \code{create_unified_layer_processor()}}{
-Unified layer processor creation - used by all plot types
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$create_unified_layer_processor(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$create_unified_layer_processor()}}{
+  Unified layer processor creation - used by all plot types
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$create_unified_layer_processor(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Layer processor instance
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Layer information}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Layer processor instance
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-process_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-process_layers}{}}}
-\subsection{Method \code{process_layers()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$process_layers()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$process_layers()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$process_layers()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-extract_format_config_from_axis_calls}{}}}
-\subsection{Method \code{extract_format_config_from_axis_calls()}}{
-Extract Format Configuration from axis() Calls
+\subsection{\code{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}}{
+  Extract Format Configuration from axis() Calls
 
 Scans logged axis() calls for format config stored by the axis wrapper.
 The wrapper stores .maidr_format_config when labels is a scales:: function.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$extract_format_config_from_axis_calls()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with x and/or y format configurations, or NULL
+  }
 }
 
-\subsection{Returns}{
-A list with x and/or y format configurations, or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-extract_layout"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-extract_layout}{}}}
-\subsection{Method \code{extract_layout()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$extract_layout()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$extract_layout()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$extract_layout()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-combine_layer_results"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-combine_layer_results}{}}}
-\subsection{Method \code{combine_layer_results()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$combine_layer_results(layer_results)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$combine_layer_results()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$combine_layer_results(layer_results)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-generate_maidr_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-generate_maidr_data}{}}}
-\subsection{Method \code{generate_maidr_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$generate_maidr_data()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$generate_maidr_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$generate_maidr_data()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_layout"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_layout}{}}}
-\subsection{Method \code{get_layout()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_layout()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_layout()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_layout()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_combined_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_combined_data}{}}}
-\subsection{Method \code{get_combined_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_combined_data()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_combined_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_combined_data()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_layer_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_layer_processors}{}}}
-\subsection{Method \code{get_layer_processors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_layer_processors()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_layer_processors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_layer_processors()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_layers}{}}}
-\subsection{Method \code{get_layers()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_layers()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_layers()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_layers()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_plot_calls"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_plot_calls}{}}}
-\subsection{Method \code{get_plot_calls()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_plot_calls()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_plot_calls()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_plot_calls()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_gtable"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_gtable}{}}}
-\subsection{Method \code{get_gtable()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_gtable()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_gtable()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_gtable()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_grob_for_layer"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_grob_for_layer}{}}}
-\subsection{Method \code{get_grob_for_layer()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$get_grob_for_layer(layer_index)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$get_grob_for_layer(layer_index)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-unsupported_layer_flags"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-unsupported_layer_flags}{}}}
-\subsection{Method \code{unsupported_layer_flags()}}{
-Flag each detected layer maidr cannot process
+\subsection{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}{
+  Flag each detected layer maidr cannot process
 
 Decorations carry no data of their own; leaving them out of the
 interactive output loses nothing. Data-bearing LOW-level overlays
 (polygon, rect, segments, ...) with no processor would silently
 disappear from the accessible output, so they count as unsupported.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$unsupported_layer_flags()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$unsupported_layer_flags()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Logical vector, one entry per detected layer
+  }
 }
 
-\subsection{Returns}{
-Logical vector, one entry per detected layer
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-has_unsupported_layers}{}}}
-\subsection{Method \code{has_unsupported_layers()}}{
-Check if any HIGH-level layers are unsupported (unknown type)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$has_unsupported_layers()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}{
+  Check if any HIGH-level layers are unsupported (unknown type)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$has_unsupported_layers()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Logical indicating if there are unsupported layers
+  }
 }
 
-\subsection{Returns}{
-Logical indicating if there are unsupported layers
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-unsupported_group_indices"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-unsupported_group_indices}{}}}
-\subsection{Method \code{unsupported_group_indices()}}{
-Plot groups holding a layer maidr cannot process
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$unsupported_group_indices()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$unsupported_group_indices()}}{
+  Plot groups holding a layer maidr cannot process
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$unsupported_group_indices()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer vector of plot-group indices, in ascending order
+  }
 }
 
-\subsection{Returns}{
-Integer vector of plot-group indices, in ascending order
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-resolve_fallback_scope"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-resolve_fallback_scope}{}}}
-\subsection{Method \code{resolve_fallback_scope()}}{
-Work out how far an unsupported layer reaches
+\subsection{\code{BaseRPlotOrchestrator$resolve_fallback_scope()}}{
+  Work out how far an unsupported layer reaches
 
 An unsupported LOW-level overlay sits on top of a chart maidr does
 understand, so it only makes the panel that owns it undescribable.
@@ -316,76 +358,86 @@ affected panels. It widens to the whole figure when there is nothing
 left to scope to: a single-panel figure, a figure whose every
 visible panel is affected, an unsupported call that belongs to no
 panel of the exported page, or an unsupported HIGH-level call.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$resolve_fallback_scope()}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$resolve_fallback_scope()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Invisible NULL; the scope is cached on the orchestrator
+  }
 }
 
-\subsection{Returns}{
-Invisible NULL; the scope is cached on the orchestrator
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-is_group_scoped_out"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-is_group_scoped_out}{}}}
-\subsection{Method \code{is_group_scoped_out()}}{
-Check whether a plot group is scoped out of the payload
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$is_group_scoped_out(group_index)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$is_group_scoped_out()}}{
+  Check whether a plot group is scoped out of the payload
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$is_group_scoped_out(group_index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{group_index}}{Plot-group index to test}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the group's panel falls back on its own
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{group_index}}{Plot-group index to test}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE when the group's panel falls back on its own
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-fallback_panels"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-fallback_panels}{}}}
-\subsection{Method \code{fallback_panels()}}{
-Panels rendered without accessible data
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$fallback_panels()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$fallback_panels()}}{
+  Panels rendered without accessible data
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$fallback_panels()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer vector of 1-based panel numbers, empty when the whole
+figure renders normally or falls back as a whole
+  }
 }
 
-\subsection{Returns}{
-Integer vector of 1-based panel numbers, empty when the whole
-figure renders normally or falls back as a whole
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-should_fallback"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-should_fallback}{}}}
-\subsection{Method \code{should_fallback()}}{
-Determine if the plot should fall back to image rendering
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$should_fallback()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$should_fallback()}}{
+  Determine if the plot should fall back to image rendering
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$should_fallback()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Logical indicating if fallback should be used
+  }
 }
 
-\subsection{Returns}{
-Logical indicating if fallback should be used
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPlotOrchestrator$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPlotOrchestrator$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

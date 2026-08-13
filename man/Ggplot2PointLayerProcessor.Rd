@@ -9,44 +9,46 @@ for individual points in the SVG structure.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2PointLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2PointLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2PointLayerProcessor-process}{\code{Ggplot2PointLayerProcessor$process()}}
-\item \href{#method-Ggplot2PointLayerProcessor-extract_axes_labels}{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}
-\item \href{#method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}
-\item \href{#method-Ggplot2PointLayerProcessor-extract_data}{\code{Ggplot2PointLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2PointLayerProcessor-generate_selectors}{\code{Ggplot2PointLayerProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2PointLayerProcessor-find_panel_grob}{\code{Ggplot2PointLayerProcessor$find_panel_grob()}}
-\item \href{#method-Ggplot2PointLayerProcessor-find_children_by_type}{\code{Ggplot2PointLayerProcessor$find_children_by_type()}}
-\item \href{#method-Ggplot2PointLayerProcessor-clone}{\code{Ggplot2PointLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2PointLayerProcessor-process}{\code{Ggplot2PointLayerProcessor$process()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-extract_axes_labels}{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-extract_data}{\code{Ggplot2PointLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-generate_selectors}{\code{Ggplot2PointLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-find_panel_grob}{\code{Ggplot2PointLayerProcessor$find_panel_grob()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-find_children_by_type}{\code{Ggplot2PointLayerProcessor$find_children_by_type()}}
+    \item \href{#method-Ggplot2PointLayerProcessor-clone}{\code{Ggplot2PointLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>maidr::LayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the point layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$process(
+\subsection{\code{Ggplot2PointLayerProcessor$process()}}{
+  Process the point layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -55,216 +57,216 @@ Process the point layer
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with data and selectors
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
-
-\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with data and selectors
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_axes_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_axes_labels}{}}}
-\subsection{Method \code{extract_axes_labels()}}{
-Extract axis information from the plot
+\subsection{\code{Ggplot2PointLayerProcessor$extract_axes_labels()}}{
+  Extract axis information from the plot
 
 Returns per-axis objects with label and optional grid navigation fields
 (min, max, tickStep). Grid fields are only included when they can be
 successfully extracted from the built plot scales.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axes_labels(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$extract_axes_labels(
   plot,
   built = NULL,
   panel_id = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with x and y per-axis objects
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with x and y per-axis objects
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_axis_grid_info"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_axis_grid_info}{}}}
-\subsection{Method \code{extract_axis_grid_info()}}{
-Extract grid navigation info (min, max, tickStep) for a single axis
+\subsection{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}{
+  Extract grid navigation info (min, max, tickStep) for a single axis
 
 Attempts to extract range and tick interval from the built plot's
 panel parameters. Returns NULL if any required value cannot be
 determined, allowing graceful fallback to non-grid scatter navigation.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_axis_grid_info(
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$extract_axis_grid_info(
   built,
   axis = "x",
   panel_id = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{axis}}{Character, either "x" or "y"}
+      \item{\code{panel_id}}{Panel index for faceted plots (optional, defaults to 1)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with min, max, tickStep or NULL if extraction fails
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{built}}{Built plot data}
-
-\item{\code{axis}}{Character, either "x" or "y"}
-
-\item{\code{panel_id}}{Panel index for faceted plots (optional, defaults to 1)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with min, max, tickStep or NULL if extraction fails
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-Extract data from point layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$extract_data(
+\subsection{\code{Ggplot2PointLayerProcessor$extract_data()}}{
+  Extract data from point layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$extract_data(
   plot,
   built = NULL,
   scale_mapping = NULL,
   panel_id = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with points array and color information
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{built}}{Built plot data (optional)}
-
-\item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
-
-\item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with points array and color information
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-Generate selectors for point elements
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$generate_selectors(
+\subsection{\code{Ggplot2PointLayerProcessor$generate_selectors()}}{
+  Generate selectors for point elements
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
   grob_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{The ggplot2 object}
-
-\item{\code{gt}}{Gtable object (optional)}
-
-\item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of selectors
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-find_panel_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-find_panel_grob}{}}}
-\subsection{Method \code{find_panel_grob()}}{
-Find the panel grob this layer draws into
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{gt}}{The gtable to search}
-
-\item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
+\subsection{\code{Ggplot2PointLayerProcessor$find_panel_grob()}}{
+  Find the panel grob this layer draws into
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$find_panel_grob(gt, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{The gtable to search}
+      \item{\code{panel_ctx}}{Panel context for patchwork leaves and facets; NULL
 for a single plot, where the panel is the cell literally named "panel"}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The panel grob or NULL
+  }
 }
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-The panel grob or NULL
-}
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-find_children_by_type"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-find_children_by_type}{}}}
-\subsection{Method \code{find_children_by_type()}}{
-Find children by type pattern
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$find_children_by_type(grob, type_pattern)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2PointLayerProcessor$find_children_by_type()}}{
+  Find children by type pattern
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$find_children_by_type(grob, type_pattern)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob to search}
+      \item{\code{type_pattern}}{Pattern to match}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of matching children
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{grob}}{The grob to search}
-
-\item{\code{type_pattern}}{Pattern to match}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of matching children
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2PointLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PointLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2PointLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2PointLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PointLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

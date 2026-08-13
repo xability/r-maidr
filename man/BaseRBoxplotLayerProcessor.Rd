@@ -9,125 +9,159 @@ and generating selectors for boxplot components.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRBoxplotLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{BaseRBoxplotLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BaseRBoxplotLayerProcessor-process}{\code{BaseRBoxplotLayerProcessor$process()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-extract_data}{\code{BaseRBoxplotLayerProcessor$extract_data()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-generate_selectors}{\code{BaseRBoxplotLayerProcessor$generate_selectors()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-extract_axis_titles}{\code{BaseRBoxplotLayerProcessor$extract_axis_titles()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-extract_formula_labels}{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-extract_main_title}{\code{BaseRBoxplotLayerProcessor$extract_main_title()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-determine_orientation}{\code{BaseRBoxplotLayerProcessor$determine_orientation()}}
-\item \href{#method-BaseRBoxplotLayerProcessor-clone}{\code{BaseRBoxplotLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-BaseRBoxplotLayerProcessor-process}{\code{BaseRBoxplotLayerProcessor$process()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-extract_data}{\code{BaseRBoxplotLayerProcessor$extract_data()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-generate_selectors}{\code{BaseRBoxplotLayerProcessor$generate_selectors()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-extract_axis_titles}{\code{BaseRBoxplotLayerProcessor$extract_axis_titles()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-extract_formula_labels}{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-extract_main_title}{\code{BaseRBoxplotLayerProcessor$extract_main_title()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-determine_orientation}{\code{BaseRBoxplotLayerProcessor$determine_orientation()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-clone}{\code{BaseRBoxplotLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>maidr::LayerProcessor$needs_reordering()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_reordering'><code>LayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$process(
+\subsection{\code{BaseRBoxplotLayerProcessor$process()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$process(
   plot,
   layout,
   built = NULL,
   gt = NULL,
   layer_info = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$extract_data(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRBoxplotLayerProcessor$extract_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$extract_data(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$generate_selectors(
+\subsection{\code{BaseRBoxplotLayerProcessor$generate_selectors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$generate_selectors(
   layer_info,
   gt = NULL,
   extracted_data = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{Gtable object (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_axis_titles}{}}}
-\subsection{Method \code{extract_axis_titles()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$extract_axis_titles(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRBoxplotLayerProcessor$extract_axis_titles()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$extract_axis_titles(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_formula_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_formula_labels}{}}}
-\subsection{Method \code{extract_formula_labels()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_main_title}{}}}
-\subsection{Method \code{extract_main_title()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$extract_main_title(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRBoxplotLayerProcessor$extract_main_title()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$extract_main_title(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-determine_orientation"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-determine_orientation}{}}}
-\subsection{Method \code{determine_orientation()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$determine_orientation(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRBoxplotLayerProcessor$determine_orientation()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$determine_orientation(layer_info)}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRBoxplotLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRBoxplotLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

@@ -8,39 +8,41 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2HeatmapLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2HeatmapLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2HeatmapLayerProcessor-process}{\code{Ggplot2HeatmapLayerProcessor$process()}}
-\item \href{#method-Ggplot2HeatmapLayerProcessor-needs_reordering}{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}
-\item \href{#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}
-\item \href{#method-Ggplot2HeatmapLayerProcessor-extract_data}{\code{Ggplot2HeatmapLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2HeatmapLayerProcessor-generate_selectors}{\code{Ggplot2HeatmapLayerProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2HeatmapLayerProcessor-clone}{\code{Ggplot2HeatmapLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-process}{\code{Ggplot2HeatmapLayerProcessor$process()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-needs_reordering}{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_data}{\code{Ggplot2HeatmapLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-generate_selectors}{\code{Ggplot2HeatmapLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-clone}{\code{Ggplot2HeatmapLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$process(
+\subsection{\code{Ggplot2HeatmapLayerProcessor$process()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -49,65 +51,114 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-needs_reordering}{}}}
-\subsection{Method \code{needs_reordering()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$needs_reordering()}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$needs_reordering()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{}}}
-\subsection{Method \code{reorder_layer_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$reorder_layer_data(data, plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$reorder_layer_data(data, plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data}}{data.frame effective for this layer}
+      \item{\code{plot}}{full ggplot object (for mappings)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$extract_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$generate_selectors(
+\subsection{\code{Ggplot2HeatmapLayerProcessor$generate_selectors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2HeatmapLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

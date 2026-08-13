@@ -46,13 +46,17 @@ export(text)
 export(title)
 importFrom(R6,R6Class)
 importFrom(ggplotify,as.grob)
-importFrom(grid,grid.draw)
-importFrom(grid,grid.newpage)
+importFrom(grid,
+  grid.draw,
+  grid.newpage
+)
 importFrom(gridSVG,grid.export)
-importFrom(htmlwidgets,createWidget)
-importFrom(htmlwidgets,shinyRenderWidget)
-importFrom(htmlwidgets,shinyWidgetOutput)
-importFrom(htmlwidgets,sizingPolicy)
+importFrom(htmlwidgets,
+  createWidget,
+  shinyRenderWidget,
+  shinyWidgetOutput,
+  sizingPolicy
+)
 importFrom(shiny,installExprFunction)
 importFrom(stats,setNames)
 importFrom(utils,getS3method)

@@ -4,11 +4,6 @@
 \alias{BaseRPieLayerProcessor}
 \title{Base R Pie Chart Layer Processor}
 \description{
-Base R Pie Chart Layer Processor
-
-Base R Pie Chart Layer Processor
-}
-\details{
 Processes Base R \code{pie()} layers based on recorded plot calls. A pie layer is
 1-D and flat: one point per slice, carrying the slice label as \code{x} and the
 slice magnitude as \code{y}. Percentages are derived by the frontend from those
@@ -16,44 +11,46 @@ magnitudes, so none are emitted here.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{BaseRPieLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{BaseRPieLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BaseRPieLayerProcessor-process}{\code{BaseRPieLayerProcessor$process()}}
-\item \href{#method-BaseRPieLayerProcessor-needs_reordering}{\code{BaseRPieLayerProcessor$needs_reordering()}}
-\item \href{#method-BaseRPieLayerProcessor-extract_data}{\code{BaseRPieLayerProcessor$extract_data()}}
-\item \href{#method-BaseRPieLayerProcessor-resolve_slice_labels}{\code{BaseRPieLayerProcessor$resolve_slice_labels()}}
-\item \href{#method-BaseRPieLayerProcessor-generate_selectors}{\code{BaseRPieLayerProcessor$generate_selectors()}}
-\item \href{#method-BaseRPieLayerProcessor-find_polygon_grobs}{\code{BaseRPieLayerProcessor$find_polygon_grobs()}}
-\item \href{#method-BaseRPieLayerProcessor-extract_axis_titles}{\code{BaseRPieLayerProcessor$extract_axis_titles()}}
-\item \href{#method-BaseRPieLayerProcessor-extract_main_title}{\code{BaseRPieLayerProcessor$extract_main_title()}}
-\item \href{#method-BaseRPieLayerProcessor-clone}{\code{BaseRPieLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-BaseRPieLayerProcessor-process}{\code{BaseRPieLayerProcessor$process()}}
+    \item \href{#method-BaseRPieLayerProcessor-needs_reordering}{\code{BaseRPieLayerProcessor$needs_reordering()}}
+    \item \href{#method-BaseRPieLayerProcessor-extract_data}{\code{BaseRPieLayerProcessor$extract_data()}}
+    \item \href{#method-BaseRPieLayerProcessor-resolve_slice_labels}{\code{BaseRPieLayerProcessor$resolve_slice_labels()}}
+    \item \href{#method-BaseRPieLayerProcessor-generate_selectors}{\code{BaseRPieLayerProcessor$generate_selectors()}}
+    \item \href{#method-BaseRPieLayerProcessor-find_polygon_grobs}{\code{BaseRPieLayerProcessor$find_polygon_grobs()}}
+    \item \href{#method-BaseRPieLayerProcessor-extract_axis_titles}{\code{BaseRPieLayerProcessor$extract_axis_titles()}}
+    \item \href{#method-BaseRPieLayerProcessor-extract_main_title}{\code{BaseRPieLayerProcessor$extract_main_title()}}
+    \item \href{#method-BaseRPieLayerProcessor-clone}{\code{BaseRPieLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the pie layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$process(
+\subsection{\code{BaseRPieLayerProcessor$process()}}{
+  Process the pie layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -63,206 +60,211 @@ Process the pie layer
   panel_id = NULL,
   panel_ctx = NULL,
   layer_info = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{Unused for Base R (NULL)}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Unused for Base R (NULL)}
+      \item{\code{gt}}{Grob tree used for selector generation}
+      \item{\code{scale_mapping}}{Unused for Base R}
+      \item{\code{grob_id}}{Unused for Base R}
+      \item{\code{panel_id}}{Unused for Base R}
+      \item{\code{panel_ctx}}{Unused for Base R}
+      \item{\code{layer_info}}{Layer information (contains the recorded plot call)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with data, selectors, type, title and axes
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{Unused for Base R (NULL)}
-
-\item{\code{layout}}{Layout information}
-
-\item{\code{built}}{Unused for Base R (NULL)}
-
-\item{\code{gt}}{Grob tree used for selector generation}
-
-\item{\code{scale_mapping}}{Unused for Base R}
-
-\item{\code{grob_id}}{Unused for Base R}
-
-\item{\code{panel_id}}{Unused for Base R}
-
-\item{\code{panel_ctx}}{Unused for Base R}
-
-\item{\code{layer_info}}{Layer information (contains the recorded plot call)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with data, selectors, type, title and axes
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-needs_reordering}{}}}
-\subsection{Method \code{needs_reordering()}}{
-Pie slices are emitted in drawing order (see extract_data)
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$needs_reordering()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPieLayerProcessor$needs_reordering()}}{
+  Pie slices are emitted in drawing order (see extract_data)
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$needs_reordering()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
+  }
 }
 
-\subsection{Returns}{
-FALSE
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-Extract one point per slice from the recorded call
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$extract_data(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPieLayerProcessor$extract_data()}}{
+  Extract one point per slice from the recorded call
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$extract_data(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Flat list of \verb{list(x = <label>, y = <value>)} points
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Layer information}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Flat list of \verb{list(x = <label>, y = <value>)} points
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-resolve_slice_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-resolve_slice_labels}{}}}
-\subsection{Method \code{resolve_slice_labels()}}{
-Resolve the per-slice labels the way pie() does
+\subsection{\code{BaseRPieLayerProcessor$resolve_slice_labels()}}{
+  Resolve the per-slice labels the way pie() does
 
 \code{labels} defaults to \code{names(x)}, and falls back to the slice position
 when the input is unnamed. \code{pie(labels = NA)} draws neither label nor
 leader line, but the wedges are still there and still navigable, so
 those slices are announced by position rather than as "NA".
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$resolve_slice_labels(values, args)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$resolve_slice_labels(values, args)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{values}}{The recorded \code{x} argument (names still attached)}
+      \item{\code{args}}{Recorded argument list from the pie() call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector with one label per slice
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{The recorded \code{x} argument (names still attached)}
-
-\item{\code{args}}{Recorded argument list from the pie() call}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector with one label per slice
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-Generate one selector per wedge, index-aligned to the data
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$generate_selectors(
+\subsection{\code{BaseRPieLayerProcessor$generate_selectors()}}{
+  Generate one selector per wedge, index-aligned to the data
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$generate_selectors(
   layer_info,
   gt = NULL,
   extracted_data = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+      \item{\code{gt}}{Grob tree to search}
+      \item{\code{extracted_data}}{Points from \code{extract_data()}, used for the count}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of CSS selector strings, one per slice
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Layer information}
-
-\item{\code{gt}}{Grob tree to search}
-
-\item{\code{extracted_data}}{Points from \code{extract_data()}, used for the count}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List of CSS selector strings, one per slice
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-find_polygon_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-find_polygon_grobs}{}}}
-\subsection{Method \code{find_polygon_grobs()}}{
-Recursively collect this plot's wedge polygon grob names
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$find_polygon_grobs(grob, plot_index)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPieLayerProcessor$find_polygon_grobs()}}{
+  Recursively collect this plot's wedge polygon grob names
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$find_polygon_grobs(grob, plot_index)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{plot_index}}{The plot (panel) index to match}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{grob}}{The grob tree to search}
-
-\item{\code{plot_index}}{The plot (panel) index to match}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of grob names
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-extract_axis_titles}{}}}
-\subsection{Method \code{extract_axis_titles()}}{
-Extract the axis titles for this layer
+\subsection{\code{BaseRPieLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
 
 x names what the slice labels mean, y what their magnitudes measure.
 \code{pie()} records neither unless the author wrote one, and a pie always
 holds labelled categories against their magnitudes, so the defaults
 say that much rather than leaving the axes nameless.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$extract_axis_titles(layer_info)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$extract_axis_titles(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Layer information}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Canonical axes list
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-extract_main_title}{}}}
-\subsection{Method \code{extract_main_title()}}{
-Extract the main title for this layer
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$extract_main_title(layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPieLayerProcessor$extract_main_title()}}{
+  Extract the main title for this layer
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$extract_main_title(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character scalar
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Layer information}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character scalar
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPieLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRPieLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRPieLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

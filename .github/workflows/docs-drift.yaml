@@ -1,0 +1,89 @@
+# `man/` and `NAMESPACE` are generated from the roxygen comments in `R/`, and
+# nothing made them stay that way. They drifted far enough that regenerating
+# rewrote 47 files, which in turn meant a branch documenting one method could
+# not regenerate at all -- it either carried the whole rewrite or hand-wrote
+# its section (#143). Three pull requests in a row hand-scoped their `man/`
+# changes to avoid it.
+#
+# The drift is silent by construction: a stale `.Rd` is valid, installs, and
+# renders. `tools::checkRd()` reads it happily. Only regenerating and looking
+# at the difference can tell you it describes something the sources no longer
+# say -- which is what this does.
+
+name: docs-drift
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions: read-all
+
+jobs:
+  docs-drift:
+    name: Generated docs match their sources
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # Pinned to the version that generated what is committed, read from
+      # DESCRIPTION rather than written here twice. roxygen2 changes its
+      # output between minors -- the whole of #143 is one such change -- so
+      # an unpinned check would go red on every pull request the day a new
+      # roxygen2 ships, reporting a release as a fault in someone's branch.
+      #
+      # `Config/roxygen2/version` is roxygen2 8's own record of which
+      # version last ran, so the pin and the artefact cannot disagree: the
+      # regeneration that changes one writes the other.
+      - name: Read the pinned roxygen2 version
+        id: roxygen
+        run: |
+          version="$(grep -oP '^Config/roxygen2/version:\s*\K\S+' DESCRIPTION || true)"
+          if [ -z "$version" ]; then
+            echo "DESCRIPTION has no Config/roxygen2/version field." >&2
+            echo "Regenerate with roxygen2 >= 8 so the pin is recorded." >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: roxygen2@${{ steps.roxygen.outputs.version }}
+          needs: check
+          cache-version: 1
+
+      # No `load_code` argument: the default loader is what generated what is
+      # committed, and roxygen2's loaders do not all see the same thing. R6
+      # class methods are documented from the object roxygen2 loads, so
+      # sourcing the files instead of loading the package would produce a
+      # different `man/` and this job would fail on a tree that is correct.
+      - name: Regenerate
+        run: Rscript -e 'roxygen2::roxygenise()'
+
+      # `git diff --exit-code` prints what moved and fails on any of it, so
+      # the log names the files rather than only reporting that something
+      # did. DESCRIPTION is included because roxygen2 writes its version
+      # stamp there, and leaving it out would let the pin above drift from
+      # the thing it pins.
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code -- man NAMESPACE DESCRIPTION; then
+            {
+              echo "man/, NAMESPACE or DESCRIPTION does not match the roxygen"
+              echo "comments in R/. Run:"
+              echo
+              echo "    Rscript -e 'roxygen2::roxygenise()'"
+              echo
+              echo "with roxygen2 ${{ steps.roxygen.outputs.version }} and commit the result."
+            } >&2
+            exit 1
+          fi

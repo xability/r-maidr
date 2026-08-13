@@ -4,11 +4,6 @@
 \alias{BaseRStepLayerProcessor}
 \title{Base R Step Plot Layer Processor}
 \description{
-Base R Step Plot Layer Processor
-
-Base R Step Plot Layer Processor
-}
-\details{
 Processes Base R stairstep layers -- \code{plot(x, y, type = "s")},
 \code{plot(x, y, type = "S")} and the \code{lines()} equivalents. A step chart is
 piecewise constant: the value is held across an interval and then jumps,
@@ -25,52 +20,54 @@ back onto the samples itself.
 }
 \keyword{internal}
 \section{Super classes}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{\link[maidr:BaseRLineLayerProcessor]{maidr::BaseRLineLayerProcessor}} -> \code{BaseRStepLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{\link[maidr:BaseRLineLayerProcessor]{BaseRLineLayerProcessor}} -> \code{BaseRStepLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BaseRStepLayerProcessor-process}{\code{BaseRStepLayerProcessor$process()}}
-\item \href{#method-BaseRStepLayerProcessor-extract_step_direction}{\code{BaseRStepLayerProcessor$extract_step_direction()}}
-\item \href{#method-BaseRStepLayerProcessor-selector_grob_type}{\code{BaseRStepLayerProcessor$selector_grob_type()}}
-\item \href{#method-BaseRStepLayerProcessor-clone}{\code{BaseRStepLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-BaseRStepLayerProcessor-process}{\code{BaseRStepLayerProcessor$process()}}
+    \item \href{#method-BaseRStepLayerProcessor-extract_step_direction}{\code{BaseRStepLayerProcessor$extract_step_direction()}}
+    \item \href{#method-BaseRStepLayerProcessor-selector_grob_type}{\code{BaseRStepLayerProcessor$selector_grob_type()}}
+    \item \href{#method-BaseRStepLayerProcessor-clone}{\code{BaseRStepLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>maidr::LayerProcessor$reorder_layer_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_abline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_abline_data'><code>maidr::BaseRLineLayerProcessor$extract_abline_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_axis_titles"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_axis_titles'><code>maidr::BaseRLineLayerProcessor$extract_axis_titles()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_data'><code>maidr::BaseRLineLayerProcessor$extract_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_main_title"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_main_title'><code>maidr::BaseRLineLayerProcessor$extract_main_title()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_multiline_data'><code>maidr::BaseRLineLayerProcessor$extract_multiline_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_single_line_data'><code>maidr::BaseRLineLayerProcessor$extract_single_line_data()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="find_lines_grobs"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-find_lines_grobs'><code>maidr::BaseRLineLayerProcessor$find_lines_grobs()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-generate_selectors'><code>maidr::BaseRLineLayerProcessor$generate_selectors()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="generate_selectors_from_grob"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-generate_selectors_from_grob'><code>maidr::BaseRLineLayerProcessor$generate_selectors_from_grob()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_axis_labels"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_axis_labels'><code>maidr::BaseRLineLayerProcessor$get_axis_labels()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_x_range_from_group"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_x_range_from_group'><code>maidr::BaseRLineLayerProcessor$get_x_range_from_group()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_y_range_from_group"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_y_range_from_group'><code>maidr::BaseRLineLayerProcessor$get_y_range_from_group()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-needs_reordering'><code>maidr::BaseRLineLayerProcessor$needs_reordering()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_abline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_abline_data'><code>BaseRLineLayerProcessor$extract_abline_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_axis_titles"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_axis_titles'><code>BaseRLineLayerProcessor$extract_axis_titles()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_data'><code>BaseRLineLayerProcessor$extract_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_main_title"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_main_title'><code>BaseRLineLayerProcessor$extract_main_title()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_multiline_data'><code>BaseRLineLayerProcessor$extract_multiline_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_single_line_data'><code>BaseRLineLayerProcessor$extract_single_line_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="find_lines_grobs"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-find_lines_grobs'><code>BaseRLineLayerProcessor$find_lines_grobs()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-generate_selectors'><code>BaseRLineLayerProcessor$generate_selectors()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="generate_selectors_from_grob"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-generate_selectors_from_grob'><code>BaseRLineLayerProcessor$generate_selectors_from_grob()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_axis_labels"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_axis_labels'><code>BaseRLineLayerProcessor$get_axis_labels()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_x_range_from_group"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_x_range_from_group'><code>BaseRLineLayerProcessor$get_x_range_from_group()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_y_range_from_group"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_y_range_from_group'><code>BaseRLineLayerProcessor$get_y_range_from_group()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-needs_reordering'><code>BaseRLineLayerProcessor$needs_reordering()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRStepLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStepLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-Process the step layer.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRStepLayerProcessor$process(
+\subsection{\code{BaseRStepLayerProcessor$process()}}{
+  Process the step layer.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRStepLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -80,66 +77,61 @@ Process the step layer.
   panel_id = NULL,
   panel_ctx = NULL,
   layer_info = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{Unused for Base R (kept for interface compatibility)}
+      \item{\code{layout}}{Unused for Base R (kept for interface compatibility)}
+      \item{\code{built}}{Unused for Base R (kept for interface compatibility)}
+      \item{\code{gt}}{Gtable object used for selector generation (optional)}
+      \item{\code{scale_mapping}}{Unused for Base R}
+      \item{\code{grob_id}}{Unused for Base R}
+      \item{\code{panel_id}}{Unused for Base R}
+      \item{\code{panel_ctx}}{Unused for Base R}
+      \item{\code{layer_info}}{Information about the recorded plot call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with data, selectors, type, title, axes and stepDirection
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{Unused for Base R (kept for interface compatibility)}
-
-\item{\code{layout}}{Unused for Base R (kept for interface compatibility)}
-
-\item{\code{built}}{Unused for Base R (kept for interface compatibility)}
-
-\item{\code{gt}}{Gtable object used for selector generation (optional)}
-
-\item{\code{scale_mapping}}{Unused for Base R}
-
-\item{\code{grob_id}}{Unused for Base R}
-
-\item{\code{panel_id}}{Unused for Base R}
-
-\item{\code{panel_ctx}}{Unused for Base R}
-
-\item{\code{layer_info}}{Information about the recorded plot call}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with data, selectors, type, title, axes and stepDirection
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRStepLayerProcessor-extract_step_direction"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStepLayerProcessor-extract_step_direction}{}}}
-\subsection{Method \code{extract_step_direction()}}{
-Read the step convention the recorded call requested.
+\subsection{\code{BaseRStepLayerProcessor$extract_step_direction()}}{
+  Read the step convention the recorded call requested.
 
 \code{type = "s"} draws the horizontal segment first (MAIDR's \code{"hv"}) and
 \code{type = "S"} draws the vertical segment first (\code{"vh"}). The two are not
 interchangeable, so an unrecognised or absent \code{type} yields NULL and
 the caller omits \code{stepDirection} rather than guessing.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRStepLayerProcessor$extract_step_direction(layer_info)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRStepLayerProcessor$extract_step_direction(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Information about the recorded plot call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "hv", "vh", or NULL
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Information about the recorded plot call}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-"hv", "vh", or NULL
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRStepLayerProcessor-selector_grob_type"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStepLayerProcessor-selector_grob_type}{}}}
-\subsection{Method \code{selector_grob_type()}}{
-Draw a step layer's selectors from the stairstep grobs.
+\subsection{\code{BaseRStepLayerProcessor$selector_grob_type()}}{
+  Draw a step layer's selectors from the stairstep grobs.
 
 gridGraphics names a grob after the \code{type} letter that drew it, so a
 stairstep lands under \code{graphics-plot-N-step-M} (\code{type = "s"}) or
@@ -148,36 +140,40 @@ name the inherited line search looks for. Without this override a Base
 R step layer emits zero selectors, and the frontend's
 \verb{selectors.length === series count} precondition then drops the
 layer's highlighting entirely.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRStepLayerProcessor$selector_grob_type(layer_info)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRStepLayerProcessor$selector_grob_type(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Information about the recorded plot call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "step"
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{layer_info}}{Information about the recorded plot call}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-"step"
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRStepLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStepLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRStepLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRStepLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRStepLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

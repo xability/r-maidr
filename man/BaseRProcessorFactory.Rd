@@ -12,156 +12,168 @@ processors for Base R plot types based on recorded plot calls.
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:ProcessorFactory]{maidr::ProcessorFactory}} -> \code{BaseRProcessorFactory}
+\code{\link[maidr:ProcessorFactory]{ProcessorFactory}} -> \code{BaseRProcessorFactory}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-BaseRProcessorFactory-new}{\code{BaseRProcessorFactory$new()}}
-\item \href{#method-BaseRProcessorFactory-create_processor}{\code{BaseRProcessorFactory$create_processor()}}
-\item \href{#method-BaseRProcessorFactory-get_supported_types}{\code{BaseRProcessorFactory$get_supported_types()}}
-\item \href{#method-BaseRProcessorFactory-get_system_name}{\code{BaseRProcessorFactory$get_system_name()}}
-\item \href{#method-BaseRProcessorFactory-is_processor_available}{\code{BaseRProcessorFactory$is_processor_available()}}
-\item \href{#method-BaseRProcessorFactory-get_available_processors}{\code{BaseRProcessorFactory$get_available_processors()}}
-\item \href{#method-BaseRProcessorFactory-try_create_processor}{\code{BaseRProcessorFactory$try_create_processor()}}
-\item \href{#method-BaseRProcessorFactory-clone}{\code{BaseRProcessorFactory$clone()}}
+  \itemize{
+    \item \href{#method-BaseRProcessorFactory-initialize}{\code{BaseRProcessorFactory$new()}}
+    \item \href{#method-BaseRProcessorFactory-create_processor}{\code{BaseRProcessorFactory$create_processor()}}
+    \item \href{#method-BaseRProcessorFactory-get_supported_types}{\code{BaseRProcessorFactory$get_supported_types()}}
+    \item \href{#method-BaseRProcessorFactory-get_system_name}{\code{BaseRProcessorFactory$get_system_name()}}
+    \item \href{#method-BaseRProcessorFactory-is_processor_available}{\code{BaseRProcessorFactory$is_processor_available()}}
+    \item \href{#method-BaseRProcessorFactory-get_available_processors}{\code{BaseRProcessorFactory$get_available_processors()}}
+    \item \href{#method-BaseRProcessorFactory-try_create_processor}{\code{BaseRProcessorFactory$try_create_processor()}}
+    \item \href{#method-BaseRProcessorFactory-clone}{\code{BaseRProcessorFactory$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details open><summary>Inherited methods</summary>
+\if{html}{\out{<details open><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="ProcessorFactory" data-id="supports_plot_type"><a href='../../maidr/html/ProcessorFactory.html#method-ProcessorFactory-supports_plot_type'><code>maidr::ProcessorFactory$supports_plot_type()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="ProcessorFactory" data-id="supports_plot_type"><a href='../../maidr/html/ProcessorFactory.html#method-ProcessorFactory-supports_plot_type'><code>ProcessorFactory$supports_plot_type()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BaseRProcessorFactory-new"></a>}}
-\if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-new}{}}}
-\subsection{Method \code{new()}}{
-Initialize the Base R processor factory
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$new()}\if{html}{\out{</div>}}
+\if{html}{\out{<a id="method-BaseRProcessorFactory-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-initialize}{}}}
+\subsection{\code{BaseRProcessorFactory$new()}}{
+  Initialize the Base R processor factory
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$new()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-create_processor}{}}}
-\subsection{Method \code{create_processor()}}{
-Create a processor for a specific plot type
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$create_processor(plot_type, layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$create_processor()}}{
+  Create a processor for a specific plot type
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$create_processor(plot_type, layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_type}}{The type of plot (e.g., "bar", "line", "point")}
+      \item{\code{layer_info}}{Information about the layer (contains plot call and metadata)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor instance for the specified plot type
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_type}}{The type of plot (e.g., "bar", "line", "point")}
-
-\item{\code{layer_info}}{Information about the layer (contains plot call and metadata)}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor instance for the specified plot type
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-get_supported_types"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_supported_types}{}}}
-\subsection{Method \code{get_supported_types()}}{
-Get list of supported plot types
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$get_supported_types()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$get_supported_types()}}{
+  Get list of supported plot types
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$get_supported_types()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of supported plot types
+  }
 }
 
-\subsection{Returns}{
-Character vector of supported plot types
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-get_system_name"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_system_name}{}}}
-\subsection{Method \code{get_system_name()}}{
-Get the system name
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$get_system_name()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$get_system_name()}}{
+  Get the system name
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$get_system_name()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    System name string
+  }
 }
 
-\subsection{Returns}{
-System name string
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-is_processor_available"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-is_processor_available}{}}}
-\subsection{Method \code{is_processor_available()}}{
-Check if a specific processor class is available
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$is_processor_available(processor_class_name)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$is_processor_available()}}{
+  Check if a specific processor class is available
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$is_processor_available(processor_class_name)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{processor_class_name}}{Name of the processor class}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE if available, FALSE otherwise
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{processor_class_name}}{Name of the processor class}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-TRUE if available, FALSE otherwise
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-get_available_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_available_processors}{}}}
-\subsection{Method \code{get_available_processors()}}{
-Get available processor classes
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$get_available_processors()}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$get_available_processors()}}{
+  Get available processor classes
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$get_available_processors()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of available processor class names
+  }
 }
 
-\subsection{Returns}{
-Character vector of available processor class names
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-try_create_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-try_create_processor}{}}}
-\subsection{Method \code{try_create_processor()}}{
-Create a processor with error handling
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$try_create_processor(plot_type, layer_info)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$try_create_processor()}}{
+  Create a processor with error handling
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$try_create_processor(plot_type, layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_type}}{The type of plot}
+      \item{\code{layer_info}}{The layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Processor instance or NULL if creation fails
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot_type}}{The type of plot}
-
-\item{\code{layer_info}}{The layer information}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Processor instance or NULL if creation fails
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRProcessorFactory-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BaseRProcessorFactory$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{BaseRProcessorFactory$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRProcessorFactory$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }
