@@ -22,6 +22,17 @@ r_sources <- function() {
   )
 }
 
+# `R CMD check` runs the tests against an *installed* package, where `R/` holds
+# the lazy-load database rather than the sources -- so there is nothing to read
+# and this says so instead of failing. It runs on `devtools::test()` and
+# `testthat::test_dir()`, which is the loop the mistake is made in.
+skip_without_sources <- function() {
+  testthat::skip_if(
+    length(r_sources()) == 0L,
+    "R/ sources are not shipped with an installed package"
+  )
+}
+
 # Two roxygen blocks in a row: a line that is roxygen, then a line that starts
 # one, with only blank or roxygen-blank lines between. A block ends at the
 # first line that is neither, so anything else in between is code and the two
@@ -60,11 +71,15 @@ orphaned_blocks <- function(path) {
 }
 
 test_that("there are R sources to check", {
+  skip_without_sources()
+
   # A path that stopped resolving would make the case below vacuous.
   testthat::expect_gt(length(r_sources()), 20L)
 })
 
 test_that("no roxygen block carries two descriptions", {
+  skip_without_sources()
+
   reported <- character(0)
   for (path in r_sources()) {
     for (line in orphaned_blocks(path)) {
