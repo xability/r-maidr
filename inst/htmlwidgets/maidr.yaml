@@ -1,5 +1,5 @@
 dependencies:
   - name: maidr
-    version: 4.1.0
-    src: htmlwidgets/lib/maidr-4.1.0
+    version: 4.2.0
+    src: htmlwidgets/lib/maidr-4.2.0
     script: maidr.js
