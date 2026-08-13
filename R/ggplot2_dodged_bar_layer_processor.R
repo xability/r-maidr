@@ -324,7 +324,8 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # duplicated cell falls back to -- the series ggplot2 drew for the
       # missing category disappeared from the payload with nothing said.
       # `exclude = NULL` keeps it, in the position the level order puts it.
-      fill_levels <- discrete_level_order(fill_values)
+      # `fill_levels` is the one computed above the griddable test, so the two
+      # paths cannot describe different series.
       rows_by_fill <- split(
         seq_along(fill_values),
         factor(as.character(fill_values), levels = fill_levels, exclude = NULL)
