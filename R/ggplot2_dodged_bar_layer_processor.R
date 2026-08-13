@@ -107,22 +107,6 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         fill = evaluate(quo_for("fill"))
       )
     },
-    #' @description Order the distinct values of an aesthetic the way ggplot2
-    #'   lays them out, so the emitted columns line up with the drawn ones.
-    #'   A factor follows its own level order, minus the levels nothing was
-    #'   drawn for; anything else sorts in its own type's order. Sorting the
-    #'   values AS TEXT, which is what this used to do, reordered the columns
-    #'   twice over: against a factor whose levels are not alphabetical, and
-    #'   against a number, where it puts 10 before 2.
-    #' @param values A vector of aesthetic values
-    #' @return Character vector of the observed levels, in drawn order
-    discrete_level_order = function(values) {
-      if (is.factor(values)) {
-        observed <- unique(as.character(values))
-        return(levels(values)[levels(values) %in% observed])
-      }
-      as.character(sort(unique(values)))
-    },
     reorder_layer_data = function(data, plot) {
       aes_values <- self$resolve_aes_values(plot, data)
       x_values <- aes_values$x
@@ -132,8 +116,24 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         return(data)
       }
 
-      x_ordered <- factor(x_values, levels = sort(unique(x_values)))
-      fill_ordered <- factor(fill_values, levels = rev(sort(unique(fill_values))))
+      # Through `discrete_level_order()` and with `exclude = NULL`, so a row
+      # whose aesthetic is missing sorts into the missing category's place
+      # rather than to the end. `sort()` drops `NA` from a level vector and
+      # `order()` then puts those rows last, which would draw the missing
+      # category's rect after every other one in its column -- while the
+      # payload emits it as the LAST series, which the frontend consumes
+      # FIRST on its reverse walk. The rect and the cell would be a whole
+      # column apart (#112).
+      x_ordered <- factor(
+        as.character(x_values),
+        levels = discrete_level_order(x_values),
+        exclude = NULL
+      )
+      fill_ordered <- factor(
+        as.character(fill_values),
+        levels = rev(discrete_level_order(fill_values)),
+        exclude = NULL
+      )
 
       data[order(x_ordered, fill_ordered), , drop = FALSE]
     },
@@ -177,11 +177,16 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # stat = "count" (no y aesthetic): one bar per (x, fill) combination
       # with the row count as its value
       if (is.null(y_values)) {
-        x_levels <- self$discrete_level_order(x_values)
-        fill_levels <- self$discrete_level_order(fill_values)
+        x_levels <- discrete_level_order(x_values)
+        fill_levels <- discrete_level_order(fill_values)
+        # `exclude = NULL`, so the missing level `discrete_level_order()`
+        # appended is a level here too and the rows carrying it are counted
+        # into its own cell. Without it `factor()` drops the level and scores
+        # those rows `NA`, which `table()` then leaves out of the tabulation
+        # entirely -- the bar ggplot2 drew for them, counted nowhere.
         count_table <- table(
-          factor(as.character(x_values), levels = x_levels),
-          factor(as.character(fill_values), levels = fill_levels)
+          factor(as.character(x_values), levels = x_levels, exclude = NULL),
+          factor(as.character(fill_values), levels = fill_levels, exclude = NULL)
         )
 
         # Emit the FULL cartesian product, scoring absent (x, fill) cells 0,
@@ -216,12 +221,16 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         # fills its absent cells with `NA` rather than 0: there a missing row
         # means the caller supplied no value, and a zero would invent data.
         # See the note there for how the frontend tells the two apart.
-        series <- lapply(fill_levels, function(fill_name) {
-          lapply(x_levels, function(x_name) {
+        # Indexed by POSITION, not by name: `count_table[NA, ...]` is an NA
+        # subscript rather than a lookup of the missing level's row, so a
+        # name-based read of the cell ggplot2 drew for the missing category
+        # comes back `NA` however the table was built.
+        series <- lapply(seq_along(fill_levels), function(fill_index) {
+          lapply(seq_along(x_levels), function(x_index) {
             list(
-              x = x_name,
-              y = as.numeric(count_table[x_name, fill_name]),
-              z = fill_name
+              x = level_label(x_levels[x_index]),
+              y = as.numeric(count_table[x_index, fill_index]),
+              z = level_label(fill_levels[fill_index])
             )
           })
         })
@@ -264,11 +273,11 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # an absent `stat = "count"` cell, which genuinely counted nothing, while
       # a row the caller never supplied reads as missing instead of inventing a
       # zero. Verified end to end in Chromium against the bundled build.
-      x_levels <- self$discrete_level_order(x_values)
-      fill_levels <- self$discrete_level_order(fill_values)
+      x_levels <- discrete_level_order(x_values)
+      fill_levels <- discrete_level_order(fill_values)
       cell_keys <- paste(
-        as.character(x_values),
-        as.character(fill_values),
+        level_keys(x_values),
+        level_keys(fill_values),
         sep = "\r"
       )
 
@@ -277,30 +286,29 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # chart rather than an incomplete one, so leave it on the row-by-row path
       # rather than silently dropping a row to force it into a grid.
       #
-      # A real `NA` in either aesthetic takes the same exit. `sort()` drops it
-      # from the level order, so the grid has no column or series to hold that
-      # row and would omit it entirely - `paste()` stringifies it to "NA", so
-      # the duplicate test above never notices. ggplot2 itself draws the row
-      # as its own grey "NA" category, so neither the row-by-row reading nor
-      # the grid matches the picture; this only keeps that case exactly as it
-      # was, rather than trading its wrong answer for a quieter one.
-      griddable <- anyDuplicated(cell_keys) == 0L &&
-        !anyNA(x_values) && !anyNA(fill_values)
+      # A missing value in either aesthetic used to take the same exit, because
+      # `sort()` left it out of the level order and `paste()` hid it from the
+      # duplicate test by stringifying it to "NA". Neither is true now:
+      # `discrete_level_order()` gives the missing category the column ggplot2
+      # draws for it, and `level_keys()` keeps it apart from a level that is
+      # literally those two characters, so this test means what it says (#112).
+      griddable <- anyDuplicated(cell_keys) == 0L
 
       if (griddable) {
         values_by_cell <- setNames(as.numeric(y_values), cell_keys)
 
         return(lapply(fill_levels, function(fill_name) {
+          fill_key <- level_keys(fill_name)
           lapply(x_levels, function(x_name) {
-            key <- paste(x_name, fill_name, sep = "\r")
+            key <- paste(level_keys(x_name), fill_key, sep = "\r")
             list(
-              x = x_name,
+              x = level_label(x_name),
               y = if (key %in% names(values_by_cell)) {
                 values_by_cell[[key]]
               } else {
                 NA_real_
               },
-              z = fill_name
+              z = level_label(fill_name)
             )
           })
         }))
@@ -310,17 +318,27 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       # evaluated aesthetic vectors sidesteps the tibble trap where
       # `df[i, col]` returns a 1x1 tibble that serializes as a nested array
       # instead of a number.
-      rows_by_fill <- split(seq_along(fill_values), fill_values)
+      #
+      # Split on the level order rather than on the raw values: bare `split()`
+      # drops the rows whose fill is missing, so on this path -- the one a
+      # duplicated cell falls back to -- the series ggplot2 drew for the
+      # missing category disappeared from the payload with nothing said.
+      # `exclude = NULL` keeps it, in the position the level order puts it.
+      fill_levels <- discrete_level_order(fill_values)
+      rows_by_fill <- split(
+        seq_along(fill_values),
+        factor(as.character(fill_values), levels = fill_levels, exclude = NULL)
+      )
 
-      lapply(names(rows_by_fill), function(fill_name) {
-        rows <- rows_by_fill[[fill_name]]
+      lapply(seq_along(fill_levels), function(fill_index) {
+        rows <- rows_by_fill[[fill_index]]
         rows <- rows[order(x_values[rows])]
 
         lapply(rows, function(i) {
           list(
-            x = as.character(x_values[i]),
+            x = level_label(as.character(x_values[i])),
             y = as.numeric(y_values[i]),
-            z = as.character(fill_values[i])
+            z = level_label(fill_levels[fill_index])
           )
         })
       })
