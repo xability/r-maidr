@@ -47,6 +47,9 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "step" = Ggplot2StepLayerProcessor$new(layer_info),
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
         "heat" = Ggplot2HeatmapLayerProcessor$new(layer_info),
+        # A hexbin is a lattice of counted cells like a heatmap, but its
+        # rows are staggered, so it reads through a processor of its own.
+        "hexbin" = Ggplot2HexbinLayerProcessor$new(layer_info),
         "point" = Ggplot2PointLayerProcessor$new(layer_info),
         "box" = Ggplot2BoxplotLayerProcessor$new(layer_info),
         "error_bar" = Ggplot2ErrorbarLayerProcessor$new(layer_info),
@@ -75,6 +78,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "step",
         "smooth",
         "heat",
+        "hexbin",
         "point",
         "box",
         "error_bar",
