@@ -118,16 +118,18 @@ computed for it.
 Matched on the stat rather than on the presence of a \code{count}
 column, because a tidy heatmap whose value column happens to be
 named \code{count} is not a binned layer and must not take that path.
+Reached through \code{get_own_layer()}, which already answers "is there
+a layer at my index?" -- a second bounds check here would be a
+second place for the answer to change.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2HeatmapLayerProcessor$is_binned_layer(plot, layer_index)}
+    \preformatted{Ggplot2HeatmapLayerProcessor$is_binned_layer(plot)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot}}{The ggplot object}
-      \item{\code{layer_index}}{This layer's position in \code{plot$layers}}
     }
     \if{html}{\out{</div>}}
   }

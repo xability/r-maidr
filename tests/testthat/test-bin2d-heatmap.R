@@ -182,11 +182,14 @@ test_that("the binned path is chosen by the stat, not by a column name", {
   tidy <- ggplot2::ggplot(frame, ggplot2::aes(col, row, fill = count)) +
     ggplot2::geom_tile()
 
-  processor <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 1))
+  first <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 1))
 
-  testthat::expect_false(processor$is_binned_layer(tidy, 1))
-  testthat::expect_true(processor$is_binned_layer(bin2d_plot(), 1))
-  # Out of range rather than an error: a caller asking about a layer that
-  # is not there gets "no", not a crash.
-  testthat::expect_false(processor$is_binned_layer(tidy, 5))
+  testthat::expect_false(first$is_binned_layer(tidy))
+  testthat::expect_true(first$is_binned_layer(bin2d_plot()))
+
+  # A processor whose index names no layer answers "no" rather than
+  # erroring -- through `get_own_layer()`, so there is one bounds check
+  # rather than two that could disagree.
+  fifth <- maidr:::Ggplot2HeatmapLayerProcessor$new(list(index = 5))
+  testthat::expect_false(fifth$is_binned_layer(tidy))
 })

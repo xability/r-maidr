@@ -52,7 +52,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       # of the numbers, producing one bin per observation. That is what
       # made a four-by-four binned scatter come out as a 200x200 grid
       # labelled "0.5 to 1.5", "1.5 to 2.5", and so on (#136).
-      if (self$is_binned_layer(plot, self$get_layer_index())) {
+      if (self$is_binned_layer(plot)) {
         return(data)
       }
 
@@ -97,15 +97,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     #'   Matched on the stat rather than on the presence of a `count`
     #'   column, because a tidy heatmap whose value column happens to be
     #'   named `count` is not a binned layer and must not take that path.
+    #'   Reached through `get_own_layer()`, which already answers "is there
+    #'   a layer at my index?" -- a second bounds check here would be a
+    #'   second place for the answer to change.
     #' @param plot The ggplot object
-    #' @param layer_index This layer's position in `plot$layers`
     #' @return `TRUE` when the layer's stat computes a 2D bin grid
-    is_binned_layer = function(plot, layer_index) {
-      if (layer_index > length(plot$layers)) {
+    is_binned_layer = function(plot) {
+      layer <- self$get_own_layer(plot)
+      if (is.null(layer)) {
         return(FALSE)
       }
-      stat_class <- class(plot$layers[[layer_index]]$stat)[1]
-      identical(stat_class, "StatBin2d")
+      identical(class(layer$stat)[1], "StatBin2d")
     },
     #' @description Read a computed 2D bin grid out of the built data.
     #'
@@ -128,10 +130,14 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
                     fill_label = "count"))
       }
 
-      # `count` is what `stat_bin_2d()` computes. `value` is its alias in
-      # some ggplot2 versions, and `fill` is the mapped colour rather than
-      # a number, so it is never the value even when the other two are
-      # absent.
+      # `count` is what `stat_bin_2d()` computes, and `value` is the same
+      # number under ggplot2 3.x's spelling -- checked rather than assumed:
+      # on 3.4.4 both columns are present and identical row for row. So the
+      # label below is "count" either way, and reading `value` is a
+      # fallback for a build that stops emitting `count` rather than a
+      # different quantity.
+      #
+      # `fill` is never it: that is the mapped colour, not a number.
       value_col <- if ("count" %in% names(built_data)) {
         "count"
       } else if ("value" %in% names(built_data)) {
@@ -229,7 +235,7 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       # *centre* that matches none of them -- a complete, well-formed and
       # entirely empty grid, 200x200 of missing against 18 drawn tiles
       # (#136).
-      if (self$is_binned_layer(plot, layer_index)) {
+      if (self$is_binned_layer(plot)) {
         return(self$extract_binned_data(built_data))
       }
 
