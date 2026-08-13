@@ -813,12 +813,15 @@ test_that("two polar layers in one panel address different wedges", {
   testthat::expect_false(identical(selectors[[1]], selectors[[2]]))
 })
 
-test_that("an ambiguous panel gets no selector rather than a guess", {
+test_that("a label layer costs the rings nothing", {
   skip_if_no_ggplot2()
 
-  # Two containers and three layers: the drawing order no longer says which
-  # container belongs to which layer, and the third layer drew no wedges. A
-  # positional guess here lands on another layer's marks.
+  # Two rings and a geom_text() label layer. Counting containers against
+  # layers -- two of one, three of the other -- made this look ambiguous and
+  # took the selectors away from BOTH rings, though the correspondence is
+  # perfectly well defined: the text layer occupies a slot and draws no
+  # container. Slots are what the panel actually offers, so they are what is
+  # counted.
   df <- data.frame(fruit = c("Apples", "Bananas", "Cherries"), n = c(3, 5, 2))
   p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = n, fill = fruit)) +
     ggplot2::geom_col() +
@@ -827,7 +830,39 @@ test_that("an ambiguous panel gets no selector rather than a guess", {
     ggplot2::coord_polar("y")
   gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
 
-  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+  selectors <- lapply(seq_len(3), function(index) {
+    maidr:::Ggplot2PieLayerProcessor$new(
+      list(index = index)
+    )$generate_selectors(p, gt)
+  })
 
-  testthat::expect_equal(processor$generate_selectors(p, gt), list())
+  testthat::expect_length(selectors[[1]], 1L)
+  testthat::expect_length(selectors[[2]], 1L)
+  testthat::expect_false(identical(selectors[[1]], selectors[[2]]))
+  # The label layer drew no wedges, and must not be handed a ring's.
+  testthat::expect_equal(selectors[[3]], list())
+})
+
+test_that("a layer that drew nothing is not handed another layer's wedges", {
+  skip_if_no_ggplot2()
+
+  # The label layer first, so the one container in the panel is NOT in its
+  # slot. A search that fell back whenever the slot held no container would
+  # hand it the pie's wedges -- resolving, healthy-looking, and wrong.
+  df <- data.frame(fruit = c("Apples", "Bananas", "Cherries"), n = c(3, 5, 2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = n, fill = fruit)) +
+    ggplot2::geom_text(ggplot2::aes(label = fruit), position = "stack") +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
+
+  first <- maidr:::Ggplot2PieLayerProcessor$new(
+    list(index = 1)
+  )$generate_selectors(p, gt)
+  second <- maidr:::Ggplot2PieLayerProcessor$new(
+    list(index = 2)
+  )$generate_selectors(p, gt)
+
+  testthat::expect_equal(first, list())
+  testthat::expect_length(second, 1L)
 })

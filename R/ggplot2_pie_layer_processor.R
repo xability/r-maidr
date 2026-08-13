@@ -290,19 +290,19 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      roots <- list()
-      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        # Facet / patchwork path: scope the search to this panel's grob
-        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-        if (!is.null(panel_grob)) {
-          roots <- list(panel_grob)
-        }
-      } else if ("grobs" %in% names(gt)) {
-        roots <- gt$grobs
+      panel <- find_gtable_panel_grob(gt, panel_ctx)
+      slot <- self$layer_slot_grob(panel)
+      polygon_grob <- if (!is.null(slot)) {
+        # The slot is this layer's, so whatever it holds is the answer --
+        # including "not a container", which means this layer drew no wedges.
+        # Falling through to the search here would hand a label layer the
+        # pie's wedges.
+        self$find_own_polygon_grob(slot)
+      } else {
+        self$sole_wedge_container(
+          if (is.null(panel) && "grobs" %in% names(gt)) gt$grobs else list(panel)
+        )
       }
-
-      polygon_grob <- self$resolve_layer_polygon_grob(plot, roots)
-
       # No polygon grob means this layer drew no wedges here: an empty facet
       # level, a zero-row layer, a coord that renders no polygons. The layer
       # INDEX is not the grob id - every `geom_rect.polygon.N` id carries
@@ -321,74 +321,68 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
       list(paste0("#", escaped_svg_id, " polygon"))
     },
 
-    #' @description Find the grob whose \code{<polygon>} descendants are the wedges
+    #' @description The grob slot belonging to *this* layer
     #'
-    #' ggplot2 does not draw a polar bar layer the same way across versions,
-    #' and the difference is not cosmetic. Verified against real
-    #' \code{gridSVG::grid.export()} output:
+    #' ggplot2 lays a panel out as the grill, a leading \code{zeroGrob},
+    #' \strong{one child per layer in layer order}, a trailing
+    #' \code{zeroGrob} and the axis tree. So the slot is the handle: layer
+    #' \emph{k} owns the \emph{k}th child after the leading blank, whether or
+    #' not it drew anything.
     #'
-    #' \itemize{
-    #'   \item One \code{geom_rect.polygon.<N>} grob holding every wedge,
-    #'     grouped by id. This is what the lookup was written for.
-    #'   \item A \code{geom_rect.gTree.<N>} holding **one
-    #'     \code{geom_polygon.polygon.<N>} grob per wedge}. On ggplot2 3.4.4
-    #'     this is what a pie draws, and nothing named
-    #'     \code{geom_rect.polygon} exists anywhere in the tree -- so the
-    #'     lookup found nothing, \code{generate_selectors()} returned an empty
-    #'     list, and **a pie highlighted nothing at all** (#151).
-    #' }
+    #' It matters because a panel can hold more than one polar
+    #' \code{geom_rect} layer -- two \code{geom_col()}s under
+    #' \code{coord_polar()} is an ordinary way to draw a ring over a pie --
+    #' and a search that takes the first container hands every layer the first
+    #' layer's wedges. Those selectors resolve, and the payload looks healthy,
+    #' and the outline is on the wrong marks.
     #'
-    #' Either way the answer is a container whose \code{<polygon>} descendants
-    #' are the wedges in slice order, so the caller's descendant selector
-    #' resolves against both without knowing which it got.
+    #' \code{LayerProcessor$find_layer_grob_tree()} cannot be reused for this:
+    #' it matches on the geom's own class, and a \code{geom_col()} layer is
+    #' \code{GeomCol} while the grob it draws is named after
+    #' \code{geom_rect}. Counting containers instead of slots does not work
+    #' either -- a \code{geom_text()} label layer occupies a slot and draws no
+    #' container, so the counts stop lining up and both rings of an annotated
+    #' pie lose their selectors.
     #'
-    #' The polar grill draws a polygon of its own under
-    #' \code{coord_radial()}, named \code{GRID.polygon.<N>}; neither branch
-    #' carries a name that matches it.
+    #' @param panel The panel grob, or NULL
+    #' @return This layer's grob, or NULL when the slot cannot be established
+    layer_slot_grob = function(panel) {
+      index <- self$get_layer_index()
+      if (is.null(panel) || !inherits(panel, "gTree") || is.null(index)) {
+        return(NULL)
+      }
+
+      children <- panel$children
+      blanks <- which(vapply(
+        children, function(g) inherits(g, "zeroGrob"), logical(1)
+      ))
+      if (length(blanks) == 0L) {
+        return(NULL)
+      }
+
+      at <- blanks[1] + as.integer(index)
+      if (at < 1L || at > length(children)) {
+        return(NULL)
+      }
+      children[[at]]
+    },
+
+    #' @description The one wedge container in a tree, when there is exactly one
     #'
-    #' @param grob Grob to search
-    #' @return Grob name, or NULL when the tree holds none
-    #' @description Pick the wedge container belonging to *this* layer
+    #' The fallback for when the slot lookup cannot resolve -- a panel shape
+    #' with no leading blank, or a caller handing over a gtable rather than a
+    #' panel. Correct whenever the search finds a single container, which is
+    #' every chart that is only a pie; ambiguous otherwise, and ambiguous
+    #' means no selector for the reason \code{generate_selectors()} gives.
     #'
-    #' A panel can hold more than one polar \code{geom_rect} layer -- two
-    #' \code{geom_col()}s under \code{coord_polar()} is an ordinary way to
-    #' draw a ring over a pie -- and a search that takes the first match
-    #' hands every layer the first layer's wedges. Those selectors resolve,
-    #' and the payload looks healthy, and the outline is on the wrong marks.
-    #'
-    #' \code{LayerProcessor$find_layer_grob_tree()} cannot be reused for
-    #' this: it matches on the geom's own class, and a \code{geom_col()}
-    #' layer is \code{GeomCol} while the grob it draws is named after
-    #' \code{geom_rect}. So the containers are collected in drawing order --
-    #' which is layer order -- and indexed.
-    #'
-    #' When the counts do not line up the answer is no selector rather than
-    #' a guess, for the reason \code{generate_selectors()} already gives: a
-    #' wrong selector highlights another layer's wedges, and the caller can
-    #' tell an empty list from a wrong one where a reader cannot.
-    #'
-    #' @param plot The ggplot2 object, or NULL when the caller has none
-    #' @param roots Grobs to search, in drawing order
+    #' @param roots Grobs to search
     #' @return Grob name, or NULL
-    resolve_layer_polygon_grob = function(plot, roots) {
+    sole_wedge_container = function(roots) {
       containers <- unlist(
         lapply(roots, function(root) self$collect_polygon_grobs(root)),
         use.names = FALSE
       )
-      if (length(containers) == 0L) {
-        return(NULL)
-      }
-      if (length(containers) == 1L) {
-        return(containers[[1]])
-      }
-
-      index <- self$get_layer_index()
-      layers <- if (is.null(plot)) NULL else plot$layers
-      if (is.null(layers) || length(containers) != length(layers) ||
-        is.null(index) || index < 1L || index > length(containers)) {
-        return(NULL)
-      }
-      containers[[index]]
+      if (length(containers) == 1L) containers[[1]] else NULL
     },
 
     #' @description Every wedge container in a grob tree, in drawing order
@@ -419,10 +413,36 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
     },
 
     #' @description Whether this grob is itself a wedge container
+    #'
+    #' ggplot2 does not draw a polar bar layer the same way across versions,
+    #' and the difference is not cosmetic. Verified against real
+    #' \code{gridSVG::grid.export()} output:
+    #'
+    #' \itemize{
+    #'   \item One \code{geom_rect.polygon.<N>} grob holding every wedge,
+    #'     grouped by id. This is what the lookup was written for.
+    #'   \item A \code{geom_rect.gTree.<N>} holding \strong{one
+    #'     \code{geom_polygon.polygon.<N>} grob per wedge}. On ggplot2 3.4.4
+    #'     this is what a pie draws, and nothing named
+    #'     \code{geom_rect.polygon} exists anywhere in the tree -- so the
+    #'     lookup found nothing, \code{generate_selectors()} returned an empty
+    #'     list, and \strong{a pie highlighted nothing at all} (#151).
+    #' }
+    #'
+    #' Either way the answer is a container whose \code{<polygon>} descendants
+    #' are the wedges in slice order, so the caller's descendant selector
+    #' resolves against both without knowing which it got.
+    #'
+    #' The polar grill draws a polygon of its own under
+    #' \code{coord_radial()}, named \code{GRID.polygon.<N>}; neither branch
+    #' carries a name that matches it. The gTree branch also requires a
+    #' polygon to be there: a \code{geom_rect} layer that drew none has
+    #' nothing to point at.
+    #'
     #' @param grob Grob to test
     #' @return Grob name, or NULL
     find_own_polygon_grob = function(grob) {
-      if (is.null(grob$name)) {
+      if (is.null(grob) || is.null(grob$name)) {
         return(NULL)
       }
       if (grepl("^geom_rect\\.polygon", grob$name)) {
@@ -431,65 +451,6 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
       if (grepl("^geom_rect\\.gTree", grob$name) && self$holds_polygon(grob)) {
         return(grob$name)
       }
-      NULL
-    },
-
-    find_polygon_grob = function(grob) {
-      if (is.null(grob)) {
-        return(NULL)
-      }
-      named <- self$find_named_polygon_grob(grob)
-      if (!is.null(named)) {
-        return(named)
-      }
-      self$find_wedge_container(grob)
-    },
-
-    #' @description Find a single grob holding every wedge, if there is one.
-    #'
-    #' @param grob Grob to search
-    #' @return Grob name, or NULL
-    find_named_polygon_grob = function(grob) {
-      if (!is.null(grob$name) && grepl("^geom_rect\\.polygon", grob$name)) {
-        return(grob$name)
-      }
-
-      if ("children" %in% names(grob)) {
-        for (child in grob$children) {
-          result <- self$find_named_polygon_grob(child)
-          if (!is.null(result)) {
-            return(result)
-          }
-        }
-      }
-
-      NULL
-    },
-
-    #' @description Find the layer tree whose polygon children are the wedges.
-    #'
-    #' Requires the tree to actually hold a polygon. A \code{geom_rect} gTree
-    #' that drew none is a layer with nothing to point at, and naming it would
-    #' emit a selector resolving to nothing -- which the caller cannot tell
-    #' apart from a working one, and a reader cannot tell apart from a bug.
-    #'
-    #' @param grob Grob to search
-    #' @return Grob name, or NULL
-    find_wedge_container = function(grob) {
-      if (!is.null(grob$name) && grepl("^geom_rect\\.gTree", grob$name) &&
-        self$holds_polygon(grob)) {
-        return(grob$name)
-      }
-
-      if ("children" %in% names(grob)) {
-        for (child in grob$children) {
-          result <- self$find_wedge_container(child)
-          if (!is.null(result)) {
-            return(result)
-          }
-        }
-      }
-
       NULL
     },
 
