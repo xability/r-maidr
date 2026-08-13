@@ -4,50 +4,46 @@
 \alias{Ggplot2DodgedBarLayerProcessor}
 \title{Dodged Bar Layer Processor}
 \description{
-Dodged Bar Layer Processor
-
-Dodged Bar Layer Processor
-}
-\details{
 Processes dodged bar plot layers with complete logic included
 }
 \keyword{internal}
 \section{Super class}{
-\code{\link[maidr:LayerProcessor]{maidr::LayerProcessor}} -> \code{Ggplot2DodgedBarLayerProcessor}
+\code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2DodgedBarLayerProcessor}
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-process}{\code{Ggplot2DodgedBarLayerProcessor$process()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-needs_reordering}{\code{Ggplot2DodgedBarLayerProcessor$needs_reordering()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{\code{Ggplot2DodgedBarLayerProcessor$resolve_aes_values()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-discrete_level_order}{\code{Ggplot2DodgedBarLayerProcessor$discrete_level_order()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data}{\code{Ggplot2DodgedBarLayerProcessor$reorder_layer_data()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-extract_data}{\code{Ggplot2DodgedBarLayerProcessor$extract_data()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{\code{Ggplot2DodgedBarLayerProcessor$generate_selectors()}}
-\item \href{#method-Ggplot2DodgedBarLayerProcessor-clone}{\code{Ggplot2DodgedBarLayerProcessor$clone()}}
+  \itemize{
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-process}{\code{Ggplot2DodgedBarLayerProcessor$process()}}
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-needs_reordering}{\code{Ggplot2DodgedBarLayerProcessor$needs_reordering()}}
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{\code{Ggplot2DodgedBarLayerProcessor$resolve_aes_values()}}
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data}{\code{Ggplot2DodgedBarLayerProcessor$reorder_layer_data()}}
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-extract_data}{\code{Ggplot2DodgedBarLayerProcessor$extract_data()}}
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{\code{Ggplot2DodgedBarLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2DodgedBarLayerProcessor-clone}{\code{Ggplot2DodgedBarLayerProcessor$clone()}}
+  }
 }
-}
-\if{html}{\out{
-<details><summary>Inherited methods</summary>
+\if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>maidr::LayerProcessor$apply_scale_mapping()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>maidr::LayerProcessor$augment_plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>maidr::LayerProcessor$extract_layer_axes()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>maidr::LayerProcessor$get_last_result()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>maidr::LayerProcessor$get_layer_index()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>maidr::LayerProcessor$initialize()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>maidr::LayerProcessor$needs_augmentation()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>maidr::LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
 </ul>
-</details>
-}}
+</details>}}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-process}{}}}
-\subsection{Method \code{process()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$process(
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$process()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$process(
   plot,
   layout,
   built = NULL,
@@ -56,123 +52,147 @@ Processes dodged bar plot layers with complete logic included
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layout}}{Layout information}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
+      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-needs_reordering}{}}}
-\subsection{Method \code{needs_reordering()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$needs_reordering()}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$needs_reordering()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$needs_reordering()}
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-resolve_aes_values}{}}}
-\subsection{Method \code{resolve_aes_values()}}{
-Resolve this layer's x/y/fill aesthetics to VALUES.
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$resolve_aes_values()}}{
+  Resolve this layer's x/y/fill aesthetics to VALUES.
 \code{rlang::as_label()} produces a display string, which doubles as a
 column name only for bare-column mappings. Evaluating the quosure
 against the data also covers expression aesthetics such as
 \code{aes(fill = factor(cyl))}, which are idiomatic ggplot2 and which
 the column-name treatment turned into \code{data[["factor(cyl)"]]},
 i.e. NULL.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$resolve_aes_values(plot, data)}\if{html}{\out{</div>}}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$resolve_aes_values(plot, data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{A ggplot2 object}
+      \item{\code{data}}{Data frame the aesthetics are evaluated against}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with \code{x}, \code{y} and \code{fill} vectors (any may be NULL)
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{plot}}{A ggplot2 object}
-
-\item{\code{data}}{Data frame the aesthetics are evaluated against}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-List with \code{x}, \code{y} and \code{fill} vectors (any may be NULL)
-}
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-discrete_level_order"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-discrete_level_order}{}}}
-\subsection{Method \code{discrete_level_order()}}{
-Order the distinct values of an aesthetic the way ggplot2
-lays them out, so the emitted columns line up with the drawn ones.
-A factor follows its own level order, minus the levels nothing was
-drawn for; anything else sorts in its own type's order. Sorting the
-values AS TEXT, which is what this used to do, reordered the columns
-twice over: against a factor whose levels are not alphabetical, and
-against a number, where it puts 10 before 2.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$discrete_level_order(values)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{values}}{A vector of aesthetic values}
-}
-\if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-Character vector of the observed levels, in drawn order
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data}{}}}
-\subsection{Method \code{reorder_layer_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$reorder_layer_data(data, plot)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$reorder_layer_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$reorder_layer_data(data, plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data}}{data.frame effective for this layer}
+      \item{\code{plot}}{full ggplot object (for mappings)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-extract_data}{}}}
-\subsection{Method \code{extract_data()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$extract_data(
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$extract_data()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$extract_data(
   plot,
   built = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{}}}
-\subsection{Method \code{generate_selectors()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$generate_selectors(
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$generate_selectors()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$generate_selectors(
   plot,
   gt = NULL,
   panel_ctx = NULL
-)}\if{html}{\out{</div>}}
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Ggplot2DodgedBarLayerProcessor$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{Ggplot2DodgedBarLayerProcessor$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2DodgedBarLayerProcessor$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

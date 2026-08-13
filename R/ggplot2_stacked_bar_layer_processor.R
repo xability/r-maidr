@@ -197,16 +197,35 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
           as.character(original_data[[fill_col]]),
           built_data_layer$fill
         )
-        stacking_order <- unique(color_to_fill[first_bar_data$fill])
+        x_values <- original_data[[x_col]]
+        fill_values <- original_data[[fill_col]]
 
-        # Read values from original data (original approach)
-        fill_groups <- split(original_data, original_data[[fill_col]])
+        # Every series gets one entry per x category, in the layer's x order,
+        # and every category ggplot2 drew gets a series -- the missing one
+        # included. `sort()` used to leave it out of both, so an `NA` fill
+        # lost its whole series (a drawn bar unreachable by any keystroke) and
+        # an `NA` x announced its value against an empty category (#112).
+        x_levels <- discrete_level_order(x_values)
+        fill_levels <- discrete_level_order(fill_values)
 
-        # split() drops NA, so a fill level this lookup cannot resolve has no
-        # rows to read and must not reach `order(NULL)`.
-        stacking_order <- stacking_order[
-          !is.na(stacking_order) & stacking_order %in% names(fill_groups)
-        ]
+        # Split row INDICES over the level order rather than the raw values:
+        # bare `split()` drops the missing group entirely, and its names
+        # cannot carry a level that is `NA` in the first place. Indices keep
+        # every series addressable by position, which is the only handle the
+        # missing level has.
+        fill_groups <- split(
+          seq_len(nrow(original_data)),
+          factor(as.character(fill_values), levels = fill_levels, exclude = NULL)
+        )
+
+        # The drawn geometry names fill VALUES; match them to level positions
+        # through `level_keys()` so a missing value finds the missing level
+        # instead of scoring `NA` against every candidate.
+        stacking_order <- match(
+          level_keys(unique(color_to_fill[first_bar_data$fill])),
+          level_keys(fill_levels)
+        )
+        stacking_order <- stacking_order[!is.na(stacking_order)]
 
         # Only reachable when no single column holds every fill level, so the
         # geometry above cannot place the stragglers. Appending them still
@@ -214,40 +233,43 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         # never be announced at all.
         stacking_order <- c(
           stacking_order,
-          setdiff(names(fill_groups), stacking_order)
+          setdiff(seq_along(fill_levels), stacking_order)
         )
-
-        # Every series gets one entry per x category, in the layer's x order.
-        x_levels <- as.character(sort(unique(original_data[[x_col]])))
 
         # Two rows in the same (x, fill) cell stack into two rects and a grid
         # has nowhere to put the second value, so that degenerate frame keeps
         # the row-by-row reading rather than losing a row to the grid.
         #
-        # A real `NA` in either aesthetic takes the same exit, for the reason
-        # spelled out in the dodged processor: `sort()` leaves it out of
-        # `x_levels`, so the grid would drop that row without ever reporting
-        # it missing, and `paste()` hides it from the duplicate test by
-        # stringifying it to "NA". Keeping the row-by-row path leaves that
-        # case reading exactly as it did before this change.
+        # A missing value in either aesthetic used to take the same exit,
+        # because `paste()` hid it from this test by stringifying it to "NA".
+        # `level_keys()` keeps the two apart, so the test means what it says.
         cell_keys <- paste(
-          as.character(original_data[[x_col]]),
-          as.character(original_data[[fill_col]]),
+          level_keys(x_values),
+          level_keys(fill_values),
           sep = "\r"
         )
-        griddable <- anyDuplicated(cell_keys) == 0L &&
-          !anyNA(original_data[[x_col]]) && !anyNA(original_data[[fill_col]])
+        griddable <- anyDuplicated(cell_keys) == 0L
 
-        lapply(stacking_order, function(fill_value) {
-          group_data <- fill_groups[[as.character(fill_value)]]
-          group_data <- group_data[order(group_data[[x_col]]), ]
+        lapply(stacking_order, function(fill_index) {
+          fill_level <- fill_levels[fill_index]
+          rows <- fill_groups[[fill_index]]
+          # Order by the level sequence, not by the values: `order()` puts a
+          # missing x last however the categories are laid out, which would
+          # walk this series' cells past the column its rect is drawn in.
+          rows <- rows[order(
+            factor(
+              as.character(x_values)[rows],
+              levels = x_levels,
+              exclude = NULL
+            )
+          )]
 
           if (!griddable) {
-            return(lapply(seq_len(nrow(group_data)), function(i) {
+            return(lapply(rows, function(i) {
               list(
-                x = as.character(group_data[[x_col]][i]),
-                y = group_data[[y_col]][i],
-                z = as.character(fill_value)
+                x = level_label(as.character(x_values[i])),
+                y = original_data[[y_col]][i],
+                z = level_label(fill_level)
               )
             }))
           }
@@ -259,15 +281,16 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
           # cell has to occupy a slot for the highlight to stay on the right
           # bar, but it must not be announced as the value zero.
           values <- setNames(
-            group_data[[y_col]],
-            as.character(group_data[[x_col]])
+            original_data[[y_col]][rows],
+            level_keys(x_values[rows])
           )
 
           lapply(x_levels, function(x_name) {
+            key <- level_keys(x_name)
             list(
-              x = x_name,
-              y = if (x_name %in% names(values)) values[[x_name]] else NA_real_,
-              z = as.character(fill_value)
+              x = level_label(x_name),
+              y = if (key %in% names(values)) values[[key]] else NA_real_,
+              z = level_label(fill_level)
             )
           })
         })
@@ -318,9 +341,13 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         lapply(ordered_colors, function(hex_color) {
           group_rows <- built_data_layer[built_data_layer$fill == hex_color, ]
 
+          # The scale's own label for the missing category is `NA`, not a
+          # string, so this used to hand the series a `z` of JSON `null` --
+          # a drawn segment whose group has no name (#112). `level_label()`
+          # gives it the two characters ggplot2 prints on its legend key.
           fill_label <- if (!is.null(fill_color_to_label) &&
                            hex_color %in% names(fill_color_to_label)) {
-            fill_color_to_label[[hex_color]]
+            level_label(fill_color_to_label[[hex_color]])
           } else {
             hex_color
           }
@@ -359,7 +386,9 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
               0
             }
             list(
-              x = as.character(x_name),
+              # The scale's label for the missing category is `NA` here too,
+              # so the same rule applies to the x tick as to the legend key.
+              x = level_label(x_name),
               y = y_val,
               z = as.character(fill_label)
             )

@@ -268,13 +268,12 @@ test_that("a dodged geom_col still asks for the default reverse walk", {
   testthat::expect_null(col_layer("middle", "dodged")$layer$domMapping)
 })
 
-# A real NA in the x or fill aesthetic is NOT an absent cell (raised in review
-# of this PR). ggplot2 draws it as its own grey "NA" category, so it is a row
-# the caller did supply - but `sort()` leaves NA out of the level order, so a
-# grid built from those levels has no slot for it and would drop it without
-# ever reporting it missing. `paste()` stringifies NA to "NA", so the duplicate
-# check cannot see it either. Both processors therefore keep the row-by-row
-# path for that frame.
+# A real NA in the x or fill aesthetic is NOT an absent cell. ggplot2 draws it
+# as its own grey "NA" category, so it is a row the caller did supply, and it
+# gets a column and a series of its own like any other level (#112). It used
+# to be held back to the row-by-row path, because `sort()` left it out of the
+# level order and `paste()` hid it from the duplicate check by stringifying it
+# to "NA"; `discrete_level_order()` and `level_keys()` are what changed.
 
 na_aes_frame <- function(where) {
   frame <- data.frame(
@@ -296,47 +295,116 @@ na_aes_points <- function(frame, position) {
   unlist(processor$new(list(index = 1))$extract_data(plot), recursive = FALSE)
 }
 
-test_that("a real NA in x or fill keeps the row-by-row reading", {
+test_that("a real NA in x or fill takes the grid path like any other level", {
   testthat::skip_if_not_installed("ggplot2")
 
   for (where in c("x", "g")) {
     for (position in c("dodge", "stack")) {
       points <- na_aes_points(na_aes_frame(where), position)
 
-      # The grid path is what introduces `NA` y values, so an absent one here
-      # is the evidence that this frame did not take it. Every point carries a
-      # value the caller supplied.
+      # The grid path is what introduces `NA` y values, so their presence is
+      # the evidence this frame took it -- and the three the caller supplied
+      # are all still there, none traded away for the grid.
       values <- vapply(points, function(p) as.numeric(p$y), numeric(1))
-      testthat::expect_false(
-        anyNA(values),
-        info = paste(where, position)
-      )
-      testthat::expect_true(
-        all(values %in% na_aes_frame(where)$n),
-        info = paste(where, position)
-      )
+      testthat::expect_true(anyNA(values), info = paste(where, position))
+      testthat::expect_setequal(values[!is.na(values)], c(10, 20, 30))
     }
   }
 })
 
-test_that("the NA guard is what holds those frames back, not their shape", {
+test_that("the missing category is announced as the NA ggplot2 draws", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # Same frames with the NA replaced by a real level: (r, A) and (r, B) are
-  # still the only rows at x = r, so these are incomplete grids and the grid
-  # path must claim them. Without this control the test above would pass just
-  # as well if the grid had stopped working altogether.
-  for (where in c("x", "g")) {
-    frame <- na_aes_frame(where)
-    frame[[where]][3] <- if (where == "x") "r" else "B"
+  # The row carrying the missing value reaches the reader under the same two
+  # characters that are printed on its axis tick or legend key. Announcing it
+  # as nothing -- which is what a `NULL` x or z serializes to -- describes a
+  # value against a category that has no name.
+  for (position in c("dodge", "stack")) {
+    on_x <- na_aes_points(na_aes_frame("x"), position)
+    thirty <- Filter(function(p) identical(as.numeric(p$y), 30), on_x)
+    testthat::expect_length(thirty, 1)
+    testthat::expect_identical(thirty[[1]]$x, "NA", info = position)
 
-    for (position in c("dodge", "stack")) {
-      values <- vapply(
-        na_aes_points(frame, position),
-        function(p) as.numeric(p$y), numeric(1)
-      )
-      testthat::expect_true(anyNA(values), info = paste(where, position))
+    on_fill <- na_aes_points(na_aes_frame("g"), position)
+    thirty <- Filter(function(p) identical(as.numeric(p$y), 30), on_fill)
+    testthat::expect_length(thirty, 1)
+    testthat::expect_identical(thirty[[1]]$z, "NA", info = position)
+  }
+})
+
+test_that("a missing fill still gets a series of its own", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The sharper half of #112: the row did not merely lose its name, it left
+  # the payload entirely. Three bars drawn, two announced, and the third
+  # unreachable by any keystroke -- with the payload internally consistent,
+  # so nothing looked wrong from the inside.
+  for (position in c("dodge", "stack")) {
+    plot <- ggplot2::ggplot(na_aes_frame("g"), col_aes) +
+      ggplot2::geom_col(position = position)
+    processor <- if (position == "dodge") {
+      maidr:::Ggplot2DodgedBarLayerProcessor
+    } else {
+      maidr:::Ggplot2StackedBarProcessor
     }
+
+    series <- processor$new(list(index = 1))$extract_data(plot)
+
+    testthat::expect_length(series, 3)
+    groups <- vapply(series, function(one) one[[1]]$z, character(1))
+    testthat::expect_setequal(groups, c("A", "B", "NA"))
+  }
+})
+
+test_that("a level spelled NA stays distinct from a missing one", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The rule `facet_group_rows()` already follows for a facet strip, applied
+  # to an axis tick: the two are told apart by identity, not by the string
+  # they print as. ggplot2 lays out two categories here and draws "NA" on
+  # both ticks, so two columns both reading "NA" is the picture, not a bug.
+  frame <- data.frame(
+    x = c("p", "NA", NA), g = c("A", "A", "A"), n = c(10, 20, 30),
+    stringsAsFactors = FALSE
+  )
+
+  for (position in c("dodge", "stack")) {
+    points <- na_aes_points(frame, position)
+
+    testthat::expect_length(points, 3)
+    testthat::expect_equal(
+      sum(vapply(points, function(p) identical(p$x, "NA"), logical(1))),
+      2,
+      info = position
+    )
+    testthat::expect_setequal(
+      vapply(points, function(p) as.numeric(p$y), numeric(1)),
+      c(10, 20, 30)
+    )
+  }
+})
+
+test_that("a duplicated cell still falls back to the row-by-row reading", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The guard that remains. Two rows in one (x, fill) cell draw two rects and
+  # a grid has nowhere to put the second value, so that frame keeps the
+  # row-by-row path -- and now that a missing value is a level rather than a
+  # disqualification, the missing row has to survive that path too. `split()`
+  # drops it on its own.
+  frame <- data.frame(
+    x = c("p", "p", "q", NA), g = c("A", "A", "B", NA), n = c(10, 11, 20, 30),
+    stringsAsFactors = FALSE
+  )
+
+  for (position in c("dodge", "stack")) {
+    values <- vapply(
+      na_aes_points(frame, position),
+      function(p) as.numeric(p$y), numeric(1)
+    )
+
+    testthat::expect_false(anyNA(values), info = position)
+    testthat::expect_setequal(values, c(10, 11, 20, 30))
   }
 })
 
