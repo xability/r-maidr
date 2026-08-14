@@ -265,13 +265,10 @@ what <code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class
 here rather than read from the legend title, which says "count" for
 the default and would say <code>after_stat(density)</code> for a chart that
 is still counting into the same cells.</p>
-<p>x and y go through <code><a href="resolve_legend_label.html">resolve_legend_label()</a></code>, which is the
-package's existing "<code><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs()</a></code> override, then the layer's own
-mapping, then the plot's" chain. Its documented caution – that
-<code><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs()</a></code> records a title even for an unmapped aesthetic, so only
-ask about one the layer is grouped by – does not bite here:
-<code><a href="https://ggplot2.tidyverse.org/reference/geom_hex.html" class="external-link">stat_binhex()</a></code> cannot compute without both positions, so both
-are always mapped.</p><div class="section">
+<p>x and y go through <code><a href="positional_axis_label.html">positional_axis_label()</a></code>, which is the
+package's shared "<code><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs()</a></code> override, then the layer's own
+mapping, then the plot's" chain, falling back to the aesthetic name
+rather than to nothing.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HexbinLayerProcessor</span><span class="op">$</span><span class="fu">extract_axes</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

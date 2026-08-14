@@ -154,16 +154,11 @@ legend title, which says "count" for the default and would say
 cells.
 
 x and y go through
-[`resolve_legend_label()`](https://r.maidr.ai/reference/resolve_legend_label.md),
-which is the package's existing
+[`positional_axis_label()`](https://r.maidr.ai/reference/positional_axis_label.md),
+which is the package's shared
 "[`labs()`](https://ggplot2.tidyverse.org/reference/labs.html) override,
-then the layer's own mapping, then the plot's" chain. Its documented
-caution – that
-[`labs()`](https://ggplot2.tidyverse.org/reference/labs.html) records a
-title even for an unmapped aesthetic, so only ask about one the layer is
-grouped by – does not bite here:
-[`stat_binhex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html)
-cannot compute without both positions, so both are always mapped.
+then the layer's own mapping, then the plot's" chain, falling back to
+the aesthetic name rather than to nothing.
 
 #### Usage
 
