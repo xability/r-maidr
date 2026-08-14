@@ -53,7 +53,8 @@ Suggests:
     TTR,
     zoo,
     xts,
-    pkgload
+    pkgload,
+    hexbin
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

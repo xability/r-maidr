@@ -137,6 +137,16 @@ Ggplot2Adapter <- R6::R6Class(
         return("heat")
       }
 
+      # `geom_hex()` bins into hexagons rather than rectangles. That is a
+      # lattice of counted cells and so nearly a heatmap, but the rows are
+      # offset by half a cell -- which is what lets hexagons tessellate, and
+      # what stops a column index from being a position. Reading it as `heat`
+      # would navigate and would put every bin past the first row on the
+      # wrong x, so it is a type of its own.
+      if (geom_class == "GeomHex") {
+        return("hexbin")
+      }
+
       if (geom_class == "GeomPoint") {
         return("point")
       }
