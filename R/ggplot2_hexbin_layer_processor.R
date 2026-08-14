@@ -142,26 +142,21 @@ Ggplot2HexbinLayerProcessor <- R6::R6Class(
     #'   the default and would say \code{after_stat(density)} for a chart that
     #'   is still counting into the same cells.
     #'
-    #'   x and y go through \code{resolve_legend_label()}, which is the
-    #'   package's existing "\code{labs()} override, then the layer's own
-    #'   mapping, then the plot's" chain. Its documented caution -- that
-    #'   \code{labs()} records a title even for an unmapped aesthetic, so only
-    #'   ask about one the layer is grouped by -- does not bite here:
-    #'   \code{stat_binhex()} cannot compute without both positions, so both
-    #'   are always mapped.
+    #'   x and y go through \code{positional_axis_label()}, which is the
+    #'   package's shared "\code{labs()} override, then the layer's own
+    #'   mapping, then the plot's" chain, falling back to the aesthetic name
+    #'   rather than to nothing.
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @return An axes payload with x, y and z
     extract_axes = function(plot, built = NULL) {
-      axis_label <- function(aes) {
-        label <- resolve_legend_label(
-          plot, built,
-          aes_names = aes, layer_index = self$get_layer_index()
-        )
-        if (is.null(label)) aes else label
-      }
+      layer_index <- self$get_layer_index()
 
-      build_axes(x = axis_label("x"), y = axis_label("y"), z = "count")
+      build_axes(
+        x = positional_axis_label(plot, built, "x", layer_index),
+        y = positional_axis_label(plot, built, "y", layer_index),
+        z = "count"
+      )
     },
 
     #' @description Address each drawn hexagon by its own element

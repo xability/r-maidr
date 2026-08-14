@@ -170,6 +170,43 @@ resolve_legend_label <- function(plot, built = NULL, aes_names = "fill",
   NULL
 }
 
+#' Resolve the printed label for a positional axis
+#'
+#' The name ggplot2 prints beside the x or y axis, which is the name a
+#' reader needs in order to know what the numbers are. A \code{labs()}
+#' override wins, then the layer's own mapping, then the plot's -- the same
+#' chain \code{resolve_legend_label()} walks for a legend title, because it
+#' is the same chain ggplot2 walks.
+#'
+#' The difference from the legend case is only what to do when none of them
+#' answers. A legend that has no title should have none; a positional axis
+#' always has one printed on the chart, so the aesthetic name is emitted
+#' rather than nothing. That is a poor label, but it is a label, and the
+#' alternative is a number announced with no name at all.
+#'
+#' \code{resolve_legend_label()}'s documented caution -- that \code{labs()}
+#' records a title even for an unmapped aesthetic, so only ask about one the
+#' layer is grouped by -- does not apply here. A layer with no x or y mapping
+#' has no positions to announce and does not reach a processor that would
+#' ask.
+#'
+#' @param plot The ggplot object
+#' @param built Built plot from \code{ggplot2::ggplot_build()}, or NULL to
+#'   build one on demand
+#' @param aes_name \code{"x"} or \code{"y"}
+#' @param layer_index Index of the layer whose mapping takes precedence, or
+#'   NULL to consult only the plot-level mapping
+#' @return Character scalar, never NULL
+#' @keywords internal
+positional_axis_label <- function(plot, built = NULL, aes_name = "x",
+                                  layer_index = NULL) {
+  label <- resolve_legend_label(
+    plot, built,
+    aes_names = aes_name, layer_index = layer_index
+  )
+  if (is.null(label)) aes_name else label
+}
+
 #' Attach a format object to a specific axis
 #'
 #' Mutates a single axis's \code{format} field. Creates the axis slot
