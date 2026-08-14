@@ -166,6 +166,30 @@
 
 ### Bug Fixes
 
+- ggplot2: a horizontal bar chart lost every label and every value.
+  `ggplot(df, aes(y = g, x = n)) + geom_col()` is the ordinary spelling,
+  and
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  marks such a layer `flipped_aes` and swaps which computed column holds
+  what. The bar processor read `x` as the category and `y` as the
+  measure unconditionally, so it picked up exactly the wrong pair: a
+  chart of `apple = 30`, `banana = 70`, `cherry = 50` was announced as
+  category `"30"` with value `1`, `"50"` with value `3` and `"70"` with
+  value `2`. Three things at once – the fruit names appeared nowhere in
+  the layer, the values were factor codes rather than counts, and the
+  rows came out sorted by the measure rather than in the chart’s own
+  order, so even the sequence a reader navigates did not match the bars.
+  The `axes` block was right throughout, which made it worse: the axis
+  names said which way round the chart was and the data underneath
+  contradicted them. The columns, the mapping the category’s name is
+  recovered from, and the panel scale its labels come from are now all
+  exchanged for a flipped layer, and the layer carries an `orientation`
+  key.
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+  is deliberately still vertical: it rotates the coordinate system and
+  leaves `flipped_aes` alone, so its columns are already the right way
+  round.
+
 - ggplot2: a horizontal histogram was announced with its bins and its
   counts swapped.
   [`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html)

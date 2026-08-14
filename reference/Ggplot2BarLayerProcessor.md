@@ -13,6 +13,14 @@ Processes bar plot layers with complete logic included
 
 - [`Ggplot2BarLayerProcessor$process()`](#method-Ggplot2BarLayerProcessor-process)
 
+- [`Ggplot2BarLayerProcessor$is_flipped()`](#method-Ggplot2BarLayerProcessor-is_flipped)
+
+- [`Ggplot2BarLayerProcessor$unflip_columns()`](#method-Ggplot2BarLayerProcessor-unflip_columns)
+
+- [`Ggplot2BarLayerProcessor$unflip_mapping()`](#method-Ggplot2BarLayerProcessor-unflip_mapping)
+
+- [`Ggplot2BarLayerProcessor$unflip_panel_params()`](#method-Ggplot2BarLayerProcessor-unflip_panel_params)
+
 - [`Ggplot2BarLayerProcessor$needs_reordering()`](#method-Ggplot2BarLayerProcessor-needs_reordering)
 
 - [`Ggplot2BarLayerProcessor$reorder_layer_data()`](#method-Ggplot2BarLayerProcessor-reorder_layer_data)
@@ -91,6 +99,122 @@ Inherited methods
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$is_flipped()`
+
+Is this layer's category axis `y` rather than `x`?
+
+`ggplot(df, aes(y = g, x = n)) + geom_col()` is the ordinary spelling of
+a horizontal bar chart, and
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+marks it `flipped_aes` and swaps which computed column holds what.
+Everything below reads `x` as the category and `y` as the measure, so on
+a flipped layer it picked up exactly the wrong pair:
+`apple/banana/cherry` at `30/70/50` came out as category `"30"` with
+value `1`, category `"50"` with value `3` and category `"70"` with value
+`2` – the labels gone, the values replaced by factor codes, and the rows
+resorted by the measure (#162).
+
+[`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+is not this. It rotates the coordinate system and leaves `flipped_aes`
+alone, so its data layout is genuinely unflipped; only the key below
+would change, and that question spans every processor.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$is_flipped(plot, built = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object.
+
+- `built`:
+
+  Its
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  result, when the caller has one.
+
+#### Returns
+
+`TRUE` when the category runs up the y axis.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$unflip_columns()`
+
+Put a flipped layer's columns back where the rest expects
+
+Swapping the pairs up front lets every branch below stay as written
+rather than each learning to ask which way round it is – and a branch
+that forgot to ask would go wrong silently, since both columns hold
+plausible numbers.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$unflip_columns(built_data)
+
+#### Arguments
+
+- `built_data`:
+
+  One layer's built data.
+
+#### Returns
+
+The same frame with its x and y pairs exchanged.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$unflip_mapping()`
+
+Exchange a plot's x and y aesthetics
+
+Returns a copy: the mapping is only read to recover the category's
+column name, and the caller's plot is still wanted unswapped for
+selectors and axis labels.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$unflip_mapping(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object.
+
+#### Returns
+
+A copy whose plot-level and layer-level x/y mappings are swapped.
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$unflip_panel_params()`
+
+Exchange a panel's x and y scales
+
+So the break labels read below come from the axis the categories are
+actually drawn on. Both the scale objects and the flattened
+`x.labels`/`y.labels` of older ggplot2 are swapped, since the reader
+below falls back from one to the other.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$unflip_panel_params(panel_params)
+
+#### Arguments
+
+- `panel_params`:
+
+  One entry of `built$layout$panel_params`.
+
+#### Returns
+
+The same list with its x and y entries exchanged.
 
 ------------------------------------------------------------------------
 
