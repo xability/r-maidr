@@ -117,6 +117,21 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
     extract_axis_grid_info = function(built, axis = "x", panel_id = NULL) {
       tryCatch(
         {
+          # A transformed axis has no uniform tick step to give. Grid
+          # navigation walks the axis in equal increments, and on a log
+          # scale the breaks a reader sees -- 10, 100, 1000 -- are equally
+          # spaced only in the transformed space the points are no longer
+          # announced in. Emitting the transformed range instead would put
+          # the grid and the announcement in different spaces, which is
+          # worse than today, where the two are at least wrong together.
+          #
+          # So the axis keeps its label and loses its grid, which is the
+          # same graceful degradation this function already takes when a
+          # range cannot be read (#158).
+          if (!is.null(panel_transformation(built, axis, panel_id))) {
+            return(NULL)
+          }
+
           panel_idx <- if (!is.null(panel_id)) as.integer(panel_id) else 1L
           panel_params <- built$layout$panel_params[[panel_idx]]
 
@@ -310,11 +325,22 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         }
       }
 
+      # Back into the space the reader sees. ggplot2 transforms before the
+      # stat runs, so a `scale_x_log10()` chart's built x is log10 of the
+      # value the axis prints -- announced straight through, a point at
+      # $6,000 reads as 3.78 under the label "Price (USD)" (#158).
+      #
+      # Done here, at the emission, rather than to `layer_data` as a whole:
+      # `scale_*_reverse()` negates, so a frame inverted earlier would order
+      # rows opposite to the way they were drawn.
+      announced_x <- untransform_positions(layer_data$x, built, "x", panel_id)
+      announced_y <- untransform_positions(layer_data$y, built, "y", panel_id)
+
       points <- list()
       for (i in seq_len(nrow(layer_data))) {
         point <- list(
-          x = layer_data$x[i],
-          y = layer_data$y[i]
+          x = announced_x[i],
+          y = announced_y[i]
         )
 
         if (!is.null(color_values)) {
