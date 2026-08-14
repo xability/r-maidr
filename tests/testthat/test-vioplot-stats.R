@@ -200,6 +200,39 @@ test_that("groups are split the way vioplot accepts them", {
   expect_equal(names(as_frame), c("p", "q"))
 })
 
+test_that("a group passed as the named first argument is not lost", {
+  a <- sample_a()
+  b <- sample_b()
+
+  # `vioplot()`'s first formal is named `x`, so `vioplot(x = a, b)` records it
+  # as a named argument. Reading only the unnamed ones dropped that group
+  # entirely -- and `vioplot(x = a)` alone then yielded nothing at all, so a
+  # single-violin chart written that way announced nothing.
+  both <- extract_vioplot_samples(list(x = a, b))
+  expect_length(both, 2)
+  expect_equal(lengths(both), c(`1` = 40L, `2` = 30L))
+
+  alone <- extract_vioplot_samples(list(x = a))
+  expect_length(alone, 1)
+})
+
+test_that("groups are labelled the way vioplot labels them", {
+  a <- sample_a()
+  b <- sample_b()
+
+  # Measured against the axis labels vioplot actually draws. The distinction
+  # is that a name is a label only when it came from inside a list or a data
+  # frame -- for separate vectors it is the *argument's* name, which vioplot
+  # does not draw:
+  #
+  #   vioplot(a, b)                 -> "1", "2"
+  #   vioplot(x = a, b)             -> "1", "2"
+  #   vioplot(list(p = , q = ))     -> "p", "q"
+  expect_equal(names(extract_vioplot_samples(list(a, b))), c("1", "2"))
+  expect_equal(names(extract_vioplot_samples(list(x = a, b))), c("1", "2"))
+  expect_equal(names(extract_vioplot_samples(list(list(p = a, q = b)))), c("p", "q"))
+})
+
 test_that("a call with nothing numeric in it yields no violins", {
   expect_length(extract_vioplot_samples(list()), 0)
   expect_length(extract_vioplot_samples(list(names = c("A", "B"))), 0)

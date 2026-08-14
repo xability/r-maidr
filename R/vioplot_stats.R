@@ -110,10 +110,11 @@ compute_vioplot_stats <- function(data,
 
 #' Whether the density half of a violin can be computed at all
 #'
-#' `sm` is vioplot's own dependency, so it is present wherever a violin can
-#' have been drawn. Checked rather than assumed because maidr lists both under
-#' Suggests: a user with vioplot but not its dependency tree would otherwise
-#' hit a bare "there is no package called 'sm'" from inside a rendering path.
+#' `sm` is in vioplot's `Depends`, so it is attached wherever a violin can have
+#' been drawn: in any normal installation this cannot fail, and the branch is
+#' unreachable. Kept as a guard rather than an assumption only so a broken or
+#' partial installation surfaces as no violin layer rather than a bare "there
+#' is no package called 'sm'" thrown from inside a rendering path.
 #'
 #' @return `TRUE` when `sm` can be loaded.
 #' @keywords internal
@@ -137,21 +138,42 @@ extract_vioplot_samples <- function(args) {
   if (is.null(arg_names)) {
     arg_names <- rep("", length(args))
   }
-  positional <- args[!nzchar(arg_names)]
+
+  # `vioplot()`'s first formal is named `x`, so `vioplot(x = a, b)` records it
+  # as a *named* argument and the rest positionally. Reading only the unnamed
+  # ones drops that group -- and `vioplot(x = a)` alone then yields nothing at
+  # all, so a single-violin chart written that way announced nothing. `x` is
+  # therefore treated as data, in call order, while every other named argument
+  # (`names`, `horizontal`, `h`, `range`, `col`, ...) stays out of it.
+  is_data <- !nzchar(arg_names) | arg_names == "x"
+  positional <- args[is_data]
   if (!length(positional)) {
     return(list())
   }
 
   first <- positional[[1]]
 
-  # `vioplot(list(a = ..., b = ...))` and `vioplot(df)` both arrive as one
-  # argument holding every group.
+  # Three call shapes, and they label differently. Measured against what
+  # vioplot draws on the category axis:
+  #
+  #   vioplot(a, b)               ->  "1", "2"    positions
+  #   vioplot(x = a, b)           ->  "1", "2"    positions -- `x` is the
+  #                                               argument's name, not a label
+  #   vioplot(list(p = , q = ))   ->  "p", "q"    element names
+  #   vioplot(data.frame(p =, q =)) -> "p", "q"   column names
+  #
+  # So a group's name is a label only when it came from inside a list or a
+  # data frame. Taking the argument names for the vector form would announce
+  # a violin as "x" that the chart labels "1".
   if (is.data.frame(first)) {
     samples <- as.list(first)
+    named_groups <- TRUE
   } else if (is.list(first)) {
     samples <- first
+    named_groups <- TRUE
   } else {
     samples <- positional
+    named_groups <- FALSE
   }
 
   numeric_only <- Filter(function(s) is.numeric(s) && length(s), samples)
@@ -159,17 +181,16 @@ extract_vioplot_samples <- function(args) {
     return(list())
   }
 
-  labels <- names(numeric_only)
-  fallback <- as.character(seq_along(numeric_only))
-  if (is.null(labels)) {
-    labels <- fallback
-  } else {
-    # vioplot labels an unnamed group by its position, which is what it writes
-    # on the category axis when `names` is not given.
-    labels <- ifelse(nzchar(labels), labels, fallback)
+  by_position <- as.character(seq_along(numeric_only))
+  labels <- by_position
+  if (named_groups) {
+    from_names <- names(numeric_only)
+    if (!is.null(from_names)) {
+      labels <- ifelse(nzchar(from_names), from_names, by_position)
+    }
   }
 
-  # An explicit `names =` wins, since that is what vioplot draws.
+  # An explicit `names =` wins over both, since that is what vioplot draws.
   supplied <- args[["names"]]
   if (!is.null(supplied) && length(supplied) == length(numeric_only)) {
     labels <- as.character(supplied)

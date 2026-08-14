@@ -10,9 +10,10 @@ has_sm_package()
 \code{TRUE} when \code{sm} can be loaded.
 }
 \description{
-\code{sm} is vioplot's own dependency, so it is present wherever a violin can
-have been drawn. Checked rather than assumed because maidr lists both under
-Suggests: a user with vioplot but not its dependency tree would otherwise
-hit a bare "there is no package called 'sm'" from inside a rendering path.
+\code{sm} is in vioplot's \code{Depends}, so it is attached wherever a violin can have
+been drawn: in any normal installation this cannot fail, and the branch is
+unreachable. Kept as a guard rather than an assumption only so a broken or
+partial installation surfaces as no violin layer rather than a bare "there
+is no package called 'sm'" thrown from inside a rendering path.
 }
 \keyword{internal}
