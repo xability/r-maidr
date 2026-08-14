@@ -4,6 +4,38 @@
 
 ### New Features
 
+- Violin plot support for base R.
+  [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
+  is now emitted as the `violin_box` + `violin_kde` layer pair the
+  ‘ggplot2’ adapter already produces for
+  [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html),
+  so which plotting system a user chose no longer decides whether their
+  chart is accessible.
+  [`vioplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) returns
+  its box summary but not the density curve it drew, so maidr recovers
+  both by replaying the
+  [`sm::sm.density()`](https://rdrr.io/pkg/sm/man/sm.density.html) call
+  vioplot makes internally – the same approach the base R box plot
+  processor takes when it re-calls `boxplot(plot = FALSE)`. That
+  distinction matters: a kernel density estimate computed with different
+  defaults is not wrong in any way a reader could detect, it simply
+  describes a shape the chart does not draw. Both halves are checked
+  against the drawing rather than assumed – the box statistics come back
+  identical to vioplot’s own return value, and the drawn violin body
+  carries exactly twice as many vertices as `sm.density()` returns
+  evaluation points, being that curve mirrored. A caller’s `h` and
+  `range` are carried through rather than defaulted, since the first
+  decides how smooth the announced curve is and the second where the
+  whiskers stop. A category whose values are all equal has no
+  distribution to describe and is left out rather than given an invented
+  spread, and a formula call is declined rather than guessed at, since
+  resolving it needs an environment the processor no longer has.
+
+- Base R violin sections highlight the element that draws them. vioplot
+  draws the whisker, the quartile box and the median as separate grobs,
+  so unlike a chart whose box is a single path, each section points at
+  its own mark.
+
 - Area chart support for ‘ggplot2’.
   [`geom_area()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html)
   is now emitted as an `area`, `stacked_area` or

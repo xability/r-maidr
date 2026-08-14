@@ -81,10 +81,12 @@
 <url><loc>https://r.maidr.ai/reference/close_maidr_temp_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/collapse_lines_to_multiseries.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/collect_candlestick_layers.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/collect_grob_names.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/collect_gtable_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_selectors.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/compute_panel_slots.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/compute_vioplot_stats.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/count_leaf_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_axis_wrapper.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_barplot_wrapper.html</loc></url>
@@ -114,6 +116,9 @@
 <url><loc>https://r.maidr.ai/reference/dot-maidr_chartseries_ta_warned.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-maidr_ggplot_state.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-maidr_patching_env.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/dot-maidr_vioplot_default_range.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/dot-maidr_vioplot_grob_kinds.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/dot-maidr_vioplot_onload_hook.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/drop_empty_selectors.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/embed_volume_into_candle_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/ensure_maidr_device.html</loc></url>
@@ -126,6 +131,7 @@
 <url><loc>https://r.maidr.ai/reference/extract_patchwork_leaves.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_rect_index_from_id.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_scale_mapping.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/extract_vioplot_samples.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/facet_group_rows.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_children_by_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_graphics_plot_grob.html</loc></url>
@@ -161,6 +167,7 @@
 <url><loc>https://r.maidr.ai/reference/get_plot_group.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/group_device_calls.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/has_device_calls.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/has_sm_package.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/heatmap_applies_revc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/heatmap_caller_labels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/hexbin_lattice.html</loc></url>
@@ -282,6 +289,8 @@
 <url><loc>https://r.maidr.ai/reference/update_device_state.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/usable_xy_coords.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/validate_axes.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/vioplot_grob_pattern.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/vioplot_grob_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/warn_chartseries_ta_unsupported.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/warn_panel_fallback.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/wrap_function.html</loc></url>

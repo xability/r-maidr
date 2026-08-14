@@ -49,6 +49,8 @@ pairs(...)
 
 coplot(...)
 
+vioplot(...)
+
 chartSeries(...)
 
 lines(...)

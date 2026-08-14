@@ -1,0 +1,32 @@
+# Grobs vioplot draws, one of each per violin
+
+Measured by echoing a two-group call through
+[`gridGraphics::grid.echo()`](https://rdrr.io/pkg/gridGraphics/man/grid.echo.html):
+
+## Usage
+
+``` r
+.maidr_vioplot_grob_kinds
+```
+
+## Details
+
+    graphics-plot-1-box-1      polygon  n=4     <- the plot frame, NOT a violin
+    graphics-plot-1-polygon-1  polygon  n=200   <- violin body
+    graphics-plot-1-lines-1    lines    n=2     <- whisker, lower to upper
+    graphics-plot-1-rect-1     rect     n=1     <- the quartile box
+    graphics-plot-1-points-1   points   n=1     <- the median dot
+
+The body carries exactly twice the evaluation points `sm.density`
+returns, mirrored about the category position, which is what confirms
+the replayed curve is the drawn one.
+
+The patterns below are anchored, which is defensive rather than a fix
+for anything observed. Measured, the two things it is tempting to credit
+it with are not true: `graphics-plot-11-polygon-1` is excluded by the
+`-` delimiter whether the pattern is anchored or not, and
+`graphics-plot-1-box-1` – the panel frame, which *is* a polygon grob –
+never enters this search because it is not named `polygon`. What the
+trailing `$` genuinely excludes is a longer name beginning the same way,
+such as `-polygon-1-extra`; gridSVG emits none today, so this keeps a
+name it does not own from being collected if that ever changes.
