@@ -116,6 +116,22 @@
 
 ## Bug Fixes
 
+* ggplot2: a horizontal histogram was announced with its bins and its counts
+  swapped. `geom_histogram()` drawn with `aes(y = )` emitted correct data --
+  `ggplot_build()` puts a flipped layer's bin bounds in `ymin`/`ymax` and its
+  count in `x`, and the processor passed both through as they came -- but no
+  `orientation` key saying which axis was which. The frontend defaults to
+  vertical without one, so it read the bin range from `xMin`/`xMax`, where a
+  flipped layer keeps the count bounds. A 60-point sample running -2.42 to
+  -1.10 was announced with a bin range of "0 to 5", and every bin centre was
+  offered as a value in place of its count. Every number in the announcement
+  was real and every one was on the wrong axis, with nothing erroring to say
+  so. Read from `flipped_aes` now, the way the box plot and violin processors
+  already do. `coord_flip()` is deliberately still reported as vertical: it
+  rotates the coordinate system and leaves `flipped_aes` alone, so the data
+  layout the key describes is genuinely unflipped, and calling it horizontal
+  would swap a pair that is already the right way round.
+
 * ggplot2: a transformed scale was announced in transformed space. ggplot2
   applies the transformation *before* the stat runs, so `ggplot_build()`'s
   data is in that space -- and a `scale_x_log10()` scatter of prices from

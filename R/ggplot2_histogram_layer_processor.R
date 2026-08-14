@@ -21,9 +21,45 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class(
       list(
         data = data,
         selectors = selectors,
+        orientation = self$determine_orientation(plot, built),
         title = if (!is.null(layout$title)) layout$title else "",
         axes = self$extract_layer_axes(plot, layout)
       )
+    },
+    #' @description Which axis this histogram's bins run along
+    #'
+    #' `ggplot_build()` fills a flipped layer's `ymin`/`ymax` with the bin
+    #' bounds and its `x` with the count, and `extract_data` above passes both
+    #' through as they come -- so the emitted data is already transposed
+    #' correctly. What was missing is this key saying so.
+    #'
+    #' Without it the frontend defaults to vertical and reads the bin range
+    #' from `xMin`/`xMax`, which on a flipped layer hold the count bounds. A
+    #' `geom_histogram()` drawn with `aes(y = v)` was announced with a bin
+    #' range of "0 to 5" -- counts -- where the data runs -2.42 to -1.10, and
+    #' with every bin centre offered as a value. Every number real, every one
+    #' on the wrong axis, and nothing erroring (#163).
+    #'
+    #' Read from `flipped_aes`, which ggplot2 sets on the built layer, the way
+    #' the boxplot and violin processors already do. `coord_flip()` is a
+    #' different question and deliberately not answered here: it leaves
+    #' `flipped_aes` alone and rotates only the coordinate system, so the data
+    #' layout this key describes is genuinely unflipped. Treating it as
+    #' horizontal would swap a pair that is already the right way round.
+    #'
+    #' @param plot The ggplot2 object.
+    #' @param built Its `ggplot_build()` result, when the caller already has one.
+    #' @return `"horz"` or `"vert"`.
+    determine_orientation = function(plot, built = NULL) {
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
+      layer_index <- self$get_layer_index()
+      if (layer_index > length(built$data)) {
+        return("vert")
+      }
+      layer_data <- built$data[[layer_index]]
+      if (isTRUE(layer_data$flipped_aes[1])) "horz" else "vert"
     },
     extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {

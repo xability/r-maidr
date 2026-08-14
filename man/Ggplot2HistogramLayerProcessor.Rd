@@ -14,6 +14,7 @@ Processes histogram plot layers with complete logic included
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2HistogramLayerProcessor-process}{\code{Ggplot2HistogramLayerProcessor$process()}}
+    \item \href{#method-Ggplot2HistogramLayerProcessor-determine_orientation}{\code{Ggplot2HistogramLayerProcessor$determine_orientation()}}
     \item \href{#method-Ggplot2HistogramLayerProcessor-extract_data}{\code{Ggplot2HistogramLayerProcessor$extract_data()}}
     \item \href{#method-Ggplot2HistogramLayerProcessor-generate_selectors}{\code{Ggplot2HistogramLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2HistogramLayerProcessor-clone}{\code{Ggplot2HistogramLayerProcessor$clone()}}
@@ -66,6 +67,48 @@ Processes histogram plot layers with complete logic included
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2HistogramLayerProcessor-determine_orientation"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-determine_orientation}{}}}
+\subsection{\code{Ggplot2HistogramLayerProcessor$determine_orientation()}}{
+  Which axis this histogram's bins run along
+
+\code{ggplot_build()} fills a flipped layer's \code{ymin}/\code{ymax} with the bin
+bounds and its \code{x} with the count, and \code{extract_data} above passes both
+through as they come -- so the emitted data is already transposed
+correctly. What was missing is this key saying so.
+
+Without it the frontend defaults to vertical and reads the bin range
+from \code{xMin}/\code{xMax}, which on a flipped layer hold the count bounds. A
+\code{geom_histogram()} drawn with \code{aes(y = v)} was announced with a bin
+range of "0 to 5" -- counts -- where the data runs -2.42 to -1.10, and
+with every bin centre offered as a value. Every number real, every one
+on the wrong axis, and nothing erroring (#163).
+
+Read from \code{flipped_aes}, which ggplot2 sets on the built layer, the way
+the boxplot and violin processors already do. \code{coord_flip()} is a
+different question and deliberately not answered here: it leaves
+\code{flipped_aes} alone and rotates only the coordinate system, so the data
+layout this key describes is genuinely unflipped. Treating it as
+horizontal would swap a pair that is already the right way round.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HistogramLayerProcessor$determine_orientation(plot, built = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object.}
+      \item{\code{built}}{Its \code{ggplot_build()} result, when the caller already has one.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{"horz"} or \code{"vert"}.
   }
 }
 
