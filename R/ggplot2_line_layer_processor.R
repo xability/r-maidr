@@ -136,6 +136,22 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # scales = "free_x" each panel carries its own breaks and labels.
       panel_index <- self$resolve_panel_index(built, panel_id)
 
+      # y is stored in the scale's own space as well, and unlike x nothing
+      # downstream recovers it: under `scale_y_log10()` a series spanning
+      # 5.01 to 10,000 announced 0.700 to 4.000 under its own axis label
+      # (#158). x is already handled by `recover_x_values()` below, which is
+      # why only this half is new.
+      #
+      # Applied to the frame rather than at each emission because nothing
+      # below orders by y -- the split is on `group`, and the only other
+      # read is an NA filter -- so inverting here cannot reorder rows against
+      # the drawn polyline the way it could on x. A discrete y is left alone:
+      # its scale carries no transformation to undo, so the level codes
+      # `attach_discrete_y_names()` reads are still there.
+      if (nrow(layer_data) > 0 && "y" %in% names(layer_data)) {
+        layer_data$y <- untransform_positions(layer_data$y, built, "y", panel_id)
+      }
+
       # Recover x while `layer_data$x` is still the raw built column: the
       # mapping below rewrites it into axis labels, and the recovery needs
       # the scale-space value it started as.

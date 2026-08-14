@@ -153,6 +153,16 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     extract_data = function(plot, built = NULL, panel_id = NULL) {
       built_data <- self$layer_built_data(plot, built, panel_id)
 
+      # Back into the space the reader sees, before the rows are split into
+      # curves. Safe on the whole frame here because nothing below orders by
+      # these values -- the split is on `group` and the points keep the row
+      # order `StatSmooth` emitted. Inverting changes what each row *says*,
+      # never which row comes first (#158).
+      if (!is.null(built_data) && nrow(built_data) > 0) {
+        built_data$x <- untransform_positions(built_data$x, built, "x", panel_id)
+        built_data$y <- untransform_positions(built_data$y, built, "y", panel_id)
+      }
+
       group_ids <- self$series_group_ids(built_data)
       if (length(group_ids) == 0L) {
         return(list(self$curve_points(built_data)))
