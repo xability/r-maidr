@@ -14,6 +14,10 @@ Processes bar plot layers with complete logic included
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2BarLayerProcessor-process}{\code{Ggplot2BarLayerProcessor$process()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-is_flipped}{\code{Ggplot2BarLayerProcessor$is_flipped()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-unflip_columns}{\code{Ggplot2BarLayerProcessor$unflip_columns()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-unflip_mapping}{\code{Ggplot2BarLayerProcessor$unflip_mapping()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-unflip_panel_params}{\code{Ggplot2BarLayerProcessor$unflip_panel_params()}}
     \item \href{#method-Ggplot2BarLayerProcessor-needs_reordering}{\code{Ggplot2BarLayerProcessor$needs_reordering()}}
     \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
     \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
@@ -70,6 +74,122 @@ Processes bar plot layers with complete logic included
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-is_flipped"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-is_flipped}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$is_flipped()}}{
+  Is this layer's category axis \code{y} rather than \code{x}?
+
+\code{ggplot(df, aes(y = g, x = n)) + geom_col()} is the ordinary spelling of
+a horizontal bar chart, and \code{ggplot_build()} marks it \code{flipped_aes} and
+swaps which computed column holds what. Everything below reads \code{x} as
+the category and \code{y} as the measure, so on a flipped layer it picked up
+exactly the wrong pair: \code{apple/banana/cherry} at \code{30/70/50} came out as
+category \code{"30"} with value \code{1}, category \code{"50"} with value \code{3} and
+category \code{"70"} with value \code{2} -- the labels gone, the values replaced
+by factor codes, and the rows resorted by the measure (#162).
+
+\code{coord_flip()} is not this. It rotates the coordinate system and leaves
+\code{flipped_aes} alone, so its data layout is genuinely unflipped; only
+the key below would change, and that question spans every processor.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$is_flipped(plot, built = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object.}
+      \item{\code{built}}{Its \code{ggplot_build()} result, when the caller has one.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when the category runs up the y axis.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-unflip_columns"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-unflip_columns}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$unflip_columns()}}{
+  Put a flipped layer's columns back where the rest expects
+
+Swapping the pairs up front lets every branch below stay as written
+rather than each learning to ask which way round it is -- and a branch
+that forgot to ask would go wrong silently, since both columns hold
+plausible numbers.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$unflip_columns(built_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built_data}}{One layer's built data.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same frame with its x and y pairs exchanged.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-unflip_mapping"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-unflip_mapping}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$unflip_mapping()}}{
+  Exchange a plot's x and y aesthetics
+
+Returns a copy: the mapping is only read to recover the category's
+column name, and the caller's plot is still wanted unswapped for
+selectors and axis labels.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$unflip_mapping(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A copy whose plot-level and layer-level x/y mappings are swapped.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-unflip_panel_params"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-unflip_panel_params}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$unflip_panel_params()}}{
+  Exchange a panel's x and y scales
+
+So the break labels read below come from the axis the categories are
+actually drawn on. Both the scale objects and the flattened
+\code{x.labels}/\code{y.labels} of older ggplot2 are swapped, since the reader
+below falls back from one to the other.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$unflip_panel_params(panel_params)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel_params}}{One entry of \code{built$layout$panel_params}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same list with its x and y entries exchanged.
   }
 }
 
