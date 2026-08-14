@@ -40,8 +40,8 @@ hex_plot <- function(bins = 4, n = 200) {
   ggplot2::ggplot(hex_frame(n), hex_aes) + ggplot2::geom_hex(bins = bins)
 }
 
-#' Render a plot and return the one layer it emits, plus the drawn SVG
-hex_render <- function(plot) {
+#' Render a plot and return its whole schema, plus the drawn SVG
+hex_render_all <- function(plot) {
   file <- tempfile(fileext = ".html")
   on.exit(unlink(file), add = TRUE)
   suppressWarnings(save_html(plot, file))
@@ -55,15 +55,20 @@ hex_render <- function(plot) {
   json <- gsub("&gt;", ">", json, fixed = TRUE)
   json <- gsub("&amp;", "&", json, fixed = TRUE)
 
-  layer <- jsonlite::fromJSON(json, simplifyVector = FALSE)
-  layer <- layer$subplots[[1]][[1]]$layers[[1]]
+  schema <- jsonlite::fromJSON(json, simplifyVector = FALSE)
 
   opening <- regexpr("<svg", html, fixed = TRUE)
   closing <- regexpr("</svg>", html, fixed = TRUE)
   doc <- xml2::read_xml(substr(html, opening, closing + 5L))
   xml2::xml_ns_strip(doc)
 
-  list(layer = layer, svg = doc)
+  list(subplots = schema$subplots, svg = doc)
+}
+
+#' Render a single-panel plot and return the one layer it emits
+hex_render <- function(plot) {
+  rendered <- hex_render_all(plot)
+  list(layer = rendered$subplots[[1]][[1]]$layers[[1]], svg = rendered$svg)
 }
 
 #' The bins in the order the frontend flattens them
@@ -284,6 +289,58 @@ test_that("two hexbin layers each address their own hexagons", {
   # so a shared grob would also be the wrong length for it.
   testthat::expect_equal(length(unique(grobs)), 2L)
   testthat::expect_lt(sizes[1], sizes[2])
+})
+
+test_that("each facet reads its own lattice and highlights its own hexagons", {
+  skip_if_no_hex()
+
+  # The selectors are indexed by built-data row, and a facetted plot filters
+  # those rows per panel -- so the index has to be within the panel's frame,
+  # because each panel draws its own grob and gridSVG numbers the polygons
+  # inside it from one. That claim was a comment in the processor before it
+  # was a test; this is the test.
+  #
+  # The panels are deliberately unequal, so an index carried across from the
+  # wrong frame lands on a real hexagon rather than running off the end.
+  set.seed(1)
+  frame <- data.frame(
+    x = stats::rnorm(300), y = stats::rnorm(300),
+    g = rep(c("a", "b"), each = 150)
+  )
+  plot <- ggplot2::ggplot(frame, hex_aes) +
+    ggplot2::geom_hex(bins = 3) +
+    ggplot2::facet_wrap(~g)
+
+  rendered <- hex_render_all(plot)
+  panels <- rendered$subplots[[1]]
+  testthat::expect_length(panels, 2)
+
+  drawn <- ggplot2::ggplot_build(plot)$data[[1]]
+  ids <- character(0)
+
+  for (index in seq_along(panels)) {
+    layer <- panels[[index]]$layers[[1]]
+    own <- drawn[drawn$PANEL == index, , drop = FALSE]
+    bins <- hex_bins(layer)
+
+    testthat::expect_equal(layer$type, "hexbin")
+    testthat::expect_equal(length(bins), nrow(own))
+    testthat::expect_length(layer$selectors, length(bins))
+
+    for (i in seq_along(bins)) {
+      id <- sub("^polygon#", "", gsub("\\\\", "", layer$selectors[[i]]))
+      ids <- c(ids, id)
+      testthat::expect_length(
+        xml2::xml_find_all(rendered$svg, sprintf("//polygon[@id='%s']", id)), 1
+      )
+      row <- as.integer(sub(".*\\.", "", id))
+      testthat::expect_equal(own$x[row], bins[[i]]$x, tolerance = 1e-6)
+      testthat::expect_equal(as.numeric(own$count[row]), bins[[i]]$count)
+    }
+  }
+
+  # No panel borrows another's elements.
+  testthat::expect_equal(length(unique(ids)), length(ids))
 })
 
 test_that("a lattice with nothing in it emits nothing rather than a shape", {
