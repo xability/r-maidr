@@ -124,13 +124,10 @@ here rather than read from the legend title, which says "count" for
 the default and would say \code{after_stat(density)} for a chart that
 is still counting into the same cells.
 
-x and y go through \code{resolve_legend_label()}, which is the
-package's existing "\code{labs()} override, then the layer's own
-mapping, then the plot's" chain. Its documented caution -- that
-\code{labs()} records a title even for an unmapped aesthetic, so only
-ask about one the layer is grouped by -- does not bite here:
-\code{stat_binhex()} cannot compute without both positions, so both
-are always mapped.
+x and y go through \code{positional_axis_label()}, which is the
+package's shared "\code{labs()} override, then the layer's own
+mapping, then the plot's" chain, falling back to the aesthetic name
+rather than to nothing.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HexbinLayerProcessor$extract_axes(plot, built = NULL)}

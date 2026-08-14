@@ -22,9 +22,17 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       fill_label <- extracted_data$fill_label
       data <- extracted_data[names(extracted_data) != "fill_label"]
 
+      # The names ggplot2 prints, not the letters. These were two string
+      # literals, so a heatmap announced "x: y, y: a, score: 3" -- where the
+      # first `y` is a category value and the second is the axis name that
+      # should have been "Model". A `labs()` override and the mapped column
+      # name were both discarded, and nothing a caller could write reached
+      # the reader. The base R adapter had always read real labels; only
+      # this side did not (#156).
+      layer_index <- self$get_layer_index()
       axes <- build_axes(
-        x = "x",
-        y = "y",
+        x = positional_axis_label(plot, built, "x", layer_index),
+        y = positional_axis_label(plot, built, "y", layer_index),
         z = fill_label
       )
 
