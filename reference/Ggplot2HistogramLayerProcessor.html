@@ -143,6 +143,7 @@
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2HistogramLayerProcessor-process"><code>Ggplot2HistogramLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-Ggplot2HistogramLayerProcessor-determine_orientation"><code>Ggplot2HistogramLayerProcessor$determine_orientation()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HistogramLayerProcessor-extract_data"><code>Ggplot2HistogramLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HistogramLayerProcessor-generate_selectors"><code>Ggplot2HistogramLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2HistogramLayerProcessor-clone"><code>Ggplot2HistogramLayerProcessor$clone()</code></a></p></li>
@@ -202,17 +203,55 @@
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2HistogramLayerProcessor-determine_orientation"></a><div class="section">
+<h3 id="ggplot-histogramlayerprocessor-determine-orientation-"><code>Ggplot2HistogramLayerProcessor$determine_orientation()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-determine-orientation-"></a></h3>
+<p>Which axis this histogram's bins run along</p>
+<p><code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code> fills a flipped layer's <code>ymin</code>/<code>ymax</code> with the bin
+bounds and its <code>x</code> with the count, and <code>extract_data</code> above passes both
+through as they come – so the emitted data is already transposed
+correctly. What was missing is this key saying so.</p>
+<p>Without it the frontend defaults to vertical and reads the bin range
+from <code>xMin</code>/<code>xMax</code>, which on a flipped layer hold the count bounds. A
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram()</a></code> drawn with <code>aes(y = v)</code> was announced with a bin
+range of "0 to 5" – counts – where the data runs -2.42 to -1.10, and
+with every bin centre offered as a value. Every number real, every one
+on the wrong axis, and nothing erroring (#163).</p>
+<p>Read from <code>flipped_aes</code>, which ggplot2 sets on the built layer, the way
+the boxplot and violin processors already do. <code><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip()</a></code> is a
+different question and deliberately not answered here: it leaves
+<code>flipped_aes</code> alone and rotates only the coordinate system, so the data
+layout this key describes is genuinely unflipped. Treating it as
+horizontal would swap a pair that is already the right way round.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">determine_orientation</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object.</p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Its <code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code> result, when the caller already has one.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p><code>"horz"</code> or <code>"vert"</code>.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2HistogramLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-histogramlayerprocessor-extract-data-"><code>Ggplot2HistogramLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-extract-data-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -228,14 +267,14 @@
 <p></p><hr><a id="method-Ggplot2HistogramLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-histogramlayerprocessor-generate-selectors-"><code>Ggplot2HistogramLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-generate-selectors-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -254,10 +293,10 @@
 <p></p><hr><a id="method-Ggplot2HistogramLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-histogramlayerprocessor-clone-"><code>Ggplot2HistogramLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

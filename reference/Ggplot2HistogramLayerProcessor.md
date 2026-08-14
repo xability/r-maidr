@@ -13,6 +13,8 @@ Processes histogram plot layers with complete logic included
 
 - [`Ggplot2HistogramLayerProcessor$process()`](#method-Ggplot2HistogramLayerProcessor-process)
 
+- [`Ggplot2HistogramLayerProcessor$determine_orientation()`](#method-Ggplot2HistogramLayerProcessor-determine_orientation)
+
 - [`Ggplot2HistogramLayerProcessor$extract_data()`](#method-Ggplot2HistogramLayerProcessor-extract_data)
 
 - [`Ggplot2HistogramLayerProcessor$generate_selectors()`](#method-Ggplot2HistogramLayerProcessor-generate_selectors)
@@ -81,6 +83,54 @@ Inherited methods
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+------------------------------------------------------------------------
+
+### `Ggplot2HistogramLayerProcessor$determine_orientation()`
+
+Which axis this histogram's bins run along
+
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+fills a flipped layer's `ymin`/`ymax` with the bin bounds and its `x`
+with the count, and `extract_data` above passes both through as they
+come – so the emitted data is already transposed correctly. What was
+missing is this key saying so.
+
+Without it the frontend defaults to vertical and reads the bin range
+from `xMin`/`xMax`, which on a flipped layer hold the count bounds. A
+[`geom_histogram()`](https://ggplot2.tidyverse.org/reference/geom_histogram.html)
+drawn with `aes(y = v)` was announced with a bin range of "0 to 5" –
+counts – where the data runs -2.42 to -1.10, and with every bin centre
+offered as a value. Every number real, every one on the wrong axis, and
+nothing erroring (#163).
+
+Read from `flipped_aes`, which ggplot2 sets on the built layer, the way
+the boxplot and violin processors already do.
+[`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+is a different question and deliberately not answered here: it leaves
+`flipped_aes` alone and rotates only the coordinate system, so the data
+layout this key describes is genuinely unflipped. Treating it as
+horizontal would swap a pair that is already the right way round.
+
+#### Usage
+
+    Ggplot2HistogramLayerProcessor$determine_orientation(plot, built = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object.
+
+- `built`:
+
+  Its
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  result, when the caller already has one.
+
+#### Returns
+
+`"horz"` or `"vert"`.
 
 ------------------------------------------------------------------------
 
