@@ -92,6 +92,17 @@ no_base_r_plots_message <- function() {
 # sits ahead of maidr on the search path, so this is the moment to tell the
 # user that bare chartSeries() calls will no longer be recorded. Named (not
 # anonymous) so .onUnload can remove exactly this hook on unload.
+#' Wrap vioplot's entry point once its namespace is available
+#'
+#' vioplot is in Suggests, so if it loads after maidr its `vioplot()` has not
+#' been wrapped yet and user calls would go unrecorded. Same shape as the
+#' quantmod hook above, and registered beside it in `.onLoad`.
+#'
+#' @keywords internal
+.maidr_vioplot_onload_hook <- function(...) {
+  tryCatch(wrap_function("vioplot"), error = function(e) NULL)
+}
+
 .maidr_quantmod_attach_hook <- function(...) {
   tryCatch(
     {
@@ -172,15 +183,27 @@ no_base_r_plots_message <- function() {
     ),
     error = function(e) NULL
   )
+
+  # vioplot is in Suggests for the same reason and needs the same late
+  # binding. No attach hook: unlike chartSeries, `vioplot()` is only ever
+  # called by the user, so maidr wrapping its namespace binding does not
+  # redirect any internal call of the package's own.
+  tryCatch(
+    setHook(
+      packageEvent("vioplot", "onLoad"),
+      .maidr_vioplot_onload_hook
+    ),
+    error = function(e) NULL
+  )
 }
 
 # Remove the quantmod onLoad hook installed in .onLoad so the package unloads
 # cleanly without leaving global session state behind (CRAN policy).
 .onUnload <- function(libpath) {
-  drop_hook <- function(event, fn) {
+  drop_hook <- function(event, fn, package = "quantmod") {
     tryCatch(
       {
-        ev <- packageEvent("quantmod", event)
+        ev <- packageEvent(package, event)
         hooks <- getHook(ev)
         if (length(hooks)) {
           keep <- !vapply(hooks, identical, logical(1), fn)
@@ -193,6 +216,7 @@ no_base_r_plots_message <- function() {
 
   drop_hook("onLoad", .maidr_quantmod_onload_hook)
   drop_hook("attach", .maidr_quantmod_attach_hook)
+  drop_hook("onLoad", .maidr_vioplot_onload_hook, package = "vioplot")
 }
 
 # Show startup message when package is attached via library()

@@ -215,6 +215,9 @@ BaseRAdapter <- R6::R6Class(
         },
         "hist" = "hist",
         "boxplot" = "box",
+        # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the
+        # same shape the ggplot2 adapter produces for geom_violin().
+        "vioplot" = "violin",
         "pie" = "pie",
         "image" = "heat",
         "heatmap" = "heat",

@@ -417,12 +417,15 @@ get_original_function <- function(function_name) {
     return(orig_fn)
   }
 
-  # Try quantmod namespace (chartSeries) when loaded. This must come
-  # before the generic get() fallback, which would otherwise resolve to
+  # Try the Suggests namespaces (chartSeries, vioplot) when loaded. These must
+  # come before the generic get() fallback, which would otherwise resolve to
   # maidr's own recording wrapper and re-log calls during replay.
-  if ("quantmod" %in% loadedNamespaces()) {
+  for (suggested in c("quantmod", "vioplot")) {
+    if (!(suggested %in% loadedNamespaces())) {
+      next
+    }
     orig_fn <- tryCatch(
-      get(function_name, envir = asNamespace("quantmod")),
+      get(function_name, envir = asNamespace(suggested)),
       error = function(e) NULL
     )
     if (!is.null(orig_fn)) {
@@ -673,8 +676,10 @@ find_original_function <- function(function_name) {
   # chartSeries hit this: the quantmod attach hook fires while quantmod is
   # loaded but NOT yet attached, so maidr was ahead of it on the path.
   namespaces <- c("graphics", "stats", "grDevices", "base")
-  if ("quantmod" %in% loadedNamespaces()) {
-    namespaces <- c(namespaces, "quantmod")
+  for (suggested in c("quantmod", "vioplot")) {
+    if (suggested %in% loadedNamespaces()) {
+      namespaces <- c(namespaces, suggested)
+    }
   }
 
   for (ns in namespaces) {

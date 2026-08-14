@@ -44,6 +44,7 @@ export(stripchart)
 export(symbols)
 export(text)
 export(title)
+export(vioplot)
 importFrom(R6,R6Class)
 importFrom(ggplotify,as.grob)
 importFrom(grid,

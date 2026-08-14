@@ -33,7 +33,11 @@ NULL
     "coplot",
     # quantmod entry point for OHLC / candlestick charts. Only chartSeries is
     # wrapped in the MVP; candleChart / barChart / lineChart are deferred.
-    "chartSeries"
+    "chartSeries",
+    # vioplot entry point. Like chartSeries this lives in a Suggests package,
+    # so it is wrapped late through the packageEvent hooks in .onLoad rather
+    # than at load time -- vioplot may be attached after maidr.
+    "vioplot"
   ),
   LOW = c(
     "lines",
