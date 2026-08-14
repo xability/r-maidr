@@ -20,14 +20,109 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       list(
         data = data,
         selectors = selectors,
+        orientation = if (self$is_flipped(plot, built)) "horz" else "vert",
         title = if (!is.null(layout$title)) layout$title else "",
         axes = self$extract_layer_axes(plot, layout)
       )
+    },
+    #' @description Is this layer's category axis `y` rather than `x`?
+    #'
+    #' `ggplot(df, aes(y = g, x = n)) + geom_col()` is the ordinary spelling of
+    #' a horizontal bar chart, and `ggplot_build()` marks it `flipped_aes` and
+    #' swaps which computed column holds what. Everything below reads `x` as
+    #' the category and `y` as the measure, so on a flipped layer it picked up
+    #' exactly the wrong pair: `apple/banana/cherry` at `30/70/50` came out as
+    #' category `"30"` with value `1`, category `"50"` with value `3` and
+    #' category `"70"` with value `2` -- the labels gone, the values replaced
+    #' by factor codes, and the rows resorted by the measure (#162).
+    #'
+    #' `coord_flip()` is not this. It rotates the coordinate system and leaves
+    #' `flipped_aes` alone, so its data layout is genuinely unflipped; only
+    #' the key below would change, and that question spans every processor.
+    #'
+    #' @param plot The ggplot2 object.
+    #' @param built Its `ggplot_build()` result, when the caller has one.
+    #' @return `TRUE` when the category runs up the y axis.
+    is_flipped = function(plot, built = NULL) {
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
+      layer_index <- self$get_layer_index()
+      if (layer_index > length(built$data)) {
+        return(FALSE)
+      }
+      isTRUE(built$data[[layer_index]]$flipped_aes[1])
+    },
+    #' @description Put a flipped layer's columns back where the rest expects
+    #'
+    #' Swapping the pairs up front lets every branch below stay as written
+    #' rather than each learning to ask which way round it is -- and a branch
+    #' that forgot to ask would go wrong silently, since both columns hold
+    #' plausible numbers.
+    #'
+    #' @param built_data One layer's built data.
+    #' @return The same frame with its x and y pairs exchanged.
+    unflip_columns = function(built_data) {
+      for (pair in list(c("x", "y"), c("xmin", "ymin"), c("xmax", "ymax"))) {
+        if (all(pair %in% names(built_data))) {
+          held <- built_data[[pair[1]]]
+          built_data[[pair[1]]] <- built_data[[pair[2]]]
+          built_data[[pair[2]]] <- held
+        }
+      }
+      built_data
+    },
+    #' @description Exchange a plot's x and y aesthetics
+    #'
+    #' Returns a copy: the mapping is only read to recover the category's
+    #' column name, and the caller's plot is still wanted unswapped for
+    #' selectors and axis labels.
+    #'
+    #' @param plot The ggplot2 object.
+    #' @return A copy whose plot-level and layer-level x/y mappings are swapped.
+    unflip_mapping = function(plot) {
+      swap <- function(mapping) {
+        if (is.null(mapping)) {
+          return(mapping)
+        }
+        held_x <- mapping$x
+        mapping$x <- mapping$y
+        mapping$y <- held_x
+        mapping
+      }
+      plot$mapping <- swap(plot$mapping)
+      layer_index <- self$get_layer_index()
+      if (layer_index <= length(plot$layers)) {
+        plot$layers[[layer_index]]$mapping <-
+          swap(plot$layers[[layer_index]]$mapping)
+      }
+      plot
+    },
+    #' @description Exchange a panel's x and y scales
+    #'
+    #' So the break labels read below come from the axis the categories are
+    #' actually drawn on. Both the scale objects and the flattened
+    #' `x.labels`/`y.labels` of older ggplot2 are swapped, since the reader
+    #' below falls back from one to the other.
+    #'
+    #' @param panel_params One entry of `built$layout$panel_params`.
+    #' @return The same list with its x and y entries exchanged.
+    unflip_panel_params = function(panel_params) {
+      for (pair in list(c("x", "y"), c("x.labels", "y.labels"))) {
+        held <- panel_params[[pair[1]]]
+        panel_params[[pair[1]]] <- panel_params[[pair[2]]]
+        panel_params[[pair[2]]] <- held
+      }
+      panel_params
     },
     needs_reordering = function() {
       TRUE
     },
     reorder_layer_data = function(data, plot) {
+      # Sorted by the *category*, which is the y mapping on a flipped layer.
+      # Sorting by x there ordered the rows by the measure, so the emitted
+      # order stopped matching the drawn rects as well.
+      plot <- if (self$is_flipped(plot)) self$unflip_mapping(plot) else plot
       plot_mapping <- plot$mapping
       layer_mapping <- plot$layers[[self$get_layer_index()]]$mapping
       x_col <- NULL
@@ -51,6 +146,17 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
 
       layer_index <- self$get_layer_index()
       built_data <- built$data[[layer_index]]
+
+      # Everything below reads `x` as the category and `y` as the measure.
+      # A flipped layer holds them the other way round, so the columns, the
+      # mapping the category's name is recovered from, and the panel scale its
+      # labels come from are all exchanged here rather than each reader being
+      # taught to ask (#162).
+      flipped <- isTRUE(built_data$flipped_aes[1])
+      if (flipped) {
+        built_data <- self$unflip_columns(built_data)
+        plot <- self$unflip_mapping(plot)
+      }
 
       if (!is.null(panel_id) && "PANEL" %in% names(built_data)) {
         built_data <- built_data[built_data$PANEL == panel_id, ]
@@ -77,6 +183,9 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
             panel_params_list[[panel_number]]
           } else {
             panel_params_list[[1]]
+          }
+          if (flipped) {
+            panel_params <- self$unflip_panel_params(panel_params)
           }
 
           panel_labels <- NULL
@@ -151,6 +260,9 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         # 3. Fall back to x-scale break labels.
         if (is.null(x_values) && !is.null(built)) {
           panel_params <- built$layout$panel_params[[1]]
+          if (flipped) {
+            panel_params <- self$unflip_panel_params(panel_params)
+          }
           if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
             scale_labels <- panel_params$x$get_labels()
             scale_labels <- scale_labels[!is.na(scale_labels)]
