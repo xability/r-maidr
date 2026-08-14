@@ -98,6 +98,65 @@ coplot <- function(...) graphics::coplot(...)
 
 #' @rdname base-r-wrappers
 #' @export
+vioplot <- function(...) {
+  if (!requireNamespace("vioplot", quietly = TRUE)) {
+    stop(
+      "Package 'vioplot' is required for vioplot(). ",
+      "Please install it via install.packages('vioplot').",
+      call. = FALSE
+    )
+  }
+
+  # Same shape as the chartSeries stub below, and for the same reason: when
+  # vioplot loads after maidr the namespace is already sealed, so
+  # wrap_function() cannot replace this and it has to be a full recording
+  # wrapper resolving the original lazily.
+  original <- get("vioplot", envir = asNamespace("vioplot"))
+  if (is.null(.maidr_patching_env$.saved_graphics_fns[["vioplot"]])) {
+    .maidr_patching_env$.saved_graphics_fns[["vioplot"]] <- original
+  }
+
+  if (!is_patching_enabled()) {
+    return(original(...))
+  }
+
+  this_call <- match.call()
+  caller_env <- parent.frame()
+
+  ensure_maidr_device()
+
+  call_failed <- FALSE
+  result <- tryCatch(
+    original(...),
+    error = function(e) {
+      call_failed <<- TRUE
+      e
+    }
+  )
+  if (call_failed) {
+    result <- retry_call_in_caller_frame(original, this_call, caller_env, result)
+  }
+
+  args_list <- tryCatch(list(...), error = function(e) NULL)
+  call_env <- NULL
+  if (is.null(args_list)) {
+    args_list <- as.list(this_call)[-1L]
+    call_env <- snapshot_call_env(args_list, caller_env)
+  }
+
+  log_plot_call_to_device(
+    "vioplot",
+    this_call,
+    args_list,
+    grDevices::dev.cur(),
+    call_env = call_env
+  )
+
+  invisible(result)
+}
+
+#' @rdname base-r-wrappers
+#' @export
 chartSeries <- function(...) {
   if (!requireNamespace("quantmod", quietly = TRUE)) {
     stop(

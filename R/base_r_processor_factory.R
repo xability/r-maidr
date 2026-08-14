@@ -39,6 +39,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "point" = BaseRPointLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
+        "violin" = BaseRViolinLayerProcessor$new(layer_info),
         "pie" = BaseRPieLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
         "contour" = BaseRUnknownLayerProcessor$new(layer_info),

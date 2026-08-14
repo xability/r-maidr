@@ -19,6 +19,7 @@
 \alias{assocplot}
 \alias{pairs}
 \alias{coplot}
+\alias{vioplot}
 \alias{chartSeries}
 \alias{lines}
 \alias{points}
@@ -72,6 +73,8 @@ assocplot(...)
 pairs(...)
 
 coplot(...)
+
+vioplot(...)
 
 chartSeries(...)
 
