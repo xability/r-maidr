@@ -36,7 +36,12 @@ violin_samples <- function() {
 }
 
 # Draw a vioplot off-screen and return its grob tree.
+#
+# `grid.echo()` comes from gridGraphics, which reaches this package only as a
+# transitive dependency of ggplotify -- present in practice, but not something
+# the tests may assume, so it is declared in Suggests and skipped when absent.
 violin_grobs <- function(...) {
+  testthat::skip_if_not_installed("gridGraphics")
   path <- tempfile(fileext = ".pdf")
   grDevices::pdf(path, width = 7, height = 5)
   on.exit(grDevices::dev.off(), add = TRUE)

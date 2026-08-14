@@ -36,6 +36,12 @@ sample_b <- function() {
 }
 
 # Draw a vioplot off-screen and hand back both its return value and its grobs.
+#
+# `grid.echo()` comes from gridGraphics, which reaches this package only as a
+# transitive dependency of ggplotify, so it is declared in Suggests. Its
+# absence is not fatal here: the grob capture falls to `NULL` and only the one
+# test that reads the drawn polygon skips, leaving the return-value comparison
+# -- which needs no grobs at all -- still running.
 drawn_vioplot <- function(...) {
   path <- tempfile(fileext = ".pdf")
   grDevices::pdf(path, width = 7, height = 5)
