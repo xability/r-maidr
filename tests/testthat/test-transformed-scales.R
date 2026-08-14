@@ -167,6 +167,94 @@ test_that("a fitted curve is announced in data space too", {
   testthat::expect_lt(min(xs), 100)
 })
 
+test_that("a line's y is announced in data space", {
+  skip_if_no_render()
+
+  # The line processor already recovered *x* through its own
+  # `recover_x_values()`, so `geom_line() + scale_x_log10()` read correctly
+  # before this. y had no such path and read straight through: a series
+  # spanning $5.01 to $10,000 announced 0.700 to 4.000 under its own axis
+  # label. Half a chart being right is what made this one easy to miss.
+  frame <- data.frame(t = 1:12, price = 10^seq(0.7, 4, length.out = 12))
+
+  for (name in names(transform_cases)) {
+    scale <- switch(name,
+      log10 = ggplot2::scale_y_log10(),
+      sqrt = ggplot2::scale_y_sqrt(),
+      reverse = ggplot2::scale_y_reverse()
+    )
+    plot <- ggplot2::ggplot(frame, ggplot2::aes(t, price)) +
+      ggplot2::geom_line() + scale
+    layer <- transformed_layer(plot)
+    points <- if (!is.null(layer$data[[1]]$x)) layer$data else layer$data[[1]]
+    ys <- vapply(points, function(point) as.numeric(point$y), numeric(1))
+
+    testthat::expect_equal(sort(ys), frame$price, tolerance = 1e-8, info = name)
+  }
+})
+
+test_that("a discrete y keeps its level codes", {
+  skip_if_no_render()
+
+  # The control for the line change above, and the one that would break
+  # quietly. A factor y reaches the payload as ggplot2's internal level code,
+  # which `attach_discrete_y_names()` turns into the name a reader hears --
+  # so a transformation applied to it would be undoing something that is an
+  # index rather than a measurement. A discrete scale reports no
+  # transformation, which is what keeps this working.
+  frame <- data.frame(
+    t = 1:6,
+    stage = factor(c("Awake", "REM", "Deep", "Awake", "REM", "Deep"))
+  )
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(t, stage, group = 1)) +
+    ggplot2::geom_line()
+
+  layer <- transformed_layer(plot)
+  points <- if (!is.null(layer$data[[1]]$x)) layer$data else layer$data[[1]]
+  ys <- vapply(points, function(point) as.numeric(point$y), numeric(1))
+
+  testthat::expect_equal(sort(unique(ys)), c(1, 2, 3))
+})
+
+test_that("a facet reads its own panel's scale", {
+  skip_if_not_installed("ggplot2")
+
+  # `scales = "free_x"` gives one scale per panel where a fixed scale gives
+  # one for all, so the panel index either lands on a real entry or has to
+  # fall back rather than error.
+  #
+  # This is asserted against the helper rather than a rendering, and
+  # deliberately: ggplot2 has no way to give two panels different
+  # *transformations* -- free scales differ in limits, not in transform --
+  # so every panel of a rendered facet would read correctly even with the
+  # index wrong, and a render test would pass without exercising anything.
+  frame <- price_frame()
+  frame$panel <- rep(c("left", "right"), length.out = nrow(frame))
+  build <- suppressWarnings(ggplot2::ggplot_build(
+    ggplot2::ggplot(frame, ggplot2::aes(price, size)) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~panel, scales = "free_x") +
+      ggplot2::scale_x_log10()
+  ))
+
+  testthat::expect_length(build$layout$panel_scales_x, 2)
+  for (panel in 1:2) {
+    transformation <- maidr:::panel_transformation(build, "x", panel)
+    testthat::expect_false(is.null(transformation), info = panel)
+  }
+
+  # Past the end is the fixed-scale shape, where one scale serves every
+  # panel -- not an error, and not a reason to give up and announce
+  # transformed values.
+  testthat::expect_false(
+    is.null(maidr:::panel_transformation(build, "x", 99))
+  )
+
+  # The y axis is shared here, so one scale answers for both panels.
+  testthat::expect_length(build$layout$panel_scales_y, 1)
+  testthat::expect_null(maidr:::panel_transformation(build, "y", 2))
+})
+
 test_that("the transformation helper answers for each case in turn", {
   testthat::skip_if_not_installed("ggplot2")
 
