@@ -229,6 +229,7 @@
 <url><loc>https://r.maidr.ai/reference/panel_has_layer_of_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/panel_layer_of_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/panel_slot_positions.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/panel_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/perpendicular_distance.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polyline_layer_position.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/positional_axis_label.html</loc></url>
@@ -264,6 +265,7 @@
 <url><loc>https://r.maidr.ai/reference/save_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/save_html_document.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/scale_mapping_utils.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/scale_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/schedule_auto_show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/series_group_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/set_internal_guard.html</loc></url>
@@ -276,6 +278,7 @@
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis_doc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_violin_kde_metadata.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/untransform_positions.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/update_device_state.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/usable_xy_coords.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/validate_axes.html</loc></url>

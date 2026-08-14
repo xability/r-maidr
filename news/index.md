@@ -134,6 +134,31 @@
 
 ### Bug Fixes
 
+- ggplot2: a transformed scale was announced in transformed space.
+  ggplot2 applies the transformation *before* the stat runs, so
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)’s
+  data is in that space – and a
+  [`scale_x_log10()`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)
+  scatter of prices from \$5.50 to \$9,403 read as 0.744 to 3.973 under
+  the label “Price (USD)”. Nothing was missing, nothing errored, the
+  structure, the point count and the label were all right, and the
+  numbers were false, with no signal a reader could catch: “these look
+  small” is not checkable without the chart you cannot see. Point,
+  smooth and line layers now announce the values the axis shows.
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  was half-right beforehand, its x already recovered by its own path and
+  its y not, which is the shape that made this easy to miss. A
+  transformed axis emits no navigation grid: grid navigation walks equal
+  increments, and 10, 100 and 1000 are equally spaced only in the space
+  the points are no longer announced in, so a grid there would disagree
+  with the announcement rather than merely be wrong alongside it. The
+  axis keeps its label.
+  [`coord_trans()`](https://ggplot2.tidyverse.org/reference/coord_transform.html)
+  is deliberately untouched – it transforms at draw time, after the
+  stat, so its data is already in data space and its scale reports
+  `identity`, and the comparison that skips an untransformed chart skips
+  it too.
+
 - ggplot2:
   [`geom_area()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html)
   and the error bar geoms emitted no data at all. Two helpers shared by
