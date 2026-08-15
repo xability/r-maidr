@@ -14,6 +14,9 @@ Processes smooth plot layers with complete logic included
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2SmoothLayerProcessor-process}{\code{Ggplot2SmoothLayerProcessor$process()}}
+    \item \href{#method-Ggplot2SmoothLayerProcessor-can_emit_band}{\code{Ggplot2SmoothLayerProcessor$can_emit_band()}}
+    \item \href{#method-Ggplot2SmoothLayerProcessor-layer_computes_interval}{\code{Ggplot2SmoothLayerProcessor$layer_computes_interval()}}
+    \item \href{#method-Ggplot2SmoothLayerProcessor-extract_band_data}{\code{Ggplot2SmoothLayerProcessor$extract_band_data()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-group_aes}{\code{Ggplot2SmoothLayerProcessor$group_aes()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-attach_group_axis}{\code{Ggplot2SmoothLayerProcessor$attach_group_axis()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-resolve_target_layer}{\code{Ggplot2SmoothLayerProcessor$resolve_target_layer()}}
@@ -75,6 +78,132 @@ Processes smooth plot layers with complete logic included
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-can_emit_band"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-can_emit_band}{}}}
+\subsection{\code{Ggplot2SmoothLayerProcessor$can_emit_band()}}{
+  Whether this caller can carry a second layer.
+
+A facet panel cannot. \code{combine_facet_layer_data()} collapses every
+layer of a panel into one payload entry and types it from the first
+result that produced one, so a panel holds a single layer type by
+construction. Handing it a multi-layer result does not add the band --
+it reads \code{result$data}, finds nothing there, and drops the fitted
+curve as well. Measured before this guard existed: a faceted
+\code{geom_point() + geom_smooth()} went from 11 entries per panel to
+10, losing the smooth entirely.
+
+The patchwork path expands \code{multi_layer} and is left alone, so it
+is identified by what only the facet path supplies rather than by
+\code{panel_ctx} being present at all.
+
+The consequence is a real limitation, not a subtlety worth hiding: a
+faceted regression chart still loses its confidence band. Expressing
+one there means teaching the facet path to hold two layer types per
+panel, which is a change to shared composition code rather than to
+this processor.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2SmoothLayerProcessor$can_emit_band(panel_ctx)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel_ctx}}{Panel context supplied by the caller, or NULL}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when a second layer would survive the caller
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-layer_computes_interval"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-layer_computes_interval}{}}}
+\subsection{\code{Ggplot2SmoothLayerProcessor$layer_computes_interval()}}{
+  Whether this layer's \code{ymin}/\code{ymax} are an
+interval at all.
+
+Asked of the \strong{stat}, never of the columns, because the columns lie.
+This processor serves \code{StatSmooth} and \code{StatDensity} alike,
+and both emit \code{ymin}/\code{ymax} while meaning different things:
+\code{StatSmooth} computes the confidence bounds around the fit, but
+\code{StatDensity} sets \code{ymin = 0} and \code{ymax = density} --
+the extent of the fill, not an uncertainty. Measured on a three-group
+\code{geom_density()}: all 1536 rows carry finite bounds running from
+zero to the curve.
+
+Reading those as an interval would announce every density curve as
+having a confidence band from zero, which is a claim about the data
+rather than a missing feature -- the worse of the two failures, and
+the one this guard exists to prevent.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2SmoothLayerProcessor$layer_computes_interval(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the layer's stat computes an interval
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-extract_band_data"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-extract_band_data}{}}}
+\subsection{\code{Ggplot2SmoothLayerProcessor$extract_band_data()}}{
+  Read the confidence band \code{geom_smooth()} draws.
+
+\code{se = TRUE} is the default, and the band is the reason the layer
+is drawn rather than a plain line: it says how much of the fitted
+trend the data supports. \code{StatSmooth} computes it into
+\code{ymin}/\code{ymax} alongside the fitted \code{y}, and this
+processor read only \code{y} -- so a chart that otherwise worked was
+silently missing the half a reader needs to judge it (#135).
+
+Emitted as its own \code{error_bar} layer rather than as bounds on the
+smooth points, because that is the shape MAIDR reads today:
+\code{ErrorBarTrace} consumes \code{y}/\code{yMin}/\code{yMax}, while
+\code{SmoothTrace} extends \code{LineTrace} and reads neither. It is
+also what the Python binding already emits for the same question --
+\code{sns.pointplot} produces a separate \code{errorbar} layer with
+these exact keys -- so the two bindings describe an interval the same
+way.
+
+A curve with no band returns nothing rather than a layer of bare
+estimates, which would duplicate the smooth line under a type that
+promises an interval.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2SmoothLayerProcessor$extract_band_data(
+  plot,
+  built = NULL,
+  panel_id = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of MAIDR interval points, empty when no band was drawn
   }
 }
 
