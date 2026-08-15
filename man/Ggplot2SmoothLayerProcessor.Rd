@@ -98,7 +98,11 @@ curve as well. Measured before this guard existed: a faceted
 
 The patchwork path expands \code{multi_layer} and is left alone, so it
 is identified by what only the facet path supplies rather than by
-\code{panel_ctx} being present at all.
+\code{panel_ctx} being present at all. A faceted leaf \emph{nested inside} a
+patchwork arrives through the patchwork call site, with neither
+\code{panel_id} nor \code{facet_groups}, so the plot's own facet is
+asked as well -- the same third clause
+\code{Ggplot2ViolinLayerProcessor} carries, for the same composition.
 
 The consequence is a real limitation, not a subtlety worth hiding: a
 faceted regression chart still loses its confidence band. Expressing
@@ -107,13 +111,14 @@ panel, which is a change to shared composition code rather than to
 this processor.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2SmoothLayerProcessor$can_emit_band(panel_ctx)}
+    \preformatted{Ggplot2SmoothLayerProcessor$can_emit_band(panel_ctx, plot = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{panel_ctx}}{Panel context supplied by the caller, or NULL}
+      \item{\code{plot}}{The ggplot2 object, for its own facet spec}
     }
     \if{html}{\out{</div>}}
   }
@@ -184,6 +189,16 @@ way.
 A curve with no band returns nothing rather than a layer of bare
 estimates, which would duplicate the smooth line under a type that
 promises an interval.
+
+Split per curve, for the reason \code{extract_data()} splits the fitted
+line: an \code{error_bar} layer is a flat sequence -- MAIDR's
+\code{ErrorBarPoint} carries no \code{z} -- so concatenating a
+hue-split chart's bands would walk a reader off the end of one curve
+into the start of the next with nothing announced between, and with
+\code{x} running backwards at the seam. Measured on a two-group
+\code{geom_smooth(aes(colour = g))}: 160 points in one sequence whose
+x jumped from 10 back to 1 at index 81. Each curve therefore becomes
+its own layer, told apart by \code{name}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2SmoothLayerProcessor$extract_band_data(
@@ -203,7 +218,8 @@ promises an interval.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of MAIDR interval points, empty when no band was drawn
+    A list of bands, each a list of \code{points} and an optional
+\code{name}; empty when no band was drawn
   }
 }
 

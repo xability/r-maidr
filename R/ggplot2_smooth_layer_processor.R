@@ -32,34 +32,42 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         axes = axes
       )
 
-      if (!self$can_emit_band(panel_ctx)) {
+      if (!self$can_emit_band(panel_ctx, plot)) {
         return(smooth_layer)
       }
 
-      band_data <- self$extract_band_data(plot, built, panel_id)
-      if (length(band_data) == 0L) {
+      bands <- self$extract_band_data(plot, built, panel_id)
+      if (length(bands) == 0L) {
         return(smooth_layer)
       }
+
+      band_layers <- lapply(bands, function(band) {
+        layer <- list(
+          data = band$points,
+          # A ribbon is one polygon covering every sample, so there is no
+          # per-sample element to address and no honest `nth-child` stride
+          # to invent. An empty list says "nothing to highlight here",
+          # which is what the caller already reads it as; a fabricated
+          # selector would highlight the whole band at every point and
+          # look like it worked.
+          selectors = list(),
+          title = title,
+          axes = axes,
+          type = "error_bar",
+          orientation = "vert"
+        )
+        # `name` distinguishes two layers of one type on a layer switch, which
+        # is exactly what a hue-split chart produces here. Omitted for a lone
+        # band, where the type alone already identifies it.
+        if (!is.null(band$name)) {
+          layer$name <- band$name
+        }
+        layer
+      })
 
       list(
         multi_layer = TRUE,
-        layers = list(
-          c(smooth_layer, list(type = "smooth")),
-          list(
-            data = band_data,
-            # A ribbon is one polygon covering every sample, so there is no
-            # per-sample element to address and no honest `nth-child` stride
-            # to invent. An empty list says "nothing to highlight here",
-            # which is what the caller already reads it as; a fabricated
-            # selector would highlight the whole band at every point and
-            # look like it worked.
-            selectors = list(),
-            title = title,
-            axes = axes,
-            type = "error_bar",
-            orientation = "vert"
-          )
-        )
+        layers = c(list(c(smooth_layer, list(type = "smooth"))), band_layers)
       )
     },
 
@@ -76,7 +84,11 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     #'
     #' The patchwork path expands \code{multi_layer} and is left alone, so it
     #' is identified by what only the facet path supplies rather than by
-    #' \code{panel_ctx} being present at all.
+    #' \code{panel_ctx} being present at all. A faceted leaf *nested inside* a
+    #' patchwork arrives through the patchwork call site, with neither
+    #' \code{panel_id} nor \code{facet_groups}, so the plot's own facet is
+    #' asked as well -- the same third clause
+    #' \code{Ggplot2ViolinLayerProcessor} carries, for the same composition.
     #'
     #' The consequence is a real limitation, not a subtlety worth hiding: a
     #' faceted regression chart still loses its confidence band. Expressing
@@ -85,9 +97,16 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     #' this processor.
     #'
     #' @param panel_ctx Panel context supplied by the caller, or NULL
+    #' @param plot The ggplot2 object, for its own facet spec
     #' @return TRUE when a second layer would survive the caller
-    can_emit_band = function(panel_ctx) {
-      is.null(panel_ctx) || is.null(panel_ctx$facet_groups)
+    can_emit_band = function(panel_ctx, plot = NULL) {
+      faceted_plot <- !is.null(plot) &&
+        !is.null(plot$facet) &&
+        !inherits(plot$facet, "FacetNull")
+      if (faceted_plot) {
+        return(FALSE)
+      }
+      is.null(panel_ctx) || length(panel_ctx$facet_groups) == 0L
     },
 
     #' @description Whether this layer's \code{ymin}/\code{ymax} are an
@@ -147,10 +166,21 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     #' estimates, which would duplicate the smooth line under a type that
     #' promises an interval.
     #'
+    #' Split per curve, for the reason \code{extract_data()} splits the fitted
+    #' line: an \code{error_bar} layer is a flat sequence -- MAIDR's
+    #' \code{ErrorBarPoint} carries no \code{z} -- so concatenating a
+    #' hue-split chart's bands would walk a reader off the end of one curve
+    #' into the start of the next with nothing announced between, and with
+    #' \code{x} running backwards at the seam. Measured on a two-group
+    #' \code{geom_smooth(aes(colour = g))}: 160 points in one sequence whose
+    #' x jumped from 10 back to 1 at index 81. Each curve therefore becomes
+    #' its own layer, told apart by \code{name}.
+    #'
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
-    #' @return A list of MAIDR interval points, empty when no band was drawn
+    #' @return A list of bands, each a list of \code{points} and an optional
+    #'   \code{name}; empty when no band was drawn
     extract_band_data = function(plot, built = NULL, panel_id = NULL) {
       if (!self$layer_computes_interval(plot)) {
         return(list())
@@ -181,15 +211,37 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
       lower <- untransform_positions(built_data$ymin, built, "y", panel_id)
       upper <- untransform_positions(built_data$ymax, built, "y", panel_id)
 
-      rows <- which(finite_bounds)
-      lapply(rows, function(i) {
-        list(
-          x = x[i],
-          y = y[i],
-          yMin = as.numeric(lower[i]),
-          yMax = as.numeric(upper[i])
-        )
+      band_points <- function(rows) {
+        lapply(rows, function(i) {
+          list(
+            x = x[i],
+            y = y[i],
+            yMin = as.numeric(lower[i]),
+            yMax = as.numeric(upper[i])
+          )
+        })
+      }
+
+      group_ids <- self$series_group_ids(built_data)
+      if (length(group_ids) == 0L) {
+        return(list(list(points = band_points(which(finite_bounds)), name = NULL)))
+      }
+
+      series_names <- resolve_series_group_names(
+        plot, built_data$group,
+        resolve_series_group_mapping(
+          plot, self$resolve_target_layer(plot), self$group_aes()
+        )$column
+      )
+
+      bands <- lapply(seq_along(group_ids), function(i) {
+        rows <- which(finite_bounds & built_data$group == group_ids[[i]])
+        if (length(rows) == 0L) {
+          return(NULL)
+        }
+        list(points = band_points(rows), name = series_names[[i]])
       })
+      Filter(Negate(is.null), bands)
     },
 
     #' @description Grouping aesthetics that split this layer into curves.

@@ -109,6 +109,76 @@ test_that("the band emits no selectors rather than a fabricated one", {
 })
 
 # ---------------------------------------------------------------------------
+# A hue-split chart draws one band per curve, and they must stay apart.
+# ---------------------------------------------------------------------------
+
+grouped_smooth_plot_se <- function() {
+  set.seed(1)
+  df <- data.frame(
+    x = rep(1:10, 2),
+    y = c(1:10, 20:29) + stats::rnorm(20),
+    g = rep(c("a", "b"), each = 10)
+  )
+  ggplot2::ggplot(df, ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
+}
+
+test_that("each curve of a hue-split smooth gets its own band", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  bands <- Filter(
+    function(ly) identical(ly$type, "error_bar"),
+    band_layers(grouped_smooth_plot_se())
+  )
+
+  testthat::expect_length(bands, 2)
+})
+
+test_that("the bands are named so a layer switch can tell them apart", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # `MaidrLayer.name` exists for exactly this -- its own documentation cites
+  # a hue-split error bar chart. Without it two `error_bar` layers announce
+  # identically on a layer switch.
+  bands <- Filter(
+    function(ly) identical(ly$type, "error_bar"),
+    band_layers(grouped_smooth_plot_se())
+  )
+
+  testthat::expect_equal(vapply(bands, function(b) b$name, character(1)), c("a", "b"))
+})
+
+test_that("no band walks off the end of its curve into the next", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The reason the split is needed rather than nice: an `error_bar` layer is a
+  # flat sequence -- MAIDR's `ErrorBarPoint` carries no `z` -- so concatenating
+  # the two curves put 160 points in one layer whose x ran 10 then back to 1
+  # at index 81, with nothing announced at the seam.
+  bands <- Filter(
+    function(ly) identical(ly$type, "error_bar"),
+    band_layers(grouped_smooth_plot_se())
+  )
+
+  for (band in bands) {
+    xs <- vapply(band$data, function(p) as.numeric(p$x), numeric(1))
+    testthat::expect_true(all(diff(xs) >= 0))
+  }
+})
+
+test_that("a single-curve band is left unnamed", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The type alone identifies a lone band, so naming it would add a word the
+  # reader gains nothing from.
+  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
+
+  band <- Filter(function(ly) identical(ly$type, "error_bar"), band_layers(plot))
+  testthat::expect_null(band[[1]]$name)
+})
+
+# ---------------------------------------------------------------------------
 # The failure that matters more than the missing feature.
 # ---------------------------------------------------------------------------
 
