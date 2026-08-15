@@ -186,6 +186,27 @@ Ggplot2Adapter <- R6::R6Class(
         return("error_bar")
       }
 
+      # A bare `geom_ribbon()` is the other way to draw a confidence band, and
+      # the one `geom_smooth(se = TRUE)` produces when a user assembles the
+      # two halves by hand. It is not automatically an interval though:
+      # `geom_ribbon(aes(ymin = 0, ymax = y))` is an area chart, and reading
+      # that as an uncertainty would announce the whole magnitude as a bound.
+      #
+      # The baseline is what separates them, which is the same rule the Python
+      # binding draws for `fill_between`: filling from zero to one curve is an
+      # area, and anything else is the gap between two curves. Measured on a
+      # pair of ribbons -- `aes(ymin = lo, ymax = hi)` gives non-zero `ymin`,
+      # `aes(ymin = 0, ymax = y)` gives `ymin` identically zero.
+      #
+      # `class(...)[1]` rather than `inherits()`, because `GeomArea` inherits
+      # `GeomRibbon`: an area layer must keep reaching its own branch above.
+      if (geom_class == "GeomRibbon") {
+        # A zero-baseline ribbon measures a height from a baseline, which is
+        # what the area processor reads; anything else is the gap between two
+        # curves, which is an interval.
+        return(if (self$ribbon_is_area(layer, plot_object)) "area" else "error_bar")
+      }
+
       if (geom_class == "GeomText") {
         return("skip")
       }
@@ -337,6 +358,51 @@ Ggplot2Adapter <- R6::R6Class(
     is_patchwork = function(plot_object) {
       inherits(plot_object, "patchwork") ||
         !is.null(attr(plot_object, "patchwork"))
+    },
+
+    #' @description Whether a ribbon fills from a baseline rather than
+    #' spanning two curves.
+    #'
+    #' `geom_ribbon(aes(ymin = 0, ymax = y))` is an area chart: the magnitude
+    #' is the height of the fill, measured from a baseline the reader can
+    #' assume. `geom_ribbon(aes(ymin = lo, ymax = hi))` draws the *gap*, and
+    #' its content is the distance between two edges rather than the height of
+    #' either -- read as an area it would announce `hi` as a magnitude and drop
+    #' `lo` entirely.
+    #'
+    #' The same distinction the Python binding draws for `fill_between()`, and
+    #' drawn the same way: only an identically-zero lower edge is an area.
+    #'
+    #' Reads the built data rather than the mapping, because `ymin` may be a
+    #' constant, a column, or a computed aesthetic, and only the built frame
+    #' has resolved which. A layer that cannot be built is treated as a band,
+    #' which is the reading that loses nothing: an area announced as an
+    #' interval still carries both edges.
+    #'
+    #' @param layer The ggplot2 layer
+    #' @param plot_object The parent plot object
+    #' @return TRUE when the ribbon is an area chart
+    ribbon_is_area = function(layer, plot_object) {
+      built <- tryCatch(
+        ggplot2::ggplot_build(plot_object),
+        error = function(e) NULL
+      )
+      if (is.null(built)) {
+        return(FALSE)
+      }
+
+      index <- self$find_layer_index(plot_object, layer)
+      if (is.null(index) || index < 1L || index > length(built$data)) {
+        return(FALSE)
+      }
+
+      rows <- built$data[[index]]
+      if (is.null(rows) || nrow(rows) == 0L || !"ymin" %in% names(rows)) {
+        return(FALSE)
+      }
+
+      lower <- rows$ymin[is.finite(rows$ymin)]
+      length(lower) > 0L && all(lower == 0)
     }
   )
 )

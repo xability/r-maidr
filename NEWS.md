@@ -2,6 +2,18 @@
 
 ## New Features
 
+* `geom_ribbon()` is now read rather than dropped. It is the other way to draw
+  a confidence band -- and the one a user gets assembling `geom_smooth()`'s two
+  halves by hand -- but it fell through to the unknown-layer processor, so the
+  interval was lost. It is not automatically an interval, though:
+  `geom_ribbon(aes(ymin = 0, ymax = y))` is an area chart, and announcing that
+  as an uncertainty would report a filled magnitude as a bound. The baseline
+  separates the two, which is the same rule the Python binding draws for
+  `fill_between()`: filling from zero to one curve is an area, and anything
+  else is the gap between two curves. `geom_area()` is untouched -- it inherits
+  `GeomRibbon`, so the rule is a first-class check rather than an `inherits()`
+  one.
+
 * `geom_smooth()` now keeps the confidence band it draws. `se = TRUE` is the
   default, and the band is the reason the layer is drawn rather than a plain
   line: it says how much of the fitted trend the data supports. `StatSmooth`
