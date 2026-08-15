@@ -13,6 +13,12 @@ Processes smooth plot layers with complete logic included
 
 - [`Ggplot2SmoothLayerProcessor$process()`](#method-Ggplot2SmoothLayerProcessor-process)
 
+- [`Ggplot2SmoothLayerProcessor$can_emit_band()`](#method-Ggplot2SmoothLayerProcessor-can_emit_band)
+
+- [`Ggplot2SmoothLayerProcessor$layer_computes_interval()`](#method-Ggplot2SmoothLayerProcessor-layer_computes_interval)
+
+- [`Ggplot2SmoothLayerProcessor$extract_band_data()`](#method-Ggplot2SmoothLayerProcessor-extract_band_data)
+
 - [`Ggplot2SmoothLayerProcessor$group_aes()`](#method-Ggplot2SmoothLayerProcessor-group_aes)
 
 - [`Ggplot2SmoothLayerProcessor$attach_group_axis()`](#method-Ggplot2SmoothLayerProcessor-attach_group_axis)
@@ -100,6 +106,150 @@ Inherited methods
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+------------------------------------------------------------------------
+
+### `Ggplot2SmoothLayerProcessor$can_emit_band()`
+
+Whether this caller can carry a second layer.
+
+A facet panel cannot.
+[`combine_facet_layer_data()`](https://r.maidr.ai/reference/combine_facet_layer_data.md)
+collapses every layer of a panel into one payload entry and types it
+from the first result that produced one, so a panel holds a single layer
+type by construction. Handing it a multi-layer result does not add the
+band – it reads `result$data`, finds nothing there, and drops the fitted
+curve as well. Measured before this guard existed: a faceted
+`geom_point() + geom_smooth()` went from 11 entries per panel to 10,
+losing the smooth entirely.
+
+The patchwork path expands `multi_layer` and is left alone, so it is
+identified by what only the facet path supplies rather than by
+`panel_ctx` being present at all. A faceted leaf *nested inside* a
+patchwork arrives through the patchwork call site, with neither
+`panel_id` nor `facet_groups`, so the plot's own facet is asked as well
+– the same third clause `Ggplot2ViolinLayerProcessor` carries, for the
+same composition.
+
+The consequence is a real limitation, not a subtlety worth hiding: a
+faceted regression chart still loses its confidence band. Expressing one
+there means teaching the facet path to hold two layer types per panel,
+which is a change to shared composition code rather than to this
+processor.
+
+#### Usage
+
+    Ggplot2SmoothLayerProcessor$can_emit_band(panel_ctx, plot = NULL)
+
+#### Arguments
+
+- `panel_ctx`:
+
+  Panel context supplied by the caller, or NULL
+
+- `plot`:
+
+  The ggplot2 object, for its own facet spec
+
+#### Returns
+
+TRUE when a second layer would survive the caller
+
+------------------------------------------------------------------------
+
+### `Ggplot2SmoothLayerProcessor$layer_computes_interval()`
+
+Whether this layer's `ymin`/`ymax` are an interval at all.
+
+Asked of the **stat**, never of the columns, because the columns lie.
+This processor serves `StatSmooth` and `StatDensity` alike, and both
+emit `ymin`/`ymax` while meaning different things: `StatSmooth` computes
+the confidence bounds around the fit, but `StatDensity` sets `ymin = 0`
+and `ymax = density` – the extent of the fill, not an uncertainty.
+Measured on a three-group
+[`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html):
+all 1536 rows carry finite bounds running from zero to the curve.
+
+Reading those as an interval would announce every density curve as
+having a confidence band from zero, which is a claim about the data
+rather than a missing feature – the worse of the two failures, and the
+one this guard exists to prevent.
+
+#### Usage
+
+    Ggplot2SmoothLayerProcessor$layer_computes_interval(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+TRUE when the layer's stat computes an interval
+
+------------------------------------------------------------------------
+
+### `Ggplot2SmoothLayerProcessor$extract_band_data()`
+
+Read the confidence band
+[`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+draws.
+
+`se = TRUE` is the default, and the band is the reason the layer is
+drawn rather than a plain line: it says how much of the fitted trend the
+data supports. `StatSmooth` computes it into `ymin`/`ymax` alongside the
+fitted `y`, and this processor read only `y` – so a chart that otherwise
+worked was silently missing the half a reader needs to judge it (#135).
+
+Emitted as its own `error_bar` layer rather than as bounds on the smooth
+points, because that is the shape MAIDR reads today: `ErrorBarTrace`
+consumes `y`/`yMin`/`yMax`, while `SmoothTrace` extends `LineTrace` and
+reads neither. It is also what the Python binding already emits for the
+same question – `sns.pointplot` produces a separate `errorbar` layer
+with these exact keys – so the two bindings describe an interval the
+same way.
+
+A curve with no band returns nothing rather than a layer of bare
+estimates, which would duplicate the smooth line under a type that
+promises an interval.
+
+Split per curve, for the reason `extract_data()` splits the fitted line:
+an `error_bar` layer is a flat sequence – MAIDR's `ErrorBarPoint`
+carries no `z` – so concatenating a hue-split chart's bands would walk a
+reader off the end of one curve into the start of the next with nothing
+announced between, and with `x` running backwards at the seam. Measured
+on a two-group `geom_smooth(aes(colour = g))`: 160 points in one
+sequence whose x jumped from 10 back to 1 at index 81. Each curve
+therefore becomes its own layer, told apart by `name`.
+
+#### Usage
+
+    Ggplot2SmoothLayerProcessor$extract_band_data(
+      plot,
+      built = NULL,
+      panel_id = NULL
+    )
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data (optional)
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+A list of bands, each a list of `points` and an optional `name`; empty
+when no band was drawn
 
 ------------------------------------------------------------------------
 

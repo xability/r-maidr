@@ -143,6 +143,9 @@
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2SmoothLayerProcessor-process"><code>Ggplot2SmoothLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-Ggplot2SmoothLayerProcessor-can_emit_band"><code>Ggplot2SmoothLayerProcessor$can_emit_band()</code></a></p></li>
+<li><p><a href="#method-Ggplot2SmoothLayerProcessor-layer_computes_interval"><code>Ggplot2SmoothLayerProcessor$layer_computes_interval()</code></a></p></li>
+<li><p><a href="#method-Ggplot2SmoothLayerProcessor-extract_band_data"><code>Ggplot2SmoothLayerProcessor$extract_band_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-group_aes"><code>Ggplot2SmoothLayerProcessor$group_aes()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-attach_group_axis"><code>Ggplot2SmoothLayerProcessor$attach_group_axis()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-resolve_target_layer"><code>Ggplot2SmoothLayerProcessor$resolve_target_layer()</code></a></p></li>
@@ -211,67 +214,66 @@
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-group_aes"></a><div class="section">
-<h3 id="ggplot-smoothlayerprocessor-group-aes-"><code>Ggplot2SmoothLayerProcessor$group_aes()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-group-aes-"></a></h3>
-<p>Grouping aesthetics that split this layer into curves.</p>
-<p><code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code> and <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code> both render a fill, so
-<code>aes(fill = g)</code> splits them into one curve per group just as
-<code>aes(colour = g)</code> does. The line processor probes colour only,
-because a line has no fill and reading one from an unrelated layer's
-mapping would invent a legend the plot never draws.</p>
-<p><code>Ggplot2Adapter</code> types a layer as <code>smooth</code> for
-<code>GeomSmooth</code> or for any layer whose stat is <code>StatDensity</code>.
-A default <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_area()</a></code> uses <code>StatAlign</code> and so never
-arrives here, but <code>geom_area(stat = "density")</code> does, and splits
-per group like the others.</p><div class="section">
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-can_emit_band"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-can-emit-band-"><code>Ggplot2SmoothLayerProcessor$can_emit_band()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-can-emit-band-"></a></h3>
+<p>Whether this caller can carry a second layer.</p>
+<p>A facet panel cannot. <code><a href="combine_facet_layer_data.html">combine_facet_layer_data()</a></code> collapses every
+layer of a panel into one payload entry and types it from the first
+result that produced one, so a panel holds a single layer type by
+construction. Handing it a multi-layer result does not add the band –
+it reads <code>result$data</code>, finds nothing there, and drops the fitted
+curve as well. Measured before this guard existed: a faceted
+<code>geom_point() + geom_smooth()</code> went from 11 entries per panel to
+10, losing the smooth entirely.</p>
+<p>The patchwork path expands <code>multi_layer</code> and is left alone, so it
+is identified by what only the facet path supplies rather than by
+<code>panel_ctx</code> being present at all. A faceted leaf <em>nested inside</em> a
+patchwork arrives through the patchwork call site, with neither
+<code>panel_id</code> nor <code>facet_groups</code>, so the plot's own facet is
+asked as well – the same third clause
+<code>Ggplot2ViolinLayerProcessor</code> carries, for the same composition.</p>
+<p>The consequence is a real limitation, not a subtlety worth hiding: a
+faceted regression chart still loses its confidence band. Expressing
+one there means teaching the facet path to hold two layer types per
+panel, which is a change to shared composition code rather than to
+this processor.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">group_aes</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>List of aesthetic-name vectors, in precedence order</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-attach_group_axis"></a><div class="section">
-<h3 id="ggplot-smoothlayerprocessor-attach-group-axis-"><code>Ggplot2SmoothLayerProcessor$attach_group_axis()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-attach-group-axis-"></a></h3>
-<p>Add the legend title as the z axis label when the layer is
-split into per-group curves.</p>
-<p>Shared with the line layer processor via
-<code><a href="attach_series_group_axis.html">attach_series_group_axis()</a></code>; see <code>R/series_group_utils.R</code>.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">attach_group_axis</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, <span class="va">data</span>, <span class="va">axes</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">can_emit_band</span><span class="op">(</span><span class="va">panel_ctx</span>, plot <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
+<p></p><div class="arguments"><dl><dt><code>panel_ctx</code></dt>
+<dd><p>Panel context supplied by the caller, or NULL</p></dd>
 
-      <dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
-
-      <dt><code>data</code></dt>
-<dd><p>The extracted layer data</p></dd>
-
-      <dt><code>axes</code></dt>
-<dd><p>Axes built so far</p></dd>
+      <dt><code>plot</code></dt>
+<dd><p>The ggplot2 object, for its own facet spec</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>The axes list, with z added when the layer is grouped</p>
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>TRUE when a second layer would survive the caller</p>
 </div>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-resolve_target_layer"></a><div class="section">
-<h3 id="ggplot-smoothlayerprocessor-resolve-target-layer-"><code>Ggplot2SmoothLayerProcessor$resolve_target_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-resolve-target-layer-"></a></h3>
-<p>Resolve which layer of the plot this processor describes.</p>
-<p>Prefers this processor's OWN layer: picking the first line-like layer
-would extract another layer's data in multi-layer plots (e.g.
-geom_line + geom_smooth).</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">resolve_target_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-layer_computes_interval"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-layer-computes-interval-"><code>Ggplot2SmoothLayerProcessor$layer_computes_interval()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-layer-computes-interval-"></a></h3>
+<p>Whether this layer's <code>ymin</code>/<code>ymax</code> are an
+interval at all.</p>
+<p>Asked of the <strong>stat</strong>, never of the columns, because the columns lie.
+This processor serves <code>StatSmooth</code> and <code>StatDensity</code> alike,
+and both emit <code>ymin</code>/<code>ymax</code> while meaning different things:
+<code>StatSmooth</code> computes the confidence bounds around the fit, but
+<code>StatDensity</code> sets <code>ymin = 0</code> and <code>ymax = density</code> –
+the extent of the fill, not an uncertainty. Measured on a three-group
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code>: all 1536 rows carry finite bounds running from
+zero to the curve.</p>
+<p>Reading those as an interval would announce every density curve as
+having a confidence band from zero, which is a claim about the data
+rather than a missing feature – the worse of the two failures, and
+the one this guard exists to prevent.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">layer_computes_interval</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -280,17 +282,43 @@ geom_line + geom_smooth).</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>Index into <code>plot$layers</code></p>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>TRUE when the layer's stat computes an interval</p>
 </div>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-layer_built_data"></a><div class="section">
-<h3 id="ggplot-smoothlayerprocessor-layer-built-data-"><code>Ggplot2SmoothLayerProcessor$layer_built_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-layer-built-data-"></a></h3>
-<p>Built data for this layer, restricted to one facet panel.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">layer_built_data</span><span class="op">(</span></span>
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-extract_band_data"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-extract-band-data-"><code>Ggplot2SmoothLayerProcessor$extract_band_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-extract-band-data-"></a></h3>
+<p>Read the confidence band <code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code> draws.</p>
+<p><code>se = TRUE</code> is the default, and the band is the reason the layer
+is drawn rather than a plain line: it says how much of the fitted
+trend the data supports. <code>StatSmooth</code> computes it into
+<code>ymin</code>/<code>ymax</code> alongside the fitted <code>y</code>, and this
+processor read only <code>y</code> – so a chart that otherwise worked was
+silently missing the half a reader needs to judge it (#135).</p>
+<p>Emitted as its own <code>error_bar</code> layer rather than as bounds on the
+smooth points, because that is the shape MAIDR reads today:
+<code>ErrorBarTrace</code> consumes <code>y</code>/<code>yMin</code>/<code>yMax</code>, while
+<code>SmoothTrace</code> extends <code>LineTrace</code> and reads neither. It is
+also what the Python binding already emits for the same question –
+<code>sns.pointplot</code> produces a separate <code>errorbar</code> layer with
+these exact keys – so the two bindings describe an interval the same
+way.</p>
+<p>A curve with no band returns nothing rather than a layer of bare
+estimates, which would duplicate the smooth line under a type that
+promises an interval.</p>
+<p>Split per curve, for the reason <code>extract_data()</code> splits the fitted
+line: an <code>error_bar</code> layer is a flat sequence – MAIDR's
+<code>ErrorBarPoint</code> carries no <code>z</code> – so concatenating a
+hue-split chart's bands would walk a reader off the end of one curve
+into the start of the next with nothing announced between, and with
+<code>x</code> running backwards at the seam. Measured on a two-group
+<code>geom_smooth(aes(colour = g))</code>: 160 points in one sequence whose
+x jumped from 10 back to 1 at index 81. Each curve therefore becomes
+its own layer, told apart by <code>name</code>.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">extract_band_data</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -309,42 +337,99 @@ geom_line + geom_smooth).</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>A list of bands, each a list of <code>points</code> and an optional
+<code>name</code>; empty when no band was drawn</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-group_aes"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-group-aes-"><code>Ggplot2SmoothLayerProcessor$group_aes()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-group-aes-"></a></h3>
+<p>Grouping aesthetics that split this layer into curves.</p>
+<p><code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code> and <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code> both render a fill, so
+<code>aes(fill = g)</code> splits them into one curve per group just as
+<code>aes(colour = g)</code> does. The line processor probes colour only,
+because a line has no fill and reading one from an unrelated layer's
+mapping would invent a legend the plot never draws.</p>
+<p><code>Ggplot2Adapter</code> types a layer as <code>smooth</code> for
+<code>GeomSmooth</code> or for any layer whose stat is <code>StatDensity</code>.
+A default <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_area()</a></code> uses <code>StatAlign</code> and so never
+arrives here, but <code>geom_area(stat = "density")</code> does, and splits
+per group like the others.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">group_aes</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>A data frame of built rows</p>
+<p>List of aesthetic-name vectors, in precedence order</p>
 </div>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-series_group_ids"></a><div class="section">
-<h3 id="ggplot-smoothlayerprocessor-series-group-ids-"><code>Ggplot2SmoothLayerProcessor$series_group_ids()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-series-group-ids-"></a></h3>
-<p>Distinct group ids when the layer draws more than one curve.</p><div class="section">
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-attach_group_axis"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-attach-group-axis-"><code>Ggplot2SmoothLayerProcessor$attach_group_axis()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-attach-group-axis-"></a></h3>
+<p>Add the legend title as the z axis label when the layer is
+split into per-group curves.</p>
+<p>Shared with the line layer processor via
+<code><a href="attach_series_group_axis.html">attach_series_group_axis()</a></code>; see <code>R/series_group_utils.R</code>.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">series_group_ids</span><span class="op">(</span><span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">attach_group_axis</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, <span class="va">data</span>, <span class="va">axes</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>built_data</code></dt>
-<dd><p>Built rows for this layer</p></dd>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Built plot data (optional)</p></dd>
+
+      <dt><code>data</code></dt>
+<dd><p>The extracted layer data</p></dd>
+
+      <dt><code>axes</code></dt>
+<dd><p>Axes built so far</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>Sorted group ids, or an empty vector for a single-curve layer</p>
+<p>The axes list, with z added when the layer is grouped</p>
 </div>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-extract_data"></a><div class="section">
-<h3 id="ggplot-smoothlayerprocessor-extract-data-"><code>Ggplot2SmoothLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-extract-data-"></a></h3>
-<p>Extract one series per drawn curve.</p>
-<p>ggplot2 draws a mapped smooth as one curve per group, so the payload
-has to be split the same way: concatenating the groups into a single
-series would walk a reader off the end of one curve into the start of
-the next with nothing announced in between.</p><div class="section">
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-resolve_target_layer"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-resolve-target-layer-"><code>Ggplot2SmoothLayerProcessor$resolve_target_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-resolve-target-layer-"></a></h3>
+<p>Resolve which layer of the plot this processor describes.</p>
+<p>Prefers this processor's OWN layer: picking the first line-like layer
+would extract another layer's data in multi-layer plots (e.g.
+geom_line + geom_smooth).</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">resolve_target_layer</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>Index into <code>plot$layers</code></p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-layer_built_data"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-layer-built-data-"><code>Ggplot2SmoothLayerProcessor$layer_built_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-layer-built-data-"></a></h3>
+<p>Built data for this layer, restricted to one facet panel.</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">layer_built_data</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -357,7 +442,55 @@ the next with nothing announced in between.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>A data frame of built rows</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-series_group_ids"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-series-group-ids-"><code>Ggplot2SmoothLayerProcessor$series_group_ids()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-series-group-ids-"></a></h3>
+<p>Distinct group ids when the layer draws more than one curve.</p><div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">series_group_ids</span><span class="op">(</span><span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built_data</code></dt>
+<dd><p>Built rows for this layer</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>Sorted group ids, or an empty vector for a single-curve layer</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-extract_data"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-extract-data-"><code>Ggplot2SmoothLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-extract-data-"></a></h3>
+<p>Extract one series per drawn curve.</p>
+<p>ggplot2 draws a mapped smooth as one curve per group, so the payload
+has to be split the same way: concatenating the groups into a single
+series would walk a reader off the end of one curve into the start of
+the next with nothing announced in between.</p><div class="section">
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Built plot data (optional)</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>List of series, each a list of points</p>
 </div>
 
@@ -366,10 +499,10 @@ the next with nothing announced in between.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-curve_points"></a><div class="section">
 <h3 id="ggplot-smoothlayerprocessor-curve-points-"><code>Ggplot2SmoothLayerProcessor$curve_points()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-curve-points-"></a></h3>
 <p>Turn built rows into MAIDR points.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">curve_points</span><span class="op">(</span><span class="va">rows</span>, z <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>rows</code></dt>
 <dd><p>Built rows for one curve</p></dd>
 
@@ -379,7 +512,7 @@ the next with nothing announced in between.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>List of points</p>
 </div>
 
@@ -388,7 +521,7 @@ the next with nothing announced in between.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-smoothlayerprocessor-generate-selectors-"><code>Ggplot2SmoothLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-generate-selectors-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -397,7 +530,7 @@ the next with nothing announced in between.</p><div class="section">
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -418,14 +551,14 @@ the next with nothing announced in between.</p><div class="section">
 <p>Number of curves this layer draws in the given panel.</p>
 <p>Never throws: selector generation has to degrade to the single-curve
 path for inputs <code>extract_data()</code> would reject.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">series_group_count</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -438,7 +571,7 @@ path for inputs <code>extract_data()</code> would reject.</p><div class="section
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>Number of groups, or 0 when the layer draws a single curve</p>
 </div>
 
@@ -454,7 +587,7 @@ tree holds an equal run of children per group: a bare polyline for
 Chunking the children by group and taking the last polyline in each
 chunk applies the same "the curve is the last polyline drawn" rule the
 single-curve path uses, once per group instead of once per layer.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">grouped_curve_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  <span class="va">gt</span>,</span>
@@ -462,7 +595,7 @@ single-curve path uses, once per group instead of once per layer.</p><div class=
 <span>  <span class="va">n_series</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -478,7 +611,7 @@ single-curve path uses, once per group instead of once per layer.</p><div class=
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>List of selectors, or NULL when the grob tree does not line up</p>
 </div>
 
@@ -489,17 +622,17 @@ single-curve path uses, once per group instead of once per layer.</p><div class=
 <p>Names of the curve polyline grobs inside a grob, in draw
 order. Panel grid lines are excluded: they are named after the theme
 element (<code>panel.grid.major.x..polyline.N</code>), not <code>GRID.polyline.N</code>.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">polyline_grob_names</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>A grob to walk</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Character vector of grob names</p>
 </div>
 
@@ -512,7 +645,7 @@ element (<code>panel.grid.major.x..polyline.N</code>), not <code>GRID.polyline.N
 differently: which layer to look for. <code>resolve_target_layer()</code> may
 answer a layer other than this processor's own, which is why the target
 cannot simply be the layer index the base class would use.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">find_layer_grob_tree</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  <span class="va">gt</span>,</span>
@@ -520,7 +653,7 @@ cannot simply be the layer index the base class would use.</p><div class="sectio
 <span>  target <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -536,7 +669,7 @@ cannot simply be the layer index the base class would use.</p><div class="sectio
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>The matching grob, or NULL</p>
 </div>
 
@@ -545,10 +678,10 @@ cannot simply be the layer index the base class would use.</p><div class="sectio
 <p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-smoothlayerprocessor-clone-"><code>Ggplot2SmoothLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

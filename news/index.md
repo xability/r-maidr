@@ -4,6 +4,24 @@
 
 ### New Features
 
+- [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+  now keeps the confidence band it draws. `se = TRUE` is the default,
+  and the band is the reason the layer is drawn rather than a plain
+  line: it says how much of the fitted trend the data supports.
+  `StatSmooth` computes it into `ymin`/`ymax` alongside the fitted
+  value, and maidr read only the fit – so a chart that otherwise worked
+  was silently missing the half a reader needs to judge it. The band is
+  emitted as its own `error_bar` layer, the shape MAIDR reads today and
+  the one the Python binding already produces for the same question. A
+  hue-split chart gets one band per curve, named after its group,
+  because an `error_bar` layer is a flat sequence: concatenating them
+  would walk a reader off the end of one curve into the start of the
+  next with nothing announced between. A density curve is left alone –
+  `StatDensity` fills the same two columns with the extent of its fill
+  rather than an uncertainty, so the rule asks the layer’s stat rather
+  than its columns. A faceted smooth is unchanged for now, since a facet
+  panel carries a single layer type by construction.
+
 - Violin plot support for base R.
   [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
   is now emitted as the `violin_box` + `violin_kde` layer pair the
