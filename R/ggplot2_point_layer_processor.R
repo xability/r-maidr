@@ -372,12 +372,29 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       announced_x <- untransform_positions(layer_data$x, built, "x", panel_id)
       announced_y <- untransform_positions(layer_data$y, built, "y", panel_id)
 
+      # The name each position stands for, on whichever axis is discrete.
+      # ggplot2 maps a discrete scale onto consecutive integers, so a point in
+      # category "a" arrives as `x = 1` and was announced as the number -- "g
+      # is 1" where the chart says "a". Both axes are asked, since a chart
+      # turned on its side puts the categories on y.
+      x_names <- discrete_axis_labels(built, "x", panel_id)
+      y_names <- discrete_axis_labels(built, "y", panel_id)
+
       points <- list()
       for (i in seq_len(nrow(layer_data))) {
         point <- list(
           x = announced_x[i],
           y = announced_y[i]
         )
+
+        x_label <- category_at(announced_x[i], x_names)
+        if (!is.null(x_label)) {
+          point$xLabel <- x_label
+        }
+        y_label <- category_at(announced_y[i], y_names)
+        if (!is.null(y_label)) {
+          point$yLabel <- y_label
+        }
 
         if (!is.null(color_values)) {
           point$color <- color_values[i]
