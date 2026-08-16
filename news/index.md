@@ -215,6 +215,22 @@
 
 ### Bug Fixes
 
+- ggplot2: a scatter with a missing value highlighted the wrong point.
+  ggplot2 discards a sample whose position or value is missing before it
+  renders – and says so, with “Removed 1 rows containing missing values”
+  – but the point processor kept it, so `data` came out longer than the
+  marks the selector resolves to. Measured on four rows with one NA:
+  four points emitted against three drawn elements, which pairs every
+  sample from the gap onward with the *next* observation’s mark and
+  leaves the last with none. That is worse than an absent point, since a
+  reader is shown a mark that does not correspond to the value being
+  announced and nothing says so. Only the samples ggplot2 drew are
+  emitted now, which is the rule the line processor already followed for
+  the same reason. A missing `x` counts as well as a missing `y`, and
+  the row indices the colour and group lookups read through are narrowed
+  in step, so a mapped aesthetic still names the series a surviving
+  point belongs to.
+
 - ggplot2: a horizontal bar chart lost every label and every value.
   `ggplot(df, aes(y = g, x = n)) + geom_col()` is the ordinary spelling,
   and
