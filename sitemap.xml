@@ -45,6 +45,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2UnknownLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ViolinLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/JITTER_POSITION_CLASSES.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/LayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/MAIDR_INTERNET_CACHE_TTL.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/MAIDR_VERSION.html</loc></url>
@@ -112,6 +113,7 @@
 <url><loc>https://r.maidr.ai/reference/display_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html_file.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-base_r_function_classes.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/dot-jitter_cache.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-maidr_base_r_session.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-maidr_chartseries_ta_warned.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-maidr_ggplot_state.html</loc></url>
@@ -198,9 +200,12 @@
 <url><loc>https://r.maidr.ai/reference/is_step_plot_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_volume_only_bar_panel.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_wrapped_leaf.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/jitter_cache_get.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/jitter_cache_set.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/layer_is_jittered.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/level_keys.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/level_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/locate_binding_env.html</loc></url>
@@ -261,6 +266,7 @@
 <url><loc>https://r.maidr.ai/reference/replay_to_native_device.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/reset_device_state.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/reset_global_registry.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/reset_jitter_cache.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_legend_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_series_group_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_series_group_names.html</loc></url>
@@ -285,6 +291,8 @@
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis_doc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_violin_kde_metadata.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/undisplace_layer.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/undisplaced_layer_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/untransform_positions.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/update_device_state.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/usable_xy_coords.html</loc></url>
