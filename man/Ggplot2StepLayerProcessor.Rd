@@ -159,6 +159,16 @@ Ordered within \code{PANEL} and \code{group}, not globally, because
 ECDF is several staircases, and a global sort would interleave them
 into one series that walks backwards at every seam.
 
+The filter asks about \strong{x} alone, and deliberately. A row with a
+real x and a missing y is a different thing -- it has a position and no
+reading -- and the line processor this class inherits already drops
+those, for its own unrelated reason: the rendered polyline carries
+coordinates only for non-NA points, so keeping them would shift the
+highlight-to-point index mapping. Repeating that here would be a second
+filter with a second rationale over the same rows. Raised in review on
+\#169; the Python binding draws the same x-only line, and for the same
+reason (xability/py-maidr#430).
+
 Left alone when x is not numeric: the finiteness test is meaningless
 there and \code{is.finite()} on a character vector is \code{FALSE}
 throughout, which would delete every row.
