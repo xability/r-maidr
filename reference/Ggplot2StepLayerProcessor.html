@@ -209,6 +209,7 @@ lengths.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2StepLayerProcessor-process"><code>Ggplot2StepLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-Ggplot2StepLayerProcessor-in_drawn_order"><code>Ggplot2StepLayerProcessor$in_drawn_order()</code></a></p></li>
 <li><p><a href="#method-Ggplot2StepLayerProcessor-extract_step_direction"><code>Ggplot2StepLayerProcessor$extract_step_direction()</code></a></p></li>
 <li><p><a href="#method-Ggplot2StepLayerProcessor-clone"><code>Ggplot2StepLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
@@ -302,6 +303,59 @@ lengths.</p>
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2StepLayerProcessor-in_drawn_order"></a><div class="section">
+<h3 id="ggplot-steplayerprocessor-in-drawn-order-"><code>Ggplot2StepLayerProcessor$in_drawn_order()</code><a class="anchor" aria-label="anchor" href="#ggplot-steplayerprocessor-in-drawn-order-"></a></h3>
+<p>Put this layer's built rows into the order they are drawn
+in, dropping any row that is not a point.</p>
+<p>Both halves come from one fact: <code>GeomStep</code> does not draw the rows
+it is handed. <code>GeomStep$draw_panel()</code> calls
+<code>ggplot2:::stairstep()</code>, whose first act is
+<code>data[order(data$x), ]</code> – so the drawn staircase is the
+<em>sorted</em> rows, whatever order the stat returned them in. Sorting
+here recovers what is on screen rather than imposing a new order, and
+an already-sorted layer – which is every <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_step()</a></code> written by
+hand – is unchanged.</p>
+<p><code>StatEcdf</code> is why this is needed at all. It returns its rows in
+input order and pads them with <code>-Inf</code> / <code>Inf</code> for the two
+ends of the staircase. Measured on <code>n = 20</code>: 22 rows, two of them
+infinite, unsorted. Those two rows are not observations – there is no
+x to announce for them – and an infinity in the payload is worse than
+a dropped point in both bindings: <code>jsonlite</code> writes it as the
+<em>string</em> <code>"-Inf"</code>, and <code>json.dumps</code> on the Python side
+writes a bare <code>-Infinity</code> that <code>JSON.parse</code> rejects outright
+(xability/py-maidr#427).</p>
+<p>Ordered within <code>PANEL</code> and <code>group</code>, not globally, because
+<code>draw_panel()</code> is called once per panel per group – a grouped
+ECDF is several staircases, and a global sort would interleave them
+into one series that walks backwards at every seam.</p>
+<p>The filter asks about <strong>x</strong> alone, and deliberately. A row with a
+real x and a missing y is a different thing – it has a position and no
+reading – and the line processor this class inherits already drops
+those, for its own unrelated reason: the rendered polyline carries
+coordinates only for non-NA points, so keeping them would shift the
+highlight-to-point index mapping. Repeating that here would be a second
+filter with a second rationale over the same rows. Raised in review on
+\#169; the Python binding draws the same x-only line, and for the same
+reason (xability/py-maidr#430).</p>
+<p>Left alone when x is not numeric: the finiteness test is meaningless
+there and <code><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.finite()</a></code> on a character vector is <code>FALSE</code>
+throughout, which would delete every row.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">in_drawn_order</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p><code>built</code>, with this layer's frame reordered and filtered</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2StepLayerProcessor-extract_step_direction"></a><div class="section">
 <h3 id="ggplot-steplayerprocessor-extract-step-direction-"><code>Ggplot2StepLayerProcessor$extract_step_direction()</code><a class="anchor" aria-label="anchor" href="#ggplot-steplayerprocessor-extract-step-direction-"></a></h3>
 <p>Read the step convention this layer was drawn with.</p>
@@ -310,17 +364,17 @@ ggplot2 files it under <code>layer$geom_params$direction</code> rather than
 <code>layer$aes_params</code> or the layer's mapping. The three accepted values
 (<code>"hv"</code>, <code>"vh"</code>, <code>"mid"</code>) are exactly MAIDR's, so they pass through
 unchanged. <code>"hv"</code> is both ggplot2's and MAIDR's default.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">extract_step_direction</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>One of "hv", "vh", "mid" (defaulting to "hv"), or NULL when the
 layer cannot be located at all.</p>
 </div>
@@ -330,10 +384,10 @@ layer cannot be located at all.</p>
 <p></p><hr><a id="method-Ggplot2StepLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-steplayerprocessor-clone-"><code>Ggplot2StepLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-steplayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2StepLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

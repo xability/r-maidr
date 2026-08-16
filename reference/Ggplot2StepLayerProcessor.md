@@ -40,6 +40,8 @@ lengths.
 
 - [`Ggplot2StepLayerProcessor$process()`](#method-Ggplot2StepLayerProcessor-process)
 
+- [`Ggplot2StepLayerProcessor$in_drawn_order()`](#method-Ggplot2StepLayerProcessor-in_drawn_order)
+
 - [`Ggplot2StepLayerProcessor$extract_step_direction()`](#method-Ggplot2StepLayerProcessor-extract_step_direction)
 
 - [`Ggplot2StepLayerProcessor$clone()`](#method-Ggplot2StepLayerProcessor-clone)
@@ -145,6 +147,64 @@ Process the step layer.
 #### Returns
 
 List with data, selectors, title, axes, type and stepDirection
+
+------------------------------------------------------------------------
+
+### `Ggplot2StepLayerProcessor$in_drawn_order()`
+
+Put this layer's built rows into the order they are drawn in, dropping
+any row that is not a point.
+
+Both halves come from one fact: `GeomStep` does not draw the rows it is
+handed. `GeomStep$draw_panel()` calls `ggplot2:::stairstep()`, whose
+first act is `data[order(data$x), ]` – so the drawn staircase is the
+*sorted* rows, whatever order the stat returned them in. Sorting here
+recovers what is on screen rather than imposing a new order, and an
+already-sorted layer – which is every
+[`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+written by hand – is unchanged.
+
+`StatEcdf` is why this is needed at all. It returns its rows in input
+order and pads them with `-Inf` / `Inf` for the two ends of the
+staircase. Measured on `n = 20`: 22 rows, two of them infinite,
+unsorted. Those two rows are not observations – there is no x to
+announce for them – and an infinity in the payload is worse than a
+dropped point in both bindings: `jsonlite` writes it as the *string*
+`"-Inf"`, and `json.dumps` on the Python side writes a bare `-Infinity`
+that `JSON.parse` rejects outright (xability/py-maidr#427).
+
+Ordered within `PANEL` and `group`, not globally, because `draw_panel()`
+is called once per panel per group – a grouped ECDF is several
+staircases, and a global sort would interleave them into one series that
+walks backwards at every seam.
+
+The filter asks about **x** alone, and deliberately. A row with a real x
+and a missing y is a different thing – it has a position and no reading
+– and the line processor this class inherits already drops those, for
+its own unrelated reason: the rendered polyline carries coordinates only
+for non-NA points, so keeping them would shift the highlight-to-point
+index mapping. Repeating that here would be a second filter with a
+second rationale over the same rows. Raised in review on \\169; the
+Python binding draws the same x-only line, and for the same reason
+(xability/py-maidr#430).
+
+Left alone when x is not numeric: the finiteness test is meaningless
+there and [`is.finite()`](https://rdrr.io/r/base/is.finite.html) on a
+character vector is `FALSE` throughout, which would delete every row.
+
+#### Usage
+
+    Ggplot2StepLayerProcessor$in_drawn_order(built)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+#### Returns
+
+`built`, with this layer's frame reordered and filtered
 
 ------------------------------------------------------------------------
 
