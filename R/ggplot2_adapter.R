@@ -43,14 +43,20 @@ Ggplot2Adapter <- R6::R6Class(
       # stay on class(...)[1] (an inherits() test would swallow step into
       # "line" and silently mis-describe the data).
       #
-      # GeomStep is also the default geom of `stat_ecdf()`, and a computed
-      # stat is a different plot: StatEcdf returns its rows in input order
-      # (GeomStep only sorts them later, inside draw_panel) and pads them with
-      # -Inf / Inf, so the emitted samples would neither match the drawn
-      # polyline nor carry usable x values. Only an identity stat is claimed
-      # here; anything else keeps returning "unknown" and so keeps the
-      # static-image fallback it had before step support existed.
-      if (geom_class == "GeomStep" && stat_class == "StatIdentity") {
+      # GeomStep is also the default geom of `stat_ecdf()`. That was declined
+      # at first, for two reasons that both reproduce: StatEcdf returns its
+      # rows in input order (GeomStep only sorts them later, inside
+      # draw_panel) and pads them with -Inf / Inf, so the rows as built
+      # neither match the drawn polyline nor carry usable x values. Measured
+      # on n = 20: 22 rows, two of them infinite, `is.unsorted(x)` TRUE.
+      #
+      # Both are now undone by `Ggplot2StepLayerProcessor$in_drawn_order()`
+      # before anything reads the frame, so an ECDF is claimed as well (#168).
+      # Still only these two stats: a step layer drawn on some other computed
+      # stat keeps returning "unknown" and so keeps the static-image fallback
+      # it had before step support existed.
+      if (geom_class == "GeomStep" &&
+        stat_class %in% c("StatIdentity", "StatEcdf")) {
         return("step")
       }
 

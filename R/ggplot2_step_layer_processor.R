@@ -50,6 +50,17 @@ Ggplot2StepLayerProcessor <- R6::R6Class(
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
+      # Put the layer's rows into the order the polyline is drawn in, and
+      # drop the ends that are not points, *before* anything reads the frame.
+      # Doing it here rather than on the emitted payload is what keeps it
+      # correct: by the time `super$process()` returns, x may have been
+      # rewritten into axis labels, and sorting those would be a
+      # lexicographic sort of numbers.
+      if (is.null(built)) {
+        built <- ggplot2::ggplot_build(plot)
+      }
+      built <- self$in_drawn_order(built)
+
       result <- super$process(
         plot, layout, built, gt, scale_mapping, grob_id, panel_id, panel_ctx
       )
@@ -61,6 +72,74 @@ Ggplot2StepLayerProcessor <- R6::R6Class(
       }
 
       result
+    },
+
+    #' @description Put this layer's built rows into the order they are drawn
+    #' in, dropping any row that is not a point.
+    #'
+    #' Both halves come from one fact: \code{GeomStep} does not draw the rows
+    #' it is handed. \code{GeomStep$draw_panel()} calls
+    #' \code{ggplot2:::stairstep()}, whose first act is
+    #' \code{data[order(data$x), ]} -- so the drawn staircase is the
+    #' \emph{sorted} rows, whatever order the stat returned them in. Sorting
+    #' here recovers what is on screen rather than imposing a new order, and
+    #' an already-sorted layer -- which is every \code{geom_step()} written by
+    #' hand -- is unchanged.
+    #'
+    #' \code{StatEcdf} is why this is needed at all. It returns its rows in
+    #' input order and pads them with \code{-Inf} / \code{Inf} for the two
+    #' ends of the staircase. Measured on \code{n = 20}: 22 rows, two of them
+    #' infinite, unsorted. Those two rows are not observations -- there is no
+    #' x to announce for them -- and an infinity in the payload is worse than
+    #' a dropped point in both bindings: \code{jsonlite} writes it as the
+    #' \emph{string} \code{"-Inf"}, and \code{json.dumps} on the Python side
+    #' writes a bare \code{-Infinity} that \code{JSON.parse} rejects outright
+    #' (xability/py-maidr#427).
+    #'
+    #' Ordered within \code{PANEL} and \code{group}, not globally, because
+    #' \code{draw_panel()} is called once per panel per group -- a grouped
+    #' ECDF is several staircases, and a global sort would interleave them
+    #' into one series that walks backwards at every seam.
+    #'
+    #' The filter asks about \strong{x} alone, and deliberately. A row with a
+    #' real x and a missing y is a different thing -- it has a position and no
+    #' reading -- and the line processor this class inherits already drops
+    #' those, for its own unrelated reason: the rendered polyline carries
+    #' coordinates only for non-NA points, so keeping them would shift the
+    #' highlight-to-point index mapping. Repeating that here would be a second
+    #' filter with a second rationale over the same rows. Raised in review on
+    #' \#169; the Python binding draws the same x-only line, and for the same
+    #' reason (xability/py-maidr#430).
+    #'
+    #' Left alone when x is not numeric: the finiteness test is meaningless
+    #' there and \code{is.finite()} on a character vector is \code{FALSE}
+    #' throughout, which would delete every row.
+    #'
+    #' @param built Built plot data
+    #' @return \code{built}, with this layer's frame reordered and filtered
+    in_drawn_order = function(built) {
+      index <- self$layer_info$index
+      if (is.null(built) || is.null(built$data) || is.null(index) ||
+        index < 1L || index > length(built$data)) {
+        return(built)
+      }
+
+      frame <- built$data[[index]]
+      if (!is.data.frame(frame) || nrow(frame) == 0L ||
+        !("x" %in% names(frame)) || !is.numeric(frame$x)) {
+        return(built)
+      }
+
+      frame <- frame[is.finite(frame$x), , drop = FALSE]
+      if (nrow(frame) == 0L) {
+        built$data[[index]] <- frame
+        return(built)
+      }
+
+      panel <- if ("PANEL" %in% names(frame)) as.integer(frame$PANEL) else 1L
+      group <- if ("group" %in% names(frame)) frame$group else 1L
+      built$data[[index]] <- frame[order(panel, group, frame$x), , drop = FALSE]
+      built
     },
 
     #' @description Read the step convention this layer was drawn with.
