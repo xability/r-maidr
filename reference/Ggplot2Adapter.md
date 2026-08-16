@@ -38,6 +38,8 @@ An R6 class inheriting from SystemAdapter
 
 - [`Ggplot2Adapter$is_patchwork()`](#method-Ggplot2Adapter-is_patchwork)
 
+- [`Ggplot2Adapter$ribbon_is_area()`](#method-Ggplot2Adapter-ribbon_is_area)
+
 - [`Ggplot2Adapter$clone()`](#method-Ggplot2Adapter-clone)
 
 ------------------------------------------------------------------------
@@ -274,6 +276,46 @@ Check if plot is a patchwork plot
 #### Returns
 
 TRUE if plot is patchwork, FALSE otherwise
+
+------------------------------------------------------------------------
+
+### `Ggplot2Adapter$ribbon_is_area()`
+
+Whether a ribbon fills from a baseline rather than spanning two curves.
+
+`geom_ribbon(aes(ymin = 0, ymax = y))` is an area chart: the magnitude
+is the height of the fill, measured from a baseline the reader can
+assume. `geom_ribbon(aes(ymin = lo, ymax = hi))` draws the *gap*, and
+its content is the distance between two edges rather than the height of
+either – read as an area it would announce `hi` as a magnitude and drop
+`lo` entirely.
+
+The same distinction the Python binding draws for `fill_between()`, and
+drawn the same way: only an identically-zero lower edge is an area.
+
+Reads the built data rather than the mapping, because `ymin` may be a
+constant, a column, or a computed aesthetic, and only the built frame
+has resolved which. A layer that cannot be built is treated as a band,
+which is the reading that loses nothing: an area announced as an
+interval still carries both edges.
+
+#### Usage
+
+    Ggplot2Adapter$ribbon_is_area(layer, plot_object)
+
+#### Arguments
+
+- `layer`:
+
+  The ggplot2 layer
+
+- `plot_object`:
+
+  The parent plot object
+
+#### Returns
+
+TRUE when the ribbon is an area chart
 
 ------------------------------------------------------------------------
 

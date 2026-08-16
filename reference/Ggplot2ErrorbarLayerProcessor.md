@@ -59,6 +59,8 @@ as vertical and emit the cap heights as the interval.
 
 - [`Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()`](#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer)
 
+- [`Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()`](#method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample)
+
 - [`Ggplot2ErrorbarLayerProcessor$generate_selectors()`](#method-Ggplot2ErrorbarLayerProcessor-generate_selectors)
 
 - [`Ggplot2ErrorbarLayerProcessor$find_interval_grob()`](#method-Ggplot2ErrorbarLayerProcessor-find_interval_grob)
@@ -190,6 +192,39 @@ read.
 #### Returns
 
 TRUE when the interval spans the x axis
+
+------------------------------------------------------------------------
+
+### `Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()`
+
+Whether this layer draws its whole interval as one shape.
+
+True for a ribbon, which fills a single polygon across every x. Every
+other geom this processor serves draws one shape per sample – a
+`segments` grob per
+[`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+row, a polygon per
+[`geom_crossbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+box – which is what makes a per-sample selector possible at all.
+
+`class(...)[1]`, matching the adapter's own ribbon test: `GeomArea`
+inherits `GeomRibbon` and is not routed here, but an
+[`inherits()`](https://rdrr.io/r/base/class.html) check would still be
+the wrong shape of question to ask.
+
+#### Usage
+
+    Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+TRUE when the layer's interval is one undivided shape
 
 ------------------------------------------------------------------------
 

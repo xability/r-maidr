@@ -242,6 +242,7 @@ interval.</p>
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-process"><code>Ggplot2ErrorbarLayerProcessor$process()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer"><code>Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()</code></a></p></li>
+<li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample"><code>Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-generate_selectors"><code>Ggplot2ErrorbarLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-find_interval_grob"><code>Ggplot2ErrorbarLayerProcessor$find_interval_grob()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob"><code>Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()</code></a></p></li>
@@ -346,6 +347,33 @@ construction and therefore has no such column to read.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample"></a><div class="section">
+<h3 id="ggplot-errorbarlayerprocessor-draws-one-shape-for-every-sample-"><code>Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-draws-one-shape-for-every-sample-"></a></h3>
+<p>Whether this layer draws its whole interval as one shape.</p>
+<p>True for a ribbon, which fills a single polygon across every x. Every
+other geom this processor serves draws one shape per sample – a
+<code>segments</code> grob per <code><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_linerange()</a></code> row, a polygon per
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_crossbar()</a></code> box – which is what makes a per-sample selector
+possible at all.</p>
+<p><code>class(...)[1]</code>, matching the adapter's own ribbon test: <code>GeomArea</code>
+inherits <code>GeomRibbon</code> and is not routed here, but an <code><a href="https://rdrr.io/r/base/class.html" class="external-link">inherits()</a></code> check
+would still be the wrong shape of question to ask.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">draws_one_shape_for_every_sample</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>TRUE when the layer's interval is one undivided shape</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-generate-selectors-"><code>Ggplot2ErrorbarLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-generate-selectors-"></a></h3>
 <p>Address the drawn interval, one SVG element per sample.</p>
@@ -372,7 +400,7 @@ other cap.</p></li>
 inherited <code>generate_selectors()</code>: it matches <code>geom_point.points</code> by
 name, which reaches none of these, and a name-prefix search reaches
 <code><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar()</a></code> least of all.</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -381,7 +409,7 @@ name, which reaches none of these, and a name-prefix search reaches
 <span>  sample_count <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -401,7 +429,7 @@ resolved from the panel, which is what the unnamed polyline needs)</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>A list holding one CSS selector, or an empty list</p>
 </div>
 
@@ -410,10 +438,10 @@ resolved from the panel, which is what the unnamed polyline needs)</p></dd>
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-find_interval_grob"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-find-interval-grob-"><code>Ggplot2ErrorbarLayerProcessor$find_interval_grob()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-find-interval-grob-"></a></h3>
 <p>Find the grob whose children are the samples.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">find_interval_grob</span><span class="op">(</span><span class="va">plot</span>, <span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -426,7 +454,7 @@ resolved from the panel, which is what the unnamed polyline needs)</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>The grob one of whose child elements is drawn per sample, or
 NULL when it cannot be resolved</p>
 </div>
@@ -451,14 +479,14 @@ geom that is known to draw one, because a positional hit on the wrong
 layer would highlight another layer's marks – worse than the missing
 highlight this fixes, since a reader can hear nothing but cannot hear
 wrongness.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">find_unnamed_interval_grob</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  <span class="va">gt</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -471,7 +499,7 @@ wrongness.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>The layer's polyline grob, or NULL</p>
 </div>
 
@@ -480,17 +508,17 @@ wrongness.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-interval_grob_shape"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-interval-grob-shape-"><code>Ggplot2ErrorbarLayerProcessor$interval_grob_shape()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-interval-grob-shape-"></a></h3>
 <p>Count the samples a grob draws, and the elements each takes.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">interval_grob_shape</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>The grob resolved for this layer</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>A list of <code>samples</code> and <code>per_sample</code>, or NULL when the grob is
 not one of the shapes this has been verified against</p>
 </div>
@@ -500,17 +528,17 @@ not one of the shapes this has been verified against</p>
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-grob_point_groups"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-grob-point-groups-"><code>Ggplot2ErrorbarLayerProcessor$grob_point_groups()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-grob-point-groups-"></a></h3>
 <p>Split a grob's points into one index vector per sample.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">grob_point_groups</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>A <code>polygon</code> or <code>polyline</code> grob</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>A list of index vectors in drawing order, or NULL</p>
 </div>
 
@@ -523,10 +551,10 @@ not one of the shapes this has been verified against</p>
 that: its eight points per sample are <code>cap, NA, whisker, NA, cap</code>, so
 the export carries three elements for the one bar. A run needs two
 points to be a line at all, and a shorter one draws nothing.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">drawn_run_count</span><span class="op">(</span><span class="va">grob</span>, <span class="va">index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>A <code>polygon</code> or <code>polyline</code> grob</p></dd>
 
@@ -536,7 +564,7 @@ points to be a line at all, and a shorter one draws nothing.</p><div class="sect
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>How many elements that sample is drawn as</p>
 </div>
 
@@ -554,10 +582,10 @@ draws, of which the middle one is the whisker spanning the interval –
 the cap either side of it says nothing a reader is navigating to. Any
 other stride returns NULL and the layer goes back to highlighting
 nothing, which is the honest answer for a shape nobody has looked at.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">interval_selector</span><span class="op">(</span><span class="va">grob_name</span>, <span class="va">per_sample</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob_name</code></dt>
 <dd><p>The drawn grob's name</p></dd>
 
@@ -567,7 +595,7 @@ nothing, which is the honest answer for a shape nobody has looked at.</p><div cl
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>A CSS selector, or NULL</p>
 </div>
 
@@ -585,7 +613,7 @@ horizontal chart with no interval at all.</p>
 <p>A row missing its bounds still emits its estimate. A one-sided interval
 is a real chart, and dropping the point for want of its other half
 would lose the estimate too.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">extract_interval_data</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
 <span>  <span class="va">layer_data</span>,</span>
@@ -593,7 +621,7 @@ would lose the estimate too.</p><div class="section">
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -609,7 +637,7 @@ would lose the estimate too.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>A list of MAIDR interval points</p>
 </div>
 
@@ -630,7 +658,7 @@ rather than a claim about an unobserved estimate, and it is what keeps
 the bounds – which are the real data here – reachable at all. It is
 NOT the mean for an asymmetric interval, and nothing here pretends it
 is: a layer that carries <code>y</code> always uses the value the chart drew.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">resolve_estimates</span><span class="op">(</span></span>
 <span>  <span class="va">layer_data</span>,</span>
 <span>  <span class="va">value_col</span>,</span>
@@ -638,7 +666,7 @@ is: a layer that carries <code>y</code> always uses the value the chart drew.</p
 <span>  <span class="va">max_col</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_data</code></dt>
 <dd><p>This layer's computed rows</p></dd>
 
@@ -654,7 +682,7 @@ is: a layer that carries <code>y</code> always uses the value the chart drew.</p
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>A numeric vector of estimates, or NULL when neither the estimate
 nor a pair of bounds is present</p>
 </div>
@@ -672,7 +700,7 @@ positions are assigned in the scale's order, not the data's, so they do
 not even read as row numbers.</p>
 <p>The labels come from the panel's scale rather than from the data frame,
 which is what makes the position an index into them.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">resolve_category_labels</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
 <span>  <span class="va">layer_data</span>,</span>
@@ -680,7 +708,7 @@ which is what makes the position an index into them.</p><div class="section">
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -696,7 +724,7 @@ which is what makes the position an index into them.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>A list of labels – strings for a discrete axis, numbers for a
 continuous one</p>
 </div>
@@ -706,14 +734,14 @@ continuous one</p>
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-category_axis_labels"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-category-axis-labels-"><code>Ggplot2ErrorbarLayerProcessor$category_axis_labels()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-category-axis-labels-"></a></h3>
 <p>Read the break labels of the category axis, when discrete.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">category_axis_labels</span><span class="op">(</span></span>
 <span>  <span class="va">built</span>,</span>
 <span>  <span class="va">category_col</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -726,7 +754,7 @@ continuous one</p>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>A character vector of labels, or NULL on a continuous axis</p>
 </div>
 
@@ -735,10 +763,10 @@ continuous one</p>
 <p></p><hr><a id="method-Ggplot2ErrorbarLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-errorbarlayerprocessor-clone-"><code>Ggplot2ErrorbarLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-errorbarlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ErrorbarLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
