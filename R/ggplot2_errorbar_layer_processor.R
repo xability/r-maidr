@@ -108,6 +108,30 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       identical(class(layer$geom)[1], "GeomErrorbarh")
     },
 
+    #' @description Whether this layer draws its whole interval as one shape.
+    #'
+    #' True for a ribbon, which fills a single polygon across every x. Every
+    #' other geom this processor serves draws one shape per sample -- a
+    #' `segments` grob per `geom_linerange()` row, a polygon per
+    #' `geom_crossbar()` box -- which is what makes a per-sample selector
+    #' possible at all.
+    #'
+    #' `class(...)[1]`, matching the adapter's own ribbon test: `GeomArea`
+    #' inherits `GeomRibbon` and is not routed here, but an `inherits()` check
+    #' would still be the wrong shape of question to ask.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return TRUE when the layer's interval is one undivided shape
+    draws_one_shape_for_every_sample = function(plot) {
+      index <- self$get_layer_index()
+      layers <- plot$layers
+      if (is.null(layers) || is.null(index) ||
+        index < 1L || index > length(layers)) {
+        return(FALSE)
+      }
+      identical(class(layers[[index]]$geom)[1], "GeomRibbon")
+    },
+
     #' @description Address the drawn interval, one SVG element per sample.
     #'
     #' `ErrorBarTrace.mapToSvgElements` resolves the selectors and requires
@@ -154,6 +178,22 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       expected <- suppressWarnings(as.integer(sample_count))
       if (is.null(gt) || length(expected) != 1L || is.na(expected) ||
         expected < 1L) {
+        return(list())
+      }
+
+      # A ribbon-drawn interval has nothing per-sample to address: the band is
+      # one filled polygon covering every x, so there is no `nth-child` stride
+      # that reaches sample `i`. Repeating one selector would highlight the
+      # whole band at every point and look like it worked -- the same reason
+      # `Ggplot2SmoothLayerProcessor` emits none for `geom_smooth()`'s band.
+      #
+      # Declined here rather than left to the checks below. Those already end
+      # in an empty list for a ribbon, but only because the grob lookup finds
+      # no errorbar-shaped grob -- an accident of what it searches for, not a
+      # statement about the geometry. A later change to the lookup or to
+      # `interval_grob_shape()` could start returning a shape for the band and
+      # silently mis-highlight it, which is exactly what this says not to do.
+      if (self$draws_one_shape_for_every_sample(plot)) {
         return(list())
       }
 

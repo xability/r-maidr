@@ -121,3 +121,109 @@ test_that("a one-sided ribbon whose lower edge is a constant is a band", {
 
   testthat::expect_equal(detect(plot), "error_bar")
 })
+
+# ---------------------------------------------------------------------------
+# The highlight, declined on purpose rather than by accident.
+# ---------------------------------------------------------------------------
+
+layer_of <- function(plot, type) {
+  res <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
+  for (sp in res$subplots) {
+    for (cell in sp) {
+      for (ly in cell$layers) {
+        if (identical(ly$type, type)) {
+          return(ly)
+        }
+      }
+    }
+  }
+  NULL
+}
+
+test_that("a ribbon-drawn interval emits no selectors", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # A ribbon is one filled polygon across every x, so there is no `nth-child`
+  # stride that reaches sample `i`. Repeating one selector would highlight the
+  # whole band at every point and look like it worked.
+  #
+  # Raised in review on #167: the checks further down `generate_selectors()`
+  # already ended in an empty list here, but only because the grob lookup
+  # finds no errorbar-shaped grob -- an accident of what it searches for
+  # rather than a statement about the geometry. Pinned so a later change to
+  # that lookup cannot silently start mis-highlighting the band.
+  plot <- ggplot2::ggplot(ribbon_df(), ggplot2::aes(x)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), alpha = 0.3) +
+    ggplot2::geom_line(ggplot2::aes(y = y))
+
+  band <- layer_of(plot, "error_bar")
+  testthat::expect_false(is.null(band))
+  testthat::expect_length(band$selectors, 0)
+  # The data is unaffected -- audio, braille and text all work; it is the
+  # highlight alone that has nothing to point at.
+  testthat::expect_equal(length(band$data), nrow(ribbon_df()))
+})
+
+test_that("the line beside the band keeps its highlight", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  plot <- ggplot2::ggplot(ribbon_df(), ggplot2::aes(x)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), alpha = 0.3) +
+    ggplot2::geom_line(ggplot2::aes(y = y))
+
+  testthat::expect_length(layer_of(plot, "line")$selectors, 1)
+})
+
+test_that("the other uncertainty geoms still emit theirs", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The decline is specific to a ribbon's geometry, so every geom that does
+  # draw one shape per sample has to be unaffected by it.
+  for (geom in list(
+    ggplot2::geom_errorbar, ggplot2::geom_pointrange, ggplot2::geom_crossbar
+  )) {
+    plot <- ggplot2::ggplot(ribbon_df(), ggplot2::aes(x, y)) +
+      geom(ggplot2::aes(ymin = lo, ymax = hi))
+
+    testthat::expect_length(layer_of(plot, "error_bar")$selectors, 1)
+  }
+})
+
+test_that("the processor knows a ribbon draws one shape for every sample", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The predicate is asserted directly, and deliberately so. The end-to-end
+  # test above passes with the guard removed, because the grob lookup happens
+  # to find nothing for a ribbon today -- which is precisely why the guard was
+  # asked for. Only this pins the guard itself.
+  ribbon <- ggplot2::ggplot(ribbon_df(), ggplot2::aes(x)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lo, ymax = hi), alpha = 0.3)
+  processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(list(index = 1))
+
+  testthat::expect_true(processor$draws_one_shape_for_every_sample(ribbon))
+})
+
+test_that("it does not claim that of the per-sample geoms", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(list(index = 1))
+  for (geom in list(
+    ggplot2::geom_errorbar, ggplot2::geom_pointrange,
+    ggplot2::geom_crossbar, ggplot2::geom_linerange
+  )) {
+    plot <- ggplot2::ggplot(ribbon_df(), ggplot2::aes(x, y)) +
+      geom(ggplot2::aes(ymin = lo, ymax = hi))
+
+    testthat::expect_false(processor$draws_one_shape_for_every_sample(plot))
+  }
+})
+
+test_that("it answers rather than erroring on a layer index it has no plot for", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # A composition can hand a processor an index the plot does not have.
+  plot <- ggplot2::ggplot(ribbon_df(), ggplot2::aes(x, y)) + ggplot2::geom_line()
+  processor <- maidr:::Ggplot2ErrorbarLayerProcessor$new(list(index = 9))
+
+  testthat::expect_false(processor$draws_one_shape_for_every_sample(plot))
+})
