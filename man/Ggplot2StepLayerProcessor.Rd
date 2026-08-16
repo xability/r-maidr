@@ -39,6 +39,7 @@ lengths.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2StepLayerProcessor-process}{\code{Ggplot2StepLayerProcessor$process()}}
+    \item \href{#method-Ggplot2StepLayerProcessor-in_drawn_order}{\code{Ggplot2StepLayerProcessor$in_drawn_order()}}
     \item \href{#method-Ggplot2StepLayerProcessor-extract_step_direction}{\code{Ggplot2StepLayerProcessor$extract_step_direction()}}
     \item \href{#method-Ggplot2StepLayerProcessor-clone}{\code{Ggplot2StepLayerProcessor$clone()}}
   }
@@ -124,6 +125,57 @@ lengths.
   }
   \subsection{Returns}{
     List with data, selectors, title, axes, type and stepDirection
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2StepLayerProcessor-in_drawn_order"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2StepLayerProcessor-in_drawn_order}{}}}
+\subsection{\code{Ggplot2StepLayerProcessor$in_drawn_order()}}{
+  Put this layer's built rows into the order they are drawn
+in, dropping any row that is not a point.
+
+Both halves come from one fact: \code{GeomStep} does not draw the rows
+it is handed. \code{GeomStep$draw_panel()} calls
+\code{ggplot2:::stairstep()}, whose first act is
+\code{data[order(data$x), ]} -- so the drawn staircase is the
+\emph{sorted} rows, whatever order the stat returned them in. Sorting
+here recovers what is on screen rather than imposing a new order, and
+an already-sorted layer -- which is every \code{geom_step()} written by
+hand -- is unchanged.
+
+\code{StatEcdf} is why this is needed at all. It returns its rows in
+input order and pads them with \code{-Inf} / \code{Inf} for the two
+ends of the staircase. Measured on \code{n = 20}: 22 rows, two of them
+infinite, unsorted. Those two rows are not observations -- there is no
+x to announce for them -- and an infinity in the payload is worse than
+a dropped point in both bindings: \code{jsonlite} writes it as the
+\emph{string} \code{"-Inf"}, and \code{json.dumps} on the Python side
+writes a bare \code{-Infinity} that \code{JSON.parse} rejects outright
+(xability/py-maidr#427).
+
+Ordered within \code{PANEL} and \code{group}, not globally, because
+\code{draw_panel()} is called once per panel per group -- a grouped
+ECDF is several staircases, and a global sort would interleave them
+into one series that walks backwards at every seam.
+
+Left alone when x is not numeric: the finiteness test is meaningless
+there and \code{is.finite()} on a character vector is \code{FALSE}
+throughout, which would delete every row.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2StepLayerProcessor$in_drawn_order(built)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{built}, with this layer's frame reordered and filtered
   }
 }
 

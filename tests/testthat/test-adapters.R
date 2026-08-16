@@ -243,23 +243,27 @@ test_that("Ggplot2Adapter detect_layer_type does not confuse step with line or s
   testthat::expect_false(layer_type == "unknown")
 })
 
-test_that("Ggplot2Adapter detect_layer_type leaves stat_ecdf() on the fallback path", {
-  # GeomStep is also the default geom of stat_ecdf(), but a computed stat is a
-  # different plot: StatEcdf returns rows in input order (GeomStep only sorts
-  # them later, in draw_panel) and pads them with -Inf / Inf. Claiming it as a
-  # step layer replaces the static-image fallback it had before step support
-  # with an interactive trace whose points neither match the drawn polyline nor
-  # carry usable x values.
+test_that("Ggplot2Adapter detect_layer_type claims stat_ecdf() as a step layer", {
+  # This case used to assert the opposite, and the reason it did is still the
+  # reason the support has to do any work at all: StatEcdf returns its rows in
+  # input order (GeomStep only sorts them later, in draw_panel) and pads them
+  # with -Inf / Inf, so claiming the layer while emitting the rows as built
+  # would announce an unsorted staircase whose ends are infinite.
+  #
+  # `Ggplot2StepLayerProcessor$in_drawn_order()` undoes both before the frame
+  # is read, so the layer is now claimed rather than declined (#168), and the
+  # ECDF is announced instead of falling back to the static image. The rows
+  # this pinned are covered in test-ggplot2-ecdf.R.
   testthat::skip_if_not_installed("ggplot2")
 
   adapter <- maidr:::Ggplot2Adapter$new()
   p <- ggplot2::ggplot(data.frame(v = c(3, 1, 5, 2, 4)), ggplot2::aes(v)) +
     ggplot2::stat_ecdf()
 
-  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "unknown")
+  testthat::expect_equal(adapter$detect_layer_type(p$layers[[1]], p), "step")
 
   orchestrator <- maidr:::Ggplot2PlotOrchestrator$new(p)
-  testthat::expect_true(orchestrator$should_fallback())
+  testthat::expect_false(orchestrator$should_fallback())
 })
 
 test_that("Ggplot2Adapter detect_layer_type detects step for every direction", {

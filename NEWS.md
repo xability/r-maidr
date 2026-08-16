@@ -2,6 +2,19 @@
 
 ## New Features
 
+* `stat_ecdf()` is now read as a step layer. An empirical CDF previously
+  detected as `unknown` and fell back to the static image, announcing nothing
+  at all, even though `step` was already supported. It had been declined on
+  purpose: `StatEcdf` returns its rows in input order -- `GeomStep` only sorts
+  them later, inside `draw_panel()` -- and pads them with `-Inf`/`Inf` for the
+  two ends of the staircase, so the rows as built matched neither the drawn
+  polyline nor any announceable x. Both are now undone before the frame is
+  read. The sort is not an imposed order: `stairstep()` opens by ordering on
+  `x`, so the sorted rows are what is actually drawn. A grouped
+  `stat_ecdf(aes(colour = g))` becomes one staircase per group, ordered within
+  each. A step layer on any other computed stat still declines rather than
+  being read on a guess.
+
 * `geom_ribbon()` is now read rather than dropped. It is the other way to draw
   a confidence band -- and the one a user gets assembling `geom_smooth()`'s two
   halves by hand -- but it fell through to the unknown-layer processor, so the
