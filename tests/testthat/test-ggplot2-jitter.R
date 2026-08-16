@@ -241,10 +241,9 @@ test_that("a faceted chart is not rebuilt once per panel", {
 test_that("a cached frame is never handed to a different plot", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # What makes the cache safe to key by layer index: the entry carries the
-  # layer it came from, and a second plot's layer is a different environment.
-  # Without that check, plot B would be read using plot A's values -- every
-  # number wrong and every number plausible.
+  # Two plots built from their own `geom_jitter()` calls. The entry carries
+  # the layer it came from, and these are different environments, so the
+  # second misses.
   first <- likert_df()
   second <- first
   second$score <- rev(second$score)
@@ -258,6 +257,33 @@ test_that("a cached frame is never handed to a different plot", {
 
   testthat::expect_equal(ys_first, as.numeric(first$score))
   testthat::expect_equal(ys_second, as.numeric(second$score))
+})
+
+test_that("two plots sharing one layer object are read separately", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The case the layer check cannot catch, and the one the case above only
+  # looked like. ggplot2 documents a layer as reusable across plots, and
+  # `+.gg` appends the same ggproto object rather than a clone -- so these two
+  # plots are `identical()` at their layer, and a cache keyed on it answers
+  # the second with the first's data.
+  #
+  # Measured before the per-run reset: every one of `second`'s announced
+  # values was `first`'s, and the row-count check waved it through because the
+  # two frames are the same length. Equal lengths are therefore the point of
+  # the fixture, not an accident of it.
+  first <- likert_df()
+  second <- first
+  second$score <- rev(second$score)
+  testthat::expect_false(identical(first$score, second$score))
+
+  shared <- ggplot2::geom_jitter()
+  p1 <- ggplot2::ggplot(first, ggplot2::aes(g, score)) + shared
+  p2 <- ggplot2::ggplot(second, ggplot2::aes(g, score)) + shared
+  testthat::expect_true(identical(p1$layers[[1]], p2$layers[[1]]))
+
+  testthat::expect_equal(ys_of(p1), as.numeric(first$score))
+  testthat::expect_equal(ys_of(p2), as.numeric(second$score))
 })
 
 test_that("an unjittered chart is left exactly alone", {

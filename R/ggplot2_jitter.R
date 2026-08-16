@@ -65,16 +65,43 @@ JITTER_POSITION_CLASSES <- c("PositionJitter", "PositionJitterdodge")
 #' where hashing or deep-comparing the plot could cost as much as the rebuild
 #' it saves. A layer belongs to one plot, so its identity settles the question.
 #'
-#' One entry per layer index, each holding the layer it was computed from. The
-#' index bounds the cache at the number of layers a plot has, and the layer
-#' makes every entry self-validating: a second plot's layer is a different
-#' environment, so it misses rather than answering with the first plot's data.
-#' Keying on the index alone would do the latter, and keying on the layer alone
-#' would let two jittered layers evict each other once per panel -- which is
-#' the cost this exists to remove.
+#' One entry per layer index, each holding the layer it was computed from, and
+#' the whole cache emptied when a plot starts being processed.
+#'
+#' All three parts are load-bearing. The index bounds the cache at the number
+#' of layers a plot has and stops two jittered layers evicting each other once
+#' per panel, which is the cost this exists to remove. The layer catches the
+#' ordinary case of a second plot built from its own `geom_jitter()`. And the
+#' reset catches the case the layer cannot: ggplot2 documents a layer as
+#' reusable across plots, and `+.gg` appends the same ggproto object rather
+#' than a clone, so
+#'
+#' ```
+#' shared <- geom_jitter()
+#' p1 <- ggplot(df1, aes(g, score)) + shared
+#' p2 <- ggplot(df2, aes(g, score)) + shared
+#' ```
+#'
+#' gives two plots that are `identical()` at that layer. Measured before the
+#' reset went in: `p2` was announced with every one of `df1`'s values, and the
+#' row-count check waved it through because the two frames were the same
+#' length.
 #'
 #' @keywords internal
 .jitter_cache <- new.env(parent = emptyenv())
+
+#' Forget every rebuilt frame
+#'
+#' Called when a plot starts being processed, so an entry can only ever be
+#' answered to the run that computed it. See `Ggplot2PlotOrchestrator$initialize`
+#' for why a layer alone cannot identify a plot.
+#'
+#' @return Invisibly `NULL`.
+#' @keywords internal
+reset_jitter_cache <- function() {
+  rm(list = ls(envir = .jitter_cache, all.names = TRUE), envir = .jitter_cache)
+  invisible(NULL)
+}
 
 #' Look up a layer's rebuilt frame
 #'
@@ -178,6 +205,9 @@ undisplaced_layer_data <- function(plot, layer_index) {
 #' @keywords internal
 undisplace_layer <- function(plot, layer_data, layer_index) {
   if (is.null(layer_data) || is.null(plot) || is.null(plot$layers)) {
+    return(layer_data)
+  }
+  if (layer_index < 1L || layer_index > length(plot$layers)) {
     return(layer_data)
   }
   if (!layer_is_jittered(plot$layers[[layer_index]])) {
