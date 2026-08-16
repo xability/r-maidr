@@ -74,6 +74,7 @@
 <url><loc>https://r.maidr.ai/reference/build_format_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/call_original_plot_hook.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/cancel_auto_show.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/category_at.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/classify_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/clean_maidr_args.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/clear_all_device_storage.html</loc></url>
@@ -108,6 +109,7 @@
 <url><loc>https://r.maidr.ai/reference/data_has_series_groups.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/detect_panel_configuration.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/detect_scales_format_type.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/discrete_axis_labels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/discrete_level_order.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dispatched_definition.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html.html</loc></url>
