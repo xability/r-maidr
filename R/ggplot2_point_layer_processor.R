@@ -225,6 +225,34 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         layer_data <- full_layer_data[panel_rows, , drop = FALSE]
       }
 
+      # Keep only the samples ggplot2 actually drew. It discards one whose
+      # position or value is missing before rendering, and says so --
+      # "Removed 1 rows containing missing values (`geom_point()`)" -- so
+      # emitting it leaves `data` longer than the marks the selector resolves
+      # to. Measured on four rows with one NA: 4 points emitted against 3
+      # `<use>` elements, which pairs every sample from the gap onward with
+      # the *next* observation's mark and leaves the last with none.
+      #
+      # A wrong highlight is worse than an absent point: it shows a reader a
+      # mark that does not correspond to the value being announced, and
+      # nothing in the output says so. `Ggplot2LineLayerProcessor` already
+      # follows this rule, for the same reason, on the polyline's vertices
+      # (#170).
+      #
+      # `panel_rows` is filtered in step because the aesthetic lookups below
+      # index the original frame through it.
+      drawn <- rep(TRUE, nrow(layer_data))
+      for (aesthetic in c("x", "y")) {
+        if (aesthetic %in% names(layer_data) &&
+          is.numeric(layer_data[[aesthetic]])) {
+          drawn <- drawn & is.finite(layer_data[[aesthetic]])
+        }
+      }
+      if (any(!drawn)) {
+        layer_data <- layer_data[drawn, , drop = FALSE]
+        panel_rows <- panel_rows[drawn]
+      }
+
       # For faceted plots, get x values from original data or scale mapping
       if (!is.null(panel_id)) {
         # For faceted plots, we need to get the actual x values from the original data
