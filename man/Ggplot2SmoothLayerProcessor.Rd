@@ -14,9 +14,7 @@ Processes smooth plot layers with complete logic included
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2SmoothLayerProcessor-process}{\code{Ggplot2SmoothLayerProcessor$process()}}
-    \item \href{#method-Ggplot2SmoothLayerProcessor-can_emit_band}{\code{Ggplot2SmoothLayerProcessor$can_emit_band()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-layer_computes_interval}{\code{Ggplot2SmoothLayerProcessor$layer_computes_interval()}}
-    \item \href{#method-Ggplot2SmoothLayerProcessor-extract_band_data}{\code{Ggplot2SmoothLayerProcessor$extract_band_data()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-group_aes}{\code{Ggplot2SmoothLayerProcessor$group_aes()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-attach_group_axis}{\code{Ggplot2SmoothLayerProcessor$attach_group_axis()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-resolve_target_layer}{\code{Ggplot2SmoothLayerProcessor$resolve_target_layer()}}
@@ -24,6 +22,7 @@ Processes smooth plot layers with complete logic included
     \item \href{#method-Ggplot2SmoothLayerProcessor-series_group_ids}{\code{Ggplot2SmoothLayerProcessor$series_group_ids()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-extract_data}{\code{Ggplot2SmoothLayerProcessor$extract_data()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-curve_points}{\code{Ggplot2SmoothLayerProcessor$curve_points()}}
+    \item \href{#method-Ggplot2SmoothLayerProcessor-attach_interval}{\code{Ggplot2SmoothLayerProcessor$attach_interval()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-generate_selectors}{\code{Ggplot2SmoothLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-series_group_count}{\code{Ggplot2SmoothLayerProcessor$series_group_count()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors}{\code{Ggplot2SmoothLayerProcessor$grouped_curve_selectors()}}
@@ -82,52 +81,6 @@ Processes smooth plot layers with complete logic included
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-can_emit_band"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-can_emit_band}{}}}
-\subsection{\code{Ggplot2SmoothLayerProcessor$can_emit_band()}}{
-  Whether this caller can carry a second layer.
-
-A facet panel cannot. \code{combine_facet_layer_data()} collapses every
-layer of a panel into one payload entry and types it from the first
-result that produced one, so a panel holds a single layer type by
-construction. Handing it a multi-layer result does not add the band --
-it reads \code{result$data}, finds nothing there, and drops the fitted
-curve as well. Measured before this guard existed: a faceted
-\code{geom_point() + geom_smooth()} went from 11 entries per panel to
-10, losing the smooth entirely.
-
-The patchwork path expands \code{multi_layer} and is left alone, so it
-is identified by what only the facet path supplies rather than by
-\code{panel_ctx} being present at all. A faceted leaf \emph{nested inside} a
-patchwork arrives through the patchwork call site, with neither
-\code{panel_id} nor \code{facet_groups}, so the plot's own facet is
-asked as well -- the same third clause
-\code{Ggplot2ViolinLayerProcessor} carries, for the same composition.
-
-The consequence is a real limitation, not a subtlety worth hiding: a
-faceted regression chart still loses its confidence band. Expressing
-one there means teaching the facet path to hold two layer types per
-panel, which is a change to shared composition code rather than to
-this processor.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2SmoothLayerProcessor$can_emit_band(panel_ctx, plot = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{panel_ctx}}{Panel context supplied by the caller, or NULL}
-      \item{\code{plot}}{The ggplot2 object, for its own facet spec}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    TRUE when a second layer would survive the caller
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-layer_computes_interval"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-layer_computes_interval}{}}}
 \subsection{\code{Ggplot2SmoothLayerProcessor$layer_computes_interval()}}{
@@ -161,65 +114,6 @@ the one this guard exists to prevent.
   }
   \subsection{Returns}{
     TRUE when the layer's stat computes an interval
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-extract_band_data"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-extract_band_data}{}}}
-\subsection{\code{Ggplot2SmoothLayerProcessor$extract_band_data()}}{
-  Read the confidence band \code{geom_smooth()} draws.
-
-\code{se = TRUE} is the default, and the band is the reason the layer
-is drawn rather than a plain line: it says how much of the fitted
-trend the data supports. \code{StatSmooth} computes it into
-\code{ymin}/\code{ymax} alongside the fitted \code{y}, and this
-processor read only \code{y} -- so a chart that otherwise worked was
-silently missing the half a reader needs to judge it (#135).
-
-Emitted as its own \code{error_bar} layer rather than as bounds on the
-smooth points, because that is the shape MAIDR reads today:
-\code{ErrorBarTrace} consumes \code{y}/\code{yMin}/\code{yMax}, while
-\code{SmoothTrace} extends \code{LineTrace} and reads neither. It is
-also what the Python binding already emits for the same question --
-\code{sns.pointplot} produces a separate \code{errorbar} layer with
-these exact keys -- so the two bindings describe an interval the same
-way.
-
-A curve with no band returns nothing rather than a layer of bare
-estimates, which would duplicate the smooth line under a type that
-promises an interval.
-
-Split per curve, for the reason \code{extract_data()} splits the fitted
-line: an \code{error_bar} layer is a flat sequence -- MAIDR's
-\code{ErrorBarPoint} carries no \code{z} -- so concatenating a
-hue-split chart's bands would walk a reader off the end of one curve
-into the start of the next with nothing announced between, and with
-\code{x} running backwards at the seam. Measured on a two-group
-\code{geom_smooth(aes(colour = g))}: 160 points in one sequence whose
-x jumped from 10 back to 1 at index 81. Each curve therefore becomes
-its own layer, told apart by \code{name}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2SmoothLayerProcessor$extract_band_data(
-  plot,
-  built = NULL,
-  panel_id = NULL
-)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    A list of bands, each a list of \code{points} and an optional
-\code{name}; empty when no band was drawn
   }
 }
 
@@ -404,6 +298,40 @@ the next with nothing announced in between.
   }
   \subsection{Returns}{
     List of points
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-attach_interval"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-attach_interval}{}}}
+\subsection{\code{Ggplot2SmoothLayerProcessor$attach_interval()}}{
+  Keep this layer's \code{ymin}/\code{ymax} only when they
+are an uncertainty, and put them in the space the reader is shown.
+
+The columns are dropped rather than ignored, so \code{curve_points()}
+can key on their presence instead of re-asking the stat per sample.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2SmoothLayerProcessor$attach_interval(
+  built_data,
+  plot,
+  built = NULL,
+  panel_id = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built_data}}{This layer's built rows}
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{built_data}, with the interval untransformed or removed
   }
 }
 

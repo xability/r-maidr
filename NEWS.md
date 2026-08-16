@@ -32,16 +32,22 @@
   line: it says how much of the fitted trend the data supports. `StatSmooth`
   computes it into `ymin`/`ymax` alongside the fitted value, and maidr read
   only the fit -- so a chart that otherwise worked was silently missing the
-  half a reader needs to judge it. The band is emitted as its own `error_bar`
-  layer, the shape MAIDR reads today and the one the Python binding already
-  produces for the same question. A hue-split chart gets one band per curve,
-  named after its group, because an `error_bar` layer is a flat sequence:
-  concatenating them would walk a reader off the end of one curve into the
-  start of the next with nothing announced between. A density curve is left
-  alone -- `StatDensity` fills the same two columns with the extent of its
-  fill rather than an uncertainty, so the rule asks the layer's stat rather
-  than its columns. A faceted smooth is unchanged for now, since a facet panel
-  carries a single layer type by construction.
+  half a reader needs to judge it. The bounds ride on the fitted samples as
+  `yMin`/`yMax`, so a value and its interval are heard at one x rather than by
+  switching layers. A density curve is left alone -- `StatDensity` fills the
+  same two columns with the extent of its fill rather than an uncertainty, so
+  the rule asks the layer's stat rather than its columns.
+
+* A faceted `geom_smooth()` keeps its confidence band. The band was emitted as
+  a separate `error_bar` layer at first, because that was the only shape the
+  frontend read, and a facet panel carries a single layer type by construction
+  -- so a guard suppressed the band on a faceted chart rather than lose the
+  fitted curve along with it. maidr 4.3.0 reads the bounds on the curve's own
+  points, which leaves no second layer to lose. Measured across the change: a
+  faceted `geom_smooth(se = TRUE)` went from 0 samples carrying bounds per
+  panel to all 80. Two other pieces of scaffolding went with the second layer
+  -- the per-curve `name` that told two band layers apart, and the empty
+  selector list that said a ribbon has no per-sample element to highlight.
 
 * Violin plot support for base R. `vioplot::vioplot()` is now emitted as the
   `violin_box` + `violin_kde` layer pair the 'ggplot2' adapter already produces

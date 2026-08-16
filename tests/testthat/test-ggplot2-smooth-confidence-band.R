@@ -6,20 +6,40 @@
 # `y`, and the processor read only `y` -- so a chart that otherwise worked was
 # silently missing the half a reader needs to judge it.
 #
-# The band is emitted as its own `error_bar` layer, which is the shape MAIDR
-# reads today (`ErrorBarTrace` consumes `y`/`yMin`/`yMax`; `SmoothTrace`
-# extends `LineTrace` and reads neither) and what the Python binding already
-# produces for `sns.pointplot`.
+# The band rides on the fitted samples as `yMin`/`yMax` (#172). It was emitted
+# as a separate `error_bar` layer at first, because that was the only shape the
+# core read; xability/maidr#920 put the bounds on `LinePoint`, `SmoothTrace`
+# extends `LineTrace`, and maidr 4.3.0 shipped it. So the value and its
+# interval are now heard at one x rather than by switching layers, and three
+# pieces of scaffolding went away with the second layer:
+#
+#   * the per-curve `name`, needed only because an `ErrorBarPoint` carries no
+#     `z` and a hue-split chart therefore needed one band layer per curve;
+#   * the facet guard, which suppressed the band entirely on a faceted chart
+#     because the facet path collapses a panel to a single layer;
+#   * the empty selector list, which existed to say a ribbon has no per-sample
+#     element to highlight -- the smooth layer's own selectors now serve.
+#
+# The Python binding emits the same shape for `sns.regplot`
+# (xability/py-maidr#425), so the two bindings describe an interval alike.
 
 smooth_band_df <- function() {
   set.seed(1)
   data.frame(x = 1:20, y = (1:20) + stats::rnorm(20, sd = 3))
 }
 
-# Drive the whole orchestrator rather than the processor alone: the band is a
-# second layer, and whether a second layer survives is a question about the
-# path that assembles them.
-band_layers <- function(plot) {
+hue_df <- function() {
+  set.seed(2)
+  data.frame(
+    x = rep(1:10, 2),
+    y = c((1:10) + stats::rnorm(10), (10:1) + stats::rnorm(10)),
+    g = rep(c("a", "b"), each = 10)
+  )
+}
+
+# Drive the whole orchestrator rather than the processor alone: what a reader
+# receives is what the assembling path emitted, not what one processor built.
+emitted_layers <- function(plot) {
   res <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
   out <- list()
   for (sp in res$subplots) {
@@ -31,215 +51,219 @@ band_layers <- function(plot) {
 }
 
 layer_types <- function(plot) {
-  vapply(band_layers(plot), function(ly) ly$type, character(1))
+  vapply(emitted_layers(plot), function(ly) ly$type, character(1))
 }
 
-test_that("a geom_smooth confidence band is emitted as its own layer", {
+#' Every series of the first smooth layer, as a list of point lists.
+smooth_series <- function(plot) {
+  for (ly in emitted_layers(plot)) {
+    if (identical(ly$type, "smooth")) {
+      data <- ly$data
+      if (length(data) && is.list(data[[1]]) && is.null(data[[1]]$x)) {
+        return(data)
+      }
+      return(list(data))
+    }
+  }
+  NULL
+}
+
+#' The point list a layer carries, whether or not it is wrapped as one series.
+points_of <- function(data) {
+  if (length(data) && is.list(data[[1]]) && is.null(data[[1]]$x)) {
+    return(data[[1]])
+  }
+  data
+}
+
+bounded <- function(points) {
+  sum(vapply(points, function(p) !is.null(p$yMin) && !is.null(p$yMax), logical(1)))
+}
+
+test_that("the band rides on the fitted curve rather than a second layer", {
   testthat::skip_if_not_installed("ggplot2")
 
   plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_point() +
     ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
 
-  testthat::expect_equal(layer_types(plot), c("point", "smooth", "error_bar"))
+  testthat::expect_equal(layer_types(plot), "smooth")
 })
 
-test_that("the band carries the bounds MAIDR reads", {
+test_that("every sample of the curve carries its interval", {
   testthat::skip_if_not_installed("ggplot2")
 
-  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
-
-  band <- Filter(function(ly) identical(ly$type, "error_bar"), band_layers(plot))
-  testthat::expect_length(band, 1)
-
-  point <- band[[1]]$data[[1]]
-  testthat::expect_named(point, c("x", "y", "yMin", "yMax"))
-  # The interval brackets the fit rather than sitting to one side of it.
-  testthat::expect_lt(point$yMin, point$y)
-  testthat::expect_gt(point$yMax, point$y)
-})
-
-test_that("every sample of the fitted curve carries an interval", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
-
-  band <- Filter(function(ly) identical(ly$type, "error_bar"), band_layers(plot))
-  bounded <- vapply(
-    band[[1]]$data,
-    function(p) is.numeric(p$yMin) && is.numeric(p$yMax),
-    logical(1)
+  # Not "most of them": a reader arrives at an arbitrary x, and a curve whose
+  # bounds are present only in places is worse than one with none, because
+  # nothing announces which kind of sample they landed on.
+  series <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+      ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
   )
-  testthat::expect_true(all(bounded))
+
+  testthat::expect_length(series, 1)
+  testthat::expect_equal(bounded(series[[1]]), length(series[[1]]))
+})
+
+test_that("the bounds bracket the fitted value", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The band is around the curve. A sample outside its own interval would mean
+  # the two edges had been read the wrong way round, which is the failure that
+  # looks entirely plausible in the payload.
+  series <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+      ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
+  )
+
+  for (point in series[[1]]) {
+    testthat::expect_lte(point$yMin, point$y)
+    testthat::expect_lte(point$y, point$yMax)
+  }
+})
+
+test_that("the interval narrows where the data is dense", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # What separates a band that was read from one that was invented. A
+  # confidence band on a linear fit is narrowest near the centre of x and
+  # widest at the ends; if the bounds were taken from the wrong rows, or
+  # untransformed against a mismatched grid, that shape is the first thing to
+  # go.
+  points <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+      ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
+  )[[1]]
+  widths <- vapply(points, function(p) p$yMax - p$yMin, numeric(1))
+  middle <- widths[[ceiling(length(widths) / 2)]]
+
+  testthat::expect_lt(middle, widths[[1]])
+  testthat::expect_lt(middle, widths[[length(widths)]])
 })
 
 test_that("se = FALSE draws no band and emits none", {
   testthat::skip_if_not_installed("ggplot2")
 
-  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_point() +
-    ggplot2::geom_smooth(method = "lm", se = FALSE, formula = y ~ x)
+  # The columns are still there, filled with NA, so their presence cannot be
+  # the test.
+  series <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+      ggplot2::geom_smooth(method = "lm", se = FALSE, formula = y ~ x)
+  )
 
-  testthat::expect_equal(layer_types(plot), c("point", "smooth"))
+  testthat::expect_equal(bounded(series[[1]]), 0)
+  testthat::expect_gt(length(series[[1]]), 0)
 })
 
 test_that("a loess fit carries its band too", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # The band is read off the stat's output, so it is not specific to `lm`.
-  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_smooth(method = "loess", se = TRUE, formula = y ~ x)
-
-  testthat::expect_true("error_bar" %in% layer_types(plot))
-})
-
-test_that("the band emits no selectors rather than a fabricated one", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  # A ribbon is one polygon covering every sample, so there is no per-sample
-  # element to address. Emitting the same selector for each point would
-  # highlight the whole band everywhere and look like it worked.
-  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
-
-  band <- Filter(function(ly) identical(ly$type, "error_bar"), band_layers(plot))
-  testthat::expect_length(band[[1]]$selectors, 0)
-})
-
-# ---------------------------------------------------------------------------
-# A hue-split chart draws one band per curve, and they must stay apart.
-# ---------------------------------------------------------------------------
-
-grouped_smooth_plot_se <- function() {
-  set.seed(1)
-  df <- data.frame(
-    x = rep(1:10, 2),
-    y = c(1:10, 20:29) + stats::rnorm(20),
-    g = rep(c("a", "b"), each = 10)
-  )
-  ggplot2::ggplot(df, ggplot2::aes(x, y, colour = g)) +
-    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
-}
-
-test_that("each curve of a hue-split smooth gets its own band", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  bands <- Filter(
-    function(ly) identical(ly$type, "error_bar"),
-    band_layers(grouped_smooth_plot_se())
+  series <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+      ggplot2::geom_smooth(method = "loess", se = TRUE, formula = y ~ x)
   )
 
-  testthat::expect_length(bands, 2)
+  testthat::expect_equal(bounded(series[[1]]), length(series[[1]]))
 })
 
-test_that("the bands are named so a layer switch can tell them apart", {
+test_that("each curve of a hue-split smooth carries its own band", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # `MaidrLayer.name` exists for exactly this -- its own documentation cites
-  # a hue-split error bar chart. Without it two `error_bar` layers announce
-  # identically on a layer switch.
-  bands <- Filter(
-    function(ly) identical(ly$type, "error_bar"),
-    band_layers(grouped_smooth_plot_se())
+  # This is what removed the per-curve naming. A band used to need a layer of
+  # its own per curve, because `ErrorBarPoint` carries no `z` and concatenating
+  # the curves would have walked a reader off the end of one into the start of
+  # the next. Riding on the smooth points, each curve keeps its own `z` and the
+  # question does not arise.
+  series <- smooth_series(
+    ggplot2::ggplot(hue_df(), ggplot2::aes(x, y, colour = g)) +
+      ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
   )
 
-  testthat::expect_equal(vapply(bands, function(b) b$name, character(1)), c("a", "b"))
+  testthat::expect_length(series, 2)
+  for (points in series) {
+    testthat::expect_equal(bounded(points), length(points))
+  }
+  testthat::expect_equal(
+    sort(unique(vapply(series, function(pts) as.character(pts[[1]]$z), ""))),
+    c("a", "b")
+  )
 })
 
-test_that("no band walks off the end of its curve into the next", {
+test_that("no curve walks backwards into the next", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # The reason the split is needed rather than nice: an `error_bar` layer is a
-  # flat sequence -- MAIDR's `ErrorBarPoint` carries no `z` -- so concatenating
-  # the two curves put 160 points in one layer whose x ran 10 then back to 1
-  # at index 81, with nothing announced at the seam.
-  bands <- Filter(
-    function(ly) identical(ly$type, "error_bar"),
-    band_layers(grouped_smooth_plot_se())
-  )
-
-  for (band in bands) {
-    xs <- vapply(band$data, function(p) as.numeric(p$x), numeric(1))
-    testthat::expect_true(all(diff(xs) >= 0))
+  # The seam this guards was real when the bands were concatenated into one
+  # flat sequence: x jumped from the end of one curve back to the start of the
+  # next with nothing announced between.
+  for (points in smooth_series(
+    ggplot2::ggplot(hue_df(), ggplot2::aes(x, y, colour = g)) +
+      ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
+  )) {
+    xs <- vapply(points, function(p) as.numeric(p$x), numeric(1))
+    testthat::expect_false(is.unsorted(xs))
   }
 })
-
-test_that("a single-curve band is left unnamed", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  # The type alone identifies a lone band, so naming it would add a word the
-  # reader gains nothing from.
-  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
-    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
-
-  band <- Filter(function(ly) identical(ly$type, "error_bar"), band_layers(plot))
-  testthat::expect_null(band[[1]]$name)
-})
-
-# ---------------------------------------------------------------------------
-# The failure that matters more than the missing feature.
-# ---------------------------------------------------------------------------
 
 test_that("a density curve is not read as having a confidence band", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # `StatDensity` also fills `ymin`/`ymax`, and means something else entirely:
-  # measured on this plot, all 1536 built rows carry `ymin = 0` and
-  # `ymax = density` -- the extent of the fill, not an uncertainty. Keying the
-  # band on those columns announced every density curve as having an interval
-  # running from zero, which is a false claim about the data rather than a
-  # missing feature. The rule therefore asks the stat, never the columns.
-  set.seed(1)
-  df <- data.frame(y = stats::rnorm(60), g = rep(c("a", "b", "c"), each = 20))
-  plot <- ggplot2::ggplot(df, ggplot2::aes(x = y, fill = g)) +
-    ggplot2::geom_density(alpha = 0.3)
+  # `StatDensity` fills the same two columns with the *extent of its fill* --
+  # `ymin = 0`, `ymax = density` -- rather than an uncertainty. Measured: all
+  # of its rows carry finite bounds, so the columns cannot be the test and the
+  # layer's stat is asked instead. Announcing a density curve as having a
+  # confidence band from zero is a claim about the data rather than a missing
+  # feature, which is the worse of the two failures.
+  series <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x)) + ggplot2::geom_density()
+  )
 
-  testthat::expect_false("error_bar" %in% layer_types(plot))
+  testthat::expect_equal(bounded(series[[1]]), 0)
 })
 
 test_that("a filled density drawn with geom_area is not read as a band", {
   testthat::skip_if_not_installed("ggplot2")
 
-  set.seed(1)
-  df <- data.frame(y = stats::rnorm(60))
-  plot <- ggplot2::ggplot(df, ggplot2::aes(x = y)) +
-    ggplot2::geom_area(stat = "density")
+  series <- smooth_series(
+    ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x)) +
+      ggplot2::geom_area(stat = "density")
+  )
 
-  testthat::expect_false("error_bar" %in% layer_types(plot))
+  testthat::expect_equal(bounded(series[[1]]), 0)
 })
 
-# ---------------------------------------------------------------------------
-# The limitation, pinned so it is a choice rather than a discovery.
-# ---------------------------------------------------------------------------
-
-test_that("a faceted smooth is unchanged, band and all", {
+test_that("a faceted smooth keeps its band", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # `combine_facet_layer_data()` collapses every layer of a panel into one
-  # payload entry and types it from the first result that produced one, so a
-  # panel holds a single layer type by construction. Handing it a multi-layer
-  # result does not add the band -- it reads `result$data`, finds nothing
-  # there, and drops the fitted curve as well. Measured before the guard: a
-  # faceted point + smooth went from 11 entries per panel to 10.
+  # This case asserted the opposite until #172. The band used to be a second
+  # layer, and the facet path collapses a panel to one layer type, so a guard
+  # suppressed the band entirely rather than lose the fitted curve with it --
+  # a real limitation, written down as one. Riding on the points, there is no
+  # second layer to lose.
   #
-  # So a faceted regression chart still loses its band. That is a real
-  # limitation of the facet path rather than of this processor, and it is
-  # pinned here so widening it later is deliberate.
-  set.seed(1)
-  df <- data.frame(
-    x = rep(1:10, 2),
-    y = stats::rnorm(20),
-    g = rep(c("a", "b"), each = 10)
-  )
+  # Measured across the change: 80 samples per panel, 0 with bounds before and
+  # 80 after.
+  df <- hue_df()
   plot <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
-    ggplot2::geom_point() +
     ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x) +
     ggplot2::facet_wrap(~g)
 
-  layers <- band_layers(plot)
-  testthat::expect_false("error_bar" %in% vapply(layers, function(l) l$type, character(1)))
-  # The fitted curve still reaches the payload -- the point of the guard.
-  testthat::expect_true(all(vapply(layers, function(l) length(l$data), integer(1)) == 11L))
+  panels <- emitted_layers(plot)
+  testthat::expect_length(panels, 2)
+  for (panel in panels) {
+    testthat::expect_equal(panel$type, "smooth")
+    points <- points_of(panel$data)
+    testthat::expect_gt(length(points), 0)
+    testthat::expect_equal(bounded(points), length(points))
+  }
+})
+
+test_that("the smooth layer keeps the selectors it always had", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The band layer used to carry a deliberately empty selector list, since a
+  # ribbon is one polygon with no per-sample element to address. That layer is
+  # gone; the fitted curve's own selector is unaffected by any of this.
+  plot <- ggplot2::ggplot(smooth_band_df(), ggplot2::aes(x, y)) +
+    ggplot2::geom_smooth(method = "lm", se = TRUE, formula = y ~ x)
+
+  testthat::expect_length(emitted_layers(plot)[[1]]$selectors, 1)
 })

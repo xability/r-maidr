@@ -32,82 +32,9 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         axes = axes
       )
 
-      if (!self$can_emit_band(panel_ctx, plot)) {
-        return(smooth_layer)
-      }
-
-      bands <- self$extract_band_data(plot, built, panel_id)
-      if (length(bands) == 0L) {
-        return(smooth_layer)
-      }
-
-      band_layers <- lapply(bands, function(band) {
-        layer <- list(
-          data = band$points,
-          # A ribbon is one polygon covering every sample, so there is no
-          # per-sample element to address and no honest `nth-child` stride
-          # to invent. An empty list says "nothing to highlight here",
-          # which is what the caller already reads it as; a fabricated
-          # selector would highlight the whole band at every point and
-          # look like it worked.
-          selectors = list(),
-          title = title,
-          axes = axes,
-          type = "error_bar",
-          orientation = "vert"
-        )
-        # `name` distinguishes two layers of one type on a layer switch, which
-        # is exactly what a hue-split chart produces here. Omitted for a lone
-        # band, where the type alone already identifies it.
-        if (!is.null(band$name)) {
-          layer$name <- band$name
-        }
-        layer
-      })
-
-      list(
-        multi_layer = TRUE,
-        layers = c(list(c(smooth_layer, list(type = "smooth"))), band_layers)
-      )
+      smooth_layer
     },
 
-    #' @description Whether this caller can carry a second layer.
-    #'
-    #' A facet panel cannot. \code{combine_facet_layer_data()} collapses every
-    #' layer of a panel into one payload entry and types it from the first
-    #' result that produced one, so a panel holds a single layer type by
-    #' construction. Handing it a multi-layer result does not add the band --
-    #' it reads \code{result$data}, finds nothing there, and drops the fitted
-    #' curve as well. Measured before this guard existed: a faceted
-    #' \code{geom_point() + geom_smooth()} went from 11 entries per panel to
-    #' 10, losing the smooth entirely.
-    #'
-    #' The patchwork path expands \code{multi_layer} and is left alone, so it
-    #' is identified by what only the facet path supplies rather than by
-    #' \code{panel_ctx} being present at all. A faceted leaf *nested inside* a
-    #' patchwork arrives through the patchwork call site, with neither
-    #' \code{panel_id} nor \code{facet_groups}, so the plot's own facet is
-    #' asked as well -- the same third clause
-    #' \code{Ggplot2ViolinLayerProcessor} carries, for the same composition.
-    #'
-    #' The consequence is a real limitation, not a subtlety worth hiding: a
-    #' faceted regression chart still loses its confidence band. Expressing
-    #' one there means teaching the facet path to hold two layer types per
-    #' panel, which is a change to shared composition code rather than to
-    #' this processor.
-    #'
-    #' @param panel_ctx Panel context supplied by the caller, or NULL
-    #' @param plot The ggplot2 object, for its own facet spec
-    #' @return TRUE when a second layer would survive the caller
-    can_emit_band = function(panel_ctx, plot = NULL) {
-      faceted_plot <- !is.null(plot) &&
-        !is.null(plot$facet) &&
-        !inherits(plot$facet, "FacetNull")
-      if (faceted_plot) {
-        return(FALSE)
-      }
-      is.null(panel_ctx) || length(panel_ctx$facet_groups) == 0L
-    },
 
     #' @description Whether this layer's \code{ymin}/\code{ymax} are an
     #' interval at all.
@@ -144,105 +71,6 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
       identical(class(layer$stat)[1], "StatSmooth")
     },
 
-    #' @description Read the confidence band \code{geom_smooth()} draws.
-    #'
-    #' \code{se = TRUE} is the default, and the band is the reason the layer
-    #' is drawn rather than a plain line: it says how much of the fitted
-    #' trend the data supports. \code{StatSmooth} computes it into
-    #' \code{ymin}/\code{ymax} alongside the fitted \code{y}, and this
-    #' processor read only \code{y} -- so a chart that otherwise worked was
-    #' silently missing the half a reader needs to judge it (#135).
-    #'
-    #' Emitted as its own \code{error_bar} layer rather than as bounds on the
-    #' smooth points, because that is the shape MAIDR reads today:
-    #' \code{ErrorBarTrace} consumes \code{y}/\code{yMin}/\code{yMax}, while
-    #' \code{SmoothTrace} extends \code{LineTrace} and reads neither. It is
-    #' also what the Python binding already emits for the same question --
-    #' \code{sns.pointplot} produces a separate \code{errorbar} layer with
-    #' these exact keys -- so the two bindings describe an interval the same
-    #' way.
-    #'
-    #' A curve with no band returns nothing rather than a layer of bare
-    #' estimates, which would duplicate the smooth line under a type that
-    #' promises an interval.
-    #'
-    #' Split per curve, for the reason \code{extract_data()} splits the fitted
-    #' line: an \code{error_bar} layer is a flat sequence -- MAIDR's
-    #' \code{ErrorBarPoint} carries no \code{z} -- so concatenating a
-    #' hue-split chart's bands would walk a reader off the end of one curve
-    #' into the start of the next with nothing announced between, and with
-    #' \code{x} running backwards at the seam. Measured on a two-group
-    #' \code{geom_smooth(aes(colour = g))}: 160 points in one sequence whose
-    #' x jumped from 10 back to 1 at index 81. Each curve therefore becomes
-    #' its own layer, told apart by \code{name}.
-    #'
-    #' @param plot The ggplot2 object
-    #' @param built Built plot data (optional)
-    #' @param panel_id Panel ID for faceted plots (optional)
-    #' @return A list of bands, each a list of \code{points} and an optional
-    #'   \code{name}; empty when no band was drawn
-    extract_band_data = function(plot, built = NULL, panel_id = NULL) {
-      if (!self$layer_computes_interval(plot)) {
-        return(list())
-      }
-
-      built_data <- self$layer_built_data(plot, built, panel_id)
-      if (is.null(built_data) || nrow(built_data) == 0L) {
-        return(list())
-      }
-      if (!all(c("ymin", "ymax") %in% names(built_data))) {
-        return(list())
-      }
-
-      # `se = FALSE` still leaves the columns in place, filled with NA, so
-      # their presence is not the test -- whether anything finite was
-      # computed is.
-      finite_bounds <- is.finite(built_data$ymin) & is.finite(built_data$ymax)
-      if (!any(finite_bounds)) {
-        return(list())
-      }
-
-      # Back into the space the reader sees, exactly as `extract_data` does
-      # for the fitted curve. Bounds live on the y scale, so a log or sqrt
-      # scale would otherwise announce the interval in transformed units
-      # while the axis is labelled in the original ones (#158).
-      x <- untransform_positions(built_data$x, built, "x", panel_id)
-      y <- untransform_positions(built_data$y, built, "y", panel_id)
-      lower <- untransform_positions(built_data$ymin, built, "y", panel_id)
-      upper <- untransform_positions(built_data$ymax, built, "y", panel_id)
-
-      band_points <- function(rows) {
-        lapply(rows, function(i) {
-          list(
-            x = x[i],
-            y = y[i],
-            yMin = as.numeric(lower[i]),
-            yMax = as.numeric(upper[i])
-          )
-        })
-      }
-
-      group_ids <- self$series_group_ids(built_data)
-      if (length(group_ids) == 0L) {
-        return(list(list(points = band_points(which(finite_bounds)), name = NULL)))
-      }
-
-      series_names <- resolve_series_group_names(
-        plot, built_data$group,
-        resolve_series_group_mapping(
-          plot, self$resolve_target_layer(plot), self$group_aes()
-        )$column
-      )
-
-      bands <- lapply(seq_along(group_ids), function(i) {
-        rows <- which(finite_bounds & built_data$group == group_ids[[i]])
-        if (length(rows) == 0L) {
-          return(NULL)
-        }
-        list(points = band_points(rows), name = series_names[[i]])
-      })
-      Filter(Negate(is.null), bands)
-    },
 
     #' @description Grouping aesthetics that split this layer into curves.
     #'
@@ -373,6 +201,7 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
       if (!is.null(built_data) && nrow(built_data) > 0) {
         built_data$x <- untransform_positions(built_data$x, built, "x", panel_id)
         built_data$y <- untransform_positions(built_data$y, built, "y", panel_id)
+        built_data <- self$attach_interval(built_data, plot, built, panel_id)
       }
 
       group_ids <- self$series_group_ids(built_data)
@@ -398,13 +227,64 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     #' @param z Series name, or NULL for a single-curve layer
     #' @return List of points
     curve_points = function(rows, z = NULL) {
+      has_interval <- all(c("ymin", "ymax") %in% names(rows))
       lapply(seq_len(nrow(rows)), function(i) {
         point <- list(x = rows$x[i], y = rows$y[i])
         if (!is.null(z)) {
           point$z <- z
         }
+        # Per sample rather than per layer: `se = TRUE` can leave individual
+        # rows without bounds, and announcing "interval NA to NA" would be
+        # worse than announcing the fitted value alone.
+        if (has_interval &&
+          is.finite(rows$ymin[i]) && is.finite(rows$ymax[i])) {
+          point$yMin <- as.numeric(rows$ymin[i])
+          point$yMax <- as.numeric(rows$ymax[i])
+        }
         point
       })
+    },
+
+    #' @description Keep this layer's \code{ymin}/\code{ymax} only when they
+    #' are an uncertainty, and put them in the space the reader is shown.
+    #'
+    #' The columns are dropped rather than ignored, so \code{curve_points()}
+    #' can key on their presence instead of re-asking the stat per sample.
+    #'
+    #' @param built_data This layer's built rows
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return \code{built_data}, with the interval untransformed or removed
+    attach_interval = function(built_data, plot, built = NULL, panel_id = NULL) {
+      bounds <- c("ymin", "ymax")
+      drop <- function(frame) {
+        frame[intersect(bounds, names(frame))] <- NULL
+        frame
+      }
+
+      if (!self$layer_computes_interval(plot) ||
+        !all(bounds %in% names(built_data))) {
+        return(drop(built_data))
+      }
+
+      # `se = FALSE` still leaves the columns in place, filled with NA, so
+      # their presence is not the test -- whether anything finite was
+      # computed is.
+      if (!any(is.finite(built_data$ymin) & is.finite(built_data$ymax))) {
+        return(drop(built_data))
+      }
+
+      # Bounds live on the y scale, so a log or sqrt scale would otherwise
+      # announce the interval in transformed units while the axis is
+      # labelled in the original ones (#158).
+      built_data$ymin <- untransform_positions(
+        built_data$ymin, built, "y", panel_id
+      )
+      built_data$ymax <- untransform_positions(
+        built_data$ymax, built, "y", panel_id
+      )
+      built_data
     },
 
     # `GRID.polyline.N` is grid's auto-name for an unnamed grob: N is a
