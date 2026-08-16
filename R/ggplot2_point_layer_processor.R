@@ -212,7 +212,15 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       }
 
       layer_index <- self$get_layer_index()
-      full_layer_data <- built$data[[layer_index]]
+
+      # Put the points back where the data puts them. `geom_jitter()` and
+      # `position_jitter()` displace every point at random so overlapping
+      # observations stay separable, and the displaced position is what the
+      # built frame carries -- on both axes, so the number announced as the
+      # measurement is not the measurement (#174). A no-op for every other
+      # layer; see `undisplace_layer()` for why it is a rebuild rather than an
+      # attempt to subtract the offset back out.
+      full_layer_data <- undisplace_layer(plot, built$data[[layer_index]], layer_index)
       layer_data <- full_layer_data
 
       # Remember which rows this panel kept. The built rows correspond 1:1
