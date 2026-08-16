@@ -15,11 +15,26 @@ category_at(position, labels)
 The name, or \code{NULL} when there is none
 }
 \description{
-Positions are matched exactly rather than by rounding. ggplot2 places a
-discrete category on an integer, and a point drawn \emph{off} one has been moved
-there deliberately -- a \code{position_dodge} splitting a group, a jitter that
-was not undone. Naming it after the nearest tick would claim a category the
-renderer did not put it in, which is the failure this exists to prevent
-rather than a smaller version of it.
+A point drawn \emph{off} an integer is still in that integer's category.
+\code{position_dodge} shifts a point sideways to make room for a sibling series
+and \code{position_jitter} scatters it, and both displacements stay \emph{within} the
+category's own slot -- so the tick it was moved from is the category it is
+in, not a category it is being falsely assigned to. Measured on a dodged
+scatter over two groups, \code{x} arrives as 0.875, 1.125, 1.875, 2.125, and an
+exact match names none of the 24 points.
+}
+\details{
+Rounding is what recovers them, which is the answer the Python binding
+reached for the same situation: "a point drawn off one is a group a \code{dodge}
+shifted aside to make room for its neighbour -- still that group, and still
+named by the tick it was moved from."
+
+Bounded at half a tick, which is what keeps it honest. ggplot2 keeps both
+displacements inside the slot -- a dodge divides the category's width, and
+\code{position_jitter}'s default reaches 40\% of the resolution -- so anything
+further out is not a displaced member of that category and is left unnamed.
+The \code{is_discrete()} gate above does the rest: on a continuous axis there are
+no names to round onto, so a measurement cannot be renamed after whichever
+tick it happens to fall nearest.
 }
 \keyword{internal}

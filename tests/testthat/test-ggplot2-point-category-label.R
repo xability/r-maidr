@@ -184,15 +184,43 @@ test_that("the helper reads positions from the breaks' pos attribute", {
   testthat::expect_identical(labels[["3"]], "c")
 })
 
-test_that("a position between ticks is left unnamed rather than rounded", {
-  # ggplot2 places a category on an integer, so a point drawn off one was
-  # moved there deliberately. Naming it after the nearest tick would claim a
-  # category the renderer did not put it in -- the failure this exists to
-  # prevent rather than a smaller version of it.
+test_that("a displaced point is named by the slot it was moved within", {
+  # `position_dodge` shifts a point sideways to make room for a sibling
+  # series and `position_jitter` scatters it, and both stay *within* the
+  # category's own slot -- so the tick it was moved from is the category it
+  # is in, not one it is being falsely assigned to.
   labels <- c("1" = "a", "2" = "b")
 
-  testthat::expect_null(maidr:::category_at(1.4, labels))
   testthat::expect_identical(maidr:::category_at(2, labels), "b")
+  testthat::expect_identical(maidr:::category_at(1.125, labels), "a")
+  testthat::expect_identical(maidr:::category_at(1.875, labels), "b")
+})
+
+test_that("a position further than half a tick is left unnamed", {
+  # The bound is what keeps rounding honest. ggplot2 keeps both displacements
+  # inside the slot, so anything further out is not a displaced member of
+  # that category.
+  labels <- c("1" = "a", "2" = "b")
+
+  testthat::expect_null(maidr:::category_at(1.5, labels))
+  testthat::expect_null(maidr:::category_at(0.2, labels))
+  testthat::expect_null(maidr:::category_at(2.9, labels))
+})
+
+test_that("a dodged scatter is named rather than silently unlabelled", {
+  # Measured before the bound was introduced: `x` arrived as 0.875, 1.125,
+  # 1.875, 2.125 and an exact match named none of the 24 points.
+  frame <- data.frame(
+    g = rep(c("a", "b"), each = 12),
+    h = rep(c("p", "q"), 12),
+    v = stats::rnorm(24)
+  )
+  points <- emitted_points(
+    ggplot2::ggplot(frame, ggplot2::aes(g, v, colour = h)) +
+      ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5))
+  )
+
+  testthat::expect_setequal(unique(field_of(points, "xLabel")), c("a", "b"))
 })
 
 test_that("looking up a missing position answers rather than erroring", {
