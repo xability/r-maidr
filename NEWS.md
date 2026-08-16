@@ -163,6 +163,23 @@
 
 ## Bug Fixes
 
+* ggplot2: one `geom_hline()` turned a fully supported chart into a static
+  image. A reference line had no layer type, so it was classified `unknown` --
+  and one unknown layer drops the *whole plot* to a base64 image. Measured with
+  `save_html()`: `geom_boxplot()` alone rendered a 44,353-byte interactive SVG,
+  and adding a threshold line to it rendered a 14,680-byte image. The chart
+  itself was fully supported; what it lost -- sonification, braille, keyboard
+  navigation, the text description -- it lost to a target, a control limit, a
+  prior year's median. A reference line carries no observations, so it is now
+  skipped, the mechanism that already keeps `geom_text()` from forcing a
+  fallback. Reading it instead would be worse than dropping it: a blended
+  transform puts its coordinates in axes-fraction space, so it announces
+  endpoints of 0 and 1 -- a confident reading of a series that is not there.
+  `geom_vline()` and `geom_abline()` are covered too. A plot made only of such
+  layers still falls back, since there is nothing left to announce; that case
+  was already live for `annotate("text")` alone, which claimed to be
+  interactive while emitting no layers at all.
+
 * ggplot2: a scatter with a missing value highlighted the wrong point. ggplot2
   discards a sample whose position or value is missing before it renders --
   and says so, with "Removed 1 rows containing missing values" -- but the point

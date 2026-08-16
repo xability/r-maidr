@@ -549,8 +549,25 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         return(FALSE)
       }
 
-      any(sapply(private$.layers, function(layer) {
+      if (any(sapply(private$.layers, function(layer) {
         isTRUE(layer$type == "unknown")
+      }))) {
+        return(TRUE)
+      }
+
+      # Nothing unsupported, and also nothing to read. A layer the adapter
+      # tags "skip" is drawn but carries no observations -- a reference line,
+      # a text annotation, a candlestick's wick folded into its body -- so a
+      # plot made only of those emits zero layers.
+      #
+      # That has to keep falling back. #176 stopped one `geom_hline()` costing
+      # a whole chart its interactivity by skipping the line instead of
+      # declaring the plot unsupported, and the trap on the other side of that
+      # is "no unsupported layers" quietly coming to mean "no layers at all":
+      # a chart announcing itself as interactive with nothing in it is worse
+      # than an image, because an image at least says what it is.
+      all(sapply(private$.layers, function(layer) {
+        isTRUE(layer$type == "skip")
       }))
     },
 

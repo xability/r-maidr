@@ -217,6 +217,34 @@ Ggplot2Adapter <- R6::R6Class(
         return("skip")
       }
 
+      # A reference line is decoration rather than data: a target, a control
+      # limit, last year's median, a significance cutoff. It carries no
+      # observations, and the grammar has no annotation shape to put it in.
+      #
+      # Skipped rather than left "unknown", because "unknown" is what makes
+      # `has_unsupported_layers()` true and drops the *whole plot* to a static
+      # image. Measured with `save_html()`:
+      #
+      #     geom_boxplot()                     interactive SVG   44,353 bytes
+      #     geom_boxplot() + geom_hline()      base64 image      14,680 bytes
+      #
+      # A supported chart lost every bit of its interactivity to one
+      # annotation, and a threshold line is among the most ordinary things to
+      # draw on one (#176).
+      #
+      # Skipping rather than reading it is the same answer the Python binding
+      # reached in xability/py-maidr#434, and for the stronger of the two
+      # reasons: an `axhline` there announced its endpoints as 0 and 1,
+      # because a blended transform puts its coordinates in axes-fraction
+      # space rather than data space. Read as a line layer this is not a
+      # partial reading, it is a confident reading of a series that is not
+      # there. Announcing *that* a threshold is drawn, and where, is worth
+      # doing -- but it needs a grammar shape for annotations, and is not a
+      # reason to keep costing a chart everything in the meantime.
+      if (geom_class %in% c("GeomHline", "GeomVline", "GeomAbline")) {
+        return("skip")
+      }
+
       "unknown"
     },
 
