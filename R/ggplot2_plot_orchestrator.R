@@ -30,6 +30,19 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     initialize = function(plot) {
       private$.plot <- plot
 
+      # The jitter recovery memoises per layer, and a layer is not enough to
+      # identify a plot: ggplot2 documents a layer as reusable across plots,
+      # and `+.gg` appends the same ggproto object rather than a clone. Two
+      # plots built from one `geom_jitter()` are therefore `identical()` at
+      # that layer, and the second was answered with the first's values --
+      # silently, whenever the row counts matched (#174 review).
+      #
+      # Cleared here rather than guarded inside the cache, because this is the
+      # boundary the cache was scoped to in the first place: it exists to stop
+      # a faceted plot rebuilding once per panel, and a panel only belongs to
+      # the run that is starting now.
+      reset_jitter_cache()
+
       registry <- get_global_registry()
       system_name <- registry$detect_system(plot)
       private$.adapter <- registry$get_adapter(system_name)
