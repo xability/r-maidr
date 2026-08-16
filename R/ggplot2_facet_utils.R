@@ -145,6 +145,25 @@ process_facet_panel <- function(
     adapter <- registry$get_adapter(system_name)
 
     layer_type <- adapter$detect_layer_type(layer, plot)
+
+    # A layer tagged "skip" is drawn but carries no observations -- a
+    # reference line, a text annotation, a candlestick's wick folded into its
+    # body. `create_processor()` has no "skip" arm, so without this it falls
+    # to the switch default and builds an *unknown* processor, whose result
+    # then wins the "first layer that produced a result" scan below.
+    #
+    # Measured on a faceted scatter with the reference line added first::
+    #
+    #     geom_hline() + geom_point() + facet_wrap(~f)   layers [skip skip]
+    #     geom_point() + geom_hline() + facet_wrap(~f)   layers [point point]
+    #
+    # Same chart, same data, typed by which layer happened to be written
+    # first. The patchwork paths already guard this (`ggplot2_patchwork_utils.R`),
+    # as does `create_layer_processors()`; the facet path did not (#176).
+    if (identical(layer_type, "skip")) {
+      next
+    }
+
     processor <- factory$create_processor(layer_type, layer_info)
 
     if (!is.null(processor)) {

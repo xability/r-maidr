@@ -38,6 +38,7 @@ df <- function() {
     g = rep(c("a", "b"), each = 25),
     v = rep(c(2, 4, 6, 8, 10), 10),
     x = 1:50,
+    f = rep(c("p", "q"), 25),
     stringsAsFactors = FALSE
   )
 }
@@ -182,6 +183,93 @@ test_that("three reference lines are still no layers", {
     ),
     "point"
   )
+})
+
+# ==============================================================================
+# A faceted plot types its panels from a layer that produced a reading
+# ==============================================================================
+#
+# `process_facet_panel()` builds a processor per layer and then types the panel
+# from "the first layer that produced a result". `create_processor()` has no
+# "skip" arm, so a skipped layer fell to the switch default, got an *unknown*
+# processor, and won that scan. Measured on a faceted scatter:
+#
+#     geom_hline() + geom_point() + facet_wrap(~f)   layers [skip skip]
+#     geom_point() + geom_hline() + facet_wrap(~f)   layers [point point]
+#
+# Same chart, same data, typed by which layer happened to be written first.
+# The patchwork paths already guarded this and `create_layer_processors()`
+# does too; the facet path did not.
+#
+# Not introduced by #176 -- `GeomText` was already tagged "skip", so
+# `geom_text() + geom_point() + facet_wrap()` typed both panels "skip" on the
+# unfixed code, which is measured below. Skipping reference lines just makes
+# it far easier to reach.
+
+panel_types <- function(plot) {
+  res <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
+  types <- character(0)
+  for (subplot in res$subplots) {
+    for (cell in subplot) {
+      for (layer in cell$layers) types <- c(types, layer$type)
+    }
+  }
+  types
+}
+
+test_that("a faceted chart types its panels the same either way round", {
+  after <- panel_types(
+    ggplot2::ggplot(df(), ggplot2::aes(x, v)) +
+      ggplot2::geom_point() +
+      ggplot2::geom_hline(yintercept = 6) +
+      ggplot2::facet_wrap(~f)
+  )
+  before <- panel_types(
+    ggplot2::ggplot(df(), ggplot2::aes(x, v)) +
+      ggplot2::geom_hline(yintercept = 6) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~f)
+  )
+
+  testthat::expect_identical(before, after)
+})
+
+test_that("a faceted chart with the line drawn first is still points", {
+  # Pinned as a value rather than only against the other ordering, so the two
+  # agreeing on the *wrong* type would not pass.
+  testthat::expect_identical(
+    panel_types(
+      ggplot2::ggplot(df(), ggplot2::aes(x, v)) +
+        ggplot2::geom_hline(yintercept = 6) +
+        ggplot2::geom_point() +
+        ggplot2::facet_wrap(~f)
+    ),
+    c("point", "point")
+  )
+})
+
+test_that("a faceted chart with a text annotation first is still points", {
+  # The case that predates #176: `GeomText` has been tagged "skip" all along,
+  # so this ordering typed both panels "skip" before the facet guard existed.
+  testthat::expect_identical(
+    panel_types(
+      ggplot2::ggplot(df(), ggplot2::aes(x, v)) +
+        ggplot2::geom_text(ggplot2::aes(label = "hi")) +
+        ggplot2::geom_point() +
+        ggplot2::facet_wrap(~f)
+    ),
+    c("point", "point")
+  )
+})
+
+test_that("a faceted chart of nothing but a reference line falls back", {
+  orchestrator <- maidr:::Ggplot2PlotOrchestrator$new(
+    ggplot2::ggplot(df(), ggplot2::aes(x, v)) +
+      ggplot2::geom_hline(yintercept = 6) +
+      ggplot2::facet_wrap(~f)
+  )
+
+  testthat::expect_true(orchestrator$should_fallback())
 })
 
 # ==============================================================================
