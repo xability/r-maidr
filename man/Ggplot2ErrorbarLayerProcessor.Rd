@@ -52,6 +52,7 @@ interval.
   \itemize{
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-process}{\code{Ggplot2ErrorbarLayerProcessor$process()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer}{\code{Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample}{\code{Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-generate_selectors}{\code{Ggplot2ErrorbarLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-find_interval_grob}{\code{Ggplot2ErrorbarLayerProcessor$find_interval_grob()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob}{\code{Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()}}
@@ -150,6 +151,38 @@ construction and therefore has no such column to read.
   }
   \subsection{Returns}{
     TRUE when the interval spans the x axis
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()}}{
+  Whether this layer draws its whole interval as one shape.
+
+True for a ribbon, which fills a single polygon across every x. Every
+other geom this processor serves draws one shape per sample -- a
+\code{segments} grob per \code{geom_linerange()} row, a polygon per
+\code{geom_crossbar()} box -- which is what makes a per-sample selector
+possible at all.
+
+\code{class(...)[1]}, matching the adapter's own ribbon test: \code{GeomArea}
+inherits \code{GeomRibbon} and is not routed here, but an \code{inherits()} check
+would still be the wrong shape of question to ask.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the layer's interval is one undivided shape
   }
 }
 

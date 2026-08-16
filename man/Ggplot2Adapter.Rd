@@ -28,6 +28,7 @@ ggplot2 functionality to work with the new extensible architecture.
     \item \href{#method-Ggplot2Adapter-get_adapter}{\code{Ggplot2Adapter$get_adapter()}}
     \item \href{#method-Ggplot2Adapter-has_facets}{\code{Ggplot2Adapter$has_facets()}}
     \item \href{#method-Ggplot2Adapter-is_patchwork}{\code{Ggplot2Adapter$is_patchwork()}}
+    \item \href{#method-Ggplot2Adapter-ribbon_is_area}{\code{Ggplot2Adapter$ribbon_is_area()}}
     \item \href{#method-Ggplot2Adapter-clone}{\code{Ggplot2Adapter$clone()}}
   }
 }
@@ -270,6 +271,46 @@ leaving the layer classified the way it was before pie support.
   }
   \subsection{Returns}{
     TRUE if plot is patchwork, FALSE otherwise
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-ribbon_is_area"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-ribbon_is_area}{}}}
+\subsection{\code{Ggplot2Adapter$ribbon_is_area()}}{
+  Whether a ribbon fills from a baseline rather than
+spanning two curves.
+
+\code{geom_ribbon(aes(ymin = 0, ymax = y))} is an area chart: the magnitude
+is the height of the fill, measured from a baseline the reader can
+assume. \code{geom_ribbon(aes(ymin = lo, ymax = hi))} draws the \emph{gap}, and
+its content is the distance between two edges rather than the height of
+either -- read as an area it would announce \code{hi} as a magnitude and drop
+\code{lo} entirely.
+
+The same distinction the Python binding draws for \code{fill_between()}, and
+drawn the same way: only an identically-zero lower edge is an area.
+
+Reads the built data rather than the mapping, because \code{ymin} may be a
+constant, a column, or a computed aesthetic, and only the built frame
+has resolved which. A layer that cannot be built is treated as a band,
+which is the reading that loses nothing: an area announced as an
+interval still carries both edges.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2Adapter$ribbon_is_area(layer, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The ggplot2 layer}
+      \item{\code{plot_object}}{The parent plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the ribbon is an area chart
   }
 }
 
