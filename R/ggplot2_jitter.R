@@ -48,6 +48,67 @@
 #' @keywords internal
 JITTER_POSITION_CLASSES <- c("PositionJitter", "PositionJitterdodge")
 
+#' One rebuilt frame per layer, so a facet does not pay for it per panel
+#'
+#' `process_facet_panel()` runs once per panel, so a jittered layer asked for
+#' its undisplaced positions once per panel too -- and each of those rebuilds
+#' the *whole* plot, every panel of it. Measured by counting
+#' `ggplot2::ggplot_build` calls through a facet of P panels: 3, 5 and 9 calls
+#' for P of 2, 4 and 8. One build is the original; the other P are the same
+#' answer computed P times over, so the work is quadratic in the panel count
+#' while the answer never varies -- `undisplaced_layer_data()` depends only on
+#' the plot and the layer index.
+#'
+#' Keyed on the layer itself rather than on the plot. ggplot2 `Layer` objects
+#' are ggproto, ggproto objects are environments, and `identical()` on two
+#' environments is a pointer comparison -- so the lookup is O(1) and exact,
+#' where hashing or deep-comparing the plot could cost as much as the rebuild
+#' it saves. A layer belongs to one plot, so its identity settles the question.
+#'
+#' One entry per layer index, each holding the layer it was computed from. The
+#' index bounds the cache at the number of layers a plot has, and the layer
+#' makes every entry self-validating: a second plot's layer is a different
+#' environment, so it misses rather than answering with the first plot's data.
+#' Keying on the index alone would do the latter, and keying on the layer alone
+#' would let two jittered layers evict each other once per panel -- which is
+#' the cost this exists to remove.
+#'
+#' @keywords internal
+.jitter_cache <- new.env(parent = emptyenv())
+
+#' Look up a layer's rebuilt frame
+#'
+#' @param layer The ggplot2 `Layer` the frame was computed from.
+#' @param layer_index Index of that layer within its plot.
+#' @return The cached data frame, or `NULL` on a miss.
+#' @keywords internal
+jitter_cache_get <- function(layer, layer_index) {
+  entry <- .jitter_cache[[as.character(layer_index)]]
+  if (is.null(entry) || !identical(entry$layer, layer)) {
+    return(NULL)
+  }
+  entry$data
+}
+
+#' Remember a layer's rebuilt frame
+#'
+#' @param layer The ggplot2 `Layer` the frame was computed from.
+#' @param layer_index Index of that layer within its plot.
+#' @param data The rebuilt data frame, or `NULL` when the rebuild failed.
+#' @return Invisibly `NULL`.
+#' @keywords internal
+jitter_cache_set <- function(layer, layer_index, data) {
+  if (is.null(data)) {
+    return(invisible(NULL))
+  }
+  assign(
+    as.character(layer_index),
+    list(layer = layer, data = data),
+    envir = .jitter_cache
+  )
+  invisible(NULL)
+}
+
 #' Whether a layer's points were displaced from their data positions
 #'
 #' @param layer A ggplot2 `Layer`.
@@ -80,8 +141,14 @@ layer_is_jittered <- function(layer) {
 #' @keywords internal
 undisplaced_layer_data <- function(plot, layer_index) {
   if (is.null(plot) || is.null(plot$layers) ||
-    layer_index > length(plot$layers)) {
+    layer_index < 1L || layer_index > length(plot$layers)) {
     return(NULL)
+  }
+
+  layer <- plot$layers[[layer_index]]
+  cached <- jitter_cache_get(layer, layer_index)
+  if (!is.null(cached)) {
+    return(cached)
   }
 
   rebuilt <- tryCatch(
@@ -97,6 +164,7 @@ undisplaced_layer_data <- function(plot, layer_index) {
     error = function(e) NULL
   )
 
+  jitter_cache_set(layer, layer_index, rebuilt)
   rebuilt
 }
 

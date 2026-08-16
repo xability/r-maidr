@@ -202,6 +202,64 @@ test_that("reading the plot does not change it", {
   testthat::expect_s3_class(plot$layers[[1]]$position, "PositionJitter")
 })
 
+builds_during <- function(expr) {
+  calls <- 0
+  trace(ggplot2::ggplot_build,
+    tracer = function() calls <<- calls + 1,
+    print = FALSE, where = asNamespace("maidr")
+  )
+  on.exit(
+    try(untrace(ggplot2::ggplot_build, where = asNamespace("maidr")), silent = TRUE),
+    add = TRUE
+  )
+  force(expr)
+  calls
+}
+
+test_that("a faceted chart is not rebuilt once per panel", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # `process_facet_panel()` runs per panel, so the recovery was asked for per
+  # panel too -- and each answer rebuilt the whole plot, every panel of it.
+  # Counted through facets of 2, 4 and 8 panels: 3, 5 and 9 builds. The answer
+  # never varies with the panel, so all but one were the same work repeated.
+  #
+  # Asserted as a constant rather than as "fewer than before", because the
+  # defect is that it *scales* with the panel count.
+  df <- likert_df()
+  counts <- vapply(c(2, 4, 8), function(panels) {
+    frame <- df[df$g %in% rep(c("a", "b", "c"), length.out = panels), ]
+    plot <- ggplot2::ggplot(frame, ggplot2::aes(g, score)) +
+      ggplot2::geom_jitter() +
+      ggplot2::facet_wrap(~g)
+    builds_during(emitted_points(plot))
+  }, numeric(1))
+
+  testthat::expect_equal(counts, rep(counts[[1]], 3))
+})
+
+test_that("a cached frame is never handed to a different plot", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # What makes the cache safe to key by layer index: the entry carries the
+  # layer it came from, and a second plot's layer is a different environment.
+  # Without that check, plot B would be read using plot A's values -- every
+  # number wrong and every number plausible.
+  first <- likert_df()
+  second <- first
+  second$score <- rev(second$score)
+
+  ys_first <- ys_of(
+    ggplot2::ggplot(first, ggplot2::aes(g, score)) + ggplot2::geom_jitter()
+  )
+  ys_second <- ys_of(
+    ggplot2::ggplot(second, ggplot2::aes(g, score)) + ggplot2::geom_jitter()
+  )
+
+  testthat::expect_equal(ys_first, as.numeric(first$score))
+  testthat::expect_equal(ys_second, as.numeric(second$score))
+})
+
 test_that("an unjittered chart is left exactly alone", {
   testthat::skip_if_not_installed("ggplot2")
 
