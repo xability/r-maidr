@@ -261,52 +261,44 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         panel_rows <- panel_rows[drawn]
       }
 
-      # For faceted plots, get x values from original data or scale mapping
-      if (!is.null(panel_id)) {
-        # For faceted plots, we need to get the actual x values from the original data
-        if (!is.null(scale_mapping)) {
-          layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
-        } else {
-          plot_mapping <- plot$mapping
-          layer_mapping <- plot$layers[[layer_index]]$mapping
-
-          x_col <- NULL
-          if (!is.null(layer_mapping$x)) {
-            x_col <- rlang::as_label(layer_mapping$x)
-          } else if (!is.null(plot_mapping$x)) {
-            x_col <- rlang::as_label(plot_mapping$x)
-          }
-
-          # For faceted plots, we need to get the x values for this specific panel
-          if (!is.null(x_col) && x_col %in% names(plot$data)) {
-            panel_data <- plot$data
-            if ("PANEL" %in% names(panel_data)) {
-              panel_data <- panel_data[panel_data$PANEL == panel_id, ]
-            }
-            x_values <- unique(panel_data[[x_col]])
-            x_values <- sort(x_values)
-
-            # Only map indices for discrete scales (where x values are integer indices 1, 2, 3, etc.)
-            # For continuous scales, layer_data$x already contains the actual numeric values
-            x_looks_like_indices <- all(layer_data$x == floor(layer_data$x)) &&
-              min(layer_data$x) >= 1 &&
-              max(layer_data$x) <= length(x_values) &&
-              !is.numeric(plot$data[[x_col]])
-
-            if (x_looks_like_indices) {
-              layer_data$x <- x_values[layer_data$x]
-            }
-            # For continuous scales, keep layer_data$x as-is (already numeric values)
-          } else {
-            # Fallback: use layer_data$x but convert to character
-            layer_data$x <- as.character(layer_data$x)
-          }
-        }
-      } else {
-        if (!is.null(scale_mapping)) {
-          layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
-        }
-      }
+      # The position stays a number, and the name it stands for travels
+      # beside it in `xLabel`.
+      #
+      # It did not always. The faceted path relabelled the position, so the
+      # same chart emitted two different shapes depending on whether it was
+      # facetted::
+      #
+      #     ggplot(df, aes(g, v)) + geom_jitter()                   x = 1
+      #     ggplot(df, aes(g, v)) + geom_jitter() + facet_wrap(~f)   x = "a"
+      #
+      # By `layer_data$x <- x_values[layer_data$x]`, which indexed the panel's
+      # sorted category values by the drawn position. Not by
+      # `apply_scale_mapping()`, which #178 named and which cannot run here:
+      # `ggplot2_facet_utils.R` passes `scale_mapping = NULL` for every panel,
+      # so that branch is unreachable from a faceted layer. Restoring it alone
+      # leaves every test in
+      # `tests/testthat/test-ggplot2-faceted-point-position.R` passing;
+      # restoring the index lookup alone fails all eleven.
+      #
+      # `ScatterPoint.x` is typed `number` in the grammar, and `ScatterTrace`
+      # does arithmetic on it: it sorts with `a.x - b.x`, indexes columns by
+      # the value, and resolves the nearest point with `Math.hypot`. A string
+      # makes the subtraction `NaN`, and a comparator returning `NaN` leaves
+      # `Array.prototype.sort` with no ordering to apply -- so the points stay
+      # in input order rather than the x order every downstream index assumes,
+      # and `findNearestPoint` has no nearest point to find. The faceted chart
+      # announced the right name while handing the core a payload it could not
+      # sort, index or highlight against (#178).
+      #
+      # Removing the relabelling rather than converting it back is what makes
+      # this a fix: `ScatterPoint.xLabel` exists as of xability/maidr#927 and
+      # the emission below already fills it from `discrete_axis_labels()`, so
+      # the name was never the half that had to displace the position.
+      #
+      # Scoped to this processor. `Ggplot2BarLayerProcessor` calls the same
+      # helper and is right to: a bar's `x` is `string | number` in the
+      # grammar, and a bar chart is navigated by category rather than by
+      # distance, so nothing there subtracts one x from another.
 
       original_data <- plot$data
 
