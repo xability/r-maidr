@@ -13,6 +13,8 @@ Processes bar plot layers with complete logic included
 
 - [`Ggplot2BarLayerProcessor$process()`](#method-Ggplot2BarLayerProcessor-process)
 
+- [`Ggplot2BarLayerProcessor$swap_point_axes()`](#method-Ggplot2BarLayerProcessor-swap_point_axes)
+
 - [`Ggplot2BarLayerProcessor$is_flipped()`](#method-Ggplot2BarLayerProcessor-is_flipped)
 
 - [`Ggplot2BarLayerProcessor$unflip_columns()`](#method-Ggplot2BarLayerProcessor-unflip_columns)
@@ -96,6 +98,44 @@ Inherited methods
 
 ------------------------------------------------------------------------
 
+### `Ggplot2BarLayerProcessor$swap_point_axes()`
+
+Put a horizontal layer's category and measure in the fields the bar
+grammar reads them from.
+
+`extract_data` emits `x = category, y = measure` for every layer, which
+is the vertical arrangement. A horizontal bar is read the other way
+round: MAIDR takes `x` as the magnitude and `y` as the category when
+`orientation` is `"horz"`, so the pair has to be exchanged on the way
+out. Left unexchanged, the core looked for a number and found a category
+name – no magnitude to pitch, and an announcement that paired the
+category axis with the measure and the measure axis with the category
+name, contradicting an `axes` block that was right all along (#184).
+
+Not every horizontal layer wants this, which is why it is the bar
+processor's own step rather than a shared one. An error bar keeps its
+category in `x` at both orientations and lets `orientation` swap only
+which axis labels the reading is announced against; a box carries
+quantiles and no axis assignment to exchange at all. The histogram
+processor, whose trace extends this one in the core, already does the
+same thing for the same reason.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$swap_point_axes(data_points)
+
+#### Arguments
+
+- `data_points`:
+
+  Points in `extract_data`'s `x = category, y = measure` form.
+
+#### Returns
+
+The same points with `x` and `y` exchanged.
+
+------------------------------------------------------------------------
+
 ### `Ggplot2BarLayerProcessor$is_flipped()`
 
 Is this layer's category axis `y` rather than `x`?
@@ -113,8 +153,16 @@ resorted by the measure (#162).
 
 [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
 is not this. It rotates the coordinate system and leaves `flipped_aes`
-alone, so its data layout is genuinely unflipped; only the key below
-would change, and that question spans every processor.
+alone, so its data layout is genuinely unflipped, and it is reported
+`vert` today. That question spans every processor.
+
+Should it ever be answered here, the key and the point layout have to
+move together: `"horz"` and the vertical `x = category, y = measure`
+pairing is precisely the combination \#184 was about, and a
+[`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+chart currently reads correctly only because both halves are left in
+their vertical form. That is what @link swap_point_axes being driven
+from this same answer is for.
 
 #### Usage
 

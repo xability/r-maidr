@@ -224,6 +224,31 @@
 
 ### Bug Fixes
 
+- ggplot2: a horizontal bar chart announced no magnitude, and named its
+  axes against the wrong halves of the data.
+  `ggplot(df, aes(n, g)) + geom_col()` was emitted as
+  `x = category, y = measure` – the vertical arrangement – while
+  declaring `orientation: "horz"`. MAIDR reads a horizontal bar the
+  other way round, taking `x` as the magnitude when the orientation says
+  `horz`, so it went looking for a number and found a category name. A
+  chart of apple = 30, banana = 70, cherry = 50 sounded with a `null`
+  magnitude on every bar, and announced the point as `g: 30` with value
+  `n: apple`: the category axis named against the measure and the
+  measure axis against the category name. As with the first form of this
+  bug, the `axes` block was right throughout – it said which way round
+  the chart was drawn while the data underneath contradicted it. Fixed
+  by exchanging the pair at the emit boundary, where a layer stops being
+  this package’s internal representation and becomes MAIDR JSON; the key
+  and the layout are now taken from one `is_flipped()` answer, so they
+  cannot drift apart. The swap belongs to the bar grammar specifically
+  and is not applied to every horizontal layer: an error bar keeps its
+  category in `x` at both orientations and lets `orientation` swap only
+  which axis labels the reading is announced against, and a box carries
+  quantiles with no axis assignment to exchange.
+  [`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+  is untouched – it leaves `flipped_aes` alone, so it is still reported
+  `vert` with the vertical arrangement, which reads correctly.
+
 - ggplot2: a faceted categorical scatter put a string where the grammar
   wants a number. The same chart emitted two different shapes depending
   on whether it was facetted – `ggplot(df, aes(g, v)) + geom_jitter()`
