@@ -269,6 +269,21 @@ LayerProcessor <- R6::R6Class(
       built_data
     },
 
+    #' @description Was this base R call drawn with `horiz = TRUE`?
+    #'
+    #' The base R counterpart of {@link is_flipped_layer}: `barplot()` takes
+    #' the orientation as an argument rather than marking the built layer, so
+    #' the answer is read back off the captured call.
+    #'
+    #' @param layer_info The captured layer information, or `NULL`.
+    #' @return `TRUE` when the bars run across the page.
+    is_horizontal_call = function(layer_info = NULL) {
+      if (is.null(layer_info)) {
+        return(FALSE)
+      }
+      isTRUE(layer_info$plot_call$args[["horiz"]])
+    },
+
     #' @description Exchange a panel's x and y scales
     #'
     #' So the break labels a processor reads come from the axis the categories

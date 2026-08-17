@@ -163,6 +163,24 @@
 
 ## Bug Fixes
 
+* base R: a horizontal stacked or dodged bar chart was announced as a vertical
+  one. `barplot(m, horiz = TRUE)` and `barplot(m, beside = TRUE, horiz = TRUE)`
+  emitted no `orientation` key and left their points in the vertical
+  arrangement, so the core read a chart drawn across the page as one drawn up
+  it. Unlike the ggplot2 case below, nothing was lost: base R has no flipped
+  aesthetics to misread, its processors read the caller's matrix directly, and
+  a `vert` key over a vertical payload is self-consistent — the magnitudes
+  announced were the right ones. What was wrong is everything that depends on
+  knowing which way the chart is drawn. The chart type was announced as
+  *vertical stacked bar plot*, and the stereo cue swept left-to-right as the
+  reader moved through categories that run down the page, so sound and
+  highlight disagreed about where the reader was. Both halves now move
+  together, from one reading of the `horiz` argument: setting the key without
+  swapping the points would have turned a wrong announcement into a chart with
+  no magnitude at all. `barplot(h, horiz = TRUE)` on a plain vector was already
+  correct and is untouched — that processor reads the drawn rectangles rather
+  than the input, so its points arrive swapped without a swap step.
+
 * ggplot2: a horizontal grouped bar chart came out with no data in it.
   `ggplot(df, aes(n, g, fill = h)) + geom_col(position = "dodge")` is the
   ordinary spelling, and neither the dodged nor the stacked processor ever

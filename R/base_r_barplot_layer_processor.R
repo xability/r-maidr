@@ -41,10 +41,7 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
     #' @param layer_info Layer information
     #' @return Logical
     is_horizontal = function(layer_info) {
-      if (is.null(layer_info)) {
-        return(FALSE)
-      }
-      isTRUE(layer_info$plot_call$args[["horiz"]])
+      self$is_horizontal_call(layer_info)
     },
     needs_reordering = function() {
       FALSE # Base R bar plots don't need reordering like ggplot2
