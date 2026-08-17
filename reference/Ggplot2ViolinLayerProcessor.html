@@ -180,8 +180,7 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.</p>
 <li><p><a href="#method-Ggplot2ViolinLayerProcessor-find_desc_by_pattern"><code>Ggplot2ViolinLayerProcessor$find_desc_by_pattern()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ViolinLayerProcessor-find_all_desc_by_pattern"><code>Ggplot2ViolinLayerProcessor$find_all_desc_by_pattern()</code></a></p></li>
 <li><p><a href="#method-Ggplot2ViolinLayerProcessor-clone"><code>Ggplot2ViolinLayerProcessor$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href="LayerProcessor.html#method-extract_layer_axes"><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href="LayerProcessor.html#method-extract_layer_axes"><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
@@ -231,7 +230,6 @@ violin_box (with BoxSelector objects) and violin_kde.</p>
 <span>  <span class="va">layout</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grob_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -249,9 +247,6 @@ violin_box (with BoxSelector objects) and violin_kde.</p>
 
       <dt><code>gt</code></dt>
 <dd><p>Gtable object (optional)</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
 
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
@@ -369,11 +364,7 @@ Generate CSS selectors for violin polygons (for violin_kde layer)</p>
 <h3 id="ggplot-violinlayerprocessor-extract-data-"><code>Ggplot2ViolinLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-extract-data-"></a></h3>
 <p></p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
-<span>  <span class="va">plot</span>,</span>
-<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -381,9 +372,6 @@ Generate CSS selectors for violin polygons (for violin_kde layer)</p>
 
       <dt><code>built</code></dt>
 <dd><p>Built plot data (optional)</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
 
 
 </dl><p></p></div>

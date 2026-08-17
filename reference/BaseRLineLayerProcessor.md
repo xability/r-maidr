@@ -45,7 +45,6 @@ Processes Base R line plot layers based on recorded plot calls
 
 Inherited methods
 
-- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
@@ -69,7 +68,6 @@ Inherited methods
       layout,
       built = NULL,
       gt = NULL,
-      scale_mapping = NULL,
       grob_id = NULL,
       panel_id = NULL,
       panel_ctx = NULL,
@@ -93,10 +91,6 @@ Inherited methods
 - `gt`:
 
   Gtable object (optional)
-
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
 
 - `grob_id`:
 

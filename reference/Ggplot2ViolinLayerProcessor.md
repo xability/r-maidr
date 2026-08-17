@@ -65,7 +65,6 @@ selectors can drive the violin_box highlight in the maidr frontend.
 
 Inherited methods
 
-- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$extract_layer_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-extract_layer_axes)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
 - [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
@@ -122,7 +121,6 @@ violin_box (with BoxSelector objects) and violin_kde.
       layout,
       built = NULL,
       gt = NULL,
-      scale_mapping = NULL,
       grob_id = NULL,
       panel_id = NULL,
       panel_ctx = NULL
@@ -145,10 +143,6 @@ violin_box (with BoxSelector objects) and violin_kde.
 - `gt`:
 
   Gtable object (optional)
-
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
 
 - `grob_id`:
 
@@ -273,11 +267,7 @@ for violin polygons (for violin_kde layer)
 
 #### Usage
 
-    Ggplot2ViolinLayerProcessor$extract_data(
-      plot,
-      built = NULL,
-      scale_mapping = NULL
-    )
+    Ggplot2ViolinLayerProcessor$extract_data(plot, built = NULL)
 
 #### Arguments
 
@@ -288,10 +278,6 @@ for violin polygons (for violin_kde layer)
 - `built`:
 
   Built plot data (optional)
-
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
 
 ------------------------------------------------------------------------
 

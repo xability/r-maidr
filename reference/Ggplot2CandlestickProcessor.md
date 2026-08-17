@@ -60,7 +60,6 @@ tidyquant grobs.
 
 Inherited methods
 
-- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
 - [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
@@ -86,7 +85,6 @@ Process the candlestick layer
       layout,
       built = NULL,
       gt = NULL,
-      scale_mapping = NULL,
       grob_id = NULL,
       panel_id = NULL,
       panel_ctx = NULL
@@ -109,10 +107,6 @@ Process the candlestick layer
 - `gt`:
 
   Gtable object
-
-- `scale_mapping`:
-
-  Scale mapping (unused for candlestick)
 
 - `grob_id`:
 
@@ -138,11 +132,7 @@ Extract OHLC data points from the plot
 
 #### Usage
 
-    Ggplot2CandlestickProcessor$extract_data(
-      plot,
-      built = NULL,
-      scale_mapping = NULL
-    )
+    Ggplot2CandlestickProcessor$extract_data(plot, built = NULL)
 
 #### Arguments
 
@@ -153,10 +143,6 @@ Extract OHLC data points from the plot
 - `built`:
 
   Built plot data
-
-- `scale_mapping`:
-
-  Unused
 
 #### Returns
 

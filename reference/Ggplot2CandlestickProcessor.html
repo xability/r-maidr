@@ -199,8 +199,7 @@ tidyquant grobs.</p>
 <li><p><a href="#method-Ggplot2CandlestickProcessor-find_panel_grob"><code>Ggplot2CandlestickProcessor$find_panel_grob()</code></a></p></li>
 <li><p><a href="#method-Ggplot2CandlestickProcessor-find_first_child_name"><code>Ggplot2CandlestickProcessor$find_first_child_name()</code></a></p></li>
 <li><p><a href="#method-Ggplot2CandlestickProcessor-clone"><code>Ggplot2CandlestickProcessor$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
@@ -220,7 +219,6 @@ tidyquant grobs.</p>
 <span>  <span class="va">layout</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grob_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -238,9 +236,6 @@ tidyquant grobs.</p>
 
       <dt><code>gt</code></dt>
 <dd><p>Gtable object</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping (unused for candlestick)</p></dd>
 
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID (faceting; not yet supported for candlestick)</p></dd>
@@ -264,11 +259,7 @@ tidyquant grobs.</p>
 <h3 id="ggplot-candlestickprocessor-extract-data-"><code>Ggplot2CandlestickProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-candlestickprocessor-extract-data-"></a></h3>
 <p>Extract OHLC data points from the plot</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2CandlestickProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
-<span>  <span class="va">plot</span>,</span>
-<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2CandlestickProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -276,9 +267,6 @@ tidyquant grobs.</p>
 
       <dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Unused</p></dd>
 
 
 </dl><p></p></div>

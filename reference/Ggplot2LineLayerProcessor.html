@@ -208,8 +208,7 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <li><p><a href="#method-Ggplot2LineLayerProcessor-find_main_polyline_grob"><code>Ggplot2LineLayerProcessor$find_main_polyline_grob()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-needs_reordering"><code>Ggplot2LineLayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-clone"><code>Ggplot2LineLayerProcessor$clone()</code></a></p></li>
-</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href="LayerProcessor.html#method-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
+</ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
@@ -228,7 +227,6 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <span>  <span class="va">layout</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grob_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -246,9 +244,6 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 
       <dt><code>gt</code></dt>
 <dd><p>Gtable object (optional)</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
 
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
@@ -375,12 +370,7 @@ tidyquant's geom_ma layer) and override the y-label accordingly. Plain
 <h3 id="ggplot-linelayerprocessor-extract-data-"><code>Ggplot2LineLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-extract-data-"></a></h3>
 <p>Extract data from line layer (single or multiline)</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
-<span>  <span class="va">plot</span>,</span>
-<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -388,9 +378,6 @@ tidyquant's geom_ma layer) and override the y-label accordingly. Plain
 
       <dt><code>built</code></dt>
 <dd><p>Built plot data (optional)</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
 
       <dt><code>panel_id</code></dt>
 <dd><p>Panel ID for faceted plots (optional)</p></dd>

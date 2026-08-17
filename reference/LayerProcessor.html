@@ -168,7 +168,6 @@ interface that all layer processors must implement.</p>
 <li><p><a href="#method-LayerProcessor-set_last_result"><code>LayerProcessor$set_last_result()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-get_last_result"><code>LayerProcessor$get_last_result()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-extract_layer_axes"><code>LayerProcessor$extract_layer_axes()</code></a></p></li>
-<li><p><a href="#method-LayerProcessor-apply_scale_mapping"><code>LayerProcessor$apply_scale_mapping()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-clone"><code>LayerProcessor$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-LayerProcessor-initialize"></a><div class="section">
 <h3 id="layerprocessor-new-"><code>LayerProcessor$new()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-new-"></a></h3>
@@ -195,7 +194,6 @@ interface that all layer processors must implement.</p>
 <span>  <span class="va">layout</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scale_mapping <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grob_id <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
@@ -212,9 +210,6 @@ interface that all layer processors must implement.</p>
 
       <dt><code>gt</code></dt>
 <dd><p>Gtable object (optional)</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
 
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
@@ -235,7 +230,7 @@ interface that all layer processors must implement.</p>
 <h3 id="layerprocessor-extract-data-"><code>LayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-extract-data-"></a></h3>
 <p>Extract data from the layer (MUST be implemented by subclasses)</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, scale_mapping <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -243,9 +238,6 @@ interface that all layer processors must implement.</p>
 
       <dt><code>built</code></dt>
 <dd><p>Built plot data (optional)</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping for faceted plots (optional)</p></dd>
 
 
 </dl><p></p></div>
@@ -512,35 +504,13 @@ violin) so they appear in the SVG and can be targeted by selectors.</p><div clas
 
 </div>
 
-<p></p><hr><a id="method-LayerProcessor-apply_scale_mapping"></a><div class="section">
-<h3 id="layerprocessor-apply-scale-mapping-"><code>LayerProcessor$apply_scale_mapping()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-apply-scale-mapping-"></a></h3>
-<p>Apply scale mapping to numeric values</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">apply_scale_mapping</span><span class="op">(</span><span class="va">numeric_values</span>, <span class="va">scale_mapping</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>numeric_values</code></dt>
-<dd><p>Vector of numeric values</p></dd>
-
-      <dt><code>scale_mapping</code></dt>
-<dd><p>Scale mapping vector</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
-<p>Mapped values</p>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-LayerProcessor-clone"></a><div class="section">
 <h3 id="layerprocessor-clone-"><code>LayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

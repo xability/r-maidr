@@ -47,8 +47,6 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$extract_layer_axes()`](#method-LayerProcessor-extract_layer_axes)
 
-- [`LayerProcessor$apply_scale_mapping()`](#method-LayerProcessor-apply_scale_mapping)
-
 - [`LayerProcessor$clone()`](#method-LayerProcessor-clone)
 
 ------------------------------------------------------------------------
@@ -80,7 +78,6 @@ Process the layer (MUST be implemented by subclasses)
       layout,
       built = NULL,
       gt = NULL,
-      scale_mapping = NULL,
       grob_id = NULL,
       panel_ctx = NULL
     )
@@ -103,10 +100,6 @@ Process the layer (MUST be implemented by subclasses)
 
   Gtable object (optional)
 
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
-
 - `grob_id`:
 
   Grob ID for faceted plots (optional)
@@ -127,7 +120,7 @@ Extract data from the layer (MUST be implemented by subclasses)
 
 #### Usage
 
-    LayerProcessor$extract_data(plot, built = NULL, scale_mapping = NULL)
+    LayerProcessor$extract_data(plot, built = NULL)
 
 #### Arguments
 
@@ -138,10 +131,6 @@ Extract data from the layer (MUST be implemented by subclasses)
 - `built`:
 
   Built plot data (optional)
-
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
 
 #### Returns
 
@@ -433,30 +422,6 @@ and any non-{x,y,z} keys are NOT permitted.
 #### Returns
 
 Named list with `x` and `y` AxisConfig objects
-
-------------------------------------------------------------------------
-
-### `LayerProcessor$apply_scale_mapping()`
-
-Apply scale mapping to numeric values
-
-#### Usage
-
-    LayerProcessor$apply_scale_mapping(numeric_values, scale_mapping)
-
-#### Arguments
-
-- `numeric_values`:
-
-  Vector of numeric values
-
-- `scale_mapping`:
-
-  Scale mapping vector
-
-#### Returns
-
-Mapped values
 
 ------------------------------------------------------------------------
 

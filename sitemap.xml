@@ -58,7 +58,6 @@
 <url><loc>https://r.maidr.ai/reference/adjust_chartseries_bracket_doc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/apply_barplot_patches.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/apply_barplot_sorting.html</loc></url>
-<url><loc>https://r.maidr.ai/reference/apply_scale_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/as_axis_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/attach_axis_format.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/attach_series_group_axis.html</loc></url>
@@ -134,7 +133,6 @@
 <url><loc>https://r.maidr.ai/reference/extract_leaf_plot_layout.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_patchwork_leaves.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_rect_index_from_id.html</loc></url>
-<url><loc>https://r.maidr.ai/reference/extract_scale_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_vioplot_samples.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/facet_group_rows.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_children_by_type.html</loc></url>
@@ -279,7 +277,6 @@
 <url><loc>https://r.maidr.ai/reference/run_example.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/save_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/save_html_document.html</loc></url>
-<url><loc>https://r.maidr.ai/reference/scale_mapping_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/scale_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/schedule_auto_show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/series_group_utils.html</loc></url>

@@ -106,7 +106,6 @@ discovered:
 
 Inherited methods
 
-- [`LayerProcessor$apply_scale_mapping()`](https://r.maidr.ai/reference/LayerProcessor.html#method-apply_scale_mapping)
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
 - [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
@@ -131,7 +130,6 @@ Process the line layer with actual SVG structure
       layout,
       built = NULL,
       gt = NULL,
-      scale_mapping = NULL,
       grob_id = NULL,
       panel_id = NULL,
       panel_ctx = NULL
@@ -154,10 +152,6 @@ Process the line layer with actual SVG structure
 - `gt`:
 
   Gtable object (optional)
-
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
 
 - `grob_id`:
 
@@ -297,12 +291,7 @@ Extract data from line layer (single or multiline)
 
 #### Usage
 
-    Ggplot2LineLayerProcessor$extract_data(
-      plot,
-      built = NULL,
-      scale_mapping = NULL,
-      panel_id = NULL
-    )
+    Ggplot2LineLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)
 
 #### Arguments
 
@@ -313,10 +302,6 @@ Extract data from line layer (single or multiline)
 - `built`:
 
   Built plot data (optional)
-
-- `scale_mapping`:
-
-  Scale mapping for faceted plots (optional)
 
 - `panel_id`:
 
