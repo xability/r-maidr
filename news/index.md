@@ -224,6 +224,26 @@
 
 ### Bug Fixes
 
+- ggplot2: a faceted categorical scatter put a string where the grammar
+  wants a number. The same chart emitted two different shapes depending
+  on whether it was facetted – `ggplot(df, aes(g, v)) + geom_jitter()`
+  gave `x = 1`, and adding `facet_wrap(~f)` gave `x = "a"` – because the
+  faceted path indexed the panel’s sorted category values by the drawn
+  position and emitted the name it landed on. `ScatterPoint.x` is typed
+  `number`, and the core does arithmetic on it: it sorts with
+  `a.x - b.x`, indexes columns by the value, and resolves the nearest
+  point with `Math.hypot`. A string makes the subtraction `NaN`, and a
+  comparator returning `NaN` leaves `Array.prototype.sort` with no
+  ordering to apply – so the points stayed in input order rather than
+  the x order every downstream index assumes, and the hover/highlight
+  resolver had no nearest point to find. The faceted chart announced the
+  right *name* while handing the core a payload it could not sort, index
+  or highlight against. The relabelling is removed rather than converted
+  back: `xLabel` carries the name alongside the position, so the name
+  never had to displace it. A faceted bar is unchanged – its `x` is
+  legitimately a category, and a bar chart is navigated by name rather
+  than by distance.
+
 - ggplot2: one
   [`geom_hline()`](https://ggplot2.tidyverse.org/reference/geom_abline.html)
   turned a fully supported chart into a static image. A reference line
