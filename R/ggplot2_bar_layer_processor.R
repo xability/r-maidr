@@ -16,13 +16,48 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL) {
       data <- self$extract_data(plot, built, panel_id)
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
+      # Asked once, and both the key and the layout it decides are set from
+      # the one answer -- they describe the same fact and could not be allowed
+      # to disagree.
+      horizontal <- self$is_flipped(plot, built)
       list(
-        data = data,
+        data = if (horizontal) self$swap_point_axes(data) else data,
         selectors = selectors,
-        orientation = if (self$is_flipped(plot, built)) "horz" else "vert",
+        orientation = if (horizontal) "horz" else "vert",
         title = if (!is.null(layout$title)) layout$title else "",
         axes = self$extract_layer_axes(plot, layout)
       )
+    },
+    #' @description Put a horizontal layer's category and measure in the fields
+    #'   the bar grammar reads them from.
+    #'
+    #' `extract_data` emits `x = category, y = measure` for every layer, which
+    #' is the vertical arrangement. A horizontal bar is read the other way
+    #' round: MAIDR takes `x` as the magnitude and `y` as the category when
+    #' `orientation` is `"horz"`, so the pair has to be exchanged on the way
+    #' out. Left unexchanged, the core looked for a number and found a category
+    #' name -- no magnitude to pitch, and an announcement that paired the
+    #' category axis with the measure and the measure axis with the category
+    #' name, contradicting an `axes` block that was right all along (#184).
+    #'
+    #' Not every horizontal layer wants this, which is why it is the bar
+    #' processor's own step rather than a shared one. An error bar keeps its
+    #' category in `x` at both orientations and lets `orientation` swap only
+    #' which axis labels the reading is announced against; a box carries
+    #' quantiles and no axis assignment to exchange at all. The histogram
+    #' processor, whose trace extends this one in the core, already does the
+    #' same thing for the same reason.
+    #'
+    #' @param data_points Points in `extract_data`'s `x = category,
+    #'   y = measure` form.
+    #' @return The same points with `x` and `y` exchanged.
+    swap_point_axes = function(data_points) {
+      lapply(data_points, function(point) {
+        swapped <- point
+        swapped$x <- point$y
+        swapped$y <- point$x
+        swapped
+      })
     },
     #' @description Is this layer's category axis `y` rather than `x`?
     #'
@@ -36,8 +71,15 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' by factor codes, and the rows resorted by the measure (#162).
     #'
     #' `coord_flip()` is not this. It rotates the coordinate system and leaves
-    #' `flipped_aes` alone, so its data layout is genuinely unflipped; only
-    #' the key below would change, and that question spans every processor.
+    #' `flipped_aes` alone, so its data layout is genuinely unflipped, and it
+    #' is reported `vert` today. That question spans every processor.
+    #'
+    #' Should it ever be answered here, the key and the point layout have to
+    #' move together: `"horz"` and the vertical `x = category, y = measure`
+    #' pairing is precisely the combination #184 was about, and a
+    #' `coord_flip()` chart currently reads correctly only because both halves
+    #' are left in their vertical form. That is what {@link swap_point_axes}
+    #' being driven from this same answer is for.
     #'
     #' @param plot The ggplot2 object.
     #' @param built Its `ggplot_build()` result, when the caller has one.
