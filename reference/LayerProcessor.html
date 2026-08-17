@@ -167,6 +167,7 @@ interface that all layer processors must implement.</p>
 <li><p><a href="#method-LayerProcessor-get_layer_index"><code>LayerProcessor$get_layer_index()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-is_flipped_layer"><code>LayerProcessor$is_flipped_layer()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-unflip_columns"><code>LayerProcessor$unflip_columns()</code></a></p></li>
+<li><p><a href="#method-LayerProcessor-is_horizontal_call"><code>LayerProcessor$is_horizontal_call()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-swap_point_axes"><code>LayerProcessor$swap_point_axes()</code></a></p></li>
 <li><p><a href="#method-LayerProcessor-set_last_result"><code>LayerProcessor$set_last_result()</code></a></p></li>
@@ -509,6 +510,28 @@ both columns hold plausible numbers.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-LayerProcessor-is_horizontal_call"></a><div class="section">
+<h3 id="layerprocessor-is-horizontal-call-"><code>LayerProcessor$is_horizontal_call()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-is-horizontal-call-"></a></h3>
+<p>Was this base R call drawn with <code>horiz = TRUE</code>?</p>
+<p>The base R counterpart of @link is_flipped_layer: <code><a href="base-r-wrappers.html">barplot()</a></code> takes
+the orientation as an argument rather than marking the built layer, so
+the answer is read back off the captured call.</p><div class="section">
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">is_horizontal_call</span><span class="op">(</span>layer_info <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>The captured layer information, or <code>NULL</code>.</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<p><code>TRUE</code> when the bars run across the page.</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-LayerProcessor-unflip_panel_params"></a><div class="section">
 <h3 id="layerprocessor-unflip-panel-params-"><code>LayerProcessor$unflip_panel_params()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-unflip-panel-params-"></a></h3>
 <p>Exchange a panel's x and y scales</p>
@@ -516,17 +539,17 @@ both columns hold plausible numbers.</p><div class="section">
 are actually drawn on. Both the scale objects and the flattened
 <code>x.labels</code>/<code>y.labels</code> of older ggplot2 are swapped, since readers fall
 back from one to the other.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">unflip_panel_params</span><span class="op">(</span><span class="va">panel_params</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>panel_params</code></dt>
 <dd><p>One entry of <code>built$layout$panel_params</code>.</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>The same list with its x and y entries exchanged.</p>
 </div>
 
@@ -549,10 +572,10 @@ horizontal layer. An error bar keeps its category in <code>x</code> at both
 orientations and lets <code>orientation</code> swap only which axis labels the
 reading is announced against; a box carries quantiles and has no axis
 assignment to exchange at all.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">swap_point_axes</span><span class="op">(</span><span class="va">data_points</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data_points</code></dt>
 <dd><p>Points in <code>x = category, y = measure</code> form. A nested
 list – one series per element, as a grouped bar layer emits – is
@@ -561,7 +584,7 @@ handled as well as a flat one.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p>The same points with <code>x</code> and <code>y</code> exchanged.</p>
 </div>
 
@@ -570,10 +593,10 @@ handled as well as a flat one.</p></dd>
 <p></p><hr><a id="method-LayerProcessor-set_last_result"></a><div class="section">
 <h3 id="layerprocessor-set-last-result-"><code>LayerProcessor$set_last_result()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-set-last-result-"></a></h3>
 <p>Store the last processed result (used by orchestrator)</p><div class="section">
-<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">set_last_result</span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>result</code></dt>
 <dd><p>The result to store</p></dd>
 
@@ -586,10 +609,10 @@ handled as well as a flat one.</p></dd>
 <p></p><hr><a id="method-LayerProcessor-get_last_result"></a><div class="section">
 <h3 id="layerprocessor-get-last-result-"><code>LayerProcessor$get_last_result()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-get-last-result-"></a></h3>
 <p>Get the last processed result</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">get_last_result</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
 <p>The last result</p>
 </div>
 
@@ -602,10 +625,10 @@ handled as well as a flat one.</p></dd>
 <code>list(x = list(label = "..."), y = list(label = "..."))</code>.</p>
 <p>Bare strings, top-level <code>format</code>/<code>min</code>/<code>max</code>/<code>tickStep</code>/
 <code>fill</code>/<code>level</code>, and any non-{x,y,z} keys are NOT permitted.</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">extract_layer_axes</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layout</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot object</p></dd>
 
@@ -615,7 +638,7 @@ handled as well as a flat one.</p></dd>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
 <p>Named list with <code>x</code> and <code>y</code> AxisConfig objects</p>
 </div>
 
@@ -624,10 +647,10 @@ handled as well as a flat one.</p></dd>
 <p></p><hr><a id="method-LayerProcessor-clone"></a><div class="section">
 <h3 id="layerprocessor-clone-"><code>LayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#layerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
+<h4 id="arguments-16">Arguments<a class="anchor" aria-label="anchor" href="#arguments-16"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

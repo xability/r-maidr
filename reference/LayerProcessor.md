@@ -45,6 +45,8 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$unflip_columns()`](#method-LayerProcessor-unflip_columns)
 
+- [`LayerProcessor$is_horizontal_call()`](#method-LayerProcessor-is_horizontal_call)
+
 - [`LayerProcessor$unflip_panel_params()`](#method-LayerProcessor-unflip_panel_params)
 
 - [`LayerProcessor$swap_point_axes()`](#method-LayerProcessor-swap_point_axes)
@@ -435,6 +437,31 @@ both columns hold plausible numbers.
 #### Returns
 
 The same frame with its x and y pairs exchanged.
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$is_horizontal_call()`
+
+Was this base R call drawn with `horiz = TRUE`?
+
+The base R counterpart of @link is_flipped_layer:
+[`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) takes the
+orientation as an argument rather than marking the built layer, so the
+answer is read back off the captured call.
+
+#### Usage
+
+    LayerProcessor$is_horizontal_call(layer_info = NULL)
+
+#### Arguments
+
+- `layer_info`:
+
+  The captured layer information, or `NULL`.
+
+#### Returns
+
+`TRUE` when the bars run across the page.
 
 ------------------------------------------------------------------------
 
