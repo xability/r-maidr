@@ -83,7 +83,7 @@ test_that("BaseRLineLayerProcessor process() returns correct structure", {
   processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
 
   # Process with NULL gt (skip selector generation)
-  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "line")

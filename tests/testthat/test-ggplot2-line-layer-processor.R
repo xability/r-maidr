@@ -75,7 +75,7 @@ test_that("Ggplot2LineLayerProcessor process() returns correct structure", {
   )
 
   # Process with NULL gt (skip selector generation for unit test)
-  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$title, "Test Line")
@@ -427,7 +427,7 @@ test_that("Ggplot2LineLayerProcessor extracts all metadata correctly", {
     title = "Complete Line",
     axes = list(x = "X Values", y = "Y Values")
   )
-  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
 
   # Test data extraction
   testthat::expect_equal(length(result$data), 1)

@@ -56,7 +56,7 @@ test_that("BaseRPieLayerProcessor process() returns correct structure", {
   )
   processor <- maidr:::BaseRPieLayerProcessor$new(info)
 
-  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, info)
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, info)
 
   expect_processor_output(result)
   testthat::expect_equal(result$type, "pie")

@@ -64,7 +64,7 @@ test_that("BaseRHeatmapLayerProcessor process() returns correct structure", {
   processor <- maidr:::BaseRHeatmapLayerProcessor$new(layer_info)
 
   # Process with NULL gt (skip selector generation)
-  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "heat")
@@ -394,7 +394,7 @@ test_that("BaseRHeatmapLayerProcessor domMapping order is 'row'", {
   )
 
   processor <- maidr:::BaseRHeatmapLayerProcessor$new(layer_info)
-  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
 
   testthat::expect_true("domMapping" %in% names(result))
   testthat::expect_equal(result$domMapping$order, "row")

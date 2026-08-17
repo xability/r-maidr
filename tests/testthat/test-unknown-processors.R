@@ -240,7 +240,7 @@ test_that("BaseRUnknownLayerProcessor process returns proper structure", {
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_type(result, "list")
@@ -256,7 +256,7 @@ test_that("BaseRUnknownLayerProcessor process returns correct type", {
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_equal(result$type, "unknown")
@@ -267,7 +267,7 @@ test_that("BaseRUnknownLayerProcessor process returns default title", {
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_equal(result$title, "Unknown Plot Type")
@@ -280,7 +280,7 @@ test_that("BaseRUnknownLayerProcessor claims nothing about its axes", {
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_type(result$axes, "list")
@@ -294,7 +294,7 @@ test_that("BaseRUnknownLayerProcessor process returns empty data", {
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_type(result$data, "list")
@@ -306,7 +306,7 @@ test_that("BaseRUnknownLayerProcessor process returns empty selectors", {
   processor <- maidr:::BaseRUnknownLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_type(result$selectors, "list")
@@ -375,7 +375,7 @@ test_that("BaseRUnknownLayerProcessor handles NULL everything", {
 
   # Should not error
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
   )
 
   testthat::expect_type(result, "list")
