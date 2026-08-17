@@ -39,9 +39,17 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         axes$z <- list(label = fill_label)
       }
 
+      # Asked once, and both the key and the layout it decides are set from
+      # the one answer -- they describe the same fact and could not be allowed
+      # to disagree. The layer used to emit no `orientation` at all, so a
+      # horizontal chart was read as a vertical one on top of everything else
+      # that was wrong with it (#186).
+      horizontal <- self$is_flipped_layer(built)
+
       result <- list(
-        data = data,
+        data = if (horizontal) self$swap_point_axes(data) else data,
         selectors = selectors,
+        orientation = if (horizontal) "horz" else "vert",
         title = if (!is.null(layout$title)) layout$title else "",
         axes = axes
       )
@@ -165,6 +173,25 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       }
 
       aes_values <- self$resolve_aes_values(plot, source_data)
+
+      # Everything below reads `x` as the category and `y` as the measure. A
+      # horizontal layer -- `aes(n, g, fill = h)`, the ordinary spelling --
+      # holds them the other way round, and nothing here used to ask: the
+      # category names went into `discrete_level_order()` as if they were the
+      # measure, so the columns became the chart's own numbers, and the
+      # measures went into `as.numeric()` as if they were the categories,
+      # which turned every one of them into `NA`. The result was a navigable
+      # chart with no values in it at all (#186).
+      #
+      # Swapped here, once, rather than at each of the branches below, for the
+      # reason `unflip_columns()` gives: a branch that forgot to ask would go
+      # wrong silently, because both vectors hold plausible content.
+      if (self$is_flipped_layer(built)) {
+        held <- aes_values$x
+        aes_values$x <- aes_values$y
+        aes_values$y <- held
+      }
+
       x_values <- aes_values$x
       y_values <- aes_values$y
       fill_values <- aes_values$fill

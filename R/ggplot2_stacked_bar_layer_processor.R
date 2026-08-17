@@ -31,9 +31,16 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         axes$z <- list(label = fill_label)
       }
 
+      # Asked once, and both the key and the layout it decides are set from
+      # the one answer. The layer used to emit no `orientation` at all, so a
+      # horizontal chart was read as a vertical one on top of everything else
+      # that was wrong with it (#186).
+      horizontal <- self$is_flipped_layer(built)
+
       list(
-        data = data,
+        data = if (horizontal) self$swap_point_axes(data) else data,
         selectors = selectors,
+        orientation = if (horizontal) "horz" else "vert",
         title = if (!is.null(layout$title)) layout$title else "",
         axes = axes
       )
@@ -138,6 +145,20 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         built <- ggplot2::ggplot_build(plot)
       }
       built_data_layer <- built$data[[layer_index]]
+
+      # Everything below reads `x` as the category and `y` as the measure, in
+      # the mapping and in the built geometry alike. A horizontal layer --
+      # `aes(n, g, fill = h)` -- holds both the other way round, and nothing
+      # here used to ask, so the columns became the chart's own numbers and
+      # the category names ended up in the slot the magnitude is read from
+      # (#186). Exchanged once, up front, so every branch below stays written
+      # against the one arrangement.
+      if (self$is_flipped_layer(built)) {
+        held_col <- x_col
+        x_col <- y_col
+        y_col <- held_col
+        built_data_layer <- self$unflip_columns(built_data_layer)
+      }
 
       if (!is.null(panel_id) && "PANEL" %in% names(built_data_layer)) {
         built_data_layer <- built_data_layer[
@@ -298,6 +319,14 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         # Get x-axis scale labels for readable category names
         x_labels <- NULL
         panel_params <- built$layout$panel_params[[1]]
+        # The categories of a horizontal layer are broken on the y scale, so
+        # reading `x` here gave a `position = "fill"` chart its own computed
+        # proportions ("0.00", "0.25", "0.50") as category names. The built
+        # columns were exchanged above; the scales the labels come off have to
+        # be exchanged with them (#186).
+        if (self$is_flipped_layer(built)) {
+          panel_params <- self$unflip_panel_params(panel_params)
+        }
         if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
           x_labels <- panel_params$x$get_labels()
         } else if (!is.null(panel_params$x.labels)) {

@@ -32,6 +32,10 @@ interface that all layer processors must implement.
     \item \href{#method-LayerProcessor-augment_plot}{\code{LayerProcessor$augment_plot()}}
     \item \href{#method-LayerProcessor-needs_augmentation}{\code{LayerProcessor$needs_augmentation()}}
     \item \href{#method-LayerProcessor-get_layer_index}{\code{LayerProcessor$get_layer_index()}}
+    \item \href{#method-LayerProcessor-is_flipped_layer}{\code{LayerProcessor$is_flipped_layer()}}
+    \item \href{#method-LayerProcessor-unflip_columns}{\code{LayerProcessor$unflip_columns()}}
+    \item \href{#method-LayerProcessor-unflip_panel_params}{\code{LayerProcessor$unflip_panel_params()}}
+    \item \href{#method-LayerProcessor-swap_point_axes}{\code{LayerProcessor$swap_point_axes()}}
     \item \href{#method-LayerProcessor-set_last_result}{\code{LayerProcessor$set_last_result()}}
     \item \href{#method-LayerProcessor-get_last_result}{\code{LayerProcessor$get_last_result()}}
     \item \href{#method-LayerProcessor-extract_layer_axes}{\code{LayerProcessor$extract_layer_axes()}}
@@ -329,6 +333,138 @@ violin) so they appear in the SVG and can be targeted by selectors.
   }
   \subsection{Returns}{
     Layer index
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-is_flipped_layer"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-is_flipped_layer}{}}}
+\subsection{\code{LayerProcessor$is_flipped_layer()}}{
+  Is this layer drawn with its category axis running up \code{y}?
+
+\code{ggplot(df, aes(y = g, x = n)) + geom_col()} is the ordinary spelling of
+a horizontal bar chart. \code{ggplot_build()} marks such a layer
+\code{flipped_aes} and swaps which computed column holds what, so a
+processor that reads \code{x} as the category and \code{y} as the measure picks up
+exactly the wrong pair unless it asks first (#162, #184, #186).
+
+Lives here rather than on one processor because three of them need the
+same answer, and because a processor that never asks it goes wrong
+silently: both columns hold plausible values.
+
+\code{coord_flip()} is a different thing and answers \code{FALSE} here. It
+rotates the coordinate system and leaves \code{flipped_aes} alone, so the
+data layout is genuinely unflipped.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$is_flipped_layer(built = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{A \code{ggplot_build()} result, or \code{NULL} when the caller has
+none -- in which case the layer is treated as unflipped, since there
+is nothing to read the flag from.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when the category runs up the y axis.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-unflip_columns"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-unflip_columns}{}}}
+\subsection{\code{LayerProcessor$unflip_columns()}}{
+  Exchange a built layer's paired x and y columns
+
+Swapping the pairs up front lets every branch downstream stay written
+against one arrangement rather than each learning to ask which way round
+it is -- and a branch that forgot to ask would go wrong silently, since
+both columns hold plausible numbers.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$unflip_columns(built_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built_data}}{One layer's built data.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same frame with its x and y pairs exchanged.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-unflip_panel_params"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-unflip_panel_params}{}}}
+\subsection{\code{LayerProcessor$unflip_panel_params()}}{
+  Exchange a panel's x and y scales
+
+So the break labels a processor reads come from the axis the categories
+are actually drawn on. Both the scale objects and the flattened
+\code{x.labels}/\code{y.labels} of older ggplot2 are swapped, since readers fall
+back from one to the other.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$unflip_panel_params(panel_params)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel_params}}{One entry of \code{built$layout$panel_params}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same list with its x and y entries exchanged.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-swap_point_axes"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-swap_point_axes}{}}}
+\subsection{\code{LayerProcessor$swap_point_axes()}}{
+  Put a horizontal layer's category and measure in the fields
+the bar grammar reads them from.
+
+Processors emit \verb{x = category, y = measure}, which is the vertical
+arrangement. A horizontal bar is read the other way round: MAIDR takes
+\code{x} as the magnitude and \code{y} as the category when \code{orientation} is
+\code{"horz"}, so the pair has to be exchanged on the way out. Left
+unexchanged, the core looks for a number and finds a category name --
+no magnitude to pitch, and an announcement that pairs the category axis
+with the measure and the measure axis with the category name (#184).
+
+Only the bar family wants this, which is why it is a step a processor
+opts into rather than something the orchestrator applies to every
+horizontal layer. An error bar keeps its category in \code{x} at both
+orientations and lets \code{orientation} swap only which axis labels the
+reading is announced against; a box carries quantiles and has no axis
+assignment to exchange at all.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$swap_point_axes(data_points)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_points}}{Points in \verb{x = category, y = measure} form. A nested
+list -- one series per element, as a grouped bar layer emits -- is
+handled as well as a flat one.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same points with \code{x} and \code{y} exchanged.
   }
 }
 
