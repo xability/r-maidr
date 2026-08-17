@@ -13,9 +13,18 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
+      # `extract_data()` reads the matrix the caller passed, so its points are
+      # in the vertical arrangement whichever way the bars were drawn. Both
+      # the key and the layout are set here from the one answer, because a
+      # `"horz"` key over vertical points is the combination #184 was about
+      # and these charts read correctly today only because both were left
+      # vertical (#189).
+      horizontal <- self$is_horizontal_call(layer_info)
+
       list(
-        data = data,
+        data = if (horizontal) self$swap_point_axes(data) else data,
         selectors = selectors,
+        orientation = if (horizontal) "horz" else "vert",
         type = "dodged_bar",
         title = title,
         axes = axes,

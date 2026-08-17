@@ -34,6 +34,7 @@ interface that all layer processors must implement.
     \item \href{#method-LayerProcessor-get_layer_index}{\code{LayerProcessor$get_layer_index()}}
     \item \href{#method-LayerProcessor-is_flipped_layer}{\code{LayerProcessor$is_flipped_layer()}}
     \item \href{#method-LayerProcessor-unflip_columns}{\code{LayerProcessor$unflip_columns()}}
+    \item \href{#method-LayerProcessor-is_horizontal_call}{\code{LayerProcessor$is_horizontal_call()}}
     \item \href{#method-LayerProcessor-unflip_panel_params}{\code{LayerProcessor$unflip_panel_params()}}
     \item \href{#method-LayerProcessor-swap_point_axes}{\code{LayerProcessor$swap_point_axes()}}
     \item \href{#method-LayerProcessor-set_last_result}{\code{LayerProcessor$set_last_result()}}
@@ -398,6 +399,32 @@ both columns hold plausible numbers.
   }
   \subsection{Returns}{
     The same frame with its x and y pairs exchanged.
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-is_horizontal_call"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-is_horizontal_call}{}}}
+\subsection{\code{LayerProcessor$is_horizontal_call()}}{
+  Was this base R call drawn with \code{horiz = TRUE}?
+
+The base R counterpart of {@link is_flipped_layer}: \code{barplot()} takes
+the orientation as an argument rather than marking the built layer, so
+the answer is read back off the captured call.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$is_horizontal_call(layer_info = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{The captured layer information, or \code{NULL}.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{TRUE} when the bars run across the page.
   }
 }
 

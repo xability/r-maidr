@@ -23,9 +23,19 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
       axes <- self$extract_axis_titles(layer_info)
       title <- self$extract_main_title(layer_info)
 
+      # `extract_data()` reads the matrix the caller passed, so its points are
+      # in the vertical arrangement whichever way the bars were drawn --
+      # unlike the plain bar processor, which reads the drawn rectangles and
+      # so comes out swapped for free. Both halves therefore have to be set
+      # here, and from the one answer: a `"horz"` key over vertical points is
+      # the combination #184 was about, and these charts read correctly today
+      # only because both were left vertical (#189).
+      horizontal <- self$is_horizontal_call(layer_info)
+
       list(
-        data = data,
+        data = if (horizontal) self$swap_point_axes(data) else data,
         selectors = selectors,
+        orientation = if (horizontal) "horz" else "vert",
         # A 100% stacked bar is extracted by this same processor -- the values
         # are already the drawn shares, since base R has no `position = "fill"`
         # and the author normalised the matrix before calling `barplot()`. Only
