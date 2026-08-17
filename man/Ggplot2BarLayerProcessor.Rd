@@ -14,6 +14,7 @@ Processes bar plot layers with complete logic included
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2BarLayerProcessor-process}{\code{Ggplot2BarLayerProcessor$process()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-swap_point_axes}{\code{Ggplot2BarLayerProcessor$swap_point_axes()}}
     \item \href{#method-Ggplot2BarLayerProcessor-is_flipped}{\code{Ggplot2BarLayerProcessor$is_flipped()}}
     \item \href{#method-Ggplot2BarLayerProcessor-unflip_columns}{\code{Ggplot2BarLayerProcessor$unflip_columns()}}
     \item \href{#method-Ggplot2BarLayerProcessor-unflip_mapping}{\code{Ggplot2BarLayerProcessor$unflip_mapping()}}
@@ -75,6 +76,46 @@ Processes bar plot layers with complete logic included
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-swap_point_axes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-swap_point_axes}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$swap_point_axes()}}{
+  Put a horizontal layer's category and measure in the fields
+the bar grammar reads them from.
+
+\code{extract_data} emits \verb{x = category, y = measure} for every layer, which
+is the vertical arrangement. A horizontal bar is read the other way
+round: MAIDR takes \code{x} as the magnitude and \code{y} as the category when
+\code{orientation} is \code{"horz"}, so the pair has to be exchanged on the way
+out. Left unexchanged, the core looked for a number and found a category
+name -- no magnitude to pitch, and an announcement that paired the
+category axis with the measure and the measure axis with the category
+name, contradicting an \code{axes} block that was right all along (#184).
+
+Not every horizontal layer wants this, which is why it is the bar
+processor's own step rather than a shared one. An error bar keeps its
+category in \code{x} at both orientations and lets \code{orientation} swap only
+which axis labels the reading is announced against; a box carries
+quantiles and no axis assignment to exchange at all. The histogram
+processor, whose trace extends this one in the core, already does the
+same thing for the same reason.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$swap_point_axes(data_points)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data_points}}{Points in \code{extract_data}'s \verb{x = category, y = measure} form.}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The same points with \code{x} and \code{y} exchanged.
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-is_flipped"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-is_flipped}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$is_flipped()}}{
@@ -90,8 +131,15 @@ category \code{"70"} with value \code{2} -- the labels gone, the values replaced
 by factor codes, and the rows resorted by the measure (#162).
 
 \code{coord_flip()} is not this. It rotates the coordinate system and leaves
-\code{flipped_aes} alone, so its data layout is genuinely unflipped; only
-the key below would change, and that question spans every processor.
+\code{flipped_aes} alone, so its data layout is genuinely unflipped, and it
+is reported \code{vert} today. That question spans every processor.
+
+Should it ever be answered here, the key and the point layout have to
+move together: \code{"horz"} and the vertical \verb{x = category, y = measure}
+pairing is precisely the combination #184 was about, and a
+\code{coord_flip()} chart currently reads correctly only because both halves
+are left in their vertical form. That is what {@link swap_point_axes}
+being driven from this same answer is for.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$is_flipped(plot, built = NULL)}

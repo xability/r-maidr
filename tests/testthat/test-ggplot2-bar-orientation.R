@@ -27,10 +27,25 @@ bar_layer <- function(plot) {
 }
 
 # `label:value` per bar, in emitted order.
+#
+# Which field holds which depends on the layer's orientation: MAIDR reads `x`
+# as the magnitude and `y` as the category when `orientation` is `"horz"`, and
+# the other way round for `"vert"`. Reading them positionally would pass on a
+# horizontal layer that had the pair the wrong way round -- which is #162 in
+# its second form, and what #184 was: the labels and the values were both
+# recovered correctly and then left in the vertical arrangement, so the core
+# found a category name where the magnitude belongs.
 bar_pairs <- function(layer) {
+  horizontal <- identical(layer$orientation, "horz")
   vapply(
     layer$data,
-    function(d) sprintf("%s:%s", d$x, d$y),
+    function(d) {
+      if (horizontal) {
+        sprintf("%s:%s", d$y, d$x)
+      } else {
+        sprintf("%s:%s", d$x, d$y)
+      }
+    },
     character(1)
   )
 }
@@ -55,6 +70,61 @@ test_that("a horizontal bar chart keeps its labels and its values", {
     c("apple:30", "banana:70", "cherry:50")
   )
   testthat::expect_equal(layer$orientation, "horz")
+})
+
+test_that("a horizontal bar puts its measure in x and its category in y", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # `bar_pairs` reads the fields by orientation, which is what makes every
+  # other expectation here meaningful -- so one test has to name the fields
+  # outright, or the helper and the processor could agree on the wrong
+  # arrangement and nothing above would notice.
+  #
+  # This is the arrangement the core reads: `BarTrace` takes `point.x` as the
+  # magnitude for a horizontal bar, and py-maidr's `ax.barh` emits the same
+  # shape. Unswapped, the magnitude came out `null` and the announcement
+  # named the category axis against the measure (#184).
+  layer <- bar_layer(
+    ggplot2::ggplot(fruit(), ggplot2::aes(y = g, x = n)) + ggplot2::geom_col()
+  )
+
+  testthat::expect_equal(layer$data[[1]]$x, 30)
+  testthat::expect_identical(layer$data[[1]]$y, "apple")
+})
+
+test_that("a vertical bar keeps its category in x and its measure in y", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The other half of the pair above: the swap must be reached only by a
+  # horizontal layer, and an upright chart must come out exactly as it did.
+  layer <- bar_layer(
+    ggplot2::ggplot(fruit(), ggplot2::aes(x = g, y = n)) + ggplot2::geom_col()
+  )
+
+  testthat::expect_identical(layer$data[[1]]$x, "apple")
+  testthat::expect_equal(layer$data[[1]]$y, 30)
+})
+
+test_that("a coord_flip() chart is left in its vertical arrangement", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # `coord_flip()` rotates the coordinate system and leaves `flipped_aes`
+  # alone, so `is_flipped()` says no and the layer is reported `vert`. The
+  # swap is driven from that same answer, so the two stay consistent: a
+  # `vert` key with the vertical arrangement reads correctly.
+  #
+  # Pinned because the pairing is what matters, not either half alone. Were
+  # the key ever changed to `"horz"` without the points moving with it, this
+  # chart would acquire exactly the defect #184 was about.
+  layer <- bar_layer(
+    ggplot2::ggplot(fruit(), ggplot2::aes(x = g, y = n)) +
+      ggplot2::geom_col() +
+      ggplot2::coord_flip()
+  )
+
+  testthat::expect_equal(layer$orientation, "vert")
+  testthat::expect_identical(layer$data[[1]]$x, "apple")
+  testthat::expect_equal(layer$data[[1]]$y, 30)
 })
 
 test_that("a vertical bar chart is unchanged, and says it is vertical", {
