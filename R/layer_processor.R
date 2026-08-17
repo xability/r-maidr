@@ -218,6 +218,109 @@ LayerProcessor <- R6::R6Class(
       self$layer_info$index
     },
 
+    #' @description Is this layer drawn with its category axis running up `y`?
+    #'
+    #' `ggplot(df, aes(y = g, x = n)) + geom_col()` is the ordinary spelling of
+    #' a horizontal bar chart. `ggplot_build()` marks such a layer
+    #' `flipped_aes` and swaps which computed column holds what, so a
+    #' processor that reads `x` as the category and `y` as the measure picks up
+    #' exactly the wrong pair unless it asks first (#162, #184, #186).
+    #'
+    #' Lives here rather than on one processor because three of them need the
+    #' same answer, and because a processor that never asks it goes wrong
+    #' silently: both columns hold plausible values.
+    #'
+    #' `coord_flip()` is a different thing and answers `FALSE` here. It
+    #' rotates the coordinate system and leaves `flipped_aes` alone, so the
+    #' data layout is genuinely unflipped.
+    #'
+    #' @param built A `ggplot_build()` result, or `NULL` when the caller has
+    #'   none -- in which case the layer is treated as unflipped, since there
+    #'   is nothing to read the flag from.
+    #' @return `TRUE` when the category runs up the y axis.
+    is_flipped_layer = function(built = NULL) {
+      if (is.null(built) || is.null(built$data)) {
+        return(FALSE)
+      }
+      layer_index <- self$get_layer_index()
+      if (layer_index > length(built$data)) {
+        return(FALSE)
+      }
+      isTRUE(built$data[[layer_index]]$flipped_aes[1])
+    },
+
+    #' @description Exchange a built layer's paired x and y columns
+    #'
+    #' Swapping the pairs up front lets every branch downstream stay written
+    #' against one arrangement rather than each learning to ask which way round
+    #' it is -- and a branch that forgot to ask would go wrong silently, since
+    #' both columns hold plausible numbers.
+    #'
+    #' @param built_data One layer's built data.
+    #' @return The same frame with its x and y pairs exchanged.
+    unflip_columns = function(built_data) {
+      for (pair in list(c("x", "y"), c("xmin", "ymin"), c("xmax", "ymax"))) {
+        if (all(pair %in% names(built_data))) {
+          held <- built_data[[pair[1]]]
+          built_data[[pair[1]]] <- built_data[[pair[2]]]
+          built_data[[pair[2]]] <- held
+        }
+      }
+      built_data
+    },
+
+    #' @description Exchange a panel's x and y scales
+    #'
+    #' So the break labels a processor reads come from the axis the categories
+    #' are actually drawn on. Both the scale objects and the flattened
+    #' `x.labels`/`y.labels` of older ggplot2 are swapped, since readers fall
+    #' back from one to the other.
+    #'
+    #' @param panel_params One entry of `built$layout$panel_params`.
+    #' @return The same list with its x and y entries exchanged.
+    unflip_panel_params = function(panel_params) {
+      for (pair in list(c("x", "y"), c("x.labels", "y.labels"))) {
+        held <- panel_params[[pair[1]]]
+        panel_params[[pair[1]]] <- panel_params[[pair[2]]]
+        panel_params[[pair[2]]] <- held
+      }
+      panel_params
+    },
+
+    #' @description Put a horizontal layer's category and measure in the fields
+    #'   the bar grammar reads them from.
+    #'
+    #' Processors emit `x = category, y = measure`, which is the vertical
+    #' arrangement. A horizontal bar is read the other way round: MAIDR takes
+    #' `x` as the magnitude and `y` as the category when `orientation` is
+    #' `"horz"`, so the pair has to be exchanged on the way out. Left
+    #' unexchanged, the core looks for a number and finds a category name --
+    #' no magnitude to pitch, and an announcement that pairs the category axis
+    #' with the measure and the measure axis with the category name (#184).
+    #'
+    #' Only the bar family wants this, which is why it is a step a processor
+    #' opts into rather than something the orchestrator applies to every
+    #' horizontal layer. An error bar keeps its category in `x` at both
+    #' orientations and lets `orientation` swap only which axis labels the
+    #' reading is announced against; a box carries quantiles and has no axis
+    #' assignment to exchange at all.
+    #'
+    #' @param data_points Points in `x = category, y = measure` form. A nested
+    #'   list -- one series per element, as a grouped bar layer emits -- is
+    #'   handled as well as a flat one.
+    #' @return The same points with `x` and `y` exchanged.
+    swap_point_axes = function(data_points) {
+      lapply(data_points, function(entry) {
+        if (is.null(names(entry))) {
+          return(self$swap_point_axes(entry))
+        }
+        swapped <- entry
+        swapped$x <- entry$y
+        swapped$y <- entry$x
+        swapped
+      })
+    },
+
     #' @description Store the last processed result (used by orchestrator)
     #' @param result The result to store
     set_last_result = function(result) {

@@ -14,11 +14,8 @@ Processes bar plot layers with complete logic included
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2BarLayerProcessor-process}{\code{Ggplot2BarLayerProcessor$process()}}
-    \item \href{#method-Ggplot2BarLayerProcessor-swap_point_axes}{\code{Ggplot2BarLayerProcessor$swap_point_axes()}}
     \item \href{#method-Ggplot2BarLayerProcessor-is_flipped}{\code{Ggplot2BarLayerProcessor$is_flipped()}}
-    \item \href{#method-Ggplot2BarLayerProcessor-unflip_columns}{\code{Ggplot2BarLayerProcessor$unflip_columns()}}
     \item \href{#method-Ggplot2BarLayerProcessor-unflip_mapping}{\code{Ggplot2BarLayerProcessor$unflip_mapping()}}
-    \item \href{#method-Ggplot2BarLayerProcessor-unflip_panel_params}{\code{Ggplot2BarLayerProcessor$unflip_panel_params()}}
     \item \href{#method-Ggplot2BarLayerProcessor-needs_reordering}{\code{Ggplot2BarLayerProcessor$needs_reordering()}}
     \item \href{#method-Ggplot2BarLayerProcessor-reorder_layer_data}{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}
     \item \href{#method-Ggplot2BarLayerProcessor-extract_data}{\code{Ggplot2BarLayerProcessor$extract_data()}}
@@ -40,8 +37,12 @@ Processes bar plot layers with complete logic included
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_own_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_own_layer'><code>LayerProcessor$get_own_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="is_flipped_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-is_flipped_layer'><code>LayerProcessor$is_flipped_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="swap_point_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-swap_point_axes'><code>LayerProcessor$swap_point_axes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_columns"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-unflip_columns'><code>LayerProcessor$unflip_columns()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-unflip_panel_params'><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -72,46 +73,6 @@ Processes bar plot layers with complete logic included
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-swap_point_axes"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-swap_point_axes}{}}}
-\subsection{\code{Ggplot2BarLayerProcessor$swap_point_axes()}}{
-  Put a horizontal layer's category and measure in the fields
-the bar grammar reads them from.
-
-\code{extract_data} emits \verb{x = category, y = measure} for every layer, which
-is the vertical arrangement. A horizontal bar is read the other way
-round: MAIDR takes \code{x} as the magnitude and \code{y} as the category when
-\code{orientation} is \code{"horz"}, so the pair has to be exchanged on the way
-out. Left unexchanged, the core looked for a number and found a category
-name -- no magnitude to pitch, and an announcement that paired the
-category axis with the measure and the measure axis with the category
-name, contradicting an \code{axes} block that was right all along (#184).
-
-Not every horizontal layer wants this, which is why it is the bar
-processor's own step rather than a shared one. An error bar keeps its
-category in \code{x} at both orientations and lets \code{orientation} swap only
-which axis labels the reading is announced against; a box carries
-quantiles and no axis assignment to exchange at all. The histogram
-processor, whose trace extends this one in the core, already does the
-same thing for the same reason.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2BarLayerProcessor$swap_point_axes(data_points)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{data_points}}{Points in \code{extract_data}'s \verb{x = category, y = measure} form.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The same points with \code{x} and \code{y} exchanged.
   }
 }
 
@@ -159,33 +120,6 @@ being driven from this same answer is for.
 }
 
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-unflip_columns"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-unflip_columns}{}}}
-\subsection{\code{Ggplot2BarLayerProcessor$unflip_columns()}}{
-  Put a flipped layer's columns back where the rest expects
-
-Swapping the pairs up front lets every branch below stay as written
-rather than each learning to ask which way round it is -- and a branch
-that forgot to ask would go wrong silently, since both columns hold
-plausible numbers.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2BarLayerProcessor$unflip_columns(built_data)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{built_data}}{One layer's built data.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The same frame with its x and y pairs exchanged.
-  }
-}
-
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-unflip_mapping"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-unflip_mapping}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$unflip_mapping()}}{
@@ -208,33 +142,6 @@ selectors and axis labels.
   }
   \subsection{Returns}{
     A copy whose plot-level and layer-level x/y mappings are swapped.
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-unflip_panel_params"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-unflip_panel_params}{}}}
-\subsection{\code{Ggplot2BarLayerProcessor$unflip_panel_params()}}{
-  Exchange a panel's x and y scales
-
-So the break labels read below come from the axis the categories are
-actually drawn on. Both the scale objects and the flattened
-\code{x.labels}/\code{y.labels} of older ggplot2 are swapped, since the reader
-below falls back from one to the other.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2BarLayerProcessor$unflip_panel_params(panel_params)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{panel_params}}{One entry of \code{built$layout$panel_params}.}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The same list with its x and y entries exchanged.
   }
 }
 
