@@ -31,7 +31,6 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data
     #' @param gt Gtable object
-    #' @param scale_mapping Scale mapping (unused for candlestick)
     #' @param grob_id Grob ID (faceting; not yet supported for candlestick)
     #' @param panel_id Panel id (patchwork; accepted for signature parity)
     #' @param panel_ctx Panel context (faceting; not yet supported)
@@ -40,7 +39,6 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
@@ -51,7 +49,7 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
         gt <- ggplot2::ggplotGrob(plot)
       }
 
-      data <- self$extract_data(plot, built, scale_mapping)
+      data <- self$extract_data(plot, built)
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
       list(
@@ -71,9 +69,8 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
     #' @description Extract OHLC data points from the plot
     #' @param plot ggplot2 object
     #' @param built Built plot data
-    #' @param scale_mapping Unused
     #' @return List of CandlestickPoint dicts
-    extract_data = function(plot, built = NULL, scale_mapping = NULL) {
+    extract_data = function(plot, built = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }

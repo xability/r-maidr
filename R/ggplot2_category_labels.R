@@ -108,11 +108,11 @@ category_at <- function(position, labels) {
   # Only a numeric position has a name to look up, and coercing one that is
   # not would warn "NAs introduced by coercion" once per point. Which is how
   # the faceted disagreement surfaced: that path used to replace the position
-  # with the category *itself* before emission (`apply_scale_mapping`), so `x`
-  # arrived here as the character "a" rather than the number 1, and adding
-  # this lookup took the suite from 8 warnings to 228. The point processor no
-  # longer relabels (#178), so both paths now hand this a number --
-  # `mapped_discrete` inherits numeric, so a discrete position passes.
+  # with the category it indexed before emission, so `x` arrived here as the
+  # character "a" rather than the number 1, and adding this lookup took the
+  # suite from 8 warnings to 228. The point processor no longer relabels
+  # (#178), so both paths now hand this a number -- `mapped_discrete` inherits
+  # numeric, so a discrete position passes.
   #
   # The guard stays because it is the honest answer for any caller: a position
   # that is not a number has no slot to be nearest to, and a bar layer's `x`

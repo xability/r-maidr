@@ -15,7 +15,6 @@ BaseRPieLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Unused for Base R (NULL)
     #' @param gt Grob tree used for selector generation
-    #' @param scale_mapping Unused for Base R
     #' @param grob_id Unused for Base R
     #' @param panel_id Unused for Base R
     #' @param panel_ctx Unused for Base R
@@ -25,7 +24,6 @@ BaseRPieLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL,

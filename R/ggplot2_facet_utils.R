@@ -185,7 +185,6 @@ process_facet_panel <- function(
         layout,
         built,
         gtable,
-        scale_mapping = NULL,
         grob_id = NULL,
         panel_id = panel_info$PANEL,
         panel_ctx = panel_ctx

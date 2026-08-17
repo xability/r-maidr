@@ -238,31 +238,6 @@ test_that("LayerProcessor extract_layer_axes() extracts layer-specific mapping",
 })
 
 # ==============================================================================
-# apply_scale_mapping Tests
-# ==============================================================================
-
-test_that("LayerProcessor apply_scale_mapping() works with valid mapping", {
-  layer_info <- list(index = 1)
-  processor <- maidr:::LayerProcessor$new(layer_info)
-
-  numeric_values <- c(1, 2, 3)
-  scale_mapping <- c("1" = "A", "2" = "B", "3" = "C")
-
-  result <- processor$apply_scale_mapping(numeric_values, scale_mapping)
-
-  testthat::expect_equal(as.character(result), c("A", "B", "C"))
-})
-
-test_that("LayerProcessor apply_scale_mapping() returns input for NULL mapping", {
-  layer_info <- list(index = 1)
-  processor <- maidr:::LayerProcessor$new(layer_info)
-
-  numeric_values <- c(1, 2, 3)
-
-  result <- processor$apply_scale_mapping(numeric_values, NULL)
-
-  testthat::expect_equal(result, numeric_values)
-})
 
 # ==============================================================================
 # Subclass Inheritance Tests

@@ -88,7 +88,6 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
-    #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @param panel_ctx Panel context for faceted plots (optional)
@@ -97,7 +96,6 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
@@ -452,7 +450,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     },
 
     #' Not used directly - required by base class interface
-    extract_data = function(plot, built = NULL, scale_mapping = NULL) {
+    extract_data = function(plot, built = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }

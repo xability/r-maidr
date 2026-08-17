@@ -6,9 +6,11 @@
 #     ggplot(df, aes(g, v)) + geom_jitter()                    x = 1
 #     ggplot(df, aes(g, v)) + geom_jitter() + facet_wrap(~f)    x = "a"
 #
-# The faceted path ran `apply_scale_mapping()`, which replaces the numeric
-# position with the category label, so the position was gone and the name was
-# in its place.
+# The faceted path indexed the panel's sorted category values by the drawn
+# position and emitted the name it landed on, so the position was gone and the
+# name was in its place. (#178 attributes this to `apply_scale_mapping()`,
+# which never ran: no caller passed a scale mapping, and the plumbing that
+# would have has since been removed.)
 #
 # `ScatterPoint.x` is typed `number` in the grammar, and `ScatterTrace` does
 # arithmetic on it: it sorts with `a.x - b.x`, indexes columns by the value,
@@ -24,10 +26,10 @@
 # as of xability/maidr#927 and the point processor already fills it from
 # `discrete_axis_labels()`, so the name never had to displace the position.
 #
-# The bar processor calls the same helper and keeps it. A bar's `x` is
-# `string | number` in the grammar and a bar chart is navigated by category
-# rather than by distance, so nothing subtracts one x from another there --
-# which is why the last test in this file pins it as unchanged.
+# The bar processor still announces its category as `x`, and is right to: a
+# bar's `x` is `string | number` in the grammar and a bar chart is navigated by
+# category rather than by distance, so nothing subtracts one x from another
+# there -- which is why the last test in this file pins it as unchanged.
 
 testthat::skip_if_not_installed("ggplot2")
 

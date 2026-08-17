@@ -18,7 +18,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
-    #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
@@ -26,11 +25,10 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
-      data <- self$extract_data(plot, built, scale_mapping, panel_id)
+      data <- self$extract_data(plot, built, panel_id)
 
       # Size the selectors to the series actually emitted: the frontend's
       # multiline trace drops the whole layer's highlight unless
@@ -118,10 +116,9 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' @description Extract data from line layer (single or multiline)
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
-    #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List of arrays, each containing series data points
-    extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
+    extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
@@ -170,82 +167,74 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # For faceted plots, get x values from original data or scale mapping
       if (!is.null(panel_id)) {
         # For faceted plots, we need to get the actual x values from the original data
-        if (!is.null(scale_mapping)) {
-          layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
-        } else {
-          plot_mapping <- plot$mapping
-          layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
+        plot_mapping <- plot$mapping
+        layer_mapping <- plot$layers[[self$layer_info$index]]$mapping
 
-          x_col <- NULL
-          if (!is.null(layer_mapping$x)) {
-            x_col <- rlang::as_label(layer_mapping$x)
-          } else if (!is.null(plot_mapping$x)) {
-            x_col <- rlang::as_label(plot_mapping$x)
-          }
-
-          # Map this panel's built x positions back to user-facing values.
-          # Built positions are only INDICES for discrete scales; for
-          # continuous/Date scales they are the numeric values themselves,
-          # so blind indexing (x_values[layer_data$x]) yields NA for every
-          # point.
-          original_values <- if (!is.null(x_col) && x_col %in% names(plot$data)) {
-            sort(unique(plot$data[[x_col]]))
-          } else {
-            NULL
-          }
-
-          x_pos <- layer_data$x
-          n_values <- length(original_values)
-          looks_like_positions <- !is.null(original_values) &&
-            !is.numeric(original_values) &&
-            is.numeric(x_pos) &&
-            all(!is.na(x_pos)) &&
-            all(abs(x_pos - round(x_pos)) < 1e-6) &&
-            all(round(x_pos) >= 1 & round(x_pos) <= n_values)
-
-          # Whatever is not resolved here stays numeric: the break/label
-          # mapping further down needs a numeric vector, and
-          # extract_*_line_data() stringifies anything that survives it.
-          if (looks_like_positions) {
-            # Discrete scale: positions index the (sorted) categories
-            layer_data$x <- as.character(original_values[round(x_pos)])
-          } else if (
-            !is.null(original_values) &&
-              is.numeric(x_pos) &&
-              !anyNA(suppressWarnings(as.numeric(original_values)))
-          ) {
-            # Continuous/Date scale: match numeric representations back to
-            # the original values so Dates format as dates, not day counts.
-            #
-            # `x_pos` is in the scale's TRANSFORMED space -- under
-            # scale_x_log10() the value 100 is stored as 2, under
-            # scale_x_reverse() 1 is stored as -1 -- so the raw values have
-            # to travel through the same transformation before they can be
-            # compared, or nothing ever matches and the transformed number
-            # is announced instead of the value the axis shows.
-            transformation <- self$get_x_transformation(built, panel_index)
-            numeric_repr <- round(
-              self$transform_x_values(original_values, transformation), 6
-            )
-            match_idx <- match(round(as.numeric(x_pos), 6), numeric_repr)
-            hit <- !is.na(match_idx)
-            if (any(hit)) {
-              mapped <- as.character(x_pos)
-              matched_vals <- original_values[match_idx[hit]]
-              mapped[hit] <- if (
-                inherits(original_values, c("Date", "POSIXct", "POSIXlt"))
-              ) {
-                format(matched_vals)
-              } else {
-                as.character(matched_vals)
-              }
-              layer_data$x <- mapped
-            }
-          }
+        x_col <- NULL
+        if (!is.null(layer_mapping$x)) {
+          x_col <- rlang::as_label(layer_mapping$x)
+        } else if (!is.null(plot_mapping$x)) {
+          x_col <- rlang::as_label(plot_mapping$x)
         }
-      } else {
-        if (!is.null(scale_mapping)) {
-          layer_data$x <- self$apply_scale_mapping(layer_data$x, scale_mapping)
+
+        # Map this panel's built x positions back to user-facing values.
+        # Built positions are only INDICES for discrete scales; for
+        # continuous/Date scales they are the numeric values themselves,
+        # so blind indexing (x_values[layer_data$x]) yields NA for every
+        # point.
+        original_values <- if (!is.null(x_col) && x_col %in% names(plot$data)) {
+          sort(unique(plot$data[[x_col]]))
+        } else {
+          NULL
+        }
+
+        x_pos <- layer_data$x
+        n_values <- length(original_values)
+        looks_like_positions <- !is.null(original_values) &&
+          !is.numeric(original_values) &&
+          is.numeric(x_pos) &&
+          all(!is.na(x_pos)) &&
+          all(abs(x_pos - round(x_pos)) < 1e-6) &&
+          all(round(x_pos) >= 1 & round(x_pos) <= n_values)
+
+        # Whatever is not resolved here stays numeric: the break/label
+        # mapping further down needs a numeric vector, and
+        # extract_*_line_data() stringifies anything that survives it.
+        if (looks_like_positions) {
+          # Discrete scale: positions index the (sorted) categories
+          layer_data$x <- as.character(original_values[round(x_pos)])
+        } else if (
+          !is.null(original_values) &&
+            is.numeric(x_pos) &&
+            !anyNA(suppressWarnings(as.numeric(original_values)))
+        ) {
+          # Continuous/Date scale: match numeric representations back to
+          # the original values so Dates format as dates, not day counts.
+          #
+          # `x_pos` is in the scale's TRANSFORMED space -- under
+          # scale_x_log10() the value 100 is stored as 2, under
+          # scale_x_reverse() 1 is stored as -1 -- so the raw values have
+          # to travel through the same transformation before they can be
+          # compared, or nothing ever matches and the transformed number
+          # is announced instead of the value the axis shows.
+          transformation <- self$get_x_transformation(built, panel_index)
+          numeric_repr <- round(
+            self$transform_x_values(original_values, transformation), 6
+          )
+          match_idx <- match(round(as.numeric(x_pos), 6), numeric_repr)
+          hit <- !is.na(match_idx)
+          if (any(hit)) {
+            mapped <- as.character(x_pos)
+            matched_vals <- original_values[match_idx[hit]]
+            mapped[hit] <- if (
+              inherits(original_values, c("Date", "POSIXct", "POSIXlt"))
+            ) {
+              format(matched_vals)
+            } else {
+              as.character(matched_vals)
+            }
+            layer_data$x <- mapped
+          }
         }
       }
 
