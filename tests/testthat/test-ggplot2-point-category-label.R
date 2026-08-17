@@ -232,8 +232,8 @@ test_that("looking up a missing position answers rather than erroring", {
 })
 
 test_that("a position that is already the category name is left alone", {
-  # The faceted path replaces the position with the category itself before
-  # emission (`apply_scale_mapping`), so `x` arrives as "a" rather than 1.
+  # The faceted path used to replace the position with the category itself
+  # before emission, so `x` arrived as "a" rather than 1.
   # There is nothing to name, and coercing it warned "NAs introduced by
   # coercion" once per point -- 220 warnings across the jitter suite alone.
   #

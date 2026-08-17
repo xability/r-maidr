@@ -59,7 +59,7 @@ test_that("Ggplot2StepLayerProcessor process() returns step type and direction",
   processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
 
   layout <- list(title = "Test Step Plot", axes = list(x = "X", y = "Y"))
-  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "step")
@@ -80,7 +80,7 @@ test_that("Ggplot2StepLayerProcessor emits canonical axes only", {
   processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
 
   layout <- list(title = "", axes = list(x = "X", y = "Y"))
-  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
 
   testthat::expect_true(all(names(result$axes) %in% c("x", "y", "z")))
   testthat::expect_type(result$axes$x, "list")
@@ -253,7 +253,7 @@ test_that("Ggplot2StepLayerProcessor process() carries the direction through", {
   for (direction in c("hv", "vh", "mid")) {
     p <- create_test_ggplot_step(direction)
     processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
-    result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+    result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
     testthat::expect_equal(result$stepDirection, direction)
   }
 })

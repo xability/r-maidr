@@ -11,11 +11,10 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
-      data <- self$extract_data(plot, built, scale_mapping, panel_id)
+      data <- self$extract_data(plot, built, panel_id)
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
       list(
         data = data,
@@ -139,7 +138,7 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         data
       }
     },
-    extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
+    extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
@@ -166,45 +165,41 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       if (!is.null(panel_id)) {
         # Use x values from built_data (contains actual axis values)
         # built_data$x contains the position indices, we need the actual axis values
-        if (!is.null(scale_mapping)) {
-          x_values <- self$apply_scale_mapping(built_data$x, scale_mapping)
+        # Map this panel's built x positions through the panel's OWN
+        # x-scale labels. Reading categories from the whole dataset
+        # mislabels panels whose category set differs (free scales,
+        # missing levels), since plot$data has no PANEL column.
+        panel_number <- suppressWarnings(as.integer(as.character(panel_id)))
+        panel_params_list <- built$layout$panel_params
+        panel_params <- if (
+          !is.na(panel_number) &&
+            panel_number >= 1 &&
+            panel_number <= length(panel_params_list)
+        ) {
+          panel_params_list[[panel_number]]
         } else {
-          # Map this panel's built x positions through the panel's OWN
-          # x-scale labels. Reading categories from the whole dataset
-          # mislabels panels whose category set differs (free scales,
-          # missing levels), since plot$data has no PANEL column.
-          panel_number <- suppressWarnings(as.integer(as.character(panel_id)))
-          panel_params_list <- built$layout$panel_params
-          panel_params <- if (
-            !is.na(panel_number) &&
-              panel_number >= 1 &&
-              panel_number <= length(panel_params_list)
-          ) {
-            panel_params_list[[panel_number]]
-          } else {
-            panel_params_list[[1]]
-          }
-          if (flipped) {
-            panel_params <- self$unflip_panel_params(panel_params)
-          }
+          panel_params_list[[1]]
+        }
+        if (flipped) {
+          panel_params <- self$unflip_panel_params(panel_params)
+        }
 
-          panel_labels <- NULL
-          if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
-            panel_labels <- panel_params$x$get_labels()
-          } else if (!is.null(panel_params$x.labels)) {
-            panel_labels <- panel_params$x.labels
-          }
+        panel_labels <- NULL
+        if (!is.null(panel_params$x) && !is.null(panel_params$x$get_labels)) {
+          panel_labels <- panel_params$x$get_labels()
+        } else if (!is.null(panel_params$x.labels)) {
+          panel_labels <- panel_params$x.labels
+        }
 
-          # Break labels may only be INDEXED by the built positions on a
-          # discrete scale, where those positions are 1..n category
-          # numbers. On a continuous, Date or datetime scale the positions
-          # ARE the values, so indexing invents labels (x = 4 picking up
-          # the 4th break's label) or emits raw day counts for dates.
-          if (self$panel_x_is_discrete(panel_params, built_data$x, panel_labels)) {
-            x_values <- self$map_discrete_x(built_data$x, panel_labels)
-          } else {
-            x_values <- self$map_continuous_x(built_data$x, plot, layer_index)
-          }
+        # Break labels may only be INDEXED by the built positions on a
+        # discrete scale, where those positions are 1..n category
+        # numbers. On a continuous, Date or datetime scale the positions
+        # ARE the values, so indexing invents labels (x = 4 picking up
+        # the 4th break's label) or emits raw day counts for dates.
+        if (self$panel_x_is_discrete(panel_params, built_data$x, panel_labels)) {
+          x_values <- self$map_discrete_x(built_data$x, panel_labels)
+        } else {
+          x_values <- self$map_continuous_x(built_data$x, plot, layer_index)
         }
       } else {
         # Original logic for non-faceted plots

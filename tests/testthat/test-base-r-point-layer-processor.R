@@ -79,7 +79,7 @@ test_that("BaseRPointLayerProcessor process() returns correct type", {
   processor <- maidr:::BaseRPointLayerProcessor$new(layer_info)
 
   # Process with NULL gt will skip selector generation
-  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info)
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$type, "point")

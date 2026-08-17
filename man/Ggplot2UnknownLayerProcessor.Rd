@@ -21,7 +21,6 @@ Handles unsupported layer types gracefully by returning empty data
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
@@ -47,7 +46,6 @@ Handles unsupported layer types gracefully by returning empty data
   layout,
   built = NULL,
   gt = NULL,
-  scale_mapping = NULL,
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
@@ -61,7 +59,6 @@ Handles unsupported layer types gracefully by returning empty data
       \item{\code{layout}}{Layout information}
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
@@ -75,11 +72,7 @@ Handles unsupported layer types gracefully by returning empty data
 \subsection{\code{Ggplot2UnknownLayerProcessor$extract_data()}}{
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2UnknownLayerProcessor$extract_data(
-  plot,
-  built = NULL,
-  scale_mapping = NULL
-)}
+    \preformatted{Ggplot2UnknownLayerProcessor$extract_data(plot, built = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -87,7 +80,6 @@ Handles unsupported layer types gracefully by returning empty data
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
-      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
   }

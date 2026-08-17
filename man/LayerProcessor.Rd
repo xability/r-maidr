@@ -35,7 +35,6 @@ interface that all layer processors must implement.
     \item \href{#method-LayerProcessor-set_last_result}{\code{LayerProcessor$set_last_result()}}
     \item \href{#method-LayerProcessor-get_last_result}{\code{LayerProcessor$get_last_result()}}
     \item \href{#method-LayerProcessor-extract_layer_axes}{\code{LayerProcessor$extract_layer_axes()}}
-    \item \href{#method-LayerProcessor-apply_scale_mapping}{\code{LayerProcessor$apply_scale_mapping()}}
     \item \href{#method-LayerProcessor-clone}{\code{LayerProcessor$clone()}}
   }
 }
@@ -70,7 +69,6 @@ interface that all layer processors must implement.
   layout,
   built = NULL,
   gt = NULL,
-  scale_mapping = NULL,
   grob_id = NULL,
   panel_ctx = NULL
 )}
@@ -83,7 +81,6 @@ interface that all layer processors must implement.
       \item{\code{layout}}{Layout information}
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
@@ -101,7 +98,7 @@ interface that all layer processors must implement.
   Extract data from the layer (MUST be implemented by subclasses)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$extract_data(plot, built = NULL, scale_mapping = NULL)}
+    \preformatted{LayerProcessor$extract_data(plot, built = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -109,7 +106,6 @@ interface that all layer processors must implement.
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
-      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
   }
@@ -396,29 +392,6 @@ Bare strings, top-level \code{format}/\code{min}/\code{max}/\code{tickStep}/
   }
   \subsection{Returns}{
     Named list with \code{x} and \code{y} AxisConfig objects
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LayerProcessor-apply_scale_mapping"></a>}}
-\if{latex}{\out{\hypertarget{method-LayerProcessor-apply_scale_mapping}{}}}
-\subsection{\code{LayerProcessor$apply_scale_mapping()}}{
-  Apply scale mapping to numeric values
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$apply_scale_mapping(numeric_values, scale_mapping)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{numeric_values}}{Vector of numeric values}
-      \item{\code{scale_mapping}}{Scale mapping vector}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Mapped values
   }
 }
 

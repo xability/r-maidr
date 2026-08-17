@@ -33,7 +33,6 @@ back onto the samples itself.
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
@@ -72,7 +71,6 @@ back onto the samples itself.
   layout,
   built = NULL,
   gt = NULL,
-  scale_mapping = NULL,
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL,
@@ -87,7 +85,6 @@ back onto the samples itself.
       \item{\code{layout}}{Unused for Base R (kept for interface compatibility)}
       \item{\code{built}}{Unused for Base R (kept for interface compatibility)}
       \item{\code{gt}}{Gtable object used for selector generation (optional)}
-      \item{\code{scale_mapping}}{Unused for Base R}
       \item{\code{grob_id}}{Unused for Base R}
       \item{\code{panel_id}}{Unused for Base R}
       \item{\code{panel_ctx}}{Unused for Base R}

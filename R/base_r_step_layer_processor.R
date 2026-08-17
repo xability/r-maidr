@@ -24,7 +24,6 @@ BaseRStepLayerProcessor <- R6::R6Class(
     #' @param layout Unused for Base R (kept for interface compatibility)
     #' @param built Unused for Base R (kept for interface compatibility)
     #' @param gt Gtable object used for selector generation (optional)
-    #' @param scale_mapping Unused for Base R
     #' @param grob_id Unused for Base R
     #' @param panel_id Unused for Base R
     #' @param panel_ctx Unused for Base R
@@ -34,7 +33,6 @@ BaseRStepLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL,

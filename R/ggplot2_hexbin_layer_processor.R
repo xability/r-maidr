@@ -84,7 +84,6 @@ Ggplot2HexbinLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
-    #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @param panel_ctx Panel context for patchwork leaves and facets
@@ -93,7 +92,6 @@ Ggplot2HexbinLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {

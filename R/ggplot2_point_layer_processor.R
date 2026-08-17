@@ -14,7 +14,6 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
     #' @param layout Layout information
     #' @param built Built plot data (optional)
     #' @param gt Gtable object (optional)
-    #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param grob_id Grob ID for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with data and selectors
@@ -22,11 +21,10 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
-      extracted_data <- self$extract_data(plot, built, scale_mapping, panel_id)
+      extracted_data <- self$extract_data(plot, built, panel_id)
 
       selectors <- self$generate_selectors(plot, gt, grob_id, panel_ctx)
 
@@ -203,10 +201,9 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
     #' @description Extract data from point layer
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
-    #' @param scale_mapping Scale mapping for faceted plots (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return List with points array and color information
-    extract_data = function(plot, built = NULL, scale_mapping = NULL, panel_id = NULL) {
+    extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
       }
@@ -272,13 +269,10 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       #     ggplot(df, aes(g, v)) + geom_jitter() + facet_wrap(~f)   x = "a"
       #
       # By `layer_data$x <- x_values[layer_data$x]`, which indexed the panel's
-      # sorted category values by the drawn position. Not by
-      # `apply_scale_mapping()`, which #178 named and which cannot run here:
-      # `ggplot2_facet_utils.R` passes `scale_mapping = NULL` for every panel,
-      # so that branch is unreachable from a faceted layer. Restoring it alone
-      # leaves every test in
-      # `tests/testthat/test-ggplot2-faceted-point-position.R` passing;
-      # restoring the index lookup alone fails all eleven.
+      # sorted category values by the drawn position. #178 names a different
+      # cause -- a scale-mapping helper that in fact never ran, because no
+      # caller ever passed a mapping. That plumbing has since been removed
+      # (#181); this is the code that did it.
       #
       # `ScatterPoint.x` is typed `number` in the grammar, and `ScatterTrace`
       # does arithmetic on it: it sorts with `a.x - b.x`, indexes columns by

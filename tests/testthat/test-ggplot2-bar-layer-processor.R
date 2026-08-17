@@ -50,7 +50,7 @@ test_that("Ggplot2BarLayerProcessor process() returns correct structure", {
     axes = list(x = "Category", y = "Value")
   )
 
-  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
 
   testthat::expect_type(result, "list")
   testthat::expect_equal(result$title, "Test Bar")
@@ -340,7 +340,7 @@ test_that("Ggplot2BarLayerProcessor extracts all metadata correctly", {
     title = "Complete Bar",
     axes = list(x = "Month", y = "Sales")
   )
-  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(p, layout, NULL, NULL, NULL, NULL, NULL)
 
   # Test data extraction
   testthat::expect_equal(length(result$data), 3)

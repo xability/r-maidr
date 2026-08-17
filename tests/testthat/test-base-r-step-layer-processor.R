@@ -75,7 +75,7 @@ test_that("BaseRStepLayerProcessor process() returns step type and direction", {
   processor <- maidr:::BaseRStepLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_type(result, "list")
@@ -93,7 +93,7 @@ test_that("BaseRStepLayerProcessor emits canonical axes only", {
   processor <- maidr:::BaseRStepLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_true(all(names(result$axes) %in% c("x", "y", "z")))
@@ -129,7 +129,7 @@ test_that("BaseRStepLayerProcessor omits the direction when type is absent", {
   testthat::expect_null(processor$extract_step_direction(layer_info))
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
   testthat::expect_false("stepDirection" %in% names(result))
   testthat::expect_equal(result$type, "step")
@@ -161,7 +161,7 @@ test_that("BaseRStepLayerProcessor handles lines(type = 'S') calls", {
   processor <- maidr:::BaseRStepLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   testthat::expect_equal(result$type, "step")
@@ -312,7 +312,7 @@ test_that("BaseRStepLayerProcessor handles a single-sample step", {
 test_that("BaseRStepLayerProcessor process() on NULL layer_info stays well formed", {
   processor <- maidr:::BaseRStepLayerProcessor$new(list(index = 1))
 
-  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 
   testthat::expect_equal(result$type, "step")
   testthat::expect_equal(length(result$data), 0)
@@ -421,7 +421,7 @@ test_that("A Base R step layer payload serialises to JSON", {
   processor <- maidr:::BaseRStepLayerProcessor$new(layer_info)
 
   result <- processor$process(
-    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, layer_info
   )
 
   json <- jsonlite::toJSON(result, auto_unbox = TRUE)

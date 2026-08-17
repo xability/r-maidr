@@ -46,7 +46,6 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.
 }
 \if{html}{\out{<details><summary>Inherited methods</summary>
 <ul>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="apply_scale_mapping"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-apply_scale_mapping'><code>LayerProcessor$apply_scale_mapping()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-extract_layer_axes'><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
@@ -108,7 +107,6 @@ violin_box (with BoxSelector objects) and violin_kde.
   layout,
   built = NULL,
   gt = NULL,
-  scale_mapping = NULL,
   grob_id = NULL,
   panel_id = NULL,
   panel_ctx = NULL
@@ -122,7 +120,6 @@ violin_box (with BoxSelector objects) and violin_kde.
       \item{\code{layout}}{Layout information}
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
       \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for faceted plots (optional)}
@@ -231,11 +228,7 @@ Generate CSS selectors for violin polygons (for violin_kde layer)
 \subsection{\code{Ggplot2ViolinLayerProcessor$extract_data()}}{
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2ViolinLayerProcessor$extract_data(
-  plot,
-  built = NULL,
-  scale_mapping = NULL
-)}
+    \preformatted{Ggplot2ViolinLayerProcessor$extract_data(plot, built = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -243,7 +236,6 @@ Generate CSS selectors for violin polygons (for violin_kde layer)
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
-      \item{\code{scale_mapping}}{Scale mapping for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
   }

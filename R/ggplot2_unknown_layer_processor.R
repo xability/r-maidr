@@ -11,7 +11,6 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
                        layout,
                        built = NULL,
                        gt = NULL,
-                       scale_mapping = NULL,
                        grob_id = NULL,
                        panel_id = NULL,
                        panel_ctx = NULL) {
@@ -22,7 +21,7 @@ Ggplot2UnknownLayerProcessor <- R6::R6Class(
         axes = self$extract_layer_axes(plot, layout)
       )
     },
-    extract_data = function(plot, built = NULL, scale_mapping = NULL) {
+    extract_data = function(plot, built = NULL) {
       list()
     },
     generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {

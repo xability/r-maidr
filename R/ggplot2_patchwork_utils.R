@@ -608,7 +608,6 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           leaf_layout,
           built = leaf_built,
           gt = gtable,
-          scale_mapping = NULL,
           panel_ctx = panel_ctx,
           panel_id = NULL
         ),
