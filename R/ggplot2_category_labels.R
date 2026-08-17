@@ -105,17 +105,18 @@ category_at <- function(position, labels) {
     return(NULL)
   }
 
-  # Only a numeric position has a name to look up. The faceted path replaces
-  # the position with the category *itself* before emission
-  # (`apply_scale_mapping`), so `x` arrives as the character "a" rather than
-  # the number 1 -- there is nothing to name, and coercing it would warn
-  # "NAs introduced by coercion" once per point. `mapped_discrete` inherits
-  # numeric, so the ordinary discrete position still passes.
+  # Only a numeric position has a name to look up, and coercing one that is
+  # not would warn "NAs introduced by coercion" once per point. Which is how
+  # the faceted disagreement surfaced: that path used to replace the position
+  # with the category *itself* before emission (`apply_scale_mapping`), so `x`
+  # arrived here as the character "a" rather than the number 1, and adding
+  # this lookup took the suite from 8 warnings to 228. The point processor no
+  # longer relabels (#178), so both paths now hand this a number --
+  # `mapped_discrete` inherits numeric, so a discrete position passes.
   #
-  # That the two paths disagree at all is a defect of its own: the grammar
-  # types `ScatterPoint.x` as a number, and the core subtracts x values to
-  # sort and to index columns, so a string there gives an unstable sort and a
-  # highlight that lands nowhere. Filed separately rather than fixed here.
+  # The guard stays because it is the honest answer for any caller: a position
+  # that is not a number has no slot to be nearest to, and a bar layer's `x`
+  # is legitimately `string | number` in the grammar.
   if (!is.numeric(position) || is.na(position)) {
     return(NULL)
   }
