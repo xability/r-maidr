@@ -41,6 +41,14 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$get_layer_index()`](#method-LayerProcessor-get_layer_index)
 
+- [`LayerProcessor$is_flipped_layer()`](#method-LayerProcessor-is_flipped_layer)
+
+- [`LayerProcessor$unflip_columns()`](#method-LayerProcessor-unflip_columns)
+
+- [`LayerProcessor$unflip_panel_params()`](#method-LayerProcessor-unflip_panel_params)
+
+- [`LayerProcessor$swap_point_axes()`](#method-LayerProcessor-swap_point_axes)
+
 - [`LayerProcessor$set_last_result()`](#method-LayerProcessor-set_last_result)
 
 - [`LayerProcessor$get_last_result()`](#method-LayerProcessor-get_last_result)
@@ -362,6 +370,134 @@ Get layer index
 #### Returns
 
 Layer index
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$is_flipped_layer()`
+
+Is this layer drawn with its category axis running up `y`?
+
+`ggplot(df, aes(y = g, x = n)) + geom_col()` is the ordinary spelling of
+a horizontal bar chart.
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+marks such a layer `flipped_aes` and swaps which computed column holds
+what, so a processor that reads `x` as the category and `y` as the
+measure picks up exactly the wrong pair unless it asks first (#162,
+\#184, \#186).
+
+Lives here rather than on one processor because three of them need the
+same answer, and because a processor that never asks it goes wrong
+silently: both columns hold plausible values.
+
+[`coord_flip()`](https://ggplot2.tidyverse.org/reference/coord_flip.html)
+is a different thing and answers `FALSE` here. It rotates the coordinate
+system and leaves `flipped_aes` alone, so the data layout is genuinely
+unflipped.
+
+#### Usage
+
+    LayerProcessor$is_flipped_layer(built = NULL)
+
+#### Arguments
+
+- `built`:
+
+  A
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  result, or `NULL` when the caller has none – in which case the layer
+  is treated as unflipped, since there is nothing to read the flag from.
+
+#### Returns
+
+`TRUE` when the category runs up the y axis.
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$unflip_columns()`
+
+Exchange a built layer's paired x and y columns
+
+Swapping the pairs up front lets every branch downstream stay written
+against one arrangement rather than each learning to ask which way round
+it is – and a branch that forgot to ask would go wrong silently, since
+both columns hold plausible numbers.
+
+#### Usage
+
+    LayerProcessor$unflip_columns(built_data)
+
+#### Arguments
+
+- `built_data`:
+
+  One layer's built data.
+
+#### Returns
+
+The same frame with its x and y pairs exchanged.
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$unflip_panel_params()`
+
+Exchange a panel's x and y scales
+
+So the break labels a processor reads come from the axis the categories
+are actually drawn on. Both the scale objects and the flattened
+`x.labels`/`y.labels` of older ggplot2 are swapped, since readers fall
+back from one to the other.
+
+#### Usage
+
+    LayerProcessor$unflip_panel_params(panel_params)
+
+#### Arguments
+
+- `panel_params`:
+
+  One entry of `built$layout$panel_params`.
+
+#### Returns
+
+The same list with its x and y entries exchanged.
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$swap_point_axes()`
+
+Put a horizontal layer's category and measure in the fields the bar
+grammar reads them from.
+
+Processors emit `x = category, y = measure`, which is the vertical
+arrangement. A horizontal bar is read the other way round: MAIDR takes
+`x` as the magnitude and `y` as the category when `orientation` is
+`"horz"`, so the pair has to be exchanged on the way out. Left
+unexchanged, the core looks for a number and finds a category name – no
+magnitude to pitch, and an announcement that pairs the category axis
+with the measure and the measure axis with the category name (#184).
+
+Only the bar family wants this, which is why it is a step a processor
+opts into rather than something the orchestrator applies to every
+horizontal layer. An error bar keeps its category in `x` at both
+orientations and lets `orientation` swap only which axis labels the
+reading is announced against; a box carries quantiles and has no axis
+assignment to exchange at all.
+
+#### Usage
+
+    LayerProcessor$swap_point_axes(data_points)
+
+#### Arguments
+
+- `data_points`:
+
+  Points in `x = category, y = measure` form. A nested list – one series
+  per element, as a grouped bar layer emits – is handled as well as a
+  flat one.
+
+#### Returns
+
+The same points with `x` and `y` exchanged.
 
 ------------------------------------------------------------------------
 

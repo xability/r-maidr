@@ -224,6 +224,30 @@
 
 ### Bug Fixes
 
+- ggplot2: a horizontal grouped bar chart came out with no data in it.
+  `ggplot(df, aes(n, g, fill = h)) + geom_col(position = "dodge")` is
+  the ordinary spelling, and neither the dodged nor the stacked
+  processor ever asked whether its layer was `flipped_aes` – the
+  question the plain bar processor learned to ask, and the string
+  appeared in neither file. So the category names went into the level
+  ordering as if they were the measure, and the measures went into
+  [`as.numeric()`](https://rdrr.io/r/base/numeric.html) as if they were
+  the categories. A chart of apple/banana/cherry against two fill groups
+  came back as six columns per series, named after the chart’s own
+  numbers and sorted by them, with every magnitude `null`: a chart that
+  loads, navigates and announces “missing” at each of six categories
+  that do not exist. A stacked layer had a category *name* sitting in
+  the slot the magnitude is read from, and a `position = "fill"` layer
+  took its category names from the computed proportions – “0.00”,
+  “0.25”, “0.50” – because it reads its break labels off the panel’s x
+  scale, and a horizontal layer breaks its categories on y. None of the
+  three emitted an `orientation` key at all, so even correct data would
+  have been read as a vertical chart. All three now unflip up front and
+  swap the pair at the emit boundary, with the key and the layout taken
+  from one answer so they cannot drift apart. The three unflip helpers
+  and the emit swap moved to `LayerProcessor`, since four processors now
+  need them.
+
 - ggplot2: a horizontal bar chart announced no magnitude, and named its
   axes against the wrong halves of the data.
   `ggplot(df, aes(n, g)) + geom_col()` was emitted as

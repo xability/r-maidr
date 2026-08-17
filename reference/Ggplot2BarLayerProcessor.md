@@ -13,15 +13,9 @@ Processes bar plot layers with complete logic included
 
 - [`Ggplot2BarLayerProcessor$process()`](#method-Ggplot2BarLayerProcessor-process)
 
-- [`Ggplot2BarLayerProcessor$swap_point_axes()`](#method-Ggplot2BarLayerProcessor-swap_point_axes)
-
 - [`Ggplot2BarLayerProcessor$is_flipped()`](#method-Ggplot2BarLayerProcessor-is_flipped)
 
-- [`Ggplot2BarLayerProcessor$unflip_columns()`](#method-Ggplot2BarLayerProcessor-unflip_columns)
-
 - [`Ggplot2BarLayerProcessor$unflip_mapping()`](#method-Ggplot2BarLayerProcessor-unflip_mapping)
-
-- [`Ggplot2BarLayerProcessor$unflip_panel_params()`](#method-Ggplot2BarLayerProcessor-unflip_panel_params)
 
 - [`Ggplot2BarLayerProcessor$needs_reordering()`](#method-Ggplot2BarLayerProcessor-needs_reordering)
 
@@ -51,8 +45,12 @@ Inherited methods
 - [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
 - [`LayerProcessor$get_own_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_own_layer)
 - [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
+- [`LayerProcessor$is_flipped_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-is_flipped_layer)
 - [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
 - [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
+- [`LayerProcessor$swap_point_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-swap_point_axes)
+- [`LayerProcessor$unflip_columns()`](https://r.maidr.ai/reference/LayerProcessor.html#method-unflip_columns)
+- [`LayerProcessor$unflip_panel_params()`](https://r.maidr.ai/reference/LayerProcessor.html#method-unflip_panel_params)
 
 ------------------------------------------------------------------------
 
@@ -95,44 +93,6 @@ Inherited methods
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
-
-------------------------------------------------------------------------
-
-### `Ggplot2BarLayerProcessor$swap_point_axes()`
-
-Put a horizontal layer's category and measure in the fields the bar
-grammar reads them from.
-
-`extract_data` emits `x = category, y = measure` for every layer, which
-is the vertical arrangement. A horizontal bar is read the other way
-round: MAIDR takes `x` as the magnitude and `y` as the category when
-`orientation` is `"horz"`, so the pair has to be exchanged on the way
-out. Left unexchanged, the core looked for a number and found a category
-name – no magnitude to pitch, and an announcement that paired the
-category axis with the measure and the measure axis with the category
-name, contradicting an `axes` block that was right all along (#184).
-
-Not every horizontal layer wants this, which is why it is the bar
-processor's own step rather than a shared one. An error bar keeps its
-category in `x` at both orientations and lets `orientation` swap only
-which axis labels the reading is announced against; a box carries
-quantiles and no axis assignment to exchange at all. The histogram
-processor, whose trace extends this one in the core, already does the
-same thing for the same reason.
-
-#### Usage
-
-    Ggplot2BarLayerProcessor$swap_point_axes(data_points)
-
-#### Arguments
-
-- `data_points`:
-
-  Points in `extract_data`'s `x = category, y = measure` form.
-
-#### Returns
-
-The same points with `x` and `y` exchanged.
 
 ------------------------------------------------------------------------
 
@@ -186,31 +146,6 @@ from this same answer is for.
 
 ------------------------------------------------------------------------
 
-### `Ggplot2BarLayerProcessor$unflip_columns()`
-
-Put a flipped layer's columns back where the rest expects
-
-Swapping the pairs up front lets every branch below stay as written
-rather than each learning to ask which way round it is – and a branch
-that forgot to ask would go wrong silently, since both columns hold
-plausible numbers.
-
-#### Usage
-
-    Ggplot2BarLayerProcessor$unflip_columns(built_data)
-
-#### Arguments
-
-- `built_data`:
-
-  One layer's built data.
-
-#### Returns
-
-The same frame with its x and y pairs exchanged.
-
-------------------------------------------------------------------------
-
 ### `Ggplot2BarLayerProcessor$unflip_mapping()`
 
 Exchange a plot's x and y aesthetics
@@ -232,31 +167,6 @@ selectors and axis labels.
 #### Returns
 
 A copy whose plot-level and layer-level x/y mappings are swapped.
-
-------------------------------------------------------------------------
-
-### `Ggplot2BarLayerProcessor$unflip_panel_params()`
-
-Exchange a panel's x and y scales
-
-So the break labels read below come from the axis the categories are
-actually drawn on. Both the scale objects and the flattened
-`x.labels`/`y.labels` of older ggplot2 are swapped, since the reader
-below falls back from one to the other.
-
-#### Usage
-
-    Ggplot2BarLayerProcessor$unflip_panel_params(panel_params)
-
-#### Arguments
-
-- `panel_params`:
-
-  One entry of `built$layout$panel_params`.
-
-#### Returns
-
-The same list with its x and y entries exchanged.
 
 ------------------------------------------------------------------------
 
