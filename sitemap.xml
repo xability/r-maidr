@@ -45,6 +45,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2UnknownLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ViolinLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/INTERVAL_GROUP_AES.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/JITTER_POSITION_CLASSES.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/LayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/MAIDR_INTERNET_CACHE_TTL.html</loc></url>
@@ -68,6 +69,7 @@
 <url><loc>https://r.maidr.ai/reference/base_r_axis_labels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base_r_categorical_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/base_r_step_direction.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/box_order_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_axes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_axis_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/build_format_config.html</loc></url>
@@ -274,6 +276,7 @@
 <url><loc>https://r.maidr.ai/reference/restore_ggplot2_print_method.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/restore_original_functions.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/retry_call_in_caller_frame.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/reverse_horizontal_box_layer.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/run_example.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/save_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/save_html_document.html</loc></url>
