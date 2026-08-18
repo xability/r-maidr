@@ -194,10 +194,16 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
         .panel_name = if (!is.null(panel_ctx)) panel_ctx$panel_name else NULL
       )
 
-      # Return multi-layer result; the orchestrator will expand this
+      # Return multi-layer result; the orchestrator will expand this. Both
+      # layers are turned round when the chart is horizontal, for the reason
+      # `reverse_horizontal_box_layer()` documents (#187): `ViolinBoxTrace`
+      # and `ViolinTrace` each reverse one unconditionally.
       list(
         multi_layer = TRUE,
-        layers = list(box_layer, kde_layer)
+        layers = list(
+          reverse_horizontal_box_layer(box_layer),
+          reverse_horizontal_box_layer(kde_layer)
+        )
       )
     },
 

@@ -63,14 +63,17 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
       # For vertical boxplots, Q1 is at bottom, Q3 at top (reversed in screen coords)
       iqr_direction <- if (orientation == "vert") "reverse" else "forward"
 
-      list(
+      # A horizontal layer is turned round on the way out: the frontend
+      # reverses one unconditionally, so emitting the natural bottom-to-top
+      # order lands a reader on the top box (#187).
+      reverse_horizontal_box_layer(list(
         data = extracted_data,
         selectors = selectors,
         axes = axes,
         orientation = orientation,
         type = "box",
         domMapping = list(iqrDirection = iqr_direction)
-      )
+      ))
     },
 
     #' @description Extract data from boxplot layer

@@ -1,3 +1,20 @@
+#' The aesthetics that split an uncertainty layer into series
+#'
+#' Probed in order, and each entry holds the spelling variants of ONE
+#' aesthetic, which is the contract `resolve_series_group_mapping()`
+#' documents. `colour` first because it is what a dodged interval chart is
+#' almost always split by; `group` last, because an author who writes
+#' `aes(group = g)` and nothing else has still said what the series are.
+#'
+#' @keywords internal
+INTERVAL_GROUP_AES <- list(
+  c("colour", "color"),
+  "fill",
+  "linetype",
+  "shape",
+  "group"
+)
+
 #' ggplot2 Error Bar Layer Processor
 #'
 #' Processes ggplot2's uncertainty geoms -- `geom_errorbar()`,
@@ -67,19 +84,225 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
 
       layer_data <- self$get_layer_built_data(built, panel_id)
       is_horizontal <- self$is_horizontal_layer(plot, layer_data)
+      groups <- self$resolve_interval_groups(plot, layer_data, built, panel_id)
       data <- self$extract_interval_data(
-        built, layer_data, is_horizontal, panel_id
+        built, layer_data, is_horizontal, panel_id, groups
       )
+      samples <- if (is.null(groups)) {
+        length(data)
+      } else {
+        sum(vapply(data, length, integer(1)))
+      }
 
       list(
         data = data,
         selectors = self$generate_selectors(
-          plot, gt, grob_id, panel_ctx, length(data)
+          plot, gt, grob_id, panel_ctx, samples, groups$order
         ),
-        axes = self$extract_axes_labels(plot, built, panel_id),
+        axes = self$attach_group_axis(plot, built, data, groups, panel_id),
         type = "error_bar",
         orientation = if (isTRUE(is_horizontal)) "horz" else "vert"
       )
+    },
+
+    #' @description Name the series axis after the legend the chart shows.
+    #'
+    #' Guarded on the split rather than on the payload's shape, because
+    #' `data_has_series_groups()` reads `data[[1]][[1]]$z` and an ungrouped
+    #' layer's `data[[1]]` is a point, whose first element is an atomic
+    #' category name. The grouped shape is the only one that has a z axis to
+    #' name, so asking the split is both safer and the actual question.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @param data The extracted layer data
+    #' @param groups The layer's series split, or NULL
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return The axes list, with z added when the layer is grouped
+    attach_group_axis = function(plot, built, data, groups, panel_id = NULL) {
+      axes <- self$extract_axes_labels(plot, built, panel_id)
+      if (is.null(groups)) {
+        return(axes)
+      }
+      attach_series_group_axis(
+        axes, plot, built, data, self$get_layer_index(), INTERVAL_GROUP_AES
+      )
+    },
+
+    #' @description Split the layer's rows into the series the chart draws.
+    #'
+    #' A dodged interval chart puts one whip per group at every category, and
+    #' without the split every category is announced twice with nothing saying
+    #' which reading belongs to which group -- so the comparison the figure
+    #' exists to support, whether two groups' intervals overlap, is the one
+    #' thing unavailable (#183). MAIDR's grammar gained the grouped shape,
+    #' `ErrorBarPoint[][]` with a `z` per point, in xability/maidr#942.
+    #'
+    #' The group each row belongs to cannot be read out of the built data:
+    #' `ggplot_build()` replaces the grouping column with an integer `group`
+    #' id, and on a discrete x that id is the *interaction* of x and the
+    #' grouping aesthetic -- 6 ids for 3 categories and 2 groups, measured --
+    #' so it names a cell rather than a series. The aesthetic's own values are
+    #' replaced too, by the palette colour they mapped to. The user's frame is
+    #' what still holds the names, and it is only usable while it still has a
+    #' row per built row: ggplot2 drops rows it cannot draw, and a padded
+    #' lookup would name every series `NA`. The same guard
+    #' `Ggplot2StackedBarProcessor` applies for the same reason.
+    #'
+    #' A layer with its own `data` is read from that frame rather than the
+    #' plot's, matching ggplot2's own precedence.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param layer_data This layer's computed rows
+    #' @param built Built plot data
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return A list of `positions` (each row's series, as an index into
+    #'   `levels`), `levels` (the series, in the order ggplot2 draws them) and
+    #'   `order` (the row indices in series order), or NULL when the layer
+    #'   draws a single undivided series
+    resolve_interval_groups = function(plot, layer_data, built, panel_id = NULL) {
+      if (is.null(layer_data) || nrow(layer_data) < 1L) {
+        return(NULL)
+      }
+
+      mapping <- resolve_series_group_mapping(
+        plot, self$get_layer_index(), INTERVAL_GROUP_AES
+      )
+      if (is.null(mapping$aes)) {
+        return(NULL)
+      }
+
+      # The frame lines up with the layer's WHOLE built data, so a faceted
+      # layer -- whose rows here are one panel's slice of it -- has to take
+      # the same slice of the frame rather than declining the split.
+      full <- self$layer_built_rows(built)
+      rows <- self$panel_row_indices(full, nrow(layer_data), panel_id)
+      if (is.null(rows)) {
+        return(NULL)
+      }
+
+      frame <- self$interval_group_frame(plot, nrow(full))
+      if (is.null(frame) || !mapping$column %in% names(frame)) {
+        return(NULL)
+      }
+
+      values <- frame[[mapping$column]][rows]
+      if (!self$group_values_agree(layer_data, mapping$aes, values)) {
+        return(NULL)
+      }
+      levels <- discrete_level_order(values)
+      if (length(levels) < 2L) {
+        # One group is not a grouping. The flat payload is the shape MAIDR
+        # documents for a single series, and emitting a one-element series of
+        # series would announce a group name no reader needs.
+        return(NULL)
+      }
+
+      # Positions rather than names: a level that is `NA` -- a missing value,
+      # which ggplot2 draws as its own series -- cannot be a list name, and
+      # `split()` would collapse it onto a level literally spelled "NA".
+      positions <- as.integer(
+        factor(as.character(values), levels = levels, exclude = NULL)
+      )
+      order <- unname(unlist(split(seq_len(nrow(layer_data)), positions)))
+      list(positions = positions, levels = levels, order = order)
+    },
+
+    #' @description Check the frame's values against what the layer drew.
+    #'
+    #' Row counts agreeing is not the same as rows corresponding. A stat that
+    #' happens to emit as many rows as the frame has would pass the count
+    #' test while pairing a reading with somebody else's group name -- the
+    #' worst failure available here, since every value stays correct and only
+    #' the label is a lie.
+    #'
+    #' What can be checked is that the pairing is *consistent*: ggplot2 keeps
+    #' the grouping aesthetic in the built data as the value it mapped to (a
+    #' palette colour, a linetype), and a correct pairing gives every row
+    #' sharing that drawn value the same name. A shuffled one almost never
+    #' does. Falls back to the built `group` id when the aesthetic itself is
+    #' not in the built data, which is what an explicit `aes(group = ...)`
+    #' leaves behind.
+    #'
+    #' @param layer_data This layer's computed rows
+    #' @param aes_names The winning aesthetic's spelling variants
+    #' @param values The frame's grouping values, one per row
+    #' @return TRUE when every drawn value carries a single name
+    group_values_agree = function(layer_data, aes_names, values) {
+      column <- c(aes_names, "group")
+      column <- column[column %in% names(layer_data)]
+      if (length(column) == 0L) {
+        return(FALSE)
+      }
+
+      drawn <- level_keys(as.character(layer_data[[column[[1]]]]))
+      named <- level_keys(as.character(values))
+      if (length(drawn) != length(named)) {
+        return(FALSE)
+      }
+      all(vapply(
+        split(named, drawn),
+        function(names) length(unique(names)) == 1L,
+        logical(1)
+      ))
+    },
+
+    #' @description This layer's built rows, every panel of them.
+    #'
+    #' @param built Built plot data
+    #' @return A data frame, or NULL when the layer index does not resolve
+    layer_built_rows = function(built) {
+      index <- self$get_layer_index()
+      if (is.null(index) || is.null(built$data) ||
+        index < 1L || index > length(built$data)) {
+        return(NULL)
+      }
+      built$data[[index]]
+    },
+
+    #' @description Which of the layer's built rows this panel's rows are.
+    #'
+    #' Mirrors `get_layer_built_data()`, including its fallback: a panel id
+    #' that selects nothing leaves the whole layer in place, so the indices
+    #' have to as well. Answers NULL when the two do not line up, which is
+    #' the signal to decline the split rather than pair rows at random.
+    #'
+    #' @param full The layer's built rows, every panel of them
+    #' @param rows How many rows this panel contributed
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return Integer indices into `full`, or NULL
+    panel_row_indices = function(full, rows, panel_id = NULL) {
+      if (is.null(full) || nrow(full) < 1L) {
+        return(NULL)
+      }
+
+      if (!is.null(panel_id) && "PANEL" %in% names(full)) {
+        hit <- which(as.character(full$PANEL) == as.character(panel_id))
+        if (length(hit) == rows) {
+          return(hit)
+        }
+      }
+
+      if (nrow(full) == rows) seq_len(nrow(full)) else NULL
+    },
+
+    #' @description The frame still carrying the grouping column's own values.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param rows How many rows the layer computed
+    #' @return A data frame with one row per built row, or NULL
+    interval_group_frame = function(plot, rows) {
+      layer <- self$get_own_layer(plot)
+      candidates <- list(
+        if (!is.null(layer)) layer$data else NULL,
+        plot$data
+      )
+      for (frame in candidates) {
+        if (is.data.frame(frame) && nrow(frame) == rows) {
+          return(frame)
+        }
+      }
+      NULL
     },
 
     #' @description Decide whether the interval runs along x rather than y.
@@ -166,13 +389,26 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
     #' @param grob_id Grob ID for faceted plots (unused; the drawn grob is
     #'   resolved from the panel, which is what the unnamed polyline needs)
     #' @param panel_ctx Panel context for panel-scoped selectors (optional)
+    #' A grouped layer needs one selector per sample instead of one stride
+    #' over all of them, because MAIDR flattens its series before pairing them
+    #' against the resolved elements: the payload runs series by series while
+    #' the chart draws row by row, and one stride can only ever produce the
+    #' drawn order. The per-sample form addresses each mark by the **id**
+    #' gridSVG gave it, not by position, so resolving one cannot disturb the
+    #' rest -- a positional list would, since resolving a selector inserts a
+    #' hidden clone beside the match and shifts every later `nth-child`
+    #' (xability/maidr#1004).
+    #'
     #' @param sample_count How many points this layer emitted
-    #' @return A list holding one CSS selector, or an empty list
+    #' @param order The row indices in series order, or NULL when the layer
+    #'   draws a single undivided series
+    #' @return A list of CSS selectors, or an empty list
     generate_selectors = function(plot,
                                   gt = NULL,
                                   grob_id = NULL,
                                   panel_ctx = NULL,
-                                  sample_count = NULL) {
+                                  sample_count = NULL,
+                                  order = NULL) {
       expected <- suppressWarnings(as.integer(sample_count))
       if (is.null(gt) || length(expected) != 1L || is.na(expected) ||
         expected < 1L) {
@@ -205,11 +441,50 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
         return(list())
       }
 
+      if (!is.null(order)) {
+        return(self$interval_sample_selectors(
+          grob$name, shape$per_sample, order
+        ))
+      }
+
       selector <- self$interval_selector(grob$name, shape$per_sample)
       if (is.null(selector)) {
         return(list())
       }
       list(selector)
+    },
+
+    #' @description Address one drawn mark per sample, in series order.
+    #'
+    #' gridSVG gives every exported element its own id, built from the grob's
+    #' name: `<grob>.1.<i>` where a sample is drawn as one element, and
+    #' `<grob>.1.<i>a`, `<i>b`, `<i>c` where `geom_errorbar()` draws its cap,
+    #' whisker and other cap. Measured on ggplot2 3.4.4 across all four
+    #' geoms this processor serves. The whisker is the middle one, which is
+    #' the same element the stride form's `nth-child(3n+2)` picks -- so a
+    #' grouped chart and an ungrouped one outline the same mark.
+    #'
+    #' Restricted to the two shapes `interval_selector()` handles, for the
+    #' same reason: an unverified element count would name a mark by an id
+    #' pattern nothing has been checked against.
+    #'
+    #' @param grob_name Name of the grob whose children are the samples
+    #' @param per_sample How many elements the grob draws per sample
+    #' @param order The row indices in series order
+    #' @return A list of CSS selectors, one per sample, or an empty list
+    interval_sample_selectors = function(grob_name, per_sample, order) {
+      per_sample <- as.integer(per_sample)
+      if (!identical(per_sample, 1L) && !identical(per_sample, 3L)) {
+        return(list())
+      }
+
+      suffix <- if (identical(per_sample, 3L)) "b" else ""
+      lapply(order, function(i) {
+        escaped <- gsub(
+          "\\.", "\\\\.", paste0(grob_name, ".1.", i, suffix)
+        )
+        paste0("#", escaped)
+      })
     },
 
     #' @description Find the grob whose children are the samples.
@@ -417,15 +692,23 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
     #' is a real chart, and dropping the point for want of its other half
     #' would lose the estimate too.
     #'
+    #' A grouped layer emits one series per group instead, each point
+    #' carrying its group's name as `z` -- the shape every other grouped
+    #' layer in this package already emits, and the one MAIDR's `ErrorBarTrace`
+    #' reads as a series of series.
+    #'
     #' @param built Built plot data
     #' @param layer_data This layer's computed rows
     #' @param is_horizontal Whether the interval spans the x axis
     #' @param panel_id Panel ID for faceted plots (optional)
-    #' @return A list of MAIDR interval points
+    #' @param groups The layer's series split, or NULL for a single series
+    #' @return A list of MAIDR interval points, or a list of such lists when
+    #'   the layer is grouped
     extract_interval_data = function(built,
                                      layer_data,
                                      is_horizontal,
-                                     panel_id = NULL) {
+                                     panel_id = NULL,
+                                     groups = NULL) {
       if (is.null(layer_data)) {
         return(list())
       }
@@ -452,8 +735,7 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
       lower <- if (min_col %in% names(layer_data)) layer_data[[min_col]] else NULL
       upper <- if (max_col %in% names(layer_data)) layer_data[[max_col]] else NULL
 
-      points <- vector("list", nrow(layer_data))
-      for (i in seq_len(nrow(layer_data))) {
+      build_point <- function(i, z = NULL) {
         point <- list(x = categories[[i]], y = as.numeric(values[i]))
 
         if (!is.null(lower) && is.finite(lower[i])) {
@@ -462,11 +744,30 @@ Ggplot2ErrorbarLayerProcessor <- R6::R6Class(
         if (!is.null(upper) && is.finite(upper[i])) {
           point$yMax <- as.numeric(upper[i])
         }
+        if (!is.null(z)) {
+          point$z <- z
+        }
 
-        points[[i]] <- point
+        point
       }
 
-      points
+      if (is.null(groups)) {
+        return(lapply(seq_len(nrow(layer_data)), build_point))
+      }
+
+      # One series per level, in the order ggplot2 draws them, and the rows
+      # within a series in the order the layer computed them. That is the
+      # order `generate_selectors()` names the marks in, and the two have to
+      # be the one order: MAIDR pairs the flattened points against the
+      # flattened selectors position by position.
+      by_level <- split(seq_len(nrow(layer_data)), groups$positions)
+      lapply(seq_along(groups$levels), function(position) {
+        rows <- by_level[[as.character(position)]]
+        if (is.null(rows)) {
+          return(list())
+        }
+        lapply(rows, build_point, z = level_label(groups$levels[[position]]))
+      })
     },
 
     #' @description Resolve the estimate each interval is centred on.

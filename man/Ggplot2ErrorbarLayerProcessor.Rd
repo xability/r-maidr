@@ -51,9 +51,16 @@ interval.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-process}{\code{Ggplot2ErrorbarLayerProcessor$process()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-attach_group_axis}{\code{Ggplot2ErrorbarLayerProcessor$attach_group_axis()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-resolve_interval_groups}{\code{Ggplot2ErrorbarLayerProcessor$resolve_interval_groups()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-group_values_agree}{\code{Ggplot2ErrorbarLayerProcessor$group_values_agree()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-layer_built_rows}{\code{Ggplot2ErrorbarLayerProcessor$layer_built_rows()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-panel_row_indices}{\code{Ggplot2ErrorbarLayerProcessor$panel_row_indices()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-interval_group_frame}{\code{Ggplot2ErrorbarLayerProcessor$interval_group_frame()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-is_horizontal_layer}{\code{Ggplot2ErrorbarLayerProcessor$is_horizontal_layer()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-draws_one_shape_for_every_sample}{\code{Ggplot2ErrorbarLayerProcessor$draws_one_shape_for_every_sample()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-generate_selectors}{\code{Ggplot2ErrorbarLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2ErrorbarLayerProcessor-interval_sample_selectors}{\code{Ggplot2ErrorbarLayerProcessor$interval_sample_selectors()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-find_interval_grob}{\code{Ggplot2ErrorbarLayerProcessor$find_interval_grob()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-find_unnamed_interval_grob}{\code{Ggplot2ErrorbarLayerProcessor$find_unnamed_interval_grob()}}
     \item \href{#method-Ggplot2ErrorbarLayerProcessor-interval_grob_shape}{\code{Ggplot2ErrorbarLayerProcessor$interval_grob_shape()}}
@@ -126,6 +133,210 @@ interval.
   }
   \subsection{Returns}{
     List with data, selectors, axes, type and orientation
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-attach_group_axis"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-attach_group_axis}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$attach_group_axis()}}{
+  Name the series axis after the legend the chart shows.
+
+Guarded on the split rather than on the payload's shape, because
+\code{data_has_series_groups()} reads \code{data[[1]][[1]]$z} and an ungrouped
+layer's \code{data[[1]]} is a point, whose first element is an atomic
+category name. The grouped shape is the only one that has a z axis to
+name, so asking the split is both safer and the actual question.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$attach_group_axis(
+  plot,
+  built,
+  data,
+  groups,
+  panel_id = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{data}}{The extracted layer data}
+      \item{\code{groups}}{The layer's series split, or NULL}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The axes list, with z added when the layer is grouped
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-resolve_interval_groups"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-resolve_interval_groups}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$resolve_interval_groups()}}{
+  Split the layer's rows into the series the chart draws.
+
+A dodged interval chart puts one whip per group at every category, and
+without the split every category is announced twice with nothing saying
+which reading belongs to which group -- so the comparison the figure
+exists to support, whether two groups' intervals overlap, is the one
+thing unavailable (#183). MAIDR's grammar gained the grouped shape,
+\code{ErrorBarPoint[][]} with a \code{z} per point, in xability/maidr#942.
+
+The group each row belongs to cannot be read out of the built data:
+\code{ggplot_build()} replaces the grouping column with an integer \code{group}
+id, and on a discrete x that id is the \emph{interaction} of x and the
+grouping aesthetic -- 6 ids for 3 categories and 2 groups, measured --
+so it names a cell rather than a series. The aesthetic's own values are
+replaced too, by the palette colour they mapped to. The user's frame is
+what still holds the names, and it is only usable while it still has a
+row per built row: ggplot2 drops rows it cannot draw, and a padded
+lookup would name every series \code{NA}. The same guard
+\code{Ggplot2StackedBarProcessor} applies for the same reason.
+
+A layer with its own \code{data} is read from that frame rather than the
+plot's, matching ggplot2's own precedence.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$resolve_interval_groups(
+  plot,
+  layer_data,
+  built,
+  panel_id = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layer_data}}{This layer's computed rows}
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of \code{positions} (each row's series, as an index into
+\code{levels}), \code{levels} (the series, in the order ggplot2 draws them) and
+\code{order} (the row indices in series order), or NULL when the layer
+draws a single undivided series
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-group_values_agree"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-group_values_agree}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$group_values_agree()}}{
+  Check the frame's values against what the layer drew.
+
+Row counts agreeing is not the same as rows corresponding. A stat that
+happens to emit as many rows as the frame has would pass the count
+test while pairing a reading with somebody else's group name -- the
+worst failure available here, since every value stays correct and only
+the label is a lie.
+
+What can be checked is that the pairing is \emph{consistent}: ggplot2 keeps
+the grouping aesthetic in the built data as the value it mapped to (a
+palette colour, a linetype), and a correct pairing gives every row
+sharing that drawn value the same name. A shuffled one almost never
+does. Falls back to the built \code{group} id when the aesthetic itself is
+not in the built data, which is what an explicit \code{aes(group = ...)}
+leaves behind.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$group_values_agree(layer_data, aes_names, values)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_data}}{This layer's computed rows}
+      \item{\code{aes_names}}{The winning aesthetic's spelling variants}
+      \item{\code{values}}{The frame's grouping values, one per row}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when every drawn value carries a single name
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-layer_built_rows"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-layer_built_rows}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$layer_built_rows()}}{
+  This layer's built rows, every panel of them.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$layer_built_rows(built)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame, or NULL when the layer index does not resolve
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-panel_row_indices"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-panel_row_indices}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$panel_row_indices()}}{
+  Which of the layer's built rows this panel's rows are.
+
+Mirrors \code{get_layer_built_data()}, including its fallback: a panel id
+that selects nothing leaves the whole layer in place, so the indices
+have to as well. Answers NULL when the two do not line up, which is
+the signal to decline the split rather than pair rows at random.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$panel_row_indices(full, rows, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{full}}{The layer's built rows, every panel of them}
+      \item{\code{rows}}{How many rows this panel contributed}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer indices into \code{full}, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-interval_group_frame"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-interval_group_frame}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$interval_group_frame()}}{
+  The frame still carrying the grouping column's own values.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$interval_group_frame(plot, rows)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{rows}}{How many rows the layer computed}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A data frame with one row per built row, or NULL
   }
 }
 
@@ -229,7 +440,8 @@ name, which reaches none of these, and a name-prefix search reaches
   gt = NULL,
   grob_id = NULL,
   panel_ctx = NULL,
-  sample_count = NULL
+  sample_count = NULL,
+  order = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -240,13 +452,64 @@ name, which reaches none of these, and a name-prefix search reaches
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (unused; the drawn grob is
 resolved from the panel, which is what the unnamed polyline needs)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selectors (optional)
+A grouped layer needs one selector per sample instead of one stride
+over all of them, because MAIDR flattens its series before pairing them
+against the resolved elements: the payload runs series by series while
+the chart draws row by row, and one stride can only ever produce the
+drawn order. The per-sample form addresses each mark by the \strong{id}
+gridSVG gave it, not by position, so resolving one cannot disturb the
+rest -- a positional list would, since resolving a selector inserts a
+hidden clone beside the match and shifts every later \code{nth-child}
+(xability/maidr#1004).}
       \item{\code{sample_count}}{How many points this layer emitted}
+      \item{\code{order}}{The row indices in series order, or NULL when the layer
+draws a single undivided series}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list holding one CSS selector, or an empty list
+    A list of CSS selectors, or an empty list
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2ErrorbarLayerProcessor-interval_sample_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2ErrorbarLayerProcessor-interval_sample_selectors}{}}}
+\subsection{\code{Ggplot2ErrorbarLayerProcessor$interval_sample_selectors()}}{
+  Address one drawn mark per sample, in series order.
+
+gridSVG gives every exported element its own id, built from the grob's
+name: \verb{<grob>.1.<i>} where a sample is drawn as one element, and
+\verb{<grob>.1.<i>a}, \verb{<i>b}, \verb{<i>c} where \code{geom_errorbar()} draws its cap,
+whisker and other cap. Measured on ggplot2 3.4.4 across all four
+geoms this processor serves. The whisker is the middle one, which is
+the same element the stride form's \verb{nth-child(3n+2)} picks -- so a
+grouped chart and an ungrouped one outline the same mark.
+
+Restricted to the two shapes \code{interval_selector()} handles, for the
+same reason: an unverified element count would name a mark by an id
+pattern nothing has been checked against.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2ErrorbarLayerProcessor$interval_sample_selectors(
+  grob_name,
+  per_sample,
+  order
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob_name}}{Name of the grob whose children are the samples}
+      \item{\code{per_sample}}{How many elements the grob draws per sample}
+      \item{\code{order}}{The row indices in series order}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of CSS selectors, one per sample, or an empty list
   }
 }
 
@@ -444,13 +707,19 @@ horizontal chart with no interval at all.
 A row missing its bounds still emits its estimate. A one-sided interval
 is a real chart, and dropping the point for want of its other half
 would lose the estimate too.
+
+A grouped layer emits one series per group instead, each point
+carrying its group's name as \code{z} -- the shape every other grouped
+layer in this package already emits, and the one MAIDR's \code{ErrorBarTrace}
+reads as a series of series.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ErrorbarLayerProcessor$extract_interval_data(
   built,
   layer_data,
   is_horizontal,
-  panel_id = NULL
+  panel_id = NULL,
+  groups = NULL
 )}
     \if{html}{\out{</div>}}
   }
@@ -461,11 +730,13 @@ would lose the estimate too.
       \item{\code{layer_data}}{This layer's computed rows}
       \item{\code{is_horizontal}}{Whether the interval spans the x axis}
       \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+      \item{\code{groups}}{The layer's series split, or NULL for a single series}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of MAIDR interval points
+    A list of MAIDR interval points, or a list of such lists when
+the layer is grouped
   }
 }
 
