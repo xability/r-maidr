@@ -47,7 +47,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
     \item \href{#method-Ggplot2LineLayerProcessor-build_level_lookup}{\code{Ggplot2LineLayerProcessor$build_level_lookup()}}
     \item \href{#method-Ggplot2LineLayerProcessor-attach_level_labels}{\code{Ggplot2LineLayerProcessor$attach_level_labels()}}
     \item \href{#method-Ggplot2LineLayerProcessor-get_layer}{\code{Ggplot2LineLayerProcessor$get_layer()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-resolve_panel_index}{\code{Ggplot2LineLayerProcessor$resolve_panel_index()}}
     \item \href{#method-Ggplot2LineLayerProcessor-get_x_transformation}{\code{Ggplot2LineLayerProcessor$get_x_transformation()}}
     \item \href{#method-Ggplot2LineLayerProcessor-transform_x_values}{\code{Ggplot2LineLayerProcessor$transform_x_values()}}
     \item \href{#method-Ggplot2LineLayerProcessor-format_x_value}{\code{Ggplot2LineLayerProcessor$format_x_value()}}
@@ -83,6 +82,7 @@ Processes line plot layers using the actual gridSVG structure discovered:
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="is_horizontal_call"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-is_horizontal_call'><code>LayerProcessor$is_horizontal_call()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="resolve_panel_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-resolve_panel_index'><code>LayerProcessor$resolve_panel_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="swap_point_axes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-swap_point_axes'><code>LayerProcessor$swap_point_axes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_columns"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-unflip_columns'><code>LayerProcessor$unflip_columns()</code></a></span></li>
@@ -462,34 +462,6 @@ so the frontend falls back to the numeric announcement for them.
   }
   \subsection{Returns}{
     The layer, or NULL when the index does not resolve
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-resolve_panel_index"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-resolve_panel_index}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$resolve_panel_index()}}{
-  Resolve which entry of \code{built$layout$panel_params}
-describes a facet panel.
-
-Panel parameters are stored in the row order of
-\code{built$layout$layout}, so panel \code{n} is entry \code{n}. An
-unfaceted plot (or an unusable id) resolves to the only panel there is.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$resolve_panel_index(built, panel_id = NULL)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{built}}{Built plot data}
-      \item{\code{panel_id}}{Panel id for faceted plots (optional)}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Integer index guaranteed to be in range
   }
 }
 

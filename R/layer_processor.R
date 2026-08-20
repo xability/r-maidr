@@ -86,6 +86,32 @@ LayerProcessor <- R6::R6Class(
       layer_data
     },
 
+    #' @description Resolve which entry of \code{built$layout$panel_params}
+    #' describes a facet panel.
+    #'
+    #' Panel parameters are stored in the row order of
+    #' \code{built$layout$layout}, so panel \code{n} is entry \code{n}. An
+    #' unfaceted plot (or an unusable id) resolves to the only panel there is.
+    #'
+    #' Shared: the line processor asked this first and the gantt processor
+    #' asks it to name its lanes, and two readings disagreeing about which
+    #' panel they are describing is not a difference worth having.
+    #'
+    #' @param built Built plot data
+    #' @param panel_id Panel id for faceted plots (optional)
+    #' @return Integer index guaranteed to be in range
+    resolve_panel_index = function(built, panel_id = NULL) {
+      n_panels <- length(built$layout$panel_params)
+      if (is.null(panel_id) || n_panels == 0) {
+        return(1L)
+      }
+      candidate <- suppressWarnings(as.integer(as.character(panel_id)))
+      if (is.na(candidate) || candidate < 1 || candidate > n_panels) {
+        return(1L)
+      }
+      candidate
+    },
+
     #' @description Resolve the plot layer this processor was built for.
     #'
     #' Every processor knows its index and several need the layer itself --

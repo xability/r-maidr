@@ -501,28 +501,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       plot$layers[[layer_index]]
     },
 
-    #' @description Resolve which entry of \code{built$layout$panel_params}
-    #' describes a facet panel.
-    #'
-    #' Panel parameters are stored in the row order of
-    #' \code{built$layout$layout}, so panel \code{n} is entry \code{n}. An
-    #' unfaceted plot (or an unusable id) resolves to the only panel there is.
-    #'
-    #' @param built Built plot data
-    #' @param panel_id Panel id for faceted plots (optional)
-    #' @return Integer index guaranteed to be in range
-    resolve_panel_index = function(built, panel_id = NULL) {
-      n_panels <- length(built$layout$panel_params)
-      if (is.null(panel_id) || n_panels == 0) {
-        return(1L)
-      }
-      candidate <- suppressWarnings(as.integer(as.character(panel_id)))
-      if (is.na(candidate) || candidate < 1 || candidate > n_panels) {
-        return(1L)
-      }
-      candidate
-    },
-
     #' @description The transformation a panel's x scale applies to positions.
     #'
     #' \code{ggplot_build()} stores x positions in transformed space, so under

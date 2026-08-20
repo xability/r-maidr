@@ -29,6 +29,7 @@ ggplot2 functionality to work with the new extensible architecture.
     \item \href{#method-Ggplot2Adapter-has_facets}{\code{Ggplot2Adapter$has_facets()}}
     \item \href{#method-Ggplot2Adapter-is_patchwork}{\code{Ggplot2Adapter$is_patchwork()}}
     \item \href{#method-Ggplot2Adapter-ribbon_is_area}{\code{Ggplot2Adapter$ribbon_is_area()}}
+    \item \href{#method-Ggplot2Adapter-segments_span_lanes}{\code{Ggplot2Adapter$segments_span_lanes()}}
     \item \href{#method-Ggplot2Adapter-clone}{\code{Ggplot2Adapter$clone()}}
   }
 }
@@ -311,6 +312,41 @@ interval still carries both edges.
   }
   \subsection{Returns}{
     TRUE when the ribbon is an area chart
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-segments_span_lanes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-segments_span_lanes}{}}}
+\subsection{\code{Ggplot2Adapter$segments_span_lanes()}}{
+  Check whether a segment layer draws intervals in lanes
+
+Asked of the built data for the reason \code{ribbon_is_area()} is: a
+mapping expression cannot say whether the two ends of a segment agree,
+and by build time ggplot2 has resolved every spelling of the lane -- a
+factor, a character column, a repeated constant -- to the position it
+drew at.
+
+The whole layer is asked at once rather than each row, which is the
+rule xability/maidr#1100 settled for the same reading: one
+\code{geom_segment()} call can hold spans and edges together, and
+reading three spans out of four segments would announce a gantt quietly
+missing a quarter of its chart.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2Adapter$segments_span_lanes(layer, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The layer being classified}
+      \item{\code{plot_object}}{The ggplot2 plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the layer's segments lay intervals in lanes
   }
 }
 
