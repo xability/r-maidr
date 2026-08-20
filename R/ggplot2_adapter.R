@@ -139,7 +139,22 @@ Ggplot2Adapter <- R6::R6Class(
       # inherits(), to match every other branch in this function and because
       # the symbol does not exist on 3.x. The same release left
       # `stat_summary_2d()` on GeomTile, so nothing else moves with it.
-      if (geom_class %in% c("GeomTile", "GeomBin2d")) {
+      #
+      # `geom_raster()` is the third name for that grid, and the one ggplot2's
+      # own documentation recommends whenever the cells are evenly spaced.
+      # `ggplot_build` computes the same columns for it -- the same `x`/`y` and
+      # the same `xmin`/`xmax`/`ymin`/`ymax` bounds -- so the reading is the
+      # tile reading unchanged. inherits() would not have found it either:
+      # GeomRaster descends from Geom directly, a sibling of GeomTile rather
+      # than a subclass, because it reimplements drawing as a single grob.
+      #
+      # That single grob is also what it costs. The SVG holds one `<image>`
+      # for the whole grid where the tile spelling holds a `<rect>` per cell,
+      # so there is no element for a per-cell selector to name and the chart
+      # announces its values while highlighting nothing (#192). Read anyway:
+      # a reader who had a picture now has every number, and `geom_tile()` is
+      # there for anyone who needs both.
+      if (geom_class %in% c("GeomTile", "GeomBin2d", "GeomRaster")) {
         return("heat")
       }
 
