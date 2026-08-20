@@ -326,6 +326,87 @@ test_that("every interval is addressed by its own drawn element", {
   }
 })
 
+test_that("a second segment layer highlights its own intervals", {
+  skip_if_no_render()
+
+  # `find_segments_name()` counts this layer's position among the segment
+  # layers and takes the segments grob at that position. Two layers would
+  # otherwise both resolve to the first one's elements, and the second would
+  # highlight the first's intervals while announcing its own -- the
+  # highlight-only failure xability/maidr#814 names, which reads correctly and
+  # outlines the wrong thing.
+  later <- data.frame(
+    task = factor(c("design", "test"), levels = c("design", "build", "test")),
+    start = c(20, 25), end = c(24, 29)
+  )
+  plot <- ggplot2::ggplot(mapping = lanes_on_y) +
+    ggplot2::geom_segment(data = schedule()) +
+    ggplot2::geom_segment(data = later)
+  html <- rendered(plot)
+
+  layers <- jsonlite::fromJSON(
+    {
+      raw <- regmatches(html, regexpr('maidr-data="[^"]*"', html))
+      json <- sub('"$', "", sub('^maidr-data="', "", raw))
+      for (pair in list(
+        c("&quot;", '"'), c("&lt;", "<"), c("&gt;", ">"),
+        c("&amp;", "&"), c("&#39;", "'")
+      )) {
+        json <- gsub(pair[1], pair[2], json, fixed = TRUE)
+      }
+      json
+    },
+    simplifyVector = FALSE
+  )$subplots[[1]][[1]]$layers
+
+  testthat::expect_equal(length(layers), 2L)
+
+  grob_of <- function(layer) {
+    unique(sub("\\.1\\.[0-9]+'\\]$", "", sub("^\\*\\[id='", "", unlist(layer$selectors))))
+  }
+  first <- grob_of(layers[[1]])
+  second <- grob_of(layers[[2]])
+
+  testthat::expect_length(first, 1L)
+  testthat::expect_length(second, 1L)
+  testthat::expect_false(identical(first, second))
+
+  # And both name elements that are really in the SVG.
+  for (id in unlist(lapply(layers, function(l) sub("^\\*\\[id='", "", sub("'\\]$", "", unlist(l$selectors)))))) {
+    testthat::expect_true(
+      grepl(paste0('id="', id, '"'), html, fixed = TRUE),
+      info = paste("selector resolves to no element:", id)
+    )
+  }
+})
+
+test_that("a layer that draws nothing costs the next one its highlight, not its accuracy", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # ggplot2 draws no segments grob at all for a layer with no rows -- measured,
+  # two layers and one grob -- so counting this layer's position among the
+  # segment layers runs past the end of what was drawn. The answer has to be
+  # no selectors rather than the last one found: a reader losing an outline is
+  # recoverable, being shown a different layer's interval is not.
+  #
+  # Asked of the lookup directly. A `geom_segment()` layer with no rows
+  # classifies as "unknown" -- `segment_lane_axis()` has nothing to answer
+  # about -- and an unknown layer drops the whole plot to a static image, so
+  # rendering this chart would exercise that pre-existing behaviour instead of
+  # the thing under test.
+  plot <- ggplot2::ggplot(mapping = lanes_on_y) +
+    ggplot2::geom_segment(data = schedule()[0, ]) +
+    ggplot2::geom_segment(data = schedule())
+  processor <- maidr:::Ggplot2GanttLayerProcessor$new(list(index = 2, type = "gantt"))
+
+  found <- processor$find_segments_name(plot, ggplot2::ggplotGrob(plot), NULL)
+
+  testthat::expect_null(found)
+  testthat::expect_equal(
+    length(processor$generate_selectors(NULL, plot, NULL, 1:4)), 0L
+  )
+})
+
 test_that("a chart of edges keeps the static image it had", {
   skip_if_no_render()
 
