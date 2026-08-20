@@ -245,3 +245,44 @@ test_that("a weighted dot plot announces the weighted count", {
 
   testthat::expect_equal(counts_of(layer), c(4, 5))
 })
+
+
+test_that("a bin holding two fill groups announces both", {
+  skip_if_no_render()
+
+  # `stat_bindot` counts per group, so `aes(fill = )` puts several rows on one
+  # centre carrying different counts. Measured on five observations at the bin
+  # at 1, split three and two:
+  #
+  #     x count group countidx stackpos
+  #     1     3     1        1      0.5
+  #     1     3     1        2      1.5
+  #     1     3     1        3      2.5
+  #     1     2     2        1      0.5
+  #     1     2     2        2      1.5
+  #
+  # Reading the first row's count announces three and drops two observations
+  # with nothing saying so, which is the failure this test exists for.
+  #
+  # Summed rather than maxed. What the sum is: the number of observations the
+  # bin holds, which is what a `hist` layer's value means, and what
+  # `stackgroups = TRUE` literally draws -- that spelling continues the stack
+  # to `stackpos` 3.5 and 4.5, so the column really is five high. The default
+  # overlaps the groups instead and shows a pile of three, which is the
+  # rendering caveat ggplot2 documents rather than a fact about the data.
+  frame <- data.frame(
+    v = c(1, 1, 1, 1, 1, 2, 2),
+    g = c("a", "a", "a", "b", "b", "a", "a")
+  )
+  overlapping <- dot_layer(
+    ggplot2::ggplot(frame, ggplot2::aes(v, fill = g)) +
+      ggplot2::geom_dotplot(binwidth = 1)
+  )
+  stacked <- dot_layer(
+    ggplot2::ggplot(frame, ggplot2::aes(v, fill = g)) +
+      ggplot2::geom_dotplot(binwidth = 1, stackgroups = TRUE, method = "histodot")
+  )
+
+  testthat::expect_equal(counts_of(overlapping), c(5, 2))
+  testthat::expect_equal(counts_of(stacked), c(5, 2))
+})

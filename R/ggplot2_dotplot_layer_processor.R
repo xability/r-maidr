@@ -54,6 +54,13 @@ dotplot_bins <- function(built_data, horizontal = FALSE) {
     return(list())
   }
 
+  # `stat_bindot` counts *per group*, so a `fill =` plot puts several rows on
+  # one centre carrying different counts -- measured, `aes(fill = g)` over
+  # five observations at one bin gives `count` 3 for one group and 2 for the
+  # other. Taking the first row's count would announce a bin of five as three
+  # and say nothing about the two it dropped.
+  groups <- if ("group" %in% names(built_data)) built_data$group else rep(1L, length(centres))
+
   # Grouped on the centre by exact equality, which is exact rather than
   # approximate here for the reason `hexbin_lattice()` gives: every dot of a
   # bin takes the centre from the same bin computation, so the values are
@@ -61,10 +68,28 @@ dotplot_bins <- function(built_data, horizontal = FALSE) {
   order <- sort(unique(centres))
   lapply(order, function(centre) {
     rows <- which(centres == centre)
+    # Summed across the groups at this centre, not maxed and not taken from
+    # the first. What the sum is: the number of observations the bin holds,
+    # which is what a histogram announces and what `stackgroups = TRUE` draws
+    # -- measured, that spelling continues the stack to 3.5 and 4.5, so the
+    # column really is five tall.
+    #
+    # The default does *not* draw that. Both groups start at `stackpos` 0.5
+    # and overlap, so the pile is three high and two observations are hidden
+    # behind it. Neither number is free of objection: three is the height of
+    # a pile that conceals data, five is the bin. Five is announced, because
+    # a `hist` layer's value is the count of observations in the bin, and
+    # because the overlap is the rendering caveat ggplot2 documents rather
+    # than a fact about the data.
+    per_group <- vapply(
+      unique(groups[rows]),
+      function(id) counts[rows[which(groups[rows] == id)[1]]],
+      numeric(1)
+    )
     list(
       centre = centre,
       half = widths[rows[1]] / 2,
-      count = counts[rows[1]]
+      count = sum(per_group)
     )
   })
 }
