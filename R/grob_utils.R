@@ -6,9 +6,13 @@
 #' geom-named grob tree claims, so the index used to pick one out has to be
 #' counted over the same population.
 #' `geom_line()` / `geom_path()` / `tidyquant::geom_ma()` (detected as
-#' `"line"`) and `geom_step()` (detected as `"step"`) each render one polyline
-#' per layer, so both types count. Counting only `"line"` layers would index
-#' the wrong polyline for *both* layers of a plot that combines the two.
+#' `"line"`), `geom_step()` (detected as `"step"`) and `geom_contour()` /
+#' `geom_density_2d()` (detected as `"contour"`) each render one auto-named
+#' polyline grob per layer, so all three types count. Counting only `"line"`
+#' layers would index the wrong polyline for *every* layer of a plot that
+#' combines them -- and both charts would read correctly while outlining each
+#' other's curves, which is the highlight-only failure xability/maidr#814
+#' names.
 #'
 #' @param plot The ggplot2 object.
 #' @param layer_index Index of the layer of interest in `plot$layers`.
@@ -23,7 +27,7 @@ polyline_layer_position <- function(plot, layer_index) {
       pos <- 0L
       for (i in seq_along(plot$layers)) {
         tp <- adapter$detect_layer_type(plot$layers[[i]], plot)
-        if (isTRUE(tp %in% c("line", "step"))) {
+        if (isTRUE(tp %in% c("line", "step", "contour"))) {
           pos <- pos + 1L
           if (i == layer_index) {
             return(pos)

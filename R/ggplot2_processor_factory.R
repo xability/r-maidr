@@ -48,6 +48,9 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
         # A segment whose ends share a coordinate is an interval in a lane,
         # which is a schedule rather than a shape of its own.
+        # A field drawn as curves of constant value, the level being a
+        # number on every row rather than a fill colour.
+        "contour" = Ggplot2ContourLayerProcessor$new(layer_info),
         "gantt" = Ggplot2GanttLayerProcessor$new(layer_info),
         "heat" = Ggplot2HeatmapLayerProcessor$new(layer_info),
         # A hexbin is a lattice of counted cells like a heatmap, but its
@@ -80,6 +83,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "stacked_normalized_area",
         "step",
         "smooth",
+        "contour",
         "gantt",
         "heat",
         "hexbin",

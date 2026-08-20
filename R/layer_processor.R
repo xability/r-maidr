@@ -206,6 +206,138 @@ LayerProcessor <- R6::R6Class(
       matches[[position]]
     },
 
+    #' @description The polyline grob ggplot2 drew for THIS layer.
+    #'
+    #' Shared rather than owned by the line processor: `GeomPath`, `GeomStep`
+    #' and `GeomContour` all draw through a bare `polylineGrob` and so all
+    #' land in the same auto-named candidate list, which is exactly why one
+    #' answer to "which of them is mine" has to serve all three.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param panel_grob The panel's grob tree
+    #' @return The matching grob, or NULL
+    find_layer_polyline_grob = function(plot, panel_grob) {
+      candidates <- self$layer_polyline_grobs(plot, panel_grob)
+      if (length(candidates) == 0L) {
+        return(NULL)
+      }
+      position <- polyline_layer_position(plot, self$get_layer_index())
+      if (!is.null(position)) {
+        if (position > length(candidates)) {
+          return(NULL)
+        }
+        return(candidates[[position]])
+      }
+      if (length(candidates) == 1L) candidates[[1]] else NULL
+    },
+
+    #' @description Panel polylines that a line layer could have drawn.
+    #'
+    #' \code{GeomPath$draw_panel()} returns a bare \code{polylineGrob}, so a
+    #' line layer's grob carries grid's auto-generated
+    #' \code{GRID.polyline.N} name with no geom prefix to match on -- only
+    #' its draw-order position identifies it. Layers that DO name their grob
+    #' tree after their geom (\code{geom_smooth.gTree.N}) are skipped whole
+    #' via \code{geom_grob_prefix()}, the same helper the smooth processor
+    #' uses to scope itself to its own tree; without that, the smooth's
+    #' three curves are counted as line-layer polylines and shift every
+    #' position by three. Panel grid lines are named after the theme element
+    #' (\code{panel.grid.major.x..polyline.N}) and so never match.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param panel_grob The panel's grob tree
+    #' @return List of grobs in draw order
+    layer_polyline_grobs = function(plot, panel_grob) {
+      skip <- self$other_geom_grob_prefixes(plot)
+      out <- list()
+      collect <- function(grob) {
+        name <- grob$name
+        belongs_to_other_layer <- !is.null(name) && length(skip) > 0L &&
+          any(startsWith(name, paste0(skip, ".")))
+        if (belongs_to_other_layer) {
+          # Another layer's tree: a match is the whole layer, do not descend.
+          return(invisible(NULL))
+        }
+        if (!is.null(name) && grepl("^GRID\\.polyline\\.\\d+$", name)) {
+          out[[length(out) + 1L]] <<- grob
+        }
+        if (inherits(grob, "gTree")) {
+          for (child in grob$children) collect(child)
+        }
+        if (inherits(grob, "gList")) {
+          for (i in seq_along(grob)) collect(grob[[i]])
+        }
+        invisible(NULL)
+      }
+      collect(panel_grob)
+      out
+    },
+
+    #' @description Grob-name prefixes belonging to the plot's OTHER geoms.
+    #'
+    #' This layer's own prefix is excluded so that a second layer sharing
+    #' the geom (two \code{geom_line()} calls) is still walked.
+    #'
+    #' @param plot The ggplot2 object
+    #' @return Character vector of prefixes, possibly empty
+    other_geom_grob_prefixes = function(plot) {
+      prefix_of <- function(layer) {
+        tryCatch(geom_grob_prefix(layer$geom), error = function(e) NA_character_)
+      }
+      own <- prefix_of(plot$layers[[self$get_layer_index()]])
+      prefixes <- vapply(plot$layers, prefix_of, character(1))
+      prefixes <- unique(prefixes[!is.na(prefixes)])
+      if (!is.na(own)) {
+        prefixes <- setdiff(prefixes, own)
+      }
+      prefixes
+    },
+
+    #' @description Number of separate curves a polyline grob draws.
+    #'
+    #' \code{polylineGrob()} splits one grob into several drawn lines via
+    #' \code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
+    #' element suffixed \code{.1.<k>}.
+    #'
+    #' @param grob A polyline grob
+    #' @return Integer count, at least 1
+    polyline_curve_count = function(grob) {
+      if (!is.null(grob$id.lengths)) {
+        return(length(grob$id.lengths))
+      }
+      if (!is.null(grob$id)) {
+        return(length(unique(grob$id)))
+      }
+      1L
+    },
+
+    #' @description Generate selectors for multiline plots using actual structure
+    #' @param base_id The base ID from the grob (e.g., "61")
+    #' @param num_series Number of series
+    #' @return List of selectors
+    generate_multiline_selectors = function(base_id, num_series) {
+      selectors <- list()
+
+      # Use the actual structure discovered: GRID.polyline.{base_id}.1.{series_index}
+      for (i in 1:num_series) {
+        # Format: #GRID\.polyline\.{base_id}\.1\.{series_index}
+        escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.", i))
+        selector <- paste0("#", escaped_id)
+        selectors[[i]] <- selector
+      }
+
+      selectors
+    },
+
+    #' @description Generate selector for single line plot
+    #' @param base_id The base ID from the grob
+    #' @return List with single selector
+    generate_single_line_selector = function(base_id) {
+      escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
+      selector <- paste0("#", escaped_id)
+      list(selector)
+    },
+
     #' @description Check if this layer needs reordering (OPTIONAL - default: FALSE)
     #' @return Logical indicating if reordering is needed
     needs_reordering = function() {

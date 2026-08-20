@@ -20,8 +20,12 @@ or registry-based detection fails.
 geom-named grob tree claims, so the index used to pick one out has to be
 counted over the same population.
 \code{geom_line()} / \code{geom_path()} / \code{tidyquant::geom_ma()} (detected as
-\code{"line"}) and \code{geom_step()} (detected as \code{"step"}) each render one polyline
-per layer, so both types count. Counting only \code{"line"} layers would index
-the wrong polyline for \emph{both} layers of a plot that combines the two.
+\code{"line"}), \code{geom_step()} (detected as \code{"step"}) and \code{geom_contour()} /
+\code{geom_density_2d()} (detected as \code{"contour"}) each render one auto-named
+polyline grob per layer, so all three types count. Counting only \code{"line"}
+layers would index the wrong polyline for \emph{every} layer of a plot that
+combines them -- and both charts would read correctly while outlining each
+other's curves, which is the highlight-only failure xability/maidr#814
+names.
 }
 \keyword{internal}

@@ -57,12 +57,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
     \item \href{#method-Ggplot2LineLayerProcessor-generate_selectors}{\code{Ggplot2LineLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2LineLayerProcessor-series_count}{\code{Ggplot2LineLayerProcessor$series_count()}}
     \item \href{#method-Ggplot2LineLayerProcessor-curve_selectors}{\code{Ggplot2LineLayerProcessor$curve_selectors()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob}{\code{Ggplot2LineLayerProcessor$find_layer_polyline_grob()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-layer_polyline_grobs}{\code{Ggplot2LineLayerProcessor$layer_polyline_grobs()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes}{\code{Ggplot2LineLayerProcessor$other_geom_grob_prefixes()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-polyline_curve_count}{\code{Ggplot2LineLayerProcessor$polyline_curve_count()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{\code{Ggplot2LineLayerProcessor$generate_multiline_selectors()}}
-    \item \href{#method-Ggplot2LineLayerProcessor-generate_single_line_selector}{\code{Ggplot2LineLayerProcessor$generate_single_line_selector()}}
     \item \href{#method-Ggplot2LineLayerProcessor-line_layer_position}{\code{Ggplot2LineLayerProcessor$line_layer_position()}}
     \item \href{#method-Ggplot2LineLayerProcessor-find_main_polyline_grob}{\code{Ggplot2LineLayerProcessor$find_main_polyline_grob()}}
     \item \href{#method-Ggplot2LineLayerProcessor-needs_reordering}{\code{Ggplot2LineLayerProcessor$needs_reordering()}}
@@ -73,6 +67,9 @@ Processes line plot layers using the actual gridSVG structure discovered:
 <ul>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_polyline_grob"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_polyline_grob'><code>LayerProcessor$find_layer_polyline_grob()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="generate_multiline_selectors"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-generate_multiline_selectors'><code>LayerProcessor$generate_multiline_selectors()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-generate_single_line_selector'><code>LayerProcessor$generate_single_line_selector()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
@@ -80,7 +77,10 @@ Processes line plot layers using the actual gridSVG structure discovered:
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-initialize'><code>LayerProcessor$initialize()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="is_flipped_layer"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-is_flipped_layer'><code>LayerProcessor$is_flipped_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="is_horizontal_call"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-is_horizontal_call'><code>LayerProcessor$is_horizontal_call()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="layer_polyline_grobs"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-layer_polyline_grobs'><code>LayerProcessor$layer_polyline_grobs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="other_geom_grob_prefixes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-other_geom_grob_prefixes'><code>LayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="polyline_curve_count"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-polyline_curve_count'><code>LayerProcessor$polyline_curve_count()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="resolve_panel_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-resolve_panel_index'><code>LayerProcessor$resolve_panel_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
@@ -772,159 +772,6 @@ inputs \code{extract_data()} would reject.
   \subsection{Returns}{
     List of selectors, or NULL when the grob does not line up
 with the series
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-find_layer_polyline_grob"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-find_layer_polyline_grob}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$find_layer_polyline_grob()}}{
-  The polyline grob ggplot2 drew for THIS line layer.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$find_layer_polyline_grob(plot, panel_grob)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{panel_grob}}{The panel's grob tree}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    The matching grob, or NULL
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-layer_polyline_grobs"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-layer_polyline_grobs}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$layer_polyline_grobs()}}{
-  Panel polylines that a line layer could have drawn.
-
-\code{GeomPath$draw_panel()} returns a bare \code{polylineGrob}, so a
-line layer's grob carries grid's auto-generated
-\code{GRID.polyline.N} name with no geom prefix to match on -- only
-its draw-order position identifies it. Layers that DO name their grob
-tree after their geom (\code{geom_smooth.gTree.N}) are skipped whole
-via \code{geom_grob_prefix()}, the same helper the smooth processor
-uses to scope itself to its own tree; without that, the smooth's
-three curves are counted as line-layer polylines and shift every
-position by three. Panel grid lines are named after the theme element
-(\code{panel.grid.major.x..polyline.N}) and so never match.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$layer_polyline_grobs(plot, panel_grob)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{panel_grob}}{The panel's grob tree}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    List of grobs in draw order
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$other_geom_grob_prefixes()}}{
-  Grob-name prefixes belonging to the plot's OTHER geoms.
-
-This layer's own prefix is excluded so that a second layer sharing
-the geom (two \code{geom_line()} calls) is still walked.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$other_geom_grob_prefixes(plot)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{plot}}{The ggplot2 object}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Character vector of prefixes, possibly empty
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-polyline_curve_count"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-polyline_curve_count}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$polyline_curve_count()}}{
-  Number of separate curves a polyline grob draws.
-
-\code{polylineGrob()} splits one grob into several drawn lines via
-\code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
-element suffixed \code{.1.<k>}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$polyline_curve_count(grob)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{grob}}{A polyline grob}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Integer count, at least 1
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_multiline_selectors"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$generate_multiline_selectors()}}{
-  Generate selectors for multiline plots using actual structure
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$generate_multiline_selectors(base_id, num_series)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{base_id}}{The base ID from the grob (e.g., "61")}
-      \item{\code{num_series}}{Number of series}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    List of selectors
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_single_line_selector"></a>}}
-\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_single_line_selector}{}}}
-\subsection{\code{Ggplot2LineLayerProcessor$generate_single_line_selector()}}{
-  Generate selector for single line plot
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2LineLayerProcessor$generate_single_line_selector(base_id)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{base_id}}{The base ID from the grob}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    List with single selector
   }
 }
 
