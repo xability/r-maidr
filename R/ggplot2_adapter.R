@@ -139,7 +139,7 @@ Ggplot2Adapter <- R6::R6Class(
       # inherits(), to match every other branch in this function and because
       # the symbol does not exist on 3.x. The same release left
       # `stat_summary_2d()` on GeomTile, so nothing else moves with it.
-      if (geom_class %in% c("GeomTile", "GeomBin2d")) {
+      if (geom_class %in% c("GeomTile", "GeomBin2d", "GeomRaster")) {
         return("heat")
       }
 
