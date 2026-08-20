@@ -293,51 +293,6 @@ LayerProcessor <- R6::R6Class(
       prefixes
     },
 
-    #' @description Number of separate curves a polyline grob draws.
-    #'
-    #' \code{polylineGrob()} splits one grob into several drawn lines via
-    #' \code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
-    #' element suffixed \code{.1.<k>}.
-    #'
-    #' @param grob A polyline grob
-    #' @return Integer count, at least 1
-    polyline_curve_count = function(grob) {
-      if (!is.null(grob$id.lengths)) {
-        return(length(grob$id.lengths))
-      }
-      if (!is.null(grob$id)) {
-        return(length(unique(grob$id)))
-      }
-      1L
-    },
-
-    #' @description Generate selectors for multiline plots using actual structure
-    #' @param base_id The base ID from the grob (e.g., "61")
-    #' @param num_series Number of series
-    #' @return List of selectors
-    generate_multiline_selectors = function(base_id, num_series) {
-      selectors <- list()
-
-      # Use the actual structure discovered: GRID.polyline.{base_id}.1.{series_index}
-      for (i in 1:num_series) {
-        # Format: #GRID\.polyline\.{base_id}\.1\.{series_index}
-        escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.", i))
-        selector <- paste0("#", escaped_id)
-        selectors[[i]] <- selector
-      }
-
-      selectors
-    },
-
-    #' @description Generate selector for single line plot
-    #' @param base_id The base ID from the grob
-    #' @return List with single selector
-    generate_single_line_selector = function(base_id) {
-      escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
-      selector <- paste0("#", escaped_id)
-      list(selector)
-    },
-
     #' @description Check if this layer needs reordering (OPTIONAL - default: FALSE)
     #' @return Logical indicating if reordering is needed
     needs_reordering = function() {

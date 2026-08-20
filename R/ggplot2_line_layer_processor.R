@@ -877,15 +877,62 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       self$generate_multiline_selectors(base_id, n_series)
     },
 
+    #' @description Number of separate curves a polyline grob draws.
+    #'
+    #' \code{polylineGrob()} splits one grob into several drawn lines via
+    #' \code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
+    #' element suffixed \code{.1.<k>}.
+    #'
+    #' @param grob A polyline grob
+    #' @return Integer count, at least 1
+    polyline_curve_count = function(grob) {
+      if (!is.null(grob$id.lengths)) {
+        return(length(grob$id.lengths))
+      }
+      if (!is.null(grob$id)) {
+        return(length(unique(grob$id)))
+      }
+      1L
+    },
+
+    #' @description Generate selectors for multiline plots using actual structure
+    #' @param base_id The base ID from the grob (e.g., "61")
+    #' @param num_series Number of series
+    #' @return List of selectors
+    generate_multiline_selectors = function(base_id, num_series) {
+      selectors <- list()
+
+      # Use the actual structure discovered: GRID.polyline.{base_id}.1.{series_index}
+      for (i in 1:num_series) {
+        # Format: #GRID\.polyline\.{base_id}\.1\.{series_index}
+        escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.", i))
+        selector <- paste0("#", escaped_id)
+        selectors[[i]] <- selector
+      }
+
+      selectors
+    },
+
+    #' @description Generate selector for single line plot
+    #' @param base_id The base ID from the grob
+    #' @return List with single selector
+    generate_single_line_selector = function(base_id) {
+      escaped_id <- gsub("\\.", "\\\\.", paste0("GRID.polyline.", base_id, ".1.1"))
+      selector <- paste0("#", escaped_id)
+      list(selector)
+    },
+
     #' @description Position of this layer among the polyline-producing layers.
     #'
-    #' Delegates to `polyline_layer_position()`, which counts both "line" and
-    #' "step" layers. `layer_polyline_grobs()` skips only the layers that name
-    #' their grob tree after their geom, and `GeomStep` draws through
-    #' `GeomPath$draw_panel()` - a bare `polylineGrob` - so a `geom_step()`
-    #' sits in that candidate list exactly as a `geom_line()` does. Counting
-    #' only "line" layers would therefore index the wrong polyline for *both*
-    #' layers of a plot that combines the two.
+    #' Delegates to `polyline_layer_position()`, which counts every layer type
+    #' that renders an auto-named polyline: "line", "step" and "contour".
+    #' `layer_polyline_grobs()` skips only the layers that name their grob tree
+    #' after their geom, and none of these three do. `GeomContour` defines no
+    #' `draw_panel()` of its own and so draws through `GeomPath`'s -- a bare
+    #' `polylineGrob` -- while `GeomStep` stairsteps its data and then calls
+    #' the same method; either sits in that candidate list exactly as a
+    #' `geom_line()` does. Counting only "line" layers would therefore index
+    #' the wrong polyline for *every* layer of a plot that combines them.
     #'
     #' @param plot The ggplot2 object
     #' @return The 1-based position, or NULL if registry-based detection fails

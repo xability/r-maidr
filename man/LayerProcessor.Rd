@@ -31,9 +31,6 @@ interface that all layer processors must implement.
     \item \href{#method-LayerProcessor-find_layer_polyline_grob}{\code{LayerProcessor$find_layer_polyline_grob()}}
     \item \href{#method-LayerProcessor-layer_polyline_grobs}{\code{LayerProcessor$layer_polyline_grobs()}}
     \item \href{#method-LayerProcessor-other_geom_grob_prefixes}{\code{LayerProcessor$other_geom_grob_prefixes()}}
-    \item \href{#method-LayerProcessor-polyline_curve_count}{\code{LayerProcessor$polyline_curve_count()}}
-    \item \href{#method-LayerProcessor-generate_multiline_selectors}{\code{LayerProcessor$generate_multiline_selectors()}}
-    \item \href{#method-LayerProcessor-generate_single_line_selector}{\code{LayerProcessor$generate_single_line_selector()}}
     \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
     \item \href{#method-LayerProcessor-reorder_layer_data}{\code{LayerProcessor$reorder_layer_data()}}
     \item \href{#method-LayerProcessor-augment_plot}{\code{LayerProcessor$augment_plot()}}
@@ -366,77 +363,6 @@ the geom (two \code{geom_line()} calls) is still walked.
   }
   \subsection{Returns}{
     Character vector of prefixes, possibly empty
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LayerProcessor-polyline_curve_count"></a>}}
-\if{latex}{\out{\hypertarget{method-LayerProcessor-polyline_curve_count}{}}}
-\subsection{\code{LayerProcessor$polyline_curve_count()}}{
-  Number of separate curves a polyline grob draws.
-
-\code{polylineGrob()} splits one grob into several drawn lines via
-\code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
-element suffixed \code{.1.<k>}.
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$polyline_curve_count(grob)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{grob}}{A polyline grob}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Integer count, at least 1
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LayerProcessor-generate_multiline_selectors"></a>}}
-\if{latex}{\out{\hypertarget{method-LayerProcessor-generate_multiline_selectors}{}}}
-\subsection{\code{LayerProcessor$generate_multiline_selectors()}}{
-  Generate selectors for multiline plots using actual structure
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$generate_multiline_selectors(base_id, num_series)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{base_id}}{The base ID from the grob (e.g., "61")}
-      \item{\code{num_series}}{Number of series}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    List of selectors
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-LayerProcessor-generate_single_line_selector"></a>}}
-\if{latex}{\out{\hypertarget{method-LayerProcessor-generate_single_line_selector}{}}}
-\subsection{\code{LayerProcessor$generate_single_line_selector()}}{
-  Generate selector for single line plot
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$generate_single_line_selector(base_id)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{base_id}}{The base ID from the grob}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    List with single selector
   }
 }
 

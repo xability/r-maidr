@@ -57,6 +57,9 @@ Processes line plot layers using the actual gridSVG structure discovered:
     \item \href{#method-Ggplot2LineLayerProcessor-generate_selectors}{\code{Ggplot2LineLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2LineLayerProcessor-series_count}{\code{Ggplot2LineLayerProcessor$series_count()}}
     \item \href{#method-Ggplot2LineLayerProcessor-curve_selectors}{\code{Ggplot2LineLayerProcessor$curve_selectors()}}
+    \item \href{#method-Ggplot2LineLayerProcessor-polyline_curve_count}{\code{Ggplot2LineLayerProcessor$polyline_curve_count()}}
+    \item \href{#method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{\code{Ggplot2LineLayerProcessor$generate_multiline_selectors()}}
+    \item \href{#method-Ggplot2LineLayerProcessor-generate_single_line_selector}{\code{Ggplot2LineLayerProcessor$generate_single_line_selector()}}
     \item \href{#method-Ggplot2LineLayerProcessor-line_layer_position}{\code{Ggplot2LineLayerProcessor$line_layer_position()}}
     \item \href{#method-Ggplot2LineLayerProcessor-find_main_polyline_grob}{\code{Ggplot2LineLayerProcessor$find_main_polyline_grob()}}
     \item \href{#method-Ggplot2LineLayerProcessor-needs_reordering}{\code{Ggplot2LineLayerProcessor$needs_reordering()}}
@@ -68,8 +71,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-augment_plot'><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_grob_tree'><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_polyline_grob"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-find_layer_polyline_grob'><code>LayerProcessor$find_layer_polyline_grob()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="generate_multiline_selectors"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-generate_multiline_selectors'><code>LayerProcessor$generate_multiline_selectors()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="generate_single_line_selector"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-generate_single_line_selector'><code>LayerProcessor$generate_single_line_selector()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_last_result'><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_built_data'><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-get_layer_index'><code>LayerProcessor$get_layer_index()</code></a></span></li>
@@ -80,7 +81,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="layer_polyline_grobs"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-layer_polyline_grobs'><code>LayerProcessor$layer_polyline_grobs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-needs_augmentation'><code>LayerProcessor$needs_augmentation()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="other_geom_grob_prefixes"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-other_geom_grob_prefixes'><code>LayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="polyline_curve_count"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-polyline_curve_count'><code>LayerProcessor$polyline_curve_count()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-reorder_layer_data'><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="resolve_panel_index"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-resolve_panel_index'><code>LayerProcessor$resolve_panel_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-set_last_result'><code>LayerProcessor$set_last_result()</code></a></span></li>
@@ -776,18 +776,91 @@ with the series
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-polyline_curve_count"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-polyline_curve_count}{}}}
+\subsection{\code{Ggplot2LineLayerProcessor$polyline_curve_count()}}{
+  Number of separate curves a polyline grob draws.
+
+\code{polylineGrob()} splits one grob into several drawn lines via
+\code{id} / \code{id.lengths}; gridSVG renders each as its own SVG
+element suffixed \code{.1.<k>}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2LineLayerProcessor$polyline_curve_count(grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{A polyline grob}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer count, at least 1
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_multiline_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_multiline_selectors}{}}}
+\subsection{\code{Ggplot2LineLayerProcessor$generate_multiline_selectors()}}{
+  Generate selectors for multiline plots using actual structure
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2LineLayerProcessor$generate_multiline_selectors(base_id, num_series)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{base_id}}{The base ID from the grob (e.g., "61")}
+      \item{\code{num_series}}{Number of series}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-generate_single_line_selector"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-generate_single_line_selector}{}}}
+\subsection{\code{Ggplot2LineLayerProcessor$generate_single_line_selector()}}{
+  Generate selector for single line plot
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2LineLayerProcessor$generate_single_line_selector(base_id)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{base_id}}{The base ID from the grob}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with single selector
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-line_layer_position}{}}}
 \subsection{\code{Ggplot2LineLayerProcessor$line_layer_position()}}{
   Position of this layer among the polyline-producing layers.
 
-Delegates to \code{polyline_layer_position()}, which counts both "line" and
-"step" layers. \code{layer_polyline_grobs()} skips only the layers that name
-their grob tree after their geom, and \code{GeomStep} draws through
-\code{GeomPath$draw_panel()} - a bare \code{polylineGrob} - so a \code{geom_step()}
-sits in that candidate list exactly as a \code{geom_line()} does. Counting
-only "line" layers would therefore index the wrong polyline for \emph{both}
-layers of a plot that combines the two.
+Delegates to \code{polyline_layer_position()}, which counts every layer type
+that renders an auto-named polyline: "line", "step" and "contour".
+\code{layer_polyline_grobs()} skips only the layers that name their grob tree
+after their geom, and none of these three do. \code{GeomContour} defines no
+\code{draw_panel()} of its own and so draws through \code{GeomPath}'s -- a bare
+\code{polylineGrob} -- while \code{GeomStep} stairsteps its data and then calls
+the same method; either sits in that candidate list exactly as a
+\code{geom_line()} does. Counting only "line" layers would therefore index
+the wrong polyline for \emph{every} layer of a plot that combines them.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2LineLayerProcessor$line_layer_position(plot)}
