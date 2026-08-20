@@ -32,6 +32,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2CandlestickProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2DodgedBarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ErrorbarLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/Ggplot2GanttLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2HeatmapLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2HexbinLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2HistogramLayerProcessor.html</loc></url>
@@ -207,6 +208,7 @@
 <url><loc>https://r.maidr.ai/reference/knit_print.density.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/lane_name.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/layer_is_jittered.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/level_keys.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/level_label.html</loc></url>
@@ -282,6 +284,8 @@
 <url><loc>https://r.maidr.ai/reference/save_html_document.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/scale_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/schedule_auto_show.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/segment_lane_axis.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/segment_lanes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/series_group_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/set_internal_guard.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/set_maidr_data_attr.html</loc></url>

@@ -4,6 +4,27 @@
 
 ### New Features
 
+- [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
+  is now read as a gantt chart. A segment with the two ends of a span on
+  one axis and a lane on the other is how ggplot2 draws a schedule, a
+  range plot and a high-low chart, and it was read as nothing at all.
+  [`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+  computes the interval and the lane exactly – `x`, `xend`, `y`, `yend`
+  – and the panel’s scale names the lanes at the positions the built
+  data records, so nothing is inverted from a pixel. A lane booked twice
+  keeps both intervals under one row, and a level nothing was drawn in
+  survives `scale_y_discrete(drop = FALSE)` as the empty row it is. Both
+  orientations work. A layer whose segments share no coordinate is a
+  node-link diagram’s edges and keeps the static-image fallback it had,
+  asked of the whole layer so that a chart holding both is not announced
+  as a gantt missing part of itself.
+  [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
+  computes the same columns but is **not** read: gridSVG cannot export
+  the `curve` grob it draws, so claiming it would turn a chart that
+  renders into a
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) that
+  raises.
+
 - [`stat_ecdf()`](https://ggplot2.tidyverse.org/reference/stat_ecdf.html)
   is now read as a step layer. An empirical CDF previously detected as
   `unknown` and fell back to the static image, announcing nothing at

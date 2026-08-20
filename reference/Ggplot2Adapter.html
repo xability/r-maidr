@@ -161,6 +161,7 @@ ggplot2 functionality to work with the new extensible architecture.</p>
 <li><p><a href="#method-Ggplot2Adapter-has_facets"><code>Ggplot2Adapter$has_facets()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-is_patchwork"><code>Ggplot2Adapter$is_patchwork()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-ribbon_is_area"><code>Ggplot2Adapter$ribbon_is_area()</code></a></p></li>
+<li><p><a href="#method-Ggplot2Adapter-segments_span_lanes"><code>Ggplot2Adapter$segments_span_lanes()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-clone"><code>Ggplot2Adapter$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Ggplot2Adapter-initialize"></a><div class="section">
 <h3 id="ggplot-adapter-new-"><code>Ggplot2Adapter$new()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-new-"></a></h3>
@@ -412,13 +413,45 @@ interval still carries both edges.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2Adapter-segments_span_lanes"></a><div class="section">
+<h3 id="ggplot-adapter-segments-span-lanes-"><code>Ggplot2Adapter$segments_span_lanes()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-segments-span-lanes-"></a></h3>
+<p>Check whether a segment layer draws intervals in lanes</p>
+<p>Asked of the built data for the reason <code>ribbon_is_area()</code> is: a
+mapping expression cannot say whether the two ends of a segment agree,
+and by build time ggplot2 has resolved every spelling of the lane – a
+factor, a character column, a repeated constant – to the position it
+drew at.</p>
+<p>The whole layer is asked at once rather than each row, which is the
+rule xability/maidr#1100 settled for the same reading: one
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment()</a></code> call can hold spans and edges together, and
+reading three spans out of four segments would announce a gantt quietly
+missing a quarter of its chart.</p><div class="section">
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">segments_span_lanes</span><span class="op">(</span><span class="va">layer</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>The layer being classified</p></dd>
+
+      <dt><code>plot_object</code></dt>
+<dd><p>The ggplot2 plot object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>TRUE when the layer's segments lay intervals in lanes</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2Adapter-clone"></a><div class="section">
 <h3 id="ggplot-adapter-clone-"><code>Ggplot2Adapter$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

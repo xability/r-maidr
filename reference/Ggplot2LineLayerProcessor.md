@@ -62,8 +62,6 @@ discovered:
 
 - [`Ggplot2LineLayerProcessor$get_layer()`](#method-Ggplot2LineLayerProcessor-get_layer)
 
-- [`Ggplot2LineLayerProcessor$resolve_panel_index()`](#method-Ggplot2LineLayerProcessor-resolve_panel_index)
-
 - [`Ggplot2LineLayerProcessor$get_x_transformation()`](#method-Ggplot2LineLayerProcessor-get_x_transformation)
 
 - [`Ggplot2LineLayerProcessor$transform_x_values()`](#method-Ggplot2LineLayerProcessor-transform_x_values)
@@ -117,6 +115,7 @@ Inherited methods
 - [`LayerProcessor$is_horizontal_call()`](https://r.maidr.ai/reference/LayerProcessor.html#method-is_horizontal_call)
 - [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
 - [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
+- [`LayerProcessor$resolve_panel_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-resolve_panel_index)
 - [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
 - [`LayerProcessor$swap_point_axes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-swap_point_axes)
 - [`LayerProcessor$unflip_columns()`](https://r.maidr.ai/reference/LayerProcessor.html#method-unflip_columns)
@@ -538,35 +537,6 @@ The ggplot2 layer this processor is responsible for.
 #### Returns
 
 The layer, or NULL when the index does not resolve
-
-------------------------------------------------------------------------
-
-### `Ggplot2LineLayerProcessor$resolve_panel_index()`
-
-Resolve which entry of `built$layout$panel_params` describes a facet
-panel.
-
-Panel parameters are stored in the row order of `built$layout$layout`,
-so panel `n` is entry `n`. An unfaceted plot (or an unusable id)
-resolves to the only panel there is.
-
-#### Usage
-
-    Ggplot2LineLayerProcessor$resolve_panel_index(built, panel_id = NULL)
-
-#### Arguments
-
-- `built`:
-
-  Built plot data
-
-- `panel_id`:
-
-  Panel id for faceted plots (optional)
-
-#### Returns
-
-Integer index guaranteed to be in range
 
 ------------------------------------------------------------------------
 

@@ -27,6 +27,8 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$get_layer_built_data()`](#method-LayerProcessor-get_layer_built_data)
 
+- [`LayerProcessor$resolve_panel_index()`](#method-LayerProcessor-resolve_panel_index)
+
 - [`LayerProcessor$get_own_layer()`](#method-LayerProcessor-get_own_layer)
 
 - [`LayerProcessor$find_layer_grob_tree()`](#method-LayerProcessor-find_layer_grob_tree)
@@ -210,6 +212,39 @@ facet grid as one series.
 #### Returns
 
 A data frame of computed aesthetics, or NULL
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$resolve_panel_index()`
+
+Resolve which entry of `built$layout$panel_params` describes a facet
+panel.
+
+Panel parameters are stored in the row order of `built$layout$layout`,
+so panel `n` is entry `n`. An unfaceted plot (or an unusable id)
+resolves to the only panel there is.
+
+Shared: the line processor asked this first and the gantt processor asks
+it to name its lanes, and two readings disagreeing about which panel
+they are describing is not a difference worth having.
+
+#### Usage
+
+    LayerProcessor$resolve_panel_index(built, panel_id = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Panel id for faceted plots (optional)
+
+#### Returns
+
+Integer index guaranteed to be in range
 
 ------------------------------------------------------------------------
 

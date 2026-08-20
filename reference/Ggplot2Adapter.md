@@ -40,6 +40,8 @@ An R6 class inheriting from SystemAdapter
 
 - [`Ggplot2Adapter$ribbon_is_area()`](#method-Ggplot2Adapter-ribbon_is_area)
 
+- [`Ggplot2Adapter$segments_span_lanes()`](#method-Ggplot2Adapter-segments_span_lanes)
+
 - [`Ggplot2Adapter$clone()`](#method-Ggplot2Adapter-clone)
 
 ------------------------------------------------------------------------
@@ -316,6 +318,42 @@ interval still carries both edges.
 #### Returns
 
 TRUE when the ribbon is an area chart
+
+------------------------------------------------------------------------
+
+### `Ggplot2Adapter$segments_span_lanes()`
+
+Check whether a segment layer draws intervals in lanes
+
+Asked of the built data for the reason `ribbon_is_area()` is: a mapping
+expression cannot say whether the two ends of a segment agree, and by
+build time ggplot2 has resolved every spelling of the lane – a factor, a
+character column, a repeated constant – to the position it drew at.
+
+The whole layer is asked at once rather than each row, which is the rule
+xability/maidr#1100 settled for the same reading: one
+[`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
+call can hold spans and edges together, and reading three spans out of
+four segments would announce a gantt quietly missing a quarter of its
+chart.
+
+#### Usage
+
+    Ggplot2Adapter$segments_span_lanes(layer, plot_object)
+
+#### Arguments
+
+- `layer`:
+
+  The layer being classified
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+#### Returns
+
+TRUE when the layer's segments lay intervals in lanes
 
 ------------------------------------------------------------------------
 
