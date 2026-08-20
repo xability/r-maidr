@@ -37,6 +37,9 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "stacked_normalized_bar" = Ggplot2StackedBarProcessor$new(layer_info),
         "pie" = Ggplot2PieLayerProcessor$new(layer_info),
         "hist" = Ggplot2HistogramLayerProcessor$new(layer_info),
+        # A stack of dots is a bar and the layer emits `hist`, but it reads
+        # from different columns and has no per-bin element to highlight.
+        "dotplot" = Ggplot2DotplotLayerProcessor$new(layer_info),
         "line" = Ggplot2LineLayerProcessor$new(layer_info),
         "area" = Ggplot2AreaLayerProcessor$new(layer_info),
         # The three area variants differ in how their bands relate, not in

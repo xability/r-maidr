@@ -133,6 +133,14 @@ Ggplot2Adapter <- R6::R6Class(
         return("smooth")
       }
 
+      # A Wilkinson dot plot is a histogram drawn one dot per observation,
+      # and `GeomDotplot` is a direct `Geom` subclass rather than a relative
+      # of anything already handled -- the same shape of miss `GeomRaster`
+      # was (#193). Its own processor emits `hist`.
+      if (geom_class == "GeomDotplot") {
+        return("dotplot")
+      }
+
       if (geom_class %in% c("GeomBar", "GeomCol")) {
         if (stat_class == "StatBin") {
           return("hist")
