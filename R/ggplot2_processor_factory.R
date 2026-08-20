@@ -46,6 +46,9 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "stacked_normalized_area" = Ggplot2AreaLayerProcessor$new(layer_info),
         "step" = Ggplot2StepLayerProcessor$new(layer_info),
         "smooth" = Ggplot2SmoothLayerProcessor$new(layer_info),
+        # A field drawn as curves of constant value, the level being a
+        # number on every row rather than a fill colour.
+        "contour" = Ggplot2ContourLayerProcessor$new(layer_info),
         # A segment whose ends share a coordinate is an interval in a lane,
         # which is a schedule rather than a shape of its own.
         "gantt" = Ggplot2GanttLayerProcessor$new(layer_info),
@@ -80,6 +83,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "stacked_normalized_area",
         "step",
         "smooth",
+        "contour",
         "gantt",
         "heat",
         "hexbin",

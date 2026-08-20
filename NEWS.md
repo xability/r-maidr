@@ -2,6 +2,17 @@
 
 ## New Features
 
+* `geom_contour()` and `geom_density_2d()` are now read as contour layers. A
+  contour draws a scalar field as curves of constant value, and this is the one
+  chart of its family whose value is a **number rather than a colour**:
+  `ggplot_build()` puts `level` on every row. ggplot2 has also already split
+  the curves -- a field with two peaks crosses a level twice and arrives as two
+  `piece`s -- so each island is announced as its own curve rather than the two
+  being joined by a line the field never took. The **filled** forms are not
+  this chart and are declined: they draw the bands *between* levels, and their
+  `level` is a factor of intervals rather than a number, which the reader
+  checks in the frame as well as in the geom's name.
+
 * `geom_segment()` is now read as a gantt chart. A segment with the two ends of
   a span on one axis and a lane on the other is how ggplot2 draws a schedule, a
   range plot and a high-low chart, and it was read as nothing at all.

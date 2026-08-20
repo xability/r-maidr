@@ -106,6 +106,22 @@ Ggplot2Adapter <- R6::R6Class(
       # diagram, and goes back to "unknown" -- which is what it returns today,
       # so a chart that is refused keeps exactly the static-image fallback it
       # already had. `segment_lane_axis()` is what asks, of the whole layer.
+      # `geom_contour()` and `geom_density_2d()` draw a scalar field as curves
+      # of constant value, and ggplot2 computes `level` as a **number** on
+      # every row -- so the value is data rather than a fill colour, which is
+      # what left the same chart unread in the Observable adapter
+      # (xability/maidr#1084) and what makes it readable here.
+      #
+      # The filled forms are a different chart: they draw the bands *between*
+      # levels, and their `level` is a factor of intervals rather than a
+      # number. `GeomContourFilled` and `GeomDensity2dFilled` do not inherit
+      # their line counterparts, so naming only the two is enough -- and
+      # `contour_curves()` checks the frame as well, so a stat that ever
+      # produced banded levels under a line geom is declined rather than read.
+      if (geom_class %in% c("GeomContour", "GeomDensity2d")) {
+        return("contour")
+      }
+
       if (geom_class == "GeomSegment") {
         return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
       }

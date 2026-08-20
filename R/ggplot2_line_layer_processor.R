@@ -877,88 +877,6 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       self$generate_multiline_selectors(base_id, n_series)
     },
 
-    #' @description The polyline grob ggplot2 drew for THIS line layer.
-    #'
-    #' @param plot The ggplot2 object
-    #' @param panel_grob The panel's grob tree
-    #' @return The matching grob, or NULL
-    find_layer_polyline_grob = function(plot, panel_grob) {
-      candidates <- self$layer_polyline_grobs(plot, panel_grob)
-      if (length(candidates) == 0L) {
-        return(NULL)
-      }
-      position <- self$line_layer_position(plot)
-      if (!is.null(position)) {
-        if (position > length(candidates)) {
-          return(NULL)
-        }
-        return(candidates[[position]])
-      }
-      if (length(candidates) == 1L) candidates[[1]] else NULL
-    },
-
-    #' @description Panel polylines that a line layer could have drawn.
-    #'
-    #' \code{GeomPath$draw_panel()} returns a bare \code{polylineGrob}, so a
-    #' line layer's grob carries grid's auto-generated
-    #' \code{GRID.polyline.N} name with no geom prefix to match on -- only
-    #' its draw-order position identifies it. Layers that DO name their grob
-    #' tree after their geom (\code{geom_smooth.gTree.N}) are skipped whole
-    #' via \code{geom_grob_prefix()}, the same helper the smooth processor
-    #' uses to scope itself to its own tree; without that, the smooth's
-    #' three curves are counted as line-layer polylines and shift every
-    #' position by three. Panel grid lines are named after the theme element
-    #' (\code{panel.grid.major.x..polyline.N}) and so never match.
-    #'
-    #' @param plot The ggplot2 object
-    #' @param panel_grob The panel's grob tree
-    #' @return List of grobs in draw order
-    layer_polyline_grobs = function(plot, panel_grob) {
-      skip <- self$other_geom_grob_prefixes(plot)
-      out <- list()
-      collect <- function(grob) {
-        name <- grob$name
-        belongs_to_other_layer <- !is.null(name) && length(skip) > 0L &&
-          any(startsWith(name, paste0(skip, ".")))
-        if (belongs_to_other_layer) {
-          # Another layer's tree: a match is the whole layer, do not descend.
-          return(invisible(NULL))
-        }
-        if (!is.null(name) && grepl("^GRID\\.polyline\\.\\d+$", name)) {
-          out[[length(out) + 1L]] <<- grob
-        }
-        if (inherits(grob, "gTree")) {
-          for (child in grob$children) collect(child)
-        }
-        if (inherits(grob, "gList")) {
-          for (i in seq_along(grob)) collect(grob[[i]])
-        }
-        invisible(NULL)
-      }
-      collect(panel_grob)
-      out
-    },
-
-    #' @description Grob-name prefixes belonging to the plot's OTHER geoms.
-    #'
-    #' This layer's own prefix is excluded so that a second layer sharing
-    #' the geom (two \code{geom_line()} calls) is still walked.
-    #'
-    #' @param plot The ggplot2 object
-    #' @return Character vector of prefixes, possibly empty
-    other_geom_grob_prefixes = function(plot) {
-      prefix_of <- function(layer) {
-        tryCatch(geom_grob_prefix(layer$geom), error = function(e) NA_character_)
-      }
-      own <- prefix_of(plot$layers[[self$get_layer_index()]])
-      prefixes <- vapply(plot$layers, prefix_of, character(1))
-      prefixes <- unique(prefixes[!is.na(prefixes)])
-      if (!is.na(own)) {
-        prefixes <- setdiff(prefixes, own)
-      }
-      prefixes
-    },
-
     #' @description Number of separate curves a polyline grob draws.
     #'
     #' \code{polylineGrob()} splits one grob into several drawn lines via
@@ -1006,13 +924,15 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
     #' @description Position of this layer among the polyline-producing layers.
     #'
-    #' Delegates to `polyline_layer_position()`, which counts both "line" and
-    #' "step" layers. `layer_polyline_grobs()` skips only the layers that name
-    #' their grob tree after their geom, and `GeomStep` draws through
-    #' `GeomPath$draw_panel()` - a bare `polylineGrob` - so a `geom_step()`
-    #' sits in that candidate list exactly as a `geom_line()` does. Counting
-    #' only "line" layers would therefore index the wrong polyline for *both*
-    #' layers of a plot that combines the two.
+    #' Delegates to `polyline_layer_position()`, which counts every layer type
+    #' that renders an auto-named polyline: "line", "step" and "contour".
+    #' `layer_polyline_grobs()` skips only the layers that name their grob tree
+    #' after their geom, and none of these three do. `GeomContour` defines no
+    #' `draw_panel()` of its own and so draws through `GeomPath`'s -- a bare
+    #' `polylineGrob` -- while `GeomStep` stairsteps its data and then calls
+    #' the same method; either sits in that candidate list exactly as a
+    #' `geom_line()` does. Counting only "line" layers would therefore index
+    #' the wrong polyline for *every* layer of a plot that combines them.
     #'
     #' @param plot The ggplot2 object
     #' @return The 1-based position, or NULL if registry-based detection fails

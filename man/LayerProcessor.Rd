@@ -28,6 +28,9 @@ interface that all layer processors must implement.
     \item \href{#method-LayerProcessor-resolve_panel_index}{\code{LayerProcessor$resolve_panel_index()}}
     \item \href{#method-LayerProcessor-get_own_layer}{\code{LayerProcessor$get_own_layer()}}
     \item \href{#method-LayerProcessor-find_layer_grob_tree}{\code{LayerProcessor$find_layer_grob_tree()}}
+    \item \href{#method-LayerProcessor-find_layer_polyline_grob}{\code{LayerProcessor$find_layer_polyline_grob()}}
+    \item \href{#method-LayerProcessor-layer_polyline_grobs}{\code{LayerProcessor$layer_polyline_grobs()}}
+    \item \href{#method-LayerProcessor-other_geom_grob_prefixes}{\code{LayerProcessor$other_geom_grob_prefixes()}}
     \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
     \item \href{#method-LayerProcessor-reorder_layer_data}{\code{LayerProcessor$reorder_layer_data()}}
     \item \href{#method-LayerProcessor-augment_plot}{\code{LayerProcessor$augment_plot()}}
@@ -273,6 +276,93 @@ own, and everything else takes the default.
   }
   \subsection{Returns}{
     The matching grob, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-find_layer_polyline_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-find_layer_polyline_grob}{}}}
+\subsection{\code{LayerProcessor$find_layer_polyline_grob()}}{
+  The polyline grob ggplot2 drew for THIS layer.
+
+Shared rather than owned by the line processor: \code{GeomPath}, \code{GeomStep}
+and \code{GeomContour} all draw through a bare \code{polylineGrob} and so all
+land in the same auto-named candidate list, which is exactly why one
+answer to "which of them is mine" has to serve all three.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$find_layer_polyline_grob(plot, panel_grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{panel_grob}}{The panel's grob tree}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The matching grob, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-layer_polyline_grobs"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-layer_polyline_grobs}{}}}
+\subsection{\code{LayerProcessor$layer_polyline_grobs()}}{
+  Panel polylines that a line layer could have drawn.
+
+\code{GeomPath$draw_panel()} returns a bare \code{polylineGrob}, so a
+line layer's grob carries grid's auto-generated
+\code{GRID.polyline.N} name with no geom prefix to match on -- only
+its draw-order position identifies it. Layers that DO name their grob
+tree after their geom (\code{geom_smooth.gTree.N}) are skipped whole
+via \code{geom_grob_prefix()}, the same helper the smooth processor
+uses to scope itself to its own tree; without that, the smooth's
+three curves are counted as line-layer polylines and shift every
+position by three. Panel grid lines are named after the theme element
+(\code{panel.grid.major.x..polyline.N}) and so never match.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$layer_polyline_grobs(plot, panel_grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{panel_grob}}{The panel's grob tree}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of grobs in draw order
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-other_geom_grob_prefixes"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-other_geom_grob_prefixes}{}}}
+\subsection{\code{LayerProcessor$other_geom_grob_prefixes()}}{
+  Grob-name prefixes belonging to the plot's OTHER geoms.
+
+This layer's own prefix is excluded so that a second layer sharing
+the geom (two \code{geom_line()} calls) is still walked.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$other_geom_grob_prefixes(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of prefixes, possibly empty
   }
 }
 
