@@ -30,6 +30,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2BarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2BoxplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2CandlestickProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/Ggplot2ContourLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2DodgedBarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ErrorbarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2GanttLayerProcessor.html</loc></url>
@@ -91,6 +92,7 @@
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_selectors.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/compute_panel_slots.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/compute_vioplot_stats.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/contour_curves.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/count_leaf_panels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_axis_wrapper.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/create_barplot_wrapper.html</loc></url>

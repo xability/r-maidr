@@ -82,12 +82,6 @@ discovered:
 
 - [`Ggplot2LineLayerProcessor$curve_selectors()`](#method-Ggplot2LineLayerProcessor-curve_selectors)
 
-- [`Ggplot2LineLayerProcessor$find_layer_polyline_grob()`](#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob)
-
-- [`Ggplot2LineLayerProcessor$layer_polyline_grobs()`](#method-Ggplot2LineLayerProcessor-layer_polyline_grobs)
-
-- [`Ggplot2LineLayerProcessor$other_geom_grob_prefixes()`](#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes)
-
 - [`Ggplot2LineLayerProcessor$polyline_curve_count()`](#method-Ggplot2LineLayerProcessor-polyline_curve_count)
 
 - [`Ggplot2LineLayerProcessor$generate_multiline_selectors()`](#method-Ggplot2LineLayerProcessor-generate_multiline_selectors)
@@ -106,6 +100,7 @@ Inherited methods
 
 - [`LayerProcessor$augment_plot()`](https://r.maidr.ai/reference/LayerProcessor.html#method-augment_plot)
 - [`LayerProcessor$find_layer_grob_tree()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_grob_tree)
+- [`LayerProcessor$find_layer_polyline_grob()`](https://r.maidr.ai/reference/LayerProcessor.html#method-find_layer_polyline_grob)
 - [`LayerProcessor$get_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_last_result)
 - [`LayerProcessor$get_layer_built_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_built_data)
 - [`LayerProcessor$get_layer_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-get_layer_index)
@@ -113,7 +108,9 @@ Inherited methods
 - [`LayerProcessor$initialize()`](https://r.maidr.ai/reference/LayerProcessor.html#method-initialize)
 - [`LayerProcessor$is_flipped_layer()`](https://r.maidr.ai/reference/LayerProcessor.html#method-is_flipped_layer)
 - [`LayerProcessor$is_horizontal_call()`](https://r.maidr.ai/reference/LayerProcessor.html#method-is_horizontal_call)
+- [`LayerProcessor$layer_polyline_grobs()`](https://r.maidr.ai/reference/LayerProcessor.html#method-layer_polyline_grobs)
 - [`LayerProcessor$needs_augmentation()`](https://r.maidr.ai/reference/LayerProcessor.html#method-needs_augmentation)
+- [`LayerProcessor$other_geom_grob_prefixes()`](https://r.maidr.ai/reference/LayerProcessor.html#method-other_geom_grob_prefixes)
 - [`LayerProcessor$reorder_layer_data()`](https://r.maidr.ai/reference/LayerProcessor.html#method-reorder_layer_data)
 - [`LayerProcessor$resolve_panel_index()`](https://r.maidr.ai/reference/LayerProcessor.html#method-resolve_panel_index)
 - [`LayerProcessor$set_last_result()`](https://r.maidr.ai/reference/LayerProcessor.html#method-set_last_result)
@@ -890,91 +887,6 @@ series
 
 ------------------------------------------------------------------------
 
-### `Ggplot2LineLayerProcessor$find_layer_polyline_grob()`
-
-The polyline grob ggplot2 drew for THIS line layer.
-
-#### Usage
-
-    Ggplot2LineLayerProcessor$find_layer_polyline_grob(plot, panel_grob)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object
-
-- `panel_grob`:
-
-  The panel's grob tree
-
-#### Returns
-
-The matching grob, or NULL
-
-------------------------------------------------------------------------
-
-### `Ggplot2LineLayerProcessor$layer_polyline_grobs()`
-
-Panel polylines that a line layer could have drawn.
-
-`GeomPath$draw_panel()` returns a bare `polylineGrob`, so a line layer's
-grob carries grid's auto-generated `GRID.polyline.N` name with no geom
-prefix to match on – only its draw-order position identifies it. Layers
-that DO name their grob tree after their geom (`geom_smooth.gTree.N`)
-are skipped whole via
-[`geom_grob_prefix()`](https://r.maidr.ai/reference/geom_grob_prefix.md),
-the same helper the smooth processor uses to scope itself to its own
-tree; without that, the smooth's three curves are counted as line-layer
-polylines and shift every position by three. Panel grid lines are named
-after the theme element (`panel.grid.major.x..polyline.N`) and so never
-match.
-
-#### Usage
-
-    Ggplot2LineLayerProcessor$layer_polyline_grobs(plot, panel_grob)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object
-
-- `panel_grob`:
-
-  The panel's grob tree
-
-#### Returns
-
-List of grobs in draw order
-
-------------------------------------------------------------------------
-
-### `Ggplot2LineLayerProcessor$other_geom_grob_prefixes()`
-
-Grob-name prefixes belonging to the plot's OTHER geoms.
-
-This layer's own prefix is excluded so that a second layer sharing the
-geom (two
-[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
-calls) is still walked.
-
-#### Usage
-
-    Ggplot2LineLayerProcessor$other_geom_grob_prefixes(plot)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object
-
-#### Returns
-
-Character vector of prefixes, possibly empty
-
-------------------------------------------------------------------------
-
 ### `Ggplot2LineLayerProcessor$polyline_curve_count()`
 
 Number of separate curves a polyline grob draws.
@@ -1049,15 +961,16 @@ Position of this layer among the polyline-producing layers.
 
 Delegates to
 [`polyline_layer_position()`](https://r.maidr.ai/reference/polyline_layer_position.md),
-which counts both "line" and "step" layers. `layer_polyline_grobs()`
-skips only the layers that name their grob tree after their geom, and
-`GeomStep` draws through `GeomPath$draw_panel()` - a bare
-`polylineGrob` - so a
-[`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
-sits in that candidate list exactly as a
+which counts every layer type that renders an auto-named polyline:
+"line", "step" and "contour". `layer_polyline_grobs()` skips only the
+layers that name their grob tree after their geom, and none of these
+three do. `GeomContour` defines no `draw_panel()` of its own and so
+draws through `GeomPath`'s – a bare `polylineGrob` – while `GeomStep`
+stairsteps its data and then calls the same method; either sits in that
+candidate list exactly as a
 [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
 does. Counting only "line" layers would therefore index the wrong
-polyline for *both* layers of a plot that combines the two.
+polyline for *every* layer of a plot that combines them.
 
 #### Usage
 

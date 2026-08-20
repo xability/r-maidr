@@ -8,11 +8,17 @@ counted over the same population.
 [`geom_path()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
 /
 [`tidyquant::geom_ma()`](https://business-science.github.io/tidyquant/reference/geom_ma.html)
-(detected as `"line"`) and
+(detected as `"line"`),
 [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
-(detected as `"step"`) each render one polyline per layer, so both types
-count. Counting only `"line"` layers would index the wrong polyline for
-*both* layers of a plot that combines the two.
+(detected as `"step"`) and
+[`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
+/
+[`geom_density_2d()`](https://ggplot2.tidyverse.org/reference/geom_density_2d.html)
+(detected as `"contour"`) each render one auto-named polyline grob per
+layer, so all three types count. Counting only `"line"` layers would
+index the wrong polyline for *every* layer of a plot that combines them
+– and both charts would read correctly while outlining each other's
+curves, which is the highlight-only failure xability/maidr#814 names.
 
 ## Usage
 

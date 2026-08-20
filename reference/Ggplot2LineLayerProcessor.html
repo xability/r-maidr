@@ -197,9 +197,6 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <li><p><a href="#method-Ggplot2LineLayerProcessor-generate_selectors"><code>Ggplot2LineLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-series_count"><code>Ggplot2LineLayerProcessor$series_count()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-curve_selectors"><code>Ggplot2LineLayerProcessor$curve_selectors()</code></a></p></li>
-<li><p><a href="#method-Ggplot2LineLayerProcessor-find_layer_polyline_grob"><code>Ggplot2LineLayerProcessor$find_layer_polyline_grob()</code></a></p></li>
-<li><p><a href="#method-Ggplot2LineLayerProcessor-layer_polyline_grobs"><code>Ggplot2LineLayerProcessor$layer_polyline_grobs()</code></a></p></li>
-<li><p><a href="#method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes"><code>Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-polyline_curve_count"><code>Ggplot2LineLayerProcessor$polyline_curve_count()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-generate_multiline_selectors"><code>Ggplot2LineLayerProcessor$generate_multiline_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2LineLayerProcessor-generate_single_line_selector"><code>Ggplot2LineLayerProcessor$generate_single_line_selector()</code></a></p></li>
@@ -209,6 +206,7 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <li><p><a href="#method-Ggplot2LineLayerProcessor-clone"><code>Ggplot2LineLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_grob_tree"><a href="LayerProcessor.html#method-find_layer_grob_tree"><code>LayerProcessor$find_layer_grob_tree()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="find_layer_polyline_grob"><a href="LayerProcessor.html#method-find_layer_polyline_grob"><code>LayerProcessor$find_layer_polyline_grob()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_last_result"><a href="LayerProcessor.html#method-get_last_result"><code>LayerProcessor$get_last_result()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_built_data"><a href="LayerProcessor.html#method-get_layer_built_data"><code>LayerProcessor$get_layer_built_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="get_layer_index"><a href="LayerProcessor.html#method-get_layer_index"><code>LayerProcessor$get_layer_index()</code></a></span></li>
@@ -216,7 +214,9 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="initialize"><a href="LayerProcessor.html#method-initialize"><code>LayerProcessor$initialize()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="is_flipped_layer"><a href="LayerProcessor.html#method-is_flipped_layer"><code>LayerProcessor$is_flipped_layer()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="is_horizontal_call"><a href="LayerProcessor.html#method-is_horizontal_call"><code>LayerProcessor$is_horizontal_call()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="layer_polyline_grobs"><a href="LayerProcessor.html#method-layer_polyline_grobs"><code>LayerProcessor$layer_polyline_grobs()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="needs_augmentation"><a href="LayerProcessor.html#method-needs_augmentation"><code>LayerProcessor$needs_augmentation()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="other_geom_grob_prefixes"><a href="LayerProcessor.html#method-other_geom_grob_prefixes"><code>LayerProcessor$other_geom_grob_prefixes()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="reorder_layer_data"><a href="LayerProcessor.html#method-reorder_layer_data"><code>LayerProcessor$reorder_layer_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="resolve_panel_index"><a href="LayerProcessor.html#method-resolve_panel_index"><code>LayerProcessor$resolve_panel_index()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="set_last_result"><a href="LayerProcessor.html#method-set_last_result"><code>LayerProcessor$set_last_result()</code></a></span></li>
@@ -892,98 +892,23 @@ with the series</p>
 
 </div>
 
-<p></p><hr><a id="method-Ggplot2LineLayerProcessor-find_layer_polyline_grob"></a><div class="section">
-<h3 id="ggplot-linelayerprocessor-find-layer-polyline-grob-"><code>Ggplot2LineLayerProcessor$find_layer_polyline_grob()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-find-layer-polyline-grob-"></a></h3>
-<p>The polyline grob ggplot2 drew for THIS line layer.</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_layer_polyline_grob</span><span class="op">(</span><span class="va">plot</span>, <span class="va">panel_grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-      <dt><code>panel_grob</code></dt>
-<dd><p>The panel's grob tree</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
-<p>The matching grob, or NULL</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-Ggplot2LineLayerProcessor-layer_polyline_grobs"></a><div class="section">
-<h3 id="ggplot-linelayerprocessor-layer-polyline-grobs-"><code>Ggplot2LineLayerProcessor$layer_polyline_grobs()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-layer-polyline-grobs-"></a></h3>
-<p>Panel polylines that a line layer could have drawn.</p>
-<p><code>GeomPath$draw_panel()</code> returns a bare <code>polylineGrob</code>, so a
-line layer's grob carries grid's auto-generated
-<code>GRID.polyline.N</code> name with no geom prefix to match on – only
-its draw-order position identifies it. Layers that DO name their grob
-tree after their geom (<code>geom_smooth.gTree.N</code>) are skipped whole
-via <code><a href="geom_grob_prefix.html">geom_grob_prefix()</a></code>, the same helper the smooth processor
-uses to scope itself to its own tree; without that, the smooth's
-three curves are counted as line-layer polylines and shift every
-position by three. Panel grid lines are named after the theme element
-(<code>panel.grid.major.x..polyline.N</code>) and so never match.</p><div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">layer_polyline_grobs</span><span class="op">(</span><span class="va">plot</span>, <span class="va">panel_grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-      <dt><code>panel_grob</code></dt>
-<dd><p>The panel's grob tree</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
-<p>List of grobs in draw order</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-Ggplot2LineLayerProcessor-other_geom_grob_prefixes"></a><div class="section">
-<h3 id="ggplot-linelayerprocessor-other-geom-grob-prefixes-"><code>Ggplot2LineLayerProcessor$other_geom_grob_prefixes()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-other-geom-grob-prefixes-"></a></h3>
-<p>Grob-name prefixes belonging to the plot's OTHER geoms.</p>
-<p>This layer's own prefix is excluded so that a second layer sharing
-the geom (two <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> calls) is still walked.</p><div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">other_geom_grob_prefixes</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
-<p>Character vector of prefixes, possibly empty</p>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-polyline_curve_count"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-polyline-curve-count-"><code>Ggplot2LineLayerProcessor$polyline_curve_count()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-polyline-curve-count-"></a></h3>
 <p>Number of separate curves a polyline grob draws.</p>
 <p><code>polylineGrob()</code> splits one grob into several drawn lines via
 <code>id</code> / <code>id.lengths</code>; gridSVG renders each as its own SVG
 element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">polyline_curve_count</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-24">Arguments<a class="anchor" aria-label="anchor" href="#arguments-24"></a></h4>
+<h4 id="arguments-21">Arguments<a class="anchor" aria-label="anchor" href="#arguments-21"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>A polyline grob</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-24">Returns<a class="anchor" aria-label="anchor" href="#returns-24"></a></h4>
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
 <p>Integer count, at least 1</p>
 </div>
 
@@ -992,10 +917,10 @@ element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-generate_multiline_selectors"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-generate-multiline-selectors-"><code>Ggplot2LineLayerProcessor$generate_multiline_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-generate-multiline-selectors-"></a></h3>
 <p>Generate selectors for multiline plots using actual structure</p><div class="section">
-<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_multiline_selectors</span><span class="op">(</span><span class="va">base_id</span>, <span class="va">num_series</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
+<h4 id="arguments-22">Arguments<a class="anchor" aria-label="anchor" href="#arguments-22"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>base_id</code></dt>
 <dd><p>The base ID from the grob (e.g., "61")</p></dd>
 
@@ -1005,7 +930,7 @@ element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-25">Returns<a class="anchor" aria-label="anchor" href="#returns-25"></a></h4>
+<h4 id="returns-22">Returns<a class="anchor" aria-label="anchor" href="#returns-22"></a></h4>
 <p>List of selectors</p>
 </div>
 
@@ -1014,17 +939,17 @@ element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-generate_single_line_selector"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-generate-single-line-selector-"><code>Ggplot2LineLayerProcessor$generate_single_line_selector()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-generate-single-line-selector-"></a></h3>
 <p>Generate selector for single line plot</p><div class="section">
-<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">generate_single_line_selector</span><span class="op">(</span><span class="va">base_id</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
+<h4 id="arguments-23">Arguments<a class="anchor" aria-label="anchor" href="#arguments-23"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>base_id</code></dt>
 <dd><p>The base ID from the grob</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-26">Returns<a class="anchor" aria-label="anchor" href="#returns-26"></a></h4>
+<h4 id="returns-23">Returns<a class="anchor" aria-label="anchor" href="#returns-23"></a></h4>
 <p>List with single selector</p>
 </div>
 
@@ -1033,24 +958,26 @@ element suffixed <code>.1.&lt;k&gt;</code>.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-line_layer_position"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-line-layer-position-"><code>Ggplot2LineLayerProcessor$line_layer_position()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-line-layer-position-"></a></h3>
 <p>Position of this layer among the polyline-producing layers.</p>
-<p>Delegates to <code><a href="polyline_layer_position.html">polyline_layer_position()</a></code>, which counts both "line" and
-"step" layers. <code>layer_polyline_grobs()</code> skips only the layers that name
-their grob tree after their geom, and <code>GeomStep</code> draws through
-<code>GeomPath$draw_panel()</code> - a bare <code>polylineGrob</code> - so a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_step()</a></code>
-sits in that candidate list exactly as a <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> does. Counting
-only "line" layers would therefore index the wrong polyline for <em>both</em>
-layers of a plot that combines the two.</p><div class="section">
-<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
+<p>Delegates to <code><a href="polyline_layer_position.html">polyline_layer_position()</a></code>, which counts every layer type
+that renders an auto-named polyline: "line", "step" and "contour".
+<code>layer_polyline_grobs()</code> skips only the layers that name their grob tree
+after their geom, and none of these three do. <code>GeomContour</code> defines no
+<code>draw_panel()</code> of its own and so draws through <code>GeomPath</code>'s – a bare
+<code>polylineGrob</code> – while <code>GeomStep</code> stairsteps its data and then calls
+the same method; either sits in that candidate list exactly as a
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> does. Counting only "line" layers would therefore index
+the wrong polyline for <em>every</em> layer of a plot that combines them.</p><div class="section">
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">line_layer_position</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-27">Arguments<a class="anchor" aria-label="anchor" href="#arguments-27"></a></h4>
+<h4 id="arguments-24">Arguments<a class="anchor" aria-label="anchor" href="#arguments-24"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-27">Returns<a class="anchor" aria-label="anchor" href="#returns-27"></a></h4>
+<h4 id="returns-24">Returns<a class="anchor" aria-label="anchor" href="#returns-24"></a></h4>
 <p>The 1-based position, or NULL if registry-based detection fails</p>
 </div>
 
@@ -1059,17 +986,17 @@ layers of a plot that combines the two.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-find_main_polyline_grob"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-find-main-polyline-grob-"><code>Ggplot2LineLayerProcessor$find_main_polyline_grob()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-find-main-polyline-grob-"></a></h3>
 <p>Find the main polyline grob (GRID.polyline.XX)</p><div class="section">
-<h4 id="usage-29">Usage<a class="anchor" aria-label="anchor" href="#usage-29"></a></h4>
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">find_main_polyline_grob</span><span class="op">(</span><span class="va">gt</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-28">Arguments<a class="anchor" aria-label="anchor" href="#arguments-28"></a></h4>
+<h4 id="arguments-25">Arguments<a class="anchor" aria-label="anchor" href="#arguments-25"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>gt</code></dt>
 <dd><p>The gtable to search</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-28">Returns<a class="anchor" aria-label="anchor" href="#returns-28"></a></h4>
+<h4 id="returns-25">Returns<a class="anchor" aria-label="anchor" href="#returns-25"></a></h4>
 <p>The main polyline grob or NULL</p>
 </div>
 
@@ -1078,10 +1005,10 @@ layers of a plot that combines the two.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-needs-reordering-"><code>Ggplot2LineLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-needs-reordering-"></a></h3>
 <p>Check if layer needs reordering</p><div class="section">
-<h4 id="usage-30">Usage<a class="anchor" aria-label="anchor" href="#usage-30"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-29">Returns<a class="anchor" aria-label="anchor" href="#returns-29"></a></h4>
+<h4 id="returns-26">Returns<a class="anchor" aria-label="anchor" href="#returns-26"></a></h4>
 <p>FALSE (line plots typically don't need reordering)</p>
 </div>
 
@@ -1090,10 +1017,10 @@ layers of a plot that combines the two.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-clone-"><code>Ggplot2LineLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-31">Usage<a class="anchor" aria-label="anchor" href="#usage-31"></a></h4>
+<h4 id="usage-28">Usage<a class="anchor" aria-label="anchor" href="#usage-28"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-29">Arguments<a class="anchor" aria-label="anchor" href="#arguments-29"></a></h4>
+<h4 id="arguments-26">Arguments<a class="anchor" aria-label="anchor" href="#arguments-26"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

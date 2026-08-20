@@ -33,6 +33,12 @@ interface that all layer processors must implement.
 
 - [`LayerProcessor$find_layer_grob_tree()`](#method-LayerProcessor-find_layer_grob_tree)
 
+- [`LayerProcessor$find_layer_polyline_grob()`](#method-LayerProcessor-find_layer_polyline_grob)
+
+- [`LayerProcessor$layer_polyline_grobs()`](#method-LayerProcessor-layer_polyline_grobs)
+
+- [`LayerProcessor$other_geom_grob_prefixes()`](#method-LayerProcessor-other_geom_grob_prefixes)
+
 - [`LayerProcessor$needs_reordering()`](#method-LayerProcessor-needs_reordering)
 
 - [`LayerProcessor$reorder_layer_data()`](#method-LayerProcessor-reorder_layer_data)
@@ -317,6 +323,96 @@ default.
 #### Returns
 
 The matching grob, or NULL
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$find_layer_polyline_grob()`
+
+The polyline grob ggplot2 drew for THIS layer.
+
+Shared rather than owned by the line processor: `GeomPath`, `GeomStep`
+and `GeomContour` all draw through a bare `polylineGrob` and so all land
+in the same auto-named candidate list, which is exactly why one answer
+to "which of them is mine" has to serve all three.
+
+#### Usage
+
+    LayerProcessor$find_layer_polyline_grob(plot, panel_grob)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `panel_grob`:
+
+  The panel's grob tree
+
+#### Returns
+
+The matching grob, or NULL
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$layer_polyline_grobs()`
+
+Panel polylines that a line layer could have drawn.
+
+`GeomPath$draw_panel()` returns a bare `polylineGrob`, so a line layer's
+grob carries grid's auto-generated `GRID.polyline.N` name with no geom
+prefix to match on – only its draw-order position identifies it. Layers
+that DO name their grob tree after their geom (`geom_smooth.gTree.N`)
+are skipped whole via
+[`geom_grob_prefix()`](https://r.maidr.ai/reference/geom_grob_prefix.md),
+the same helper the smooth processor uses to scope itself to its own
+tree; without that, the smooth's three curves are counted as line-layer
+polylines and shift every position by three. Panel grid lines are named
+after the theme element (`panel.grid.major.x..polyline.N`) and so never
+match.
+
+#### Usage
+
+    LayerProcessor$layer_polyline_grobs(plot, panel_grob)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `panel_grob`:
+
+  The panel's grob tree
+
+#### Returns
+
+List of grobs in draw order
+
+------------------------------------------------------------------------
+
+### `LayerProcessor$other_geom_grob_prefixes()`
+
+Grob-name prefixes belonging to the plot's OTHER geoms.
+
+This layer's own prefix is excluded so that a second layer sharing the
+geom (two
+[`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+calls) is still walked.
+
+#### Usage
+
+    LayerProcessor$other_geom_grob_prefixes(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+Character vector of prefixes, possibly empty
 
 ------------------------------------------------------------------------
 
