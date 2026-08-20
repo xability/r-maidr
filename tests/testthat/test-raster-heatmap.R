@@ -68,6 +68,29 @@ raster_layer <- function(plot) {
   jsonlite::fromJSON(json, simplifyVector = FALSE)$subplots[[1]][[1]]$layers[[1]]
 }
 
+test_that("a raster reaches the heatmap processor at all", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # Upstream of everything else in this file, and asked without rendering.
+  # The tests below reach the classification through `save_html`, so a
+  # regression in it would surface as three failures about grids and
+  # selectors rather than one about the branch that actually broke. This is
+  # the same reason `test-bin2d-heatmap.R` asks the classifier directly.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  raster <- raster_plot(ggplot2::geom_raster)
+
+  testthat::expect_equal(
+    adapter$detect_layer_type(raster$layers[[1]], raster), "heat"
+  )
+
+  # The branch still does the job it was widened from.
+  tile <- raster_plot(ggplot2::geom_tile)
+
+  testthat::expect_equal(
+    adapter$detect_layer_type(tile$layers[[1]], tile), "heat"
+  )
+})
+
 test_that("a raster is read as the heatmap it draws", {
   skip_if_no_render()
 
