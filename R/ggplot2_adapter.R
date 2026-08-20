@@ -84,6 +84,32 @@ Ggplot2Adapter <- R6::R6Class(
         return("area")
       }
 
+      # `geom_segment()` and `geom_curve()` draw a span between two points.
+      # When the two ends share a coordinate that span is an interval in a
+      # lane -- a schedule, a range plot, a high-low chart -- which is the
+      # gantt trace MAIDR has carried since xability/maidr#801. The four
+      # columns `ggplot_build` computes (`x`, `xend`, `y`, `yend`) are the
+      # interval and the lane exactly, with nothing inverted from a pixel.
+      #
+      # `geom_curve()` computes the same four columns and would read the same
+      # way -- the curvature is a drawing instruction that never becomes a
+      # position, the conclusion xability/maidr#1094 reached for
+      # `Plot.link`'s `curve` option. It is deliberately **not** claimed here,
+      # and the reason is measured rather than aesthetic: `GeomCurve` draws a
+      # `curve` grob, and `gridSVG::grid.export()` cannot export one --
+      # "All SVG style attribute values must have length 1". An unsupported
+      # chart takes the static-image path and never meets that, so claiming
+      # the layer turns a curve chart from a picture into a `save_html()` that
+      # raises. Reading it needs that upstream export fixed first (#195).
+      #
+      # A layer whose segments share nothing is an edge in a node-link
+      # diagram, and goes back to "unknown" -- which is what it returns today,
+      # so a chart that is refused keeps exactly the static-image fallback it
+      # already had. `segment_lane_axis()` is what asks, of the whole layer.
+      if (geom_class == "GeomSegment") {
+        return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
+      }
+
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
         return("line")
       }
@@ -437,6 +463,40 @@ Ggplot2Adapter <- R6::R6Class(
 
       lower <- rows$ymin[is.finite(rows$ymin)]
       length(lower) > 0L && all(lower == 0)
+    },
+
+    #' @description Check whether a segment layer draws intervals in lanes
+    #'
+    #' Asked of the built data for the reason \code{ribbon_is_area()} is: a
+    #' mapping expression cannot say whether the two ends of a segment agree,
+    #' and by build time ggplot2 has resolved every spelling of the lane -- a
+    #' factor, a character column, a repeated constant -- to the position it
+    #' drew at.
+    #'
+    #' The whole layer is asked at once rather than each row, which is the
+    #' rule xability/maidr#1100 settled for the same reading: one
+    #' \code{geom_segment()} call can hold spans and edges together, and
+    #' reading three spans out of four segments would announce a gantt quietly
+    #' missing a quarter of its chart.
+    #'
+    #' @param layer The layer being classified
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE when the layer's segments lay intervals in lanes
+    segments_span_lanes = function(layer, plot_object) {
+      built <- tryCatch(
+        ggplot2::ggplot_build(plot_object),
+        error = function(e) NULL
+      )
+      if (is.null(built)) {
+        return(FALSE)
+      }
+
+      index <- self$find_layer_index(plot_object, layer)
+      if (is.null(index) || index < 1L || index > length(built$data)) {
+        return(FALSE)
+      }
+
+      !is.null(segment_lane_axis(built$data[[index]]))
     }
   )
 )

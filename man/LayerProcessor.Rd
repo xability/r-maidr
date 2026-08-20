@@ -25,6 +25,7 @@ interface that all layer processors must implement.
     \item \href{#method-LayerProcessor-extract_data}{\code{LayerProcessor$extract_data()}}
     \item \href{#method-LayerProcessor-generate_selectors}{\code{LayerProcessor$generate_selectors()}}
     \item \href{#method-LayerProcessor-get_layer_built_data}{\code{LayerProcessor$get_layer_built_data()}}
+    \item \href{#method-LayerProcessor-resolve_panel_index}{\code{LayerProcessor$resolve_panel_index()}}
     \item \href{#method-LayerProcessor-get_own_layer}{\code{LayerProcessor$get_own_layer()}}
     \item \href{#method-LayerProcessor-find_layer_grob_tree}{\code{LayerProcessor$find_layer_grob_tree()}}
     \item \href{#method-LayerProcessor-needs_reordering}{\code{LayerProcessor$needs_reordering()}}
@@ -173,6 +174,38 @@ facet grid as one series.
   }
   \subsection{Returns}{
     A data frame of computed aesthetics, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LayerProcessor-resolve_panel_index"></a>}}
+\if{latex}{\out{\hypertarget{method-LayerProcessor-resolve_panel_index}{}}}
+\subsection{\code{LayerProcessor$resolve_panel_index()}}{
+  Resolve which entry of \code{built$layout$panel_params}
+describes a facet panel.
+
+Panel parameters are stored in the row order of
+\code{built$layout$layout}, so panel \code{n} is entry \code{n}. An
+unfaceted plot (or an unusable id) resolves to the only panel there is.
+
+Shared: the line processor asked this first and the gantt processor
+asks it to name its lanes, and two readings disagreeing about which
+panel they are describing is not a difference worth having.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LayerProcessor$resolve_panel_index(built, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_id}}{Panel id for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer index guaranteed to be in range
   }
 }
 
