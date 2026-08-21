@@ -96,6 +96,38 @@ pairs <- function(...) graphics::pairs(...)
 #' @export
 coplot <- function(...) graphics::coplot(...)
 
+# The seven below are wrapped so that a chart maidr cannot read still falls
+# back to a picture instead of stopping the save. See the note beside them in
+# `.base_r_function_classes$HIGH`.
+
+#' @rdname base-r-wrappers
+#' @export
+persp <- function(...) graphics::persp(...)
+
+#' @rdname base-r-wrappers
+#' @export
+sunflowerplot <- function(...) graphics::sunflowerplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+fourfoldplot <- function(...) graphics::fourfoldplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+spineplot <- function(...) graphics::spineplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+cdplot <- function(...) graphics::cdplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+qqnorm <- function(...) stats::qqnorm(...)
+
+#' @rdname base-r-wrappers
+#' @export
+filled.contour <- function(...) graphics::filled.contour(...)
+
 #' @rdname base-r-wrappers
 #' @export
 vioplot <- function(...) {
