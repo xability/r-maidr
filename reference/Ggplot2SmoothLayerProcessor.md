@@ -33,6 +33,8 @@ Processes smooth plot layers with complete logic included
 
 - [`Ggplot2SmoothLayerProcessor$generate_selectors()`](#method-Ggplot2SmoothLayerProcessor-generate_selectors)
 
+- [`Ggplot2SmoothLayerProcessor$own_curve_grob()`](#method-Ggplot2SmoothLayerProcessor-own_curve_grob)
+
 - [`Ggplot2SmoothLayerProcessor$series_group_count()`](#method-Ggplot2SmoothLayerProcessor-series_group_count)
 
 - [`Ggplot2SmoothLayerProcessor$grouped_curve_selectors()`](#method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors)
@@ -409,6 +411,54 @@ on their presence instead of re-asking the stat per sample.
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+------------------------------------------------------------------------
+
+### `Ggplot2SmoothLayerProcessor$own_curve_grob()`
+
+The polyline grob ggplot2 drew for THIS layer's curve.
+
+A curve layer leaves its grob in one of two shapes, and which one
+decides how it can be found again:
+
+- [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+  and
+  [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html)
+  wrap theirs in a tree named after the geom (`geom_smooth.gTree.N`), so
+  the layer's own polylines are exactly the ones inside it. The last is
+  the fitted line: ggplot2 draws the confidence band first, and within
+  one layer that ordering does hold.
+
+- [`geom_function()`](https://ggplot2.tidyverse.org/reference/geom_function.html)
+  draws a *bare* polyline – `GeomFunction` inherits
+  `GeomPath$draw_panel()` and gets no tree of its own – so it is
+  indistinguishable by name from a
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)'s,
+  and only its draw-order position among the other bare polylines
+  identifies it. That is the question `find_layer_polyline_grob()`
+  already answers for the line and contour processors.
+
+#### Usage
+
+    Ggplot2SmoothLayerProcessor$own_curve_grob(plot, gt, panel_ctx = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `gt`:
+
+  Gtable object
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation
+
+#### Returns
+
+The grob, or NULL when this layer's curve cannot be identified
 
 ------------------------------------------------------------------------
 

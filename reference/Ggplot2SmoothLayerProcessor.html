@@ -153,6 +153,7 @@
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-curve_points"><code>Ggplot2SmoothLayerProcessor$curve_points()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-attach_interval"><code>Ggplot2SmoothLayerProcessor$attach_interval()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-generate_selectors"><code>Ggplot2SmoothLayerProcessor$generate_selectors()</code></a></p></li>
+<li><p><a href="#method-Ggplot2SmoothLayerProcessor-own_curve_grob"><code>Ggplot2SmoothLayerProcessor$own_curve_grob()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-series_group_count"><code>Ggplot2SmoothLayerProcessor$series_group_count()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors"><code>Ggplot2SmoothLayerProcessor$grouped_curve_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2SmoothLayerProcessor-polyline_grob_names"><code>Ggplot2SmoothLayerProcessor$polyline_grob_names()</code></a></p></li>
@@ -487,19 +488,59 @@ can key on their presence instead of re-asking the stat per sample.</p><div clas
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-own_curve_grob"></a><div class="section">
+<h3 id="ggplot-smoothlayerprocessor-own-curve-grob-"><code>Ggplot2SmoothLayerProcessor$own_curve_grob()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-own-curve-grob-"></a></h3>
+<p>The polyline grob ggplot2 drew for THIS layer's curve.</p>
+<p>A curve layer leaves its grob in one of two shapes, and which one
+decides how it can be found again:</p>
+<ul><li><p><code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code> and <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code> wrap theirs in
+a tree named after the geom (<code>geom_smooth.gTree.N</code>), so the
+layer's own polylines are exactly the ones inside it. The last is
+the fitted line: ggplot2 draws the confidence band first, and
+within one layer that ordering does hold.</p></li>
+<li><p><code><a href="https://ggplot2.tidyverse.org/reference/geom_function.html" class="external-link">geom_function()</a></code> draws a <em>bare</em> polyline –
+<code>GeomFunction</code> inherits <code>GeomPath$draw_panel()</code> and gets
+no tree of its own – so it is indistinguishable by name from a
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code>'s, and only its draw-order position among the
+other bare polylines identifies it. That is the question
+<code>find_layer_polyline_grob()</code> already answers for the line and
+contour processors.</p></li>
+</ul><p></p><div class="section">
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">own_curve_grob</span><span class="op">(</span><span class="va">plot</span>, <span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable object</p></dd>
+
+      <dt><code>panel_ctx</code></dt>
+<dd><p>Panel context for panel-scoped selector generation</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>The grob, or NULL when this layer's curve cannot be identified</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-series_group_count"></a><div class="section">
 <h3 id="ggplot-smoothlayerprocessor-series-group-count-"><code>Ggplot2SmoothLayerProcessor$series_group_count()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-series-group-count-"></a></h3>
 <p>Number of curves this layer draws in the given panel.</p>
 <p>Never throws: selector generation has to degrade to the single-curve
 path for inputs <code>extract_data()</code> would reject.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">series_group_count</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -512,7 +553,7 @@ path for inputs <code>extract_data()</code> would reject.</p><div class="section
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>Number of groups, or 0 when the layer draws a single curve</p>
 </div>
 
@@ -528,7 +569,7 @@ tree holds an equal run of children per group: a bare polyline for
 Chunking the children by group and taking the last polyline in each
 chunk applies the same "the curve is the last polyline drawn" rule the
 single-curve path uses, once per group instead of once per layer.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">grouped_curve_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  <span class="va">gt</span>,</span>
@@ -536,7 +577,7 @@ single-curve path uses, once per group instead of once per layer.</p><div class=
 <span>  <span class="va">n_series</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -552,7 +593,7 @@ single-curve path uses, once per group instead of once per layer.</p><div class=
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>List of selectors, or NULL when the grob tree does not line up</p>
 </div>
 
@@ -563,17 +604,17 @@ single-curve path uses, once per group instead of once per layer.</p><div class=
 <p>Names of the curve polyline grobs inside a grob, in draw
 order. Panel grid lines are excluded: they are named after the theme
 element (<code>panel.grid.major.x..polyline.N</code>), not <code>GRID.polyline.N</code>.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">polyline_grob_names</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>A grob to walk</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Character vector of grob names</p>
 </div>
 
@@ -586,7 +627,7 @@ element (<code>panel.grid.major.x..polyline.N</code>), not <code>GRID.polyline.N
 differently: which layer to look for. <code>resolve_target_layer()</code> may
 answer a layer other than this processor's own, which is why the target
 cannot simply be the layer index the base class would use.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">find_layer_grob_tree</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
 <span>  <span class="va">gt</span>,</span>
@@ -594,7 +635,7 @@ cannot simply be the layer index the base class would use.</p><div class="sectio
 <span>  target <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -610,7 +651,7 @@ cannot simply be the layer index the base class would use.</p><div class="sectio
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>The matching grob, or NULL</p>
 </div>
 
@@ -619,10 +660,10 @@ cannot simply be the layer index the base class would use.</p><div class="sectio
 <p></p><hr><a id="method-Ggplot2SmoothLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-smoothlayerprocessor-clone-"><code>Ggplot2SmoothLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-smoothlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2SmoothLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

@@ -213,6 +213,7 @@
 <url><loc>https://r.maidr.ai/reference/knit_print.ggplot.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/knit_print.histogram.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/lane_name.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/layer_draws_bare_polyline.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/layer_is_jittered.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/level_keys.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/level_label.html</loc></url>
@@ -252,6 +253,7 @@
 <url><loc>https://r.maidr.ai/reference/panel_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/perpendicular_distance.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polyline_layer_position.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/polylines_within.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/positional_axis_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/prefix_to_currency_code.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/print_ggplot_natively.html</loc></url>

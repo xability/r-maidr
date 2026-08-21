@@ -261,6 +261,30 @@
 
 ### Bug Fixes
 
+- ggplot2: a curve layer outlined whatever was drawn after it. A
+  [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+  or
+  [`geom_function()`](https://ggplot2.tidyverse.org/reference/geom_function.html)
+  picked its curve by taking the largest `GRID.polyline.N` in the panel,
+  on reasoning that holds within one smooth layer – ggplot2 draws the
+  confidence band before the fitted line, so the later grob is the line
+  – but was applied across the whole panel, where the largest counter is
+  simply whatever was drawn last. A
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  placed after the curve owned it, so the curve highlighted the line.
+  The line highlighted the curve back when the curve was a
+  [`geom_function()`](https://ggplot2.tidyverse.org/reference/geom_function.html):
+  `GeomFunction` inherits `GeomPath$draw_panel()` and so draws a *bare*
+  polyline with no geom-named tree around it, which put it in the
+  candidate list a line layer indexes into while the counter behind that
+  index did not know it existed. Each layer now asks which grob it drew
+  rather than guessing from the counter – the last polyline inside its
+  own tree when it has one, and its draw-order position among the bare
+  polylines when it does not. Nothing about either announcement changed
+  in any of these cases: the audio, the text and the braille were
+  correct throughout while the wrong curve lit up, which is why no
+  assertion about the reading could see it.
+
 - base R: a horizontal stacked or dodged bar chart was announced as a
   vertical one. `barplot(m, horiz = TRUE)` and
   `barplot(m, beside = TRUE, horiz = TRUE)` emitted no `orientation` key

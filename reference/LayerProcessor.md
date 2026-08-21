@@ -337,7 +337,7 @@ to "which of them is mine" has to serve all three.
 
 #### Usage
 
-    LayerProcessor$find_layer_polyline_grob(plot, panel_grob)
+    LayerProcessor$find_layer_polyline_grob(plot, panel_grob, target = NULL)
 
 #### Arguments
 
@@ -348,6 +348,10 @@ to "which of them is mine" has to serve all three.
 - `panel_grob`:
 
   The panel's grob tree
+
+- `target`:
+
+  Index of the layer to find; defaults to this one's
 
 #### Returns
 
@@ -373,7 +377,7 @@ match.
 
 #### Usage
 
-    LayerProcessor$layer_polyline_grobs(plot, panel_grob)
+    LayerProcessor$layer_polyline_grobs(plot, panel_grob, target = NULL)
 
 #### Arguments
 
@@ -384,6 +388,10 @@ match.
 - `panel_grob`:
 
   The panel's grob tree
+
+- `target`:
+
+  Index of the layer whose polylines are wanted
 
 #### Returns
 
@@ -402,13 +410,17 @@ calls) is still walked.
 
 #### Usage
 
-    LayerProcessor$other_geom_grob_prefixes(plot)
+    LayerProcessor$other_geom_grob_prefixes(plot, target = NULL)
 
 #### Arguments
 
 - `plot`:
 
   The ggplot2 object
+
+- `target`:
+
+  Index of the layer whose prefix is the *own* one
 
 #### Returns
 
