@@ -287,7 +287,34 @@ Ggplot2Adapter <- R6::R6Class(
         return(if (self$ribbon_is_area(layer, plot_object)) "area" else "error_bar")
       }
 
-      if (geom_class == "GeomText") {
+      # `geom_label()` is `geom_text()` with a rounded rectangle behind it --
+      # the same annotation, drawn twice over. But `GeomLabel` is a *sibling*
+      # of `GeomText` rather than a subclass, both direct `Geom` children, so
+      # matching the one name missed the other entirely and left it "unknown".
+      # Measured on ggplot2 3.4.4 with `save_html()`, the same three-bar chart
+      # in each row:
+      #
+      #     geom_col()                                interactive   39,116 bytes
+      #     geom_col() + geom_text(aes(label = v))    interactive   41,339 bytes
+      #     geom_col() + geom_label(aes(label = v))   base64 image  17,220 bytes
+      #
+      # Which of the two spellings the author reached for decided whether the
+      # chart kept any interactivity at all (#211). Whether either should be
+      # *read* -- as the JS core now reads a standalone `Plot.text`
+      # (xability/maidr#1106) -- is a separate question; what this settles is
+      # that they cost the same.
+      if (geom_class %in% c("GeomText", "GeomLabel")) {
+        return("skip")
+      }
+
+      # `geom_blank()` draws nothing at all. It exists to force a scale limit
+      # -- `geom_blank(aes(y = 0))` to include zero, `geom_blank(data = ...)`
+      # to give facets a shared range -- so it is added to charts that are
+      # otherwise entirely readable, and left "unknown" it took every one of
+      # them down to a picture: 39,116 bytes interactive against 13,380 as a
+      # base64 image, measured the same way (#211). There is no reading
+      # question in a layer with no marks.
+      if (geom_class == "GeomBlank") {
         return("skip")
       }
 
