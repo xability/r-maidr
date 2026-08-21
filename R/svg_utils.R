@@ -1351,6 +1351,10 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
 #' @return Character string with a script tag
 #' @keywords internal
 maidr_iframe_host_script <- function() {
+  # `inst/htmlwidgets/maidr.js` carries its own copy of both listeners, because
+  # the widget binding sets the iframe HTML through `innerHTML` and a script
+  # element assigned that way never runs. Change one and change the other:
+  # nothing checks that the two agree.
   paste0(
     "<script>(function() {",
     "if (window.__maidrIframeHost) return;",
@@ -1388,6 +1392,9 @@ maidr_iframe_host_script <- function() {
     "var frame = frameOf(e.source);",
     "if (!frame) return;",
     "if (e.data.type === \"maidr-iframe-height\") {",
+    # Anything on the page can post a message, so a height is only used once
+    # it is one. The widget binding has always checked this; the two agree now.
+    "if (typeof e.data.height !== \"number\" || e.data.height < 50) return;",
     "frame.style.height = e.data.height + \"px\";",
     "} else if (e.data.type === \"maidr:frame-focus-escape\") {",
     "var target = stopBefore(frame);",
