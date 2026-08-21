@@ -6,7 +6,7 @@
 // `maidr_iframe_host_script()` (R/svg_utils.R) appends to every chart iframe.
 // They have to be: this binding sets the iframe HTML through `innerHTML`, and
 // a script element assigned that way never runs. Change one and change the
-// other — nothing checks that the two agree.
+// other -- nothing checks that the two agree.
 
 // Global message listener for iframe height auto-sizing
 // Only set up once per page
