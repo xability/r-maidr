@@ -39,6 +39,9 @@ NULL
     # instead leaves the device with no recorded calls at all, and
     # `save_html()` then stops with "No Base R plots detected. Please create
     # a plot first" -- told to a caller whose plot is on the device (#216).
+    # `qqplot` is the eighth: #216 listed seven, and review found it wearing
+    # the same defect, since `stats::qqplot` is no more recorded than
+    # `stats::qqnorm` was.
     #
     # Being listed here is therefore the *lower* of the two claims, not a
     # promise of a reading. Adding a reading later means adding a processor
@@ -50,6 +53,7 @@ NULL
     "spineplot",
     "cdplot",
     "qqnorm",
+    "qqplot",
     "filled.contour",
     # quantmod entry point for OHLC / candlestick charts. Only chartSeries is
     # wrapped in the MVP; candleChart / barChart / lineChart are deferred.

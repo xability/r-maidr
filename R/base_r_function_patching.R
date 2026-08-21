@@ -777,12 +777,12 @@ create_function_wrapper <- function(function_name, original_function) {
       # layers into the next render.
       #
       # `plot.it` is the same request under the spelling `qqnorm()` and
-      # `qqplot()` use. It matters as soon as a function carrying it is
-      # recorded at all: `qqnorm(x, plot.it = FALSE)` is the idiomatic way
-      # to *compute* theoretical quantiles, and a recorded call with nothing
-      # drawn behind it sends the save down the fallback path, which then
-      # stops with "Failed to create fallback image" because the device is
-      # blank (#216).
+      # `qqplot()` use, and both are recorded. It matters as soon as a
+      # function carrying it is recorded at all: `qqnorm(x, plot.it = FALSE)`
+      # is the idiomatic way to *compute* theoretical quantiles, and a
+      # recorded call with nothing drawn behind it sends the save down the
+      # fallback path, which then stops with "Failed to create fallback
+      # image" because the device is blank (#216).
       if (identical(args_list[["plot"]], FALSE) ||
           identical(args_list[["plot.it"]], FALSE)) {
         return(invisible(result))

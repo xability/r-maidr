@@ -1,4 +1,4 @@
-# Seven base R calls were not recorded at all, so the save stopped (#216)
+# Eight base R calls were not recorded at all, so the save stopped (#216)
 #
 # `classify_function()` returns "UNKNOWN" for a name in none of the three
 # lists, the wrapper is never installed, and the call is never logged. The
@@ -7,10 +7,10 @@
 #     No Base R plots detected. Please create a plot first
 #
 # which is the right message for `plot.new()` and a false one for a caller
-# whose chart is on the device. Measured before the fix, all seven of
-# `persp`, `sunflowerplot`, `fourfoldplot`, `spineplot`, `cdplot`, `qqnorm`
-# and `filled.contour` raised it, while `dotchart` and `mosaicplot` -- unread
-# too, but listed in HIGH -- degraded correctly to a picture.
+# whose chart is on the device. Measured before the fix, all eight of
+# `persp`, `sunflowerplot`, `fourfoldplot`, `spineplot`, `cdplot`, `qqnorm`,
+# `qqplot` and `filled.contour` raised it, while `dotchart` and `mosaicplot`
+# -- unread too, but listed in HIGH -- degraded correctly to a picture.
 #
 # Listed in HIGH they take that same route: no branch in
 # `detect_layer_type()`, so the switch falls through to "unknown",
@@ -22,7 +22,8 @@
 # it put a call on a blank device and the save failed the other way, with
 # "Failed to create fallback image". The wrapper already declined
 # `hist(x, plot = FALSE)`; `plot.it` is the same request under the spelling
-# `qqnorm()` and `qqplot()` use.
+# `qqnorm()` and `qqplot()` use, and both of those are now recorded, so both
+# need it.
 
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
@@ -76,7 +77,7 @@ save_base_figure <- function(plot_fun) {
   )
 }
 
-# Each of the seven, with the smallest call that draws one.
+# Each of the eight, with the smallest call that draws one.
 unrecorded_calls <- list(
   persp = function() {
     z <- outer(
@@ -95,11 +96,12 @@ unrecorded_calls <- list(
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
   },
   qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
+  qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
   filled.contour = function() filled.contour(matrix(1:12, nrow = 3))
 )
 
 
-test_that("none of the seven stops the save any more", {
+test_that("none of the eight stops the save any more", {
   skip_unless_jsonlite()
 
   for (name in names(unrecorded_calls)) {
@@ -108,7 +110,7 @@ test_that("none of the seven stops the save any more", {
   }
 })
 
-test_that("each of the seven falls back to a picture, and says so", {
+test_that("each of the eight falls back to a picture, and says so", {
   skip_unless_jsonlite()
 
   for (name in names(unrecorded_calls)) {
@@ -122,7 +124,7 @@ test_that("it is the same path a recorded-but-unread call already took", {
   skip_unless_jsonlite()
 
   # `dotchart` has always degraded correctly, being in HIGH with no
-  # processor. Asserted beside the seven so the two cannot drift apart.
+  # processor. Asserted beside the eight so the two cannot drift apart.
   result <- save_base_figure(function() dotchart(c(3, 7, 5)))
 
   expect_null(result$error)
@@ -179,10 +181,18 @@ test_that("plot.it = FALSE is refused without disturbing plot = FALSE", {
   computed <- save_base_figure(function() hist(c(1, 2, 3), plot = FALSE))
   expect_match(computed$error, "No Base R plots detected")
 
-  # `cdplot.default` has a real `plot` argument, unlike most of the seven,
+  # `cdplot.default` has a real `plot` argument, unlike most of the eight,
   # so the existing half of the guard covers it.
   computed <- save_base_figure(function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4), plot = FALSE)
+  })
+  expect_match(computed$error, "No Base R plots detected")
+
+  # The other function that spells it `plot.it`. Asserted separately from
+  # `qqnorm` because the guard reads the argument off the recorded call, so
+  # it holds for a second function only if that function is recorded at all.
+  computed <- save_base_figure(function() {
+    qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5), plot.it = FALSE)
   })
   expect_match(computed$error, "No Base R plots detected")
 })
@@ -210,7 +220,7 @@ test_that("qqnorm still hands back the quantiles it computed", {
 test_that("the charts that already read still read", {
   skip_unless_jsonlite()
 
-  # Seven names added to HIGH and one name to the computation-only guard.
+  # Eight names added to HIGH and one name to the computation-only guard.
   # This pins that neither reached a chart with a processor.
   result <- save_base_figure(function() barplot(c(a = 1, b = 2, c = 3)))
   expect_null(result$error)
@@ -225,12 +235,12 @@ test_that("the charts that already read still read", {
   expect_false(result$fell_back)
 })
 
-test_that("all seven are classified, and classification is what changed", {
+test_that("all eight are classified, and classification is what changed", {
   for (name in names(unrecorded_calls)) {
     expect_equal(classify_function(name), "HIGH", info = name)
   }
 
-  # Being in HIGH is not a claim that the type is read: none of the seven
+  # Being in HIGH is not a claim that the type is read: none of the eight
   # gains a `detect_layer_type()` branch, so each falls through to "unknown".
   factory <- BaseRProcessorFactory$new()
   for (name in names(unrecorded_calls)) {

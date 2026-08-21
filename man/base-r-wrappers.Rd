@@ -25,6 +25,7 @@
 \alias{spineplot}
 \alias{cdplot}
 \alias{qqnorm}
+\alias{qqplot}
 \alias{filled.contour}
 \alias{vioplot}
 \alias{chartSeries}
@@ -92,6 +93,8 @@ spineplot(...)
 cdplot(...)
 
 qqnorm(...)
+
+qqplot(...)
 
 filled.contour(...)
 

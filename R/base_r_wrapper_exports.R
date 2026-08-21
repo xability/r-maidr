@@ -96,7 +96,7 @@ pairs <- function(...) graphics::pairs(...)
 #' @export
 coplot <- function(...) graphics::coplot(...)
 
-# The seven below are wrapped so that a chart maidr cannot read still falls
+# The eight below are wrapped so that a chart maidr cannot read still falls
 # back to a picture instead of stopping the save. See the note beside them in
 # `.base_r_function_classes$HIGH`.
 
@@ -123,6 +123,10 @@ cdplot <- function(...) graphics::cdplot(...)
 #' @rdname base-r-wrappers
 #' @export
 qqnorm <- function(...) stats::qqnorm(...)
+
+#' @rdname base-r-wrappers
+#' @export
+qqplot <- function(...) stats::qqplot(...)
 
 #' @rdname base-r-wrappers
 #' @export
