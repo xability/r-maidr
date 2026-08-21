@@ -129,6 +129,16 @@ Ggplot2Adapter <- R6::R6Class(
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
         return("line")
       }
+      # `GeomFunction` *is* a `GeomPath`, but the branch above matches the
+      # first class name and so misses the subclass -- which is why the chart
+      # fell through to the static-image fallback entirely (#202). It reads as
+      # `smooth` rather than `line` for the reason `StatDensity` does: the
+      # curve is sampled from a function at `n` renderer-chosen points, so
+      # there are no observations to announce and the sample count is a
+      # drawing parameter.
+      if (geom_class == "GeomFunction" || stat_class == "StatFunction") {
+        return("smooth")
+      }
       if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
         return("smooth")
       }
