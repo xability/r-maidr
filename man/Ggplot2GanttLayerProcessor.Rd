@@ -28,6 +28,7 @@ into a \code{save_html()} that raises. See the adapter's own note.
     \item \href{#method-Ggplot2GanttLayerProcessor-lane_names}{\code{Ggplot2GanttLayerProcessor$lane_names()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-extract_axes}{\code{Ggplot2GanttLayerProcessor$extract_axes()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-generate_selectors}{\code{Ggplot2GanttLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2GanttLayerProcessor-target_geom_class}{\code{Ggplot2GanttLayerProcessor$target_geom_class()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-find_segments_name}{\code{Ggplot2GanttLayerProcessor$find_segments_name()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-clone}{\code{Ggplot2GanttLayerProcessor$clone()}}
   }
@@ -191,6 +192,32 @@ its name.
   }
   \subsection{Returns}{
     A list of CSS selectors, one per interval
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2GanttLayerProcessor-target_geom_class"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2GanttLayerProcessor-target_geom_class}{}}}
+\subsection{\code{Ggplot2GanttLayerProcessor$target_geom_class()}}{
+  The class of the geom this layer was drawn with
+
+Both the grob to look for and the shape of its exported element ids
+follow from it, so it is asked once and answered from the plot rather
+than inferred from what happens to be in the panel.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2GanttLayerProcessor$target_geom_class(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The geom's class name, or NULL when the layer cannot be found
   }
 }
 

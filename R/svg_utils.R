@@ -79,11 +79,11 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
     add = TRUE
   )
 
-  # Render to the invisible device. The justification repair has to happen
-  # here rather than after drawing: grid.export() reads the grid display
-  # list, so only the tree that was actually drawn is the one it exports.
+  # Render to the invisible device. Both repairs have to happen here rather
+  # than after drawing: grid.export() reads the grid display list, so only
+  # the tree that was actually drawn is the one it exports.
   grid.newpage()
-  grid.draw(repair_na_text_justification(gt))
+  grid.draw(split_vectorised_curve_grobs(repair_na_text_justification(gt)))
 
   # Inject svg_x/svg_y coordinates into violin_kde layers while we have
 
@@ -194,6 +194,121 @@ repair_na_text_justification <- function(grob) {
   }
 
   grob
+}
+
+#' Split a vectorised `curve` grob into one curve per row
+#'
+#' `geom_curve()` draws every row of its layer as a single `curve` grob whose
+#' positions *and* whose `gp` are vectors -- measured on ggplot2 3.4.4, a
+#' four-row layer arrives as `GRID.curve.1` with `x1`, `y1`, `x2`, `y2` and
+#' `gp$col`, `gp$fill`, `gp$lwd`, `gp$lty` all of length 4. `gridSVG`'s
+#' `svgStyleAttributes()` rejects that outright --
+#' "All SVG style attribute values must have length 1" -- so
+#' `gridSVG::grid.export()` aborts on the whole plot and no curve chart could
+#' be read at all (#195).
+#'
+#' A `segments` grob is equally vectorised and exports fine, because gridSVG
+#' has a method that splits it into one element per segment. There is no such
+#' method for `curve`, so the split is done here instead: each row becomes its
+#' own `curve` grob carrying its own slice of the gpar, gathered under a gTree
+#' keeping the original's name. The drawing is unchanged -- every row is drawn
+#' with exactly the styling it had -- and the export gains one element per
+#' row, which is what a gantt's selectors address.
+#'
+#' Slicing rather than scalarising is the point. Taking `gp[[1]]` would also
+#' satisfy gridSVG and is visibly wrong: measured on a layer coloured by a
+#' third column, the four rows export as `rgb(248,118,109)`, `rgb(0,186,56)`,
+#' `rgb(97,156,255)` and `rgb(0,186,56)`, so collapsing to the first would
+#' paint the whole layer red.
+#'
+#' This is an upstream gridSVG gap rather than anything maidr introduced; drop
+#' the split if gridSVG ever gains a `curve` method of its own.
+#'
+#' @param grob A grob, gTree, gList, or gtable (or NULL)
+#' @return The same tree with every multi-row `curve` grob split row-wise
+#' @keywords internal
+split_vectorised_curve_grobs <- function(grob) {
+  if (is.null(grob)) {
+    return(grob)
+  }
+
+  if (inherits(grob, "curve")) {
+    return(split_one_curve(grob))
+  }
+
+  if (inherits(grob, "gList")) {
+    for (i in seq_along(grob)) {
+      grob[[i]] <- split_vectorised_curve_grobs(grob[[i]])
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gTree") && !is.null(grob$children)) {
+    for (i in seq_along(grob$children)) {
+      grob$children[[i]] <- split_vectorised_curve_grobs(grob$children[[i]])
+    }
+  }
+
+  # Alternative child storage used by gtable and some composite grobs
+  if (!is.null(grob$grobs)) {
+    for (i in seq_along(grob$grobs)) {
+      grob$grobs[[i]] <- split_vectorised_curve_grobs(grob$grobs[[i]])
+    }
+  }
+
+  grob
+}
+
+#' One curve grob per row of a vectorised one
+#'
+#' Recycling is by position, which is grid's own rule for a gpar shorter than
+#' the positions it styles, so a layer given one colour for four rows keeps
+#' that colour on all four rather than losing three of them.
+#'
+#' A single-row curve is returned untouched: it already satisfies gridSVG, and
+#' wrapping it would change the element id its selector is built from.
+#'
+#' @param curve A `curve` grob
+#' @return A gTree of one curve per row, or the grob itself when it has one row
+#' @keywords internal
+split_one_curve <- function(curve) {
+  positions <- c("x1", "y1", "x2", "y2")
+  rows <- max(vapply(positions, function(f) length(curve[[f]]), integer(1)))
+  if (rows <= 1L) {
+    return(curve)
+  }
+
+  pick <- function(values, index) {
+    # `[` rather than `[[`: the positions are grid units, and `[` is the
+    # accessor that returns a unit of length one rather than a bare number.
+    if (length(values) <= 1L) values else values[((index - 1L) %% length(values)) + 1L]
+  }
+
+  children <- lapply(seq_len(rows), function(index) {
+    one <- curve
+    for (field in positions) {
+      one[[field]] <- pick(one[[field]], index)
+    }
+    if (!is.null(one$gp)) {
+      for (key in names(one$gp)) {
+        one$gp[[key]] <- pick(one$gp[[key]], index)
+      }
+    }
+    one$name <- paste0(curve$name, ".", index)
+    # The viewport moves to the wrapper and off the children. Left on both it
+    # would be pushed twice -- once for the gTree and once again inside it --
+    # which nests a relative viewport inside itself and shrinks the drawing.
+    # ggplot2's own curve grobs carry none, so this is a property of the split
+    # rather than a repair of an observed failure, and is asserted directly.
+    one$vp <- NULL
+    one
+  })
+
+  grid::gTree(
+    children = do.call(grid::gList, children),
+    name = curve$name,
+    vp = curve$vp
+  )
 }
 
 #' Inject svg_x/svg_y coordinates into violin_kde layer data
