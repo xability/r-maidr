@@ -20,10 +20,10 @@
 # here" is a statement about a schedule that a flat list cannot make.
 # `GanttData` is nested per lane precisely so it can.
 #
-# `geom_curve()` computes the same four columns and is deliberately NOT read.
-# gridSVG cannot export the `curve` grob it draws, so claiming the layer would
-# turn a chart that renders into a `save_html()` that raises (#195). That is
-# asserted too, because an omission nothing checks looks like an oversight.
+# `geom_curve()` computes the same four columns and reads the same way. It was
+# refused here until #195 -- on its export rather than on its reading -- and
+# now has its own file, `test-gantt-curve.R`, because the two geoms reach
+# one-element-per-row by different routes and their selectors differ.
 
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
@@ -135,22 +135,6 @@ test_that("a segment layer whose ends share nothing is not claimed", {
   # "unknown" rather than a refusal of its own: it is what the layer returns
   # today, so a chart that is declined keeps exactly the static-image fallback
   # it already had.
-  testthat::expect_equal(
-    adapter$detect_layer_type(plot$layers[[1]], plot), "unknown"
-  )
-})
-
-test_that("a curve layer is not claimed, because gridSVG cannot export it", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  adapter <- maidr:::Ggplot2Adapter$new()
-  plot <- ggplot2::ggplot(schedule()) + ggplot2::geom_curve(lanes_on_y)
-
-  # It computes the same four columns and would read the same way. Claiming it
-  # turns a chart that renders as a picture into one whose `save_html()`
-  # raises "All SVG style attribute values must have length 1" (#195), so the
-  # omission is deliberate and is pinned here rather than left to look like an
-  # oversight.
   testthat::expect_equal(
     adapter$detect_layer_type(plot$layers[[1]], plot), "unknown"
   )

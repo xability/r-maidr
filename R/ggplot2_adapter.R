@@ -91,16 +91,15 @@ Ggplot2Adapter <- R6::R6Class(
       # columns `ggplot_build` computes (`x`, `xend`, `y`, `yend`) are the
       # interval and the lane exactly, with nothing inverted from a pixel.
       #
-      # `geom_curve()` computes the same four columns and would read the same
-      # way -- the curvature is a drawing instruction that never becomes a
-      # position, the conclusion xability/maidr#1094 reached for
-      # `Plot.link`'s `curve` option. It is deliberately **not** claimed here,
-      # and the reason is measured rather than aesthetic: `GeomCurve` draws a
-      # `curve` grob, and `gridSVG::grid.export()` cannot export one --
-      # "All SVG style attribute values must have length 1". An unsupported
-      # chart takes the static-image path and never meets that, so claiming
-      # the layer turns a curve chart from a picture into a `save_html()` that
-      # raises. Reading it needs that upstream export fixed first (#195).
+      # `geom_curve()` computes the same four columns and reads the same way:
+      # the curvature is a drawing instruction that never becomes a position,
+      # the conclusion xability/maidr#1094 reached for `Plot.link`'s `curve`
+      # option. It was refused until #195, not on its reading but on its
+      # export -- `gridSVG` rejects the vectorised `gp` a `curve` grob
+      # carries, so claiming the layer turned a chart that rendered as a
+      # picture into a `save_html()` that raised. `split_vectorised_curve_grobs()`
+      # gives gridSVG one curve per row, which both fixes the export and is
+      # what the per-interval selectors address.
       #
       # A layer whose segments share nothing is an edge in a node-link
       # diagram, and goes back to "unknown" -- which is what it returns today,
@@ -122,7 +121,7 @@ Ggplot2Adapter <- R6::R6Class(
         return("contour")
       }
 
-      if (geom_class == "GeomSegment") {
+      if (geom_class %in% c("GeomSegment", "GeomCurve")) {
         return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
       }
 

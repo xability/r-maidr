@@ -288,9 +288,38 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
         return(list())
       }
 
+      # The two geoms put the row number in different places, because the two
+      # grobs reach one-element-per-row by different routes. gridSVG splits a
+      # `segments` grob itself and numbers the pieces after the grob's own
+      # `.1`; a `curve` grob is split by `split_vectorised_curve_grobs()` into
+      # children already named `<grob>.<row>`, and gridSVG then appends its
+      # `.1` to each. Measured: `GRID.segments.1.1.3` against
+      # `GRID.curve.1.3.1` for the same third interval.
+      curve <- identical(self$target_geom_class(plot), "GeomCurve")
       lapply(order, function(index) {
-        paste0("*[id='", grob_name, ".1.", index, "']")
+        id <- if (curve) {
+          paste0(grob_name, ".", index, ".1")
+        } else {
+          paste0(grob_name, ".1.", index)
+        }
+        paste0("*[id='", id, "']")
       })
+    },
+
+    #' @description The class of the geom this layer was drawn with
+    #'
+    #'   Both the grob to look for and the shape of its exported element ids
+    #'   follow from it, so it is asked once and answered from the plot rather
+    #'   than inferred from what happens to be in the panel.
+    #' @param plot The ggplot2 object
+    #' @return The geom's class name, or NULL when the layer cannot be found
+    target_geom_class = function(plot) {
+      target <- self$get_layer_index()
+      if (is.null(plot) || is.null(plot$layers) || is.null(target) ||
+        target < 1L || target > length(plot$layers)) {
+        return(NULL)
+      }
+      class(plot$layers[[target]]$geom)[1]
     },
 
     #' @description Find the name of the grob holding this layer's segments
@@ -323,9 +352,16 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
+      # Counted among its own kind, not among gantt layers generally: a
+      # `geom_curve()` after a `geom_segment()` is the *first* curve grob of
+      # the panel, and counting both together would send it to the second
+      # segments grob -- which does not exist.
+      geom_class <- class(plot$layers[[target]]$geom)[1]
+      grob_class <- if (identical(geom_class, "GeomCurve")) "curve" else "segments"
+
       position <- 0L
       for (i in seq_along(plot$layers)) {
-        if (identical(class(plot$layers[[i]]$geom)[1], "GeomSegment")) {
+        if (identical(class(plot$layers[[i]]$geom)[1], geom_class)) {
           position <- position + 1L
           if (i == target) break
         }
@@ -342,7 +378,7 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
 
       names <- character(0)
       collect <- function(node) {
-        if (inherits(node, "segments")) {
+        if (inherits(node, grob_class)) {
           name <- node$name
           if (!is.null(name) && is.character(name) && length(name) == 1L) {
             names <<- c(names, name)
