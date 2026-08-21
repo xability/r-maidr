@@ -42,7 +42,6 @@ BaseRProcessorFactory <- R6::R6Class(
         "violin" = BaseRViolinLayerProcessor$new(layer_info),
         "pie" = BaseRPieLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
-        "contour" = BaseRUnknownLayerProcessor$new(layer_info),
         "candlestick" = BaseRCandlestickLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
         BaseRUnknownLayerProcessor$new(layer_info)
@@ -66,7 +65,20 @@ BaseRProcessorFactory <- R6::R6Class(
         "box",
         "pie",
         "heat",
-        "contour",
+        # `contour` is deliberately absent. `base_r_adapter` maps the call to
+        # that type and the factory had no processor for it, so the layer was
+        # emitted typed "unknown" -- and because the type was listed here, the
+        # unsupported-elements fallback that saves `dotchart` never ran. The
+        # core's factory ends its dispatch with
+        # `throw new Error("Invalid trace type: " + layer.type)`, so the figure
+        # never bound: an interactive shell answering no key, and no picture
+        # either. A static image with a warning is worse than reading the
+        # chart and better than both of those (#214).
+        #
+        # Reading it properly is still open. `contour` *is* a trace type --
+        # the ggplot2 side emits it for `geom_contour` (#198) -- and base R's
+        # `contour()` hands over the same `x`, `y`, `z` and `levels`. Adding
+        # the processor is what puts the type back on this list.
         "candlestick",
         "unknown"
       )

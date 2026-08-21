@@ -345,8 +345,15 @@ test_that("BaseRProcessorFactory get_supported_types returns expected types", {
   testthat::expect_true("step" %in% types)
   testthat::expect_true("dodged_bar" %in% types)
   testthat::expect_true("stacked_bar" %in% types)
-  testthat::expect_true("contour" %in% types)
   testthat::expect_true("unknown" %in% types)
+
+  # "contour" was on this list while `create_processor()` handed it the
+  # generic processor, so the layer came out typed "unknown" -- past the
+  # fallback check, which looks for that on `layer$type`, and into a payload
+  # the core's trace factory throws on. Claiming it here is what the type map
+  # in `base_r_adapter` was trusting (#214). It goes back when a processor
+  # exists; the type itself is real, and the ggplot2 side emits it (#198).
+  testthat::expect_false("contour" %in% types)
 })
 
 test_that("BaseRProcessorFactory supports_plot_type works correctly", {
@@ -355,8 +362,10 @@ test_that("BaseRProcessorFactory supports_plot_type works correctly", {
   testthat::expect_true(factory$supports_plot_type("bar"))
   testthat::expect_true(factory$supports_plot_type("point"))
   testthat::expect_true(factory$supports_plot_type("line"))
-  testthat::expect_true(factory$supports_plot_type("contour"))
   testthat::expect_true(factory$supports_plot_type("unknown"))
+  # See above: base R has no contour processor, and saying otherwise cost the
+  # chart both its reading and its fallback (#214).
+  testthat::expect_false(factory$supports_plot_type("contour"))
   testthat::expect_false(factory$supports_plot_type("unsupported_type"))
 })
 
