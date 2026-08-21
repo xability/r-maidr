@@ -132,14 +132,36 @@ test_that("it is the same path a recorded-but-unread call already took", {
   expect_true(result$warned)
 })
 
+# One PNG through the device `create_fallback_image()` uses: 7x5 inches at
+# 150 dpi, which is the 1050x750 the header check below expects.
+png_bytes <- function(draw) {
+  file <- tempfile(fileext = ".png")
+  on.exit(unlink(file), add = TRUE)
+  grDevices::png(file, width = 7 * 150, height = 5 * 150, res = 150)
+  suppressWarnings(draw())
+  grDevices::dev.off()
+  file.info(file)$size
+}
+
+
 test_that("the picture is the chart, not a blank canvas", {
   skip_unless_jsonlite()
   skip_if_not_installed("base64enc")
 
   # The replay has to rebuild `factor(...) ~ x` in the caller's frame, so a
-  # fallback that silently drew nothing would still pass the assertions
-  # above. Measured against an empty device of the same size, which the PNG
-  # encoder compresses to well under 2 KB.
+  # fallback that silently drew nothing would still pass every assertion
+  # above.
+  #
+  # Measured against two references rendered on the same machine, rather
+  # than against a byte count: this first read `> 10000`, calibrated on
+  # Linux, and the identical chart encodes to 9,600 bytes on Windows -- a
+  # threshold that was really asserting which PNG encoder ran. Asking
+  # whether the captured image is nearer the chart than an empty page is
+  # the question that was meant, and it needs no constant at all.
+  blank <- png_bytes(function() graphics::plot.new())
+  reference <- png_bytes(unrecorded_calls$spineplot)
+  expect_gt(reference, blank)
+
   result <- save_base_figure(unrecorded_calls$spineplot)
   encoded <- regmatches(
     result$html,
@@ -148,7 +170,7 @@ test_that("the picture is the chart, not a blank canvas", {
   expect_length(encoded, 1)
 
   decoded <- base64enc::base64decode(sub("^base64,", "", encoded))
-  expect_gt(length(decoded), 10000)
+  expect_gt(length(decoded), (blank + reference) / 2)
 
   # The PNG header carries the size: bytes 17-24 of IHDR, big-endian. A
   # capture that produced a thumbnail or an empty page would not match the
