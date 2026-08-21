@@ -124,6 +124,10 @@ processors for Base R plot types based on recorded plot calls.
 \if{latex}{\out{\hypertarget{method-BaseRProcessorFactory-get_available_processors}{}}}
 \subsection{\code{BaseRProcessorFactory$get_available_processors()}}{
   Get available processor classes
+
+Enumerated from \code{create_processor()} rather than listed here, so the
+answer cannot drift away from what the factory actually dispatches to
+(#200).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRProcessorFactory$get_available_processors()}

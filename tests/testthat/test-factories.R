@@ -251,13 +251,42 @@ test_that("Ggplot2ProcessorFactory is_processor_available returns logical", {
   testthat::expect_false(factory$is_processor_available("FakeProcessor"))
 })
 
-test_that("Ggplot2ProcessorFactory get_available_processors returns character vector", {
+test_that("Ggplot2ProcessorFactory available processors are the ones it ships", {
+  # It named none of them. `is_processor_available()` asked
+  # `exists(name, mode = "function")`, and a processor is an R6 *generator*
+  # rather than a function, so the predicate rejected every entry and the
+  # registry came back empty for every processor the package ships (#200).
+  #
+  # The old assertion here was that the result is a character vector, which
+  # `character(0)` satisfies -- and its own comment said so, in the words
+  # "may be empty if exists() doesn't find R6 classes". That is the defect,
+  # written down as though it were a tolerance.
   factory <- maidr:::Ggplot2ProcessorFactory$new()
 
   processors <- factory$get_available_processors()
 
-  # Should return character vector (may be empty if exists() doesn't find R6 classes)
   testthat::expect_type(processors, "character")
+  testthat::expect_gt(length(processors), 0)
+  testthat::expect_true("Ggplot2BarLayerProcessor" %in% processors)
+})
+
+test_that("Ggplot2ProcessorFactory available processors cannot drift from its dispatch", {
+  # The list used to be written out by hand beside a `switch` that never
+  # consulted it, so it drifted: by the time #200 was filed it was missing
+  # four of the twenty ggplot2 processors and one of the fourteen base R
+  # ones, and nothing could tell. It is now read off `create_processor()`,
+  # and this asserts that the two are the same set rather than that someone
+  # remembered to update a second copy.
+  factory <- maidr:::Ggplot2ProcessorFactory$new()
+  dispatched <- maidr:::dispatched_processor_classes(
+    maidr:::Ggplot2ProcessorFactory, "Ggplot2"
+  )
+
+  testthat::expect_gt(length(dispatched), 0)
+  testthat::expect_setequal(factory$get_available_processors(), dispatched)
+  testthat::expect_true(all(vapply(
+    dispatched, maidr:::processor_class_exists, logical(1)
+  )))
 })
 
 test_that("Ggplot2ProcessorFactory try_create_processor handles valid types", {
@@ -496,13 +525,42 @@ test_that("BaseRProcessorFactory is_processor_available returns logical", {
   testthat::expect_false(factory$is_processor_available("FakeProcessor"))
 })
 
-test_that("BaseRProcessorFactory get_available_processors returns character vector", {
+test_that("BaseRProcessorFactory available processors are the ones it ships", {
+  # It named none of them. `is_processor_available()` asked
+  # `exists(name, mode = "function")`, and a processor is an R6 *generator*
+  # rather than a function, so the predicate rejected every entry and the
+  # registry came back empty for every processor the package ships (#200).
+  #
+  # The old assertion here was that the result is a character vector, which
+  # `character(0)` satisfies -- and its own comment said so, in the words
+  # "may be empty if exists() doesn't find R6 classes". That is the defect,
+  # written down as though it were a tolerance.
   factory <- maidr:::BaseRProcessorFactory$new()
 
   processors <- factory$get_available_processors()
 
-  # Should return character vector (may be empty if exists() doesn't find R6 classes)
   testthat::expect_type(processors, "character")
+  testthat::expect_gt(length(processors), 0)
+  testthat::expect_true("BaseRBarplotLayerProcessor" %in% processors)
+})
+
+test_that("BaseRProcessorFactory available processors cannot drift from its dispatch", {
+  # The list used to be written out by hand beside a `switch` that never
+  # consulted it, so it drifted: by the time #200 was filed it was missing
+  # four of the twenty ggplot2 processors and one of the fourteen base R
+  # ones, and nothing could tell. It is now read off `create_processor()`,
+  # and this asserts that the two are the same set rather than that someone
+  # remembered to update a second copy.
+  factory <- maidr:::BaseRProcessorFactory$new()
+  dispatched <- maidr:::dispatched_processor_classes(
+    maidr:::BaseRProcessorFactory, "BaseR"
+  )
+
+  testthat::expect_gt(length(dispatched), 0)
+  testthat::expect_setequal(factory$get_available_processors(), dispatched)
+  testthat::expect_true(all(vapply(
+    dispatched, maidr:::processor_class_exists, logical(1)
+  )))
 })
 
 test_that("BaseRProcessorFactory try_create_processor handles valid types", {
