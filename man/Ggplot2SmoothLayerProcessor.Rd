@@ -24,6 +24,7 @@ Processes smooth plot layers with complete logic included
     \item \href{#method-Ggplot2SmoothLayerProcessor-curve_points}{\code{Ggplot2SmoothLayerProcessor$curve_points()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-attach_interval}{\code{Ggplot2SmoothLayerProcessor$attach_interval()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-generate_selectors}{\code{Ggplot2SmoothLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2SmoothLayerProcessor-own_curve_grob}{\code{Ggplot2SmoothLayerProcessor$own_curve_grob()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-series_group_count}{\code{Ggplot2SmoothLayerProcessor$series_group_count()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-grouped_curve_selectors}{\code{Ggplot2SmoothLayerProcessor$grouped_curve_selectors()}}
     \item \href{#method-Ggplot2SmoothLayerProcessor-polyline_grob_names}{\code{Ggplot2SmoothLayerProcessor$polyline_grob_names()}}
@@ -364,6 +365,48 @@ can key on their presence instead of re-asking the stat per sample.
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-own_curve_grob"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-own_curve_grob}{}}}
+\subsection{\code{Ggplot2SmoothLayerProcessor$own_curve_grob()}}{
+  The polyline grob ggplot2 drew for THIS layer's curve.
+
+A curve layer leaves its grob in one of two shapes, and which one
+decides how it can be found again:
+
+\itemize{
+\item \code{geom_smooth()} and \code{geom_density()} wrap theirs in
+a tree named after the geom (\code{geom_smooth.gTree.N}), so the
+layer's own polylines are exactly the ones inside it. The last is
+the fitted line: ggplot2 draws the confidence band first, and
+within one layer that ordering does hold.
+\item \code{geom_function()} draws a \emph{bare} polyline --
+\code{GeomFunction} inherits \code{GeomPath$draw_panel()} and gets
+no tree of its own -- so it is indistinguishable by name from a
+\code{geom_line()}'s, and only its draw-order position among the
+other bare polylines identifies it. That is the question
+\code{find_layer_polyline_grob()} already answers for the line and
+contour processors.
+}
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2SmoothLayerProcessor$own_curve_grob(plot, gt, panel_ctx = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The grob, or NULL when this layer's curve cannot be identified
   }
 }
 

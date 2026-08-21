@@ -215,13 +215,17 @@ LayerProcessor <- R6::R6Class(
     #'
     #' @param plot The ggplot2 object
     #' @param panel_grob The panel's grob tree
+    #' @param target Index of the layer to find; defaults to this one's
     #' @return The matching grob, or NULL
-    find_layer_polyline_grob = function(plot, panel_grob) {
-      candidates <- self$layer_polyline_grobs(plot, panel_grob)
+    find_layer_polyline_grob = function(plot, panel_grob, target = NULL) {
+      if (is.null(target)) {
+        target <- self$get_layer_index()
+      }
+      candidates <- self$layer_polyline_grobs(plot, panel_grob, target)
       if (length(candidates) == 0L) {
         return(NULL)
       }
-      position <- polyline_layer_position(plot, self$get_layer_index())
+      position <- polyline_layer_position(plot, target)
       if (!is.null(position)) {
         if (position > length(candidates)) {
           return(NULL)
@@ -246,9 +250,10 @@ LayerProcessor <- R6::R6Class(
     #'
     #' @param plot The ggplot2 object
     #' @param panel_grob The panel's grob tree
+    #' @param target Index of the layer whose polylines are wanted
     #' @return List of grobs in draw order
-    layer_polyline_grobs = function(plot, panel_grob) {
-      skip <- self$other_geom_grob_prefixes(plot)
+    layer_polyline_grobs = function(plot, panel_grob, target = NULL) {
+      skip <- self$other_geom_grob_prefixes(plot, target)
       out <- list()
       collect <- function(grob) {
         name <- grob$name
@@ -279,12 +284,16 @@ LayerProcessor <- R6::R6Class(
     #' the geom (two \code{geom_line()} calls) is still walked.
     #'
     #' @param plot The ggplot2 object
+    #' @param target Index of the layer whose prefix is the \emph{own} one
     #' @return Character vector of prefixes, possibly empty
-    other_geom_grob_prefixes = function(plot) {
+    other_geom_grob_prefixes = function(plot, target = NULL) {
+      if (is.null(target)) {
+        target <- self$get_layer_index()
+      }
       prefix_of <- function(layer) {
         tryCatch(geom_grob_prefix(layer$geom), error = function(e) NA_character_)
       }
-      own <- prefix_of(plot$layers[[self$get_layer_index()]])
+      own <- prefix_of(plot$layers[[target]])
       prefixes <- vapply(plot$layers, prefix_of, character(1))
       prefixes <- unique(prefixes[!is.na(prefixes)])
       if (!is.na(own)) {

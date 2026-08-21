@@ -291,7 +291,7 @@ land in the same auto-named candidate list, which is exactly why one
 answer to "which of them is mine" has to serve all three.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$find_layer_polyline_grob(plot, panel_grob)}
+    \preformatted{LayerProcessor$find_layer_polyline_grob(plot, panel_grob, target = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -299,6 +299,7 @@ answer to "which of them is mine" has to serve all three.
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{panel_grob}}{The panel's grob tree}
+      \item{\code{target}}{Index of the layer to find; defaults to this one's}
     }
     \if{html}{\out{</div>}}
   }
@@ -325,7 +326,7 @@ position by three. Panel grid lines are named after the theme element
 (\code{panel.grid.major.x..polyline.N}) and so never match.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$layer_polyline_grobs(plot, panel_grob)}
+    \preformatted{LayerProcessor$layer_polyline_grobs(plot, panel_grob, target = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -333,6 +334,7 @@ position by three. Panel grid lines are named after the theme element
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{panel_grob}}{The panel's grob tree}
+      \item{\code{target}}{Index of the layer whose polylines are wanted}
     }
     \if{html}{\out{</div>}}
   }
@@ -351,13 +353,14 @@ This layer's own prefix is excluded so that a second layer sharing
 the geom (two \code{geom_line()} calls) is still walked.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LayerProcessor$other_geom_grob_prefixes(plot)}
+    \preformatted{LayerProcessor$other_geom_grob_prefixes(plot, target = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot}}{The ggplot2 object}
+      \item{\code{target}}{Index of the layer whose prefix is the \emph{own} one}
     }
     \if{html}{\out{</div>}}
   }
