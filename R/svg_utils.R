@@ -1493,6 +1493,19 @@ maidr_iframe_host_script <- function() {
     "var s = window.getComputedStyle(el);",
     "return s.display !== \"none\" && s.visibility !== \"hidden\";",
     "}",
+    # Asking an element to take focus is not enough. `focus()` on an element
+    # with no rendered box -- a `display: contents` wrapper, which is what
+    # Shiny puts around every output -- is a silent no-op, so the outcome has
+    # to be read back. A tabindex this added is removed again when the element
+    # refuses, rather than leaving it claiming it can hold focus.
+    "function takeFocus(el) {",
+    "var added = !el.hasAttribute(\"tabindex\");",
+    "if (added) el.setAttribute(\"tabindex\", \"-1\");",
+    "el.focus();",
+    "if (document.activeElement === el) return true;",
+    "if (added) el.removeAttribute(\"tabindex\");",
+    "return false;",
+    "}",
     "function stopBefore(frame) {",
     "var stops = document.querySelectorAll(TABBABLE);",
     "var found = null;",
@@ -1513,11 +1526,12 @@ maidr_iframe_host_script <- function() {
     "frame.style.height = e.data.height + \"px\";",
     "} else if (e.data.type === \"maidr:frame-focus-escape\") {",
     "var target = stopBefore(frame);",
-    "if (!target) {",
-    "target = frame.closest(CONTAINER) || frame.parentElement || document.body;",
-    "if (!target.hasAttribute(\"tabindex\")) target.setAttribute(\"tabindex\", \"-1\");",
+    "if (target) { target.focus(); return; }",
+    "var section = frame.closest(CONTAINER);",
+    "if (section && takeFocus(section)) return;",
+    "for (var el = frame.parentElement; el; el = el.parentElement) {",
+    "if (el !== section && takeFocus(el)) return;",
     "}",
-    "target.focus();",
     "}",
     "});",
     "})();</script>"

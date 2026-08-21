@@ -460,6 +460,26 @@ test_that("maidr_iframe_host_script uses a height only once it is one", {
   testthat::expect_true(grepl("e.data.height < 50", script, fixed = TRUE))
 })
 
+test_that("maidr_iframe_host_script checks that focus actually landed", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # Asking is not enough: focus() on an element with no rendered box -- a
+  # `display: contents` wrapper, which is what Shiny puts around every output
+  # -- is a silent no-op. Without reading the outcome back, the handoff would
+  # leave the reader inside the chart with nothing to show for the keypress.
+  testthat::expect_true(
+    grepl("if (document.activeElement === el) return true;", script, fixed = TRUE)
+  )
+  # And it walks on to the next ancestor rather than stopping at the refusal.
+  testthat::expect_true(
+    grepl("for (var el = frame.parentElement; el; el = el.parentElement)", script, fixed = TRUE)
+  )
+  # An element that refuses is not left claiming it can hold focus.
+  testthat::expect_true(
+    grepl('if (added) el.removeAttribute("tabindex");', script, fixed = TRUE)
+  )
+})
+
 test_that("create_maidr_iframe attaches the host script to the frame", {
   html <- maidr:::create_maidr_iframe("<svg></svg>", plot_id = "test-plot")
 

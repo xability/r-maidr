@@ -2,6 +2,13 @@
 
 ## Bug Fixes
 
+* The chart could still strand a reader in a Shiny app. Handing focus back to
+  the page assumed that asking an element to take it worked, and an element
+  with no rendered box refuses silently -- Shiny wraps every output in a
+  `display: contents` div, and a chart's frame sits directly inside one. The
+  page now reads the outcome back and walks on up the ancestors until one
+  actually takes focus, leaving no `tabindex` behind on the ones that refuse.
+
 * A chart in a Quarto `revealjs` slide swallowed every key, with no way back to
   the deck. Charts are embedded in an iframe, and keyboard events do not cross
   a frame boundary, so while a reader is inside a chart the slide around it
