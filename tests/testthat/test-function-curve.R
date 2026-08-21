@@ -182,27 +182,22 @@ test_that("a curve and a line drawn together are told apart by their data", {
 })
 
 
-test_that("a curve drawn before a line highlights the line's curve (#204)", {
+test_that("a curve drawn before a line keeps its own curve (#204)", {
   skip_if_no_render()
 
-  # A pin on a defect rather than a guard on a behaviour, and one this
-  # reading inherits rather than causes.
+  # `geom_function()` draws a *bare* polyline: `GeomFunction` inherits
+  # `GeomPath$draw_panel()` and gets no geom-named tree, so its grob is
+  # indistinguishable by name from a `geom_line()`'s and only draw order
+  # tells them apart. Both halves of that ordering were wrong when the
+  # function was drawn first. Measured before the fix:
   #
-  # `Ggplot2SmoothLayerProcessor$generate_selectors()` takes the largest
-  # `GRID.polyline.N` in the whole panel, on reasoning about one smooth
-  # layer's own internals -- its band is drawn before its line. Applied
-  # panel-wide, the largest counter is simply whatever was drawn last, so any
-  # other polyline-drawing layer wins it. Measured, `geom_smooth()` before
-  # `geom_line()` already gives *both* layers the line's selector, with no
-  # `geom_function` anywhere:
+  #   function  n=9   selector GRID.polyline.42.1.1  svg points=12
+  #   line      n=12  selector GRID.polyline.41.1.1  svg points=9
   #
-  #   smooth  data n=80  selector GRID.polyline.70.1.1  svg points=12
-  #   line    data n=12  selector GRID.polyline.70.1.1  svg points=12
-  #
-  # so this is #204, filed separately, and a computed curve lands in the same
-  # path. The reading is still a strict gain -- the chart was a static image
-  # -- but the limit is written down rather than discovered, and this test
-  # turns red the day #204 lands, which is the point of it.
+  # -- each outlining the other's curve, with every announcement correct
+  # throughout, which is the highlight-only shape xability/maidr#814 names.
+  # The curve took the largest counter in the panel, and the line indexed a
+  # population `polyline_layer_position()` counted without it.
   set.seed(3)
   frame <- data.frame(x = seq(0, 6, length.out = 12))
   frame$y <- sin(frame$x) + rnorm(12, 0, 0.15)
@@ -225,12 +220,17 @@ test_that("a curve drawn before a line highlights the line's curve (#204)", {
   }
 
   curve <- rendered$layers[[1]]
+  line <- rendered$layers[[2]]
   testthat::expect_equal(curve$type, "smooth")
+  testthat::expect_equal(line$type, "line")
   testthat::expect_length(curve$data[[1]], 9)
 
-  # The curve announces nine samples and outlines the line's twelve. When
-  # #204 lands this becomes 9 and this test has to be rewritten as a guard.
+  # Nine sampled points for the curve, twelve rows for the line, each
+  # outlining the element it announces.
   testthat::expect_equal(
-    drawn_points(rendered$html, selector_id(curve$selectors[[1]])), 12
+    drawn_points(rendered$html, selector_id(curve$selectors[[1]])), 9
+  )
+  testthat::expect_equal(
+    drawn_points(rendered$html, selector_id(line$selectors[[1]])), 12
   )
 })

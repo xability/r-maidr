@@ -302,16 +302,26 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     # help - it allocates a fresh round of names that the exported SVG will
     # never carry.
     #
-    # So when the lookup finds no polyline there is nothing to guess from,
-    # and the id this used to fall back to - `GRID.polyline.1.1.1` - is not
-    # a harmless miss. In a `facet_wrap(~g, drop = FALSE)` whose third
-    # level is empty, panel 3's fabricated selector came out byte-identical
-    # to panel 1's real one, so the empty panel highlighted panel 1's
-    # fitted line. The one plot shape where that id IS this layer's line (a
-    # lone `geom_smooth()` drawn as the session's first auto-named grob)
-    # is a shape where the lookup SUCCEEDS, so it never reached the
-    # fallback. Emit nothing instead: the caller can tell an empty selector
-    # list apart from a wrong one, a user cannot.
+    # Which of the panel's polylines is THIS layer's is a question of
+    # ownership, and it used to be answered by a guess: take the largest N
+    # in the panel, on the reasoning that ggplot2 draws a layer's
+    # confidence band before its fitted line. True within one layer, and
+    # false the moment another layer draws after this one. A `geom_line()`
+    # placed after the curve owns the largest N, so the curve highlighted
+    # the line -- and, because `polyline_layer_position()` was counting a
+    # population that did not include a bare-polyline curve, the line
+    # highlighted the curve right back (#204). Both read correctly
+    # throughout, which is why nothing about the announcement showed it.
+    #
+    # So ask instead, the way the hexbin and contour processors do: find
+    # the grob this layer drew. `own_curve_grob()` does that, and when it
+    # cannot the answer is no selector. The id this used to fall back to -
+    # `GRID.polyline.1.1.1` - was not a harmless miss. In a
+    # `facet_wrap(~g, drop = FALSE)` whose third level is empty, panel 3's
+    # fabricated selector came out byte-identical to panel 1's real one, so
+    # the empty panel highlighted panel 1's fitted line. Emit nothing
+    # instead: the caller can tell an empty selector list apart from a
+    # wrong one, a user cannot.
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL,
                                   built = NULL, panel_id = NULL) {
       if (is.null(gt)) {
@@ -334,65 +344,69 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      collect_all_polyline_grobs <- function(grob) {
-        polyline_grobs <- list()
-
-        if (!is.null(grob$name) && grepl("GRID\\.polyline", grob$name)) {
-          polyline_grobs <- append(polyline_grobs, grob$name)
-        }
-
-        if ("children" %in% names(grob)) {
-          for (child in grob$children) {
-            child_grobs <- collect_all_polyline_grobs(child)
-            polyline_grobs <- append(polyline_grobs, child_grobs)
-          }
-        }
-
-        polyline_grobs
-      }
-
-      all_polyline_grobs <- list()
-
-      if (!is.null(panel_ctx) && !is.null(panel_ctx$panel_name)) {
-        # Facet / patchwork path: scope the search to this panel's grob
-        panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
-        if (!is.null(panel_grob)) {
-          all_polyline_grobs <- collect_all_polyline_grobs(panel_grob)
-        }
-      } else if ("grobs" %in% names(gt)) {
-        for (grob in gt$grobs) {
-          grob_results <- collect_all_polyline_grobs(grob)
-          all_polyline_grobs <- append(all_polyline_grobs, grob_results)
-        }
-      }
-
-      if (length(all_polyline_grobs) == 0) {
+      grob <- self$own_curve_grob(plot, gt, panel_ctx)
+      if (is.null(grob) || is.null(grob$name)) {
         return(list())
       }
 
-      numeric_ids <- sapply(all_polyline_grobs, function(grob_name) {
-        match_result <- regmatches(grob_name, regexpr("GRID\\.polyline\\.(\\d+)", grob_name))
-        if (length(match_result) > 0) {
-          as.numeric(gsub("GRID\\.polyline\\.", "", match_result))
-        } else {
-          0
-        }
-      })
-
-      numeric_ids <- numeric_ids[numeric_ids > 0]
-
-      if (length(numeric_ids) > 0) {
-        # Fitted line is the LAST polyline (confidence interval rendered first)
-        # ggplot2 renders confidence interval first, then the fitted line
-        target_id <- max(numeric_ids)
-        grob_id <- paste0("GRID.polyline.", target_id, ".1.1")
-      } else {
-        # Fallback to first found grob
-        grob_id <- paste0(all_polyline_grobs[[1]], ".1")
-      }
-      escaped_grob_id <- gsub("\\.", "\\\\.", grob_id)
+      escaped_grob_id <- gsub("\\.", "\\\\.", paste0(grob$name, ".1.1"))
 
       list(paste0("#", escaped_grob_id))
+    },
+
+    #' @description The polyline grob ggplot2 drew for THIS layer's curve.
+    #'
+    #' A curve layer leaves its grob in one of two shapes, and which one
+    #' decides how it can be found again:
+    #'
+    #' \itemize{
+    #'   \item \code{geom_smooth()} and \code{geom_density()} wrap theirs in
+    #'     a tree named after the geom (\code{geom_smooth.gTree.N}), so the
+    #'     layer's own polylines are exactly the ones inside it. The last is
+    #'     the fitted line: ggplot2 draws the confidence band first, and
+    #'     within one layer that ordering does hold.
+    #'   \item \code{geom_function()} draws a \emph{bare} polyline --
+    #'     \code{GeomFunction} inherits \code{GeomPath$draw_panel()} and gets
+    #'     no tree of its own -- so it is indistinguishable by name from a
+    #'     \code{geom_line()}'s, and only its draw-order position among the
+    #'     other bare polylines identifies it. That is the question
+    #'     \code{find_layer_polyline_grob()} already answers for the line and
+    #'     contour processors.
+    #' }
+    #'
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object
+    #' @param panel_ctx Panel context for panel-scoped selector generation
+    #' @return The grob, or NULL when this layer's curve cannot be identified
+    own_curve_grob = function(plot, gt, panel_ctx = NULL) {
+      target <- tryCatch(
+        self$resolve_target_layer(plot),
+        error = function(e) NULL
+      )
+      if (is.null(target)) {
+        return(NULL)
+      }
+
+      tree <- tryCatch(
+        self$find_layer_grob_tree(plot, gt, panel_ctx, target),
+        error = function(e) NULL
+      )
+      if (!is.null(tree)) {
+        drawn <- polylines_within(tree)
+        if (length(drawn) == 0L) {
+          return(NULL)
+        }
+        return(drawn[[length(drawn)]])
+      }
+
+      panel_grob <- find_gtable_panel_grob(gt, panel_ctx)
+      if (is.null(panel_grob)) {
+        return(NULL)
+      }
+      tryCatch(
+        self$find_layer_polyline_grob(plot, panel_grob, target),
+        error = function(e) NULL
+      )
     },
 
     #' @description Number of curves this layer draws in the given panel.
@@ -521,4 +535,30 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
 geom_grob_prefix <- function(geom) {
   cls <- class(geom)[[1]]
   tolower(gsub("([a-z0-9])([A-Z])", "\\1_\\2", cls))
+}
+
+#' Every auto-named polyline inside a grob, in draw order
+#'
+#' Scoped to the grob handed in, so a caller that has already established
+#' which tree belongs to its layer cannot pick up a sibling layer's curve.
+#'
+#' @param grob A grob to walk.
+#' @return List of polyline grobs, in the order they are drawn.
+#' @keywords internal
+polylines_within <- function(grob) {
+  out <- list()
+  walk <- function(g) {
+    if (!is.null(g$name) && grepl("^GRID\\.polyline\\.\\d+$", g$name)) {
+      out[[length(out) + 1L]] <<- g
+    }
+    if (inherits(g, "gTree")) {
+      for (child in g$children) walk(child)
+    }
+    if (inherits(g, "gList")) {
+      for (i in seq_along(g)) walk(g[[i]])
+    }
+    invisible(NULL)
+  }
+  walk(grob)
+  out
 }
