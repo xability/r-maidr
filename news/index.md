@@ -2,6 +2,26 @@
 
 ## maidr (development version)
 
+### Bug Fixes
+
+- A chart in a Quarto `revealjs` slide swallowed every key, with no way
+  back to the deck. Charts are embedded in an iframe, and keyboard
+  events do not cross a frame boundary, so while a reader is inside a
+  chart the slide around it hears nothing – which is right while they
+  are reading, since MAIDR binds the arrows, Space and Page Up/Down
+  itself, and leaves Shift+Tab as the way out. But a deck renders no
+  controls of its own, so a chart is the first thing on the page and
+  there is nothing before it to receive focus: Shift+Tab left the
+  document altogether for the browser’s own UI, and from that moment
+  neither Space for the next slide nor the arrows for the previous one
+  reached the deck. The parent-side listener each chart already installs
+  now also answers the chart’s request to hand focus back, putting it on
+  the slide, where the deck’s own shortcuts work again. It steps in only
+  where the browser would have stranded the reader, so a chart in an
+  article or a notebook keeps the tab order it had, and it now runs on
+  the [`maidr_widget()`](https://r.maidr.ai/reference/maidr_widget.md)
+  path too.
+
 ### New Features
 
 - [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
