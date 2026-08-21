@@ -36,6 +36,21 @@ Ggplot2Adapter <- R6::R6Class(
       stat_class <- class(layer$stat)[1]
       position_class <- class(layer$position)[1]
 
+      # An annotation is decoration whatever it is drawn with, so this is
+      # asked before any geom branch: `annotate("rect")` would otherwise be
+      # measured as a schedule and `annotate("segment")` claimed as one.
+      #
+      # Skipped rather than left "unknown", which is what makes
+      # `has_unsupported_layers()` true and drops the *whole plot* to a static
+      # image -- the same cost #176 measured for a reference line, and
+      # `annotate("rect")` is at least as ordinary a thing to put on a chart.
+      # A plot that is *nothing but* annotations still falls back, because it
+      # then reads as no layers at all rather than because of a rule about
+      # geoms.
+      if (layer_is_annotation(layer)) {
+        return("skip")
+      }
+
       # geom_step() draws a stairstep: the value is piecewise constant, held
       # across an interval and then jumped, rather than interpolated between
       # samples the way a line implies. GeomStep *inherits* GeomPath, so this
@@ -533,3 +548,51 @@ Ggplot2Adapter <- R6::R6Class(
     }
   )
 )
+
+
+#' Whether a layer was drawn by \code{annotate()} rather than by a geom
+#'
+#' \code{annotate()} is ggplot2's word for decoration: a highlighted region, a
+#' label, an arrow pointing at something. Whatever geom it happens to use, the
+#' function is the author saying "this is not data".
+#'
+#' ggplot2 records which function built each layer, so this is exact rather
+#' than a guess about geometry. Measured on ggplot2 3.4.4, \code{layer$constructor}
+#' holds the matched call and its head is the function name:
+#'
+#' \preformatted{
+#' geom_rect(aes(...))                       -> geom_rect
+#' annotate("rect", xmin = 2, xmax = 3, ...) -> annotate
+#' annotate("text", x = 2, y = 3, ...)       -> annotate
+#' }
+#'
+#' It survives disguise, which is what makes it better than the shape-based
+#' rules considered in #197. \code{annotate()} sets \code{inherit.aes = FALSE}
+#' and \code{show.legend = FALSE}, so those two look like a signature -- but a
+#' \code{geom_rect()} written with both still reports \code{geom_rect}, and a
+#' rule keyed on them would call that user's data decoration.
+#'
+#' Deliberately not a rule about *what* an annotation may draw. The whole point
+#' of asking the constructor is that the answer does not depend on the mark:
+#' \code{annotate("segment")} is an arrow, not a schedule, and a geometry test
+#' would have to claim or refuse it on its coordinates.
+#'
+#' A layer with no \code{constructor} -- a ggplot2 that stopped recording it,
+#' or a layer built by hand -- answers FALSE and keeps whatever reading it had.
+#'
+#' @param layer A ggplot2 layer object
+#' @return TRUE when \code{annotate()} built the layer
+#' @keywords internal
+layer_is_annotation <- function(layer) {
+  if (is.null(layer)) {
+    return(FALSE)
+  }
+  constructor <- layer$constructor
+  if (is.null(constructor) || !is.call(constructor)) {
+    return(FALSE)
+  }
+  head <- tryCatch(as.character(constructor[[1]]), error = function(e) character(0))
+  # `ggplot2::annotate(...)` heads as c("::", "ggplot2", "annotate"), so the
+  # test is on membership rather than on the whole vector being one name.
+  isTRUE("annotate" %in% head)
+}
