@@ -117,6 +117,7 @@
 <url><loc>https://r.maidr.ai/reference/discrete_axis_labels.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/discrete_level_order.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dispatched_definition.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/dispatched_processor_classes.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/display_html_file.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/dot-base_r_function_classes.html</loc></url>
@@ -261,6 +262,7 @@
 <url><loc>https://r.maidr.ai/reference/process_faceted_plot_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/process_patchwork_panel.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/process_patchwork_plot_data.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/processor_class_exists.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/quantmod_mask_advice.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/quantmod_masks_maidr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_intl_options.html</loc></url>

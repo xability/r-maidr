@@ -125,6 +125,10 @@ TRUE if available, FALSE otherwise
 
 Get available processor classes
 
+Enumerated from `create_processor()` rather than listed here, so the
+answer cannot drift away from what the factory actually dispatches to
+(#200).
+
 #### Usage
 
     Ggplot2ProcessorFactory$get_available_processors()

@@ -234,7 +234,10 @@ processors for Base R plot types based on recorded plot calls.</p>
 
 <p></p><hr><a id="method-BaseRProcessorFactory-get_available_processors"></a><div class="section">
 <h3 id="baserprocessorfactory-get-available-processors-"><code>BaseRProcessorFactory$get_available_processors()</code><a class="anchor" aria-label="anchor" href="#baserprocessorfactory-get-available-processors-"></a></h3>
-<p>Get available processor classes</p><div class="section">
+<p>Get available processor classes</p>
+<p>Enumerated from <code>create_processor()</code> rather than listed here, so the
+answer cannot drift away from what the factory actually dispatches to
+(#200).</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRProcessorFactory</span><span class="op">$</span><span class="fu">get_available_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
