@@ -123,9 +123,15 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     resolve_target_layer = function(plot) {
       layer_index <- self$get_layer_index()
       own_layer <- plot$layers[[layer_index]]
+      # `GeomFunction` is named rather than reached through `GeomPath`,
+      # which it inherits: a plain `geom_path()` is typed `line` and never
+      # arrives here, so widening to the parent would claim nothing extra
+      # and would blur what this list is for -- the geoms that draw a
+      # *computed* curve (#202).
       is_smooth_like <- inherits(own_layer$geom, "GeomSmooth") ||
         inherits(own_layer$geom, "GeomLine") ||
         inherits(own_layer$geom, "GeomDensity") ||
+        inherits(own_layer$geom, "GeomFunction") ||
         inherits(own_layer$geom, "GeomArea")
 
       if (is_smooth_like) {
@@ -135,7 +141,8 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
       smooth_layers <- which(sapply(plot$layers, function(layer) {
         inherits(layer$geom, "GeomSmooth") ||
           inherits(layer$geom, "GeomLine") ||
-          inherits(layer$geom, "GeomDensity")
+          inherits(layer$geom, "GeomDensity") ||
+          inherits(layer$geom, "GeomFunction")
       }))
 
       if (length(smooth_layers) == 0) {
