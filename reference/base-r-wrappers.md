@@ -49,6 +49,22 @@ pairs(...)
 
 coplot(...)
 
+persp(...)
+
+sunflowerplot(...)
+
+fourfoldplot(...)
+
+spineplot(...)
+
+cdplot(...)
+
+qqnorm(...)
+
+qqplot(...)
+
+filled.contour(...)
+
 vioplot(...)
 
 chartSeries(...)
