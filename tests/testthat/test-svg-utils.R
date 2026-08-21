@@ -404,3 +404,65 @@ test_that("the offline branch inlines KaTeX alongside the script", {
   # Stripped of its web fonts, per .github/scripts/fetch-maidr-bundle.sh.
   testthat::expect_false(grepl("@font-face", html, fixed = TRUE))
 })
+
+# ==============================================================================
+# maidr_iframe_host_script Tests
+# ==============================================================================
+
+test_that("maidr_iframe_host_script handles both messages a chart frame posts", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  testthat::expect_type(script, "character")
+  testthat::expect_true(grepl("maidr-iframe-height", script, fixed = TRUE))
+  testthat::expect_true(grepl("maidr:frame-focus-escape", script, fixed = TRUE))
+})
+
+test_that("maidr_iframe_host_script registers itself only once per document", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # Every chart appends this script, so a document with three charts runs it
+  # three times; without the guard each run would add another message listener.
+  testthat::expect_true(
+    grepl("if (window.__maidrIframeHost) return;", script, fixed = TRUE)
+  )
+})
+
+test_that("maidr_iframe_host_script prefers the tab stop before the frame", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # Focus goes where the browser would have sent it when this page has
+  # somewhere real to send it, and only falls back to the frame's own
+  # container -- the slide, in a reveal.js deck -- when it does not.
+  testthat::expect_true(grepl("stopBefore(frame)", script, fixed = TRUE))
+  testthat::expect_true(grepl("frame.closest(CONTAINER)", script, fixed = TRUE))
+  testthat::expect_true(grepl("tabindex", script, fixed = TRUE))
+})
+
+test_that("maidr_iframe_host_script skips tab stops a reader cannot reach", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # reveal.js leaves the slides on either side of the current one rendered, so
+  # a chart on the previous slide is a tab stop in document order even though
+  # it is marked hidden. Treating it as somewhere to send the reader would put
+  # focus on an off-screen chart instead of back on the slide.
+  testthat::expect_true(grepl("aria-hidden", script, fixed = TRUE))
+  testthat::expect_true(grepl("[inert]", script, fixed = TRUE))
+})
+
+test_that("maidr_iframe_host_script uses a height only once it is one", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # Any script on the page can post a message. An absent height wrote
+  # "undefinedpx", and an arbitrary number resized the frame to it.
+  testthat::expect_true(
+    grepl('typeof e.data.height !== "number"', script, fixed = TRUE)
+  )
+  testthat::expect_true(grepl("e.data.height < 50", script, fixed = TRUE))
+})
+
+test_that("create_maidr_iframe attaches the host script to the frame", {
+  html <- maidr:::create_maidr_iframe("<svg></svg>", plot_id = "test-plot")
+
+  testthat::expect_true(grepl("id=\"maidr-iframe-test-plot\"", html, fixed = TRUE))
+  testthat::expect_true(grepl("__maidrIframeHost", html, fixed = TRUE))
+})

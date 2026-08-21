@@ -1,6 +1,12 @@
 // MAIDR htmlwidget binding
 // Uses iframe-based isolation to ensure MAIDR.js initializes properly
 // for each plot in its own JavaScript context.
+//
+// Both listeners below are duplicated from the parent-side script that
+// `maidr_iframe_host_script()` (R/svg_utils.R) appends to every chart iframe.
+// They have to be: this binding sets the iframe HTML through `innerHTML`, and
+// a script element assigned that way never runs. Change one and change the
+// other -- nothing checks that the two agree.
 
 // Global message listener for iframe height auto-sizing
 // Only set up once per page
@@ -34,6 +40,68 @@
         }
       }
     });
+  });
+})();
+
+// Global listener for the chart asking to hand focus back to this page.
+// Only set up once per page.
+//
+// Keyboard events do not cross a frame boundary, so while the reader is inside
+// a chart the page around it hears nothing, and Shift+Tab off the chart is
+// their way back. Usually the browser handles that by itself; the chart only
+// asks when nothing reachable precedes its frame here, so that Shift+Tab would
+// otherwise leave the document altogether for the browser's own UI. A chart on
+// a reveal.js slide is exactly that case -- the deck renders no controls of its
+// own -- and from inside the chart no key reaches the deck.
+(function() {
+  if (window._maidrFocusEscapeSetup) return;
+  window._maidrFocusEscapeSetup = true;
+
+  var TABBABLE = 'a[href], area[href], button:not([disabled]), '
+    + 'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), '
+    + 'iframe, audio[controls], video[controls], '
+    + '[contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex^="-"])';
+  // A reveal.js slide is a <section>, so on a slide deck focus lands on the
+  // slide itself. Page-level landmarks are left out: handing a reader the whole
+  // page when they stepped out of one chart says less about where they are.
+  var CONTAINER = 'section, article, [role="region"]';
+
+  // A tab stop the reader cannot get to is not somewhere to send them, and that
+  // distinction is the whole point in a deck: reveal.js leaves the slides on
+  // either side of the current one rendered, so the chart on the previous slide
+  // is a tab stop in document order even though it is marked hidden.
+  function reachable(element) {
+    if (element.closest('[hidden], [aria-hidden="true"], [inert]')) return false;
+    var style = window.getComputedStyle(element);
+    return style.display !== "none" && style.visibility !== "hidden";
+  }
+
+  function stopBefore(frame) {
+    var stops = document.querySelectorAll(TABBABLE);
+    var found = null;
+    for (var i = 0; i < stops.length; i++) {
+      if (stops[i] === frame) break;
+      if (reachable(stops[i])) found = stops[i];
+    }
+    return found;
+  }
+
+  window.addEventListener("message", function(event) {
+    if (!event.data || event.data.type !== "maidr:frame-focus-escape") return;
+
+    var frames = document.querySelectorAll('iframe[id^="maidr-iframe-"]');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow !== event.source) continue;
+
+      var target = stopBefore(frames[i]);
+      if (!target) {
+        target = frames[i].closest(CONTAINER) || frames[i].parentElement || document.body;
+        // tabindex="-1" takes focus without joining this page's tab order.
+        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      }
+      target.focus();
+      return;
+    }
   });
 })();
 
