@@ -19,6 +19,14 @@
 \alias{assocplot}
 \alias{pairs}
 \alias{coplot}
+\alias{persp}
+\alias{sunflowerplot}
+\alias{fourfoldplot}
+\alias{spineplot}
+\alias{cdplot}
+\alias{qqnorm}
+\alias{qqplot}
+\alias{filled.contour}
 \alias{vioplot}
 \alias{chartSeries}
 \alias{lines}
@@ -73,6 +81,22 @@ assocplot(...)
 pairs(...)
 
 coplot(...)
+
+persp(...)
+
+sunflowerplot(...)
+
+fourfoldplot(...)
+
+spineplot(...)
+
+cdplot(...)
+
+qqnorm(...)
+
+qqplot(...)
+
+filled.contour(...)
 
 vioplot(...)
 

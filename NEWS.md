@@ -2,6 +2,20 @@
 
 ## Bug Fixes
 
+* Eight Base R plotting calls stopped `save_html()` outright instead of falling
+  back to a picture: `persp()`, `sunflowerplot()`, `fourfoldplot()`,
+  `spineplot()`, `cdplot()`, `qqnorm()`, `qqplot()` and `filled.contour()`.
+  None of them was in maidr's function classification, so no wrapper was
+  installed and the call was never recorded; the device then looked empty and
+  the save reported "No Base R plots detected. Please create a plot first" --
+  to a caller whose chart was on the device. All eight are now recorded and
+  take the same static-image path `dotchart()` and `mosaicplot()` already
+  take, with the usual "unsupported elements" warning. Being recorded is not a
+  claim that the chart is read; it is what stops an unread chart from costing
+  the save. `qqnorm(x, plot.it = FALSE)` and `qqplot(x, y, plot.it = FALSE)`
+  compute without drawing and are still not recorded, alongside the
+  `plot = FALSE` spelling `hist()` and `boxplot()` use.
+
 * The chart could still strand a reader in a Shiny app. Handing focus back to
   the page assumed that asking an element to take it worked, and an element
   with no rendered box refuses silently -- Shiny wraps every output in a
