@@ -82,31 +82,19 @@ BaseRProcessorFactory <- R6::R6Class(
     #' @param processor_class_name Name of the processor class
     #' @return TRUE if available, FALSE otherwise
     is_processor_available = function(processor_class_name) {
-      exists(processor_class_name, mode = "function")
+      processor_class_exists(processor_class_name)
     },
 
     #' @description Get available processor classes
+    #'
+    #' Enumerated from `create_processor()` rather than listed here, so the
+    #' answer cannot drift away from what the factory actually dispatches to
+    #' (#200).
+    #'
     #' @return Character vector of available processor class names
     get_available_processors = function() {
-      processor_classes <- c(
-        "BaseRBarplotLayerProcessor",
-        "BaseRDodgedBarLayerProcessor",
-        "BaseRStackedBarLayerProcessor",
-        "BaseRSmoothLayerProcessor",
-        "BaseRLineLayerProcessor",
-        "BaseRStepLayerProcessor",
-        "BaseRPointLayerProcessor",
-        "BaseRHistogramLayerProcessor",
-        "BaseRBoxplotLayerProcessor",
-        "BaseRPieLayerProcessor",
-        "BaseRHeatmapLayerProcessor",
-        "BaseRCandlestickLayerProcessor",
-        "BaseRUnknownLayerProcessor"
-        # Additional processor classes can be registered here as needed
-      )
-
-      available <- sapply(processor_classes, self$is_processor_available)
-      names(available)[available]
+      classes <- dispatched_processor_classes(BaseRProcessorFactory, "BaseR")
+      Filter(self$is_processor_available, classes)
     },
 
     #' @description Create a processor with error handling

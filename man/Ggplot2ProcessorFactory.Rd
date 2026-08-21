@@ -124,6 +124,10 @@ ggplot2 layer processors and wraps them in the new unified interface.
 \if{latex}{\out{\hypertarget{method-Ggplot2ProcessorFactory-get_available_processors}{}}}
 \subsection{\code{Ggplot2ProcessorFactory$get_available_processors()}}{
   Get available processor classes
+
+Enumerated from \code{create_processor()} rather than listed here, so the
+answer cannot drift away from what the factory actually dispatches to
+(#200).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ProcessorFactory$get_available_processors()}
