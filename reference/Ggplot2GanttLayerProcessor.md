@@ -34,6 +34,8 @@ See the adapter's own note.
 
 - [`Ggplot2GanttLayerProcessor$generate_selectors()`](#method-Ggplot2GanttLayerProcessor-generate_selectors)
 
+- [`Ggplot2GanttLayerProcessor$target_geom_class()`](#method-Ggplot2GanttLayerProcessor-target_geom_class)
+
 - [`Ggplot2GanttLayerProcessor$find_segments_name()`](#method-Ggplot2GanttLayerProcessor-find_segments_name)
 
 - [`Ggplot2GanttLayerProcessor$clone()`](#method-Ggplot2GanttLayerProcessor-clone)
@@ -225,6 +227,30 @@ grob cannot be found rather than a guess at its name.
 #### Returns
 
 A list of CSS selectors, one per interval
+
+------------------------------------------------------------------------
+
+### `Ggplot2GanttLayerProcessor$target_geom_class()`
+
+The class of the geom this layer was drawn with
+
+Both the grob to look for and the shape of its exported element ids
+follow from it, so it is asked once and answered from the plot rather
+than inferred from what happens to be in the panel.
+
+#### Usage
+
+    Ggplot2GanttLayerProcessor$target_geom_class(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+The geom's class name, or NULL when the layer cannot be found
 
 ------------------------------------------------------------------------
 

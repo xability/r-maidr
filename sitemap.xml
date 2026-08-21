@@ -300,6 +300,8 @@
 <url><loc>https://r.maidr.ai/reference/show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/simplify_curve.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/snapshot_call_env.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/split_one_curve.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/split_vectorised_curve_grobs.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_date_axis.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_date_axis_doc.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_right_axis.html</loc></url>
