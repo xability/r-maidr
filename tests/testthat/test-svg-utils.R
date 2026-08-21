@@ -449,6 +449,17 @@ test_that("maidr_iframe_host_script skips tab stops a reader cannot reach", {
   testthat::expect_true(grepl("[inert]", script, fixed = TRUE))
 })
 
+test_that("maidr_iframe_host_script uses a height only once it is one", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # Any script on the page can post a message. An absent height wrote
+  # "undefinedpx", and an arbitrary number resized the frame to it.
+  testthat::expect_true(
+    grepl('typeof e.data.height !== "number"', script, fixed = TRUE)
+  )
+  testthat::expect_true(grepl("e.data.height < 50", script, fixed = TRUE))
+})
+
 test_that("create_maidr_iframe attaches the host script to the frame", {
   html <- maidr:::create_maidr_iframe("<svg></svg>", plot_id = "test-plot")
 
