@@ -8,6 +8,10 @@
   `display: contents` div, and a chart's frame sits directly inside one. The
   page now reads the outcome back and walks on up the ancestors until one
   actually takes focus, leaving no `tabindex` behind on the ones that refuse.
+  The tab stop before the frame is checked the same way, since one of those can
+  be a `display: contents` element too, and every candidate is asked as it
+  stands before being given a `tabindex` --- so a tab stop the page already
+  owns is never taken out of its own tab order.
 
 * A chart in a Quarto `revealjs` slide swallowed every key, with no way back to
   the deck. Charts are embedded in an iframe, and keyboard events do not cross

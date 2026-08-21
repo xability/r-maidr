@@ -476,8 +476,30 @@ test_that("maidr_iframe_host_script checks that focus actually landed", {
   )
   # An element that refuses is not left claiming it can hold focus.
   testthat::expect_true(
-    grepl('if (added) el.removeAttribute("tabindex");', script, fixed = TRUE)
+    grepl('el.removeAttribute("tabindex");', script, fixed = TRUE)
   )
+})
+
+test_that("maidr_iframe_host_script checks the tab stop it found as well", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # `stopBefore()` returns whatever matched the tabbable selector, and a
+  # `display: contents` element with a tabindex matches it while still being
+  # unable to hold focus. Trusting that one would strand the reader exactly as
+  # trusting the container did.
+  testthat::expect_true(grepl("if (target && takeFocus(target)) return;", script, fixed = TRUE))
+})
+
+test_that("maidr_iframe_host_script asks an element before it writes to it", {
+  script <- maidr:::maidr_iframe_host_script()
+
+  # A tab stop this page already owns is focusable as it stands, and giving it
+  # `tabindex="-1"` would take it out of the page's tab order. So the call
+  # comes first and the attribute only follows a refusal.
+  focus_first <- regexpr("el.focus();", script, fixed = TRUE)
+  writes_after <- regexpr('el.setAttribute("tabindex", "-1");', script, fixed = TRUE)
+  testthat::expect_gt(focus_first, 0)
+  testthat::expect_gt(writes_after, focus_first)
 })
 
 test_that("create_maidr_iframe attaches the host script to the frame", {

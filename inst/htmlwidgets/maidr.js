@@ -92,12 +92,16 @@
   // back. A tabindex this added is removed again when the element refuses,
   // rather than leaving it claiming it can hold focus.
   function takeFocus(el) {
-    var added = !el.hasAttribute("tabindex");
-    // tabindex="-1" takes focus without joining this page's tab order.
-    if (added) el.setAttribute("tabindex", "-1");
+    // As it stands first. A tab stop this page already owns is focusable as it
+    // is, and giving it tabindex="-1" would take it out of the tab order.
     el.focus();
     if (document.activeElement === el) return true;
-    if (added) el.removeAttribute("tabindex");
+    if (el.hasAttribute("tabindex")) return false;
+    // tabindex="-1" takes focus without joining this page's tab order.
+    el.setAttribute("tabindex", "-1");
+    el.focus();
+    if (document.activeElement === el) return true;
+    el.removeAttribute("tabindex");
     return false;
   }
 
@@ -109,7 +113,7 @@
       if (frames[i].contentWindow !== event.source) continue;
 
       var target = stopBefore(frames[i]);
-      if (target) { target.focus(); return; }
+      if (target && takeFocus(target)) return;
 
       var section = frames[i].closest(CONTAINER);
       if (section && takeFocus(section)) return;
