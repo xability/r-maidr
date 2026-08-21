@@ -1454,11 +1454,19 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
 #' Focus goes to the tab stop before the frame where this page has a reachable
 #' one, which is what the browser would have done. Where it has none, focus
 #' lands on the element holding the frame --- a reveal.js slide is a
-#' `<section>`, so on a slide deck that is the slide itself --- given
-#' `tabindex="-1"` so it can take focus without joining the tab order.
+#' `<section>`, so on a slide deck that is the slide itself.
+#'
 #' Reachability is checked rather than assumed: reveal.js leaves the slides on
 #' either side of the current one rendered, so a chart on the previous slide is
 #' a tab stop in document order even though it is marked hidden.
+#'
+#' So is the handoff itself. Asking an element to take focus is not the same as
+#' it taking focus --- `focus()` on an element with no rendered box is a silent
+#' no-op, and Shiny wraps every output in a `display: contents` div --- so the
+#' outcome is read back and the ancestors are walked until one actually holds
+#' it. An element is asked as it stands before being given `tabindex="-1"`, so
+#' a tab stop this page already owns is never taken out of the tab order, and a
+#' `tabindex` added to one that still refuses is removed again.
 #'
 #' Registered at most once per document (guarded by a window flag), no
 #' matter how many iframes embed it.
@@ -1493,6 +1501,23 @@ maidr_iframe_host_script <- function() {
     "var s = window.getComputedStyle(el);",
     "return s.display !== \"none\" && s.visibility !== \"hidden\";",
     "}",
+    # Asking an element to take focus is not enough. `focus()` on an element
+    # with no rendered box -- a `display: contents` wrapper, which is what
+    # Shiny puts around every output -- is a silent no-op, so the outcome has
+    # to be read back. A tabindex this added is removed again when the element
+    # refuses, rather than leaving it claiming it can hold focus.
+    "function takeFocus(el) {",
+    # As it stands first. A tab stop this page already owns is focusable as it
+    # is, and giving it `tabindex="-1"` would take it out of the tab order.
+    "el.focus();",
+    "if (document.activeElement === el) return true;",
+    "if (el.hasAttribute(\"tabindex\")) return false;",
+    "el.setAttribute(\"tabindex\", \"-1\");",
+    "el.focus();",
+    "if (document.activeElement === el) return true;",
+    "el.removeAttribute(\"tabindex\");",
+    "return false;",
+    "}",
     "function stopBefore(frame) {",
     "var stops = document.querySelectorAll(TABBABLE);",
     "var found = null;",
@@ -1513,11 +1538,12 @@ maidr_iframe_host_script <- function() {
     "frame.style.height = e.data.height + \"px\";",
     "} else if (e.data.type === \"maidr:frame-focus-escape\") {",
     "var target = stopBefore(frame);",
-    "if (!target) {",
-    "target = frame.closest(CONTAINER) || frame.parentElement || document.body;",
-    "if (!target.hasAttribute(\"tabindex\")) target.setAttribute(\"tabindex\", \"-1\");",
+    "if (target && takeFocus(target)) return;",
+    "var section = frame.closest(CONTAINER);",
+    "if (section && takeFocus(section)) return;",
+    "for (var el = frame.parentElement; el; el = el.parentElement) {",
+    "if (el !== section && takeFocus(el)) return;",
     "}",
-    "target.focus();",
     "}",
     "});",
     "})();</script>"

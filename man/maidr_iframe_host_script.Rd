@@ -32,11 +32,19 @@ for the handoff instead of performing it.
 Focus goes to the tab stop before the frame where this page has a reachable
 one, which is what the browser would have done. Where it has none, focus
 lands on the element holding the frame --- a reveal.js slide is a
-\verb{<section>}, so on a slide deck that is the slide itself --- given
-\code{tabindex="-1"} so it can take focus without joining the tab order.
+\verb{<section>}, so on a slide deck that is the slide itself.
+
 Reachability is checked rather than assumed: reveal.js leaves the slides on
 either side of the current one rendered, so a chart on the previous slide is
 a tab stop in document order even though it is marked hidden.
+
+So is the handoff itself. Asking an element to take focus is not the same as
+it taking focus --- \code{focus()} on an element with no rendered box is a silent
+no-op, and Shiny wraps every output in a \code{display: contents} div --- so the
+outcome is read back and the ancestors are walked until one actually holds
+it. An element is asked as it stands before being given \code{tabindex="-1"}, so
+a tab stop this page already owns is never taken out of the tab order, and a
+\code{tabindex} added to one that still refuses is removed again.
 
 Registered at most once per document (guarded by a window flag), no
 matter how many iframes embed it.

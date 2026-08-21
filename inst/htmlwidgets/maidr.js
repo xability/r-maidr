@@ -86,6 +86,25 @@
     return found;
   }
 
+  // Asking an element to take focus is not enough. focus() on an element with
+  // no rendered box -- a `display: contents` wrapper, which is what Shiny puts
+  // around every output -- is a silent no-op, so the outcome has to be read
+  // back. A tabindex this added is removed again when the element refuses,
+  // rather than leaving it claiming it can hold focus.
+  function takeFocus(el) {
+    // As it stands first. A tab stop this page already owns is focusable as it
+    // is, and giving it tabindex="-1" would take it out of the tab order.
+    el.focus();
+    if (document.activeElement === el) return true;
+    if (el.hasAttribute("tabindex")) return false;
+    // tabindex="-1" takes focus without joining this page's tab order.
+    el.setAttribute("tabindex", "-1");
+    el.focus();
+    if (document.activeElement === el) return true;
+    el.removeAttribute("tabindex");
+    return false;
+  }
+
   window.addEventListener("message", function(event) {
     if (!event.data || event.data.type !== "maidr:frame-focus-escape") return;
 
@@ -94,12 +113,13 @@
       if (frames[i].contentWindow !== event.source) continue;
 
       var target = stopBefore(frames[i]);
-      if (!target) {
-        target = frames[i].closest(CONTAINER) || frames[i].parentElement || document.body;
-        // tabindex="-1" takes focus without joining this page's tab order.
-        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      if (target && takeFocus(target)) return;
+
+      var section = frames[i].closest(CONTAINER);
+      if (section && takeFocus(section)) return;
+      for (var el = frames[i].parentElement; el; el = el.parentElement) {
+        if (el !== section && takeFocus(el)) return;
       }
-      target.focus();
       return;
     }
   });
