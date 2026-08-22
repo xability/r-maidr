@@ -525,3 +525,35 @@ test_that("the bounds change nothing the layer already said", {
   testthat::expect_equal(positions(layer), lapply(VALUES, function(v) c(v, 0)))
   testthat::expect_length(unlist(layer$selectors), length(VALUES))
 })
+
+test_that("each facet panel gets its own bounds", {
+  skip_if_no_render()
+
+  # `panel_id` reaches `axis_grid_info()` for the rug the same way it does for
+  # the point processor, and `scales = "free_x"` is the chart that shows it:
+  # the two panels' observations are two orders of magnitude apart, so a
+  # `panel_id` dropped on the way through would give one panel the other's
+  # grid and a reader would feel a surface the panel does not draw.
+  #
+  # Measured: panel 1 gets 0.9 to 3.1 in steps of 0.5, panel 2 gets 90 to 310
+  # in steps of 50.
+  frame <- data.frame(
+    v = c(1, 2, 3, 100, 200, 300),
+    p = rep(c("a", "b"), each = 3)
+  )
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(x = v)) +
+    ggplot2::geom_rug() +
+    ggplot2::facet_wrap(~p, scales = "free_x")
+  built <- ggplot2::ggplot_build(plot)
+  processor <- maidr:::Ggplot2RugLayerProcessor$new(list(index = 1))
+  layout <- list(axes = list(x = "v", y = "y"))
+
+  first <- processor$axis_labels(layout, "x", built, "1")
+  second <- processor$axis_labels(layout, "x", built, "2")
+
+  testthat::expect_true(first$x$max < second$x$min)
+  testthat::expect_false(isTRUE(all.equal(first$x$tickStep, second$x$tickStep)))
+  # And the strip is one row deep in both, since that does not vary by panel.
+  testthat::expect_equal(first$y$tickStep, 1)
+  testthat::expect_equal(second$y$tickStep, 1)
+})
