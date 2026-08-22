@@ -136,6 +136,22 @@ Ggplot2Adapter <- R6::R6Class(
         return("contour")
       }
 
+      # `geom_rug()` marks one short tick per observation against the panel's
+      # edge -- the raw data, which the density curve or histogram it usually
+      # accompanies does not state. `GeomRug` is a direct `Geom` subclass, so
+      # it matched no branch above and reached the unknown processor: a
+      # rug-only chart emitted one empty layer and a rug beside a scatter
+      # added an empty one to land on (#222).
+      #
+      # py-maidr has read the same chart as points since
+      # xability/py-maidr#250, and the processor emits `point` to match. It is
+      # dispatched under its own name because what it reads and how it
+      # addresses its elements are both its own -- the arrangement `dotplot`
+      # already uses to emit `hist`.
+      if (geom_class == "GeomRug") {
+        return("rug")
+      }
+
       if (geom_class %in% c("GeomSegment", "GeomCurve")) {
         return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
       }

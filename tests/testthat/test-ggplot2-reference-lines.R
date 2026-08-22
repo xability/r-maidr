@@ -328,6 +328,12 @@ test_that("an annotation-only plot is caught because it reads as nothing", {
 # A genuinely unsupported geom still falls back
 # ==============================================================================
 
+# The stand-in for "a geom maidr cannot read" is `geom_polygon()`. It was
+# `geom_rug()` until #222 gave a rug its own processor -- which is the risk a
+# stand-in carries, and the reason this note is here rather than left for the
+# next reader to work out from a failure. What these three tests are about is
+# the fallback, not the geom: any layer that reads as `unknown` serves, and
+# `geom_polygon()` is measured as one.
 test_that("an unsupported geom over a boxplot still falls back", {
   # "skip" must stay narrow. Widening it into a general "ignore what we do not
   # understand" would leave charts announcing a partial reading as a complete
@@ -335,7 +341,7 @@ test_that("an unsupported geom over a boxplot still falls back", {
   result <- rendered(
     ggplot2::ggplot(df(), ggplot2::aes(g, v)) +
       ggplot2::geom_boxplot() +
-      ggplot2::geom_rug()
+      ggplot2::geom_polygon()
   )
 
   testthat::expect_false(result$interactive)
@@ -347,7 +353,7 @@ test_that("an unsupported geom alongside a reference line still falls back", {
     ggplot2::ggplot(df(), ggplot2::aes(g, v)) +
       ggplot2::geom_boxplot() +
       ggplot2::geom_hline(yintercept = 6) +
-      ggplot2::geom_rug()
+      ggplot2::geom_polygon()
   )
 
   testthat::expect_false(result$interactive)
@@ -381,7 +387,7 @@ test_that("the adapter tags each reference-line geom as skip", {
 
 test_that("an unsupported geom is still unknown rather than skipped", {
   adapter <- maidr:::Ggplot2Adapter$new()
-  plot <- ggplot2::ggplot(df(), ggplot2::aes(x, v)) + ggplot2::geom_rug()
+  plot <- ggplot2::ggplot(df(), ggplot2::aes(x, v)) + ggplot2::geom_polygon()
 
   testthat::expect_identical(
     adapter$detect_layer_type(plot$layers[[1]], plot), "unknown"
