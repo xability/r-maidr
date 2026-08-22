@@ -37,6 +37,7 @@ one chart the same way.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-BaseRContourLayerProcessor-process}{\code{BaseRContourLayerProcessor$process()}}
+    \item \href{#method-BaseRContourLayerProcessor-read_curves}{\code{BaseRContourLayerProcessor$read_curves()}}
     \item \href{#method-BaseRContourLayerProcessor-extract_data}{\code{BaseRContourLayerProcessor$extract_data()}}
     \item \href{#method-BaseRContourLayerProcessor-contour_grid}{\code{BaseRContourLayerProcessor$contour_grid()}}
     \item \href{#method-BaseRContourLayerProcessor-extract_axis_titles}{\code{BaseRContourLayerProcessor$extract_axis_titles()}}
@@ -104,10 +105,41 @@ one chart the same way.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRContourLayerProcessor-read_curves"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRContourLayerProcessor-read_curves}{}}}
+\subsection{\code{BaseRContourLayerProcessor$read_curves()}}{
+  Read the drawn curves off the recorded call
+
+Hands back which curves were kept as well as the curves themselves.
+gridGraphics draws from the same \code{contourLines()} output, so it
+writes one grob per curve \emph{before} any filtering here -- and
+comparing a filtered count against an unfiltered one would make the
+two disagree, which \code{generate_selectors} answers by withholding the
+whole layer's highlighting. Keeping the indices lets each announced
+curve take the grob that drew it, whatever was dropped.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRContourLayerProcessor$read_curves(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{The recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{data} (curves of \verb{\{x, y, level\}}), \code{kept} (their indices among
+what \code{contourLines()} returned) and \code{total} (how many that was)
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRContourLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRContourLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRContourLayerProcessor$extract_data()}}{
-  Read the drawn curves off the recorded call
+  The curves alone, for callers that want only the payload
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRContourLayerProcessor$extract_data(layer_info)}
@@ -242,7 +274,8 @@ element -- the defect #145 and #204 are both about.
     \preformatted{BaseRContourLayerProcessor$generate_selectors(
   layer_info,
   gt = NULL,
-  expected = 0
+  kept = integer(0),
+  total = 0
 )}
     \if{html}{\out{</div>}}
   }
@@ -251,12 +284,13 @@ element -- the defect #145 and #204 are both about.
     \describe{
       \item{\code{layer_info}}{The recorded call}
       \item{\code{gt}}{The grob tree}
-      \item{\code{expected}}{How many curves were announced}
+      \item{\code{kept}}{Which of the drawn curves were announced}
+      \item{\code{total}}{How many curves were drawn}
     }
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A list of CSS selectors, one per curve
+    A list of CSS selectors, one per announced curve
   }
 }
 

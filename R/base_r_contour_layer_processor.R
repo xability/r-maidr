@@ -43,11 +43,11 @@ BaseRContourLayerProcessor <- R6::R6Class(
                        panel_id = NULL,
                        panel_ctx = NULL,
                        layer_info = NULL) {
-      curves <- self$extract_data(layer_info)
+      read <- self$read_curves(layer_info)
 
       list(
-        data = curves,
-        selectors = self$generate_selectors(layer_info, gt, length(curves)),
+        data = read$data,
+        selectors = self$generate_selectors(layer_info, gt, read$kept, read$total),
         type = "contour",
         title = self$extract_main_title(layer_info),
         axes = self$extract_axis_titles(layer_info)
@@ -55,16 +55,26 @@ BaseRContourLayerProcessor <- R6::R6Class(
     },
 
     #' @description Read the drawn curves off the recorded call
+    #'
+    #'   Hands back which curves were kept as well as the curves themselves.
+    #'   gridGraphics draws from the same `contourLines()` output, so it
+    #'   writes one grob per curve *before* any filtering here -- and
+    #'   comparing a filtered count against an unfiltered one would make the
+    #'   two disagree, which `generate_selectors` answers by withholding the
+    #'   whole layer's highlighting. Keeping the indices lets each announced
+    #'   curve take the grob that drew it, whatever was dropped.
     #' @param layer_info The recorded call
-    #' @return A list of curves, each a list of `{x, y, level}` points
-    extract_data = function(layer_info) {
+    #' @return `data` (curves of `{x, y, level}`), `kept` (their indices among
+    #'   what `contourLines()` returned) and `total` (how many that was)
+    read_curves = function(layer_info) {
+      empty <- list(data = list(), kept = integer(0), total = 0L)
       if (is.null(layer_info)) {
-        return(list())
+        return(empty)
       }
 
       grid <- self$contour_grid(layer_info$plot_call$args)
       if (is.null(grid)) {
-        return(list())
+        return(empty)
       }
 
       curves <- tryCatch(
@@ -75,23 +85,40 @@ BaseRContourLayerProcessor <- R6::R6Class(
       )
 
       drawn <- list()
-      for (curve in curves) {
+      kept <- integer(0)
+      for (i in seq_along(curves)) {
+        curve <- curves[[i]]
         # A curve of one vertex is a place the field touched a level rather
         # than a curve along it, and there is nothing to move along. The
         # ggplot2 processor drops these for the same reason.
+        #
+        # Not reachable through `contourLines()` as far as could be measured
+        # -- a level the surface merely touches yields *no* curve rather than
+        # a one-vertex one, and none appeared in a search over four hundred
+        # random fields -- so this is defensive. It is kept, and paired with
+        # `kept`, so that if it ever does fire the layer loses one curve
+        # rather than all of its highlighting.
         if (length(curve$x) < 2L) {
           next
         }
-        drawn[[length(drawn) + 1L]] <- lapply(seq_along(curve$x), function(i) {
+        kept <- c(kept, i)
+        drawn[[length(drawn) + 1L]] <- lapply(seq_along(curve$x), function(j) {
           list(
-            x = as.numeric(curve$x[i]),
-            y = as.numeric(curve$y[i]),
+            x = as.numeric(curve$x[j]),
+            y = as.numeric(curve$y[j]),
             level = as.numeric(curve$level)
           )
         })
       }
 
-      drawn
+      list(data = drawn, kept = kept, total = length(curves))
+    },
+
+    #' @description The curves alone, for callers that want only the payload
+    #' @param layer_info The recorded call
+    #' @return A list of curves, each a list of `{x, y, level}` points
+    extract_data = function(layer_info) {
+      self$read_curves(layer_info)$data
     },
 
     #' @description The grid and levels the call drew, or NULL when it drew none
@@ -142,9 +169,17 @@ BaseRContourLayerProcessor <- R6::R6Class(
       y <- slots$y
       z <- slots$z
 
-      if (is.null(z) && !is.null(x) && !is.list(x)) {
-        z <- x
-        x <- NULL
+      if (is.null(z) && !is.null(x)) {
+        if (is.list(x) && !is.null(x$z)) {
+          # `contour(list(x =, y =, z =))`, which `contour.default` unpacks
+          # the same way -- the shape `akima::interp` and friends hand back.
+          z <- x$z
+          y <- x$y
+          x <- x$x
+        } else if (!is.list(x)) {
+          z <- x
+          x <- NULL
+        }
       }
 
       if (!is.matrix(z) || !is.numeric(z)) {
@@ -233,10 +268,12 @@ BaseRContourLayerProcessor <- R6::R6Class(
     #'   element -- the defect #145 and #204 are both about.
     #' @param layer_info The recorded call
     #' @param gt The grob tree
-    #' @param expected How many curves were announced
-    #' @return A list of CSS selectors, one per curve
-    generate_selectors = function(layer_info, gt = NULL, expected = 0) {
-      if (is.null(gt) || expected == 0) {
+    #' @param kept Which of the drawn curves were announced
+    #' @param total How many curves were drawn
+    #' @return A list of CSS selectors, one per announced curve
+    generate_selectors = function(layer_info, gt = NULL, kept = integer(0),
+                                  total = 0) {
+      if (is.null(gt) || length(kept) == 0) {
         return(list())
       }
 
@@ -246,8 +283,11 @@ BaseRContourLayerProcessor <- R6::R6Class(
         layer_info$index
       }
 
+      # Compared against every curve drawn, not only those announced: the
+      # grobs come from the same `contourLines()` output and are written
+      # before this class drops anything.
       names <- self$find_contour_grobs(gt, group_index)
-      if (length(names) != expected) {
+      if (length(names) != total) {
         return(list())
       }
 
@@ -260,7 +300,7 @@ BaseRContourLayerProcessor <- R6::R6Class(
       if (anyNA(numbers)) {
         return(list())
       }
-      names <- names[order(numbers)]
+      names <- names[order(numbers)][kept]
 
       lapply(names, function(name) {
         escaped <- gsub("\\.", "\\\\.", paste0(name, ".1"))

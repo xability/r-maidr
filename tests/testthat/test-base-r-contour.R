@@ -231,3 +231,69 @@ test_that("a call that draws no contour is declined rather than guessed at", {
   # An x that does not match the grid names coordinates the chart never drew.
   expect_null(processor$contour_grid(list(x = c(1, 2, 3), z = matrix(1:4, 2))))
 })
+
+test_that("a curve dropped from the payload does not cost the layer its highlighting", {
+  skip_unless_jsonlite()
+
+  # Review asked what happens if `contourLines()` ever returns a one-vertex
+  # curve: the payload drops it, but gridGraphics draws from the same output
+  # and would still write its grob -- so a count comparison would disagree
+  # and withhold *every* selector, not just that one's.
+  #
+  # Measured first: it does not arise. A level the surface merely touches
+  # yields no curve at all rather than a one-vertex one, and none appeared
+  # across four hundred random fields. So this exercises the pairing
+  # directly instead, which is what makes the mismatch impossible rather
+  # than merely unobserved.
+  processor <- BaseRContourLayerProcessor$new(list(index = 1))
+
+  # Three grobs drawn, the middle curve dropped: the selectors must be the
+  # first and third, not the first two.
+  gt <- list(
+    name = NULL,
+    children = list(
+      list(name = "graphics-plot-1-contour-1-1", children = NULL),
+      list(name = "graphics-plot-1-contour-2-2", children = NULL),
+      list(name = "graphics-plot-1-contour-3-3", children = NULL)
+    )
+  )
+
+  selectors <- processor$generate_selectors(
+    list(index = 1), gt, kept = c(1L, 3L), total = 3L
+  )
+
+  expect_length(selectors, 2L)
+  expect_match(selectors[[1]], "contour-1-1", fixed = TRUE)
+  expect_match(selectors[[2]], "contour-3-3", fixed = TRUE)
+})
+
+test_that("a tangent level yields no curve and no grob, so the counts agree", {
+  # The case that would have produced a one-vertex curve if anything did.
+  # Both sides answer the same way, which is why the pairing above is
+  # belt-and-braces rather than a live path.
+  grid <- seq(-1, 1, length.out = 5)
+  bowl <- outer(grid, grid, function(a, b) a^2 + b^2)
+
+  expect_length(
+    grDevices::contourLines(x = grid, y = grid, z = bowl, levels = 0),
+    0L
+  )
+})
+
+test_that("the list form contour(list(x =, y =, z =)) is read", {
+  skip_unless_jsonlite()
+
+  # `contour.default` unpacks a list into its three parts, which is the shape
+  # interpolation helpers hand back. Without it the call resolved to nothing
+  # and the chart silently announced no data.
+  processor <- BaseRContourLayerProcessor$new(list(index = 1))
+
+  grid <- processor$contour_grid(list(list(
+    x = c(1, 2, 3), y = c(10, 20, 30), z = FIELD
+  )))
+
+  expect_false(is.null(grid))
+  expect_equal(grid$x, c(1, 2, 3))
+  expect_equal(grid$y, c(10, 20, 30))
+  expect_equal(grid$z, FIELD)
+})
