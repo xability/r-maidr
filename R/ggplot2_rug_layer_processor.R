@@ -78,7 +78,7 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
       }
 
       layers <- lapply(marked, function(axis) {
-        self$axis_layer(plot, layout, rows, axis, gt, panel_ctx)
+        self$axis_layer(plot, layout, rows, axis, gt, panel_ctx, built, panel_id)
       })
 
       if (length(layers) == 1) {
@@ -169,8 +169,11 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
     #' @param axis `"x"` or `"y"`
     #' @param gt Gtable object
     #' @param panel_ctx Panel context for patchwork leaves and facets
+    #' @param built Built plot data, for the axis bounds
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return A layer list
-    axis_layer = function(plot, layout, rows, axis, gt, panel_ctx) {
+    axis_layer = function(plot, layout, rows, axis, gt, panel_ctx,
+                          built = NULL, panel_id = NULL) {
       values <- rows[[axis]]
       keep <- !is.na(values)
       values <- values[keep]
@@ -186,7 +189,7 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
       list(
         type = "point",
         data = data,
-        axes = self$axis_labels(layout, axis),
+        axes = self$axis_labels(layout, axis, built, panel_id),
         selectors = self$generate_selectors(plot, gt, axis, sum(keep), panel_ctx)
       )
     },
@@ -198,15 +201,56 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
     #'   rug under a density curve has a real "density" label on that axis,
     #'   and every entry this layer emits sits at 0 rather than at any
     #'   density.
+    #'   Both carry bounds as well, and that is what makes the layer reachable
+    #'   in grid mode -- the only mode where a point layer renders braille at
+    #'   all. Measured against maidr's `ScatterTrace`: with the labels alone
+    #'   the braille state comes back empty, and a rug is then the one chart
+    #'   with no braille surface reachable by any keystroke. With them, four
+    #'   observations at 1, 2, 3 and 9 over a 0-10 axis give
+    #'   `values [[2, 1, 0, 1]]` -- the observation count per cell, which is
+    #'   the clustering a rug is drawn to show and the one thing its audio
+    #'   cannot carry, every tick sitting at the same place on the axis pitch
+    #'   is mapped from (xability/maidr#1132).
+    #'
+    #'   The observation axis takes the chart's own bounds, through the same
+    #'   `axis_grid_info()` the point processor reads, and is declined on the
+    #'   same grounds. The axis across the ticks is supplied whole as 0 to 1
+    #'   in one step: a rug is one row deep by construction, and a finer step
+    #'   buys a second row of zeroes -- measured, `tickStep` 0.5 gives
+    #'   `[[2, 1, 0, 1], [0, 0, 0, 0]]`.
+    #'
+    #'   Additive only: grid mode is entered deliberately, and the ordinary
+    #'   reading is untouched.
     #' @param layout Layout information
     #' @param axis `"x"` or `"y"`
+    #' @param built Built plot data, for the observation axis' bounds
+    #' @param panel_id Panel ID for faceted plots (optional)
     #' @return An axes list
-    axis_labels = function(layout, axis) {
+    axis_labels = function(layout, axis, built = NULL, panel_id = NULL) {
       own <- extract_axis_label(layout$axes[[axis]], default = axis)
-      if (identical(axis, "x")) {
-        build_axes(x = own, y = RUG_AXIS_LABEL)
+      bounds <- if (is.null(built)) NULL else axis_grid_info(built, axis, panel_id)
+
+      along <- if (is.null(bounds)) {
+        build_axis_config(label = own)
       } else {
-        build_axes(x = RUG_AXIS_LABEL, y = own)
+        build_axis_config(
+          label = own, min = bounds$min, max = bounds$max,
+          tickStep = bounds$tickStep
+        )
+      }
+      # The strip is given bounds only when the observation axis has them:
+      # a grid needs both, and half of one is a surface the frontend cannot
+      # build anyway.
+      across <- if (is.null(bounds)) {
+        build_axis_config(label = RUG_AXIS_LABEL)
+      } else {
+        build_axis_config(label = RUG_AXIS_LABEL, min = 0, max = 1, tickStep = 1)
+      }
+
+      if (identical(axis, "x")) {
+        build_axes(x = along, y = across)
+      } else {
+        build_axes(x = across, y = along)
       }
     },
 

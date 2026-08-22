@@ -436,3 +436,124 @@ test_that("a facet panel that draws no ticks announces none", {
     is.null(processor$process(plot, list(axes = list()), built, panel_id = "1"))
   )
 })
+
+# --- The bounds that make the layer reachable in grid mode (maidr#1132) ------
+#
+# A point layer renders braille only in grid mode, and grid mode is built from
+# `axes.{x,y}.{min,max,tickStep}`. With the labels alone, maidr's
+# `ScatterTrace` returns an empty braille state, and a rug is then the one
+# chart with no braille surface reachable by any keystroke. Measured there,
+# four observations at 1, 2, 3 and 9 over a 0-10 axis give
+# `values [[2, 1, 0, 1]]` -- the count per cell, which is the clustering a rug
+# is drawn to show and the one thing its audio cannot carry.
+
+test_that("the observation axis carries bounds and the strip is one row", {
+  skip_if_no_render()
+
+  layer <- layers_of(ggplot2::ggplot(frame(), ggplot2::aes(x = v)) +
+    ggplot2::geom_rug())[[1]]
+
+  testthat::expect_identical(layer$axes$x$label, "v")
+  testthat::expect_true(is.numeric(layer$axes$x$min))
+  testthat::expect_true(layer$axes$x$max > layer$axes$x$min)
+  testthat::expect_true(layer$axes$x$tickStep > 0)
+
+  # One row deep, which is what a rug is: every entry sits at the same place
+  # across the ticks. A finer step buys a second row of zeroes -- measured
+  # against `ScatterTrace`, `tickStep` 0.5 gives `[[2,1,0,1],[0,0,0,0]]`.
+  testthat::expect_identical(layer$axes$y$label, "Rug")
+  testthat::expect_equal(layer$axes$y$min, 0)
+  testthat::expect_equal(layer$axes$y$max, 1)
+  testthat::expect_equal(layer$axes$y$tickStep, 1)
+})
+
+test_that("a rug up the y axis puts the bounds on y", {
+  skip_if_no_render()
+
+  layer <- layers_of(ggplot2::ggplot(frame(), ggplot2::aes(y = v)) +
+    ggplot2::geom_rug())[[1]]
+
+  testthat::expect_equal(layer$axes$x$tickStep, 1)
+  testthat::expect_identical(layer$axes$x$label, "Rug")
+  testthat::expect_true(layer$axes$y$tickStep > 0)
+  testthat::expect_identical(layer$axes$y$label, "v")
+})
+
+test_that("each axis of a two-sided rug gets its own bounds", {
+  skip_if_no_render()
+
+  layers <- layers_of(ggplot2::ggplot(frame(), ggplot2::aes(v, w)) +
+    ggplot2::geom_rug())
+
+  testthat::expect_length(layers, 2L)
+  # The x layer measures `v`, the y layer measures `w`, and each is one row
+  # deep across its own ticks.
+  testthat::expect_identical(layers[[1]]$axes$x$label, "v")
+  testthat::expect_equal(layers[[1]]$axes$y$tickStep, 1)
+  testthat::expect_identical(layers[[2]]$axes$y$label, "w")
+  testthat::expect_equal(layers[[2]]$axes$x$tickStep, 1)
+  # And the two measure different things, so their bounds must differ.
+  testthat::expect_false(
+    isTRUE(all.equal(layers[[1]]$axes$x$max, layers[[2]]$axes$y$max))
+  )
+})
+
+test_that("an axis that cannot carry a grid takes the strip down with it", {
+  skip_if_no_render()
+
+  # A grid needs both axes, so half of one is a surface the frontend cannot
+  # build anyway -- and bounds on the strip alone would say the rug is one
+  # row deep in a chart with no rows.
+  layer <- layers_of(ggplot2::ggplot(frame(), ggplot2::aes(x = v)) +
+    ggplot2::geom_rug() + ggplot2::scale_x_log10())[[1]]
+
+  testthat::expect_identical(layer$axes$x$label, "v")
+  testthat::expect_null(layer$axes$x$min)
+  testthat::expect_identical(layer$axes$y$label, "Rug")
+  testthat::expect_null(layer$axes$y$min)
+})
+
+test_that("the bounds change nothing the layer already said", {
+  skip_if_no_render()
+
+  # Additive only: grid mode is entered deliberately, so the ordinary reading
+  # has to be untouched.
+  layer <- layers_of(ggplot2::ggplot(frame(), ggplot2::aes(x = v)) +
+    ggplot2::geom_rug())[[1]]
+
+  testthat::expect_identical(layer$type, "point")
+  testthat::expect_equal(positions(layer), lapply(VALUES, function(v) c(v, 0)))
+  testthat::expect_length(unlist(layer$selectors), length(VALUES))
+})
+
+test_that("each facet panel gets its own bounds", {
+  skip_if_no_render()
+
+  # `panel_id` reaches `axis_grid_info()` for the rug the same way it does for
+  # the point processor, and `scales = "free_x"` is the chart that shows it:
+  # the two panels' observations are two orders of magnitude apart, so a
+  # `panel_id` dropped on the way through would give one panel the other's
+  # grid and a reader would feel a surface the panel does not draw.
+  #
+  # Measured: panel 1 gets 0.9 to 3.1 in steps of 0.5, panel 2 gets 90 to 310
+  # in steps of 50.
+  frame <- data.frame(
+    v = c(1, 2, 3, 100, 200, 300),
+    p = rep(c("a", "b"), each = 3)
+  )
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(x = v)) +
+    ggplot2::geom_rug() +
+    ggplot2::facet_wrap(~p, scales = "free_x")
+  built <- ggplot2::ggplot_build(plot)
+  processor <- maidr:::Ggplot2RugLayerProcessor$new(list(index = 1))
+  layout <- list(axes = list(x = "v", y = "y"))
+
+  first <- processor$axis_labels(layout, "x", built, "1")
+  second <- processor$axis_labels(layout, "x", built, "2")
+
+  testthat::expect_true(first$x$max < second$x$min)
+  testthat::expect_false(isTRUE(all.equal(first$x$tickStep, second$x$tickStep)))
+  # And the strip is one row deep in both, since that does not vary by panel.
+  testthat::expect_equal(first$y$tickStep, 1)
+  testthat::expect_equal(second$y$tickStep, 1)
+})

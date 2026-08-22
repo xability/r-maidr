@@ -213,7 +213,16 @@ with both aesthetics mapped and one with only \code{x}.
   One axis' observations as a point layer
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2RugLayerProcessor$axis_layer(plot, layout, rows, axis, gt, panel_ctx)}
+    \preformatted{Ggplot2RugLayerProcessor$axis_layer(
+  plot,
+  layout,
+  rows,
+  axis,
+  gt,
+  panel_ctx,
+  built = NULL,
+  panel_id = NULL
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -225,6 +234,8 @@ with both aesthetics mapped and one with only \code{x}.
       \item{\code{axis}}{\code{"x"} or \code{"y"}}
       \item{\code{gt}}{Gtable object}
       \item{\code{panel_ctx}}{Panel context for patchwork leaves and facets}
+      \item{\code{built}}{Built plot data, for the axis bounds}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
   }
@@ -244,9 +255,34 @@ one across the ticks is renamed even where the caller labelled it: a
 rug under a density curve has a real "density" label on that axis,
 and every entry this layer emits sits at 0 rather than at any
 density.
+Both carry bounds as well, and that is what makes the layer reachable
+in grid mode -- the only mode where a point layer renders braille at
+all. Measured against maidr's \code{ScatterTrace}: with the labels alone
+the braille state comes back empty, and a rug is then the one chart
+with no braille surface reachable by any keystroke. With them, four
+observations at 1, 2, 3 and 9 over a 0-10 axis give
+\code{values [[2, 1, 0, 1]]} -- the observation count per cell, which is
+the clustering a rug is drawn to show and the one thing its audio
+cannot carry, every tick sitting at the same place on the axis pitch
+is mapped from (xability/maidr#1132).
+
+The observation axis takes the chart's own bounds, through the same
+\code{axis_grid_info()} the point processor reads, and is declined on the
+same grounds. The axis across the ticks is supplied whole as 0 to 1
+in one step: a rug is one row deep by construction, and a finer step
+buys a second row of zeroes -- measured, \code{tickStep} 0.5 gives
+\verb{[[2, 1, 0, 1], [0, 0, 0, 0]]}.
+
+Additive only: grid mode is entered deliberately, and the ordinary
+reading is untouched.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2RugLayerProcessor$axis_labels(layout, axis)}
+    \preformatted{Ggplot2RugLayerProcessor$axis_labels(
+  layout,
+  axis,
+  built = NULL,
+  panel_id = NULL
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -254,6 +290,8 @@ density.
     \describe{
       \item{\code{layout}}{Layout information}
       \item{\code{axis}}{\code{"x"} or \code{"y"}}
+      \item{\code{built}}{Built plot data, for the observation axis' bounds}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
   }

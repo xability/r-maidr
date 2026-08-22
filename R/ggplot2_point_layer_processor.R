@@ -104,98 +104,17 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
 
     #' @description Extract grid navigation info (min, max, tickStep) for a single axis
     #'
-    #' Attempts to extract range and tick interval from the built plot's
-    #' panel parameters. Returns NULL if any required value cannot be
-    #' determined, allowing graceful fallback to non-grid scatter navigation.
+    #' Delegates to \code{axis_grid_info()}, which is where the reading now
+    #' lives: the rug processor needs the same answer for the axis its ticks
+    #' stand on, and one grid rule read two ways is how the two would drift.
+    #' Kept as a method so this class's own callers are unchanged.
     #'
     #' @param built Built plot data
     #' @param axis Character, either "x" or "y"
     #' @param panel_id Panel index for faceted plots (optional, defaults to 1)
     #' @return List with min, max, tickStep or NULL if extraction fails
     extract_axis_grid_info = function(built, axis = "x", panel_id = NULL) {
-      tryCatch(
-        {
-          # A transformed axis has no uniform tick step to give. Grid
-          # navigation walks the axis in equal increments, and on a log
-          # scale the breaks a reader sees -- 10, 100, 1000 -- are equally
-          # spaced only in the transformed space the points are no longer
-          # announced in. Emitting the transformed range instead would put
-          # the grid and the announcement in different spaces, which is
-          # worse than today, where the two are at least wrong together.
-          #
-          # So the axis keeps its label and loses its grid, which is the
-          # same graceful degradation this function already takes when a
-          # range cannot be read (#158).
-          if (!is.null(panel_transformation(built, axis, panel_id))) {
-            return(NULL)
-          }
-
-          panel_idx <- if (!is.null(panel_id)) as.integer(panel_id) else 1L
-          panel_params <- built$layout$panel_params[[panel_idx]]
-
-          if (is.null(panel_params)) {
-            return(NULL)
-          }
-
-          pp_axis <- panel_params[[axis]]
-          if (is.null(pp_axis)) {
-            return(NULL)
-          }
-
-          # Extract range from continuous_range
-          axis_range <- pp_axis$continuous_range
-          if (is.null(axis_range) || length(axis_range) < 2) {
-            return(NULL)
-          }
-
-          axis_min <- axis_range[1]
-          axis_max <- axis_range[2]
-
-          # Extract breaks to compute tickStep
-          axis_breaks <- pp_axis$breaks
-          if (is.null(axis_breaks) || length(axis_breaks) < 2) {
-            # Try alternative: get_breaks() from panel_scales
-            scale_obj <- if (axis == "x") {
-              built$layout$panel_scales_x[[panel_idx]]
-            } else {
-              built$layout$panel_scales_y[[panel_idx]]
-            }
-            if (!is.null(scale_obj)) {
-              axis_breaks <- tryCatch(scale_obj$get_breaks(), error = function(e) NULL)
-            }
-          }
-
-          if (is.null(axis_breaks) || length(axis_breaks) < 2) {
-            return(NULL)
-          }
-
-          # Remove NAs from breaks
-          axis_breaks <- axis_breaks[!is.na(axis_breaks)]
-          if (length(axis_breaks) < 2) {
-            return(NULL)
-          }
-
-          # Sort breaks and compute tickStep from first interval
-          axis_breaks <- sort(axis_breaks)
-          tick_step <- diff(axis_breaks)[1]
-
-          # Validate: all values must be finite and sensible
-          if (!is.finite(axis_min) || !is.finite(axis_max) || !is.finite(tick_step)) {
-            return(NULL)
-          }
-          if (axis_min >= axis_max) {
-            return(NULL)
-          }
-          if (tick_step <= 0 || tick_step > (axis_max - axis_min)) {
-            return(NULL)
-          }
-
-          list(min = axis_min, max = axis_max, tickStep = tick_step)
-        },
-        error = function(e) {
-          NULL
-        }
-      )
+      axis_grid_info(built, axis, panel_id)
     },
 
     #' @description Extract data from point layer
