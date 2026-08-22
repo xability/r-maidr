@@ -60,6 +60,10 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         # rows are staggered, so it reads through a processor of its own.
         "hexbin" = Ggplot2HexbinLayerProcessor$new(layer_info),
         "point" = Ggplot2PointLayerProcessor$new(layer_info),
+        # A rug marks observations rather than pairs of them, and addresses
+        # its ticks through a wrapper ggplot2 leaves unnamed, so it reads
+        # through a processor of its own and emits `point`.
+        "rug" = Ggplot2RugLayerProcessor$new(layer_info),
         "box" = Ggplot2BoxplotLayerProcessor$new(layer_info),
         "error_bar" = Ggplot2ErrorbarLayerProcessor$new(layer_info),
         "violin" = Ggplot2ViolinLayerProcessor$new(layer_info),
@@ -91,6 +95,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "heat",
         "hexbin",
         "point",
+        "rug",
         "box",
         "error_bar",
         "violin",
