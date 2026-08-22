@@ -123,9 +123,10 @@ successfully extracted from the built plot scales.
 \subsection{\code{Ggplot2PointLayerProcessor$extract_axis_grid_info()}}{
   Extract grid navigation info (min, max, tickStep) for a single axis
 
-Attempts to extract range and tick interval from the built plot's
-panel parameters. Returns NULL if any required value cannot be
-determined, allowing graceful fallback to non-grid scatter navigation.
+Delegates to \code{axis_grid_info()}, which is where the reading now
+lives: the rug processor needs the same answer for the axis its ticks
+stand on, and one grid rule read two ways is how the two would drift.
+Kept as a method so this class's own callers are unchanged.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PointLayerProcessor$extract_axis_grid_info(
