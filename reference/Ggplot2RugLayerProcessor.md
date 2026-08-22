@@ -242,7 +242,16 @@ One axis' observations as a point layer
 
 #### Usage
 
-    Ggplot2RugLayerProcessor$axis_layer(plot, layout, rows, axis, gt, panel_ctx)
+    Ggplot2RugLayerProcessor$axis_layer(
+      plot,
+      layout,
+      rows,
+      axis,
+      gt,
+      panel_ctx,
+      built = NULL,
+      panel_id = NULL
+    )
 
 #### Arguments
 
@@ -270,6 +279,14 @@ One axis' observations as a point layer
 
   Panel context for patchwork leaves and facets
 
+- `built`:
+
+  Built plot data, for the axis bounds
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 #### Returns
 
 A layer list
@@ -283,11 +300,35 @@ Name the axes, calling the strip the ticks sit in what it is
 The axis carrying the observations keeps the chart's own label. The one
 across the ticks is renamed even where the caller labelled it: a rug
 under a density curve has a real "density" label on that axis, and every
-entry this layer emits sits at 0 rather than at any density.
+entry this layer emits sits at 0 rather than at any density. Both carry
+bounds as well, and that is what makes the layer reachable in grid mode
+– the only mode where a point layer renders braille at all. Measured
+against maidr's `ScatterTrace`: with the labels alone the braille state
+comes back empty, and a rug is then the one chart with no braille
+surface reachable by any keystroke. With them, four observations at 1,
+2, 3 and 9 over a 0-10 axis give `values [[2, 1, 0, 1]]` – the
+observation count per cell, which is the clustering a rug is drawn to
+show and the one thing its audio cannot carry, every tick sitting at the
+same place on the axis pitch is mapped from (xability/maidr#1132).
+
+The observation axis takes the chart's own bounds, through the same
+[`axis_grid_info()`](https://r.maidr.ai/reference/axis_grid_info.md) the
+point processor reads, and is declined on the same grounds. The axis
+across the ticks is supplied whole as 0 to 1 in one step: a rug is one
+row deep by construction, and a finer step buys a second row of zeroes –
+measured, `tickStep` 0.5 gives `[[2, 1, 0, 1], [0, 0, 0, 0]]`.
+
+Additive only: grid mode is entered deliberately, and the ordinary
+reading is untouched.
 
 #### Usage
 
-    Ggplot2RugLayerProcessor$axis_labels(layout, axis)
+    Ggplot2RugLayerProcessor$axis_labels(
+      layout,
+      axis,
+      built = NULL,
+      panel_id = NULL
+    )
 
 #### Arguments
 
@@ -298,6 +339,14 @@ entry this layer emits sits at 0 rather than at any density.
 - `axis`:
 
   `"x"` or `"y"`
+
+- `built`:
+
+  Built plot data, for the observation axis' bounds
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
 
 #### Returns
 

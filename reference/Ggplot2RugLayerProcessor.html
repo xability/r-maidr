@@ -393,7 +393,16 @@ with both aesthetics mapped and one with only <code>x</code>.</p><div class="sec
 <h3 id="ggplot-ruglayerprocessor-axis-layer-"><code>Ggplot2RugLayerProcessor$axis_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-ruglayerprocessor-axis-layer-"></a></h3>
 <p>One axis' observations as a point layer</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RugLayerProcessor</span><span class="op">$</span><span class="fu">axis_layer</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layout</span>, <span class="va">rows</span>, <span class="va">axis</span>, <span class="va">gt</span>, <span class="va">panel_ctx</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RugLayerProcessor</span><span class="op">$</span><span class="fu">axis_layer</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  <span class="va">layout</span>,</span>
+<span>  <span class="va">rows</span>,</span>
+<span>  <span class="va">axis</span>,</span>
+<span>  <span class="va">gt</span>,</span>
+<span>  <span class="va">panel_ctx</span>,</span>
+<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
@@ -414,6 +423,12 @@ with both aesthetics mapped and one with only <code>x</code>.</p><div class="sec
       <dt><code>panel_ctx</code></dt>
 <dd><p>Panel context for patchwork leaves and facets</p></dd>
 
+      <dt><code>built</code></dt>
+<dd><p>Built plot data, for the axis bounds</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
 
 </dl><p></p></div>
 </div><p></p><div class="section">
@@ -430,9 +445,32 @@ with both aesthetics mapped and one with only <code>x</code>.</p><div class="sec
 one across the ticks is renamed even where the caller labelled it: a
 rug under a density curve has a real "density" label on that axis,
 and every entry this layer emits sits at 0 rather than at any
-density.</p><div class="section">
+density.
+Both carry bounds as well, and that is what makes the layer reachable
+in grid mode – the only mode where a point layer renders braille at
+all. Measured against maidr's <code>ScatterTrace</code>: with the labels alone
+the braille state comes back empty, and a rug is then the one chart
+with no braille surface reachable by any keystroke. With them, four
+observations at 1, 2, 3 and 9 over a 0-10 axis give
+<code>values [[2, 1, 0, 1]]</code> – the observation count per cell, which is
+the clustering a rug is drawn to show and the one thing its audio
+cannot carry, every tick sitting at the same place on the axis pitch
+is mapped from (xability/maidr#1132).</p>
+<p>The observation axis takes the chart's own bounds, through the same
+<code><a href="axis_grid_info.html">axis_grid_info()</a></code> the point processor reads, and is declined on the
+same grounds. The axis across the ticks is supplied whole as 0 to 1
+in one step: a rug is one row deep by construction, and a finer step
+buys a second row of zeroes – measured, <code>tickStep</code> 0.5 gives
+<code>[[2, 1, 0, 1], [0, 0, 0, 0]]</code>.</p>
+<p>Additive only: grid mode is entered deliberately, and the ordinary
+reading is untouched.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RugLayerProcessor</span><span class="op">$</span><span class="fu">axis_labels</span><span class="op">(</span><span class="va">layout</span>, <span class="va">axis</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2RugLayerProcessor</span><span class="op">$</span><span class="fu">axis_labels</span><span class="op">(</span></span>
+<span>  <span class="va">layout</span>,</span>
+<span>  <span class="va">axis</span>,</span>
+<span>  built <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  panel_id <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layout</code></dt>
@@ -440,6 +478,12 @@ density.</p><div class="section">
 
       <dt><code>axis</code></dt>
 <dd><p><code>"x"</code> or <code>"y"</code></p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Built plot data, for the observation axis' bounds</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
 
 
 </dl><p></p></div>

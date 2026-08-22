@@ -146,9 +146,12 @@ List with x and y per-axis objects
 
 Extract grid navigation info (min, max, tickStep) for a single axis
 
-Attempts to extract range and tick interval from the built plot's panel
-parameters. Returns NULL if any required value cannot be determined,
-allowing graceful fallback to non-grid scatter navigation.
+Delegates to
+[`axis_grid_info()`](https://r.maidr.ai/reference/axis_grid_info.md),
+which is where the reading now lives: the rug processor needs the same
+answer for the axis its ticks stand on, and one grid rule read two ways
+is how the two would drift. Kept as a method so this class's own callers
+are unchanged.
 
 #### Usage
 
