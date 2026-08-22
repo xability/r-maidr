@@ -44,6 +44,7 @@
 <url><loc>https://r.maidr.ai/reference/Ggplot2PlotOrchestrator.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2PointLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2ProcessorFactory.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/Ggplot2RugLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2SmoothLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2StackedBarProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html</loc></url>
@@ -56,6 +57,7 @@
 <url><loc>https://r.maidr.ai/reference/MAIDR_VERSION.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/PlotSystemRegistry.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/ProcessorFactory.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/RUG_AXIS_LABEL.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/SystemAdapter.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/accuracy_to_decimals.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/add_maidr_data_to_svg.html</loc></url>
