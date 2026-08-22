@@ -129,6 +129,29 @@ data's columns rather than a parse of the \code{sides} string.
 \if{latex}{\out{\hypertarget{method-Ggplot2RugLayerProcessor-layer_rows}{}}}
 \subsection{\code{Ggplot2RugLayerProcessor$layer_rows()}}{
   This layer's rows of the built data
+
+Not \code{LayerProcessor$get_layer_built_data()}, and the difference is
+the point rather than an oversight. That method falls back to \strong{all}
+panels' rows when the panel-scoped subset comes back empty, and a rug
+is a chart where an empty subset is real: a \code{facet_grid()} cell that
+no row falls in draws no ticks. Measured on a grid with two populated
+cells of two ticks each --
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{panel 1 -> layer_rows: 2   get_layer_built_data: 2
+panel 2 -> layer_rows: 0   get_layer_built_data: 4
+panel 3 -> layer_rows: 0   get_layer_built_data: 4
+panel 4 -> layer_rows: 2   get_layer_built_data: 2
+}\if{html}{\out{</div>}}
+
+-- so the inherited helper would have the two empty panels each
+announce all four observations, drawn in the other two. An empty
+subset is returned as it is, and \code{process()} reads it as the "no
+layer" it is.
+
+Written down because the two look interchangeable and are not:
+swapping this for the inherited helper is a one-line simplification
+that reintroduces the bug silently.
+\code{test-ggplot2-rug.R} pins the panel that draws nothing.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2RugLayerProcessor$layer_rows(built, panel_id = NULL)}

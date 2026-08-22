@@ -88,6 +88,30 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
     },
 
     #' @description This layer's rows of the built data
+    #'
+    #'   Not `LayerProcessor$get_layer_built_data()`, and the difference is
+    #'   the point rather than an oversight. That method falls back to **all**
+    #'   panels' rows when the panel-scoped subset comes back empty, and a rug
+    #'   is a chart where an empty subset is real: a `facet_grid()` cell that
+    #'   no row falls in draws no ticks. Measured on a grid with two populated
+    #'   cells of two ticks each --
+    #'
+    #'   ```
+    #'   panel 1 -> layer_rows: 2   get_layer_built_data: 2
+    #'   panel 2 -> layer_rows: 0   get_layer_built_data: 4
+    #'   panel 3 -> layer_rows: 0   get_layer_built_data: 4
+    #'   panel 4 -> layer_rows: 2   get_layer_built_data: 2
+    #'   ```
+    #'
+    #'   -- so the inherited helper would have the two empty panels each
+    #'   announce all four observations, drawn in the other two. An empty
+    #'   subset is returned as it is, and `process()` reads it as the "no
+    #'   layer" it is.
+    #'
+    #'   Written down because the two look interchangeable and are not:
+    #'   swapping this for the inherited helper is a one-line simplification
+    #'   that reintroduces the bug silently.
+    #'   `test-ggplot2-rug.R` pins the panel that draws nothing.
     #' @param built Built plot data
     #' @param panel_id Panel ID for faceted plots (optional)
     #' @return A data frame, or NULL

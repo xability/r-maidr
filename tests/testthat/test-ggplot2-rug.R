@@ -392,3 +392,47 @@ test_that("a layer carrying no sides falls back to ggplot2's own default", {
     processor$marked_axes(rows, list(geom_params = list(sides = "b"))), "x"
   )
 })
+
+test_that("a facet panel that draws no ticks announces none", {
+  skip_if_no_render()
+
+  # `LayerProcessor$get_layer_built_data()` looks interchangeable with
+  # `layer_rows()` and is not: it falls back to **all** panels' rows when the
+  # panel-scoped subset is empty, and for a rug an empty subset is real -- a
+  # `facet_grid()` cell no row falls in draws nothing. Measured on the grid
+  # below, whose two populated cells hold two ticks each:
+  #
+  #   panel 1 -> layer_rows: 2   get_layer_built_data: 2
+  #   panel 2 -> layer_rows: 0   get_layer_built_data: 4
+  #   panel 3 -> layer_rows: 0   get_layer_built_data: 4
+  #   panel 4 -> layer_rows: 2   get_layer_built_data: 2
+  #
+  # So the inherited helper would have each empty panel announce all four
+  # observations, drawn in the other two. Pinned here because swapping the
+  # two is a one-line simplification a future reader could make in good faith.
+  frame <- data.frame(
+    v = VALUES,
+    row = c("a", "a", "b", "b"),
+    col = c("x", "x", "y", "y")
+  )
+  plot <- ggplot2::ggplot(frame, ggplot2::aes(x = v)) +
+    ggplot2::geom_rug() +
+    ggplot2::facet_grid(row ~ col)
+  built <- ggplot2::ggplot_build(plot)
+  processor <- maidr:::Ggplot2RugLayerProcessor$new(list(index = 1))
+
+  scoped <- vapply(
+    as.character(sort(unique(built$layout$layout$PANEL))),
+    function(id) nrow(processor$layer_rows(built, id)),
+    integer(1)
+  )
+  testthat::expect_equal(unname(scoped), c(2L, 0L, 0L, 2L))
+
+  # And an empty panel yields no layer at all, rather than an empty one.
+  testthat::expect_null(
+    processor$process(plot, list(axes = list()), built, panel_id = "2")
+  )
+  testthat::expect_false(
+    is.null(processor$process(plot, list(axes = list()), built, panel_id = "1"))
+  )
+})
