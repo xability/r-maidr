@@ -22,7 +22,8 @@ test_that("a build that throws falls back to the static image", {
     }
   )
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
   expect_warning(
     maidr::save_html(plot = NULL, file = file),
     "We shouldn't be here!"
@@ -48,7 +49,8 @@ test_that("the warning names the failure so it can be reported upstream", {
     }
   )
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
   expect_warning(
     maidr::save_html(plot = NULL, file = file),
     "non-numeric argument to binary operator"
@@ -62,7 +64,8 @@ test_that("a caller who disabled fallback gets the error, not the picture", {
   on.exit(grDevices::dev.off(), add = TRUE)
   clear_all_device_storage()
   on.exit(clear_all_device_storage(), add = TRUE)
-  withr::local_options(maidr.fallback_enabled = FALSE)
+  previous <- options(maidr.fallback_enabled = FALSE)
+  on.exit(options(previous), add = TRUE)
 
   plot(1:10)
 
@@ -72,7 +75,8 @@ test_that("a caller who disabled fallback gets the error, not the picture", {
     }
   )
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
   expect_error(
     maidr::save_html(plot = NULL, file = file),
     "We shouldn't be here!"
@@ -89,7 +93,8 @@ test_that("a plot that exports cleanly is still read, not fallen back", {
 
   plot(1:10)
 
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
   suppressWarnings(maidr::save_html(plot = NULL, file = file))
 
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
@@ -112,7 +117,8 @@ test_that("matplot and symbols leave the caller with a file either way", {
     clear_all_device_storage()
 
     draw()
-    file <- withr::local_tempfile(fileext = ".html")
+    file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
     suppressWarnings(maidr::save_html(plot = NULL, file = file))
 
     expect_true(file.exists(file))
