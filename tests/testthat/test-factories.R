@@ -347,13 +347,14 @@ test_that("BaseRProcessorFactory get_supported_types returns expected types", {
   testthat::expect_true("stacked_bar" %in% types)
   testthat::expect_true("unknown" %in% types)
 
-  # "contour" was on this list while `create_processor()` handed it the
-  # generic processor, so the layer came out typed "unknown" -- past the
-  # fallback check, which looks for that on `layer$type`, and into a payload
-  # the core's trace factory throws on. Claiming it here is what the type map
-  # in `base_r_adapter` was trusting (#214). It goes back when a processor
-  # exists; the type itself is real, and the ggplot2 side emits it (#198).
-  testthat::expect_false("contour" %in% types)
+  # Claimed again since `BaseRContourLayerProcessor` exists to dispatch it
+  # (#218). It was off this list for a while, and the reason still governs:
+  # a type listed here that `create_processor()` cannot dispatch is worse
+  # than one that is not claimed at all -- the layer came out typed
+  # "unknown", past the fallback check that looks for exactly that on
+  # `layer$type`, and into a payload the core's trace factory throws on
+  # (#214). So the list and the dispatch move together.
+  testthat::expect_true("contour" %in% types)
 })
 
 test_that("BaseRProcessorFactory supports_plot_type works correctly", {
@@ -363,9 +364,9 @@ test_that("BaseRProcessorFactory supports_plot_type works correctly", {
   testthat::expect_true(factory$supports_plot_type("point"))
   testthat::expect_true(factory$supports_plot_type("line"))
   testthat::expect_true(factory$supports_plot_type("unknown"))
-  # See above: base R has no contour processor, and saying otherwise cost the
-  # chart both its reading and its fallback (#214).
-  testthat::expect_false(factory$supports_plot_type("contour"))
+  # See above: base R reads a contour now (#218), and the claim is only safe
+  # because the dispatch backs it (#214).
+  testthat::expect_true(factory$supports_plot_type("contour"))
   testthat::expect_false(factory$supports_plot_type("unsupported_type"))
 })
 
@@ -495,13 +496,17 @@ test_that("BaseRProcessorFactory creates stacked_bar processor", {
   testthat::expect_s3_class(processor, "LayerProcessor")
 })
 
-test_that("BaseRProcessorFactory creates unknown processor for contour", {
+test_that("BaseRProcessorFactory creates a contour processor for contour", {
   factory <- maidr:::BaseRProcessorFactory$new()
   layer_info <- list(index = 1)
 
   processor <- factory$create_processor("contour", layer_info)
 
-  testthat::expect_s3_class(processor, "BaseRUnknownLayerProcessor")
+  # Was the generic processor until #218 gave base R a contour reading. The
+  # assertion is kept rather than deleted because it is the half of #214 that
+  # still matters: whatever this returns has to be something that can produce
+  # the type `base_r_adapter` maps the call to.
+  testthat::expect_s3_class(processor, "BaseRContourLayerProcessor")
   testthat::expect_s3_class(processor, "LayerProcessor")
 })
 

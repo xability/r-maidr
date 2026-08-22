@@ -1,5 +1,23 @@
 # maidr (development version)
 
+## New Features
+
+* A Base R `contour()` is now read as the contour it draws, instead of falling
+  back to a static image. The curves come from `grDevices::contourLines()`,
+  which is the computation `contour()` itself does and takes the same defaults
+  -- `x = seq(0, 1, length.out = nrow(z))`, `levels = pretty(range(z), 10)` --
+  so the announced levels are the drawn ones rather than a plausible set. Each
+  curve is addressable on its own: gridGraphics writes one `lines` grob per
+  curve, in the order `contourLines()` returns them, so highlighting follows a
+  reader from curve to curve. The payload matches what the ggplot2 side emits
+  for `geom_contour()`, so the two adapters describe one chart alike. This
+  completes the work begun when `contour()` was made to degrade safely: it had
+  been shipping a layer type the frontend could not construct, which left the
+  figure interactive-looking and unusable, and the interim fix was a picture.
+  A limitation worth knowing: gridGraphics cannot emulate the inline level
+  labels drawn along the curves, which costs nothing here since each point
+  carries its own level.
+
 ## Bug Fixes
 
 * Eight Base R plotting calls stopped `save_html()` outright instead of falling

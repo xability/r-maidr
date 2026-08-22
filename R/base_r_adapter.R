@@ -221,23 +221,20 @@ BaseRAdapter <- R6::R6Class(
         "pie" = "pie",
         "image" = "heat",
         "heatmap" = "heat",
-        # `contour()` has no processor, and typing it "contour" put the gap in
-        # the *payload* rather than in the fallback: the layer came out typed
+        # Typed "contour" again, now that `BaseRContourLayerProcessor` exists
+        # to read one (#218). It was "unknown" for a while, and the reason is
+        # worth keeping: with no processor behind it, this line put the gap in
+        # the *payload* rather than in the fallback. The layer came out typed
         # "unknown" -- which `unsupported_layer_flags` only looks for on
         # `layer$type`, so the static-image path never ran -- and the core's
         # trace factory ends with `throw new Error("Invalid trace type: ...")`,
         # so the figure never bound. An interactive shell answering no key,
         # and no picture either (#214).
         #
-        # Typed "unknown" here it takes the same fallback `dotchart` and
-        # `mosaicplot` take: a static image and a warning saying so. Worse
-        # than reading the chart, better than both of the above.
-        #
-        # Reading it properly is still open, and the type exists: the ggplot2
-        # adapter emits `contour` for `geom_contour()` (#198), and base R's
-        # `contour()` hands over the same `x`, `y`, `z` and `levels`. Adding
-        # the processor is what changes this line back.
-        "contour" = "unknown",
+        # So this name and the factory's dispatch have to move together. The
+        # registry in `base_r_processor_factory` is derived from that dispatch
+        # (#200), which is what stops them drifting apart again.
+        "contour" = "contour",
         "matplot" = "line",
         # quantmod::chartSeries() candlestick path. The `type` argument
         # defaults to "auto"; we accept the call as candlestick only when
