@@ -81,10 +81,9 @@ is_grouped_dotchart <- function(args) {
   if (!is.null(args$groups)) {
     return(TRUE)
   }
-  x <- args$x
-  if (is.null(x) && length(args) >= 1) {
-    x <- args[[1]]
-  }
+  # `resolve_xy_args()` rather than `args$x`, which partial-matches `xlab`
+  # and friends -- see #245.
+  x <- resolve_xy_args(args)$x
   is.matrix(x) || is.data.frame(x)
 }
 
