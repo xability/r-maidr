@@ -14,6 +14,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRCandlestickLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRContourLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRDodgedBarLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRDotchartLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRHeatmapLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRHistogramLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRLineLayerProcessor.html</loc></url>
@@ -199,6 +200,7 @@
 <url><loc>https://r.maidr.ai/reference/is_fallback_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_fallback_warning_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_ggplot2_enabled.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_grouped_dotchart.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_high_level_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_html_output.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_internal_call.html</loc></url>
