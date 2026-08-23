@@ -36,6 +36,8 @@ See the adapter's own note.
 
 - [`Ggplot2GanttLayerProcessor$target_geom_class()`](#method-Ggplot2GanttLayerProcessor-target_geom_class)
 
+- [`Ggplot2GanttLayerProcessor$segments_grob_class()`](#method-Ggplot2GanttLayerProcessor-segments_grob_class)
+
 - [`Ggplot2GanttLayerProcessor$find_segments_name()`](#method-Ggplot2GanttLayerProcessor-find_segments_name)
 
 - [`Ggplot2GanttLayerProcessor$clone()`](#method-Ggplot2GanttLayerProcessor-clone)
@@ -251,6 +253,38 @@ than inferred from what happens to be in the panel.
 #### Returns
 
 The geom's class name, or NULL when the layer cannot be found
+
+------------------------------------------------------------------------
+
+### `Ggplot2GanttLayerProcessor$segments_grob_class()`
+
+Which grid grob class a segment-family geom draws
+
+#### Usage
+
+    Ggplot2GanttLayerProcessor$segments_grob_class(geom)
+
+#### Arguments
+
+- `geom`:
+
+  The layer's geom object
+
+#### Details
+
+[`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
+draws a `curve` grob and everything else in the family –
+[`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html),
+and
+[`geom_spoke()`](https://ggplot2.tidyverse.org/reference/geom_spoke.html)
+which is a `GeomSegment` subclass – draws `segments`. Asked of the geom
+rather than assumed from the layer type, because it decides both which
+grobs `find_segments_name()` gathers and which layers it counts itself
+among, and those two have to be the same population.
+
+#### Returns
+
+`"curve"` or `"segments"`
 
 ------------------------------------------------------------------------
 

@@ -174,6 +174,7 @@ into a <code><a href="save_html.html">save_html()</a></code> that raises. See th
 <li><p><a href="#method-Ggplot2GanttLayerProcessor-extract_axes"><code>Ggplot2GanttLayerProcessor$extract_axes()</code></a></p></li>
 <li><p><a href="#method-Ggplot2GanttLayerProcessor-generate_selectors"><code>Ggplot2GanttLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-Ggplot2GanttLayerProcessor-target_geom_class"><code>Ggplot2GanttLayerProcessor$target_geom_class()</code></a></p></li>
+<li><p><a href="#method-Ggplot2GanttLayerProcessor-segments_grob_class"><code>Ggplot2GanttLayerProcessor$segments_grob_class()</code></a></p></li>
 <li><p><a href="#method-Ggplot2GanttLayerProcessor-find_segments_name"><code>Ggplot2GanttLayerProcessor$find_segments_name()</code></a></p></li>
 <li><p><a href="#method-Ggplot2GanttLayerProcessor-clone"><code>Ggplot2GanttLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
@@ -364,6 +365,33 @@ than inferred from what happens to be in the panel.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2GanttLayerProcessor-segments_grob_class"></a><div class="section">
+<h3 id="ggplot-ganttlayerprocessor-segments-grob-class-"><code>Ggplot2GanttLayerProcessor$segments_grob_class()</code><a class="anchor" aria-label="anchor" href="#ggplot-ganttlayerprocessor-segments-grob-class-"></a></h3>
+<p>Which grid grob class a segment-family geom draws</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2GanttLayerProcessor</span><span class="op">$</span><span class="fu">segments_grob_class</span><span class="op">(</span><span class="va">geom</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>geom</code></dt>
+<dd><p>The layer's geom object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
+<p><code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_curve()</a></code> draws a <code>curve</code> grob and everything else in
+the family – <code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment()</a></code>, and <code><a href="https://ggplot2.tidyverse.org/reference/geom_spoke.html" class="external-link">geom_spoke()</a></code> which is
+a <code>GeomSegment</code> subclass – draws <code>segments</code>. Asked of the
+geom rather than assumed from the layer type, because it decides both
+which grobs <code>find_segments_name()</code> gathers and which layers it
+counts itself among, and those two have to be the same population.</p>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p><code>"curve"</code> or <code>"segments"</code></p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2GanttLayerProcessor-find_segments_name"></a><div class="section">
 <h3 id="ggplot-ganttlayerprocessor-find-segments-name-"><code>Ggplot2GanttLayerProcessor$find_segments_name()</code><a class="anchor" aria-label="anchor" href="#ggplot-ganttlayerprocessor-find-segments-name-"></a></h3>
 <p>Find the name of the grob holding this layer's segments</p>
@@ -382,10 +410,10 @@ second would highlight the first's intervals while announcing its own.</p>
 <p>The number in that automatic name is grid's global counter and is not
 stable between sessions, which is exactly why it is read off the
 gtable being exported rather than reconstructed.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2GanttLayerProcessor</span><span class="op">$</span><span class="fu">find_segments_name</span><span class="op">(</span><span class="va">plot</span>, <span class="va">gt</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -398,7 +426,7 @@ gtable being exported rather than reconstructed.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>The grob name, or NULL when it cannot be resolved</p>
 </div>
 
@@ -407,10 +435,10 @@ gtable being exported rather than reconstructed.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2GanttLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-ganttlayerprocessor-clone-"><code>Ggplot2GanttLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-ganttlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2GanttLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
