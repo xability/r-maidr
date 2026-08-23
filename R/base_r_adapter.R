@@ -169,8 +169,25 @@ BaseRAdapter <- R6::R6Class(
             # gridGraphics gives them, so they are addressable rather than
             # unpointable. Reaching here positionally is new, so
             # `plot(x, y, "s")` is described for the first time.
+            #
+            # `type = "n"` is the one that draws nothing at all: it sets up
+            # the axes and plots no points and no lines, which is how a custom
+            # chart is started before `segments`, `polygon` or `rect` add the
+            # marks. The catch-all below claimed it as a line, so an empty
+            # panel was announced as a full series of the values `plot()` was
+            # handed and deliberately did not draw -- ten points to walk and
+            # sonify, where a sighted reader sees nothing (#237).
+            #
+            # Worse than being unread, for the reason #572 gives about
+            # `triplot`: the data is real, the axes are real, and the only
+            # false thing is the claim that any of it was drawn. Declined, so
+            # the figure falls back to a picture of the empty panel it is --
+            # which is what the shapes drawn over it already get, since they
+            # contribute no layer of their own.
             plot_type <- args$type
-            if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {
+            if (is.character(plot_type) && identical(plot_type[1], "n")) {
+              "unknown"
+            } else if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {
               "point"
             } else if (is_step_plot_type(plot_type)) {
               # type = "s" / "S" draw stairsteps. This test must precede the
