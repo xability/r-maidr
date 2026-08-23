@@ -66,6 +66,28 @@ is_step_plot_type <- function(plot_type) {
   as.character(plot_type)[1] %in% c("s", "S")
 }
 
+#' Whether a `dotchart()` call draws more than one group
+#'
+#' `dotchart()` draws a group per matrix column, or per level of `groups`,
+#' with a header in the left margin and every dot in one shared grob. The
+#' grouping is what the chart is drawn to show and there is nothing in a
+#' flat `dot` layer to carry it, so such a call is declined rather than
+#' flattened.
+#'
+#' @param args The arguments recorded from the `dotchart()` call.
+#' @return `TRUE` when the call draws groups, otherwise `FALSE`.
+#' @keywords internal
+is_grouped_dotchart <- function(args) {
+  if (!is.null(args$groups)) {
+    return(TRUE)
+  }
+  x <- args$x
+  if (is.null(x) && length(args) >= 1) {
+    x <- args[[1]]
+  }
+  is.matrix(x) || is.data.frame(x)
+}
+
 #' Whether a Base R `type` argument draws spikes
 #'
 #' `type = "h"` draws a vertical line from the baseline to each value --
@@ -256,6 +278,19 @@ BaseRAdapter <- R6::R6Class(
           } else {
             "line"
           }
+        },
+        # A Cleveland dot plot: one value per category, marked on a guide
+        # line, categories down the page. Read as `dot`, which the core
+        # builds on its bar trace (#237).
+        #
+        # Only the one-value-per-category form. `dotchart()` also takes a
+        # matrix, or a `groups` factor, and then draws every group's dots
+        # into the *same* points grob with a header per group in the left
+        # margin -- so a flat reading would hand the reader one run of dots
+        # with no way to tell which group each belongs to, and the group
+        # names silently dropped. Declined, which is where it already was.
+        "dotchart" = {
+          if (is_grouped_dotchart(args)) "unknown" else "dot"
         },
         "hist" = "hist",
         "boxplot" = "box",
