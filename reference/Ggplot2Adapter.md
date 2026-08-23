@@ -44,6 +44,8 @@ An R6 class inheriting from SystemAdapter
 
 - [`Ggplot2Adapter$unread_layer_type()`](#method-Ggplot2Adapter-unread_layer_type)
 
+- [`Ggplot2Adapter$layer_drew_nothing()`](#method-Ggplot2Adapter-layer_drew_nothing)
+
 - [`Ggplot2Adapter$clone()`](#method-Ggplot2Adapter-clone)
 
 ------------------------------------------------------------------------
@@ -421,6 +423,49 @@ what it costs today.
 #### Returns
 
 `"skip"` when the layer drew no rows, `"unknown"` otherwise
+
+------------------------------------------------------------------------
+
+### `Ggplot2Adapter$layer_drew_nothing()`
+
+Whether a layer put no mark on the page at all
+
+A layer's rows can vanish in its input, in a filter, in an aggregate
+over no groups, or – the case \#227 was found through – in a stat that
+could not run because a **Suggests** package is absent. All four arrive
+here identically:
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+reports zero rows for that layer while ggplot2 warns, draws the rest of
+the chart and carries on.
+
+Asked by `unread_layer_type()`, which turns it into `"skip"` rather than
+`"unknown"`, and by the quantile branch of `detect_layer_type()`, which
+uses it to keep from claiming a curve that was never drawn (#229). Kept
+as its own method for that second caller: a rule two branches ask is a
+rule, not a fall-through.
+
+Declines whenever the build cannot answer – it raised, or gave this
+layer no frame. Absent is not empty: a build that said nothing about
+what a layer drew must not have that read as "it drew nothing", which
+would wave a mark through as harmless.
+
+#### Usage
+
+    Ggplot2Adapter$layer_drew_nothing(layer, plot_object)
+
+#### Arguments
+
+- `layer`:
+
+  The layer being asked about
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+#### Returns
+
+TRUE when the layer built no rows
 
 ------------------------------------------------------------------------
 
