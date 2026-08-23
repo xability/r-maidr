@@ -185,7 +185,19 @@ Ggplot2Adapter <- R6::R6Class(
       # curve is sampled from a function at `n` renderer-chosen points, so
       # there are no observations to announce and the sample count is a
       # drawing parameter.
-      if (geom_class == "GeomFunction" || stat_class == "StatFunction") {
+      #
+      # Claimed only when the smooth processor can read the geom. A stat can
+      # name one it cannot -- `stat_function(fun = sin, geom = "point")` --
+      # and the processor then rejected the layer, found nothing in its
+      # fallback search and stopped the render outright rather than
+      # declining. `save_html()` raised; the caller's script stopped (#230).
+      # Declining here instead lets the layer fall through to the branch for
+      # the geom it was actually drawn with, so a function drawn as points
+      # reads as the scatter on the page. That loses "this is a fit, not
+      # observations" for those spellings, which is worth less than a chart
+      # that renders.
+      if ((geom_class == "GeomFunction" || stat_class == "StatFunction") &&
+            smooth_reads_geom(layer$geom)) {
         return("smooth")
       }
       # `GeomQuantile` is a `GeomPath` too, so it reached the line branch's
@@ -205,16 +217,13 @@ Ggplot2Adapter <- R6::R6Class(
       # a series of it. Reading it as a line would announce a fit as
       # observations (#229).
       # Keyed on the geom alone, deliberately. `StatQuantile` would have been
-      # the symmetric addition beside `StatDensity`, and it is a trap: a stat
-      # check claims `stat_quantile(geom = "point")`, whose `GeomPoint` the
-      # smooth processor does not recognise, so `resolve_target_layer()`
-      # falls through and stops the render outright. Measured on `main`, the
-      # `StatFunction` check above already does this --
-      # `stat_function(fun = sin, geom = "point")` raises "No smooth curve
-      # layers found in plot" out of `save_html()` (#230). Reported rather
-      # than matched.
-      if (geom_class %in% c("GeomSmooth", "GeomQuantile") ||
-            stat_class == "StatDensity") {
+      # the symmetric addition beside `StatDensity` and is not needed: what a
+      # stat check buys is the spellings where the geom says nothing, and
+      # `smooth_reads_geom` now turns those away anyway when the processor
+      # cannot read them (#230).
+      if ((geom_class %in% c("GeomSmooth", "GeomQuantile") ||
+             stat_class == "StatDensity") &&
+            smooth_reads_geom(layer$geom)) {
         # A quantile layer that drew nothing keeps the answer #227 gave it.
         # `geom_quantile()` without quantreg is the case that rule was
         # written for -- it is named in `layer_drew_nothing()`'s own docs --

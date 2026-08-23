@@ -2,6 +2,37 @@
 
 ## Bug Fixes
 
+* A layer whose stat says "smooth" but whose geom the smooth processor
+  cannot read no longer stops the render. `stat_function()` was claimed on
+  its stat, and a stat can name a geom the processor does not recognise --
+  `stat_function(fun = sin, geom = "point")` was one. The processor then
+  rejected the layer's own index, found nothing in its fallback search and
+  `stop()`ped, so `save_html()` raised `No smooth curve layers found in
+  plot` and the caller's script ended. Which geom the author happened to
+  pass decided whether the call returned at all:
+
+  ```r
+  stat_function(fun = sin, geom = "point")  # Error out of save_html()
+  stat_function(fun = sin, geom = "step")   # Error out of save_html()
+  stat_function(fun = sin)                  # interactive
+  ```
+
+  A decline is a reading decision; an exception is a broken call. The list
+  the processor works from is now stated once, as `smooth_reads_geom()`,
+  and the classifier consults it before claiming a layer, so the two cannot
+  disagree. A function drawn as points now falls through to the point
+  branch and reads as the scatter on the page; drawn as steps it reaches
+  the unknown processor and the chart falls back to an image, which is the
+  step branch's documented answer for a step drawn on some other computed
+  stat. Both render.
+
+  This is why `StatQuantile` was left out beside `StatDensity` in the
+  previous release: a stat check would have made `stat_quantile(geom =
+  "point")` a second instance of exactly this crash. With the guard in
+  place it is no longer needed -- what a stat check buys is the spellings
+  where the geom says nothing, and those are now turned away when the
+  processor cannot read them.
+
 * `geom_quantile()` is now read as the fitted curve it draws, instead of
   costing its chart every bit of interactivity. `GeomQuantile` is a
   `GeomPath` subclass and dispatch matches the first class name, so it

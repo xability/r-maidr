@@ -123,19 +123,9 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     resolve_target_layer = function(plot) {
       layer_index <- self$get_layer_index()
       own_layer <- plot$layers[[layer_index]]
-      # `GeomFunction` and `GeomQuantile` are named rather than reached
-      # through `GeomPath`, which they both inherit: a plain `geom_path()`
-      # is typed `line` and never arrives here, so widening to the parent
-      # would claim nothing extra and would blur what this list is for --
-      # the geoms that draw a *computed* curve (#202, #229).
-      is_smooth_like <- inherits(own_layer$geom, "GeomSmooth") ||
-        inherits(own_layer$geom, "GeomLine") ||
-        inherits(own_layer$geom, "GeomDensity") ||
-        inherits(own_layer$geom, "GeomFunction") ||
-        inherits(own_layer$geom, "GeomQuantile") ||
-        inherits(own_layer$geom, "GeomArea")
-
-      if (is_smooth_like) {
+      # What this processor can read is stated by `smooth_reads_geom`, which
+      # the classifier consults too so the two cannot disagree (#230).
+      if (smooth_reads_geom(own_layer$geom)) {
         return(layer_index)
       }
 
@@ -531,6 +521,47 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+#' Whether the smooth processor can read a layer drawn with this geom
+#'
+#' The list this processor works from, stated once so that the classifier can
+#' consult it. \code{Ggplot2Adapter$detect_layer_type()} decides a layer is a
+#' \code{"smooth"} partly on its \emph{stat} -- \code{StatFunction} and
+#' \code{StatDensity} both claim one -- and a stat can name a geom this list
+#' does not. When it did, \code{resolve_target_layer()} rejected the layer's
+#' own index, found nothing in the fallback search and \code{stop()}ped:
+#'
+#' \preformatted{
+#' stat_function(fun = sin, geom = "point")  Error: No smooth curve layers found in plot
+#' stat_function(fun = sin, geom = "step")   Error: No smooth curve layers found in plot
+#' stat_function(fun = sin)                  interactive
+#' }
+#'
+#' Not a fallback to a picture -- an error out of \code{save_html()}, so the
+#' caller's script stopped, and which geom the author passed decided whether
+#' the call returned at all (#230). A decline is a reading decision; an
+#' exception is a broken call.
+#'
+#' \code{inherits()} rather than \code{class(geom)[1]} here, unlike the
+#' dispatch: this asks whether the processor can \emph{read} the artist,
+#' which a subclass of a readable geom can. \code{GeomFunction} and
+#' \code{GeomQuantile} are named all the same, because both are
+#' \code{GeomPath} subclasses and a plain \code{geom_path()} is typed
+#' \code{"line"} and never arrives here -- widening to the parent would
+#' claim nothing extra and would blur what this list is for, the geoms that
+#' draw a \emph{computed} curve (#202, #229).
+#'
+#' @param geom A layer's geom
+#' @return TRUE when this processor can read a layer drawn with it
+#' @keywords internal
+smooth_reads_geom <- function(geom) {
+  inherits(geom, "GeomSmooth") ||
+    inherits(geom, "GeomLine") ||
+    inherits(geom, "GeomDensity") ||
+    inherits(geom, "GeomFunction") ||
+    inherits(geom, "GeomQuantile") ||
+    inherits(geom, "GeomArea")
+}
 
 #' Grob-name prefix ggplot2 gives a geom's layer grob
 #'
