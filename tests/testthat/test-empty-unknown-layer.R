@@ -199,27 +199,38 @@ test_that("a layer the build says nothing about is declined", {
 })
 
 
-test_that("a stat whose computation failed does not cost the chart everything", {
+test_that("a stat that computed nothing does not cost the chart everything", {
   skip_if_no_render()
-  testthat::skip_if(
-    requireNamespace("quantreg", quietly = TRUE),
-    "quantreg is installed, so stat_quantile() computes rows"
-  )
 
-  # The case #227 was actually found through, and the reason this is worth
-  # more than an argument about empty data frames. `stat_quantile()` needs a
-  # Suggests package; without it ggplot2 warns, computes no rows, draws the
-  # rest of the chart and carries on. Measured before the fix, the same
-  # thirty points:
+  # The shape #227 was actually found through, and the reason this is worth
+  # more than an argument about empty data frames. A layer's rows can vanish
+  # in the *stat* rather than in its input: a filter that matched nothing, an
+  # aggregate over no groups, or -- the measured case -- a stat that could
+  # not run because a Suggests package is absent. `stat_quantile()` without
+  # quantreg warns, computes no rows, and ggplot2 draws the rest of the chart
+  # and carries on. Measured before the fix, the same thirty points:
   #
   #     geom_point()                    interactive SVG   50,406 bytes
   #     geom_point() + geom_quantile()  base64 image      27,368 bytes
   #
-  # No second warning said the figure had stopped being accessible, and
-  # nothing connected the two.
+  # No second warning said the figure had stopped being accessible.
+  #
+  # Written with a stat of its own rather than by calling `geom_quantile()`:
+  # naming quantreg here makes `R CMD check` report it as an unstated
+  # dependency of the tests, and declaring it to satisfy that would install
+  # it in CI and stop the case from arising at all. The stat below reaches
+  # the same state the classifier sees -- a layer with zero built rows,
+  # arrived at by computation rather than by an empty input.
+  nothing_at_all <- ggplot2::ggproto(
+    "StatNothingAtAll", ggplot2::Stat,
+    compute_group = function(data, scales) data[0, , drop = FALSE]
+  )
   plot <- ggplot2::ggplot(observations(), positions) +
     ggplot2::geom_point() +
-    ggplot2::geom_quantile()
+    ggplot2::layer(
+      stat = nothing_at_all, geom = "polygon", position = "identity",
+      data = observations(), mapping = positions
+    )
 
   html <- rendered(plot)
 
