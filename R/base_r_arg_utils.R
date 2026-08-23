@@ -187,3 +187,38 @@ dispatched_definition <- function(function_name, definition, args) {
 
   definition
 }
+
+#' The two-way contingency table a recorded call was handed, when it is one
+#'
+#' `mosaicplot()` is given the table itself, so the recorded call carries
+#' every number a `mosaic` layer wants -- the counts, the margins they imply,
+#' and the level names from `dimnames()`. Nothing is inferred from the
+#' drawing.
+#'
+#' Only a two-dimensional table is returned. `mosaicplot()` accepts three and
+#' more, splitting recursively, and a `mosaic` layer has one category axis and
+#' one fill -- so a deeper table has nowhere to put its later dimensions and
+#' is declined rather than flattened into a cross-classification the chart
+#' does not claim. A table with unnamed margins is declined too: the levels
+#' are what a reader navigates by, and positions are not levels.
+#'
+#' Shared by the adapter's dispatch and the processor's extraction so the two
+#' cannot disagree about which calls are readable.
+#'
+#' @param args Recorded argument list, or NULL
+#' @return A 2-D table with named margins, or NULL
+#' @keywords internal
+recorded_two_way_table <- function(args) {
+  table <- resolve_xy_args(args)$x
+  if (is.null(table) || is.language(table)) {
+    return(NULL)
+  }
+  table <- tryCatch(as.table(table), error = function(e) NULL)
+  if (is.null(table) || length(dim(table)) != 2) {
+    return(NULL)
+  }
+  if (is.null(rownames(table)) || is.null(colnames(table))) {
+    return(NULL)
+  }
+  table
+}
