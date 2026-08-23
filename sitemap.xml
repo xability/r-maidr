@@ -23,6 +23,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRPointLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRProcessorFactory.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSmoothLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRSpikeLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStackedBarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStepLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRUnknownLayerProcessor.html</loc></url>
@@ -210,6 +211,7 @@
 <url><loc>https://r.maidr.ai/reference/is_multipanel_config.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_patching_active.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_patching_enabled.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_spike_plot_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_step_plot_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_volume_only_bar_panel.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_wrapped_leaf.html</loc></url>
