@@ -20,29 +20,10 @@
 #     every group's dots into one shared grob with a header per group in the
 #     left margin, and a flat `dot` layer has nowhere to carry the grouping.
 
-dot_layers <- function(draw) {
-  grDevices::pdf(NULL)
-  device_id <- grDevices::dev.cur()
-  on.exit(
-    {
-      if (maidr:::has_device_calls(device_id)) {
-        maidr:::clear_device_storage(device_id)
-      }
-      grDevices::dev.off()
-    },
-    add = TRUE
-  )
-  if (maidr:::has_device_calls(device_id)) {
-    maidr:::clear_device_storage(device_id)
-  }
-  draw()
-  schema <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
-  schema$subplots[[1]][[1]]$layers
-}
-
-dot_types <- function(draw) {
-  vapply(dot_layers(draw), function(layer) layer$type, character(1))
-}
+# `base_r_layers` and `base_r_layer_types` live in `helper.R` (#241). The
+# local names stay so the tests read in this file's own words.
+dot_layers <- base_r_layers
+dot_types <- base_r_layer_types
 
 FRUIT <- local({
   v <- c(30, 70, 50, 20)

@@ -23,29 +23,11 @@
 X <- 1:10
 Y <- c(3, 5, 2, 8, 4, 6, 7, 1, 9, 5)
 
-#' The layers a base R drawing produces, read straight from the orchestrator
-#'
-#' @param draw A function that draws on the current device
-#' @return The layers of the first cell, possibly empty
-drawn_layers <- function(draw) {
-  grDevices::pdf(NULL)
-  on.exit(grDevices::dev.off(), add = TRUE)
-  device_id <- grDevices::dev.cur()
-  if (maidr:::has_device_calls(device_id)) {
-    maidr:::clear_device_storage(device_id)
-  }
-  draw()
-  schema <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
-  schema$subplots[[1]][[1]]$layers
-}
-
-#' The trace types a base R drawing produces
-#'
-#' @param draw A function that draws on the current device
-#' @return One type per layer, in order
-drawn_types <- function(draw) {
-  vapply(drawn_layers(draw), function(layer) as.character(layer$type), character(1))
-}
+# `base_r_layers` and `base_r_layer_types` live in `helper.R`; this file's
+# own copies of them are gone (#241). The local names stay so the tests read
+# in this file's own words.
+drawn_layers <- base_r_layers
+drawn_types <- base_r_layer_types
 
 
 test_that("a plot that draws nothing announces nothing", {
