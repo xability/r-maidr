@@ -188,7 +188,49 @@ Ggplot2Adapter <- R6::R6Class(
       if (geom_class == "GeomFunction" || stat_class == "StatFunction") {
         return("smooth")
       }
-      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
+      # `GeomQuantile` is a `GeomPath` too, so it reached the line branch's
+      # name check, matched nothing, and took its chart down with it -- the
+      # third geom to be missed for being a subclass of a read one, after
+      # `GeomFunction` (#202) and `GeomSpoke` (#225). Measured on thirty
+      # points with a quantile layer that draws:
+      #
+      #     geom_point()                            interactive   50,409 bytes
+      #     geom_point() + a GeomQuantile layer     base64 image  44,724 bytes
+      #     geom_point() + geom_smooth(se = FALSE)  interactive   57,823 bytes
+      #
+      # `smooth` rather than `line` for the reason `StatFunction` is:
+      # `stat_quantile()` fits `rq`/`rqss` and evaluates it at
+      # renderer-chosen positions, exactly as `stat_smooth()` does for the
+      # conditional mean, so the curve is a model over the data rather than
+      # a series of it. Reading it as a line would announce a fit as
+      # observations (#229).
+      # Keyed on the geom alone, deliberately. `StatQuantile` would have been
+      # the symmetric addition beside `StatDensity`, and it is a trap: a stat
+      # check claims `stat_quantile(geom = "point")`, whose `GeomPoint` the
+      # smooth processor does not recognise, so `resolve_target_layer()`
+      # falls through and stops the render outright. Measured on `main`, the
+      # `StatFunction` check above already does this --
+      # `stat_function(fun = sin, geom = "point")` raises "No smooth curve
+      # layers found in plot" out of `save_html()` (#230). Reported rather
+      # than matched.
+      if (geom_class %in% c("GeomSmooth", "GeomQuantile") ||
+            stat_class == "StatDensity") {
+        # A quantile layer that drew nothing keeps the answer #227 gave it.
+        # `geom_quantile()` without quantreg is the case that rule was
+        # written for -- it is named in `layer_drew_nothing()`'s own docs --
+        # and claiming it regardless would put an empty `smooth` layer in the
+        # schema for a chart that had none: a series a reader can walk into
+        # and find nothing in, which is #421's shape. Caught in review on
+        # #231.
+        #
+        # Asked of `GeomQuantile` alone, because it is the only claim this
+        # branch newly makes and the only one that costs a second
+        # `ggplot_build()`. `geom_smooth(data = frame[0, ])` emits the same
+        # empty layer today and is left exactly as it was (#232).
+        if (geom_class == "GeomQuantile" &&
+              self$layer_drew_nothing(layer, plot_object)) {
+          return("skip")
+        }
         return("smooth")
       }
 
@@ -654,26 +696,51 @@ Ggplot2Adapter <- R6::R6Class(
     #' @return \code{"skip"} when the layer drew no rows, \code{"unknown"}
     #'   otherwise
     unread_layer_type = function(layer, plot_object) {
+      if (self$layer_drew_nothing(layer, plot_object)) "skip" else "unknown"
+    },
+
+    #' @description Whether a layer put no mark on the page at all
+    #'
+    #' A layer's rows can vanish in its input, in a filter, in an aggregate
+    #' over no groups, or -- the case #227 was found through -- in a stat that
+    #' could not run because a \strong{Suggests} package is absent. All four
+    #' arrive here identically: \code{ggplot_build()} reports zero rows for
+    #' that layer while ggplot2 warns, draws the rest of the chart and carries
+    #' on.
+    #'
+    #' Asked by \code{unread_layer_type()}, which turns it into \code{"skip"}
+    #' rather than \code{"unknown"}, and by the quantile branch of
+    #' \code{detect_layer_type()}, which uses it to keep from claiming a
+    #' curve that was never drawn (#229). Kept as its own method for that
+    #' second caller: a rule two branches ask is a rule, not a fall-through.
+    #'
+    #' Declines whenever the build cannot answer -- it raised, or gave this
+    #' layer no frame. Absent is not empty: a build that said nothing about
+    #' what a layer drew must not have that read as "it drew nothing", which
+    #' would wave a mark through as harmless.
+    #'
+    #' @param layer The layer being asked about
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE when the layer built no rows
+    layer_drew_nothing = function(layer, plot_object) {
       built <- tryCatch(
         ggplot2::ggplot_build(plot_object),
         error = function(e) NULL
       )
       if (is.null(built)) {
-        return("unknown")
+        return(FALSE)
       }
 
       index <- self$find_layer_index(plot_object, layer)
       if (is.null(index) || index < 1L || index > length(built$data)) {
-        return("unknown")
+        return(FALSE)
       }
 
       # `isTRUE` rather than a bare comparison, so that absent is not read as
       # empty: `nrow(NULL)` is `NULL`, and `NULL == 0L` is `logical(0)` rather
-      # than either answer. A build that said nothing about what this layer
-      # drew declines, which keeps a drawn-but-unreadable mark from being
-      # waved through -- and it declines without a branch of its own, which
+      # than either answer. It declines without a branch of its own, which
       # would be one no chart can reach and so no test can hold.
-      if (isTRUE(nrow(built$data[[index]]) == 0L)) "skip" else "unknown"
+      isTRUE(nrow(built$data[[index]]) == 0L)
     }
   )
 )

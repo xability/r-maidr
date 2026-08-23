@@ -31,6 +31,7 @@ ggplot2 functionality to work with the new extensible architecture.
     \item \href{#method-Ggplot2Adapter-ribbon_is_area}{\code{Ggplot2Adapter$ribbon_is_area()}}
     \item \href{#method-Ggplot2Adapter-segments_span_lanes}{\code{Ggplot2Adapter$segments_span_lanes()}}
     \item \href{#method-Ggplot2Adapter-unread_layer_type}{\code{Ggplot2Adapter$unread_layer_type()}}
+    \item \href{#method-Ggplot2Adapter-layer_drew_nothing}{\code{Ggplot2Adapter$layer_drew_nothing()}}
     \item \href{#method-Ggplot2Adapter-clone}{\code{Ggplot2Adapter$clone()}}
   }
 }
@@ -410,6 +411,47 @@ exactly what it costs today.
   \subsection{Returns}{
     \code{"skip"} when the layer drew no rows, \code{"unknown"}
 otherwise
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-layer_drew_nothing"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-layer_drew_nothing}{}}}
+\subsection{\code{Ggplot2Adapter$layer_drew_nothing()}}{
+  Whether a layer put no mark on the page at all
+
+A layer's rows can vanish in its input, in a filter, in an aggregate
+over no groups, or -- the case #227 was found through -- in a stat that
+could not run because a \strong{Suggests} package is absent. All four
+arrive here identically: \code{ggplot_build()} reports zero rows for
+that layer while ggplot2 warns, draws the rest of the chart and carries
+on.
+
+Asked by \code{unread_layer_type()}, which turns it into \code{"skip"}
+rather than \code{"unknown"}, and by the quantile branch of
+\code{detect_layer_type()}, which uses it to keep from claiming a
+curve that was never drawn (#229). Kept as its own method for that
+second caller: a rule two branches ask is a rule, not a fall-through.
+
+Declines whenever the build cannot answer -- it raised, or gave this
+layer no frame. Absent is not empty: a build that said nothing about
+what a layer drew must not have that read as "it drew nothing", which
+would wave a mark through as harmless.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2Adapter$layer_drew_nothing(layer, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The layer being asked about}
+      \item{\code{plot_object}}{The ggplot2 plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the layer built no rows
   }
 }
 

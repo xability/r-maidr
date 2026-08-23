@@ -123,21 +123,30 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     resolve_target_layer = function(plot) {
       layer_index <- self$get_layer_index()
       own_layer <- plot$layers[[layer_index]]
-      # `GeomFunction` is named rather than reached through `GeomPath`,
-      # which it inherits: a plain `geom_path()` is typed `line` and never
-      # arrives here, so widening to the parent would claim nothing extra
-      # and would blur what this list is for -- the geoms that draw a
-      # *computed* curve (#202).
+      # `GeomFunction` and `GeomQuantile` are named rather than reached
+      # through `GeomPath`, which they both inherit: a plain `geom_path()`
+      # is typed `line` and never arrives here, so widening to the parent
+      # would claim nothing extra and would blur what this list is for --
+      # the geoms that draw a *computed* curve (#202, #229).
       is_smooth_like <- inherits(own_layer$geom, "GeomSmooth") ||
         inherits(own_layer$geom, "GeomLine") ||
         inherits(own_layer$geom, "GeomDensity") ||
         inherits(own_layer$geom, "GeomFunction") ||
+        inherits(own_layer$geom, "GeomQuantile") ||
         inherits(own_layer$geom, "GeomArea")
 
       if (is_smooth_like) {
         return(layer_index)
       }
 
+      # Deliberately not the same list as `is_smooth_like` above:
+      # `GeomQuantile` is missing here. This search only runs when the
+      # layer's *own* geom was rejected, which a quantile layer's never is,
+      # so adding it would reach nothing -- except the case #230 describes,
+      # where a `smooth` type arrives on a geom neither list names and the
+      # render stops. Answering that by quietly pairing it with someone
+      # else's curve would announce one layer's fit as another's, which is
+      # worse than the error, so it is left to that issue to decide.
       smooth_layers <- which(sapply(plot$layers, function(layer) {
         inherits(layer$geom, "GeomSmooth") ||
           inherits(layer$geom, "GeomLine") ||

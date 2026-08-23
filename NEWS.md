@@ -2,6 +2,31 @@
 
 ## Bug Fixes
 
+* `geom_quantile()` is now read as the fitted curve it draws, instead of
+  costing its chart every bit of interactivity. `GeomQuantile` is a
+  `GeomPath` subclass and dispatch matches the first class name, so it
+  matched no branch and reached the unknown processor -- the third geom
+  missed this way, after `geom_function()` and `geom_spoke()`. Measured on
+  thirty points, a scatter went from a 50,409 byte interactive SVG to a
+  44,724 byte base64 image the moment a quantile fit was drawn beside it,
+  while the *mean* fit beside the same points read fine.
+
+  It reads as a `smooth` rather than a `line` for the reason `stat_function()`
+  does: `stat_quantile()` fits `rq`/`rqss` and evaluates it at
+  renderer-chosen positions exactly as `stat_smooth()` does for the
+  conditional mean, so the curve is a model over the data rather than a
+  series of it.
+
+  Keyed on the geom alone. The symmetric `StatQuantile` addition would have
+  made `stat_quantile(geom = "point")` a second instance of an existing
+  crash, which is reported separately rather than matched.
+
+  A quantile layer that drew *nothing* keeps the answer it had before:
+  skipped, not claimed. `geom_quantile()` without **quantreg** computes no
+  rows, and it is the case that rule was written for, so claiming it on the
+  geom regardless would have put an empty layer in the schema for a chart
+  that had none.
+
 * A layer that drew **nothing** no longer costs the whole chart its
   interactivity. An unclaimed layer makes the plot fall back to a static
   image, which is right when the layer put a mark on the page that nothing
