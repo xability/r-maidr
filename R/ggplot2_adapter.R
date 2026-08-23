@@ -188,7 +188,33 @@ Ggplot2Adapter <- R6::R6Class(
       if (geom_class == "GeomFunction" || stat_class == "StatFunction") {
         return("smooth")
       }
-      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
+      # `GeomQuantile` is a `GeomPath` too, so it reached the line branch's
+      # name check, matched nothing, and took its chart down with it -- the
+      # third geom to be missed for being a subclass of a read one, after
+      # `GeomFunction` (#202) and `GeomSpoke` (#225). Measured on thirty
+      # points with a quantile layer that draws:
+      #
+      #     geom_point()                            interactive   50,409 bytes
+      #     geom_point() + a GeomQuantile layer     base64 image  44,724 bytes
+      #     geom_point() + geom_smooth(se = FALSE)  interactive   57,823 bytes
+      #
+      # `smooth` rather than `line` for the reason `StatFunction` is:
+      # `stat_quantile()` fits `rq`/`rqss` and evaluates it at
+      # renderer-chosen positions, exactly as `stat_smooth()` does for the
+      # conditional mean, so the curve is a model over the data rather than
+      # a series of it. Reading it as a line would announce a fit as
+      # observations (#229).
+      # Keyed on the geom alone, deliberately. `StatQuantile` would have been
+      # the symmetric addition beside `StatDensity`, and it is a trap: a stat
+      # check claims `stat_quantile(geom = "point")`, whose `GeomPoint` the
+      # smooth processor does not recognise, so `resolve_target_layer()`
+      # falls through and stops the render outright. Measured on `main`, the
+      # `StatFunction` check above already does this --
+      # `stat_function(fun = sin, geom = "point")` raises "No smooth curve
+      # layers found in plot" out of `save_html()` (#230). Reported rather
+      # than matched.
+      if (geom_class %in% c("GeomSmooth", "GeomQuantile") ||
+            stat_class == "StatDensity") {
         return("smooth")
       }
 
