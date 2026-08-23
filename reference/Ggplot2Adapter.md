@@ -42,6 +42,8 @@ An R6 class inheriting from SystemAdapter
 
 - [`Ggplot2Adapter$segments_span_lanes()`](#method-Ggplot2Adapter-segments_span_lanes)
 
+- [`Ggplot2Adapter$unread_layer_type()`](#method-Ggplot2Adapter-unread_layer_type)
+
 - [`Ggplot2Adapter$clone()`](#method-Ggplot2Adapter-clone)
 
 ------------------------------------------------------------------------
@@ -354,6 +356,71 @@ chart.
 #### Returns
 
 TRUE when the layer's segments lay intervals in lanes
+
+------------------------------------------------------------------------
+
+### `Ggplot2Adapter$unread_layer_type()`
+
+The answer for a layer no branch above claimed
+
+`"unknown"` is what makes `has_unsupported_layers()` true and drops the
+whole plot to a static image. That is right for a layer carrying marks
+nothing describes: a filled
+[`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html)
+is drawn, and a reader told the chart was complete would be told wrong.
+
+It is not right for a layer that drew nothing. Then there is no mark, so
+there is nothing the reader is missing, and the chart pays everything to
+protect them from an absence. Measured with
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) on thirty
+points:
+
+
+    geom_point()                                interactive   50,406 bytes
+    geom_point() + geom_point(data = d[0, ])    interactive   51,313 bytes
+    geom_point() + geom_polygon(data = d[0, ])  base64 image  27,368 bytes
+    geom_point() + geom_polygon()               base64 image  31,848 bytes
+
+Rows two and three are the same chart in every way a reader could tell –
+thirty points and a layer of nothing – and only one of them was
+interactive, because its empty layer happened to be of a *kind* this
+function names. Row four is the case the fallback exists for, and it
+keeps falling back.
+
+The case this turns up in is not contrived: a missing **Suggests**
+package.
+[`geom_quantile()`](https://ggplot2.tidyverse.org/reference/geom_quantile.html)
+without quantreg warns, computes no rows and draws nothing; ggplot2
+carries on and r-maidr turned the whole figure into a picture, with no
+second warning connecting the two (#227).
+
+A plot made only of such layers still falls back, for the reason \#176
+gives: `has_unsupported_layers()` is true when *every* layer is `"skip"`
+as well, so "nothing unsupported" cannot quietly come to mean "nothing
+at all".
+
+Nothing here decides which geoms are readable. A
+[`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html)
+with data in it is still `"unknown"` and still costs its chart exactly
+what it costs today.
+
+#### Usage
+
+    Ggplot2Adapter$unread_layer_type(layer, plot_object)
+
+#### Arguments
+
+- `layer`:
+
+  The layer being classified
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+#### Returns
+
+`"skip"` when the layer drew no rows, `"unknown"` otherwise
 
 ------------------------------------------------------------------------
 

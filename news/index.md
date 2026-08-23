@@ -2,6 +2,34 @@
 
 ## maidr (development version)
 
+### Bug Fixes
+
+- A layer that drew **nothing** no longer costs the whole chart its
+  interactivity. An unclaimed layer makes the plot fall back to a static
+  image, which is right when the layer put a mark on the page that
+  nothing describes – a reader told the chart was complete would be told
+  wrong – and wrong when it drew nothing at all, because then there is
+  no mark and the chart pays everything to protect the reader from an
+  absence. Measured on thirty points,
+  `geom_point() + geom_polygon(data = frame[0, ])` was a 27,368 byte
+  base64 image where `geom_point() + geom_point(data = frame[0, ])` was
+  a 51,313 byte interactive SVG: the same chart in every way a reader
+  could tell, and only one of them accessible, because one empty layer
+  happened to be of a *kind* the adapter names.
+
+  The case this turns up in is a missing **Suggests** package.
+  [`geom_quantile()`](https://ggplot2.tidyverse.org/reference/geom_quantile.html)
+  without **quantreg** warns, computes no rows and draws nothing;
+  ggplot2 carries on and the figure silently stopped being accessible,
+  with no second warning connecting the two.
+
+  Nothing here changes which geoms are readable. A
+  [`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html)
+  with data in it is still declined and still costs its chart exactly
+  what it cost before, and a plot made only of empty unclaimed layers
+  still falls back rather than announcing itself as an interactive chart
+  with nothing in it.
+
 ### New Features
 
 - [`geom_spoke()`](https://ggplot2.tidyverse.org/reference/geom_spoke.html)

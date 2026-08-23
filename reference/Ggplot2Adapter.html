@@ -162,6 +162,7 @@ ggplot2 functionality to work with the new extensible architecture.</p>
 <li><p><a href="#method-Ggplot2Adapter-is_patchwork"><code>Ggplot2Adapter$is_patchwork()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-ribbon_is_area"><code>Ggplot2Adapter$ribbon_is_area()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-segments_span_lanes"><code>Ggplot2Adapter$segments_span_lanes()</code></a></p></li>
+<li><p><a href="#method-Ggplot2Adapter-unread_layer_type"><code>Ggplot2Adapter$unread_layer_type()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-clone"><code>Ggplot2Adapter$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Ggplot2Adapter-initialize"></a><div class="section">
 <h3 id="ggplot-adapter-new-"><code>Ggplot2Adapter$new()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-new-"></a></h3>
@@ -445,13 +446,68 @@ missing a quarter of its chart.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2Adapter-unread_layer_type"></a><div class="section">
+<h3 id="ggplot-adapter-unread-layer-type-"><code>Ggplot2Adapter$unread_layer_type()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-unread-layer-type-"></a></h3>
+<p>The answer for a layer no branch above claimed</p>
+<p><code>"unknown"</code> is what makes <code>has_unsupported_layers()</code> true and
+drops the whole plot to a static image. That is right for a layer
+carrying marks nothing describes: a filled <code><a href="https://ggplot2.tidyverse.org/reference/geom_polygon.html" class="external-link">geom_polygon()</a></code> is
+drawn, and a reader told the chart was complete would be told wrong.</p>
+<p>It is not right for a layer that drew nothing. Then there is no mark,
+so there is nothing the reader is missing, and the chart pays
+everything to protect them from an absence. Measured with
+<code><a href="save_html.html">save_html()</a></code> on thirty points:</p>
+<div class="sourceCode"><pre><code>
+geom_point()                                interactive   50,406 bytes
+geom_point() + geom_point(data = d[0, ])    interactive   51,313 bytes
+geom_point() + geom_polygon(data = d[0, ])  base64 image  27,368 bytes
+geom_point() + geom_polygon()               base64 image  31,848 bytes
+</code></pre></div>
+
+<p>Rows two and three are the same chart in every way a reader could tell
+– thirty points and a layer of nothing – and only one of them was
+interactive, because its empty layer happened to be of a <em>kind</em>
+this function names. Row four is the case the fallback exists for, and
+it keeps falling back.</p>
+<p>The case this turns up in is not contrived: a missing <strong>Suggests</strong>
+package. <code><a href="https://ggplot2.tidyverse.org/reference/geom_quantile.html" class="external-link">geom_quantile()</a></code> without <span class="pkg">quantreg</span> warns, computes
+no rows and draws nothing; ggplot2 carries on and r-maidr turned the
+whole figure into a picture, with no second warning connecting the two
+(#227).</p>
+<p>A plot made only of such layers still falls back, for the reason #176
+gives: <code>has_unsupported_layers()</code> is true when <em>every</em> layer
+is <code>"skip"</code> as well, so "nothing unsupported" cannot quietly come
+to mean "nothing at all".</p>
+<p>Nothing here decides which geoms are readable. A <code><a href="https://ggplot2.tidyverse.org/reference/geom_polygon.html" class="external-link">geom_polygon()</a></code>
+with data in it is still <code>"unknown"</code> and still costs its chart
+exactly what it costs today.</p><div class="section">
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">unread_layer_type</span><span class="op">(</span><span class="va">layer</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>The layer being classified</p></dd>
+
+      <dt><code>plot_object</code></dt>
+<dd><p>The ggplot2 plot object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p><code>"skip"</code> when the layer drew no rows, <code>"unknown"</code>
+otherwise</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2Adapter-clone"></a><div class="section">
 <h3 id="ggplot-adapter-clone-"><code>Ggplot2Adapter$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
