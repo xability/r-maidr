@@ -217,8 +217,7 @@ BaseRMosaicLayerProcessor <- R6::R6Class(
       for (fill_index in seq_len(fills)) {
         for (category_index in seq_len(categories)) {
           name <- tiles[[(category_index - 1) * fills + fill_index]]
-          escaped <- gsub("\\.", "\\\\.", paste0(name, ".1"))
-          selectors[[length(selectors) + 1]] <- paste0("#", escaped, " polygon")
+          selectors[[length(selectors) + 1]] <- polygon_cell_selector(name)
         }
       }
       selectors

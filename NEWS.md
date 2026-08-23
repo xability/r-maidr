@@ -1,5 +1,36 @@
 # maidr (development version)
 
+## New Features
+
+* A Base R `mosaicplot()` is now read as the contingency table it draws,
+  instead of falling back to a static image. What separates a mosaic from a
+  stacked bar is that the **column widths encode data too** -- each column's
+  width is that category's share of all observations -- so a reader given
+  only the segment heights has half the table: the conditional proportions
+  without the group sizes they were computed from, which makes a category of
+  six observations and one of six hundred read identically.
+
+  Nothing is inferred from the drawing. `mosaicplot()` is handed the table
+  itself, so the recorded call carries the counts, the margins they imply,
+  and the level names from `dimnames()`. Each cell announces four numbers:
+  its conditional proportion within its column, its column's share of the
+  whole, its own count, and its fill level. Each tile is addressable on its
+  own -- gridGraphics writes one `polygon` grob per cell, down each column
+  with the columns left to right.
+
+  The two dimension names go where the grammar puts them rather than where
+  the chart draws them: `mosaicplot()` labels its y axis with the second
+  dimension, but a segmented layer's `y` holds the magnitude and its `z` the
+  fill, so the second dimension is announced as the fill and `y` says its
+  numbers are proportions.
+
+  Two limitations worth knowing. A table of three dimensions or more is still
+  a picture: `mosaicplot()` splits recursively and a `mosaic` layer has one
+  category axis and one fill, so a deeper table has nowhere to put its later
+  dimensions. And the formula interface -- `mosaicplot(~ Hair + Eye, data =
+  df)` -- is a picture too, because the recorded call carries the formula
+  rather than a table.
+
 ## Bug Fixes
 
 * A layer of a **recognised** type that drew nothing no longer reaches the

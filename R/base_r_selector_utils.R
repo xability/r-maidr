@@ -162,3 +162,18 @@ find_graphics_plot_grobs <- function(grob, element_type, plot_index) {
   names <- collect(grob)
   names[order(suppressWarnings(as.integer(sub(".*-([0-9]+)$", "\\1", names))))]
 }
+
+#' Address one grob that a chart draws a datum into as a polygon
+#'
+#' A pie's wedges and a mosaic's tiles are each their own grob, so each needs
+#' its own selector -- unlike a `barplot()`, whose bars all live inside one
+#' rect grob. gridSVG appends `.1` to the grob name and wraps the shape in a
+#' group of that id, and the `.` has to be escaped for CSS.
+#'
+#' @param grob_name A grob name, as `find_graphics_plot_grobs()` returns it
+#' @return A CSS selector for that grob's polygon
+#' @keywords internal
+polygon_cell_selector <- function(grob_name) {
+  escaped <- gsub("\\.", "\\\\.", paste0(grob_name, ".1"))
+  paste0("#", escaped, " polygon")
+}

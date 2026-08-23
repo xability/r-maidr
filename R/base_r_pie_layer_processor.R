@@ -147,10 +147,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
 
       # Unlike barplot, whose n bars all live inside a single rect grob, each
       # wedge is its own grob and therefore needs its own selector.
-      lapply(poly_names[seq_len(n_slices)], function(name) {
-        escaped <- gsub("\\.", "\\\\.", paste0(name, ".1"))
-        paste0("#", escaped, " polygon")
-      })
+      lapply(poly_names[seq_len(n_slices)], polygon_cell_selector)
     },
 
     #' @description Extract the axis titles for this layer

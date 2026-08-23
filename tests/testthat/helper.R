@@ -314,6 +314,3 @@ draw_unread_base_r_chart <- function() {
   assocplot(HairEyeColor[, , 1])
   invisible(NULL)
 }
-
-#' What `draw_unread_base_r_chart()` draws, for a test's own prose
-UNREAD_BASE_R_CALL <- "assocplot"
