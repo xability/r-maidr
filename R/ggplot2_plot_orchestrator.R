@@ -1,3 +1,38 @@
+#' Which of a plot's layers drew no rows
+#'
+#' The one place the emptiness rule lives, so the orchestrator and the
+#' patchwork leaf path cannot disagree about it. A leaf inside a
+#' \code{patchwork} composition is classified by
+#' \code{ggplot2_patchwork_utils.R} rather than by
+#' \code{Ggplot2PlotOrchestrator$detect_layers()}, so a rule written only in
+#' the orchestrator would have left every composed chart ghosting (#232).
+#'
+#' One \code{ggplot_build()} per plot, not per layer. That is what makes this
+#' affordable at all: the same question asked inside
+#' \code{detect_layer_type()} would multiply the build by the layer count,
+#' which is why #231 applied it to one geom only.
+#'
+#' A build that cannot answer reports nothing empty. A plot that will not
+#' build is a bigger problem than this one, and it is about to be met by
+#' whatever else needs the build.
+#'
+#' @param plot A ggplot object.
+#' @return Integer indices into \code{plot$layers}, possibly empty.
+#' @keywords internal
+layers_that_drew_nothing <- function(plot) {
+  built <- tryCatch(ggplot2::ggplot_build(plot), error = function(e) NULL)
+  if (is.null(built) || is.null(built$data)) {
+    return(integer(0))
+  }
+
+  which(vapply(
+    built$data,
+    function(drawn) !is.null(drawn) && isTRUE(nrow(drawn) == 0L),
+    logical(1)
+  ))
+}
+
+
 #' Plot Orchestrator Class
 #'
 #' @description
@@ -101,17 +136,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     #'
     #' @return NULL, invisibly. Rewrites \code{private$.layers} in place.
     skip_layers_that_drew_nothing = function() {
-      built <- tryCatch(
-        ggplot2::ggplot_build(private$.plot),
-        error = function(e) NULL
-      )
-      if (is.null(built) || is.null(built$data)) {
-        return(invisible(NULL))
-      }
-
-      for (i in seq_along(private$.layers)) {
-        drawn <- built$data[[i]]
-        if (!is.null(drawn) && isTRUE(nrow(drawn) == 0L)) {
+      for (i in layers_that_drew_nothing(private$.plot)) {
+        if (i <= length(private$.layers)) {
           private$.layers[[i]]$type <- "skip"
         }
       }

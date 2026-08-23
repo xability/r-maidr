@@ -37,6 +37,13 @@
   announcing itself as interactive with nothing in it is worse than an image,
   because an image at least says what it is.
 
+  Composed and faceted charts get the same answer. A `patchwork` leaf is
+  classified without ever passing through the orchestrator, so the rule is
+  stated once as `layers_that_drew_nothing()` and asked per leaf as well --
+  a rule written only in the orchestrator would have left every composed
+  chart ghosting while every plain one stopped. Faceting already went
+  through the orchestrator and is pinned so it stays that way.
+
 * The smooth processor no longer answers "which layer do I read?" with
   *somebody else's*. When a layer's own geom was one it could not read, it
   searched the plot's other layers for one drawing a curve and returned that

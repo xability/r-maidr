@@ -23,57 +23,16 @@
 # against 3.22 s, one `ggplot_build()` of 0.14 s, and the same 0.14 s however
 # many layers the chart has.
 
-skip_unless_renderable <- function() {
-  testthat::skip_if_not_installed("ggplot2")
-  testthat::skip_if_not_installed("jsonlite")
-}
+# `emitted_layers()`, `rendered()` and `fell_back()` live in
+# `helper-render.R`, shared with #227's and #230's tests.
 
 observations <- function() {
   data.frame(x = 1:10, y = (1:10)^1.2)
 }
 
-#' The layers a plot emits, as "type(n)" strings in order
-#'
-#' A series layer reports "type(SxN)" -- S series of N points -- because a
-#' smooth's `data` is a list of series, so its length alone cannot tell an
-#' empty layer from a full one. Measured: a real smooth is `smooth(1x80)` and
-#' an empty one was `smooth(1x0)`.
-emitted_layers <- function(plot) {
-  file <- tempfile(fileext = ".html")
-  on.exit(unlink(file), add = TRUE)
-  suppressWarnings(suppressMessages(save_html(plot, file)))
-  html <- paste(readLines(file, warn = FALSE), collapse = "")
-
-  if (grepl("base64", html, fixed = TRUE)) {
-    return("image")
-  }
-
-  attribute <- regmatches(html, regexpr('maidr-data="[^"]*"', html))
-  if (!length(attribute)) {
-    return(character(0))
-  }
-  json <- sub('"$', "", sub('^maidr-data="', "", attribute))
-  for (pair in list(c("&amp;", "&"), c("&lt;", "<"), c("&gt;", ">"),
-                    c("&quot;", '"'))) {
-    json <- gsub(pair[[1]], pair[[2]], json, fixed = TRUE)
-  }
-  schema <- jsonlite::fromJSON(json, simplifyVector = FALSE)
-
-  vapply(schema$subplots[[1]][[1]]$layers, function(layer) {
-    rows <- layer$data
-    series <- length(rows) > 0 && is.list(rows[[1]]) && is.null(names(rows[[1]]))
-    size <- if (series) {
-      paste0(length(rows), "x", paste(vapply(rows, length, 0L), collapse = "/"))
-    } else {
-      as.character(length(rows))
-    }
-    sprintf("%s(%s)", layer$type, size)
-  }, "")
-}
-
 
 test_that("a recognised layer that drew nothing is not emitted", {
-  skip_unless_renderable()
+  skip_if_no_render()
 
   d <- observations()
   empties <- list(
@@ -93,7 +52,7 @@ test_that("a recognised layer that drew nothing is not emitted", {
 
 
 test_that("a layer that drew something is untouched", {
-  skip_unless_renderable()
+  skip_if_no_render()
 
   d <- observations()
 
@@ -111,14 +70,13 @@ test_that("a layer that drew something is untouched", {
       ggplot2::geom_point() +
       ggplot2::geom_smooth(se = FALSE)
   )
-  testthat::expect_length(both, 2L)
-  testthat::expect_equal(both[[1]], "point(10)")
-  testthat::expect_match(both[[2]], "^smooth\\(1x[1-9]")
+  testthat::expect_length(both, 1L)
+  testthat::expect_match(both, "^point\\(10\\) smooth\\(1x[1-9]")
 })
 
 
 test_that("a plot whose only layer is empty falls back to an image", {
-  skip_unless_renderable()
+  skip_if_no_render()
 
   # "skip" rather than a fourth answer, so the #176 guard sees it: a chart
   # announcing itself as interactive with nothing in it is worse than an
@@ -131,8 +89,50 @@ test_that("a plot whose only layer is empty falls back to an image", {
 })
 
 
+test_that("a patchwork leaf's empty layer is skipped too", {
+  skip_if_no_render()
+  testthat::skip_if_not_installed("patchwork")
+
+  # A leaf is classified by `ggplot2_patchwork_utils.R`, which never calls
+  # the orchestrator's `detect_layers()`, so the rule had to be asked there
+  # as well -- otherwise every composed chart kept ghosting while every plain
+  # one stopped. `layers_that_drew_nothing()` is the one place it is written.
+  d <- observations()
+  left <- ggplot2::ggplot(d, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_point(data = d[0, ])
+  right <- ggplot2::ggplot(d, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_point()
+
+  testthat::expect_equal(
+    emitted_layers(patchwork::wrap_plots(left, right)),
+    c("point(10)", "point(10)")
+  )
+})
+
+
+test_that("a faceted plot's empty layer is skipped too", {
+  skip_if_no_render()
+
+  # Faceting goes through `process_faceted_plot()`, which does call
+  # `detect_layers()` -- so this holds for free, and holds it in place.
+  d <- observations()
+  faceted <- rbind(cbind(d, panel = "L"), cbind(d, panel = "R"))
+
+  testthat::expect_equal(
+    emitted_layers(
+      ggplot2::ggplot(faceted, ggplot2::aes(x = x, y = y)) +
+        ggplot2::geom_point() +
+        ggplot2::geom_point(data = d[0, ]) +
+        ggplot2::facet_wrap(~panel)
+    ),
+    c("point(10)", "point(10)")
+  )
+})
+
+
 test_that("the emptiness question is not asked of the classifier", {
-  skip_unless_renderable()
+  skip_if_no_render()
 
   # Where this is asked matters. `detect_layer_type()` answers what *kind* of
   # chart a layer is, and an empty `geom_point()` is still a point layer --

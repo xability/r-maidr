@@ -24,11 +24,6 @@
 # nothing. ggplot2 carries on; r-maidr turned the whole figure into a picture
 # with no second warning connecting the two.
 
-skip_if_no_render <- function() {
-  testthat::skip_if_not_installed("ggplot2")
-  testthat::skip_if_not_installed("jsonlite")
-}
-
 # Built at top level: inside a closure the bare column names in `aes()` read
 # as undefined globals to static analysis.
 positions <- ggplot2::aes(x = x, y = y)
@@ -49,34 +44,7 @@ nothing <- function() {
   observations()[0, ]
 }
 
-#' Render a plot and return its HTML
-rendered <- function(plot) {
-  file <- tempfile(fileext = ".html")
-  on.exit(unlink(file), add = TRUE)
-  suppressWarnings(suppressMessages(save_html(plot, file)))
-  paste(readLines(file, warn = FALSE), collapse = "\n")
-}
-
-#' Whether a rendering is the static-image fallback rather than a chart
-fell_back <- function(html) {
-  grepl("base64", html, fixed = TRUE)
-}
-
-#' Every layer a plot emits, or NULL when the chart fell back to a picture
-layers_from <- function(html) {
-  raw <- regmatches(html, regexpr('maidr-data="[^"]*"', html))
-  if (length(raw) != 1) {
-    return(NULL)
-  }
-  json <- sub('"$', "", sub('^maidr-data="', "", raw))
-  for (pair in list(
-    c("&quot;", '"'), c("&lt;", "<"), c("&gt;", ">"),
-    c("&amp;", "&"), c("&#39;", "'")
-  )) {
-    json <- gsub(pair[1], pair[2], json, fixed = TRUE)
-  }
-  jsonlite::fromJSON(json, simplifyVector = FALSE)$subplots[[1]][[1]]$layers
-}
+# `rendered()`, `fell_back()` and `layers_from()` live in `helper-render.R`.
 
 
 test_that("an unclaimed layer that drew nothing is skipped, not unknown", {
