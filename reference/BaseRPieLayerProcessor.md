@@ -26,8 +26,6 @@ are emitted here.
 
 - [`BaseRPieLayerProcessor$generate_selectors()`](#method-BaseRPieLayerProcessor-generate_selectors)
 
-- [`BaseRPieLayerProcessor$find_polygon_grobs()`](#method-BaseRPieLayerProcessor-find_polygon_grobs)
-
 - [`BaseRPieLayerProcessor$extract_axis_titles()`](#method-BaseRPieLayerProcessor-extract_axis_titles)
 
 - [`BaseRPieLayerProcessor$extract_main_title()`](#method-BaseRPieLayerProcessor-extract_main_title)
@@ -208,30 +206,6 @@ Generate one selector per wedge, index-aligned to the data
 #### Returns
 
 List of CSS selector strings, one per slice
-
-------------------------------------------------------------------------
-
-### `BaseRPieLayerProcessor$find_polygon_grobs()`
-
-Recursively collect this plot's wedge polygon grob names
-
-#### Usage
-
-    BaseRPieLayerProcessor$find_polygon_grobs(grob, plot_index)
-
-#### Arguments
-
-- `grob`:
-
-  The grob tree to search
-
-- `plot_index`:
-
-  The plot (panel) index to match
-
-#### Returns
-
-Character vector of grob names
 
 ------------------------------------------------------------------------
 

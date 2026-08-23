@@ -156,7 +156,6 @@ magnitudes, so none are emitted here.</p>
 <li><p><a href="#method-BaseRPieLayerProcessor-extract_data"><code>BaseRPieLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-resolve_slice_labels"><code>BaseRPieLayerProcessor$resolve_slice_labels()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-generate_selectors"><code>BaseRPieLayerProcessor$generate_selectors()</code></a></p></li>
-<li><p><a href="#method-BaseRPieLayerProcessor-find_polygon_grobs"><code>BaseRPieLayerProcessor$find_polygon_grobs()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-extract_axis_titles"><code>BaseRPieLayerProcessor$extract_axis_titles()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-extract_main_title"><code>BaseRPieLayerProcessor$extract_main_title()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-clone"><code>BaseRPieLayerProcessor$clone()</code></a></p></li>
@@ -315,28 +314,6 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 
 </div>
 
-<p></p><hr><a id="method-BaseRPieLayerProcessor-find_polygon_grobs"></a><div class="section">
-<h3 id="baserpielayerprocessor-find-polygon-grobs-"><code>BaseRPieLayerProcessor$find_polygon_grobs()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-find-polygon-grobs-"></a></h3>
-<p>Recursively collect this plot's wedge polygon grob names</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">find_polygon_grobs</span><span class="op">(</span><span class="va">grob</span>, <span class="va">plot_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
-<dd><p>The grob tree to search</p></dd>
-
-      <dt><code>plot_index</code></dt>
-<dd><p>The plot (panel) index to match</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>Character vector of grob names</p>
-</div>
-
-</div>
-
 <p></p><hr><a id="method-BaseRPieLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="baserpielayerprocessor-extract-axis-titles-"><code>BaseRPieLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-axis-titles-"></a></h3>
 <p>Extract the axis titles for this layer</p>
@@ -344,8 +321,27 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 <code><a href="base-r-wrappers.html">pie()</a></code> records neither unless the author wrote one, and a pie always
 holds labelled categories against their magnitudes, so the defaults
 say that much rather than leaving the axes nameless.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>Canonical axes list</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_main_title"></a><div class="section">
+<h3 id="baserpielayerprocessor-extract-main-title-"><code>BaseRPieLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-main-title-"></a></h3>
+<p>Extract the main title for this layer</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
@@ -355,25 +351,6 @@ say that much rather than leaving the axes nameless.</p><div class="section">
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
-<p>Canonical axes list</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_main_title"></a><div class="section">
-<h3 id="baserpielayerprocessor-extract-main-title-"><code>BaseRPieLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-main-title-"></a></h3>
-<p>Extract the main title for this layer</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
-<dd><p>Layer information</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>Character scalar</p>
 </div>
 
@@ -382,10 +359,10 @@ say that much rather than leaving the axes nameless.</p><div class="section">
 <p></p><hr><a id="method-BaseRPieLayerProcessor-clone"></a><div class="section">
 <h3 id="baserpielayerprocessor-clone-"><code>BaseRPieLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

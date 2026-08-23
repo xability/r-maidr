@@ -18,6 +18,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRHeatmapLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRHistogramLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRLineLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRMosaicLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRPatcher.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRPieLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRPlotOrchestrator.html</loc></url>
@@ -152,6 +153,7 @@
 <url><loc>https://r.maidr.ai/reference/facet_group_rows.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_children_by_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_graphics_plot_grob.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/find_graphics_plot_grobs.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_gtable_panel_grob.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_original_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_patchwork_panels.html</loc></url>
@@ -215,6 +217,7 @@
 <url><loc>https://r.maidr.ai/reference/is_patching_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_spike_plot_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_step_plot_type.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_two_way_table.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_volume_only_bar_panel.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_wrapped_leaf.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/jitter_cache_get.html</loc></url>
@@ -264,6 +267,7 @@
 <url><loc>https://r.maidr.ai/reference/panel_slot_positions.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/panel_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/perpendicular_distance.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/polygon_cell_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polyline_layer_position.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polylines_within.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/positional_axis_label.html</loc></url>
@@ -280,6 +284,7 @@
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_js_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/rdp.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_axis_label.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/recorded_two_way_table.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/register_ggplot2_print_method.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr_widget.html</loc></url>
