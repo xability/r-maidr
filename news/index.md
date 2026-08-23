@@ -4,6 +4,34 @@
 
 ### Bug Fixes
 
+- The smooth processor no longer answers “which layer do I read?” with
+  *somebody else’s*. When a layer’s own geom was one it could not read,
+  it searched the plot’s other layers for one drawing a curve and
+  returned that index – so a bar layer beside a
+  [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
+  came back with the smooth’s fitted values as its own data, announcing
+  one layer’s fit as another’s.
+
+  Unreachable through the dispatch since the previous release, which
+  made the classifier consult
+  [`smooth_reads_geom()`](https://r.maidr.ai/reference/smooth_reads_geom.md)
+  before typing a layer `smooth`, so the processor is only ever built
+  for a layer it can read. Measured before removing it, instrumented on
+  the full suite: the search was entered three times, every one of them
+  from a unit test handing the processor a bar plot by hand. No render
+  reached it.
+
+  It also carried a fourth thing worth losing – its own list of four
+  geoms, a third copy beside
+  [`smooth_reads_geom()`](https://r.maidr.ai/reference/smooth_reads_geom.md)’s
+  six and the dispatch’s, which would have needed a matching edit each
+  time the shared list grew. Widening it to match would have been the
+  wrong repair: the wider that list, the more often the search
+  *succeeds*, and succeeding is the failure mode.
+
+  A caller who constructs the processor against a layer it cannot read
+  now gets told so, and told which geom it was.
+
 - A layer whose stat says “smooth” but whose geom the smooth processor
   cannot read no longer stops the render.
   [`stat_function()`](https://ggplot2.tidyverse.org/reference/geom_function.html)
