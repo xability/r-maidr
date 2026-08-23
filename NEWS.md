@@ -2,6 +2,27 @@
 
 ## New Features
 
+* `geom_spoke()` is now read as the gantt chart it draws, where it draws one.
+  A spoke is `geom_segment()` reparameterised -- an angle and a radius rather
+  than an endpoint -- and ggplot2 turns the pair into the same `xend`/`yend`
+  the segment reading already uses, so the two spellings of one mark now reach
+  one rule and answer it alike. A flat spoke is a lane per `y` running from `x`
+  to `x + radius`; an angled one is a vector field rather than a schedule and
+  is still declined, exactly as the segment spelling of the same chart would
+  be. What this fixes is what a decline used to cost: an unclaimed layer makes
+  the whole plot fall back to a static image, so a thirty-point scatter with a
+  spoke layer beside it went from an interactive SVG to a base64 image and lost
+  every one of its points.
+
+  A gantt layer now counts its position among the layers drawing the same
+  **grob class** rather than among layers of the same geom, which is the
+  population the grob list it indexes into was gathered by. The two were the
+  same set until a spoke joined `geom_segment()` in drawing a `segments` grob:
+  a chart with one layer of each gave both `position == 1`, so they resolved to
+  the same grob and the second highlighted the first's intervals while
+  announcing its own. `geom_curve()` never collided, because it draws a `curve`
+  grob instead.
+
 * A Base R `contour()` is now read as the contour it draws, instead of falling
   back to a static image. The curves come from `grDevices::contourLines()`,
   which is the computation `contour()` itself does and takes the same defaults

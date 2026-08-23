@@ -152,7 +152,23 @@ Ggplot2Adapter <- R6::R6Class(
         return("rug")
       }
 
-      if (geom_class %in% c("GeomSegment", "GeomCurve")) {
+      # `geom_spoke()` is `geom_segment()` reparameterised: an angle and a
+      # radius rather than an endpoint, and ggplot2's `GeomSpoke$setup_data()`
+      # turns the pair into the `xend`/`yend` the segment branch already
+      # reads. It is a `GeomSegment` *subclass* -- measured, `GeomSpoke <
+      # GeomSegment < Geom` -- and still needs naming here, because this
+      # dispatch matches `class(geom)[1]` rather than asking `inherits()`. So it is dispatched here rather than given a rule of its own,
+      # and doing so decides nothing new -- it makes two spellings of one mark
+      # behave alike. Measured on ggplot2 3.4.4:
+      #
+      #     geom_spoke(angle = 0.5, radius = 0.3)   spans lanes FALSE
+      #     geom_spoke(angle = 0,   radius = r)     spans lanes TRUE
+      #
+      # An angled spoke is not a set of lanes and stays "unknown", exactly as
+      # the segment spelling of the same chart would; a flat one is a gantt
+      # written the other way round, a lane per y running from x to x + r,
+      # and was costing its chart every bit of interactivity (#225).
+      if (geom_class %in% c("GeomSegment", "GeomCurve", "GeomSpoke")) {
         return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
       }
 

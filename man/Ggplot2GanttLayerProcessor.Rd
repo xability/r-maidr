@@ -29,6 +29,7 @@ into a \code{save_html()} that raises. See the adapter's own note.
     \item \href{#method-Ggplot2GanttLayerProcessor-extract_axes}{\code{Ggplot2GanttLayerProcessor$extract_axes()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-generate_selectors}{\code{Ggplot2GanttLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-target_geom_class}{\code{Ggplot2GanttLayerProcessor$target_geom_class()}}
+    \item \href{#method-Ggplot2GanttLayerProcessor-segments_grob_class}{\code{Ggplot2GanttLayerProcessor$segments_grob_class()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-find_segments_name}{\code{Ggplot2GanttLayerProcessor$find_segments_name()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-clone}{\code{Ggplot2GanttLayerProcessor$clone()}}
   }
@@ -218,6 +219,36 @@ than inferred from what happens to be in the panel.
   }
   \subsection{Returns}{
     The geom's class name, or NULL when the layer cannot be found
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2GanttLayerProcessor-segments_grob_class"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2GanttLayerProcessor-segments_grob_class}{}}}
+\subsection{\code{Ggplot2GanttLayerProcessor$segments_grob_class()}}{
+  Which grid grob class a segment-family geom draws
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2GanttLayerProcessor$segments_grob_class(geom)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{geom}}{The layer's geom object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    \code{geom_curve()} draws a \code{curve} grob and everything else in
+the family -- \code{geom_segment()}, and \code{geom_spoke()} which is
+a \code{GeomSegment} subclass -- draws \code{segments}. Asked of the
+geom rather than assumed from the layer type, because it decides both
+which grobs \code{find_segments_name()} gathers and which layers it
+counts itself among, and those two have to be the same population.
+  }
+  \subsection{Returns}{
+    \code{"curve"} or \code{"segments"}
   }
 }
 
