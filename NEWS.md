@@ -21,6 +21,12 @@
   made `stat_quantile(geom = "point")` a second instance of an existing
   crash, which is reported separately rather than matched.
 
+  A quantile layer that drew *nothing* keeps the answer it had before:
+  skipped, not claimed. `geom_quantile()` without **quantreg** computes no
+  rows, and it is the case that rule was written for, so claiming it on the
+  geom regardless would have put an empty layer in the schema for a chart
+  that had none.
+
 * A layer that drew **nothing** no longer costs the whole chart its
   interactivity. An unclaimed layer makes the plot fall back to a static
   image, which is right when the layer put a mark on the page that nothing

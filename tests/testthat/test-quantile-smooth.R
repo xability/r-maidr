@@ -96,17 +96,23 @@ of_type <- function(layers, type) {
 }
 
 
-test_that("a quantile fit is classified as the smooth it is", {
+test_that("a quantile fit is never the unknown that cost the chart", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # Asked of the classifier directly, upstream of rendering, and of
-  # `geom_quantile()` itself rather than of the stand-in below: dispatch
-  # reads the geom's class and needs no data, so this is the real call.
+  # Asked of `geom_quantile()` itself rather than of the stand-in below, and
+  # asked for the property that does not depend on quantreg being installed.
+  #
+  # Which of the two answers this gives does depend on it: with quantreg the
+  # stat fits and the layer draws, so it reads `smooth`; without, it computes
+  # no rows and #227's rule makes it `skip`. Both are fine, and the test
+  # below pins the drawn case exactly. What must never come back is
+  # `unknown`, because that is the answer that drops the whole plot to a
+  # static image -- the whole of #229.
   adapter <- maidr:::Ggplot2Adapter$new()
   plot <- ggplot2::ggplot(observations(), positions) + ggplot2::geom_quantile()
 
-  testthat::expect_equal(
-    adapter$detect_layer_type(plot$layers[[1]], plot), "smooth"
+  testthat::expect_true(
+    adapter$detect_layer_type(plot$layers[[1]], plot) %in% c("smooth", "skip")
   )
 })
 
@@ -229,5 +235,53 @@ test_that("a quantile stat on another geom is left to that geom", {
 
   testthat::expect_equal(
     adapter$detect_layer_type(plot$layers[[1]], plot), "point"
+  )
+})
+
+
+test_that("a quantile layer that drew nothing is still skipped", {
+  skip_if_no_render()
+
+  # Caught in review on #231, and introduced by this change. `geom_quantile()`
+  # without quantreg computes no rows -- it is the case #227's rule was
+  # written for, and is named in `layer_drew_nothing()`'s own docs -- so
+  # claiming `smooth` on the geom regardless put an empty layer in the schema
+  # for a chart that had none. Measured before the fix:
+  #
+  #     point + geom_quantile() [no quantreg]   point(10) smooth(1)
+  #
+  # A `smooth` holding one series holding nothing: a layer a reader can walk
+  # into and find empty, which is #421's shape.
+  #
+  # Driven with an empty frame rather than by naming quantreg, which reaches
+  # the same zero built rows without making the package a dependency of the
+  # tests.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  plot <- ggplot2::ggplot(observations(), positions) +
+    ggplot2::geom_point() +
+    quantile_layer(observations()[0, ])
+
+  testthat::expect_equal(
+    adapter$detect_layer_type(plot$layers[[2]], plot), "skip"
+  )
+  testthat::expect_equal(
+    vapply(layers_from(rendered(plot)), function(one) one$type, character(1)),
+    "point"
+  )
+})
+
+
+test_that("a quantile layer that drew something is still claimed", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The other side of the same guard: emptiness is the only thing that takes
+  # a drawn quantile curve back off this branch.
+  adapter <- maidr:::Ggplot2Adapter$new()
+  plot <- ggplot2::ggplot(observations(), positions) +
+    ggplot2::geom_point() +
+    quantile_layer()
+
+  testthat::expect_equal(
+    adapter$detect_layer_type(plot$layers[[2]], plot), "smooth"
   )
 })
