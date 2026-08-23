@@ -18,36 +18,10 @@
 # lollipop conventionally carries is the only difference from what base R
 # draws, and it is not something a reader hears.
 
-# The device is cleared on the way out as well as on the way in. R reuses
-# device numbers, and the recorded calls outlive the device that made them --
-# so a file that only clears on entry hands its leftovers to the next file
-# that draws without opening a device of its own. That is not hypothetical:
-# `test-base-r-step-layer-processor.R` sorts immediately after this one and
-# reads `dev.cur()` directly, and it read this file's last control chart
-# instead of its own stairstep.
-spike_layers <- function(draw) {
-  grDevices::pdf(NULL)
-  device_id <- grDevices::dev.cur()
-  on.exit(
-    {
-      if (maidr:::has_device_calls(device_id)) {
-        maidr:::clear_device_storage(device_id)
-      }
-      grDevices::dev.off()
-    },
-    add = TRUE
-  )
-  if (maidr:::has_device_calls(device_id)) {
-    maidr:::clear_device_storage(device_id)
-  }
-  draw()
-  schema <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
-  schema$subplots[[1]][[1]]$layers
-}
-
-spike_types <- function(draw) {
-  vapply(spike_layers(draw), function(layer) layer$type, character(1))
-}
+# `base_r_layers` and `base_r_layer_types` live in `helper.R` (#241). The
+# local names stay so the tests read in this file's own words.
+spike_layers <- base_r_layers
+spike_types <- base_r_layer_types
 
 X <- 1:6
 Y <- c(3, 5, 2, 8, 4, 6)
