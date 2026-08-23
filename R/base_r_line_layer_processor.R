@@ -403,6 +403,12 @@ BaseRLineLayerProcessor <- R6::R6Class(
         if (grob_type == "abline") {
           # Pattern for abline: graphics-plot-{group_index}-abline-*
           pattern <- paste0("^graphics-plot-", group_index, "-abline-")
+        } else if (grob_type == "spike") {
+          # `type = "h"` draws its verticals under `-spike-`, the same way a
+          # stairstep lands under `-step-`. One grob holds every spike of the
+          # layer, so one name is expected here rather than one per point
+          # (#239).
+          pattern <- paste0("^graphics-plot-", group_index, "-spike-[0-9]+$")
         } else if (grob_type == "step") {
           # gridGraphics names a stairstep grob after the `type` letter that
           # drew it -- `-step-` for type = "s", `-Step-` for type = "S" --

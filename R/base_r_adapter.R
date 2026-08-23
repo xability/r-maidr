@@ -66,6 +66,26 @@ is_step_plot_type <- function(plot_type) {
   as.character(plot_type)[1] %in% c("s", "S")
 }
 
+#' Whether a Base R `type` argument draws spikes
+#'
+#' `type = "h"` draws a vertical line from the baseline to each value --
+#' "histogram-like" in `plot()`'s own wording -- and joins nothing to
+#' anything. Read as a `lollipop` layer, which the core builds on `BarTrace`:
+#' one value per position, with no claim about the space between two of them.
+#'
+#' Case-sensitive, like the step test beside it: `plot()` has no `"H"`.
+#'
+#' @param plot_type The `type` argument recorded from the plot call (may be
+#'   NULL when the caller did not pass one).
+#' @return `TRUE` when `plot_type` is `"h"`, otherwise `FALSE`.
+#' @keywords internal
+is_spike_plot_type <- function(plot_type) {
+  if (is.null(plot_type) || length(plot_type) == 0) {
+    return(FALSE)
+  }
+  identical(as.character(plot_type)[1], "h")
+}
+
 #' Map a Base R `type` argument onto a MAIDR step direction
 #'
 #' `type = "s"` draws the horizontal segment first, which is MAIDR's `"hv"`;
@@ -189,6 +209,13 @@ BaseRAdapter <- R6::R6Class(
               "unknown"
             } else if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {
               "point"
+            } else if (is_spike_plot_type(plot_type)) {
+              # type = "h" draws a vertical from the baseline to each value
+              # and joins nothing to anything. The catch-all "line" below
+              # claimed it, which is the reading a spike chart most needs not
+              # to have: a line says the samples are joined and the space
+              # between them can be interpolated (#239).
+              "lollipop"
             } else if (is_step_plot_type(plot_type)) {
               # type = "s" / "S" draw stairsteps. This test must precede the
               # catch-all "line" below, which would otherwise claim them.
@@ -308,7 +335,16 @@ BaseRAdapter <- R6::R6Class(
           # lines() never inspected `type` before, so lines(x, y, type = "s")
           # was reported as a plain line. The wrapper captures named dots, so
           # the stairstep request is available here just as it is for plot().
-          step_fallback <- if (is_step_plot_type(args$type)) "step" else "line"
+          # Same ladder the `plot()` branch above runs, so an overlay drawn
+          # with `type = "s"` or `type = "h"` reads as the shape it draws
+          # rather than as a plain line.
+          step_fallback <- if (is_step_plot_type(args$type)) {
+            "step"
+          } else if (is_spike_plot_type(args$type)) {
+            "lollipop"
+          } else {
+            "line"
+          }
           if (!is.null(first_arg)) {
             if (inherits(first_arg, "density")) {
               "smooth" # Existing: density curves
