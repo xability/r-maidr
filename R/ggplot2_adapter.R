@@ -152,13 +152,45 @@ Ggplot2Adapter <- R6::R6Class(
         return("rug")
       }
 
+      # `geom_polygon()` is `geom_path()` with its ends joined and its
+      # interior filled, and `GeomPath` has read as `"line"` for as long as
+      # this dispatch has existed -- so claiming it decides nothing new
+      # about what a series of vertices means. It makes two spellings of one
+      # mark behave alike, the same argument `GeomSpoke` is routed on above.
+      #
+      # It was the last geom in the #225 sweep left `"unknown"`, which drops
+      # the *whole plot* to a static image (#176). Measured on ggplot2
+      # 3.4.4, thirty points, `save_html()`:
+      #
+      #     geom_point()                     interactive SVG   52,708 bytes
+      #     geom_point() + geom_polygon()    base64 image      30,913 bytes
+      #
+      # Read rather than skipped, which #225 asked for explicitly: every
+      # geom skipped today carries no observations, and a polygon's
+      # vertices are rows the author supplied. Skipping one that is the data
+      # would drop it silently -- worse than the picture, because the reader
+      # is not told anything is missing.
+      #
+      # `class(...)[1]` as everywhere else in this dispatch, and here it
+      # does work: `GeomMap` inherits `GeomPolygon` -- measured, `GeomMap <
+      # GeomPolygon < Geom` -- so an `inherits()` test would claim the map
+      # layers #225 puts out of scope. `GeomViolin` and `GeomCrossbar` draw
+      # *through* `GeomPolygon` without inheriting it, so they never reach
+      # here at all; what they leave behind is grob names this layer's own
+      # search has to tell apart, which is the polygon processor's problem
+      # rather than this branch's.
+      if (geom_class == "GeomPolygon") {
+        return("polygon")
+      }
+
       # `geom_spoke()` is `geom_segment()` reparameterised: an angle and a
       # radius rather than an endpoint, and ggplot2's `GeomSpoke$setup_data()`
       # turns the pair into the `xend`/`yend` the segment branch already
       # reads. It is a `GeomSegment` *subclass* -- measured, `GeomSpoke <
       # GeomSegment < Geom` -- and still needs naming here, because this
-      # dispatch matches `class(geom)[1]` rather than asking `inherits()`. So it is dispatched here rather than given a rule of its own,
-      # and doing so decides nothing new -- it makes two spellings of one mark
+      # dispatch matches `class(geom)[1]` rather than asking `inherits()`.
+      # So it is dispatched here rather than given a rule of its own, and
+      # doing so decides nothing new -- it makes two spellings of one mark
       # behave alike. Measured on ggplot2 3.4.4:
       #
       #     geom_spoke(angle = 0.5, radius = 0.3)   spans lanes FALSE
