@@ -64,6 +64,8 @@ the results into a comprehensive interactive plot.
 
 - [`Ggplot2PlotOrchestrator$detect_layers()`](#method-Ggplot2PlotOrchestrator-detect_layers)
 
+- [`Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()`](#method-Ggplot2PlotOrchestrator-skip_layers_that_drew_nothing)
+
 - [`Ggplot2PlotOrchestrator$analyze_single_layer()`](#method-Ggplot2PlotOrchestrator-analyze_single_layer)
 
 - [`Ggplot2PlotOrchestrator$determine_layer_type()`](#method-Ggplot2PlotOrchestrator-determine_layer_type)
@@ -127,6 +129,48 @@ the results into a comprehensive interactive plot.
 #### Usage
 
     Ggplot2PlotOrchestrator$detect_layers()
+
+------------------------------------------------------------------------
+
+### `Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()`
+
+Retag every layer that drew no rows as `"skip"`.
+
+A layer can be typed perfectly well and still have nothing in it – a
+`data =` filtered to nothing, a stat that dropped every row, a facet
+arrangement in which one layer's data is empty, a **Suggests** package
+absent so the stat could not run. It then reaches the schema as a layer
+a reader can walk into and find nothing in. Measured on ten points, the
+second layer drawn from `d[0, ]`:
+
+
+    geom_point()   point(0)      an empty layer of points
+    geom_col()     bar(0)        an empty layer of bars
+    geom_line()    line(1x0)     one series, holding nothing
+    geom_smooth()  smooth(1x0)   one series, holding nothing
+
+Asked here rather than in `detect_layer_type()` because emptiness is not
+a fact about what *kind* of chart a layer is, and because the classifier
+runs per layer: one
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+for the whole pass costs a chart ~37 ms once, where asking per layer
+would multiply it. `"skip"` rather than a fourth answer, because that is
+the tag the rest of the orchestrator already understands – including the
+\#176 guard, so a chart whose *only* layer is empty falls back to an
+image rather than announcing itself as interactive with nothing in it.
+
+A build that cannot answer changes nothing. That is the same posture
+`layer_drew_nothing()` takes: a plot that will not build is a bigger
+problem than this, and it is about to be met by whatever else needs the
+build.
+
+#### Usage
+
+    Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()
+
+#### Returns
+
+NULL, invisibly. Rewrites `private$.layers` in place.
 
 ------------------------------------------------------------------------
 
