@@ -2,6 +2,41 @@
 
 ## Bug Fixes
 
+* A layer of a **recognised** type that drew nothing no longer reaches the
+  schema. #227 stopped an *unclaimed* empty layer from costing the chart its
+  interactivity; a layer typed on its geom got no such question, so it was
+  classified, a processor was built for it, and a reader was handed a layer
+  to walk into with nothing in it. Measured on ten points, the second layer
+  drawn from `d[0, ]`:
+
+  ```
+  geom_point()   point(10) point(0)      an empty layer of points
+  geom_col()     point(10) bar(0)        an empty layer of bars
+  geom_line()    point(10) line(1x0)     one series, holding nothing
+  geom_smooth()  point(10) smooth(1x0)   one series, holding nothing
+  ```
+
+  The two series cases are the worse ones: a reader is offered something to
+  walk into. The issue named the point and smooth spellings; the line and bar
+  ones were found on the way and are the same absence read two more ways.
+
+  Asked once per chart in the orchestrator, not per layer in the classifier.
+  That is what made this affordable -- an emptiness check at the top of
+  `detect_layer_type()` would have made every chart pay one `ggplot_build()`
+  *per layer*, which is why #231 applied it to one geom only. Measured on a
+  5,000-point two-layer chart: 3.38 s against 3.22 s, one build of 0.14 s,
+  and the same 0.14 s however many layers the chart has.
+
+  It is also the right place on its own terms. Emptiness is not a fact about
+  what *kind* of chart a layer is, so `detect_layer_type()` still answers
+  `point` for an empty `geom_point()` and the orchestrator is what decides
+  there is nothing to make a processor for.
+
+  A plot whose *only* layer is empty falls back to an image. The layer is
+  tagged `skip`, which is the tag the #176 guard already reads: a chart
+  announcing itself as interactive with nothing in it is worse than an image,
+  because an image at least says what it is.
+
 * The smooth processor no longer answers "which layer do I read?" with
   *somebody else's*. When a layer's own geom was one it could not read, it
   searched the plot's other layers for one drawing a curve and returned that
