@@ -25,11 +25,6 @@
 # not observations" for those spellings, which is worth less than a chart that
 # renders.
 
-skip_if_no_render <- function() {
-  testthat::skip_if_not_installed("ggplot2")
-  testthat::skip_if_not_installed("jsonlite")
-}
-
 positions <- ggplot2::aes(x = x, y = y)
 
 observations <- function() {
@@ -43,17 +38,7 @@ sampled <- function(geom = "function") {
     ggplot2::stat_function(fun = sin, geom = geom)
 }
 
-#' Render a plot and return its HTML
-rendered <- function(plot) {
-  file <- tempfile(fileext = ".html")
-  on.exit(unlink(file), add = TRUE)
-  suppressWarnings(suppressMessages(save_html(plot, file)))
-  paste(readLines(file, warn = FALSE), collapse = "\n")
-}
-
-fell_back <- function(html) {
-  grepl("base64", html, fixed = TRUE)
-}
+# `rendered()` and `fell_back()` live in `helper-render.R`.
 
 kind_of <- function(plot, index = 1L) {
   maidr:::Ggplot2Adapter$new()$detect_layer_type(plot$layers[[index]], plot)

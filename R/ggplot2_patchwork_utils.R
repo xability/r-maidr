@@ -405,11 +405,17 @@ augment_leaf_plot <- function(leaf_plot) {
   factory <- registry$get_processor_factory("ggplot2")
   adapter <- registry$get_adapter("ggplot2")
 
+  # A leaf is classified here rather than by the orchestrator, so the
+  # emptiness rule has to be asked here too -- otherwise a recognised layer
+  # that drew nothing reaches the schema inside a composition, which is the
+  # bug #232 fixed everywhere else. One build for the leaf, before the loop.
+  drew_nothing <- layers_that_drew_nothing(leaf_plot)
+
   augmented <- leaf_plot
   for (i in seq_along(leaf_plot$layers)) {
     layer <- leaf_plot$layers[[i]]
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
-    if (identical(layer_type, "skip")) {
+    if (identical(layer_type, "skip") || i %in% drew_nothing) {
       next
     }
     processor <- factory$create_processor(
@@ -572,6 +578,10 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     min(n_original_layers, length(leaf_plot$layers))
   }
 
+  # See `augment_leaf_plot()`: the emptiness rule is asked per leaf, because
+  # a leaf never passes through the orchestrator's own pass (#232).
+  drew_nothing <- layers_that_drew_nothing(leaf_plot)
+
   layers <- list()
   for (layer_idx in seq_len(n_layers)) {
     layer <- leaf_plot$layers[[layer_idx]]
@@ -582,8 +592,9 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
 
     # Layers tagged "skip" (e.g. tidyquant's wick layer, which is folded
-    # into the candlestick body layer) must not produce a maidr layer.
-    if (identical(layer_type, "skip")) {
+    # into the candlestick body layer) must not produce a maidr layer. A
+    # layer that drew no rows is the same answer reached a different way.
+    if (identical(layer_type, "skip") || layer_idx %in% drew_nothing) {
       next
     }
 
