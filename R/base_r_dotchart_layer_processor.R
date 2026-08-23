@@ -79,10 +79,11 @@ BaseRDotchartLayerProcessor <- R6::R6Class(
       }
       args <- layer_info$plot_call$args
 
-      values <- args$x
-      if (is.null(values)) {
-        values <- if (length(args) >= 1) args[[1]] else NULL
-      }
+      # `resolve_xy_args()` rather than `args$x`: `$` partial-matches, so a
+      # call whose first argument is recorded unnamed hands back `xlab` when
+      # the author wrote one -- `dotchart(v, xlab = "Value")` read "Value" as
+      # its values and emitted an empty layer (#245).
+      values <- resolve_xy_args(args)$x
       if (is.null(values) || is.language(values) || !is.numeric(values)) {
         return(list())
       }

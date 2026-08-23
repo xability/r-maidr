@@ -83,10 +83,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
         return(NULL)
       }
       args <- layer_info$plot_call$args
-      x <- args$x
-      if (is.null(x) && length(args) > 0) {
-        x <- args[[1]]
-      }
+      x <- resolve_xy_args(args)$x
       if (is.null(x)) {
         return(NULL)
       }
@@ -182,11 +179,9 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
         return(list())
       }
       args <- layer_info$plot_call$args
-      x <- args$x
-      if (is.null(x) && length(args) > 0) {
-        # chartSeries first positional argument is x
-        x <- args[[1]]
-      }
+      # `resolve_xy_args()` rather than `args$x`, which partial-matches any
+      # `x`-prefixed argument when the first is recorded unnamed -- see #245.
+      x <- resolve_xy_args(args)$x
       if (is.null(x)) {
         return(list())
       }
@@ -425,10 +420,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
         return(as.character(args$main))
       }
       # Fall back to series name from xts colnames if available
-      x <- args$x
-      if (is.null(x) && length(args) > 0) {
-        x <- args[[1]]
-      }
+      x <- resolve_xy_args(args)$x
       if (!is.null(x)) {
         cn <- tryCatch(colnames(x), error = function(e) NULL)
         if (!is.null(cn) && length(cn) > 0) {
