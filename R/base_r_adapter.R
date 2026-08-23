@@ -66,6 +66,23 @@ is_step_plot_type <- function(plot_type) {
   as.character(plot_type)[1] %in% c("s", "S")
 }
 
+#' Whether a `mosaicplot()` call was handed a two-way table
+#'
+#' A `mosaic` layer has one category axis and one fill, so it can carry a
+#' two-dimensional table and no more. `mosaicplot()` accepts deeper ones and
+#' splits them recursively.
+#'
+#' The table itself is resolved by `recorded_two_way_table()`, which the
+#' processor also reads, so dispatch and extraction cannot disagree about
+#' which calls are readable.
+#'
+#' @param args The arguments recorded from the `mosaicplot()` call.
+#' @return `TRUE` when the call's table has exactly two dimensions.
+#' @keywords internal
+is_two_way_table <- function(args) {
+  !is.null(recorded_two_way_table(args))
+}
+
 #' Whether a `dotchart()` call draws more than one group
 #'
 #' `dotchart()` draws a group per matrix column, or per level of `groups`,
@@ -290,6 +307,19 @@ BaseRAdapter <- R6::R6Class(
         # names silently dropped. Declined, which is where it already was.
         "dotchart" = {
           if (is_grouped_dotchart(args)) "unknown" else "dot"
+        },
+        # A two-way contingency table drawn as tiles, where the column
+        # widths encode data as well as the tile heights. Read as `mosaic`,
+        # which exists for exactly this shape; read as a stacked bar it
+        # would lose the widths, and the widths are half the table (#242).
+        #
+        # Only a two-dimensional table. `mosaicplot()` accepts three and
+        # more, splitting recursively, and a `mosaic` layer has one category
+        # axis and one fill -- so a deeper table has nowhere to put its
+        # later dimensions and is declined rather than flattened into a
+        # cross-classification the chart does not claim.
+        "mosaicplot" = {
+          if (is_two_way_table(args)) "mosaic" else "unknown"
         },
         "hist" = "hist",
         "boxplot" = "box",

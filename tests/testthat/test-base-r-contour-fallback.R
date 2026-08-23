@@ -112,15 +112,14 @@ test_that("it is read rather than turned into a picture", {
 test_that("it takes the same path an unclaimed call takes", {
   skip_unless_jsonlite()
 
-  # `mosaicplot` has no processor and nothing claims it does, so it degrades
+  # A call with no processor and nothing claiming it has one degrades
   # correctly. Asserted beside the contour so the two cannot drift.
   #
-  # It stands here in place of `dotchart`, which used to and no longer does:
-  # #237 named both as the two base R calls with an exact home in the
-  # grammar, and the dot chart got its processor first (#242). The point of
-  # this test is a *recorded call with no processor*, which is what
-  # `mosaicplot` still is.
-  result <- render_base_figure(function() mosaicplot(HairEyeColor[, , 1]))
+  # Which call plays the part lives in `helper.R`, because it keeps moving:
+  # `dotchart` stood here until #242 gave it a processor, then `mosaicplot`
+  # until #242's remainder gave it one. The subject is a *recorded call with
+  # no processor*, not any particular function.
+  result <- render_base_figure(draw_unread_base_r_chart)
 
   expect_true(result$fell_back)
   expect_true(result$warned)

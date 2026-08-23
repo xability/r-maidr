@@ -123,14 +123,13 @@ test_that("each of the eight falls back to a picture, and says so", {
 test_that("it is the same path a recorded-but-unread call already took", {
   skip_unless_jsonlite()
 
-  # `mosaicplot` degrades correctly, being in HIGH with no processor.
-  # Asserted beside the eight so the two cannot drift apart.
+  # A HIGH call with no processor degrades correctly. Asserted beside the
+  # eight so the two cannot drift apart.
   #
-  # It stands here in place of `dotchart`, which used to and no longer does:
-  # the dot chart gained a processor in #242, so it is no longer an example
-  # of a recorded-but-unread call. `mosaicplot` is the other one #237 named,
-  # and still is.
-  result <- save_base_figure(function() mosaicplot(HairEyeColor[, , 1]))
+  # Which call plays the part lives in `helper.R`, because it keeps moving:
+  # `dotchart` stood here until #242, then `mosaicplot` until #242's
+  # remainder. The subject is a recorded-but-unread call, not a function.
+  result <- save_base_figure(draw_unread_base_r_chart)
 
   expect_null(result$error)
   expect_true(result$fell_back)

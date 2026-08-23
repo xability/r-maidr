@@ -21,7 +21,6 @@ magnitudes, so none are emitted here.
     \item \href{#method-BaseRPieLayerProcessor-extract_data}{\code{BaseRPieLayerProcessor$extract_data()}}
     \item \href{#method-BaseRPieLayerProcessor-resolve_slice_labels}{\code{BaseRPieLayerProcessor$resolve_slice_labels()}}
     \item \href{#method-BaseRPieLayerProcessor-generate_selectors}{\code{BaseRPieLayerProcessor$generate_selectors()}}
-    \item \href{#method-BaseRPieLayerProcessor-find_polygon_grobs}{\code{BaseRPieLayerProcessor$find_polygon_grobs()}}
     \item \href{#method-BaseRPieLayerProcessor-extract_axis_titles}{\code{BaseRPieLayerProcessor$extract_axis_titles()}}
     \item \href{#method-BaseRPieLayerProcessor-extract_main_title}{\code{BaseRPieLayerProcessor$extract_main_title()}}
     \item \href{#method-BaseRPieLayerProcessor-clone}{\code{BaseRPieLayerProcessor$clone()}}
@@ -179,29 +178,6 @@ those slices are announced by position rather than as "NA".
   }
   \subsection{Returns}{
     List of CSS selector strings, one per slice
-  }
-}
-
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-BaseRPieLayerProcessor-find_polygon_grobs"></a>}}
-\if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-find_polygon_grobs}{}}}
-\subsection{\code{BaseRPieLayerProcessor$find_polygon_grobs()}}{
-  Recursively collect this plot's wedge polygon grob names
-  \subsection{Usage}{
-    \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRPieLayerProcessor$find_polygon_grobs(grob, plot_index)}
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Arguments}{
-    \if{html}{\out{<div class="arguments">}}
-    \describe{
-      \item{\code{grob}}{The grob tree to search}
-      \item{\code{plot_index}}{The plot (panel) index to match}
-    }
-    \if{html}{\out{</div>}}
-  }
-  \subsection{Returns}{
-    Character vector of grob names
   }
 }
 

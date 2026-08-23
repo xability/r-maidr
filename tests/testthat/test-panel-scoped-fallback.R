@@ -292,12 +292,13 @@ test_that("an unsupported HIGH-level plot falls back as a whole figure", {
   # to survive the SVG export. The figure keeps the whole-figure fallback so
   # it renders as a correct image rather than failing mid-export.
   #
-  # mosaicplot() is classified HIGH and has no layer type, so it reaches this
-  # branch. pie() used to stand in here and no longer can: it is supported.
+  # The second panel is a HIGH call with no layer type, so it reaches this
+  # branch. Which call that is lives in `helper.R` -- pie() stood here, then
+  # mosaicplot(), and both are supported now.
   orchestrator <- build_orchestrator(function() {
     par(mfrow = c(1, 2))
     plot(1:5, 1:5)
-    mosaicplot(matrix(c(10, 20, 30, 40), nrow = 2))
+    draw_unread_base_r_chart()
     par(mfrow = c(1, 1))
   })
   on.exit(maidr:::clear_all_device_storage(), add = TRUE)
