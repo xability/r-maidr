@@ -322,6 +322,20 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
       class(plot$layers[[target]]$geom)[1]
     },
 
+    #' @description Which grid grob class a segment-family geom draws
+    #' @details
+    #'   \code{geom_curve()} draws a \code{curve} grob and everything else in
+    #'   the family -- \code{geom_segment()}, and \code{geom_spoke()} which is
+    #'   a \code{GeomSegment} subclass -- draws \code{segments}. Asked of the
+    #'   geom rather than assumed from the layer type, because it decides both
+    #'   which grobs \code{find_segments_name()} gathers and which layers it
+    #'   counts itself among, and those two have to be the same population.
+    #' @param geom The layer's geom object
+    #' @return \code{"curve"} or \code{"segments"}
+    segments_grob_class = function(geom) {
+      if (identical(class(geom)[1], "GeomCurve")) "curve" else "segments"
+    },
+
     #' @description Find the name of the grob holding this layer's segments
     #'
     #'   The base class's \code{find_layer_grob_tree()} cannot serve here, and
@@ -352,16 +366,34 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      # Counted among its own kind, not among gantt layers generally: a
-      # `geom_curve()` after a `geom_segment()` is the *first* curve grob of
-      # the panel, and counting both together would send it to the second
-      # segments grob -- which does not exist.
-      geom_class <- class(plot$layers[[target]]$geom)[1]
-      grob_class <- if (identical(geom_class, "GeomCurve")) "curve" else "segments"
+      # Counted among the layers drawing the *same grob class*, not among
+      # gantt layers generally and not among layers of the same geom either.
+      #
+      # Not generally, because a `geom_curve()` after a `geom_segment()` is
+      # the first curve grob of the panel, and counting both together would
+      # send it to the second segments grob -- which does not exist.
+      #
+      # Not by geom, because two different geoms can draw one grob class:
+      # `geom_spoke()` is a `GeomSegment` subclass and draws `segments` too
+      # (#225). Counting by geom gave a segment layer and a spoke layer
+      # `position == 1` apiece while `names` held one entry for each, so both
+      # resolved to the first grob and the second layer highlighted the
+      # first's intervals while announcing its own. Measured before the fix,
+      # a two-lane segment layer and a three-lane spoke layer:
+      #
+      #     gantt (2 lanes)  GRID.segments.1.1.1  GRID.segments.1.1.2
+      #     gantt (3 lanes)  GRID.segments.1.1.1  GRID.segments.1.1.2  ...
+      #
+      # `grob_class` is what `collect()` below gathers by, so counting on it
+      # is counting the same population the index is into.
+      grob_class <- self$segments_grob_class(plot$layers[[target]]$geom)
 
       position <- 0L
       for (i in seq_along(plot$layers)) {
-        if (identical(class(plot$layers[[i]]$geom)[1], geom_class)) {
+        same <- identical(
+          self$segments_grob_class(plot$layers[[i]]$geom), grob_class
+        )
+        if (same) {
           position <- position + 1L
           if (i == target) break
         }

@@ -155,7 +155,9 @@ Ggplot2Adapter <- R6::R6Class(
       # `geom_spoke()` is `geom_segment()` reparameterised: an angle and a
       # radius rather than an endpoint, and ggplot2's `GeomSpoke$setup_data()`
       # turns the pair into the `xend`/`yend` the segment branch already
-      # reads. So it is dispatched here rather than given a rule of its own,
+      # reads. It is a `GeomSegment` *subclass* -- measured, `GeomSpoke <
+      # GeomSegment < Geom` -- and still needs naming here, because this
+      # dispatch matches `class(geom)[1]` rather than asking `inherits()`. So it is dispatched here rather than given a rule of its own,
       # and doing so decides nothing new -- it makes two spellings of one mark
       # behave alike. Measured on ggplot2 3.4.4:
       #

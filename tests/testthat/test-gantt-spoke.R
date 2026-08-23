@@ -3,9 +3,10 @@
 # A spoke is `geom_segment()` reparameterised: an angle and a radius rather
 # than an endpoint. `GeomSpoke$setup_data()` turns the pair into the same
 # `xend`/`yend` columns the segment branch already reads, so ggplot2 has done
-# the work before any of this is asked -- but `GeomSpoke` is a direct `Geom`
-# subclass and matched no branch, so it reached the unknown processor and took
-# the whole plot with it.
+# the work before any of this is asked -- but the dispatch matches
+# `class(geom)[1]` rather than asking `inherits()`, and the chain is
+# `GeomSpoke < GeomSegment < Geom`, so the subclass matched no branch, reached
+# the unknown processor and took the whole plot with it.
 #
 # Measured on ggplot2 3.4.4 with `save_html()`, the same thirty-point scatter
 # in each row:
@@ -176,6 +177,37 @@ test_that("a chart is not taken down by a spoke drawn beside it", {
     vapply(layers, function(one) one$type, character(1)),
     c("point", "gantt")
   )
+})
+
+
+test_that("a segment layer and a spoke layer address their own grobs", {
+  skip_if_no_render()
+
+  # Caught in review on #226, and introduced by this change: both geoms draw
+  # a `segments` grob, and `find_segments_name()` counted a layer's position
+  # among layers of the same *geom class* while indexing into a list gathered
+  # by *grob class*. Two layers, one entry each, and `position == 1` apiece --
+  # so both resolved to the first grob and the spoke highlighted the segment's
+  # intervals while announcing its own. Measured before the fix:
+  #
+  #     gantt (2 lanes)  GRID.segments.1.1.1  GRID.segments.1.1.2
+  #     gantt (3 lanes)  GRID.segments.1.1.1  GRID.segments.1.1.2  ...
+  #
+  # `geom_curve()` never collided: it draws a `curve` grob, so the two
+  # populations were the same one until a second geom joined `segments`.
+  edges <- data.frame(x = c(0, 2), y = c(5, 6), xend = c(4, 7), yend = c(5, 6))
+  plot <- ggplot2::ggplot() +
+    ggplot2::geom_segment(
+      data = edges,
+      ggplot2::aes(x = x, xend = xend, y = y, yend = yend)
+    ) +
+    ggplot2::geom_spoke(data = schedule(), mapping = flat_spokes)
+
+  layers <- layers_from(rendered(plot))
+  first <- unlist(layers[[1]]$selectors)
+  second <- unlist(layers[[2]]$selectors)
+
+  testthat::expect_length(intersect(first, second), 0L)
 })
 
 

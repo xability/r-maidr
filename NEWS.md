@@ -14,6 +14,15 @@
   spoke layer beside it went from an interactive SVG to a base64 image and lost
   every one of its points.
 
+  A gantt layer now counts its position among the layers drawing the same
+  **grob class** rather than among layers of the same geom, which is the
+  population the grob list it indexes into was gathered by. The two were the
+  same set until a spoke joined `geom_segment()` in drawing a `segments` grob:
+  a chart with one layer of each gave both `position == 1`, so they resolved to
+  the same grob and the second highlighted the first's intervals while
+  announcing its own. `geom_curve()` never collided, because it draws a `curve`
+  grob instead.
+
 * A Base R `contour()` is now read as the contour it draws, instead of falling
   back to a static image. The curves come from `grDevices::contourLines()`,
   which is the computation `contour()` itself does and takes the same defaults
