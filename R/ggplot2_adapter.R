@@ -169,7 +169,10 @@ Ggplot2Adapter <- R6::R6Class(
       # written the other way round, a lane per y running from x to x + r,
       # and was costing its chart every bit of interactivity (#225).
       if (geom_class %in% c("GeomSegment", "GeomCurve", "GeomSpoke")) {
-        return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
+        if (self$segments_span_lanes(layer, plot_object)) {
+          return("gantt")
+        }
+        return(self$unread_layer_type(layer, plot_object))
       }
 
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
@@ -378,7 +381,7 @@ Ggplot2Adapter <- R6::R6Class(
         return("skip")
       }
 
-      "unknown"
+      self$unread_layer_type(layer, plot_object)
     },
 
     #' @description Check if a bar layer is drawn as pie wedges
@@ -604,6 +607,73 @@ Ggplot2Adapter <- R6::R6Class(
       }
 
       !is.null(segment_lane_axis(built$data[[index]]))
+    },
+
+    #' @description The answer for a layer no branch above claimed
+    #'
+    #' \code{"unknown"} is what makes \code{has_unsupported_layers()} true and
+    #' drops the whole plot to a static image. That is right for a layer
+    #' carrying marks nothing describes: a filled \code{geom_polygon()} is
+    #' drawn, and a reader told the chart was complete would be told wrong.
+    #'
+    #' It is not right for a layer that drew nothing. Then there is no mark,
+    #' so there is nothing the reader is missing, and the chart pays
+    #' everything to protect them from an absence. Measured with
+    #' \code{save_html()} on thirty points:
+    #'
+    #' \preformatted{
+    #' geom_point()                                interactive   50,406 bytes
+    #' geom_point() + geom_point(data = d[0, ])    interactive   51,313 bytes
+    #' geom_point() + geom_polygon(data = d[0, ])  base64 image  27,368 bytes
+    #' geom_point() + geom_polygon()               base64 image  31,848 bytes
+    #' }
+    #'
+    #' Rows two and three are the same chart in every way a reader could tell
+    #' -- thirty points and a layer of nothing -- and only one of them was
+    #' interactive, because its empty layer happened to be of a \emph{kind}
+    #' this function names. Row four is the case the fallback exists for, and
+    #' it keeps falling back.
+    #'
+    #' The case this turns up in is not contrived: a missing \strong{Suggests}
+    #' package. \code{geom_quantile()} without \pkg{quantreg} warns, computes
+    #' no rows and draws nothing; ggplot2 carries on and r-maidr turned the
+    #' whole figure into a picture, with no second warning connecting the two
+    #' (#227).
+    #'
+    #' A plot made only of such layers still falls back, for the reason #176
+    #' gives: \code{has_unsupported_layers()} is true when \emph{every} layer
+    #' is \code{"skip"} as well, so "nothing unsupported" cannot quietly come
+    #' to mean "nothing at all".
+    #'
+    #' Nothing here decides which geoms are readable. A \code{geom_polygon()}
+    #' with data in it is still \code{"unknown"} and still costs its chart
+    #' exactly what it costs today.
+    #'
+    #' @param layer The layer being classified
+    #' @param plot_object The ggplot2 plot object
+    #' @return \code{"skip"} when the layer drew no rows, \code{"unknown"}
+    #'   otherwise
+    unread_layer_type = function(layer, plot_object) {
+      built <- tryCatch(
+        ggplot2::ggplot_build(plot_object),
+        error = function(e) NULL
+      )
+      if (is.null(built)) {
+        return("unknown")
+      }
+
+      index <- self$find_layer_index(plot_object, layer)
+      if (is.null(index) || index < 1L || index > length(built$data)) {
+        return("unknown")
+      }
+
+      # `isTRUE` rather than a bare comparison, so that absent is not read as
+      # empty: `nrow(NULL)` is `NULL`, and `NULL == 0L` is `logical(0)` rather
+      # than either answer. A build that said nothing about what this layer
+      # drew declines, which keeps a drawn-but-unreadable mark from being
+      # waved through -- and it declines without a branch of its own, which
+      # would be one no chart can reach and so no test can hold.
+      if (isTRUE(nrow(built$data[[index]]) == 0L)) "skip" else "unknown"
     }
   )
 )

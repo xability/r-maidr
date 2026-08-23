@@ -30,6 +30,7 @@ ggplot2 functionality to work with the new extensible architecture.
     \item \href{#method-Ggplot2Adapter-is_patchwork}{\code{Ggplot2Adapter$is_patchwork()}}
     \item \href{#method-Ggplot2Adapter-ribbon_is_area}{\code{Ggplot2Adapter$ribbon_is_area()}}
     \item \href{#method-Ggplot2Adapter-segments_span_lanes}{\code{Ggplot2Adapter$segments_span_lanes()}}
+    \item \href{#method-Ggplot2Adapter-unread_layer_type}{\code{Ggplot2Adapter$unread_layer_type()}}
     \item \href{#method-Ggplot2Adapter-clone}{\code{Ggplot2Adapter$clone()}}
   }
 }
@@ -347,6 +348,68 @@ missing a quarter of its chart.
   }
   \subsection{Returns}{
     TRUE when the layer's segments lay intervals in lanes
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-unread_layer_type"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-unread_layer_type}{}}}
+\subsection{\code{Ggplot2Adapter$unread_layer_type()}}{
+  The answer for a layer no branch above claimed
+
+\code{"unknown"} is what makes \code{has_unsupported_layers()} true and
+drops the whole plot to a static image. That is right for a layer
+carrying marks nothing describes: a filled \code{geom_polygon()} is
+drawn, and a reader told the chart was complete would be told wrong.
+
+It is not right for a layer that drew nothing. Then there is no mark,
+so there is nothing the reader is missing, and the chart pays
+everything to protect them from an absence. Measured with
+\code{save_html()} on thirty points:
+
+\preformatted{
+geom_point()                                interactive   50,406 bytes
+geom_point() + geom_point(data = d[0, ])    interactive   51,313 bytes
+geom_point() + geom_polygon(data = d[0, ])  base64 image  27,368 bytes
+geom_point() + geom_polygon()               base64 image  31,848 bytes
+}
+
+Rows two and three are the same chart in every way a reader could tell
+-- thirty points and a layer of nothing -- and only one of them was
+interactive, because its empty layer happened to be of a \emph{kind}
+this function names. Row four is the case the fallback exists for, and
+it keeps falling back.
+
+The case this turns up in is not contrived: a missing \strong{Suggests}
+package. \code{geom_quantile()} without \pkg{quantreg} warns, computes
+no rows and draws nothing; ggplot2 carries on and r-maidr turned the
+whole figure into a picture, with no second warning connecting the two
+(#227).
+
+A plot made only of such layers still falls back, for the reason #176
+gives: \code{has_unsupported_layers()} is true when \emph{every} layer
+is \code{"skip"} as well, so "nothing unsupported" cannot quietly come
+to mean "nothing at all".
+
+Nothing here decides which geoms are readable. A \code{geom_polygon()}
+with data in it is still \code{"unknown"} and still costs its chart
+exactly what it costs today.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2Adapter$unread_layer_type(layer, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The layer being classified}
+      \item{\code{plot_object}}{The ggplot2 plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{"skip"} when the layer drew no rows, \code{"unknown"}
+otherwise
   }
 }
 
