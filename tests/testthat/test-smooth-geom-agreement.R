@@ -67,9 +67,12 @@ test_that("a function drawn as points renders instead of raising", {
   # found in plot" and stop the caller's script.
   plot <- sampled("point")
 
-  testthat::expect_no_error(suppressWarnings(rendered(plot)))
+  # One render, three claims about it. `rendered()` runs `save_html()` and
+  # round-trips a temp file, so asking twice costs twice.
+  html <- NULL
+  testthat::expect_no_error(html <- suppressWarnings(rendered(plot)))
   testthat::expect_equal(kind_of(plot), "point")
-  testthat::expect_false(fell_back(rendered(plot)))
+  testthat::expect_false(fell_back(html))
 })
 
 
@@ -83,9 +86,10 @@ test_that("a function drawn as a staircase declines instead of raising", {
   # crash.
   plot <- sampled("step")
 
-  testthat::expect_no_error(suppressWarnings(rendered(plot)))
+  html <- NULL
+  testthat::expect_no_error(html <- suppressWarnings(rendered(plot)))
   testthat::expect_equal(kind_of(plot), "unknown")
-  testthat::expect_true(fell_back(rendered(plot)))
+  testthat::expect_true(fell_back(html))
 })
 
 

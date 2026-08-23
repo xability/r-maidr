@@ -129,14 +129,27 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         return(layer_index)
       }
 
-      # Deliberately not the same list as `is_smooth_like` above:
-      # `GeomQuantile` is missing here. This search only runs when the
-      # layer's *own* geom was rejected, which a quantile layer's never is,
-      # so adding it would reach nothing -- except the case #230 describes,
-      # where a `smooth` type arrives on a geom neither list names and the
-      # render stops. Answering that by quietly pairing it with someone
-      # else's curve would announce one layer's fit as another's, which is
-      # worse than the error, so it is left to that issue to decide.
+      # Deliberately not `smooth_reads_geom`'s list -- and, since #230, not
+      # reached by any render at all.
+      #
+      # This search runs only when the layer's own geom was rejected above,
+      # and the classifier now types a layer "smooth" only when
+      # `smooth_reads_geom()` accepts its geom, so the early return always
+      # fires first. Measured: instrumented on the full suite, the search is
+      # entered exactly three times, every one of them from
+      # `test-ggplot2-smooth-layer-processor.R:241`, which hands the
+      # processor a `GeomBar` plot directly to assert this `stop()`. No
+      # render reaches it.
+      #
+      # Left standing rather than deleted, because it is what a caller
+      # constructing the processor by hand meets, and an error is the right
+      # answer there. Widening it to match `smooth_reads_geom` would only
+      # change which unreachable branch runs; taking it out is a separate
+      # change with its own reasoning (#234).
+      #
+      # What it must *not* become is a search that succeeds for a layer the
+      # processor could not read: pairing one layer's data with another's
+      # curve announces one fit as another's, which is worse than the error.
       smooth_layers <- which(sapply(plot$layers, function(layer) {
         inherits(layer$geom, "GeomSmooth") ||
           inherits(layer$geom, "GeomLine") ||
