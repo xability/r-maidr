@@ -129,38 +129,29 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         return(layer_index)
       }
 
-      # Deliberately not `smooth_reads_geom`'s list -- and, since #230, not
-      # reached by any render at all.
+      # There used to be a search here for *some other* layer drawing a
+      # curve, taken when the own geom was rejected. It carried its own list
+      # of four geoms -- a third copy, next to `smooth_reads_geom`'s six and
+      # the dispatch's -- and #230 made it unreachable: a processor is built
+      # only for a layer the classifier typed, and the classifier now types
+      # `"smooth"` only when `smooth_reads_geom()` accepts the geom, so the
+      # early return above always fires first. Measured before removing it,
+      # instrumented on the full suite: entered three times, every one from
+      # the test below that hands this processor a bar plot by hand. No
+      # render reached it (#234).
       #
-      # This search runs only when the layer's own geom was rejected above,
-      # and the classifier now types a layer "smooth" only when
-      # `smooth_reads_geom()` accepts its geom, so the early return always
-      # fires first. Measured: instrumented on the full suite, the search is
-      # entered exactly three times, every one of them from
-      # `test-ggplot2-smooth-layer-processor.R:241`, which hands the
-      # processor a `GeomBar` plot directly to assert this `stop()`. No
-      # render reaches it.
-      #
-      # Left standing rather than deleted, because it is what a caller
-      # constructing the processor by hand meets, and an error is the right
-      # answer there. Widening it to match `smooth_reads_geom` would only
-      # change which unreachable branch runs; taking it out is a separate
-      # change with its own reasoning (#234).
-      #
-      # What it must *not* become is a search that succeeds for a layer the
-      # processor could not read: pairing one layer's data with another's
-      # curve announces one fit as another's, which is worse than the error.
-      smooth_layers <- which(sapply(plot$layers, function(layer) {
-        inherits(layer$geom, "GeomSmooth") ||
-          inherits(layer$geom, "GeomLine") ||
-          inherits(layer$geom, "GeomDensity") ||
-          inherits(layer$geom, "GeomFunction")
-      }))
-
-      if (length(smooth_layers) == 0) {
-        stop("No smooth curve layers found in plot")
-      }
-      smooth_layers[1]
+      # What it could never be allowed to become is the reason it is gone
+      # rather than widened. Succeeding here means pairing one layer's data
+      # with a sibling's curve, which announces one layer's fit as another's
+      # -- worse than the error, and the wider its list the likelier it got
+      # there. A caller who constructs this processor against a layer it
+      # cannot read is asking a question with no honest answer, and now gets
+      # told so directly.
+      stop(
+        "No smooth curve layers found in plot: ",
+        class(own_layer$geom)[[1]],
+        " is not a geom this processor can read"
+      )
     },
 
     #' @description Built data for this layer, restricted to one facet panel.

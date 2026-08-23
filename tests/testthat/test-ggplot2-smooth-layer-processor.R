@@ -242,6 +242,33 @@ test_that("Ggplot2SmoothLayerProcessor errors when no smooth layer found", {
     processor$extract_data(p),
     "No smooth curve layers found"
   )
+  # The geom is named, so a caller who reached this by hand can see which
+  # layer it was asked about (#234).
+  testthat::expect_error(processor$extract_data(p), "GeomBar")
+})
+
+
+test_that("a sibling's curve is not read as an unreadable layer's own", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # #234. This used to search the *other* layers for one drawing a curve and
+  # return its index, so a bar layer beside a `geom_smooth()` came back with
+  # the smooth's fitted values as its own data -- one layer's fit announced
+  # as another's. Unreachable through the dispatch, which only builds this
+  # processor for a layer it typed `"smooth"`, but the honest answer to a
+  # question with no answer is to say so.
+  frame <- data.frame(x = c(1, 2, 3, 4, 5), y = c(2, 4, 5, 4, 6))
+  p <- ggplot2::ggplot(frame, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_col() +
+    ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE)
+
+  # Index 1 is the bar, which this processor cannot read; index 2 is the
+  # smooth, which it can.
+  bar <- maidr:::Ggplot2SmoothLayerProcessor$new(list(index = 1))
+  smooth <- maidr:::Ggplot2SmoothLayerProcessor$new(list(index = 2))
+
+  testthat::expect_error(bar$extract_data(p), "No smooth curve layers found")
+  testthat::expect_type(smooth$extract_data(p), "list")
 })
 
 test_that("Ggplot2SmoothLayerProcessor polyline collection is recursive", {
