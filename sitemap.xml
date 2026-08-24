@@ -28,6 +28,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRQqLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSmoothLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSpikeLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRSpineplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStackedBarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStepLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStripchartLayerProcessor.html</loc></url>
@@ -291,6 +292,7 @@
 <url><loc>https://r.maidr.ai/reference/rdp.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_axis_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_two_way_table.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/rect_cell_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/register_ggplot2_print_method.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr_widget.html</loc></url>

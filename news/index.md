@@ -5,6 +5,37 @@
 ### New Features
 
 - Base R
+  [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  now read as the two-way contingency table it draws, instead of falling
+  back to a static image. It is a mosaic – one column per level of `x`,
+  its width that level’s share of all observations, split vertically by
+  `y`’s conditional proportions inside it – so it gets the reading
+  [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  already has, including the column widths a stacked bar would have
+  lost.
+
+  Two things differ from
+  [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md). Its
+  table has to be **replayed**:
+  [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  handed a table, while
+  [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  handed the two variables and builds one, and unlike
+  [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) it has
+  no `plot` argument to be asked for the table without drawing. It does
+  return what it drew, so the recorded call is replayed on a throwaway
+  device. That matters most for a numeric `x`, which `spineplot` cuts
+  into bins by its own rule: the categories announced are the intervals
+  the chart labels its axis with, which no re-derivation would have got
+  right by accident.
+
+  And its tiles are one grob rather than many, so the cells are
+  addressed as its exported sub-elements. The order was measured off the
+  drawing – column-major, with the last fill level drawn first inside a
+  column, which is the opposite of the mosaic’s. A cell of zero is still
+  drawn, with zero height, so no later tile’s index shifts.
+
+- Base R
   [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   is now read as the contour it draws, instead of falling back to a
   static image. It draws the same level curves
