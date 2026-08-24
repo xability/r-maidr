@@ -346,6 +346,12 @@ BaseRAdapter <- R6::R6Class(
         "qqplot" = {
           if (is.null(args[["conf.level"]])) "qq" else "unknown"
         },
+        # A one-dimensional scatter: every observation as its own mark,
+        # laid along a value axis at its group's position. Read as `point`,
+        # one layer per group, which is what the drawing forces -- gridSVG
+        # exports one `points` grob per group -- and what the same chart
+        # already gets in py-maidr (#251).
+        "stripchart" = "strip",
         "hist" = "hist",
         "boxplot" = "box",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the
