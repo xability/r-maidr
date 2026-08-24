@@ -86,10 +86,14 @@ NULL
     # `plot(acf(x, plot = FALSE))` all record, because `plot` is listed.
     # These are the entry points that draw *without* the generic.
     #
-    # Listed, not read: the lower claim again. `bxp` and `stars` are the two
-    # whose reading is already a type MAIDR has -- a box plot from
-    # precomputed stats, and a radar of one glyph per row -- and #262 records
-    # the candidates for the rest.
+    # Listed, not read: the lower claim again -- except for `bxp`, which has
+    # since gained the reading it was named as a candidate for. It draws the
+    # same marks `boxplot()` does, from the summaries it is handed instead of
+    # from observations, so it takes the `box` layer through a subclass that
+    # only overrides where the summaries come from. Gaining that reading did
+    # not touch this list, which is the point the paragraph above makes:
+    # being recorded and being read are separate steps. #262 records the
+    # candidates for the rest, `stars` among them.
     "acf",
     "pacf",
     "ccf",

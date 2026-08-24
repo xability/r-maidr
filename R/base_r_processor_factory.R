@@ -58,6 +58,10 @@ BaseRProcessorFactory <- R6::R6Class(
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
+        # A box plot handed its summaries rather than its observations. The
+        # separate name routes it to the subclass that reads them out of the
+        # call; the layer it emits is a `box` like any other.
+        "box_stats" = BaseRBxpLayerProcessor$new(layer_info),
         "violin" = BaseRViolinLayerProcessor$new(layer_info),
         "pie" = BaseRPieLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
@@ -91,6 +95,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "mosaic",
         "hist",
         "box",
+        "box_stats",
         "pie",
         "heat",
         # Back on the list with `BaseRContourLayerProcessor` behind it (#218).

@@ -392,6 +392,14 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 #
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
+#
+# **One of the twelve has since moved past the fallback.** `bxp()` is read as
+# the box plot it draws -- it is `boxplot()`'s own drawing half, handed the
+# five-number summaries instead of the observations, and it puts the same
+# marks on the page. The lists below are split accordingly, and `bxp` is
+# asserted to be *read* rather than dropped from the file: what #262
+# established about it is that a recorded call never stops the save, and that
+# still has to hold on the far side of gaining a reading.
 
 DRAWS_DIRECTLY <- local({
   set.seed(5)
@@ -411,24 +419,32 @@ DRAWS_DIRECTLY <- local({
     spectrum = function() spectrum(v),
     lag.plot = function() lag.plot(seasonal),
     termplot = function() termplot(stats::lm(v ~ seq_along(v))),
-    stars = function() stars(abs(m)),
-    bxp = function() bxp(boxplot(v, plot = FALSE))
+    stars = function() stars(abs(m))
   )
 })
+
+# The one of the twelve that is now read.
+DRAWS_DIRECTLY_READ <- list(
+  bxp = function() bxp(boxplot(stats::rnorm(60), plot = FALSE))
+)
+
+DRAWS_DIRECTLY_ALL <- c(DRAWS_DIRECTLY, DRAWS_DIRECTLY_READ)
 
 test_that("a call that draws without plot() no longer stops the save", {
   skip_unless_jsonlite()
 
-  for (name in names(DRAWS_DIRECTLY)) {
+  # Read and unread alike. This is #262's claim and it does not weaken as a
+  # name moves from one list to the other.
+  for (name in names(DRAWS_DIRECTLY_ALL)) {
     result <- save_base_figure(function() {
-      invisible(utils::capture.output(suppressWarnings(DRAWS_DIRECTLY[[name]]())))
+      invisible(utils::capture.output(suppressWarnings(DRAWS_DIRECTLY_ALL[[name]]())))
     })
 
     expect_null(result$error, info = name)
   }
 })
 
-test_that("each of them degrades to the picture rather than to nothing", {
+test_that("the eleven still unread degrade to the picture rather than to nothing", {
   skip_unless_jsonlite()
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure
@@ -441,6 +457,22 @@ test_that("each of them degrades to the picture rather than to nothing", {
 
     expect_true(result$fell_back, info = name)
   }
+})
+
+test_that("bxp() ships a box plot rather than a picture of one", {
+  skip_unless_jsonlite()
+
+  # The upper claim, for the one of the twelve that has it. Before the
+  # reading this call fell back with "Plot contains unsupported elements";
+  # `boxplot()` on the same numbers never did, and the two draw the same
+  # marks.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$bxp)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_false(result$warned)
+  # The payload is HTML-escaped inside the `maidr-data` attribute.
+  expect_match(result$html, "&quot;type&quot;:&quot;box&quot;", fixed = TRUE)
 })
 
 test_that("what reaches stats plots through plot() still reads", {
