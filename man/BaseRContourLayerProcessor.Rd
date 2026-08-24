@@ -40,6 +40,7 @@ one chart the same way.
     \item \href{#method-BaseRContourLayerProcessor-read_curves}{\code{BaseRContourLayerProcessor$read_curves()}}
     \item \href{#method-BaseRContourLayerProcessor-extract_data}{\code{BaseRContourLayerProcessor$extract_data()}}
     \item \href{#method-BaseRContourLayerProcessor-contour_grid}{\code{BaseRContourLayerProcessor$contour_grid()}}
+    \item \href{#method-BaseRContourLayerProcessor-default_nlevels}{\code{BaseRContourLayerProcessor$default_nlevels()}}
     \item \href{#method-BaseRContourLayerProcessor-extract_axis_titles}{\code{BaseRContourLayerProcessor$extract_axis_titles()}}
     \item \href{#method-BaseRContourLayerProcessor-extract_main_title}{\code{BaseRContourLayerProcessor$extract_main_title()}}
     \item \href{#method-BaseRContourLayerProcessor-generate_selectors}{\code{BaseRContourLayerProcessor$generate_selectors()}}
@@ -196,6 +197,26 @@ wrong, and nothing raised.
   }
   \subsection{Returns}{
     A list of \code{x}, \code{y}, \code{z} and \code{levels}, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRContourLayerProcessor-default_nlevels"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRContourLayerProcessor-default_nlevels}{}}}
+\subsection{\code{BaseRContourLayerProcessor$default_nlevels()}}{
+  How many levels the drawing function defaults to
+
+\code{contour.default} defaults to 10 and \code{filled.contour} to 20, and the
+number decides the whole announced set: \code{pretty(zlim, nlevels)}. The
+two are otherwise resolved identically, so the difference lives here
+rather than in a second copy of \code{contour_grid()}.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRContourLayerProcessor$default_nlevels()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The default \code{nlevels} for this call
   }
 }
 

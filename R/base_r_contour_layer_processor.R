@@ -204,7 +204,7 @@ BaseRContourLayerProcessor <- R6::R6Class(
       levels <- args[["levels"]]
       if (is.null(levels)) {
         nlevels <- args[["nlevels"]]
-        if (is.null(nlevels)) nlevels <- 10
+        if (is.null(nlevels)) nlevels <- self$default_nlevels()
         zlim <- args[["zlim"]]
         if (is.null(zlim)) zlim <- range(finite)
         levels <- pretty(zlim, nlevels)
@@ -216,6 +216,17 @@ BaseRContourLayerProcessor <- R6::R6Class(
 
       list(x = as.numeric(x), y = as.numeric(y), z = z,
            levels = as.numeric(levels))
+    },
+
+    #' @description How many levels the drawing function defaults to
+    #'
+    #'   `contour.default` defaults to 10 and `filled.contour` to 20, and the
+    #'   number decides the whole announced set: `pretty(zlim, nlevels)`. The
+    #'   two are otherwise resolved identically, so the difference lives here
+    #'   rather than in a second copy of `contour_grid()`.
+    #' @return The default `nlevels` for this call
+    default_nlevels = function() {
+      10
     },
 
     #' @description Name the two axes
