@@ -2,6 +2,26 @@
 
 ## New Features
 
+* Base R `cdplot()` is now read as the 100% stacked area it draws, instead
+  of falling back to a static image. It shows how the levels of a factor
+  divide up across a numeric `x`, as bands that fill the height and sum to 1
+  at every point -- which is what `stacked_normalized_area` is for, so it
+  gets the reading `geom_area(position = "fill")` already has.
+
+  Nothing is re-derived. `cdplot()` has a `plot` argument, so the recorded
+  call is replayed with `plot = FALSE` and hands back the boundaries between
+  the bands; stacking them the way it does gives the shares back. Over three
+  hundred random charts every column's shares summed to 1 and no band came
+  out negative.
+
+  Three things the picture does not show are handled explicitly. The factor's
+  levels are **reversed** before drawing, so the first level is the *top*
+  band. The grid the returned functions interpolate over is longer than the
+  one drawn, because `density()` pads past the data and `cdplot()` trims the
+  padding off -- 372 of 512 points on a measured chart. And a formula call's
+  `subset` moves the whole chart, so it is applied before the missing rows
+  are dropped, which is the order `model.frame()` itself uses.
+
 * Base R `spineplot()` is now read as the two-way contingency table it
   draws, instead of falling back to a static image. It is a mosaic -- one
   column per level of `x`, its width that level's share of all observations,
@@ -130,6 +150,23 @@
   rather than a table.
 
 ## Bug Fixes
+
+* `stem()` is no longer recorded as a chart. It writes a stem-and-leaf
+  display to the console -- it opens no device, draws no marks, and lives in
+  `graphics` for documentation reasons rather than because it plots -- but it
+  was in the list of plotting calls, so every call was recorded as a chart.
+
+  That cost two things. Called alone, `save_html()` stopped with "Failed to
+  create fallback image": a recorded call over a blank device, and a message
+  claiming a plot exists whose picture could not be made. Called beside a
+  real chart, it took the real chart down with it -- a histogram that renders
+  interactively on its own degraded to a static image, so the console output
+  the caller asked for cost them the accessible chart they also drew, with
+  nothing on the page to say why. `hist(x); stem(x)` is not a contrived
+  pairing: they are the two ways of looking at one distribution.
+
+  Unlisted, `save_html()` now reports "No Base R plots detected", which is
+  accurate, and a real chart beside it is read on its own terms.
 
 * A layer of a **recognised** type that drew nothing no longer reaches the
   schema. #227 stopped an *unclaimed* empty layer from costing the chart its

@@ -25,7 +25,26 @@ NULL
     "curve",
     "dotchart",
     "stripchart",
-    "stem",
+    # `stem` is deliberately absent, though it lives in `package:graphics`.
+    # It writes a stem-and-leaf display to the console: it opens no device,
+    # draws no marks, and returns invisibly. Listed here it was recorded as a
+    # chart, and measured, that cost two things (#260):
+    #
+    #   stem() alone      the save stopped with "Failed to create fallback
+    #                     image" -- a recorded call over a blank device, the
+    #                     shape #216 found for `qqnorm(plot.it = FALSE)`, and
+    #                     a message that claims a plot exists;
+    #   hist(); stem()    the histogram, interactive on its own, degraded to
+    #                     a static image with "Plot contains unsupported
+    #                     elements". The console output the caller asked for
+    #                     cost them the accessible chart they also drew.
+    #
+    # Being unlisted is the right answer rather than a gap: `save_html()`
+    # then says "No Base R plots detected", which is accurate, and a real
+    # chart beside it is read on its own terms. The same call the wrapper
+    # makes for `hist(x, plot = FALSE)` and `qqnorm(x, plot.it = FALSE)`,
+    # except that those need an argument check and this one does not --
+    # `stem()` never draws.
     "pie",
     "mosaicplot",
     "assocplot",

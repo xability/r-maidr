@@ -320,3 +320,57 @@ test_that("all eight are classified, and classification is what changed", {
     expect_false(name %in% factory$get_supported_types(), info = name)
   }
 })
+
+
+# `stem()` is not a plot, and listing it as one cost two things (#260)
+#
+# `stem()` writes a stem-and-leaf display to the console. It opens no device,
+# draws no marks and returns invisibly -- it lives in `package:graphics` for
+# documentation reasons rather than because it plots. It was nevertheless in
+# the HIGH list, between `stripchart` and `pie`, so it was recorded as a
+# chart.
+#
+# The two failures that produced are the mirror image of each other: on its
+# own it claimed a chart that was not there, and beside a real chart it made
+# the real one unreadable.
+
+test_that("stem() is not classified as a plotting call", {
+  expect_equal(maidr:::classify_function("stem"), "UNKNOWN")
+})
+
+test_that("stem() alone reports no plot rather than a failed fallback", {
+  skip_unless_jsonlite()
+
+  # Measured before the fix: "Failed to create fallback image" -- a recorded
+  # call over a blank device, the shape #216 found for
+  # `qqnorm(plot.it = FALSE)`. That message claims a plot exists and the
+  # picture of it could not be made; the truth is that there is no plot, and
+  # "No Base R plots detected" is what says so.
+  result <- save_base_figure(function() {
+    invisible(utils::capture.output(stem(c(10, 11, 12, 20, 21, 30))))
+  })
+
+  expect_match(result$error, "No Base R plots detected")
+})
+
+test_that("a stem beside a histogram leaves the histogram interactive", {
+  skip_unless_jsonlite()
+
+  # The half that costs a reader something. Measured before the fix, the
+  # histogram -- interactive on its own -- degraded to a static image with
+  # "Plot contains unsupported elements", because the `stem` call recorded
+  # beside it had no reading. The console output the caller asked for cost
+  # them the accessible chart they also drew, and nothing on the page said
+  # why. `hist(x); stem(x)` is not contrived: they are the two ways of
+  # looking at one distribution, and R's own documentation pairs them.
+  drawn <- save_base_figure(function() hist(c(1, 2, 2, 3, 3, 3, 4, 5)))
+  both <- save_base_figure(function() {
+    hist(c(1, 2, 2, 3, 3, 3, 4, 5))
+    invisible(utils::capture.output(stem(c(1, 2, 2, 3, 3, 3, 4, 5))))
+  })
+
+  expect_null(both$error)
+  expect_false(drawn$fell_back)
+  expect_false(both$fell_back)
+  expect_false(both$warned)
+})
