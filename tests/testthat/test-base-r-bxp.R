@@ -177,9 +177,12 @@ test_that("it takes the summaries from z, named or positional", {
   #     bxp(Z)                          names=[]                 slot 1 is z
   #     bxp(z = Z)                      names=[z]                slot 1 is z
   #     bxp(horizontal = TRUE, z = Z)   names=[horizontal, z]    slot 1 is not
+  #     bxp(horizontal = TRUE, Z)       names=[horizontal, ""]   slot 1 is not
   #
-  # so neither half of the lookup covers the other. The third is the case
-  # that reads the summaries out of slot 2.
+  # so neither half of the lookup covers the other, and the positional half
+  # cannot assume slot 1. The last is a call R itself accepts and draws --
+  # an unnamed argument binds to the first *remaining* formal, which is `z`
+  # -- and it is the one that made `args[[1L]]` wrong (review of #265).
   processor <- BaseRBxpLayerProcessor$new(list(plot_call = list(args = list())))
 
   expect_equal(processor$read_stats(list(SPRAY_STATS)), SPRAY_STATS)
@@ -188,19 +191,31 @@ test_that("it takes the summaries from z, named or positional", {
     processor$read_stats(list(horizontal = TRUE, z = SPRAY_STATS)),
     SPRAY_STATS
   )
+  expect_equal(
+    processor$read_stats(stats::setNames(
+      list(TRUE, SPRAY_STATS), c("horizontal", "")
+    )),
+    SPRAY_STATS
+  )
 })
 
 test_that("a call written out of order still reads its boxes", {
-  # The whole reading through the out-of-order spelling, not just
+  # The whole reading through the out-of-order spellings, not just
   # `read_stats()`: nothing downstream may assume the summaries are in
-  # slot 1 either.
-  layer <- bxp_layer(list(horizontal = TRUE, z = SPRAY_STATS))
+  # slot 1 either. Both the named and the positional `z` are driven, since
+  # they reach the lookup through different halves of it.
+  named <- bxp_layer(list(horizontal = TRUE, z = SPRAY_STATS))
+  positional <- bxp_layer(stats::setNames(
+    list(TRUE, SPRAY_STATS), c("horizontal", "")
+  ))
 
-  expect_equal(layer$orientation, "horz")
+  expect_equal(named$orientation, "horz")
   expect_equal(
-    vapply(layer$data, function(box) box$z, character(1)),
+    vapply(named$data, function(box) box$z, character(1)),
     rev(c("A", "B", "C", "D", "E", "F"))
   )
+  expect_equal(positional$data, named$data)
+  expect_equal(positional$orientation, "horz")
 })
 
 test_that("it declines a first argument that is not a boxplot.stats list", {

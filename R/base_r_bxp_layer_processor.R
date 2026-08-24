@@ -48,12 +48,28 @@ BaseRBxpLayerProcessor <- R6::R6Class(
     # picture it already was, where reaching past it would raise out of
     # `process()` with nothing to catch it.
     #
+    # The positional half looks for the first *unnamed* argument rather than
+    # for slot 1. `match_recorded_args()` keeps the author's order and leaves
+    # only the dispatch argument unnamed, wherever it was written, so
+    # `bxp(horizontal = TRUE, z)` records `z` in slot 2 -- a call R itself
+    # accepts and draws. Reading slot 1 there hands `TRUE` to the check below
+    # and leaves the layer empty. `resolve_xy_args()` resolves a positional
+    # argument the same way, for the same reason. Raised in review of #265.
+    #
     # @param args Recorded argument list
     # @return The `boxplot.stats`-shaped list, or NULL when it is not one
     read_stats = function(args) {
       z <- args[["z"]]
-      if (is.null(z) && length(args) > 0) {
-        z <- args[[1L]]
+      if (is.null(z)) {
+        arg_names <- names(args)
+        unnamed <- if (is.null(arg_names)) {
+          seq_along(args)
+        } else {
+          which(!nzchar(arg_names))
+        }
+        if (length(unnamed) > 0) {
+          z <- args[[unnamed[1L]]]
+        }
       }
       if (!is.list(z)) {
         return(NULL)
