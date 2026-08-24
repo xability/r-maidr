@@ -42,6 +42,10 @@ BaseRProcessorFactory <- R6::R6Class(
         # It emits a `point` layer; the separate name is what routes it here
         # instead of to the processor that would read the raw sample.
         "qq" = BaseRQqLayerProcessor$new(layer_info),
+        # A scatter split into one layer per group. The separate name routes
+        # it here rather than to the processor that would emit one layer and
+        # highlight only the first group's marks.
+        "strip" = BaseRStripchartLayerProcessor$new(layer_info),
         "dot" = BaseRDotchartLayerProcessor$new(layer_info),
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
@@ -71,6 +75,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "lollipop",
         "point",
         "qq",
+        "strip",
         "dot",
         "mosaic",
         "hist",
