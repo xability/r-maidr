@@ -25,13 +25,15 @@
 # `qqnorm()` and `qqplot()` use, and both of those are now recorded, so both
 # need it.
 #
-# **Two of the eight have since moved past the fallback.** `qqnorm` and
+# **Three of the eight have since moved past the fallback.** `qqnorm` and
 # `qqplot` gained a processor in #251 and are now read as the quantile
-# scatter they draw, so they no longer degrade to a picture -- they do not
-# need to. The lists below are split accordingly, and the pair are asserted
-# to be *read* rather than dropped from the file: what #216 established
-# about them is that a recorded call never stops the save, and that still
-# has to hold on the far side of gaining a reading.
+# scatter they draw; `filled.contour` followed, read as the contour it draws
+# with the bands between the levels filled. None of the three degrades to a
+# picture any more -- they do not need to. The lists below are split
+# accordingly, and the three are asserted to be *read* rather than dropped
+# from the file: what #216 established about them is that a recorded call
+# never stops the save, and that still has to hold on the far side of
+# gaining a reading.
 
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
@@ -85,7 +87,7 @@ save_base_figure <- function(plot_fun) {
   )
 }
 
-# The six of the eight that are still recorded-but-unread, with the smallest
+# The five of the eight that are still recorded-but-unread, with the smallest
 # call that draws each.
 unrecorded_calls <- list(
   persp = function() {
@@ -103,16 +105,16 @@ unrecorded_calls <- list(
   spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3)),
   cdplot = function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
-  },
-  filled.contour = function() filled.contour(matrix(1:12, nrow = 3))
+  }
 )
 
-# The two that are now read (#251). Still here, because #216's claim about
+# The three that are now read (#251). Still here, because #216's claim about
 # them -- that a recorded call never stops the save -- has to survive their
 # gaining a reading.
 read_calls <- list(
   qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
-  qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5))
+  qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
+  filled.contour = function() filled.contour(matrix(1:12, nrow = 3))
 )
 
 all_calls <- c(unrecorded_calls, read_calls)
@@ -129,7 +131,7 @@ test_that("none of the eight stops the save any more", {
   }
 })
 
-test_that("the six still unread fall back to a picture, and say so", {
+test_that("the five still unread fall back to a picture, and say so", {
   skip_unless_jsonlite()
 
   for (name in names(unrecorded_calls)) {
@@ -139,14 +141,14 @@ test_that("the six still unread fall back to a picture, and say so", {
   }
 })
 
-test_that("the two that gained a reading are read, not pictured", {
+test_that("the three that gained a reading are read, not pictured", {
   skip_unless_jsonlite()
 
-  # The far side of #216 for `qqnorm` and `qqplot`: not "does not stop the
-  # save" but "is a chart". Asserted here rather than only in the Q-Q file
-  # so that a regression which put either back on the fallback shows up as a
-  # contradiction between two files rather than as one quietly weakened
-  # expectation.
+  # The far side of #216 for `qqnorm`, `qqplot` and `filled.contour`: not
+  # "does not stop the save" but "is a chart". Asserted here rather than only
+  # in each type's own file so that a regression which put any of them back
+  # on the fallback shows up as a contradiction between two files rather than
+  # as one quietly weakened expectation.
   for (name in names(read_calls)) {
     result <- save_base_figure(read_calls[[name]])
     expect_false(result$fell_back, info = name)
@@ -300,9 +302,9 @@ test_that("all eight are classified, and classification is what changed", {
     expect_equal(classify_function(name), "HIGH", info = name)
   }
 
-  # Being in HIGH is not a claim that the type is read: none of the six
+  # Being in HIGH is not a claim that the type is read: none of the five
   # gains a `detect_layer_type()` branch, so each falls through to "unknown".
-  # That is what #216 changed and all it changed -- the two that have since
+  # That is what #216 changed and all it changed -- the three that have since
   # been read got there by gaining a processor, which is a separate step, so
   # they are excluded from this half rather than from the classification
   # above.

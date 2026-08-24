@@ -155,6 +155,23 @@ test_that("a formula is split by the grouping column it names", {
   )
 })
 
+test_that("a formula grouping on two variables splits on their interaction", {
+  # `stripchart.formula` splits by `frame[-response]`, which for two grouping
+  # columns is their interaction -- one group per observed combination, named
+  # by `split()` itself. Raised in review of #255: the code already followed
+  # `split()` here, so this pins the behaviour rather than changing it.
+  layers <- processed(list(len ~ supp + dose, data = ToothGrowth))$layers
+
+  expect_equal(
+    vapply(layers, function(l) l$fill, character(1)),
+    levels(interaction(ToothGrowth$supp, ToothGrowth$dose))
+  )
+  expect_equal(
+    vapply(layers, function(l) length(l$data), integer(1)),
+    rep(10L, 6)
+  )
+})
+
 test_that("a formula with no data is read from the environment it was written in", {
   formula <- local({
     len <- c(1, 2, 3, 10, 11, 12)

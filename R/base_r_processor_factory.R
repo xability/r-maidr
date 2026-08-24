@@ -46,6 +46,10 @@ BaseRProcessorFactory <- R6::R6Class(
         # it here rather than to the processor that would emit one layer and
         # highlight only the first group's marks.
         "strip" = BaseRStripchartLayerProcessor$new(layer_info),
+        # A contour whose levels default to twice as many, and whose field
+        # is one polygon grob rather than one per curve. The separate name
+        # routes it to the subclass that knows both.
+        "filled_contour" = BaseRFilledContourLayerProcessor$new(layer_info),
         "dot" = BaseRDotchartLayerProcessor$new(layer_info),
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
@@ -76,6 +80,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "point",
         "qq",
         "strip",
+        "filled_contour",
         "dot",
         "mosaic",
         "hist",

@@ -352,6 +352,10 @@ BaseRAdapter <- R6::R6Class(
         # exports one `points` grob per group -- and what the same chart
         # already gets in py-maidr (#251).
         "stripchart" = "strip",
+        # The same level curves `contour()` draws, with the bands between
+        # them filled. Read as a contour, from `contourLines()` rather than
+        # from the fill, so one chart's two spellings read alike (#251).
+        "filled.contour" = "filled_contour",
         "hist" = "hist",
         "boxplot" = "box",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the

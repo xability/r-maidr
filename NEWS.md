@@ -2,6 +2,27 @@
 
 ## New Features
 
+* Base R `filled.contour()` is now read as the contour it draws, instead of
+  falling back to a static image. It draws the same level curves `contour()`
+  draws and fills the bands between them, so both spellings of one chart now
+  get one reading, and the curves come from `grDevices::contourLines()` --
+  the computation the drawing itself runs -- rather than from anything
+  inferred about the fill.
+
+  Two things differ from `contour()`. Its level default is twice as large
+  (`nlevels = 20` against 10), which decides the whole announced set through
+  `pretty(zlim, nlevels)`; everything else about resolving the call is
+  identical in the two functions and is shared rather than copied.
+
+  And the chart carries no highlight. `contour()` writes one `lines` grob per
+  curve; `filled.contour` writes one `polygon` grob for the whole field, and
+  measured on a 6x5 grid at the 17 default levels it exports 160 pieces
+  against 40 curves -- the grid's cells cut by the level crossings, neither
+  the bands nor the curves. Nothing pairs, so no selector is emitted: the
+  chart is announced, sonified and navigated, and only the visual highlight
+  is missing, which is a better answer than a picture that offers none of
+  them.
+
 * Base R `stripchart()` is now read as the one-dimensional scatter it draws,
   instead of falling back to a static image. Every observation is announced
   as its own mark, laid along a value axis at its group's position, with the
