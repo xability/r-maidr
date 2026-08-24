@@ -205,6 +205,7 @@ one chart the same way.</p>
 <li><p><a href="#method-BaseRContourLayerProcessor-read_curves"><code>BaseRContourLayerProcessor$read_curves()</code></a></p></li>
 <li><p><a href="#method-BaseRContourLayerProcessor-extract_data"><code>BaseRContourLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRContourLayerProcessor-contour_grid"><code>BaseRContourLayerProcessor$contour_grid()</code></a></p></li>
+<li><p><a href="#method-BaseRContourLayerProcessor-default_nlevels"><code>BaseRContourLayerProcessor$default_nlevels()</code></a></p></li>
 <li><p><a href="#method-BaseRContourLayerProcessor-extract_axis_titles"><code>BaseRContourLayerProcessor$extract_axis_titles()</code></a></p></li>
 <li><p><a href="#method-BaseRContourLayerProcessor-extract_main_title"><code>BaseRContourLayerProcessor$extract_main_title()</code></a></p></li>
 <li><p><a href="#method-BaseRContourLayerProcessor-generate_selectors"><code>BaseRContourLayerProcessor$generate_selectors()</code></a></p></li>
@@ -344,6 +345,22 @@ wrong, and nothing raised.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-BaseRContourLayerProcessor-default_nlevels"></a><div class="section">
+<h3 id="basercontourlayerprocessor-default-nlevels-"><code>BaseRContourLayerProcessor$default_nlevels()</code><a class="anchor" aria-label="anchor" href="#basercontourlayerprocessor-default-nlevels-"></a></h3>
+<p>How many levels the drawing function defaults to</p>
+<p><code>contour.default</code> defaults to 10 and <code>filled.contour</code> to 20, and the
+number decides the whole announced set: <code>pretty(zlim, nlevels)</code>. The
+two are otherwise resolved identically, so the difference lives here
+rather than in a second copy of <code>contour_grid()</code>.</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRContourLayerProcessor</span><span class="op">$</span><span class="fu">default_nlevels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>The default <code>nlevels</code> for this call</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRContourLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="basercontourlayerprocessor-extract-axis-titles-"><code>BaseRContourLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#basercontourlayerprocessor-extract-axis-titles-"></a></h3>
 <p>Name the two axes</p>
@@ -356,7 +373,7 @@ describe one chart alike.</p>
 caller names nothing, and those names are gone by the time the
 wrapper has recorded evaluated values – so a guessed noun would be
 worse than none, and the axis is left to the renderer's generic.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRContourLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
@@ -366,7 +383,7 @@ worse than none, and the axis is left to the renderer's generic.</p><div class="
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>An axes payload</p>
 </div>
 
@@ -375,7 +392,7 @@ worse than none, and the axis is left to the renderer's generic.</p><div class="
 <p></p><hr><a id="method-BaseRContourLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="basercontourlayerprocessor-extract-main-title-"><code>BaseRContourLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#basercontourlayerprocessor-extract-main-title-"></a></h3>
 <p>The chart's own title, where the call gave one</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRContourLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
@@ -385,7 +402,7 @@ worse than none, and the axis is left to the renderer's generic.</p><div class="
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>The title, or an empty string</p>
 </div>
 
@@ -402,7 +419,7 @@ count, not assumed. A <code>lines</code> grob renders as a <code>&lt;polyline&gt
 The frontend drops a layer whose selector list disagrees with its
 series count, and a partial list would hand a curve its neighbour's
 element – the defect #145 and #204 are both about.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRContourLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">layer_info</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -426,7 +443,7 @@ element – the defect #145 and #204 are both about.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>A list of CSS selectors, one per announced curve</p>
 </div>
 
@@ -435,7 +452,7 @@ element – the defect #145 and #204 are both about.</p><div class="section">
 <p></p><hr><a id="method-BaseRContourLayerProcessor-find_contour_grobs"></a><div class="section">
 <h3 id="basercontourlayerprocessor-find-contour-grobs-"><code>BaseRContourLayerProcessor$find_contour_grobs()</code><a class="anchor" aria-label="anchor" href="#basercontourlayerprocessor-find-contour-grobs-"></a></h3>
 <p>Every contour grob this layer drew</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRContourLayerProcessor</span><span class="op">$</span><span class="fu">find_contour_grobs</span><span class="op">(</span><span class="va">grob</span>, <span class="va">group_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
@@ -448,7 +465,7 @@ element – the defect #145 and #204 are both about.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>A character vector of grob names</p>
 </div>
 
@@ -457,7 +474,7 @@ element – the defect #145 and #204 are both about.</p><div class="section">
 <p></p><hr><a id="method-BaseRContourLayerProcessor-clone"></a><div class="section">
 <h3 id="basercontourlayerprocessor-clone-"><code>BaseRContourLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#basercontourlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRContourLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>

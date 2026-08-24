@@ -47,6 +47,8 @@ one chart the same way.
 
 - [`BaseRContourLayerProcessor$contour_grid()`](#method-BaseRContourLayerProcessor-contour_grid)
 
+- [`BaseRContourLayerProcessor$default_nlevels()`](#method-BaseRContourLayerProcessor-default_nlevels)
+
 - [`BaseRContourLayerProcessor$extract_axis_titles()`](#method-BaseRContourLayerProcessor-extract_axis_titles)
 
 - [`BaseRContourLayerProcessor$extract_main_title()`](#method-BaseRContourLayerProcessor-extract_main_title)
@@ -203,6 +205,25 @@ on the 0-1 default – every coordinate wrong, and nothing raised.
 #### Returns
 
 A list of `x`, `y`, `z` and `levels`, or NULL
+
+------------------------------------------------------------------------
+
+### `BaseRContourLayerProcessor$default_nlevels()`
+
+How many levels the drawing function defaults to
+
+`contour.default` defaults to 10 and `filled.contour` to 20, and the
+number decides the whole announced set: `pretty(zlim, nlevels)`. The two
+are otherwise resolved identically, so the difference lives here rather
+than in a second copy of `contour_grid()`.
+
+#### Usage
+
+    BaseRContourLayerProcessor$default_nlevels()
+
+#### Returns
+
+The default `nlevels` for this call
 
 ------------------------------------------------------------------------
 
