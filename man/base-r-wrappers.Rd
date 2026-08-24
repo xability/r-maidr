@@ -26,6 +26,7 @@
 \alias{cdplot}
 \alias{qqnorm}
 \alias{qqplot}
+\alias{qqline}
 \alias{filled.contour}
 \alias{vioplot}
 \alias{chartSeries}
@@ -95,6 +96,8 @@ cdplot(...)
 qqnorm(...)
 
 qqplot(...)
+
+qqline(...)
 
 filled.contour(...)
 

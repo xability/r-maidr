@@ -130,6 +130,10 @@ qqplot <- function(...) stats::qqplot(...)
 
 #' @rdname base-r-wrappers
 #' @export
+qqline <- function(...) stats::qqline(...)
+
+#' @rdname base-r-wrappers
+#' @export
 filled.contour <- function(...) graphics::filled.contour(...)
 
 #' @rdname base-r-wrappers
