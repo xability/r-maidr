@@ -14,6 +14,8 @@ generating selectors for boxplot components.
 
 - [`BaseRBoxplotLayerProcessor$process()`](#method-BaseRBoxplotLayerProcessor-process)
 
+- [`BaseRBoxplotLayerProcessor$read_stats()`](#method-BaseRBoxplotLayerProcessor-read_stats)
+
 - [`BaseRBoxplotLayerProcessor$extract_data()`](#method-BaseRBoxplotLayerProcessor-extract_data)
 
 - [`BaseRBoxplotLayerProcessor$generate_selectors()`](#method-BaseRBoxplotLayerProcessor-generate_selectors)
@@ -83,6 +85,14 @@ Inherited methods
 - `gt`:
 
   Gtable object (optional)
+
+------------------------------------------------------------------------
+
+### `BaseRBoxplotLayerProcessor$read_stats()`
+
+#### Usage
+
+    BaseRBoxplotLayerProcessor$read_stats(args)
 
 ------------------------------------------------------------------------
 
