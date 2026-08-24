@@ -4,6 +4,40 @@
 
 ### New Features
 
+- Base R
+  [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  now read as the one-dimensional scatter it draws, instead of falling
+  back to a static image. Every observation is announced as its own
+  mark, laid along a value axis at its group’s position, with the
+  group’s name carried beside it.
+
+  **One layer per group**, which the drawing decides rather than
+  tidiness: gridGraphics exports one `points` grob per group, and the
+  grob lookup answers with the first match, so a single layer would
+  announce all the observations and highlight only the first group’s. It
+  is also the reading the same chart already gets in py-maidr.
+
+  The groups are not re-derived.
+  [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  forms them in two places – a list or a bare vector in
+  `stripchart.default`, and
+  [`split()`](https://rdrr.io/r/base/split.html) after
+  [`stats::model.frame()`](https://rdrr.io/r/stats/model.frame.html) in
+  `stripchart.formula` – and both are called rather than imitated, so
+  `group.names`, `at` and a formula’s own splitting all behave as the
+  chart drew them. `vertical = TRUE` swaps which visual axis holds the
+  values, and the axes are named for what they hold, the same way
+  [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) already
+  name theirs.
+
+  `method = "jitter"` needs no special handling here, unlike
+  [`geom_jitter()`](https://ggplot2.tidyverse.org/reference/geom_jitter.html)
+  ([\#174](https://github.com/xability/r-maidr/issues/174)): a
+  stripchart jitters along the *group* axis only, so every number
+  announced is the observation itself, and what is displaced is a
+  position whose name travels with it as a label.
+
 - Base R [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   and [`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) are
   now read as the quantile scatter they draw, instead of falling back to
