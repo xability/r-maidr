@@ -50,6 +50,9 @@ BaseRProcessorFactory <- R6::R6Class(
         # is one polygon grob rather than one per curve. The separate name
         # routes it to the subclass that knows both.
         "filled_contour" = BaseRFilledContourLayerProcessor$new(layer_info),
+        # A mosaic whose table has to be replayed out of the call rather
+        # than read from it, and whose tiles are one grob rather than many.
+        "spine" = BaseRSpineplotLayerProcessor$new(layer_info),
         "dot" = BaseRDotchartLayerProcessor$new(layer_info),
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
@@ -81,6 +84,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "qq",
         "strip",
         "filled_contour",
+        "spine",
         "dot",
         "mosaic",
         "hist",
