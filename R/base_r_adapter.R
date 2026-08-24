@@ -333,6 +333,16 @@ BaseRAdapter <- R6::R6Class(
         # would hand a reader a chart with a drawn region silently missing
         # from it, so the whole call is declined and keeps falling back to
         # a picture, which at least says what it is.
+        #
+        # The caller's own argument is the whole test, which reads "no band"
+        # off the caller's *silence*. That is sound only while
+        # `stats::qqplot`'s own default is NULL, and it is -- so rather than
+        # consult `formals()` here, where a NULL default makes the extra
+        # branch unobservable and untestable, the assumption is asserted
+        # outright in `test-base-r-qq-plot.R`. A release that changed the
+        # default fails that test rather than silently turning every plain
+        # `qqplot()` into a chart with a drawn region missing from it.
+        # Raised in review of #253.
         "qqplot" = {
           if (is.null(args[["conf.level"]])) "qq" else "unknown"
         },

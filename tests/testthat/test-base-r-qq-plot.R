@@ -232,6 +232,33 @@ test_that("a confidence band is declined rather than dropped", {
 })
 
 
+test_that("qqplot's own default really is no band", {
+  # Raised in review of #253. `detect_layer_type()` reads the band off the
+  # *recorded argument*, so a call that says nothing about `conf.level` is
+  # taken to draw no band -- which infers a fact about the chart from the
+  # caller's silence. That is sound only while `stats::qqplot`'s own default
+  # is NULL, and the honest way to hold it is to assert it rather than to
+  # write a `formals()` lookup into the adapter: with a NULL default the two
+  # spellings are observationally identical, so the extra branch would be
+  # code no test on this R could exercise.
+  #
+  # Asserted against `formals()` rather than written down as a constant, so
+  # an R release that changed the default fails here instead of silently
+  # turning every plain `qqplot()` into a chart with a drawn region missing
+  # from its reading. Measured on R 4.3.3.
+  testthat::expect_null(eval(formals(stats::qqplot)[["conf.level"]]))
+
+  # The other half of the same fact, read off what the function returns: a
+  # plain call comes back with the pairs alone, while a call that asks for a
+  # band comes back with the bounds it would have drawn.
+  plain <- stats::qqplot(SAMPLE, OTHER, plot.it = FALSE)
+  banded <- stats::qqplot(SAMPLE, OTHER, conf.level = 0.95, plot.it = FALSE)
+
+  testthat::expect_setequal(names(plain), c("x", "y"))
+  testthat::expect_true(all(c("lwr", "upr") %in% names(banded)))
+})
+
+
 test_that("a computation that cannot run leaves the layer empty", {
   # `qqplot` needs two samples. Handed one, `stats` raises, and the guard
   # answers with no points rather than with a partial chart -- which makes
