@@ -201,6 +201,34 @@
 
 ### Bug Fixes
 
+- Twelve more base R calls that draw a chart no longer report that none
+  exists. [`acf()`](https://rdrr.io/r/stats/acf.html),
+  [`pacf()`](https://rdrr.io/r/stats/acf.html),
+  [`ccf()`](https://rdrr.io/r/stats/acf.html),
+  [`biplot()`](https://rdrr.io/r/stats/biplot.html),
+  [`interaction.plot()`](https://rdrr.io/r/stats/interaction.plot.html),
+  [`cpgram()`](https://rdrr.io/r/stats/cpgram.html),
+  [`monthplot()`](https://rdrr.io/r/stats/monthplot.html),
+  [`spectrum()`](https://rdrr.io/r/stats/spectrum.html),
+  [`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html),
+  [`termplot()`](https://rdrr.io/r/stats/termplot.html),
+  [`stars()`](https://rdrr.io/r/graphics/stars.html) and
+  [`bxp()`](https://rdrr.io/r/graphics/bxp.html) each draw directly
+  rather than through
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md), so
+  nothing was recorded and
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) stopped
+  with “No Base R plots detected. Please create a plot first” – told to
+  a caller whose chart was on the device. Each now degrades to a static
+  image instead, which is the same lower claim the other unread calls
+  make.
+
+  What reaches a stats plot through
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) was never
+  affected and is unchanged: `plot(density(x))`, `plot(ecdf(x))`,
+  `plot(ts)`, `plot(lm)` and `plot(acf(x, plot = FALSE))` all record and
+  read, because `plot` is listed.
+
 - [`stem()`](https://r.maidr.ai/reference/base-r-wrappers.md) is no
   longer recorded as a chart. It writes a stem-and-leaf display to the
   console – it opens no device, draws no marks, and lives in `graphics`
