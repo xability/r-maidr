@@ -4,6 +4,45 @@
 
 ### New Features
 
+- Base R [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  and [`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) are
+  now read as the quantile scatter they draw, instead of falling back to
+  a static image.
+
+  What separates a Q-Q plot from every other base R scatter is that its
+  coordinates are **computed rather than handed in**. `qqnorm(y)` takes
+  one sample and draws it against theoretical quantiles it works out;
+  `qqplot(x, y)` takes two samples of possibly different lengths and
+  draws one interpolated pair per point of the shorter. Read as an
+  ordinary scatter, both would have announced numbers no mark on the
+  page stands for – for `qqnorm`, the raw sample on an axis of standard
+  deviations, which is the one reading a Q-Q plot most needs not to
+  have.
+
+  So the coordinates are not re-derived: `stats` is asked for them with
+  `plot.it = FALSE`, which returns exactly what the plotted call would
+  have drawn, and the recorded arguments are forwarded whole.
+  `datax = TRUE` therefore swaps the axes – and their labels – without
+  anything in maidr knowing the argument exists.
+  [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s own
+  “Normal Q-Q Plot”, “Theoretical Quantiles” and “Sample Quantiles” are
+  announced because they are constants it draws;
+  [`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s
+  defaults are the caller’s own expressions, which are gone by the time
+  the call is recorded, so its axes are left for the renderer’s generic
+  rather than guessed at.
+
+  Two shapes are still pictures, deliberately. `qqplot(conf.level = )`
+  draws a confidence band as well as the points, and
+  [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws
+  the reference line nearly every Q-Q plot is finished with; both reach
+  `graphics` from inside `stats`, where maidr never sees them, and
+  neither has anywhere to go in the payload. Reading the points alone
+  would have handed a reader a chart with a drawn mark silently missing
+  from it, which is worse than the picture, so
+  [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) is now
+  recorded purely so that it can be declined.
+
 - A Base R
   [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
   now read as the contingency table it draws, instead of falling back to

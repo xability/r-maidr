@@ -63,6 +63,8 @@ qqnorm(...)
 
 qqplot(...)
 
+qqline(...)
+
 filled.contour(...)
 
 vioplot(...)
