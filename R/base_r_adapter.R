@@ -321,6 +321,21 @@ BaseRAdapter <- R6::R6Class(
         "mosaicplot" = {
           if (is_two_way_table(args)) "mosaic" else "unknown"
         },
+        # A Q-Q plot: the scatter of one sample's quantiles against another
+        # distribution's. Read as `point` -- it is a scatter, and the only
+        # thing separating it from any other is that its coordinates are
+        # *computed* rather than handed in, which is what
+        # `BaseRQqLayerProcessor` exists for (#251).
+        "qqnorm" = "qq",
+        # `qqplot(conf.level = ...)` additionally draws a confidence band,
+        # as a `polygon()` from inside `stats` that the wrapper never sees
+        # and nothing in the payload could carry. Reading the points alone
+        # would hand a reader a chart with a drawn region silently missing
+        # from it, so the whole call is declined and keeps falling back to
+        # a picture, which at least says what it is.
+        "qqplot" = {
+          if (is.null(args[["conf.level"]])) "qq" else "unknown"
+        },
         "hist" = "hist",
         "boxplot" = "box",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the

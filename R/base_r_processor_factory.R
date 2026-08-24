@@ -38,6 +38,10 @@ BaseRProcessorFactory <- R6::R6Class(
         "step" = BaseRStepLayerProcessor$new(layer_info),
         "lollipop" = BaseRSpikeLayerProcessor$new(layer_info),
         "point" = BaseRPointLayerProcessor$new(layer_info),
+        # A scatter whose coordinates the call computed rather than took.
+        # It emits a `point` layer; the separate name is what routes it here
+        # instead of to the processor that would read the raw sample.
+        "qq" = BaseRQqLayerProcessor$new(layer_info),
         "dot" = BaseRDotchartLayerProcessor$new(layer_info),
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
@@ -66,6 +70,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "step",
         "lollipop",
         "point",
+        "qq",
         "dot",
         "mosaic",
         "hist",
