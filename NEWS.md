@@ -151,6 +151,20 @@
 
 ## Bug Fixes
 
+* Twelve more base R calls that draw a chart no longer report that none
+  exists. `acf()`, `pacf()`, `ccf()`, `biplot()`, `interaction.plot()`,
+  `cpgram()`, `monthplot()`, `spectrum()`, `lag.plot()`, `termplot()`,
+  `stars()` and `bxp()` each draw directly rather than through `plot()`, so
+  nothing was recorded and `save_html()` stopped with "No Base R plots
+  detected. Please create a plot first" -- told to a caller whose chart was
+  on the device. Each now degrades to a static image instead, which is the
+  same lower claim the other unread calls make.
+
+  What reaches a stats plot through `plot()` was never affected and is
+  unchanged: `plot(density(x))`, `plot(ecdf(x))`, `plot(ts)`, `plot(lm)` and
+  `plot(acf(x, plot = FALSE))` all record and read, because `plot` is
+  listed.
+
 * `stem()` is no longer recorded as a chart. It writes a stem-and-leaf
   display to the console -- it opens no device, draws no marks, and lives in
   `graphics` for documentation reasons rather than because it plots -- but it
