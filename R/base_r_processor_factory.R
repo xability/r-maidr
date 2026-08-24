@@ -53,6 +53,7 @@ BaseRProcessorFactory <- R6::R6Class(
         # A mosaic whose table has to be replayed out of the call rather
         # than read from it, and whose tiles are one grob rather than many.
         "spine" = BaseRSpineplotLayerProcessor$new(layer_info),
+        "conditional_density" = BaseRCdplotLayerProcessor$new(layer_info),
         "dot" = BaseRDotchartLayerProcessor$new(layer_info),
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
@@ -85,6 +86,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "strip",
         "filled_contour",
         "spine",
+        "conditional_density",
         "dot",
         "mosaic",
         "hist",

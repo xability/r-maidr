@@ -361,6 +361,11 @@ BaseRAdapter <- R6::R6Class(
         # conditional proportions. Read as `mosaic`, which is the shape
         # `mosaicplot()` already gets (#251).
         "spineplot" = "spine",
+        # The conditional distribution of a factor across a numeric x,
+        # drawn as bands that fill the height and sum to 1 at every x. Read
+        # as `stacked_normalized_area`, the shape `geom_area(position =
+        # "fill")` already gets (#251).
+        "cdplot" = "conditional_density",
         "hist" = "hist",
         "boxplot" = "box",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the
