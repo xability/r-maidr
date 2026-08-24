@@ -356,6 +356,11 @@ BaseRAdapter <- R6::R6Class(
         # them filled. Read as a contour, from `contourLines()` rather than
         # from the fill, so one chart's two spellings read alike (#251).
         "filled.contour" = "filled_contour",
+        # A mosaic of two categorical variables: one column per level of x,
+        # its width that level's share of all observations, split by y's
+        # conditional proportions. Read as `mosaic`, which is the shape
+        # `mosaicplot()` already gets (#251).
+        "spineplot" = "spine",
         "hist" = "hist",
         "boxplot" = "box",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the

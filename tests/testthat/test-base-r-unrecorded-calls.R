@@ -25,15 +25,15 @@
 # `qqnorm()` and `qqplot()` use, and both of those are now recorded, so both
 # need it.
 #
-# **Three of the eight have since moved past the fallback.** `qqnorm` and
+# **Four of the eight have since moved past the fallback.** `qqnorm` and
 # `qqplot` gained a processor in #251 and are now read as the quantile
 # scatter they draw; `filled.contour` followed, read as the contour it draws
-# with the bands between the levels filled. None of the three degrades to a
-# picture any more -- they do not need to. The lists below are split
-# accordingly, and the three are asserted to be *read* rather than dropped
-# from the file: what #216 established about them is that a recorded call
-# never stops the save, and that still has to hold on the far side of
-# gaining a reading.
+# with the bands between the levels filled; and `spineplot` after it, read as
+# the mosaic of a two-way table it is. None of the four degrades to a picture
+# any more -- they do not need to. The lists below are split accordingly, and
+# the four are asserted to be *read* rather than dropped from the file: what
+# #216 established about them is that a recorded call never stops the save,
+# and that still has to hold on the far side of gaining a reading.
 
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
@@ -87,7 +87,7 @@ save_base_figure <- function(plot_fun) {
   )
 }
 
-# The five of the eight that are still recorded-but-unread, with the smallest
+# The four of the eight that are still recorded-but-unread, with the smallest
 # call that draws each.
 unrecorded_calls <- list(
   persp = function() {
@@ -102,19 +102,19 @@ unrecorded_calls <- list(
     sunflowerplot(c(1, 1, 2, 2, 3), c(1, 1, 2, 3, 3))
   },
   fourfoldplot = function() fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2)),
-  spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3)),
   cdplot = function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
   }
 )
 
-# The three that are now read (#251). Still here, because #216's claim about
+# The four that are now read (#251). Still here, because #216's claim about
 # them -- that a recorded call never stops the save -- has to survive their
 # gaining a reading.
 read_calls <- list(
   qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
   qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
-  filled.contour = function() filled.contour(matrix(1:12, nrow = 3))
+  filled.contour = function() filled.contour(matrix(1:12, nrow = 3)),
+  spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3))
 )
 
 all_calls <- c(unrecorded_calls, read_calls)
@@ -131,7 +131,7 @@ test_that("none of the eight stops the save any more", {
   }
 })
 
-test_that("the five still unread fall back to a picture, and say so", {
+test_that("the four still unread fall back to a picture, and say so", {
   skip_unless_jsonlite()
 
   for (name in names(unrecorded_calls)) {
@@ -141,10 +141,11 @@ test_that("the five still unread fall back to a picture, and say so", {
   }
 })
 
-test_that("the three that gained a reading are read, not pictured", {
+test_that("the four that gained a reading are read, not pictured", {
   skip_unless_jsonlite()
 
-  # The far side of #216 for `qqnorm`, `qqplot` and `filled.contour`: not
+  # The far side of #216 for `qqnorm`, `qqplot`, `filled.contour` and
+  # `spineplot`: not
   # "does not stop the save" but "is a chart". Asserted here rather than only
   # in each type's own file so that a regression which put any of them back
   # on the fallback shows up as a contradiction between two files rather than
@@ -190,7 +191,9 @@ test_that("the picture is the chart, not a blank canvas", {
 
   # The replay has to rebuild `factor(...) ~ x` in the caller's frame, so a
   # fallback that silently drew nothing would still pass every assertion
-  # above.
+  # above. `cdplot` plays the part, having the formula shape this needs and
+  # being one of the four still unread -- `spineplot` stood here until it
+  # gained a reading, and when `cdplot` does too, the next one moves in.
   #
   # Measured against two references rendered on the same machine, rather
   # than against a byte count: this first read `> 10000`, calibrated on
@@ -199,10 +202,10 @@ test_that("the picture is the chart, not a blank canvas", {
   # whether the captured image is nearer the chart than an empty page is
   # the question that was meant, and it needs no constant at all.
   blank <- png_bytes(function() graphics::plot.new())
-  reference <- png_bytes(unrecorded_calls$spineplot)
+  reference <- png_bytes(unrecorded_calls$cdplot)
   expect_gt(reference, blank)
 
-  result <- save_base_figure(unrecorded_calls$spineplot)
+  result <- save_base_figure(unrecorded_calls$cdplot)
   encoded <- regmatches(
     result$html,
     regexpr("base64,[A-Za-z0-9+/=]+", result$html)
@@ -302,9 +305,9 @@ test_that("all eight are classified, and classification is what changed", {
     expect_equal(classify_function(name), "HIGH", info = name)
   }
 
-  # Being in HIGH is not a claim that the type is read: none of the five
+  # Being in HIGH is not a claim that the type is read: none of the four
   # gains a `detect_layer_type()` branch, so each falls through to "unknown".
-  # That is what #216 changed and all it changed -- the three that have since
+  # That is what #216 changed and all it changed -- the four that have since
   # been read got there by gaining a processor, which is a separate step, so
   # they are excluded from this half rather than from the classification
   # above.
