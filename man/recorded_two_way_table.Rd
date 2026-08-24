@@ -26,6 +26,12 @@ is declined rather than flattened into a cross-classification the chart
 does not claim. A table with unnamed margins is declined too: the levels
 are what a reader navigates by, and positions are not levels.
 
+\code{mosaicplot()}'s other calling style hands it a formula and a \code{data}
+argument instead, and \code{mosaicplot.formula()} builds the table from the two.
+That is recovered by \code{formula_two_way_table()} rather than declined, for
+the reason the direct call is read at all: the table is the one the chart
+draws, arrived at by the same code, not a plausible reconstruction (#248).
+
 Shared by the adapter's dispatch and the processor's extraction so the two
 cannot disagree about which calls are readable.
 }

@@ -202,6 +202,12 @@ dispatched_definition <- function(function_name, definition, args) {
 #' does not claim. A table with unnamed margins is declined too: the levels
 #' are what a reader navigates by, and positions are not levels.
 #'
+#' `mosaicplot()`'s other calling style hands it a formula and a `data`
+#' argument instead, and `mosaicplot.formula()` builds the table from the two.
+#' That is recovered by `formula_two_way_table()` rather than declined, for
+#' the reason the direct call is read at all: the table is the one the chart
+#' draws, arrived at by the same code, not a plausible reconstruction (#248).
+#'
 #' Shared by the adapter's dispatch and the processor's extraction so the two
 #' cannot disagree about which calls are readable.
 #'
@@ -209,11 +215,12 @@ dispatched_definition <- function(function_name, definition, args) {
 #' @return A 2-D table with named margins, or NULL
 #' @keywords internal
 recorded_two_way_table <- function(args) {
-  table <- resolve_xy_args(args)$x
-  if (is.null(table) || is.language(table)) {
-    return(NULL)
+  handed <- resolve_xy_args(args)$x
+  table <- if (is.null(handed) || is.language(handed)) {
+    formula_two_way_table(args)
+  } else {
+    tryCatch(as.table(handed), error = function(e) NULL)
   }
-  table <- tryCatch(as.table(table), error = function(e) NULL)
   if (is.null(table) || length(dim(table)) != 2) {
     return(NULL)
   }
@@ -221,4 +228,124 @@ recorded_two_way_table <- function(args) {
     return(NULL)
   }
   table
+}
+
+#' The table `mosaicplot.formula()` would build from a recorded formula call
+#'
+#' `mosaicplot(~ Hair + Eye, data = df)` is a common calling style, and the
+#' table it draws is recoverable rather than invented -- so it is built the
+#' way `mosaicplot.formula()` builds it, by the same two branches, rather
+#' than by a rule of our own that would agree with it only sometimes.
+#'
+#' ## Which branch, and why it matters
+#'
+#' Read from `graphics:::mosaicplot.formula` rather than assumed. A `data`
+#' that is a table (or has more than two dimensions) is summed over the
+#' formula's terms; anything else goes through `model.frame()` and is
+#' **counted by row**:
+#'
+#' \preformatted{
+#' if (inherits(edata, "ftable") || inherits(edata, "table") ||
+#'     length(dim(edata)) > 2) {
+#'   data <- marginSums(as.table(data), varnames)
+#'   mosaicplot(data, ...)
+#' } else {
+#'   mf <- eval(model.frame(formula, data, subset, na.action))
+#'   mosaicplot(table(mf), ...)
+#' }
+#' }
+#'
+#' The distinction is not cosmetic, and #248 proposed the other reading. A
+#' data frame of *pre-counted* cells -- `as.data.frame(HairEyeColor[, , 1])`,
+#' sixteen rows and a `Freq` column -- is counted by row like any other, so
+#' the chart draws sixteen equal cells:
+#'
+#' \preformatted{
+#' table(model.frame(~ Hair + Eye, df))    xtabs(Freq ~ Hair + Eye, df)
+#'         Brown Blue Hazel Green                  Brown Blue Hazel Green
+#'   Black     1    1     1     1            Black    32   11    10     3
+#'   Brown     1    1     1     1            Brown    53   50    25    15
+#'   Red       1    1     1     1            Red      10   10     7     7
+#'   Blond     1    1     1     1            Blond     3   30     5     8
+#' }
+#'
+#' The left table is what `mosaicplot()` draws; the right is the one it would
+#' draw if handed `HairEyeColor[, , 1]` directly. Reading the right one would
+#' announce numbers the chart does not show, which is the one thing this
+#' processor exists not to do. There is no `Freq` convention to match:
+#' `mosaicplot.formula()` has none.
+#'
+#' ## What is declined
+#'
+#' A recorded `subset`. `mosaicplot.formula()` passes it into
+#' `model.frame()`, so honouring it means reproducing an argument whose
+#' recorded form is not the expression `model.frame()` is given -- and
+#' ignoring it would read rows the chart left out. Declined rather than
+#' guessed, which leaves the figure exactly the picture it is today.
+#'
+#' A recorded `na.action` is *not* passed through, and does not need to be:
+#' `table()` drops a missing level whatever reached it, so the three actions
+#' a caller can name all draw the same chart. Measured on a frame with an NA
+#' in each column, `na.omit`, `na.pass` and `na.exclude` gave one table:
+#'
+#' \preformatted{
+#'      b
+#' a     p q
+#'   x   2 1
+#'   y   1 0
+#' }
+#'
+#' `stats::na.omit` is named here anyway, because that is what
+#' `mosaicplot.formula()` defaults to and matching it costs nothing.
+#'
+#' @param args Recorded argument list, or NULL
+#' @return A table, or NULL when the call is not a readable formula call
+#' @keywords internal
+formula_two_way_table <- function(args) {
+  formula <- tryCatch(args[[1L]], error = function(e) NULL)
+  if (!inherits(formula, "formula")) {
+    return(NULL)
+  }
+  data <- args$data
+  if (is.null(data) || "subset" %in% names(args)) {
+    return(NULL)
+  }
+
+  if (inherits(data, "ftable") || inherits(data, "table") ||
+    length(dim(data)) > 2) {
+    return(formula_margin_table(formula, data))
+  }
+
+  frame <- tryCatch(
+    stats::model.frame(formula, data = data, na.action = stats::na.omit),
+    error = function(e) NULL
+  )
+  if (is.null(frame)) {
+    return(NULL)
+  }
+  tryCatch(as.table(table(frame)), error = function(e) NULL)
+}
+
+#' Sum a table over the variables a formula names
+#'
+#' The branch `mosaicplot.formula()` takes when `data` is already a table:
+#' the formula selects which margins to keep, and `~ .` keeps all of them.
+#'
+#' @param formula The recorded formula
+#' @param data The recorded table
+#' @return A table, or NULL
+#' @keywords internal
+formula_margin_table <- function(formula, data) {
+  table <- tryCatch(as.table(data), error = function(e) NULL)
+  if (is.null(table)) {
+    return(NULL)
+  }
+  names <- tryCatch(
+    attr(stats::terms(formula), "term.labels"),
+    error = function(e) NULL
+  )
+  if (is.null(names) || !all(names != ".")) {
+    return(table)
+  }
+  tryCatch(marginSums(table, names), error = function(e) NULL)
 }
