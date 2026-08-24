@@ -279,3 +279,155 @@ test_that("a stacked bar is unchanged", {
   testthat::expect_equal(layer$data[[1]][[1]]$y, 30)
   testthat::expect_null(layer$data[[1]][[1]]$width)
 })
+
+
+# ==============================================================================
+# The formula interface (#248)
+# ==============================================================================
+
+# `mosaicplot()` has two calling styles and #247 read only one. The other
+# hands it a formula and a `data` argument, and `mosaicplot.formula()` builds
+# the table from the two -- so the numbers are still the chart's own, arrived
+# at by the same code, rather than a plausible reconstruction.
+#
+# Which table it builds depends on what `data` is, and the distinction is not
+# cosmetic. Read from `graphics:::mosaicplot.formula`:
+#
+#     if (inherits(edata, "ftable") || inherits(edata, "table") ||
+#         length(dim(edata)) > 2) {
+#       data <- marginSums(as.table(data), varnames)
+#       mosaicplot(data, ...)
+#     } else {
+#       mf <- eval(model.frame(formula, data, subset, na.action))
+#       mosaicplot(table(mf), ...)
+#     }
+#
+# So a data frame is counted **by row**, whatever its columns hold.
+
+#' The textbook table as a data frame of pre-counted cells
+counted_frame <- function() {
+  as.data.frame(HAIR_EYE)
+}
+
+#' The same observations as one row each, which is what `table()` counts
+raw_rows <- function() {
+  frame <- counted_frame()
+  frame[rep(seq_len(nrow(frame)), frame$Freq), c("Hair", "Eye")]
+}
+
+#' Every cell's count, series by series
+counts_of <- function(layer) {
+  lapply(layer$data, function(series) {
+    vapply(series, function(cell) cell$count, 0)
+  })
+}
+
+
+test_that("a formula call over raw rows is read rather than pictured", {
+  # The reproduction. `mosaicplot(~ a + b, data = df)` emitted zero layers
+  # and the figure rendered as a picture.
+  frame <- raw_rows()
+  layer <- mosaic_layers(function() mosaicplot(~ Hair + Eye, data = frame))[[1]]
+
+  testthat::expect_equal(layer$type, "mosaic")
+  testthat::expect_equal(
+    counts_of(layer),
+    lapply(seq_len(ncol(HAIR_EYE)), function(i) unname(HAIR_EYE[, i]))
+  )
+})
+
+
+test_that("a formula call over a table sums the margins it names", {
+  # The other branch, and the one that reaches a three-way table: the formula
+  # selects which margins to keep, so `~ Hair + Eye` over the full
+  # `HairEyeColor` reads the same chart the direct call does.
+  layer <- mosaic_layers(
+    function() mosaicplot(~ Hair + Eye, data = HairEyeColor)
+  )[[1]]
+
+  testthat::expect_equal(layer$type, "mosaic")
+  testthat::expect_equal(
+    counts_of(layer),
+    lapply(
+      seq_len(ncol(HairEyeColor[, , 1])),
+      function(i) unname(marginSums(HairEyeColor, c("Hair", "Eye"))[, i])
+    )
+  )
+})
+
+
+test_that("a pre-counted data frame is read the way the chart draws it", {
+  # The trap, and why this is transcribed from `mosaicplot.formula()` rather
+  # than written as a rule of our own. #248 proposed
+  # `xtabs(Freq ~ Hair + Eye, data = df)`, which is the table the *direct*
+  # call is handed -- and not the one this call draws.
+  #
+  #   table(model.frame(~ Hair + Eye, df))   xtabs(Freq ~ Hair + Eye, df)
+  #           Brown Blue Hazel Green                 Brown Blue Hazel Green
+  #     Black     1    1     1     1           Black    32   11    10     3
+  #     Brown     1    1     1     1           Brown    53   50    25    15
+  #     Red       1    1     1     1           Red      10   10     7     7
+  #     Blond     1    1     1     1           Blond     3   30     5     8
+  #
+  # `mosaicplot.formula()` counts rows and never looks at `Freq`; the chart
+  # is sixteen equal cells. Announcing the right-hand table would give a
+  # reader numbers the picture does not show, which is the one thing this
+  # processor exists not to do.
+  frame <- counted_frame()
+  layer <- mosaic_layers(function() mosaicplot(~ Hair + Eye, data = frame))[[1]]
+
+  testthat::expect_equal(
+    counts_of(layer),
+    rep(list(rep(1, nrow(HAIR_EYE))), ncol(HAIR_EYE))
+  )
+})
+
+
+test_that("a formula call carrying a subset is declined", {
+  # `mosaicplot.formula()` passes `subset` into `model.frame()`, so honouring
+  # it means reproducing an argument whose recorded form is not the
+  # expression `model.frame()` is given -- and ignoring it would read rows
+  # the chart left out. Declined, which leaves the figure the picture it was.
+  #
+  # No layer at all, which routes the figure to the static-image fallback the
+  # way the three-way table above does -- and asserted on the adapter too, so
+  # a call that yielded nothing for some *other* reason could not pass this.
+  frame <- raw_rows()
+  keep <- frame$Hair != "Red"
+
+  testthat::expect_length(
+    mosaic_types(
+      function() mosaicplot(~ Hair + Eye, data = frame, subset = keep)
+    ),
+    0
+  )
+
+  adapter <- maidr:::BaseRAdapter$new()
+  testthat::expect_equal(
+    adapter$detect_layer_type(list(
+      function_name = "mosaicplot",
+      args = list(~ Hair + Eye, data = frame, subset = keep)
+    )),
+    "unknown"
+  )
+})
+
+
+test_that("a formula naming three variables is declined", {
+  # The limit the direct call already has, reached the other way: a `mosaic`
+  # layer has one category axis and one fill, so a deeper table has nowhere
+  # to put its later dimensions.
+  testthat::expect_length(
+    mosaic_types(function() mosaicplot(~ Hair + Eye + Sex, data = HairEyeColor)),
+    0
+  )
+
+  adapter <- maidr:::BaseRAdapter$new()
+  testthat::expect_equal(
+    adapter$detect_layer_type(list(
+      function_name = "mosaicplot",
+      args = list(~ Hair + Eye + Sex, data = HairEyeColor)
+    )),
+    "unknown"
+  )
+})
