@@ -64,6 +64,11 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         # its ticks through a wrapper ggplot2 leaves unnamed, so it reads
         # through a processor of its own and emits `point`.
         "rug" = Ggplot2RugLayerProcessor$new(layer_info),
+        # A closed path is a path, so this emits `line`; it needs a
+        # processor of its own because its grob is named after its geom and
+        # is addressed per group, where a line's is anonymous and found by
+        # draw order.
+        "polygon" = Ggplot2PolygonLayerProcessor$new(layer_info),
         "box" = Ggplot2BoxplotLayerProcessor$new(layer_info),
         "error_bar" = Ggplot2ErrorbarLayerProcessor$new(layer_info),
         "violin" = Ggplot2ViolinLayerProcessor$new(layer_info),
@@ -96,6 +101,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "hexbin",
         "point",
         "rug",
+        "polygon",
         "box",
         "error_bar",
         "violin",

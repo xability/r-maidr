@@ -23,12 +23,35 @@
 # `geom_quantile()` without quantreg warns, computes no rows and draws
 # nothing. ggplot2 carries on; r-maidr turned the whole figure into a picture
 # with no second warning connecting the two.
+#
+# The table above is what was measured for #227, when `geom_polygon()` was
+# the plainest layer the adapter declined. It has since been claimed as the
+# closed path it draws (#225), so the tests below carry the same argument on
+# `geom_segment()`, whose segments are declined when they lay no lanes
+# (#194). Nothing about the argument moves with the vehicle: what is being
+# asked is what an *unclaimed* layer costs when it drew nothing, and that
+# spelling is the one the adapter still declines. Re-measured on the same
+# thirty points, after the fix:
+#
+#     geom_point()                                 interactive   48,779 bytes
+#     geom_point() + geom_point(data = d[0, ])     interactive   48,941 bytes
+#     geom_point() + geom_segment(data = d[0, ])   interactive   49,114 bytes
+#     geom_point() + geom_segment()                base64 image  40,729 bytes
+#
+# Row three is the row #227 moved -- an unclaimed layer of nothing, now
+# costing the chart nothing -- and row four is the case the fallback exists
+# for, still falling back.
 
 # Built at top level: inside a closure the bare column names in `aes()` read
 # as undefined globals to static analysis.
 positions <- ggplot2::aes(x = x, y = y)
 diagonals <- ggplot2::aes(x = x, xend = x + 1, y = y, yend = y + 1)
 missing_column <- ggplot2::aes(x = no_such_column, y = y)
+# Ends only, so that x and y still come from the plot's own mapping -- which
+# is what makes the broken plot below actually fail to build. A layer that
+# maps its own x would supply the column the plot is missing and the build
+# would succeed.
+ends_only <- ggplot2::aes(xend = x + 1, yend = y + 1)
 
 #' Thirty points on a rising diagonal
 observations <- function() {
@@ -55,7 +78,7 @@ test_that("an unclaimed layer that drew nothing is skipped, not unknown", {
   adapter <- maidr:::Ggplot2Adapter$new()
   plot <- ggplot2::ggplot(observations(), positions) +
     ggplot2::geom_point() +
-    ggplot2::geom_polygon(data = nothing())
+    ggplot2::geom_segment(data = nothing(), mapping = diagonals)
 
   testthat::expect_equal(
     adapter$detect_layer_type(plot$layers[[2]], plot), "skip"
@@ -66,13 +89,13 @@ test_that("an unclaimed layer that drew nothing is skipped, not unknown", {
 test_that("an unclaimed layer that drew something is still unknown", {
   testthat::skip_if_not_installed("ggplot2")
 
-  # The half that keeps this honest. A filled polygon is drawn and nothing
-  # announces it, so declining the chart is what protects the reader -- and
-  # this change must not touch it.
+  # The half that keeps this honest. A segment laying no lane is drawn and
+  # nothing announces it, so declining the chart is what protects the reader
+  # -- and this change must not touch it.
   adapter <- maidr:::Ggplot2Adapter$new()
   plot <- ggplot2::ggplot(observations(), positions) +
     ggplot2::geom_point() +
-    ggplot2::geom_polygon(alpha = 0.2)
+    ggplot2::geom_segment(mapping = diagonals)
 
   testthat::expect_equal(
     adapter$detect_layer_type(plot$layers[[2]], plot), "unknown"
@@ -86,7 +109,7 @@ test_that("a chart is not taken down by a layer with nothing in it", {
   html <- rendered(
     ggplot2::ggplot(observations(), positions) +
       ggplot2::geom_point() +
-      ggplot2::geom_polygon(data = nothing())
+      ggplot2::geom_segment(data = nothing(), mapping = diagonals)
   )
 
   testthat::expect_false(fell_back(html))
@@ -102,7 +125,7 @@ test_that("a chart is still taken down by a layer with something in it", {
   testthat::expect_true(fell_back(rendered(
     ggplot2::ggplot(observations(), positions) +
       ggplot2::geom_point() +
-      ggplot2::geom_polygon(alpha = 0.2)
+      ggplot2::geom_segment(mapping = diagonals)
   )))
 })
 
@@ -117,34 +140,8 @@ test_that("a plot made only of empty unclaimed layers still falls back", {
   # every layer now reads "skip".
   testthat::expect_true(fell_back(rendered(
     ggplot2::ggplot(observations(), positions) +
-      ggplot2::geom_polygon(data = nothing())
+      ggplot2::geom_segment(data = nothing(), mapping = diagonals)
   )))
-})
-
-
-test_that("the segment branch declines through the same answer", {
-  testthat::skip_if_not_installed("ggplot2")
-
-  # `geom_segment()` has a rule of its own and returns "unknown" when its
-  # segments lay no lanes (#194). That decline is the same decline, so an
-  # empty segment layer must skip and a drawn one that spans no lanes must
-  # not -- otherwise the fix would hold at one of the two places the adapter
-  # says "unknown" and not the other.
-  adapter <- maidr:::Ggplot2Adapter$new()
-
-  empty <- ggplot2::ggplot(observations(), positions) +
-    ggplot2::geom_point() +
-    ggplot2::geom_segment(data = nothing(), mapping = diagonals)
-  drawn <- ggplot2::ggplot(observations(), positions) +
-    ggplot2::geom_point() +
-    ggplot2::geom_segment(mapping = diagonals)
-
-  testthat::expect_equal(
-    adapter$detect_layer_type(empty$layers[[2]], empty), "skip"
-  )
-  testthat::expect_equal(
-    adapter$detect_layer_type(drawn$layers[[2]], drawn), "unknown"
-  )
 })
 
 
@@ -158,7 +155,7 @@ test_that("a layer the build says nothing about is declined", {
   adapter <- maidr:::Ggplot2Adapter$new()
   plot <- ggplot2::ggplot(observations(), positions) + ggplot2::geom_point()
   stranger <- ggplot2::ggplot(observations(), positions) +
-    ggplot2::geom_polygon()
+    ggplot2::geom_segment(mapping = diagonals)
 
   testthat::expect_equal(
     adapter$unread_layer_type(stranger$layers[[1]], plot), "unknown"
@@ -196,7 +193,7 @@ test_that("a stat that computed nothing does not cost the chart everything", {
   plot <- ggplot2::ggplot(observations(), positions) +
     ggplot2::geom_point() +
     ggplot2::layer(
-      stat = nothing_at_all, geom = "polygon", position = "identity",
+      stat = nothing_at_all, geom = "segment", position = "identity",
       data = observations(), mapping = positions
     )
 
@@ -218,7 +215,7 @@ test_that("a plot that cannot be built is declined rather than skipped", {
   # not to build is the last one to guess about.
   adapter <- maidr:::Ggplot2Adapter$new()
   broken <- ggplot2::ggplot(observations(), missing_column) +
-    ggplot2::geom_polygon()
+    ggplot2::geom_segment(mapping = ends_only)
 
   testthat::expect_error(suppressWarnings(ggplot2::ggplot_build(broken)))
   testthat::expect_equal(
