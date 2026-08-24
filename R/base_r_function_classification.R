@@ -74,6 +74,34 @@ NULL
     "qqnorm",
     "qqplot",
     "filled.contour",
+    # Twelve more wearing the same defect, found by the sweep #262 records:
+    # each draws a chart and `save_html()` then reported "No Base R plots
+    # detected. Please create a plot first" -- told to a caller whose chart
+    # is on the device. Measured with bare calls, because a qualified
+    # `stats::acf(v)` does not go through the search-path patch and would
+    # have put `assocplot` and `coplot` on this list wrongly.
+    #
+    # What goes through `plot()` was already fine and is untouched:
+    # `plot(density(x))`, `plot(ecdf(x))`, `plot(ts)`, `plot(lm)` and
+    # `plot(acf(x, plot = FALSE))` all record, because `plot` is listed.
+    # These are the entry points that draw *without* the generic.
+    #
+    # Listed, not read: the lower claim again. `bxp` and `stars` are the two
+    # whose reading is already a type MAIDR has -- a box plot from
+    # precomputed stats, and a radar of one glyph per row -- and #262 records
+    # the candidates for the rest.
+    "acf",
+    "pacf",
+    "ccf",
+    "biplot",
+    "interaction.plot",
+    "cpgram",
+    "monthplot",
+    "spectrum",
+    "lag.plot",
+    "termplot",
+    "stars",
+    "bxp",
     # quantmod entry point for OHLC / candlestick charts. Only chartSeries is
     # wrapped in the MVP; candleChart / barChart / lineChart are deferred.
     "chartSeries",

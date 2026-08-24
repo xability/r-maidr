@@ -374,3 +374,96 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
   expect_false(both$fell_back)
   expect_false(both$warned)
 })
+
+
+# Twelve more that drew a chart and were told there was none (#262)
+#
+# #216's defect, found again by sweeping every drawing entry point rather
+# than the eight it started from. Each of these draws directly instead of
+# going through `plot()`, so being absent from the classification list meant
+# nothing was recorded and `save_html()` reported "No Base R plots detected.
+# Please create a plot first" -- to a caller whose chart was on the device.
+#
+# Measured with **bare** calls, which is load-bearing: a qualified
+# `stats::acf(v)` does not go through the search-path patch, and a sweep
+# written that way reported `assocplot` and `coplot` as broken when they are
+# not. The fixtures below therefore call each function by its bare name, the
+# way a caller writes it.
+#
+# What reaches these through `plot()` was already fine and is asserted below
+# so it stays that way: `plot` is listed, so its methods record.
+
+DRAWS_DIRECTLY <- local({
+  set.seed(5)
+  v <- stats::rnorm(60)
+  m <- matrix(stats::rnorm(40), nrow = 10)
+  seasonal <- stats::ts(cumsum(stats::rnorm(48)), frequency = 12)
+  list(
+    acf = function() acf(v),
+    pacf = function() pacf(v),
+    ccf = function() ccf(v, rev(v)),
+    biplot = function() biplot(stats::prcomp(m)),
+    interaction.plot = function() {
+      interaction.plot(factor(rep(1:2, 30)), factor(rep(1:3, 20)), v)
+    },
+    cpgram = function() cpgram(v),
+    monthplot = function() monthplot(seasonal),
+    spectrum = function() spectrum(v),
+    lag.plot = function() lag.plot(seasonal),
+    termplot = function() termplot(stats::lm(v ~ seq_along(v))),
+    stars = function() stars(abs(m)),
+    bxp = function() bxp(boxplot(v, plot = FALSE))
+  )
+})
+
+test_that("a call that draws without plot() no longer stops the save", {
+  skip_unless_jsonlite()
+
+  for (name in names(DRAWS_DIRECTLY)) {
+    result <- save_base_figure(function() {
+      invisible(utils::capture.output(suppressWarnings(DRAWS_DIRECTLY[[name]]())))
+    })
+
+    expect_null(result$error, info = name)
+  }
+})
+
+test_that("each of them degrades to the picture rather than to nothing", {
+  skip_unless_jsonlite()
+
+  # Being listed is the *lower* of the two claims -- recorded, so the figure
+  # falls back to a static image, not read. Asserting the fallback actually
+  # arrives is what keeps "listed" from meaning "silently empty".
+  for (name in names(DRAWS_DIRECTLY)) {
+    result <- save_base_figure(function() {
+      invisible(utils::capture.output(suppressWarnings(DRAWS_DIRECTLY[[name]]())))
+    })
+
+    expect_true(result$fell_back, info = name)
+  }
+})
+
+test_that("what reaches stats plots through plot() still reads", {
+  skip_unless_jsonlite()
+
+  # The bound on the change. These are S3 methods dispatched from `plot`,
+  # which is listed, so they were never part of the defect -- and none of
+  # them may start falling back to a picture now that their direct-drawing
+  # siblings are recorded.
+  set.seed(5)
+  v <- stats::rnorm(40)
+
+  through_plot <- list(
+    density = function() plot(stats::density(v)),
+    ecdf = function() plot(stats::ecdf(v)),
+    ts = function() plot(stats::ts(cumsum(v))),
+    acf_object = function() plot(acf(v, plot = FALSE))
+  )
+
+  for (name in names(through_plot)) {
+    result <- save_base_figure(through_plot[[name]])
+
+    expect_null(result$error, info = name)
+    expect_false(result$fell_back, info = name)
+  }
+})
