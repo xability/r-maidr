@@ -363,6 +363,14 @@ differently: \code{cdplot(x, y)} and \code{cdplot(y ~ x, data)}. The formula
 method builds a model frame and takes the response from column one
 and the predictor from column two, which is reproduced here because
 the recorded call carries the formula rather than the frame.
+
+Memoised. \code{process()} reaches this three times -- through
+\code{response()}, through \code{predictor()} and again for the axis names --
+and on the formula path each ask would rebuild a model frame and
+re-apply the subset. The same call \code{BaseRSpineplotLayerProcessor}
+makes about its replayed table, for the same reason. Nothing
+observable changes, which is why this is written down rather than
+left to be rediscovered.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCdplotLayerProcessor$variables(args)}

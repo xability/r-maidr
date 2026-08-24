@@ -326,3 +326,50 @@ test_that("a level with an empty name is still announced", {
 
   expect_equal(band_names(layer), c("", "b"))
 })
+
+# A `subset` is recorded against the unfiltered data, so it has to be applied
+# before the missing rows are dropped -- which is the order `model.frame()`
+# itself uses, and therefore the order `cdplot.formula` gets. Letting the
+# default `na.omit` run first shrinks the frame, and the subset then indexes
+# past its end: R pads the overrun with NA rows rather than erroring, the NA
+# reaches `min()` in `drawn_grid()`, and `if (sum(kept) < 2L)` raises
+# "missing value where TRUE/FALSE needed" out of `process()`. Nothing above
+# catches that, so the whole figure went down instead of this one layer
+# declining. Reported in review of #259 and reproduced before the fix.
+WITH_GAPS <- local({
+  set.seed(7)
+  score <- stats::rnorm(80, 50, 10)
+  score[c(3, 10, 25)] <- NA
+  data.frame(score = score, grade = factor(sample(c("a", "b", "c"), 80, TRUE)))
+})
+
+test_that("a subset over data with missing rows is read, not raised on", {
+  keep <- !is.na(WITH_GAPS$score) & WITH_GAPS$score > 45
+
+  layer <- processed(list(grade ~ score, data = WITH_GAPS, subset = keep))
+
+  expect_length(layer$data, 3)
+})
+
+test_that("a subset that carries missing values is read the same way", {
+  # How a caller actually writes it: `score > 45` is NA wherever `score` is.
+  keep <- WITH_GAPS$score > 45
+
+  layer <- processed(list(grade ~ score, data = WITH_GAPS, subset = keep))
+
+  expect_length(layer$data, 3)
+})
+
+test_that("the subset picks the rows cdplot itself picked", {
+  # The rows, not merely some rows: an off-by-three alignment would still
+  # produce three series, and would announce a range the chart never drew.
+  keep <- WITH_GAPS$score > 45
+  frame <- stats::model.frame(grade ~ score, data = WITH_GAPS, subset = keep)
+
+  layer <- processed(list(grade ~ score, data = WITH_GAPS, subset = keep))
+
+  xs <- vapply(layer$data[[1]], function(point) point$x, numeric(1))
+  expect_gte(min(xs), min(frame[[2]]))
+  expect_lte(max(xs), max(frame[[2]]))
+  expect_lt(max(frame[[2]]) - max(xs), 1)
+})

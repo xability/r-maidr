@@ -310,14 +310,27 @@ BaseRCdplotLayerProcessor <- R6::R6Class(
     #'   and the predictor from column two, which is reproduced here because
     #'   the recorded call carries the formula rather than the frame.
     #'
+    #'   Memoised. `process()` reaches this three times -- through
+    #'   `response()`, through `predictor()` and again for the axis names --
+    #'   and on the formula path each ask would rebuild a model frame and
+    #'   re-apply the subset. The same call `BaseRSpineplotLayerProcessor`
+    #'   makes about its replayed table, for the same reason. Nothing
+    #'   observable changes, which is why this is written down rather than
+    #'   left to be rediscovered.
     #' @param args The recorded call's arguments
     #' @return A list of `x`, `y` and `names`, or NULL
     variables = function(args) {
-      formula <- Find(function(a) inherits(a, "formula"), args)
-      if (is.null(formula)) {
-        return(self$default_variables(args))
+      if (!is.null(private$resolved)) {
+        return(private$resolved)
       }
-      self$formula_variables(formula, args[["data"]], args[["subset"]])
+
+      formula <- Find(function(a) inherits(a, "formula"), args)
+      private$resolved <- if (is.null(formula)) {
+        self$default_variables(args)
+      } else {
+        self$formula_variables(formula, args[["data"]], args[["subset"]])
+      }
+      private$resolved
     },
 
     #' @description The variables of a `cdplot(x, y)` call
@@ -362,16 +375,30 @@ BaseRCdplotLayerProcessor <- R6::R6Class(
     formula_variables = function(formula, data, subset = NULL) {
       frame <- tryCatch(
         {
+          # `na.pass`, then subset, then drop the missing rows -- which is
+          # the order `model.frame()` itself applies them in, and the order
+          # `cdplot.formula` therefore gets. Letting the default `na.omit`
+          # run first is what makes this wrong: it shrinks the frame, and a
+          # `subset` recorded against the *unfiltered* data then indexes past
+          # the end. Measured on 80 rows with three NAs and a subset of
+          # length 80, the frame came back with 77 and `built[subset, ]`
+          # padded the overrun with NA rows rather than erroring; the NA
+          # reached `min()` in `drawn_grid()`, and `if (sum(kept) < 2L)`
+          # raised "missing value where TRUE/FALSE needed" out of
+          # `process()` -- which nothing above catches, so the whole render
+          # went down instead of this one layer declining.
           built <- stats::model.frame(
             formula,
-            data = if (is.null(data)) list() else data
+            data = if (is.null(data)) list() else data,
+            na.action = stats::na.pass
           )
           # Indexed here rather than handed to `model.frame(subset =)`, which
           # substitutes its argument and evaluates the expression inside
           # `data` -- and the recorded call carries the already-evaluated
           # vector, which is not a name `data` knows. Measured: that route
           # returns an empty frame and every reading with it.
-          if (is.null(subset)) built else built[subset, , drop = FALSE]
+          selected <- if (is.null(subset)) built else built[subset, , drop = FALSE]
+          stats::na.omit(selected)
         },
         error = function(e) NULL
       )
@@ -465,5 +492,8 @@ BaseRCdplotLayerProcessor <- R6::R6Class(
 
       lapply(bands, polygon_cell_selector)
     }
+  ),
+  private = list(
+    resolved = NULL
   )
 )
