@@ -368,6 +368,13 @@ BaseRAdapter <- R6::R6Class(
         "cdplot" = "conditional_density",
         "hist" = "hist",
         "boxplot" = "box",
+        # `boxplot()`'s own drawing half, called directly by a caller who
+        # already has the five-number summaries. It draws the same marks
+        # `boxplot()` does -- the same grob names in the same order -- so it
+        # is the same `box` layer, and the separate name only routes it to
+        # the subclass that reads the summaries out of the call instead of
+        # recomputing them from observations that are not there (#262).
+        "bxp" = "box_stats",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the
         # same shape the ggplot2 adapter produces for geom_violin().
         "vioplot" = "violin",

@@ -2,6 +2,24 @@
 
 ## New Features
 
+* Base R `bxp()` is now read as the box plot it draws, instead of falling
+  back to a static image. `bxp()` is `boxplot()`'s own drawing half: it is
+  handed the five-number summaries and puts the boxes, whiskers, medians and
+  outliers on the page, which is how you draw boxes from statistics you
+  already have rather than from the observations behind them.
+
+  It draws the *same marks*. Echoed off-screen, `bxp(z)` and the `boxplot()`
+  call that produced `z` emit the same grob names in the same order, so every
+  selector the box reading already builds -- including the index shift each
+  box with no outliers puts on the boxes after it -- addresses a `bxp()`
+  chart unchanged. The reading is therefore the box plot's, shared rather
+  than restated, with one thing overridden: where the summaries come from.
+
+  A bare `bxp()` keeps the generic axis names. Unlike `boxplot(y ~ g)`, it
+  has no formula to take titles from and draws no axis-label grobs at all, so
+  naming the axes after anything in particular would announce text that is
+  not on the page; `xlab` and `ylab` written on the call are used as usual.
+
 * Base R `cdplot()` is now read as the 100% stacked area it draws, instead
   of falling back to a static image. It shows how the levels of a factor
   divide up across a numeric `x`, as bands that fill the height and sum to 1

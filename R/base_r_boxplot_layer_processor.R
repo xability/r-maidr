@@ -29,6 +29,27 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         domMapping = list(iqrDirection = iqr_direction)
       )
     },
+    # The five-number summaries the drawn boxes came from
+    #
+    # A `boxplot()` call carries the *observations*, so the summaries have to
+    # be recomputed from them -- which `boxplot(plot = FALSE)` does, using
+    # the same code path the drawing did, rather than a reimplementation of
+    # it here. `graphics::boxplot` is named directly so the replay does not
+    # go back through maidr's own wrapper and record a second call.
+    #
+    # Overridable because `bxp()` is handed the summaries already computed
+    # and draws exactly the same marks from them: everything below this
+    # method -- the outlier grouping, the polygon and segment indices, the
+    # shift each box with no outliers puts on the ones after it -- is the
+    # same reading either way, and only where the summaries come from
+    # differs (#262).
+    #
+    # @param args Recorded argument list
+    # @return The `boxplot.stats`-shaped list, or NULL when it cannot be had
+    read_stats = function(args) {
+      args$plot <- FALSE
+      tryCatch(do.call(graphics::boxplot, args), error = function(e) NULL)
+    },
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -37,20 +58,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Recreate boxplot stats using original args with plot=FALSE
-      args_no_plot <- args
-      args_no_plot$plot <- FALSE
-
-      # Safely call boxplot() to get stats structure
-      # Use graphics::boxplot directly to avoid calling the wrapped version
-      stats_obj <- tryCatch(
-        {
-          do.call(graphics::boxplot, args_no_plot)
-        },
-        error = function(e) {
-          NULL
-        }
-      )
+      stats_obj <- self$read_stats(args)
       if (is.null(stats_obj) || is.null(stats_obj$stats)) {
         return(list())
       }
@@ -113,15 +121,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       stats_obj <- NULL
       if (!is.null(self$layer_info) && !is.null(self$layer_info$plot_call)) {
         plot_call <- self$layer_info$plot_call
-        args <- plot_call$args
-        args$plot <- FALSE
-        # Use graphics::boxplot directly to avoid calling the wrapped version
-        stats_obj <- tryCatch(
-          {
-            do.call(graphics::boxplot, args)
-          },
-          error = function(e) NULL
-        )
+        stats_obj <- self$read_stats(plot_call$args)
         if (!is.null(stats_obj) && !is.null(stats_obj$stats)) data_len <- ncol(stats_obj$stats)
       }
       if (data_len <= 0) {
