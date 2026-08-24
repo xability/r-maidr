@@ -9,7 +9,11 @@ test_that("classify_function returns HIGH for high-level functions", {
   high_funcs <- c(
     "barplot", "plot", "hist", "boxplot", "image", "heatmap",
     "contour", "matplot", "curve", "dotchart", "stripchart",
-    "stem", "pie", "mosaicplot", "assocplot", "pairs", "coplot"
+    # `stem` was here, and should not have been: it writes a stem-and-leaf
+    # display to the console and draws nothing, so recording it as a chart
+    # broke the save on its own and cost a neighbouring chart its reading
+    # (#260). `test-base-r-unrecorded-calls.R` asserts both halves.
+    "pie", "mosaicplot", "assocplot", "pairs", "coplot"
   )
 
   for (func in high_funcs) {
