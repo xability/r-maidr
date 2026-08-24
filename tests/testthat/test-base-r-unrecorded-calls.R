@@ -25,15 +25,16 @@
 # `qqnorm()` and `qqplot()` use, and both of those are now recorded, so both
 # need it.
 #
-# **Four of the eight have since moved past the fallback.** `qqnorm` and
+# **Five of the eight have since moved past the fallback.** `qqnorm` and
 # `qqplot` gained a processor in #251 and are now read as the quantile
 # scatter they draw; `filled.contour` followed, read as the contour it draws
-# with the bands between the levels filled; and `spineplot` after it, read as
-# the mosaic of a two-way table it is. None of the four degrades to a picture
-# any more -- they do not need to. The lists below are split accordingly, and
-# the four are asserted to be *read* rather than dropped from the file: what
-# #216 established about them is that a recorded call never stops the save,
-# and that still has to hold on the far side of gaining a reading.
+# with the bands between the levels filled; `spineplot` after it, read as the
+# mosaic of a two-way table it is; and `cdplot` after that, read as the 100%
+# stacked area its bands make. None of the five degrades to a picture any
+# more -- they do not need to. The lists below are split accordingly, and the
+# five are asserted to be *read* rather than dropped from the file: what #216
+# established about them is that a recorded call never stops the save, and
+# that still has to hold on the far side of gaining a reading.
 
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
@@ -87,7 +88,7 @@ save_base_figure <- function(plot_fun) {
   )
 }
 
-# The four of the eight that are still recorded-but-unread, with the smallest
+# The three of the eight that are still recorded-but-unread, with the smallest
 # call that draws each.
 unrecorded_calls <- list(
   persp = function() {
@@ -99,22 +100,23 @@ unrecorded_calls <- list(
     persp(z = z)
   },
   sunflowerplot = function() {
-    sunflowerplot(c(1, 1, 2, 2, 3), c(1, 1, 2, 3, 3))
+    sunflowerplot(y ~ x, data = data.frame(x = c(1, 1, 2, 2, 3),
+                                           y = c(1, 1, 2, 3, 3)))
   },
-  fourfoldplot = function() fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2)),
-  cdplot = function() {
-    cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
-  }
+  fourfoldplot = function() fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2))
 )
 
-# The four that are now read (#251). Still here, because #216's claim about
+# The five that are now read (#251). Still here, because #216's claim about
 # them -- that a recorded call never stops the save -- has to survive their
 # gaining a reading.
 read_calls <- list(
   qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
   qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
   filled.contour = function() filled.contour(matrix(1:12, nrow = 3)),
-  spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3))
+  spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3)),
+  cdplot = function() {
+    cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
+  }
 )
 
 all_calls <- c(unrecorded_calls, read_calls)
@@ -189,11 +191,12 @@ test_that("the picture is the chart, not a blank canvas", {
   skip_unless_jsonlite()
   skip_if_not_installed("base64enc")
 
-  # The replay has to rebuild `factor(...) ~ x` in the caller's frame, so a
-  # fallback that silently drew nothing would still pass every assertion
-  # above. `cdplot` plays the part, having the formula shape this needs and
-  # being one of the four still unread -- `spineplot` stood here until it
-  # gained a reading, and when `cdplot` does too, the next one moves in.
+  # The replay has to rebuild `y ~ x` in the caller's frame, so a fallback
+  # that silently drew nothing would still pass every assertion above.
+  # `sunflowerplot` plays the part, having the formula shape this needs and
+  # being one of the three still unread -- `spineplot` stood here until it
+  # gained a reading, then `cdplot` until it gained one too, and when
+  # `sunflowerplot` does the next one moves in.
   #
   # Measured against two references rendered on the same machine, rather
   # than against a byte count: this first read `> 10000`, calibrated on
@@ -202,10 +205,10 @@ test_that("the picture is the chart, not a blank canvas", {
   # whether the captured image is nearer the chart than an empty page is
   # the question that was meant, and it needs no constant at all.
   blank <- png_bytes(function() graphics::plot.new())
-  reference <- png_bytes(unrecorded_calls$cdplot)
+  reference <- png_bytes(unrecorded_calls$sunflowerplot)
   expect_gt(reference, blank)
 
-  result <- save_base_figure(unrecorded_calls$cdplot)
+  result <- save_base_figure(unrecorded_calls$sunflowerplot)
   encoded <- regmatches(
     result$html,
     regexpr("base64,[A-Za-z0-9+/=]+", result$html)
@@ -246,8 +249,9 @@ test_that("plot.it = FALSE is refused without disturbing plot = FALSE", {
   computed <- save_base_figure(function() hist(c(1, 2, 3), plot = FALSE))
   expect_match(computed$error, "No Base R plots detected")
 
-  # `cdplot.default` has a real `plot` argument, unlike most of the eight,
-  # so the existing half of the guard covers it.
+  # `cdplot.default` has a real `plot` argument, so the existing half of the
+  # guard covers it -- and it has to keep covering it now that a drawn
+  # `cdplot()` is read rather than dropped.
   computed <- save_base_figure(function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4), plot = FALSE)
   })
