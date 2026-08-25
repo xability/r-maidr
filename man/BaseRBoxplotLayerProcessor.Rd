@@ -138,7 +138,7 @@ and generating selectors for boxplot components.
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}{
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args)}
+    \preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args, frame = NULL)}
     \if{html}{\out{</div>}}
   }
 }

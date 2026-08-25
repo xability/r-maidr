@@ -65,7 +65,12 @@ log_plot_call_to_device <- function(
     class_level = class_level,
     timestamp = Sys.time(),
     device_id = device_id,
-    call_env = call_env
+    call_env = call_env,
+    # Resolved now rather than at render time. A formula is the one recorded
+    # argument that is a reference rather than a value, so a reader that
+    # resolved it later would read whatever the names are bound to *then* --
+    # see `recorded_formula_frame()` for the measurement (#254).
+    formula_frame = recorded_formula_frame(args)
   )
 
   storage$calls <- append(storage$calls, list(call_entry))

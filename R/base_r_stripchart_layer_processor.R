@@ -124,7 +124,9 @@ BaseRStripchartLayerProcessor <- R6::R6Class(
       }
 
       groups <- if (inherits(handed, "formula")) {
-        self$split_by_formula(handed, args[["data"]])
+        self$split_by_formula(
+          handed, args[["data"]], layer_info$plot_call$formula_frame
+        )
       } else if (is.list(handed)) {
         handed
       } else if (is.numeric(handed)) {
@@ -208,11 +210,20 @@ BaseRStripchartLayerProcessor <- R6::R6Class(
     #'
     #' @param formula The recorded formula.
     #' @param data The recorded `data` argument, or NULL.
+    #' @param frame The model frame kept when the call was recorded, or NULL
+    #'   for a call recorded before that existed.
     #' @return A named list of numeric vectors, or NULL
-    split_by_formula = function(formula, data) {
+    split_by_formula = function(formula, data, frame = NULL) {
       tryCatch(
         {
-          frame <- stats::model.frame(formula, data = data)
+          # The frame the chart was drawn from, when the recording kept one.
+          # Resolving the formula here instead would read whatever its
+          # variables are bound to *now*, which need not be what was drawn
+          # (#254); falling back to it keeps a call recorded before this
+          # existed readable.
+          if (is.null(frame)) {
+            frame <- stats::model.frame(formula, data = data)
+          }
           response <- attr(attr(frame, "terms"), "response")
           split(frame[[response]], frame[-response])
         },

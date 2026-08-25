@@ -264,7 +264,7 @@ directly it gives \code{response == 0}, whose \code{frame[[0]]} the \code{tryCat
 below already turns into the decline.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRStripchartLayerProcessor$split_by_formula(formula, data)}
+    \preformatted{BaseRStripchartLayerProcessor$split_by_formula(formula, data, frame = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -272,6 +272,8 @@ below already turns into the decline.
     \describe{
       \item{\code{formula}}{The recorded formula.}
       \item{\code{data}}{The recorded \code{data} argument, or NULL.}
+      \item{\code{frame}}{The model frame kept when the call was recorded, or NULL
+for a call recorded before that existed.}
     }
     \if{html}{\out{</div>}}
   }
