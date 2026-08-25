@@ -134,7 +134,7 @@ Inherited methods
 
 #### Usage
 
-    BaseRBoxplotLayerProcessor$extract_formula_labels(args)
+    BaseRBoxplotLayerProcessor$extract_formula_labels(args, frame = NULL)
 
 ------------------------------------------------------------------------
 

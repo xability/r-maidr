@@ -295,7 +295,7 @@ into the decline.
 
 #### Usage
 
-    BaseRStripchartLayerProcessor$split_by_formula(formula, data)
+    BaseRStripchartLayerProcessor$split_by_formula(formula, data, frame = NULL)
 
 #### Arguments
 
@@ -306,6 +306,11 @@ into the decline.
 - `data`:
 
   The recorded `data` argument, or NULL.
+
+- `frame`:
+
+  The model frame kept when the call was recorded, or NULL for a call
+  recorded before that existed.
 
 #### Returns
 
