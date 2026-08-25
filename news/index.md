@@ -4,6 +4,33 @@
 
 ### New Features
 
+- Base R
+  [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  now read as the contingency table it draws, instead of falling back to
+  a static image. A Cohen–Friendly association plot states one signed
+  Pearson residual per cell – `(observed - expected) / sqrt(expected)` –
+  and every number is in the call the recorder already keeps, so nothing
+  is inferred from the drawing.
+
+  It is read as a `heat`: a named grid of one number per cell, navigated
+  row then column, which is how a contingency table is read. The grid’s
+  relation to the table was measured from the drawn rects rather than
+  assumed – the first dimension runs across the x axis and the second up
+  the y, bottom to top – so the grid is the table transposed, read
+  top-down, with the selectors undoing the drawing’s bottom-up order.
+  The axes take their names from
+  [`dimnames()`](https://rdrr.io/r/base/dimnames.html), and `z` is named
+  “Pearson residual” for what the numbers are rather than for a
+  dimension of the table.
+
+  Two things it deliberately does not do. The tile *width* is
+  `sqrt(expected)`, so the marginals are on the chart as a second
+  encoding; a heat layer has no width, and the residual is what the
+  chart exists to show, so the width is dropped rather than announced in
+  its place. And it is not read as a `mosaic`, though the two look
+  alike: a mosaic’s tiles are proportions of a whole, and these are
+  signed departures from an expectation, which sum to nothing.
+
 - Base R [`bxp()`](https://rdrr.io/r/graphics/bxp.html) is now read as
   the box plot it draws, instead of falling back to a static image.
   [`bxp()`](https://rdrr.io/r/graphics/bxp.html) is
@@ -224,6 +251,20 @@
   a table.
 
 ### Bug Fixes
+
+- A chart drawing a rect with a negative height or width no longer falls
+  back to a static image.
+  [`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
+  warns “number of items to replace is not a multiple of replacement
+  length” on such a rect – measured on a bare `rectGrob()`, four
+  positive heights export silently and the same four with two negated
+  warn – and a plot that warns is rendered as a picture. Every rect
+  drawn from a baseline with a signed height is reached by this, which
+  is how an association plot draws all of its tiles. Such a rect is now
+  restated with its extent positive before export: `(y, h)` with `h < 0`
+  becomes `(y + h, |h|)`, the identical rectangle. A rect anchored
+  anywhere but its low edge is left alone, since moving its anchor would
+  move the rectangle rather than restate it.
 
 - Twelve more base R calls that draw a chart no longer report that none
   exists. [`acf()`](https://rdrr.io/r/stats/acf.html),

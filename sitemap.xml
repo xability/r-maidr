@@ -9,6 +9,7 @@
 <url><loc>https://r.maidr.ai/index.html</loc></url>
 <url><loc>https://r.maidr.ai/news/index.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRAdapter.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRAssocplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRBarplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRBoxplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRBxpLayerProcessor.html</loc></url>
@@ -164,6 +165,7 @@
 <url><loc>https://r.maidr.ai/reference/find_gtable_panel_grob.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_original_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/find_patchwork_panels.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/flip_negative_extent.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/format-utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/format_panel_fallback_warning.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/formula_margin_table.html</loc></url>
@@ -267,6 +269,7 @@
 <url><loc>https://r.maidr.ai/reference/merge_line_layers.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/muffle_promise_restart.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/no_base_r_plots_message.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/normalise_negative_rects.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/on_high_level_call.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/on_layout_call.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/open_maidr_temp_device.html</loc></url>
@@ -294,6 +297,7 @@
 <url><loc>https://r.maidr.ai/reference/rdp.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_axis_label.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_two_way_table.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/rect_anchor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/rect_cell_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/register_ggplot2_print_method.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/render_maidr.html</loc></url>
