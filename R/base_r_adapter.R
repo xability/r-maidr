@@ -321,6 +321,16 @@ BaseRAdapter <- R6::R6Class(
         "mosaicplot" = {
           if (is_two_way_table(args)) "mosaic" else "unknown"
         },
+        # A Cohen--Friendly association plot: the same two-way table, drawn
+        # as one tile per cell whose signed height is that cell's Pearson
+        # residual. Read as a `heat` -- a named grid of one number per cell,
+        # navigated row then column, which is how a contingency table is
+        # read. NOT as a `mosaic`, though the two look alike: a mosaic's
+        # tiles are proportions of a whole and these are signed departures
+        # from an expectation, which sum to nothing (#266).
+        "assocplot" = {
+          if (is_two_way_table(args)) "residual" else "unknown"
+        },
         # A Q-Q plot: the scatter of one sample's quantiles against another
         # distribution's. Read as `point` -- it is a scatter, and the only
         # thing separating it from any other is that its coordinates are

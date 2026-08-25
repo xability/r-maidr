@@ -47,6 +47,10 @@ NULL
     # `stem()` never draws.
     "pie",
     "mosaicplot",
+    # Read since #266, as a `heat` of Pearson residuals. Listed here already,
+    # so gaining the reading did not touch this list -- the point the
+    # paragraph below the next group makes: being recorded and being read are
+    # separate steps.
     "assocplot",
     "pairs",
     "coplot",

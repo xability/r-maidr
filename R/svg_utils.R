@@ -83,7 +83,9 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   # than after drawing: grid.export() reads the grid display list, so only
   # the tree that was actually drawn is the one it exports.
   grid.newpage()
-  grid.draw(split_vectorised_curve_grobs(repair_na_text_justification(gt)))
+  grid.draw(normalise_negative_rects(
+    split_vectorised_curve_grobs(repair_na_text_justification(gt))
+  ))
 
   # Inject svg_x/svg_y coordinates into violin_kde layers while we have
 
@@ -158,6 +160,144 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
 #' @param grob A grob, gTree, gList, or gtable (or NULL)
 #' @return The same tree with NA `hjust`/`vjust` on text grobs set to 0.5
 #' @keywords internal
+#' Restate a rect grob's negative heights and widths as positive ones
+#'
+#' `gridSVG::grid.export()` warns "number of items to replace is not a
+#' multiple of replacement length" on any rect grob drawn with a negative
+#' height or width, and the warning reaches `save_html()`, where a plot that
+#' warns falls back to a picture.
+#'
+#' Measured on a bare `rectGrob()` with nothing else to it: four rects with
+#' positive heights export silently, and the same four with two heights
+#' negated warn. So this is an upstream gridSVG defect rather than anything
+#' about a particular chart -- but it is reached by an ordinary one.
+#' `assocplot()` draws every tile from a baseline with `just = c("left",
+#' "bottom")` and a signed height, so a cell below expectation is a negative
+#' height by construction (#266); every association plot would warn.
+#'
+#' A rect at `(y, h)` with `h < 0` covers the same pixels as one at
+#' `(y + h, |h|)`, so the drawing is unchanged -- only the arithmetic gridSVG
+#' does with it. The same holds for `x` and a negative width.
+#'
+#' Drop this repair if gridSVG ever handles negative dimensions itself.
+#'
+#' @param grob A grob, gTree, gList, or gtable (or NULL)
+#' @return The same tree with every rect's extent stated positively
+#' @keywords internal
+normalise_negative_rects <- function(grob) {
+  if (is.null(grob)) {
+    return(grob)
+  }
+
+  if (inherits(grob, "rect")) {
+    flipped <- flip_negative_extent(
+      grob$y, grob$height, rect_anchor(grob, "vertical")
+    )
+    grob$y <- flipped$position
+    grob$height <- flipped$extent
+    flipped <- flip_negative_extent(
+      grob$x, grob$width, rect_anchor(grob, "horizontal")
+    )
+    grob$x <- flipped$position
+    grob$width <- flipped$extent
+    return(grob)
+  }
+
+  for (field in c("children", "grobs")) {
+    if (!is.null(grob[[field]])) {
+      for (i in seq_along(grob[[field]])) {
+        grob[[field]][[i]] <- normalise_negative_rects(grob[[field]][[i]])
+      }
+    }
+  }
+  if (inherits(grob, "gList")) {
+    for (i in seq_along(grob)) {
+      grob[[i]] <- normalise_negative_rects(grob[[i]])
+    }
+  }
+  grob
+}
+
+#' Where a rect grob is anchored on one axis, as a fraction
+#'
+#' A `rectGrob()` keeps its justification in `just` and leaves `hjust` /
+#' `vjust` NULL unless the caller wrote them, so neither field alone answers
+#' the question. `just` may be a keyword, a number, or a length-two vector of
+#' either; absent, `grid`'s own default is `"centre"`.
+#'
+#' Anything unrecognised answers 0.5, the default -- an anchor this cannot
+#' read is one it should not move.
+#'
+#' @param grob A rect grob
+#' @param axis `"horizontal"` or `"vertical"`
+#' @return The anchor as a fraction: 0 is the low edge, 1 the high one
+#' @keywords internal
+rect_anchor <- function(grob, axis) {
+  explicit <- if (identical(axis, "vertical")) grob$vjust else grob$hjust
+  if (!is.null(explicit) && length(explicit) > 0 && !anyNA(explicit)) {
+    return(as.numeric(explicit)[1])
+  }
+
+  just <- grob$just
+  if (is.null(just) || length(just) == 0) {
+    return(0.5)
+  }
+  if (is.numeric(just)) {
+    # A length-two numeric is c(hjust, vjust); a single one applies to both.
+    index <- if (length(just) >= 2 && identical(axis, "vertical")) 2L else 1L
+    return(as.numeric(just)[index])
+  }
+
+  keywords <- if (identical(axis, "vertical")) {
+    c(bottom = 0, centre = 0.5, center = 0.5, top = 1)
+  } else {
+    c(left = 0, centre = 0.5, center = 0.5, right = 1)
+  }
+  named <- keywords[as.character(just)]
+  named <- named[!is.na(named)]
+  if (length(named) == 0) 0.5 else as.numeric(named)[1]
+}
+
+#' Move a rect's anchor so its extent can be stated positively
+#'
+#' Only rects anchored at the low edge are touched. A centred or
+#' high-anchored rect with a negative extent covers a different span, and
+#' moving its anchor would move the rectangle rather than restate it -- so
+#' those are left as they are, warning and all, rather than silently redrawn
+#' somewhere else.
+#'
+#' @param position The rect's `x` or `y`, as a unit
+#' @param extent The rect's `width` or `height`, as a unit
+#' @param anchor Where the rect is anchored on this axis, from
+#'   [rect_anchor()]: 0 is the low edge
+#' @return List with the restated `position` and `extent`
+#' @keywords internal
+flip_negative_extent <- function(position, extent, anchor) {
+  if (is.null(position) || is.null(extent)) {
+    return(list(position = position, extent = extent))
+  }
+  values <- tryCatch(as.numeric(extent), error = function(e) NULL)
+  if (is.null(values) || !any(values < 0, na.rm = TRUE)) {
+    return(list(position = position, extent = extent))
+  }
+  if (!isTRUE(all.equal(anchor, 0))) {
+    return(list(position = position, extent = extent))
+  }
+
+  negative <- !is.na(values) & values < 0
+  # `grid` recycles a shorter position across the rects, so a single `y` with
+  # several heights has to be expanded before it can be subscripted -- the
+  # very mismatch this repair exists to head off.
+  if (length(position) < length(values)) {
+    position <- rep(position, length.out = length(values))
+  }
+  # `+` and `abs` on units keep the unit each value was written in, so a rect
+  # given in "native" stays native and one in "npc" stays npc.
+  position[negative] <- position[negative] + extent[negative]
+  extent[negative] <- abs(extent[negative])
+  list(position = position, extent = extent)
+}
+
 repair_na_text_justification <- function(grob) {
   if (is.null(grob)) {
     return(grob)

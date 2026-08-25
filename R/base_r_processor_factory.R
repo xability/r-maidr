@@ -56,6 +56,10 @@ BaseRProcessorFactory <- R6::R6Class(
         "conditional_density" = BaseRCdplotLayerProcessor$new(layer_info),
         "dot" = BaseRDotchartLayerProcessor$new(layer_info),
         "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
+        # The same table read as residuals rather than proportions. A
+        # separate name because the numbers, the axes and the trace all
+        # differ; only the argument they come from is shared.
+        "residual" = BaseRAssocplotLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
         # A box plot handed its summaries rather than its observations. The
@@ -93,6 +97,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "conditional_density",
         "dot",
         "mosaic",
+        "residual",
         "hist",
         "box",
         "box_stats",
