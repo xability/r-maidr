@@ -101,7 +101,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       }
 
       # For horizontal boxplots, reverse data to match visual order (bottom-to-top)
-      if (!is.null(args$horizontal) && isTRUE(args$horizontal)) {
+      if (recorded_flag(args, "horizontal")) {
         results <- rev(results)
       }
 
@@ -207,7 +207,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
 
       plot_call <- if (!is.null(self$layer_info)) self$layer_info$plot_call else NULL
       args <- if (!is.null(plot_call)) plot_call$args else list()
-      is_horizontal <- !is.null(args$horizontal) && isTRUE(args$horizontal)
+      is_horizontal <- recorded_flag(args, "horizontal")
 
       # Pre-compute which boxes have outliers (for formula adjustment)
       # Boxes with no outliers cause subsequent boxes to shift their segment indices
@@ -405,7 +405,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         return("vert")
       }
       args <- layer_info$plot_call$args
-      horizontal <- if (!is.null(args$horizontal)) isTRUE(args$horizontal) else FALSE
+      horizontal <- recorded_flag(args, "horizontal")
       if (horizontal) "horz" else "vert"
     }
   )

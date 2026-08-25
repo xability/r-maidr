@@ -172,7 +172,7 @@ BaseRQqLayerProcessor <- R6::R6Class(
       }
       theoretical <- "Theoretical Quantiles"
       sample <- "Sample Quantiles"
-      if (isTRUE(layer_info$plot_call$args[["datax"]])) {
+      if (recorded_flag(layer_info$plot_call$args, "datax")) {
         return(list(x = sample, y = theoretical))
       }
       list(x = theoretical, y = sample)

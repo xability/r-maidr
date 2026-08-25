@@ -152,7 +152,7 @@ BaseRStripchartLayerProcessor <- R6::R6Class(
     #' @param layer_info Layer information with the recorded call.
     #' @return TRUE when the values run left to right
     draws_horizontally = function(layer_info) {
-      !isTRUE(layer_info$plot_call$args[["vertical"]])
+      !recorded_flag(layer_info$plot_call$args, "vertical")
     },
 
     #' @description Name the value axis and the group axis

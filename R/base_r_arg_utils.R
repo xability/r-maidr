@@ -349,3 +349,58 @@ formula_margin_table <- function(formula, data) {
   }
   tryCatch(marginSums(table, names), error = function(e) NULL)
 }
+
+#' Read a recorded logical argument the way its drawing function does
+#'
+#' Every base R reader asked `isTRUE()` of a recorded flag, and the base R
+#' drawing functions ask `if (x)`. The two agree on `TRUE`, on `FALSE` and on
+#' absent, and disagree on every other truthy value R accepts in an `if` --
+#' so a chart written `stripchart(x, vertical = 1)` was drawn vertically and
+#' announced horizontally, with the values on the group axis and the group
+#' positions on the value axis, silently, on a chart that renders as an
+#' interactive one rather than as a fallback (#256).
+#'
+#' Measured, by reading each drawing function's own body:
+#'
+#' | function | asks |
+#' | --- | --- |
+#' | `barplot.default` | `if (beside)`, `(logx && horiz)` |
+#' | `bxp` | `if (horizontal)` |
+#' | `hist.default` | `if (freq1)` |
+#' | `stripchart.default` | `if (vertical)` |
+#' | `qqnorm.default`, `qqline` | `if (datax)` |
+#' | `vioplot.default` | `if (horizontal | ...)` |
+#'
+#' All seven ask R's own truthiness, so all seven are read through this.
+#'
+#' `NA` and an uncoercible value give the caller's default rather than an
+#' error: `if (NA)` stops in R, but a reader that stops takes the whole
+#' figure with it, and a chart read under its default is better than no chart
+#' at all. A value of any length but one does the same, since `if` on one of
+#' those errors too.
+#'
+#' @param args Recorded argument list
+#' @param name The formal's name
+#' @param default What an absent, `NA` or unreadable argument means
+#' @return TRUE or FALSE
+#' @keywords internal
+recorded_flag <- function(args, name, default = FALSE) {
+  if (is.null(args)) {
+    return(default)
+  }
+  value <- args[[name]]
+  if (is.null(value) || length(value) != 1) {
+    return(default)
+  }
+  if (is.logical(value)) {
+    return(if (is.na(value)) default else as.logical(value))
+  }
+  if (is.numeric(value)) {
+    return(if (is.na(value)) default else value != 0)
+  }
+  if (is.character(value)) {
+    coerced <- suppressWarnings(as.logical(value))
+    return(if (is.na(coerced)) default else coerced)
+  }
+  default
+}

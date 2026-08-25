@@ -511,12 +511,13 @@ BaseRAdapter <- R6::R6Class(
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
       height <- args[[1]]
-      beside <- args$beside
-
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # For matrices, beside = TRUE creates dodged bars
-      beside_true <- if (is.null(beside)) FALSE else beside
+      # For matrices, beside = TRUE creates dodged bars. Read the way
+      # `barplot()` reads it -- `if (beside)` -- rather than passed through,
+      # which returned the caller's own value and made this expression a
+      # number rather than a logical (#256).
+      beside_true <- recorded_flag(args, "beside")
 
       is_matrix && beside_true
     },
@@ -526,14 +527,12 @@ BaseRAdapter <- R6::R6Class(
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
       height <- args[[1]]
-      beside <- args[["beside"]]
-
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
       # For matrices, beside = FALSE creates stacked bars - and FALSE is
       # barplot()'s DEFAULT, so a matrix without an explicit `beside`
       # argument is also stacked
-      beside_false <- if (is.null(beside)) TRUE else !isTRUE(beside)
+      beside_false <- !recorded_flag(args, "beside")
 
       is_matrix && beside_false
     },

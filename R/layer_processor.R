@@ -403,7 +403,7 @@ LayerProcessor <- R6::R6Class(
       if (is.null(layer_info)) {
         return(FALSE)
       }
-      isTRUE(layer_info$plot_call$args[["horiz"]])
+      recorded_flag(layer_info$plot_call$args, "horiz")
     },
 
     #' @description Exchange a panel's x and y scales

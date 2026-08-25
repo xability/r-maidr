@@ -102,10 +102,10 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
     # @return Logical
     is_frequency = function(args, hist_obj = NULL) {
       if (!is.null(args[["freq"]])) {
-        return(isTRUE(args[["freq"]]))
+        return(recorded_flag(args, "freq"))
       }
       if (!is.null(args[["probability"]])) {
-        return(!isTRUE(args[["probability"]]))
+        return(!recorded_flag(args, "probability"))
       }
       # Without a recomputed histogram there is no equidist to consult, and
       # a histogram with no recorded data draws nothing either way.
