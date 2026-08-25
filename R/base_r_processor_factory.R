@@ -37,6 +37,10 @@ BaseRProcessorFactory <- R6::R6Class(
         "line" = BaseRLineLayerProcessor$new(layer_info),
         "step" = BaseRStepLayerProcessor$new(layer_info),
         "lollipop" = BaseRSpikeLayerProcessor$new(layer_info),
+        # The same spikes, drawn per lag rather than per observation. The
+        # separate name routes it to the subclass that replays the recorded
+        # call to get the correlations, which the drawing does not carry.
+        "correlogram" = BaseRCorrelogramLayerProcessor$new(layer_info),
         "point" = BaseRPointLayerProcessor$new(layer_info),
         # A scatter whose coordinates the call computed rather than took.
         # It emits a `point` layer; the separate name is what routes it here
@@ -94,6 +98,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "line",
         "step",
         "lollipop",
+        "correlogram",
         "point",
         "qq",
         "qqline",

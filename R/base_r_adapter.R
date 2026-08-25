@@ -381,6 +381,15 @@ BaseRAdapter <- R6::R6Class(
         # as `stacked_normalized_area`, the shape `geom_area(position =
         # "fill")` already gets (#251).
         "cdplot" = "conditional_density",
+        # The three correlogram entry points. Each draws one vertical spike
+        # per lag, from the zero line to the correlation at that lag, and
+        # joins nothing to anything -- the shape `type = "h"` already reads
+        # as a `lollipop` for, and under the same `spike` grob name (#276).
+        # They are recorded but were read as nothing, so the chart came out
+        # as a picture.
+        "acf" = "correlogram",
+        "pacf" = "correlogram",
+        "ccf" = "correlogram",
         "hist" = "hist",
         "boxplot" = "box",
         # `boxplot()`'s own drawing half, called directly by a caller who

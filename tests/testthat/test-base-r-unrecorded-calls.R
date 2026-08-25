@@ -415,9 +415,6 @@ DRAWS_DIRECTLY <- local({
   m <- matrix(stats::rnorm(40), nrow = 10)
   seasonal <- stats::ts(cumsum(stats::rnorm(48)), frequency = 12)
   list(
-    acf = function() acf(v),
-    pacf = function() pacf(v),
-    ccf = function() ccf(v, rev(v)),
     biplot = function() biplot(stats::prcomp(m)),
     interaction.plot = function() {
       interaction.plot(factor(rep(1:2, 30)), factor(rep(1:3, 20)), v)
@@ -431,10 +428,19 @@ DRAWS_DIRECTLY <- local({
   )
 })
 
-# The one of the twelve that is now read.
-DRAWS_DIRECTLY_READ <- list(
-  bxp = function() bxp(boxplot(stats::rnorm(60), plot = FALSE))
-)
+# The four of the twelve that are now read. `bxp` was the first; the three
+# correlogram entry points followed, each drawing one vertical spike per lag
+# -- the shape `type = "h"` already read as a `lollipop` for (#276).
+DRAWS_DIRECTLY_READ <- local({
+  set.seed(5)
+  v <- stats::rnorm(60)
+  list(
+    bxp = function() bxp(boxplot(stats::rnorm(60), plot = FALSE)),
+    acf = function() acf(v),
+    pacf = function() pacf(v),
+    ccf = function() ccf(v, rev(v))
+  )
+})
 
 DRAWS_DIRECTLY_ALL <- c(DRAWS_DIRECTLY, DRAWS_DIRECTLY_READ)
 
@@ -452,7 +458,7 @@ test_that("a call that draws without plot() no longer stops the save", {
   }
 })
 
-test_that("the eleven still unread degrade to the picture rather than to nothing", {
+test_that("the eight still unread degrade to the picture rather than to nothing", {
   skip_unless_jsonlite()
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure
@@ -470,7 +476,7 @@ test_that("the eleven still unread degrade to the picture rather than to nothing
 test_that("bxp() ships a box plot rather than a picture of one", {
   skip_unless_jsonlite()
 
-  # The upper claim, for the one of the twelve that has it. Before the
+  # The upper claim, for the first of the twelve to have it. Before the
   # reading this call fell back with "Plot contains unsupported elements";
   # `boxplot()` on the same numbers never did, and the two draw the same
   # marks.
@@ -481,6 +487,25 @@ test_that("bxp() ships a box plot rather than a picture of one", {
   expect_false(result$warned)
   # The payload is HTML-escaped inside the `maidr-data` attribute.
   expect_match(result$html, "&quot;type&quot;:&quot;box&quot;", fixed = TRUE)
+})
+
+test_that("the correlograms ship spikes rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The same upper claim for the three that gained it next. Each drew a
+  # chart that fell back with "Plot contains unsupported elements" while
+  # `plot(x, y, type = "h")` -- the same spikes, drawn per observation
+  # rather than per lag -- never did (#276).
+  for (name in c("acf", "pacf", "ccf")) {
+    result <- save_base_figure(DRAWS_DIRECTLY_READ[[name]])
+
+    expect_null(result$error, info = name)
+    expect_false(result$fell_back, info = name)
+    expect_match(
+      result$html, "&quot;type&quot;:&quot;lollipop&quot;",
+      fixed = TRUE, info = name
+    )
+  }
 })
 
 test_that("what reaches stats plots through plot() still reads", {
