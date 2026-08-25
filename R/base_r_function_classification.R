@@ -124,17 +124,16 @@ NULL
     "text",
     "mtext",
     "abline",
-    # Recorded so that a Q-Q plot carrying a reference line still declines
-    # rather than dropping it. `qqnorm()` and `qqplot()` became readable in
-    # #251, and `qqline()` -- which is how nearly every Q-Q plot in the wild
-    # is finished -- calls `graphics::abline()` from inside `stats`, where
-    # the wrapper never sees it. Unrecorded, the line left no trace at all,
-    # so the chart came out as a scatter with a drawn mark silently missing
-    # from it, which is worse than the picture it used to fall back to.
+    # `qqnorm()` and `qqplot()` became readable in #251, and `qqline()` --
+    # which is how nearly every Q-Q plot in the wild is finished -- calls
+    # `graphics::abline()` from inside `stats`, where the wrapper never sees
+    # it. Unrecorded, the line left no trace at all, so the chart came out as
+    # a scatter with a drawn mark silently missing from it.
     #
-    # Listed with no `detect_layer_type()` branch, so it types "unknown" and
-    # takes the unsupported-elements path -- the same lower claim `persp`
-    # and the rest above make. Reading the line itself is #252.
+    # It was first listed here with no `detect_layer_type()` branch, so that
+    # it typed "unknown" and took the unsupported-elements path -- the lower
+    # of the two claims. It now has a branch and a processor, and is read as
+    # the reference line it draws (#252).
     "qqline",
     "segments",
     "arrows",
