@@ -35,6 +35,9 @@ BaseRProcessorFactory <- R6::R6Class(
         "stacked_normalized_bar" = BaseRStackedBarLayerProcessor$new(layer_info),
         "smooth" = BaseRSmoothLayerProcessor$new(layer_info),
         "line" = BaseRLineLayerProcessor$new(layer_info),
+        # One line per trace-factor level, over the cell means
+        # `interaction.plot()` computes and hands to `matplot`.
+        "interaction" = BaseRInteractionLayerProcessor$new(layer_info),
         "step" = BaseRStepLayerProcessor$new(layer_info),
         "lollipop" = BaseRSpikeLayerProcessor$new(layer_info),
         # The same spikes, drawn per lag rather than per observation. The
@@ -96,6 +99,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "stacked_normalized_bar",
         "smooth",
         "line",
+        "interaction",
         "step",
         "lollipop",
         "correlogram",
