@@ -47,6 +47,10 @@ BaseRProcessorFactory <- R6::R6Class(
         # it here rather than to the processor that would emit one layer and
         # highlight only the first group's marks.
         "strip" = BaseRStripchartLayerProcessor$new(layer_info),
+        # A scatter per ordered pair of columns, each in its own cell of a
+        # grid the reading derives -- the one processor that answers with a
+        # figure's shape rather than a layer's.
+        "pairs" = BaseRPairsLayerProcessor$new(layer_info),
         # A contour whose levels default to twice as many, and whose field
         # is one polygon grob rather than one per curve. The separate name
         # routes it to the subclass that knows both.

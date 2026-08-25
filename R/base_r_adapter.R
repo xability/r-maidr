@@ -362,6 +362,11 @@ BaseRAdapter <- R6::R6Class(
         # exports one `points` grob per group -- and what the same chart
         # already gets in py-maidr (#251).
         "stripchart" = "strip",
+        # An `n x n` grid of scatters: every ordered pair of columns, the
+        # column across against the column down. Read as a *figure* of
+        # subplots rather than as one layer, which is the shape the same
+        # chart already gets in py-maidr (#272).
+        "pairs" = "pairs",
         # The same level curves `contour()` draws, with the bands between
         # them filled. Read as a contour, from `contourLines()` rather than
         # from the fill, so one chart's two spellings read alike (#251).
