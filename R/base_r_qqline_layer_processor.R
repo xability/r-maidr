@@ -140,7 +140,7 @@ BaseRQqlineLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      if (isTRUE(args[["datax"]])) {
+      if (recorded_flag(args, "datax")) {
         slope <- diff(anchors$d) / diff(anchors$q)
         intercept <- anchors$d[[1]] - slope * anchors$q[[1]]
       } else {

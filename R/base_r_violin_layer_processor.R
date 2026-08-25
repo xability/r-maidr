@@ -327,7 +327,7 @@ BaseRViolinLayerProcessor <- R6::R6Class(
         return("vert")
       }
       args <- layer_info$plot_call$args
-      if (isTRUE(args$horizontal)) "horz" else "vert"
+      if (recorded_flag(args, "horizontal")) "horz" else "vert"
     }
   )
 )
