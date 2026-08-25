@@ -85,7 +85,8 @@ test_that("exporting a rect with negative heights no longer warns", {
     just = c("left", "bottom"),
     gp = grid::gpar(fill = c("red", "red", "black", "black"))
   )
-  file <- withr::local_tempfile(fileext = ".svg")
+  file <- tempfile(fileext = ".svg")
+  on.exit(unlink(file), add = TRUE)
 
   warnings <- character()
   withCallingHandlers({

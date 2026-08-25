@@ -133,7 +133,8 @@ test_that("a table that is not two-way is declined rather than flattened", {
 
 test_that("an association plot renders interactively rather than as a picture", {
   skip_on_cran()
-  file <- withr::local_tempfile(fileext = ".html")
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
 
   warnings <- character()
   withCallingHandlers({
