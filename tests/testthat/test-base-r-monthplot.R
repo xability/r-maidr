@@ -261,3 +261,39 @@ test_that("the spike variant is read as the same subseries", {
   expect_equal(series_of(layer, 1), c(1, 13, 25, 37))
   expect_equal(names_of(layer), month.abb)
 })
+
+test_that("the spike variant is outlined too, not only read", {
+  # `"h"` is not handed to `lines()` the way a `type` usually is:
+  # `monthplot` branches and calls `segments()`, so the grobs land under
+  # `-segments-` and the inherited search for `-lines-` finds none. A layer
+  # with no selectors is dropped by the frontend's
+  # `selectors.length === series count` precondition, so the chart read
+  # correctly and highlighted nothing at all.
+  layer <- monthplot_layers(function() monthplot(MONTHLY, type = "h"))[[1]]
+
+  expect_length(layer$selectors, length(layer$data))
+  expect_true(all(grepl("segments-", unlist(layer$selectors), fixed = TRUE)))
+})
+
+test_that("the base line's own grob is not mistaken for a subseries", {
+  # `monthplot` draws the `base` segments in one call *before* the loop, so
+  # the first `-segments-` grob is the twelve means and the twelve after it
+  # are the subseries. Counted from the first, every series would be outlined
+  # on the position before it -- and January on the means.
+  layer <- monthplot_layers(function() monthplot(MONTHLY, type = "h"))[[1]]
+
+  expect_match(layer$selectors[[1]], "segments-2", fixed = TRUE)
+  expect_match(layer$selectors[[12]], "segments-13", fixed = TRUE)
+})
+
+test_that("a ts with a written phase is named after the phase, not the months", {
+  # The same renaming the plain-vector case gets. `monthplot.ts` hands a
+  # caller-supplied `phase` straight to `monthplot.default` without labels,
+  # so the month names never enter it.
+  layer <- monthplot_layers(function() {
+    monthplot(MONTHLY, phase = rep(c("odd", "even"), 24))
+  })[[1]]
+
+  expect_equal(names_of(layer), c("odd", "even"))
+  expect_equal(series_of(layer, 1)[1:3], c(1, 3, 5))
+})

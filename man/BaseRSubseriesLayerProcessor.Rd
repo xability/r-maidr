@@ -38,10 +38,18 @@ positions}, while every series here runs across the \emph{cycles}, so putting
 them in one layer would put two x domains in it. Left to a maintainer with
 the grammar to change.
 
-\code{type} is not consulted, for the reason \code{interaction.plot} does not consult
-its own (#278): \code{"l"} and \code{"h"} draw the same subseries with different
-marks, and reading the spikes as loose values would lose the grouping that
-makes the chart a subseries plot.
+\code{type} does not change the reading, for the reason \code{interaction.plot}'s does
+not change its own (#278): \code{"l"} and \code{"h"} draw the same subseries with
+different marks, and reading the spikes as loose values would lose the
+grouping that makes the chart a subseries plot.
+
+It does change where the marks \emph{are}, though. \code{"h"} is not handed to
+\code{lines()} the way a \code{type} usually is -- \code{monthplot} branches and calls
+\code{segments()} instead -- so the grobs land under \verb{-segments-} and the
+inherited search for \verb{-lines-} finds nothing. A layer with no selectors is
+dropped by the frontend's \verb{selectors.length === series count} precondition,
+so the chart would read correctly and highlight nothing at all. See
+\code{selector_grob_type()} and \code{generate_selectors()} below.
 
 A monthly series whose labels this reads rather than the caller writes is
 named with \link{month.abb} rather than with \code{monthplot}'s own initials -- see
@@ -58,6 +66,8 @@ announced.
   \itemize{
     \item \href{#method-BaseRSubseriesLayerProcessor-extract_data}{\code{BaseRSubseriesLayerProcessor$extract_data()}}
     \item \href{#method-BaseRSubseriesLayerProcessor-extract_axis_titles}{\code{BaseRSubseriesLayerProcessor$extract_axis_titles()}}
+    \item \href{#method-BaseRSubseriesLayerProcessor-generate_selectors}{\code{BaseRSubseriesLayerProcessor$generate_selectors()}}
+    \item \href{#method-BaseRSubseriesLayerProcessor-selector_grob_type}{\code{BaseRSubseriesLayerProcessor$selector_grob_type()}}
     \item \href{#method-BaseRSubseriesLayerProcessor-clone}{\code{BaseRSubseriesLayerProcessor$clone()}}
   }
 }
@@ -88,14 +98,12 @@ announced.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_multiline_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_multiline_data'><code>BaseRLineLayerProcessor$extract_multiline_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="extract_single_line_data"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-extract_single_line_data'><code>BaseRLineLayerProcessor$extract_single_line_data()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="find_lines_grobs"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-find_lines_grobs'><code>BaseRLineLayerProcessor$find_lines_grobs()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-generate_selectors'><code>BaseRLineLayerProcessor$generate_selectors()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="generate_selectors_from_grob"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-generate_selectors_from_grob'><code>BaseRLineLayerProcessor$generate_selectors_from_grob()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_axis_labels"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_axis_labels'><code>BaseRLineLayerProcessor$get_axis_labels()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_x_range_from_group"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_x_range_from_group'><code>BaseRLineLayerProcessor$get_x_range_from_group()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="get_y_range_from_group"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-get_y_range_from_group'><code>BaseRLineLayerProcessor$get_y_range_from_group()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-needs_reordering'><code>BaseRLineLayerProcessor$needs_reordering()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="process"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-process'><code>BaseRLineLayerProcessor$process()</code></a></span></li>
-  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRLineLayerProcessor" data-id="selector_grob_type"><a href='../../maidr/html/BaseRLineLayerProcessor.html#method-BaseRLineLayerProcessor-selector_grob_type'><code>BaseRLineLayerProcessor$selector_grob_type()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
@@ -156,6 +164,70 @@ a quantity. An unset label is left unset rather than invented.
   }
   \subsection{Returns}{
     An \code{axes} list from \code{\link[=build_axes]{build_axes()}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRSubseriesLayerProcessor-generate_selectors"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRSubseriesLayerProcessor-generate_selectors}{}}}
+\subsection{\code{BaseRSubseriesLayerProcessor$generate_selectors()}}{
+  The selectors, with the base line's grob left out of them.
+
+\code{monthplot} draws the \code{base} reference segments in one \code{segments()}
+call \emph{before} the loop, so on a \code{type = "h"} chart the first
+\verb{-segments-} grob is the twelve means and the rest are the twelve
+subseries. Handed over as they are, every series would be outlined on
+the position before it.
+
+A count that is not exactly one more than the series drops the
+selectors rather than guessing which grob is which: outlining the wrong
+spikes is worse than outlining none.
+
+\code{base = NULL} would remove the extra grob, and cannot arrive here:
+\code{monthplot(x, type = "h", base = NULL)} raises \verb{object 'means' not found} inside \code{stats} -- measured -- because the \code{"h"} branch reads a
+\code{means} the \code{base} guard never computed. A call that raised is never
+recorded.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRSubseriesLayerProcessor$generate_selectors(layer_info, gt = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information for the recorded call}
+      \item{\code{gt}}{The gtable the drawing was exported to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of CSS selectors, one per series
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRSubseriesLayerProcessor-selector_grob_type"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRSubseriesLayerProcessor-selector_grob_type}{}}}
+\subsection{\code{BaseRSubseriesLayerProcessor$selector_grob_type()}}{
+  Which family of grob names this layer's selectors come from.
+
+\verb{-segments-} when the spikes were drawn, \verb{-lines-} otherwise. Public
+because the parent's is: \code{generate_selectors_from_grob()} reaches it
+through \verb{self$}, which finds nothing private.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRSubseriesLayerProcessor$selector_grob_type(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information for the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{"segments"} or \code{"lines"}
   }
 }
 

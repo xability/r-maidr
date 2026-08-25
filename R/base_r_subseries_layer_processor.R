@@ -37,10 +37,18 @@
 #' them in one layer would put two x domains in it. Left to a maintainer with
 #' the grammar to change.
 #'
-#' `type` is not consulted, for the reason `interaction.plot` does not consult
-#' its own (#278): `"l"` and `"h"` draw the same subseries with different
-#' marks, and reading the spikes as loose values would lose the grouping that
-#' makes the chart a subseries plot.
+#' `type` does not change the reading, for the reason `interaction.plot`'s does
+#' not change its own (#278): `"l"` and `"h"` draw the same subseries with
+#' different marks, and reading the spikes as loose values would lose the
+#' grouping that makes the chart a subseries plot.
+#'
+#' It does change where the marks *are*, though. `"h"` is not handed to
+#' `lines()` the way a `type` usually is -- `monthplot` branches and calls
+#' `segments()` instead -- so the grobs land under `-segments-` and the
+#' inherited search for `-lines-` finds nothing. A layer with no selectors is
+#' dropped by the frontend's `selectors.length === series count` precondition,
+#' so the chart would read correctly and highlight nothing at all. See
+#' `selector_grob_type()` and `generate_selectors()` below.
 #'
 #' A monthly series whose labels this reads rather than the caller writes is
 #' named with [month.abb] rather than with `monthplot`'s own initials -- see
@@ -119,9 +127,71 @@ BaseRSubseriesLayerProcessor <- R6::R6Class(
         x = private$label(args$xlab, NULL),
         y = private$label(args$ylab, written$x)
       )
+    },
+    #' @description
+    #' The selectors, with the base line's grob left out of them.
+    #'
+    #' `monthplot` draws the `base` reference segments in one `segments()`
+    #' call *before* the loop, so on a `type = "h"` chart the first
+    #' `-segments-` grob is the twelve means and the rest are the twelve
+    #' subseries. Handed over as they are, every series would be outlined on
+    #' the position before it.
+    #'
+    #' A count that is not exactly one more than the series drops the
+    #' selectors rather than guessing which grob is which: outlining the wrong
+    #' spikes is worse than outlining none.
+    #'
+    #' `base = NULL` would remove the extra grob, and cannot arrive here:
+    #' `monthplot(x, type = "h", base = NULL)` raises `object 'means' not
+    #' found` inside `stats` -- measured -- because the `"h"` branch reads a
+    #' `means` the `base` guard never computed. A call that raised is never
+    #' recorded.
+    #'
+    #' @param layer_info Layer information for the recorded call
+    #' @param gt The gtable the drawing was exported to
+    #' @return A list of CSS selectors, one per series
+    generate_selectors = function(layer_info, gt = NULL) {
+      selectors <- super$generate_selectors(layer_info, gt)
+      if (!private$spikes(layer_info)) {
+        return(selectors)
+      }
+
+      drawn <- private$subseries(layer_info)
+      expected <- if (is.null(drawn)) {
+        0L
+      } else {
+        sum(vapply(
+          seq_along(drawn$labels),
+          function(i) any(drawn$phase == i),
+          logical(1)
+        ))
+      }
+      if (!expected || length(selectors) != expected + 1L) {
+        return(list())
+      }
+      selectors[-1L]
+    },
+    #' @description
+    #' Which family of grob names this layer's selectors come from.
+    #'
+    #' `-segments-` when the spikes were drawn, `-lines-` otherwise. Public
+    #' because the parent's is: `generate_selectors_from_grob()` reaches it
+    #' through `self$`, which finds nothing private.
+    #'
+    #' @param layer_info Layer information for the recorded call
+    #' @return `"segments"` or `"lines"`
+    selector_grob_type = function(layer_info) {
+      if (private$spikes(layer_info)) "segments" else "lines"
     }
   ),
   private = list(
+    # Whether this call drew spikes rather than lines. `type` reaches the
+    # recorded arguments only when the caller wrote it, and `match.arg` admits
+    # nothing but `"l"` and `"h"`, so anything else is the default.
+    spikes = function(layer_info) {
+      type <- as.character(private$recorded_args(layer_info)$type)
+      length(type) && identical(type[[1L]], "h")
+    },
     recorded_args = function(layer_info) {
       if (is.null(layer_info) || is.null(layer_info$plot_call)) {
         return(list())

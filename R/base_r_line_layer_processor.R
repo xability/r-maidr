@@ -409,6 +409,15 @@ BaseRLineLayerProcessor <- R6::R6Class(
           # layer, so one name is expected here rather than one per point
           # (#239).
           pattern <- paste0("^graphics-plot-", group_index, "-spike-[0-9]+$")
+        } else if (grob_type == "segments") {
+          # `segments()` is its own drawing call, not a `lines()` variant, so
+          # gridGraphics names its grobs `-segments-` and the line search
+          # finds none. `monthplot(type = "h")` is the caller that needs it:
+          # it draws each cycle position's spikes with `segments()` rather
+          # than handing `type = "h"` to `lines()`, so neither the line name
+          # nor the `-spike-` one above applies. One grob per call, holding
+          # every segment that call drew.
+          pattern <- paste0("^graphics-plot-", group_index, "-segments-[0-9]+$")
         } else if (grob_type == "step") {
           # gridGraphics names a stairstep grob after the `type` letter that
           # drew it -- `-step-` for type = "s", `-Step-` for type = "S" --
@@ -451,8 +460,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
       names
     },
     # Which family of grob names this layer's selectors are drawn from:
-    # "abline", "lines" or "step". Overridden by subclasses whose geometry
-    # lands under a different grob name (see BaseRStepLayerProcessor).
+    # "abline", "lines", "segments", "spike" or "step". Overridden by
+    # subclasses whose geometry lands under a different grob name (see
+    # BaseRStepLayerProcessor).
     selector_grob_type = function(layer_info) {
       function_name <- if (!is.null(layer_info)) layer_info$function_name else "lines"
       if (function_name == "abline") "abline" else "lines"
