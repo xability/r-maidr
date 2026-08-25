@@ -38,6 +38,9 @@ BaseRProcessorFactory <- R6::R6Class(
         # One line per trace-factor level, over the cell means
         # `interaction.plot()` computes and hands to `matplot`.
         "interaction" = BaseRInteractionLayerProcessor$new(layer_info),
+        # One line per cycle position of a seasonal series, the shape
+        # `monthplot()` draws.
+        "subseries" = BaseRSubseriesLayerProcessor$new(layer_info),
         "step" = BaseRStepLayerProcessor$new(layer_info),
         "lollipop" = BaseRSpikeLayerProcessor$new(layer_info),
         # The same spikes, drawn per lag rather than per observation. The
@@ -100,6 +103,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "smooth",
         "line",
         "interaction",
+        "subseries",
         "step",
         "lollipop",
         "correlogram",
