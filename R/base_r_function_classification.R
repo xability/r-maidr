@@ -112,12 +112,15 @@ NULL
     # `plot(acf(x, plot = FALSE))` all record, because `plot` is listed.
     # These are the entry points that draw *without* the generic.
     #
-    # Listed, not read: the lower claim again -- except for `bxp`, and now
-    # for the three correlogram entry points. `acf`, `pacf` and `ccf` each
-    # draw one vertical spike per lag, which is the shape `type = "h"`
-    # already reads as a `lollipop` for and under the same `spike` grob
-    # name, so they gained a reading without this list changing (#276).
-    # `bxp` had the same story before them. It draws the
+    # Listed, not read: the lower claim again -- except for `bxp`, the three
+    # correlogram entry points, and `interaction.plot`. `acf`, `pacf` and
+    # `ccf` each draw one vertical spike per lag, which is the shape
+    # `type = "h"` already reads as a `lollipop` for and under the same
+    # `spike` grob name, so they gained a reading without this list changing
+    # (#276). `interaction.plot` is the same story once more: it computes a
+    # grid of cell means and hands it to `matplot`, so it draws the set of
+    # lines the line processor already reads, one series per trace level
+    # (#278). `bxp` had the story before all of them. It draws the
     # same marks `boxplot()` does, from the summaries it is handed instead of
     # from observations, so it takes the `box` layer through a subclass that
     # only overrides where the summaries come from. Gaining that reading did

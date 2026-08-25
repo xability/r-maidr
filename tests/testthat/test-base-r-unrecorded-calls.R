@@ -401,13 +401,16 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **One of the twelve has since moved past the fallback.** `bxp()` is read as
-# the box plot it draws -- it is `boxplot()`'s own drawing half, handed the
-# five-number summaries instead of the observations, and it puts the same
-# marks on the page. The lists below are split accordingly, and `bxp` is
-# asserted to be *read* rather than dropped from the file: what #262
-# established about it is that a recorded call never stops the save, and that
-# still has to hold on the far side of gaining a reading.
+# **Five of the twelve have since moved past the fallback.** `bxp()` was the
+# first, read as the box plot it draws -- it is `boxplot()`'s own drawing
+# half, handed the five-number summaries instead of the observations, and it
+# puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
+# drawing one vertical spike per lag (#276), and `interaction.plot` after
+# them, drawing one line per trace level over the cell means it computes
+# (#278). The lists below are split accordingly, and the five are asserted to
+# be *read* rather than dropped from the file: what #262 established about
+# them is that a recorded call never stops the save, and that still has to
+# hold on the far side of gaining a reading.
 
 DRAWS_DIRECTLY <- local({
   set.seed(5)
@@ -416,9 +419,6 @@ DRAWS_DIRECTLY <- local({
   seasonal <- stats::ts(cumsum(stats::rnorm(48)), frequency = 12)
   list(
     biplot = function() biplot(stats::prcomp(m)),
-    interaction.plot = function() {
-      interaction.plot(factor(rep(1:2, 30)), factor(rep(1:3, 20)), v)
-    },
     cpgram = function() cpgram(v),
     monthplot = function() monthplot(seasonal),
     spectrum = function() spectrum(v),
@@ -428,9 +428,11 @@ DRAWS_DIRECTLY <- local({
   )
 })
 
-# The four of the twelve that are now read. `bxp` was the first; the three
+# The five of the twelve that are now read. `bxp` was the first; the three
 # correlogram entry points followed, each drawing one vertical spike per lag
-# -- the shape `type = "h"` already read as a `lollipop` for (#276).
+# -- the shape `type = "h"` already read as a `lollipop` for (#276); and
+# `interaction.plot` after them, which computes a grid of cell means and hands
+# it to `matplot`, so it is the set of lines that already reads (#278).
 DRAWS_DIRECTLY_READ <- local({
   set.seed(5)
   v <- stats::rnorm(60)
@@ -438,7 +440,10 @@ DRAWS_DIRECTLY_READ <- local({
     bxp = function() bxp(boxplot(stats::rnorm(60), plot = FALSE)),
     acf = function() acf(v),
     pacf = function() pacf(v),
-    ccf = function() ccf(v, rev(v))
+    ccf = function() ccf(v, rev(v)),
+    interaction.plot = function() {
+      interaction.plot(factor(rep(1:2, 30)), factor(rep(1:3, 20)), v)
+    }
   )
 })
 
@@ -458,7 +463,7 @@ test_that("a call that draws without plot() no longer stops the save", {
   }
 })
 
-test_that("the eight still unread degrade to the picture rather than to nothing", {
+test_that("the seven still unread degrade to the picture rather than to nothing", {
   skip_unless_jsonlite()
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure

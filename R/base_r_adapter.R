@@ -420,6 +420,10 @@ BaseRAdapter <- R6::R6Class(
         # (#200), which is what stops them drifting apart again.
         "contour" = "contour",
         "matplot" = "line",
+        # The same set of lines, over cell means the call computes
+        # rather than over a matrix the caller handed in. The separate
+        # name routes it to the subclass that recomputes them (#278).
+        "interaction.plot" = "interaction",
         # quantmod::chartSeries() candlestick path. The `type` argument
         # defaults to "auto"; we accept the call as candlestick only when
         # the user explicitly requests it (matching the MVP scope).
