@@ -1244,6 +1244,13 @@ display_html_file <- function(file) {
 #' @return Character string of complete HTML document
 #' @keywords internal
 create_standalone_html <- function(svg_content, use_cdn = NULL) {
+  # Spliced in as raw markup, and the document this builds is now same-origin
+  # with the page: `create_maidr_iframe()` carries it in `srcdoc`, so script
+  # reaching the frame reaches the host too, where the `data:` URL that
+  # preceded it was walled off by its opaque origin. Nothing is escaped here
+  # and nothing should need to be --- the labels arrive already escaped by the
+  # XML serialisation that produced the SVG --- but that is now an invariant
+  # with the page behind it, not just the frame.
   svg_html <- paste(svg_content, collapse = "\n")
 
   # Auto-detect with a time-boxed cached probe. CDN (pinned to the bundled

@@ -2,6 +2,26 @@
 
 ## Bug Fixes
 
+* A non-ASCII label reached the reader as `<ed><95><9c>`. The chart's document
+  was passed through `enc2utf8()` before being encoded into the frame, and on
+  a string carrying no encoding mark that function assumes the native one ---
+  so under a C locale, which is what a container, a CI runner and plenty of
+  servers give you, it could not represent the bytes it found and rewrote each
+  as that text. Korean and accented titles, axis labels and category names
+  were all affected, and had been since the frame was introduced. The document
+  is now converted only when it says what it is, and escaped byte-wise so no
+  later step can re-interpret it.
+
+* A tactile display could not be reached from an R chart. The chart was
+  embedded through a `data:` URL, whose opaque origin has neither Web
+  Bluetooth nor Web Serial available to it whatever the `allow` attribute
+  says --- so a Dot Pad could be paired with the page and never with the
+  chart. Charts are now embedded with `srcdoc`, which inherits the page's
+  origin, and carry `allow="bluetooth; serial"` for the case inheritance does
+  not cover: a chart inside a frame that is itself cross-origin. Reading a
+  chart by touch also needs a maidr build that draws one, which is a later
+  release than the one pinned here.
+
 * Eight Base R plotting calls stopped `save_html()` outright instead of falling
   back to a picture: `persp()`, `sunflowerplot()`, `fourfoldplot()`,
   `spineplot()`, `cdplot()`, `qqnorm()`, `qqplot()` and `filled.contour()`.
