@@ -298,19 +298,19 @@ clear_base_r_device <- function(device_id) {
 #' static image with a warning, and that is what they assert. Which call
 #' plays the part keeps changing, because the point of this project is to
 #' give those calls processors -- `dotchart` stood here until #242, then
-#' `mosaicplot` until #242's remainder -- and each move meant editing the
-#' same sentence in three files.
+#' `mosaicplot` until #242's remainder, then `assocplot` until #266 -- and
+#' each move meant editing the same sentence in three files.
 #'
-#' `assocplot()` is the current one: a Cohen-Friendly association plot, in
-#' HIGH like the others and with no branch in `detect_layer_type()`. When it
-#' gains a processor, change this function and the three call sites follow.
+#' `coplot()` is the current one: a conditioning plot, in HIGH like the
+#' others and with no branch in `detect_layer_type()`. When it gains a
+#' processor, change this function and the three call sites follow.
 #'
 #' @return NULL, invisibly. Called for the drawing.
 draw_unread_base_r_chart <- function() {
   # Unqualified deliberately. maidr patches the name on the search path
-  # rather than inside the `graphics` namespace, so `graphics::assocplot()`
+  # rather than inside the `graphics` namespace, so `graphics::coplot()`
   # reaches the original and records nothing -- the chart then falls back for
   # the wrong reason and these tests would pass without testing anything.
-  assocplot(HairEyeColor[, , 1])
+  coplot(mpg ~ wt | factor(cyl), data = mtcars)
   invisible(NULL)
 }
