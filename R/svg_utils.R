@@ -160,6 +160,44 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
 #' @param grob A grob, gTree, gList, or gtable (or NULL)
 #' @return The same tree with NA `hjust`/`vjust` on text grobs set to 0.5
 #' @keywords internal
+repair_na_text_justification <- function(grob) {
+  if (is.null(grob)) {
+    return(grob)
+  }
+
+  if (inherits(grob, "text")) {
+    if (!is.null(grob$hjust) && anyNA(grob$hjust)) {
+      grob$hjust[is.na(grob$hjust)] <- 0.5
+    }
+    if (!is.null(grob$vjust) && anyNA(grob$vjust)) {
+      grob$vjust[is.na(grob$vjust)] <- 0.5
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gList")) {
+    for (i in seq_along(grob)) {
+      grob[[i]] <- repair_na_text_justification(grob[[i]])
+    }
+    return(grob)
+  }
+
+  if (inherits(grob, "gTree") && !is.null(grob$children)) {
+    for (i in seq_along(grob$children)) {
+      grob$children[[i]] <- repair_na_text_justification(grob$children[[i]])
+    }
+  }
+
+  # Alternative child storage used by gtable and some composite grobs
+  if (!is.null(grob$grobs)) {
+    for (i in seq_along(grob$grobs)) {
+      grob$grobs[[i]] <- repair_na_text_justification(grob$grobs[[i]])
+    }
+  }
+
+  grob
+}
+
 #' Restate a rect grob's negative heights and widths as positive ones
 #'
 #' `gridSVG::grid.export()` warns "number of items to replace is not a
@@ -298,43 +336,6 @@ flip_negative_extent <- function(position, extent, anchor) {
   list(position = position, extent = extent)
 }
 
-repair_na_text_justification <- function(grob) {
-  if (is.null(grob)) {
-    return(grob)
-  }
-
-  if (inherits(grob, "text")) {
-    if (!is.null(grob$hjust) && anyNA(grob$hjust)) {
-      grob$hjust[is.na(grob$hjust)] <- 0.5
-    }
-    if (!is.null(grob$vjust) && anyNA(grob$vjust)) {
-      grob$vjust[is.na(grob$vjust)] <- 0.5
-    }
-    return(grob)
-  }
-
-  if (inherits(grob, "gList")) {
-    for (i in seq_along(grob)) {
-      grob[[i]] <- repair_na_text_justification(grob[[i]])
-    }
-    return(grob)
-  }
-
-  if (inherits(grob, "gTree") && !is.null(grob$children)) {
-    for (i in seq_along(grob$children)) {
-      grob$children[[i]] <- repair_na_text_justification(grob$children[[i]])
-    }
-  }
-
-  # Alternative child storage used by gtable and some composite grobs
-  if (!is.null(grob$grobs)) {
-    for (i in seq_along(grob$grobs)) {
-      grob$grobs[[i]] <- repair_na_text_justification(grob$grobs[[i]])
-    }
-  }
-
-  grob
-}
 
 #' Split a vectorised `curve` grob into one curve per row
 #'
