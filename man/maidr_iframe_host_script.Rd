@@ -24,9 +24,10 @@ nothing; if Shift+Tab then leaves the document altogether for the
 browser's own UI, the page cannot be driven from the keyboard at all. On a
 reveal.js slide that is exactly what happens --- the deck renders no
 controls of its own, so a chart is the first thing on the page --- and no
-key reaches the deck. The chart is embedded through a \verb{data:} URL, whose
-opaque origin puts it beyond the reach of this document's DOM, so it asks
-for the handoff instead of performing it.
+key reaches the deck. The frame asks for the handoff rather than
+performing it, which keeps working whether or not it can reach this
+document: it could not when the chart was embedded through a \verb{data:} URL,
+and a message costs nothing now that \code{srcdoc} means it could.
 }
 
 Focus goes to the tab stop before the frame where this page has a reachable
