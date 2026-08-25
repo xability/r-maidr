@@ -328,7 +328,9 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       args <- layer_info$plot_call$args
       horizontal <- self$determine_orientation(layer_info) == "horz"
 
-      formula_labels <- self$extract_formula_labels(args)
+      formula_labels <- self$extract_formula_labels(
+        args, layer_info$plot_call$formula_frame
+      )
       if (is.null(formula_labels)) {
         return(base_r_categorical_axes(args, horizontal = horizontal))
       }
@@ -356,7 +358,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
     # @param args Recorded argument list
     # @return List with `response` and `groups`, or NULL when this call is
     #   not the formula method or the model frame cannot be rebuilt
-    extract_formula_labels = function(args) {
+    extract_formula_labels = function(args, frame = NULL) {
       # boxplot()'s formula method names its first formal `formula`, and
       # match_recorded_args() leaves the dispatch argument as the author
       # wrote it, so a positional call records it unnamed.
@@ -368,10 +370,18 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      model_frame <- tryCatch(
-        stats::model.frame(formula, data = args[["data"]]),
-        error = function(e) NULL
-      )
+      # The frame the chart was drawn from, when the recording kept one.
+      # Rebuilding it here would resolve the formula's variables against
+      # whatever they are bound to *now* -- a staler axis title than the
+      # stripchart's stale values, but the same defect (#254).
+      model_frame <- if (!is.null(frame)) {
+        frame
+      } else {
+        tryCatch(
+          stats::model.frame(formula, data = args[["data"]]),
+          error = function(e) NULL
+        )
+      }
       if (is.null(model_frame)) {
         return(NULL)
       }

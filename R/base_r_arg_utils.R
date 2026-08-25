@@ -404,3 +404,69 @@ recorded_flag <- function(args, name, default = FALSE) {
   }
   default
 }
+
+#' Resolve a recorded formula into the frame the chart was drawn from
+#'
+#' Base R calls are recorded and read later, at `show()`/`save_html()` time,
+#' and for every argument but one that is harmless: the wrapper records
+#' *evaluated values*, so a vector recorded is a vector and rebinding the
+#' name it came from afterwards changes nothing.
+#'
+#' A formula is the exception. It is a reference rather than a value -- it
+#' carries the environment it was written in -- and a processor that calls
+#' `stats::model.frame()` on it at render time resolves the variables
+#' **then**. Measured (#254):
+#'
+#'     len  <- c(1, 2, 3, 10, 11, 12); supp <- rep(c("OJ", "VC"), each = 3)
+#'     stripchart(len ~ supp)              # draws 1,2,3 under OJ
+#'     len  <- c(99, 98, 97, 96, 95, 94)   # the user carries on working
+#'     supp <- rep(c("XX", "YY"), each = 3)
+#'     save_html(file = f)                 # announced 99,98,97 under XX
+#'
+#' Every value and both group names belonged to bindings made after the
+#' drawing, and it was silent: the figure rendered as an interactive chart
+#' rather than as a fallback, so nothing said the numbers had moved.
+#'
+#' So the frame is built **here**, while the call is being recorded and the
+#' bindings are still the ones the chart was drawn from. `stripchart.formula`
+#' and `boxplot.formula` build the same `stats::model.frame(formula, data)`
+#' as they draw, so this is the frame they used rather than a reconstruction
+#' of it.
+#'
+#' Fixed at the recording layer rather than per processor because anything
+#' that reads a formula later inherits the same defect.
+#'
+#' @param args Recorded argument list
+#' @return The model frame, or NULL when the call carries no formula or the
+#'   frame cannot be built -- in which case the reader falls back to
+#'   resolving it itself, exactly as before.
+#' @keywords internal
+recorded_formula_frame <- function(args) {
+  if (!is.list(args) || length(args) == 0) {
+    return(NULL)
+  }
+
+  formula <- args[["formula"]]
+  if (!inherits(formula, "formula")) {
+    formula <- NULL
+    for (value in args) {
+      if (inherits(value, "formula")) {
+        formula <- value
+        break
+      }
+    }
+  }
+  # Nearly every recorded call carries no formula at all, and this runs on
+  # all of them. The `tryCatch` below would cover the case on its own --
+  # measured, `stats::model.frame(NULL)` stops with "argument is not a valid
+  # model" -- so this changes no reading, only whether the common path raises
+  # and catches a condition to reach the same NULL.
+  if (!inherits(formula, "formula")) {
+    return(NULL)
+  }
+
+  tryCatch(
+    stats::model.frame(formula, data = args[["data"]]),
+    error = function(e) NULL
+  )
+}
