@@ -133,14 +133,21 @@ BaseRLagLayerProcessor <- R6::R6Class(
       if (is.null(handed) || is.language(handed) || !length(handed)) {
         return(list())
       }
+      # A series of something other than numbers is declined rather than
+      # coerced. `lag.plot()` does not get this far -- measured, a character
+      # series warns "NAs introduced by coercion" twice and then stops in
+      # `plot.window()` with "invalid 'xlim' value", so no chart is drawn --
+      # but the arguments of a call that stopped are recorded all the same,
+      # and `as.numeric()` on them would invent a grid of `NA`s to announce.
       matrix_form <- tryCatch(as.matrix(handed), error = function(e) NULL)
       if (is.null(matrix_form) || !is.numeric(matrix_form)) {
         return(list())
       }
+      # No check that the coercion left a column: measured, the only argument
+      # `as.matrix()` turns into a column-less matrix is a data frame that has
+      # none, and that is rejected twice already -- it has length zero, and it
+      # is not numeric.
       count <- ncol(matrix_form)
-      if (is.null(count) || count < 1) {
-        return(list())
-      }
 
       values <- lapply(
         seq_len(count),

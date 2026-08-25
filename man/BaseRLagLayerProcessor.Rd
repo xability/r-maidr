@@ -32,10 +32,11 @@ against a \code{grid.echo()} export, a two-column matrix at \code{lags = 2} writ
 So panel \code{k} sits at row \code{(k - 1) \%/\% ncols + 1}, column
 \code{(k - 1) \%\% ncols + 1}.
 
-\strong{The marks are points only when the panel is not labelled.} \code{lag.plot()}
-draws the time index at each pair rather than a symbol when \code{labels} is
-true, and \code{labels} defaults to \code{do.lines}, which defaults to \code{n <= 150}.
-Measured, the four combinations give:
+\strong{A panel's marks are symbols or labels, and \code{labels} decides which.}
+\code{lag.plot()} writes the time index at each pair rather than a symbol when
+\code{labels} is true, and \code{labels} defaults to \code{do.lines}, which defaults to
+\code{n <= 150} -- so the \emph{default} chart is the labelled one. Measured, the
+four combinations give:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{labels  do.lines   grobs in a panel
 FALSE   FALSE      points
@@ -44,14 +45,22 @@ TRUE    FALSE      text
 TRUE    TRUE       text, brokenline
 }\if{html}{\out{</div>}}
 
-Only the two \code{points} cases carry a mark this reading can name, so a
-labelled panel is announced without an outline rather than pointed at
-something that is not there. That costs less than it looks: a labelled
-chart does not reach the reader as SVG at all. \code{gridSVG::grid.export()}
-stops on the text grob with "missing value where TRUE/FALSE needed" from
-\code{justTovjust()}, so \code{build_interactive_svg()} catches it and the figure
-degrades to a static image with its warning -- the same guard \code{symbols()}
-already lands in.
+So \code{do.lines} only adds the joining line and \code{labels} alone decides the
+mark, which is why the two are read separately rather than through the
+default that ties them together.
+
+Both marks can be outlined, and the export is what says so. Measured on a
+real \code{save_html()} of a labelled call, the text grob comes out as one
+group per pair, in data order:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{<g id="graphics-plot-1-text-1.1">
+  <g id="graphics-plot-1-text-1.1.1" transform="translate(254.32, …)">
+  <g id="graphics-plot-1-text-1.1.2" transform="translate(221.70, …)">
+}\if{html}{\out{</div>}}
+
+which is the same shape a \code{points} grob has, with \code{use} elements replaced
+by nested \code{g}s. So the selector differs only in the grob name and the
+child it reaches for.
 }
 \keyword{internal}
 \section{Super classes}{

@@ -285,6 +285,24 @@ test_that("one reading against itself is a panel, because it is drawn", {
 })
 
 
+test_that("a series of something other than numbers is declined", {
+  # Driven at the processor, because the drawing stops before it finishes:
+  # measured, a character series warns "NAs introduced by coercion" and then
+  # `plot.window()` refuses the resulting `xlim`. The arguments are recorded
+  # anyway, and coercing them would announce a grid of `NA`s that was never
+  # on the page.
+  result <- BaseRLagLayerProcessor$new(NULL)$process(
+    NULL, NULL,
+    layer_info = list(
+      call_expr = "lag.plot(letters[1:3])",
+      plot_call = list(args = list(c("a", "b", "c"), do.lines = FALSE))
+    )
+  )
+
+  testthat::expect_null(result)
+})
+
+
 test_that("a series with a missing reading never reaches the drawing", {
   # Recorded here because it is why nothing in the reading filters for `NA`:
   # the panel takes `xlim` from `range(X)`, so one missing value makes the
