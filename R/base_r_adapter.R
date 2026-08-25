@@ -494,6 +494,11 @@ BaseRAdapter <- R6::R6Class(
         },
         "points" = "point",
         "abline" = "line",
+        # `qqline()` draws an `abline` from inside the `stats`
+        # namespace, where the wrapper never sees it -- so it is
+        # recorded under its own name and read as the reference line
+        # it is, from its own arguments rather than the plot's (#252).
+        "qqline" = "qqline",
         "polygon" = "unknown", # Decorative element, triggers fallback if present
         "unknown"
       )

@@ -39,14 +39,15 @@
 #                          `polygon()` call from inside `stats` that the
 #                          wrapper never sees and that the payload has
 #                          nowhere to put
-#   qqline()               the reference line nearly every Q-Q plot is
-#                          finished with, likewise an `abline()` from inside
-#                          `stats`
 #
-# Both would otherwise ship a chart with a drawn mark silently missing from
+# It would otherwise ship a chart with a drawn mark silently missing from
 # it, which is worse than the picture, because a picture at least says what
-# it is. `qqline` is now recorded (LOW) purely so that it can be declined;
-# reading it is #252.
+# it is.
+#
+# `qqline()` -- the reference line nearly every Q-Q plot is finished with,
+# likewise an `abline()` from inside `stats` -- was declined the same way to
+# begin with, and is now read as the line it draws (#252). Its own tests are
+# in `test-base-r-qqline.R`.
 
 # `base_r_layers` and `base_r_layer_types` live in `helper.R` (#241).
 qq_layers <- base_r_layers
@@ -206,15 +207,16 @@ test_that("the points are bound to the grob the chart drew them in", {
 })
 
 
-test_that("a reference line is declined rather than dropped", {
+test_that("a reference line is read rather than declined", {
   # `qqline()` is how nearly every Q-Q plot in the wild is finished, and it
   # reaches `graphics::abline()` from inside `stats`, where the wrapper
   # never sees it. Left unrecorded it left no trace at all, so making
   # `qqnorm` readable would have turned this chart into a scatter with a
-  # drawn line silently missing from it. Recorded, it declines -- the same
-  # answer as before the reading existed. Reading the line is #252.
+  # drawn line silently missing from it. It was therefore recorded and
+  # declined, which held the chart at the picture; it is now read (#252), so
+  # neither drawing declines and the line is a layer of its own.
   testthat::expect_false(declines(function() qqnorm(SAMPLE)))
-  testthat::expect_true(declines(function() {
+  testthat::expect_false(declines(function() {
     qqnorm(SAMPLE)
     qqline(SAMPLE)
   }))
