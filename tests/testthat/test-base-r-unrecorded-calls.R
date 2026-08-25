@@ -89,7 +89,15 @@ save_base_figure <- function(plot_fun) {
 }
 
 # The three of the eight that are still recorded-but-unread, with the smallest
-# call that draws each.
+# call that draws each. They are not alike, and #251's sweep separates them:
+# `persp` and `fourfoldplot` are **declined** -- a 3D surface has no 2D
+# reading that is not a different chart, and a fourfold plot's radii encode
+# an odds ratio rather than the table it came from -- while
+# `sunflowerplot` is **blocked**, on a maidr release carrying the
+# `sunflower` trace xability/maidr#1161 added after the 4.4.0
+# `MAIDR_VERSION` pins. The distinction matters here because a reading
+# arriving for the third would move it to `read_calls` below, and the other
+# two should stay put.
 unrecorded_calls <- list(
   persp = function() {
     z <- outer(

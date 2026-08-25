@@ -70,6 +70,28 @@ NULL
     # promise of a reading. Adding a reading later means adding a processor
     # and a `detect_layer_type()` branch; it does not mean touching this
     # list, because each of these is already recorded.
+    # Five of these eight have since gained readings, without this list
+    # changing -- `spineplot` as a `mosaic` (#258), `cdplot` as a normalized
+    # stacked area (#259), `qqnorm`/`qqplot` as `point`, and
+    # `filled.contour` as a `contour`. What is left is three, and the sweep
+    # #251 records has now measured each, so they are separated here rather
+    # than left to be re-derived:
+    #
+    #   persp          Declined. A 3D surface has no 2D reading that is not
+    #                  a different chart.
+    #   fourfoldplot   Declined. Quarter-circles whose radii encode a 2xk
+    #                  odds ratio: the numbers drawn are the ratio, not the
+    #                  table, so a `mosaic` would announce something the
+    #                  plot does not draw. #268 measures a second obstacle
+    #                  on top of that -- the counts reach the drawing only
+    #                  when the caller asks for no standardisation.
+    #   sunflowerplot  Not declined -- **blocked**. The petals count the
+    #                  observations at each position, which had no field
+    #                  until xability/maidr#1161 added a `sunflower` trace.
+    #                  It is on `main` there and after the 4.4.0 that
+    #                  `MAIDR_VERSION` pins, so a layer emitted today would
+    #                  name a trace the bundle this package loads cannot
+    #                  render. Nothing to decide; it waits on a release.
     "persp",
     "sunflowerplot",
     "fourfoldplot",
