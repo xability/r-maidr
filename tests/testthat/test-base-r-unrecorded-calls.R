@@ -322,7 +322,9 @@ test_that("all eight are classified, and classification is what changed", {
   # That is what #216 changed and all it changed -- the four that have since
   # been read got there by gaining a processor, which is a separate step, so
   # they are excluded from this half rather than from the classification
-  # above.
+  # above. The check is by *function* name, which is why it keeps holding as
+  # calls gain readings: `lag.plot` is read as the layer type "lag", so the
+  # function's own name is still absent from the registry.
   factory <- BaseRProcessorFactory$new()
   for (name in names(unrecorded_calls)) {
     expect_false(name %in% factory$get_supported_types(), info = name)
@@ -401,17 +403,19 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **Six of the twelve have since moved past the fallback.** `bxp()` was the
+# **Seven of the twelve have since moved past the fallback.** `bxp()` was the
 # first, read as the box plot it draws -- it is `boxplot()`'s own drawing
 # half, handed the five-number summaries instead of the observations, and it
 # puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
 # drawing one vertical spike per lag (#276); `interaction.plot` after them,
 # drawing one line per trace level over the cell means it computes (#278);
-# and `monthplot` after that, drawing one line per cycle position over that
-# position's own subseries. The lists below are split accordingly, and the
-# six are asserted to be *read* rather than dropped from the file: what #262
-# established about them is that a recorded call never stops the save, and
-# that still has to hold on the far side of gaining a reading.
+# `monthplot` after that, drawing one line per cycle position over that
+# position's own subseries; and `lag.plot` last, which is the only one of the
+# twelve that draws a *grid* -- one scatter per series and lag. The lists
+# below are split accordingly, and the seven are asserted to be *read* rather
+# than dropped from the file: what #262 established about them is that a
+# recorded call never stops the save, and that still has to hold on the far
+# side of gaining a reading.
 
 DRAWS_DIRECTLY <- local({
   set.seed(5)
@@ -422,19 +426,25 @@ DRAWS_DIRECTLY <- local({
     biplot = function() biplot(stats::prcomp(m)),
     cpgram = function() cpgram(v),
     spectrum = function() spectrum(v),
-    lag.plot = function() lag.plot(seasonal),
     termplot = function() termplot(stats::lm(v ~ seq_along(v))),
     stars = function() stars(abs(m))
   )
 })
 
-# The six of the twelve that are now read. `bxp` was the first; the three
+# The seven of the twelve that are now read. `bxp` was the first; the three
 # correlogram entry points followed, each drawing one vertical spike per lag
 # -- the shape `type = "h"` already read as a `lollipop` for (#276);
 # `interaction.plot` after them, which computes a grid of cell means and hands
-# it to `matplot`, so it is the set of lines that already reads (#278); and
+# it to `matplot`, so it is the set of lines that already reads (#278);
 # `monthplot` after that, one line per cycle position over that position's own
-# subseries, which is the same set of lines once more.
+# subseries, which is the same set of lines once more; and `lag.plot` last,
+# which is not a set of lines at all but a grid of scatters, read the way
+# `pairs()` is -- as a figure of subplots.
+#
+# `lag.plot` is listed in its *default* spelling on purpose. Its default is
+# the labelled one -- `labels` follows `do.lines`, which is `n <= 150` -- and
+# a labelled panel draws text where the others draw symbols, so listing the
+# spelling that draws points would have exercised the easier half.
 DRAWS_DIRECTLY_READ <- local({
   set.seed(5)
   v <- stats::rnorm(60)
@@ -448,6 +458,9 @@ DRAWS_DIRECTLY_READ <- local({
     },
     monthplot = function() {
       monthplot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12))
+    },
+    lag.plot = function() {
+      lag.plot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12), lags = 2)
     }
   )
 })
@@ -468,7 +481,7 @@ test_that("a call that draws without plot() no longer stops the save", {
   }
 })
 
-test_that("the six still unread degrade to the picture rather than to nothing", {
+test_that("the five still unread degrade to the picture rather than to nothing", {
   skip_unless_jsonlite()
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure
@@ -530,6 +543,29 @@ test_that("monthplot() ships its subseries rather than a picture of them", {
   expect_false(result$fell_back)
   expect_match(
     result$html, "&quot;type&quot;:&quot;line&quot;",
+    fixed = TRUE
+  )
+})
+
+test_that("lag.plot() ships its grid of scatters rather than a picture", {
+  skip_unless_jsonlite()
+
+  # The same upper claim for the seventh, and the first of the twelve to
+  # answer with a *figure* rather than a layer: two panels, each a scatter of
+  # the series against a shifted copy of itself. Before the reading it fell
+  # back with "Plot contains unsupported elements".
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$lag.plot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;point&quot;",
+    fixed = TRUE
+  )
+  # A grid, so the payload carries a second subplot rather than a second
+  # layer in the first.
+  expect_match(
+    result$html, "maidr-subplot-2-1",
     fixed = TRUE
   )
 })

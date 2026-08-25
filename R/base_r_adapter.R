@@ -367,6 +367,12 @@ BaseRAdapter <- R6::R6Class(
         # subplots rather than as one layer, which is the shape the same
         # chart already gets in py-maidr (#272).
         "pairs" = "pairs",
+        # A grid of scatters again, this time of one series against shifted
+        # copies of itself: one panel per series and lag, `X[t + k]` across
+        # against `X[t]` up. Read as a figure of subplots for the same reason
+        # `pairs()` is -- the call lays out its own panels and the device's
+        # layout calls never see them (#262).
+        "lag.plot" = "lag",
         # The same level curves `contour()` draws, with the bands between
         # them filled. Read as a contour, from `contourLines()` rather than
         # from the fill, so one chart's two spellings read alike (#251).
