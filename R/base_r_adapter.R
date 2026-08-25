@@ -424,6 +424,11 @@ BaseRAdapter <- R6::R6Class(
         # rather than over a matrix the caller handed in. The separate
         # name routes it to the subclass that recomputes them (#278).
         "interaction.plot" = "interaction",
+        # One line per cycle position, over that position's own subseries.
+        # The same set of lines again -- what the separate name routes to is
+        # the subclass that recovers the times the slot offsets were computed
+        # from, which the drawing does not carry (#262).
+        "monthplot" = "subseries",
         # quantmod::chartSeries() candlestick path. The `type` argument
         # defaults to "auto"; we accept the call as candlestick only when
         # the user explicitly requests it (matching the MVP scope).

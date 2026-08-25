@@ -401,16 +401,17 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **Five of the twelve have since moved past the fallback.** `bxp()` was the
+# **Six of the twelve have since moved past the fallback.** `bxp()` was the
 # first, read as the box plot it draws -- it is `boxplot()`'s own drawing
 # half, handed the five-number summaries instead of the observations, and it
 # puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
-# drawing one vertical spike per lag (#276), and `interaction.plot` after
-# them, drawing one line per trace level over the cell means it computes
-# (#278). The lists below are split accordingly, and the five are asserted to
-# be *read* rather than dropped from the file: what #262 established about
-# them is that a recorded call never stops the save, and that still has to
-# hold on the far side of gaining a reading.
+# drawing one vertical spike per lag (#276); `interaction.plot` after them,
+# drawing one line per trace level over the cell means it computes (#278);
+# and `monthplot` after that, drawing one line per cycle position over that
+# position's own subseries. The lists below are split accordingly, and the
+# six are asserted to be *read* rather than dropped from the file: what #262
+# established about them is that a recorded call never stops the save, and
+# that still has to hold on the far side of gaining a reading.
 
 DRAWS_DIRECTLY <- local({
   set.seed(5)
@@ -420,7 +421,6 @@ DRAWS_DIRECTLY <- local({
   list(
     biplot = function() biplot(stats::prcomp(m)),
     cpgram = function() cpgram(v),
-    monthplot = function() monthplot(seasonal),
     spectrum = function() spectrum(v),
     lag.plot = function() lag.plot(seasonal),
     termplot = function() termplot(stats::lm(v ~ seq_along(v))),
@@ -428,11 +428,13 @@ DRAWS_DIRECTLY <- local({
   )
 })
 
-# The five of the twelve that are now read. `bxp` was the first; the three
+# The six of the twelve that are now read. `bxp` was the first; the three
 # correlogram entry points followed, each drawing one vertical spike per lag
-# -- the shape `type = "h"` already read as a `lollipop` for (#276); and
+# -- the shape `type = "h"` already read as a `lollipop` for (#276);
 # `interaction.plot` after them, which computes a grid of cell means and hands
-# it to `matplot`, so it is the set of lines that already reads (#278).
+# it to `matplot`, so it is the set of lines that already reads (#278); and
+# `monthplot` after that, one line per cycle position over that position's own
+# subseries, which is the same set of lines once more.
 DRAWS_DIRECTLY_READ <- local({
   set.seed(5)
   v <- stats::rnorm(60)
@@ -443,6 +445,9 @@ DRAWS_DIRECTLY_READ <- local({
     ccf = function() ccf(v, rev(v)),
     interaction.plot = function() {
       interaction.plot(factor(rep(1:2, 30)), factor(rep(1:3, 20)), v)
+    },
+    monthplot = function() {
+      monthplot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12))
     }
   )
 })
@@ -463,7 +468,7 @@ test_that("a call that draws without plot() no longer stops the save", {
   }
 })
 
-test_that("the seven still unread degrade to the picture rather than to nothing", {
+test_that("the six still unread degrade to the picture rather than to nothing", {
   skip_unless_jsonlite()
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure
@@ -511,6 +516,22 @@ test_that("the correlograms ship spikes rather than a picture of them", {
       fixed = TRUE, info = name
     )
   }
+})
+
+test_that("monthplot() ships its subseries rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The same upper claim for the sixth. It drew twelve lines and fell back
+  # with "Plot contains unsupported elements", while `matplot()` on the same
+  # twelve series -- the shape `monthplot` lays out by hand -- never did.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$monthplot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;line&quot;",
+    fixed = TRUE
+  )
 })
 
 test_that("what reaches stats plots through plot() still reads", {
