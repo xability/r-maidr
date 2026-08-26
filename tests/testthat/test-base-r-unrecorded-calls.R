@@ -403,7 +403,7 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **Eight of the twelve have since moved past the fallback.** `bxp()` was the
+# **Nine of the twelve have since moved past the fallback.** `bxp()` was the
 # first, read as the box plot it draws -- it is `boxplot()`'s own drawing
 # half, handed the five-number summaries instead of the observations, and it
 # puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
@@ -411,9 +411,11 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # drawing one line per trace level over the cell means it computes (#278);
 # `monthplot` after that, drawing one line per cycle position over that
 # position's own subseries; `lag.plot` after it, the only one of the twelve
-# that draws a *grid* -- one scatter per series and lag; and `stars` last,
+# that draws a *grid* -- one scatter per series and lag; `stars` after it,
 # one closed outline per observation, which is the first `radar` any base R
-# reading produces. The lists below are split accordingly, and the eight are
+# reading produces; and `termplot` last, one partial-effect curve per term of
+# a fitted model, which draws a grid it does not lay out itself. The lists
+# below are split accordingly, and the nine are
 # asserted to be *read* rather than dropped from the file: what #262 established about them is that a
 # recorded call never stops the save, and that still has to hold on the far
 # side of gaining a reading.
@@ -426,12 +428,11 @@ DRAWS_DIRECTLY <- local({
   list(
     biplot = function() biplot(stats::prcomp(m)),
     cpgram = function() cpgram(v),
-    spectrum = function() spectrum(v),
-    termplot = function() termplot(stats::lm(v ~ seq_along(v)))
+    spectrum = function() spectrum(v)
   )
 })
 
-# The seven of the twelve that are now read. `bxp` was the first; the three
+# The nine of the twelve that are now read. `bxp` was the first; the three
 # correlogram entry points followed, each drawing one vertical spike per lag
 # -- the shape `type = "h"` already read as a `lollipop` for (#276);
 # `interaction.plot` after them, which computes a grid of cell means and hands
@@ -439,7 +440,9 @@ DRAWS_DIRECTLY <- local({
 # `monthplot` after that, one line per cycle position over that position's own
 # subseries, which is the same set of lines once more; and `lag.plot` last,
 # which is not a set of lines at all but a grid of scatters, read the way
-# `pairs()` is -- as a figure of subplots.
+# `pairs()` is -- as a figure of subplots; `stars` after it, the first `radar`;
+# and `termplot` last, which draws a grid like `lag.plot` but lays out none of
+# it, so the caller's `par(mfrow)` decides how much of the fit is on the page.
 #
 # `lag.plot` is listed in its *default* spelling on purpose. Its default is
 # the labelled one -- `labels` follows `do.lines`, which is `n <= 150` -- and
@@ -462,7 +465,8 @@ DRAWS_DIRECTLY_READ <- local({
     lag.plot = function() {
       lag.plot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12), lags = 2)
     },
-    stars = function() stars(abs(matrix(stats::rnorm(12), nrow = 4)))
+    stars = function() stars(abs(matrix(stats::rnorm(12), nrow = 4))),
+    termplot = function() termplot(stats::lm(v ~ seq_along(v)))
   )
 })
 
@@ -583,6 +587,21 @@ test_that("stars() ships its outlines rather than a picture of them", {
   expect_false(result$fell_back)
   expect_match(
     result$html, "&quot;type&quot;:&quot;radar&quot;",
+    fixed = TRUE
+  )
+})
+
+test_that("termplot() ships its curves rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the ninth. One term and no `par(mfrow)`, so the page
+  # holds a single panel -- which is the whole of what was drawn.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$termplot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;line&quot;",
     fixed = TRUE
   )
 })

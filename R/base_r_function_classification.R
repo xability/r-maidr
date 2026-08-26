@@ -134,10 +134,16 @@ NULL
     # places them by was measured off a real export (#262). `stars` breaks it
     # the other way: it is the first base R call read as a `radar`, one closed
     # outline per observation, which is the same set of lines once more with
-    # the matrix turned on its side. Gaining any of those readings did not
-    # touch this list, which is the point the paragraph above makes: being
-    # recorded and being read are separate steps. #262 records the candidates
-    # for the rest.
+    # the matrix turned on its side. `termplot` is the third that draws a
+    # grid, and the only one whose grid is not its own: it sets no layout, so
+    # the caller's `par(mfrow)` decides how many of its partial-effect curves
+    # share a page, and R starts a new page when it runs out of cells. Only
+    # the last page is exported, so the reading announces the tail of the
+    # terms rather than all of them -- the rule `compute_panel_slots()`
+    # already applies to whole plot groups, one level down. Gaining any of
+    # those readings did not touch this list, which is the point the paragraph
+    # above makes: being recorded and being read are separate steps. #262
+    # records the candidates for the rest.
     "acf",
     "pacf",
     "ccf",

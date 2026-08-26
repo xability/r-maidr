@@ -67,6 +67,9 @@ BaseRProcessorFactory <- R6::R6Class(
         # The other call that answers with a grid: one scatter per series and
         # lag, the series against a shifted copy of itself.
         "lag" = BaseRLagLayerProcessor$new(layer_info),
+        # The third, and the only one whose grid is the caller's rather than
+        # its own: one partial-effect curve per term of a fitted model.
+        "termplot" = BaseRTermplotLayerProcessor$new(layer_info),
         # A contour whose levels default to twice as many, and whose field
         # is one polygon grob rather than one per curve. The separate name
         # routes it to the subclass that knows both.
@@ -119,6 +122,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "strip",
         "lag",
         "radar",
+        "termplot",
         "filled_contour",
         "spine",
         "conditional_density",
