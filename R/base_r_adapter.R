@@ -377,6 +377,11 @@ BaseRAdapter <- R6::R6Class(
         # `pairs()` is -- the call lays out its own panels and the device's
         # layout calls never see them (#262).
         "lag.plot" = "lag",
+        # One partial-effect curve per term of a fitted model, each against
+        # its own carrier. A grid again, for the third time and for the same
+        # reason -- except that this call sets no layout at all, so the
+        # caller's `par(mfrow)` decides how many terms share the page (#262).
+        "termplot" = "termplot",
         # The same level curves `contour()` draws, with the bands between
         # them filled. Read as a contour, from `contourLines()` rather than
         # from the fill, so one chart's two spellings read alike (#251).
