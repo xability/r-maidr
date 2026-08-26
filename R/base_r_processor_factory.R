@@ -61,6 +61,9 @@ BaseRProcessorFactory <- R6::R6Class(
         # grid the reading derives -- the one processor that answers with a
         # figure's shape rather than a layer's.
         "pairs" = BaseRPairsLayerProcessor$new(layer_info),
+        # The other call that answers with a grid: one scatter per series and
+        # lag, the series against a shifted copy of itself.
+        "lag" = BaseRLagLayerProcessor$new(layer_info),
         # A contour whose levels default to twice as many, and whose field
         # is one polygon grob rather than one per curve. The separate name
         # routes it to the subclass that knows both.
@@ -111,6 +114,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "qq",
         "qqline",
         "strip",
+        "lag",
         "filled_contour",
         "spine",
         "conditional_density",

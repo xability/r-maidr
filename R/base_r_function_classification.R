@@ -127,10 +127,14 @@ NULL
     # `bxp` had the story before all of them. It draws the
     # same marks `boxplot()` does, from the summaries it is handed instead of
     # from observations, so it takes the `box` layer through a subclass that
-    # only overrides where the summaries come from. Gaining that reading did
-    # not touch this list, which is the point the paragraph above makes:
-    # being recorded and being read are separate steps. #262 records the
-    # candidates for the rest, `stars` among them.
+    # only overrides where the summaries come from. `lag.plot` breaks the
+    # pattern: it is the only one of the twelve that draws a *grid*, one
+    # panel per series and lag, so it is read the way `pairs()` is -- as a
+    # figure of subplots rather than as a layer -- and the panel numbering it
+    # places them by was measured off a real export (#262). Gaining any of
+    # those readings did not touch this list, which is the point the
+    # paragraph above makes: being recorded and being read are separate
+    # steps. #262 records the candidates for the rest, `stars` among them.
     "acf",
     "pacf",
     "ccf",
