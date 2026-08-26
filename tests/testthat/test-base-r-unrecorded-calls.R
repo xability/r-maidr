@@ -403,17 +403,18 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **Seven of the twelve have since moved past the fallback.** `bxp()` was the
+# **Eight of the twelve have since moved past the fallback.** `bxp()` was the
 # first, read as the box plot it draws -- it is `boxplot()`'s own drawing
 # half, handed the five-number summaries instead of the observations, and it
 # puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
 # drawing one vertical spike per lag (#276); `interaction.plot` after them,
 # drawing one line per trace level over the cell means it computes (#278);
 # `monthplot` after that, drawing one line per cycle position over that
-# position's own subseries; and `lag.plot` last, which is the only one of the
-# twelve that draws a *grid* -- one scatter per series and lag. The lists
-# below are split accordingly, and the seven are asserted to be *read* rather
-# than dropped from the file: what #262 established about them is that a
+# position's own subseries; `lag.plot` after it, the only one of the twelve
+# that draws a *grid* -- one scatter per series and lag; and `stars` last,
+# one closed outline per observation, which is the first `radar` any base R
+# reading produces. The lists below are split accordingly, and the eight are
+# asserted to be *read* rather than dropped from the file: what #262 established about them is that a
 # recorded call never stops the save, and that still has to hold on the far
 # side of gaining a reading.
 
@@ -426,8 +427,7 @@ DRAWS_DIRECTLY <- local({
     biplot = function() biplot(stats::prcomp(m)),
     cpgram = function() cpgram(v),
     spectrum = function() spectrum(v),
-    termplot = function() termplot(stats::lm(v ~ seq_along(v))),
-    stars = function() stars(abs(m))
+    termplot = function() termplot(stats::lm(v ~ seq_along(v)))
   )
 })
 
@@ -461,7 +461,8 @@ DRAWS_DIRECTLY_READ <- local({
     },
     lag.plot = function() {
       lag.plot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12), lags = 2)
-    }
+    },
+    stars = function() stars(abs(matrix(stats::rnorm(12), nrow = 4)))
   )
 })
 
@@ -481,7 +482,7 @@ test_that("a call that draws without plot() no longer stops the save", {
   }
 })
 
-test_that("the five still unread degrade to the picture rather than to nothing", {
+test_that("the four still unread degrade to the picture rather than to nothing", {
   skip_unless_jsonlite()
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure
@@ -566,6 +567,22 @@ test_that("lag.plot() ships its grid of scatters rather than a picture", {
   # layer in the first.
   expect_match(
     result$html, "maidr-subplot-2-1",
+    fixed = TRUE
+  )
+})
+
+test_that("stars() ships its outlines rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the eighth, and the first `radar` any base R reading
+  # produces. Before it the chart fell back with "Plot contains unsupported
+  # elements".
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$stars)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;radar&quot;",
     fixed = TRUE
   )
 })

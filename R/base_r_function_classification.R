@@ -131,10 +131,13 @@ NULL
     # pattern: it is the only one of the twelve that draws a *grid*, one
     # panel per series and lag, so it is read the way `pairs()` is -- as a
     # figure of subplots rather than as a layer -- and the panel numbering it
-    # places them by was measured off a real export (#262). Gaining any of
-    # those readings did not touch this list, which is the point the
-    # paragraph above makes: being recorded and being read are separate
-    # steps. #262 records the candidates for the rest, `stars` among them.
+    # places them by was measured off a real export (#262). `stars` breaks it
+    # the other way: it is the first base R call read as a `radar`, one closed
+    # outline per observation, which is the same set of lines once more with
+    # the matrix turned on its side. Gaining any of those readings did not
+    # touch this list, which is the point the paragraph above makes: being
+    # recorded and being read are separate steps. #262 records the candidates
+    # for the rest.
     "acf",
     "pacf",
     "ccf",
