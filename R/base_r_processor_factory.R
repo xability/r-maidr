@@ -61,6 +61,9 @@ BaseRProcessorFactory <- R6::R6Class(
         # grid the reading derives -- the one processor that answers with a
         # figure's shape rather than a layer's.
         "pairs" = BaseRPairsLayerProcessor$new(layer_info),
+        # The same set of lines once more, this time around a circle: one
+        # series per observation, one spoke per variable.
+        "radar" = BaseRStarsLayerProcessor$new(layer_info),
         # The other call that answers with a grid: one scatter per series and
         # lag, the series against a shifted copy of itself.
         "lag" = BaseRLagLayerProcessor$new(layer_info),
@@ -115,6 +118,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "qqline",
         "strip",
         "lag",
+        "radar",
         "filled_contour",
         "spine",
         "conditional_density",

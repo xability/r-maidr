@@ -367,6 +367,10 @@ BaseRAdapter <- R6::R6Class(
         # subplots rather than as one layer, which is the shape the same
         # chart already gets in py-maidr (#272).
         "pairs" = "pairs",
+        # One closed outline per observation, a spoke per variable -- which is
+        # a multi-line layer with the matrix turned on its side, since MAIDR's
+        # radar is navigated as one series per row (#262).
+        "stars" = "radar",
         # A grid of scatters again, this time of one series against shifted
         # copies of itself: one panel per series and lag, `X[t + k]` across
         # against `X[t]` up. Read as a figure of subplots for the same reason
