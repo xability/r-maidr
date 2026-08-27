@@ -166,7 +166,7 @@ Plots can be heard through:
 - Volume changes
 - Different tones for different series
 
-## Quarto Reveal.js Slides
+## Quarto reveal.js Slides
 
 A `revealjs` deck needs nothing special from this package: call
 `maidr_on()` once in a setup chunk, as in any other Quarto or R Markdown
