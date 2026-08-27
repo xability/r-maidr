@@ -147,7 +147,12 @@ NULL
     # is not a reading. They are separate processors because `cpgram` does
     # not reuse `spectrum`'s estimate -- it computes its own, and the two
     # disagree by about 2%, which is small enough to look like rounding and
-    # large enough to announce wrong numbers. Gaining any of
+    # large enough to announce wrong numbers. `biplot` closes the twelve: it
+    # draws the observations of a fitted model and the variables' loadings
+    # on top of each other against two *different* pairs of axes, so it is
+    # read as a cell each -- the only one of the four grids whose cells exist
+    # because the halves have different scales rather than because they were
+    # drawn apart. Every one of the twelve #262 found is now read. Gaining any of
     # those readings did not touch this list, which is the point the paragraph
     # above makes: being recorded and being read are separate steps. #262
     # records the candidates for the rest.
