@@ -403,7 +403,7 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **Nine of the twelve have since moved past the fallback.** `bxp()` was the
+# **Eleven of the twelve have since moved past the fallback.** `bxp()` was the
 # first, read as the box plot it draws -- it is `boxplot()`'s own drawing
 # half, handed the five-number summaries instead of the observations, and it
 # puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
@@ -414,8 +414,10 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # that draws a *grid* -- one scatter per series and lag; `stars` after it,
 # one closed outline per observation, which is the first `radar` any base R
 # reading produces; and `termplot` last, one partial-effect curve per term of
-# a fitted model, which draws a grid it does not lay out itself. The lists
-# below are split accordingly, and the nine are
+# a fitted model, which draws a grid it does not lay out itself; and
+# `spectrum` and `cpgram` last, a pair that each compute a periodogram of a
+# series and draw one curve against frequency. The lists
+# below are split accordingly, and the eleven are
 # asserted to be *read* rather than dropped from the file: what #262 established about them is that a
 # recorded call never stops the save, and that still has to hold on the far
 # side of gaining a reading.
@@ -426,13 +428,11 @@ DRAWS_DIRECTLY <- local({
   m <- matrix(stats::rnorm(40), nrow = 10)
   seasonal <- stats::ts(cumsum(stats::rnorm(48)), frequency = 12)
   list(
-    biplot = function() biplot(stats::prcomp(m)),
-    cpgram = function() cpgram(v),
-    spectrum = function() spectrum(v)
+    biplot = function() biplot(stats::prcomp(m))
   )
 })
 
-# The nine of the twelve that are now read. `bxp` was the first; the three
+# The eleven of the twelve that are now read. `bxp` was the first; the three
 # correlogram entry points followed, each drawing one vertical spike per lag
 # -- the shape `type = "h"` already read as a `lollipop` for (#276);
 # `interaction.plot` after them, which computes a grid of cell means and hands
@@ -441,8 +441,11 @@ DRAWS_DIRECTLY <- local({
 # subseries, which is the same set of lines once more; and `lag.plot` last,
 # which is not a set of lines at all but a grid of scatters, read the way
 # `pairs()` is -- as a figure of subplots; `stars` after it, the first `radar`;
-# and `termplot` last, which draws a grid like `lag.plot` but lays out none of
-# it, so the caller's `par(mfrow)` decides how much of the fit is on the page.
+# `termplot` after it, which draws a grid like `lag.plot` but lays out none of
+# it, so the caller's `par(mfrow)` decides how much of the fit is on the page;
+# and `spectrum` and `cpgram` last, the two periodogram entry points -- a line
+# and a staircase over the same kind of series, from estimates that are NOT
+# the same.
 #
 # `lag.plot` is listed in its *default* spelling on purpose. Its default is
 # the labelled one -- `labels` follows `do.lines`, which is `n <= 150` -- and
@@ -466,7 +469,9 @@ DRAWS_DIRECTLY_READ <- local({
       lag.plot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12), lags = 2)
     },
     stars = function() stars(abs(matrix(stats::rnorm(12), nrow = 4))),
-    termplot = function() termplot(stats::lm(v ~ seq_along(v)))
+    termplot = function() termplot(stats::lm(v ~ seq_along(v))),
+    spectrum = function() spectrum(v),
+    cpgram = function() cpgram(v)
   )
 })
 
@@ -604,6 +609,22 @@ test_that("termplot() ships its curves rather than a picture of them", {
     result$html, "&quot;type&quot;:&quot;line&quot;",
     fixed = TRUE
   )
+})
+
+test_that("the periodogram pair ship their curves rather than pictures", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the tenth and eleventh, and the one place the two are
+  # asserted to read as *different* marks: a line and a staircase.
+  density <- save_base_figure(DRAWS_DIRECTLY_READ$spectrum)
+  expect_null(density$error)
+  expect_false(density$fell_back)
+  expect_match(density$html, "&quot;type&quot;:&quot;line&quot;", fixed = TRUE)
+
+  cumulative <- save_base_figure(DRAWS_DIRECTLY_READ$cpgram)
+  expect_null(cumulative$error)
+  expect_false(cumulative$fell_back)
+  expect_match(cumulative$html, "&quot;type&quot;:&quot;step&quot;", fixed = TRUE)
 })
 
 test_that("what reaches stats plots through plot() still reads", {
