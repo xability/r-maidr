@@ -403,7 +403,7 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # What reaches these through `plot()` was already fine and is asserted below
 # so it stays that way: `plot` is listed, so its methods record.
 #
-# **Eleven of the twelve have since moved past the fallback.** `bxp()` was the
+# **All twelve have since moved past the fallback.** `bxp()` was the
 # first, read as the box plot it draws -- it is `boxplot()`'s own drawing
 # half, handed the five-number summaries instead of the observations, and it
 # puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
@@ -415,24 +415,22 @@ test_that("a stem beside a histogram leaves the histogram interactive", {
 # one closed outline per observation, which is the first `radar` any base R
 # reading produces; and `termplot` last, one partial-effect curve per term of
 # a fitted model, which draws a grid it does not lay out itself; and
-# `spectrum` and `cpgram` last, a pair that each compute a periodogram of a
-# series and draw one curve against frequency. The lists
-# below are split accordingly, and the eleven are
+# `spectrum` and `cpgram` after them, a pair that each compute a periodogram
+# of a series and draw one curve against frequency; and `biplot` last, which
+# draws the observations and the variables of a fitted model on top of each
+# other against two different pairs of axes, and is read as a cell each. The
+# list below is no longer split, and all twelve are
 # asserted to be *read* rather than dropped from the file: what #262 established about them is that a
 # recorded call never stops the save, and that still has to hold on the far
 # side of gaining a reading.
 
-DRAWS_DIRECTLY <- local({
-  set.seed(5)
-  v <- stats::rnorm(60)
-  m <- matrix(stats::rnorm(40), nrow = 10)
-  seasonal <- stats::ts(cumsum(stats::rnorm(48)), frequency = 12)
-  list(
-    biplot = function() biplot(stats::prcomp(m))
-  )
-})
+# Empty on purpose. Every one of the twelve is read now; the last to move was
+# `biplot`. Kept as an empty list rather than deleted so that a call which
+# regresses to recorded-but-unread has somewhere to go, and so the two
+# assertions below keep their shape.
+DRAWS_DIRECTLY <- list()
 
-# The eleven of the twelve that are now read. `bxp` was the first; the three
+# All twelve, every one of them read. `bxp` was the first; the three
 # correlogram entry points followed, each drawing one vertical spike per lag
 # -- the shape `type = "h"` already read as a `lollipop` for (#276);
 # `interaction.plot` after them, which computes a grid of cell means and hands
@@ -443,9 +441,10 @@ DRAWS_DIRECTLY <- local({
 # `pairs()` is -- as a figure of subplots; `stars` after it, the first `radar`;
 # `termplot` after it, which draws a grid like `lag.plot` but lays out none of
 # it, so the caller's `par(mfrow)` decides how much of the fit is on the page;
-# and `spectrum` and `cpgram` last, the two periodogram entry points -- a line
-# and a staircase over the same kind of series, from estimates that are NOT
-# the same.
+# `spectrum` and `cpgram` after them, the two periodogram entry points -- a
+# line and a staircase over the same kind of series, from estimates that are
+# NOT the same; and `biplot` last, the only one whose cells exist because its
+# halves have different scales rather than because they were drawn apart.
 #
 # `lag.plot` is listed in its *default* spelling on purpose. Its default is
 # the labelled one -- `labels` follows `do.lines`, which is `n <= 150` -- and
@@ -454,6 +453,9 @@ DRAWS_DIRECTLY <- local({
 DRAWS_DIRECTLY_READ <- local({
   set.seed(5)
   v <- stats::rnorm(60)
+  # `m` used to live in the list above; that list is empty now, so the fixture
+  # that needs it carries it.
+  m <- matrix(stats::rnorm(40), nrow = 10)
   list(
     bxp = function() bxp(boxplot(stats::rnorm(60), plot = FALSE)),
     acf = function() acf(v),
@@ -471,7 +473,8 @@ DRAWS_DIRECTLY_READ <- local({
     stars = function() stars(abs(matrix(stats::rnorm(12), nrow = 4))),
     termplot = function() termplot(stats::lm(v ~ seq_along(v))),
     spectrum = function() spectrum(v),
-    cpgram = function() cpgram(v)
+    cpgram = function() cpgram(v),
+    biplot = function() biplot(stats::prcomp(m))
   )
 })
 
@@ -491,8 +494,14 @@ test_that("a call that draws without plot() no longer stops the save", {
   }
 })
 
-test_that("the four still unread degrade to the picture rather than to nothing", {
+test_that("nothing among the twelve is left recorded-but-unread", {
   skip_unless_jsonlite()
+
+  # `DRAWS_DIRECTLY` is empty, and this asserts it rather than leaving the
+  # loop below to pass by having nothing to iterate. An emptied list makes a
+  # for-loop test vacuous -- it stops being able to fail -- so the emptiness
+  # is stated outright and the loop is kept for whatever lands there next.
+  expect_length(DRAWS_DIRECTLY, 0)
 
   # Being listed is the *lower* of the two claims -- recorded, so the figure
   # falls back to a static image, not read. Asserting the fallback actually
@@ -625,6 +634,19 @@ test_that("the periodogram pair ship their curves rather than pictures", {
   expect_null(cumulative$error)
   expect_false(cumulative$fell_back)
   expect_match(cumulative$html, "&quot;type&quot;:&quot;step&quot;", fixed = TRUE)
+})
+
+test_that("biplot() ships its two halves rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the twelfth and last. Two subplots, because the
+  # scores and the loadings do not share a scale.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$biplot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(result$html, "&quot;type&quot;:&quot;point&quot;", fixed = TRUE)
+  expect_match(result$html, "maidr-subplot-1-2", fixed = TRUE)
 })
 
 test_that("what reaches stats plots through plot() still reads", {

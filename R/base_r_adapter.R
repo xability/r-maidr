@@ -391,6 +391,11 @@ BaseRAdapter <- R6::R6Class(
         # It computes its own periodogram rather than reusing `spectrum()`'s,
         # which is why it has a processor of its own (#262).
         "cpgram" = "cumulative_periodogram",
+        # The observations in principal component space and the variables'
+        # loadings on the same components, drawn on top of each other on two
+        # different pairs of axes. Read as a figure of two subplots, because
+        # the two halves do not share a scale (#262).
+        "biplot" = "biplot",
         # The same level curves `contour()` draws, with the bands between
         # them filled. Read as a contour, from `contourLines()` rather than
         # from the fill, so one chart's two spellings read alike (#251).

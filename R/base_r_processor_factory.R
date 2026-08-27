@@ -74,6 +74,10 @@ BaseRProcessorFactory <- R6::R6Class(
         # different marks from different estimates of the same series.
         "spectral_density" = BaseRSpectrumLayerProcessor$new(layer_info),
         "cumulative_periodogram" = BaseRCpgramLayerProcessor$new(layer_info),
+        # The fourth call that answers with a grid, and the only one whose
+        # cells exist because the halves have different scales rather than
+        # because they were drawn side by side.
+        "biplot" = BaseRBiplotLayerProcessor$new(layer_info),
         # A contour whose levels default to twice as many, and whose field
         # is one polygon grob rather than one per curve. The separate name
         # routes it to the subclass that knows both.
@@ -129,6 +133,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "termplot",
         "spectral_density",
         "cumulative_periodogram",
+        "biplot",
         "filled_contour",
         "spine",
         "conditional_density",
