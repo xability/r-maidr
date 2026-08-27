@@ -111,6 +111,87 @@ whenever the input `xts` carries a `Volume` column — fall back to native
 | Multi-panel layouts | `patchwork` package | `par(mfrow)`, `par(mfcol)` |
 | Multi-layered plots | Multiple `geom_*` layers | Sequential plot calls |
 
+### Experimental Plot Types
+
+> \[!WARNING\] **These are prototypes. Treat them as prototypes.** They
+> are under active development, they are unstable, and **none of them
+> has been through a user study**. Field names, announcement wording and
+> navigation may change without a deprecation period, including in a
+> patch release. If you are building something that has to keep working,
+> build it on the plot types above.
+
+Everything in the two tables above predates the plot coverage roadmap
+([\#137](https://github.com/xability/r-maidr/issues/137)) and has been
+exercised by real readers over real charts. Everything below was added
+by that roadmap and the base R sweeps that followed it
+([\#251](https://github.com/xability/r-maidr/issues/251),
+[\#262](https://github.com/xability/r-maidr/issues/262)), most inside a
+few weeks.
+
+Each was measured against the chart it reads — that is what the issues
+and the tests record. But measuring that a reading is *faithful to the
+drawing* is a different claim from establishing that it is *useful to a
+reader*. Nobody has asked a blind or low-vision reader whether hearing
+[`stars()`](https://rdrr.io/r/graphics/stars.html) as a radar, or
+navigating a [`termplot()`](https://rdrr.io/r/stats/termplot.html) panel
+by panel, is the right way to read one. Until that happens these are
+proposals about how a chart could be read, not answers.
+
+Feedback is exactly what would move one of these into the tables above.
+
+#### ggplot2
+
+| Layer type | Drawn by |
+|----|----|
+| `area` | [`geom_area()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html), `geom_ribbon(aes(ymin = 0, ...))` |
+| `stacked_area` | stacked [`geom_area()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html) |
+| `stacked_normalized_area` | `geom_area(position = "fill")` |
+| `stacked_normalized_bar` | `geom_bar(position = "fill")` |
+| `contour` | [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html), [`geom_density_2d()`](https://ggplot2.tidyverse.org/reference/geom_density_2d.html) |
+| `error_bar` | [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_errorbarh()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_pointrange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_crossbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_ribbon()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html) as a band |
+| `gantt` | [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html) |
+| `hexbin` | [`geom_hex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html), [`stat_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html) |
+| `polygon` | [`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html) |
+| `rug` | [`geom_rug()`](https://ggplot2.tidyverse.org/reference/geom_rug.html) |
+
+#### Base R
+
+| Layer type | Drawn by |
+|----|----|
+| `biplot` | [`biplot()`](https://rdrr.io/r/stats/biplot.html) |
+| `box_stats` | [`bxp()`](https://rdrr.io/r/graphics/bxp.html) |
+| `conditional_density` | [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `correlogram` | [`acf()`](https://rdrr.io/r/stats/acf.html), [`pacf()`](https://rdrr.io/r/stats/acf.html), [`ccf()`](https://rdrr.io/r/stats/acf.html) |
+| `cumulative_periodogram` | [`cpgram()`](https://rdrr.io/r/stats/cpgram.html) |
+| `dot` | [`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) (ungrouped) |
+| `filled_contour` | [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `interaction` | [`interaction.plot()`](https://rdrr.io/r/stats/interaction.plot.html) |
+| `lag` | [`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html) |
+| `lollipop` | `plot(type = "h")` |
+| `mosaic` | [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (two-way tables) |
+| `qq` | [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `qqline` | [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `radar` | [`stars()`](https://rdrr.io/r/graphics/stars.html) |
+| `residual` | [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (two-way tables) |
+| `spectral_density` | [`spectrum()`](https://rdrr.io/r/stats/spectrum.html) |
+| `spine` | [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `stacked_normalized_bar` | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of proportions |
+| `strip` | [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `subseries` | [`monthplot()`](https://rdrr.io/r/stats/monthplot.html) |
+| `termplot` | [`termplot()`](https://rdrr.io/r/stats/termplot.html) |
+
+The split is the diff of each factory’s `get_supported_types()` against
+`8de0e98`, the last commit on `main` before
+[\#137](https://github.com/xability/r-maidr/issues/137) was filed.
+`tests/testthat/test-plot-type-stability.R` fails if a supported type
+appears in neither the stable tables nor the experimental ones, so a new
+layer type has to be placed deliberately rather than inherit either
+promise by being forgotten.
+
+The JavaScript core and the Python binding make the same distinction
+over their own type lists, with the same boundary and for the same
+reason.
+
 See `vignette("plot-types")` for detailed examples of each plot type.
 
 ## Accessibility features
