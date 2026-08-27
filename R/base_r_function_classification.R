@@ -140,7 +140,14 @@ NULL
     # share a page, and R starts a new page when it runs out of cells. Only
     # the last page is exported, so the reading announces the tail of the
     # terms rather than all of them -- the rule `compute_panel_slots()`
-    # already applies to whole plot groups, one level down. Gaining any of
+    # already applies to whole plot groups, one level down. `spectrum` and
+    # `cpgram` are the pair after it: each computes a periodogram of a series
+    # and draws one curve against frequency, the first as a line and the
+    # second as a staircase, with a two-point reference mark beside each that
+    # is not a reading. They are separate processors because `cpgram` does
+    # not reuse `spectrum`'s estimate -- it computes its own, and the two
+    # disagree by about 2%, which is small enough to look like rounding and
+    # large enough to announce wrong numbers. Gaining any of
     # those readings did not touch this list, which is the point the paragraph
     # above makes: being recorded and being read are separate steps. #262
     # records the candidates for the rest.

@@ -70,6 +70,10 @@ BaseRProcessorFactory <- R6::R6Class(
         # The third, and the only one whose grid is the caller's rather than
         # its own: one partial-effect curve per term of a fitted model.
         "termplot" = BaseRTermplotLayerProcessor$new(layer_info),
+        # The two periodogram entry points. Separate names because they draw
+        # different marks from different estimates of the same series.
+        "spectral_density" = BaseRSpectrumLayerProcessor$new(layer_info),
+        "cumulative_periodogram" = BaseRCpgramLayerProcessor$new(layer_info),
         # A contour whose levels default to twice as many, and whose field
         # is one polygon grob rather than one per curve. The separate name
         # routes it to the subclass that knows both.
@@ -123,6 +127,8 @@ BaseRProcessorFactory <- R6::R6Class(
         "lag",
         "radar",
         "termplot",
+        "spectral_density",
+        "cumulative_periodogram",
         "filled_contour",
         "spine",
         "conditional_density",

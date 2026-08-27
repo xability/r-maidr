@@ -382,6 +382,15 @@ BaseRAdapter <- R6::R6Class(
         # reason -- except that this call sets no layout at all, so the
         # caller's `par(mfrow)` decides how many terms share the page (#262).
         "termplot" = "termplot",
+        # An estimated spectral density against frequency -- one curve, drawn
+        # as a line, with a confidence crosshair beside it that is a reference
+        # mark rather than a reading (#262).
+        "spectrum" = "spectral_density",
+        # The cumulative periodogram of the same series, drawn as a staircase
+        # rather than a line because a cumulative sum holds and then jumps.
+        # It computes its own periodogram rather than reusing `spectrum()`'s,
+        # which is why it has a processor of its own (#262).
+        "cpgram" = "cumulative_periodogram",
         # The same level curves `contour()` draws, with the bands between
         # them filled. Read as a contour, from `contourLines()` rather than
         # from the fill, so one chart's two spellings read alike (#251).
