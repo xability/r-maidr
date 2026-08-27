@@ -17,6 +17,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRCdplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRContourLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRCorrelogramLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRCpgramLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRDodgedBarLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRDotchartLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRFilledContourLayerProcessor.html</loc></url>
@@ -35,6 +36,7 @@
 <url><loc>https://r.maidr.ai/reference/BaseRQqLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRQqlineLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSmoothLayerProcessor.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/BaseRSpectrumLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSpikeLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRSpineplotLayerProcessor.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/BaseRStackedBarLayerProcessor.html</loc></url>
@@ -286,6 +288,8 @@
 <url><loc>https://r.maidr.ai/reference/panel_layer_of_type.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/panel_slot_positions.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/panel_transformation.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/periodogram_args.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/periodogram_points.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/perpendicular_distance.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polygon_cell_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polyline_layer_position.html</loc></url>
