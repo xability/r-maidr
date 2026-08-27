@@ -344,6 +344,51 @@ MAIDR.js version</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="quarto-reveal-js-slides">Quarto reveal.js Slides<a class="anchor" aria-label="anchor" href="#quarto-reveal-js-slides"></a>
+</h2>
+<p>A <code>revealjs</code> deck needs nothing special from this package:
+call <code><a href="../reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk, as in any other
+Quarto or R Markdown document, and every plot the deck draws becomes an
+accessible MAIDR chart.</p>
+<p>A chart on a <code>revealjs</code> slide is keyboard reachable on its
+own: <strong>Tab</strong> moves into it, the arrow keys explore it, and
+<strong>Shift+Tab</strong> hands focus back to the slide, so
+<strong>Space</strong> advances the deck again. None of that needs
+configuring.</p>
+<p>What does need attention is a reveal.js behavior that has nothing to
+do with MAIDR. reveal.js keeps the slides on either side of the current
+one rendered so that transitions stay smooth, and marking them
+<code>hidden</code> does not take them out of the tab order — reveal’s
+own inline style overrides the attribute. On a deck with a chart on
+every slide, a single <strong>Tab</strong> can therefore land on an
+off-screen slide’s chart rather than the one in front of the reader.
+This is <a href="https://github.com/hakimel/reveal.js/issues/1587" class="external-link">hakimel/reveal.js#1587</a>,
+open since 2016.</p>
+<p>The fix is now on reveal.js <code>master</code>, which marks every
+slide but the current one <code>inert</code>. It has not reached a
+published release yet, and Quarto carries its own copy of reveal.js —
+Quarto 1.10 ships 5.1.0 — so it will arrive in a Quarto release some
+time after reveal.js cuts one. Nothing will need to change in your deck
+when it does.</p>
+<p>Until then, <a href="https://github.com/mcanouil/quarto-revealjs-a11y" class="external-link">quarto-revealjs-a11y</a>
+does the same thing for a Quarto deck. Add it once per project:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
+<p>and enable it in the deck’s front matter:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
+<p>Use <strong>0.2.3 or newer</strong>. Earlier versions took off-slide
+elements out of the tab order by setting <code>tabindex="-1"</code> on
+them and could not find them again to put them back, which left the
+chart on the <em>current</em> slide unreachable as well.</p>
+<p>With the extension enabled, each slide gives one <strong>Tab</strong>
+to its own chart and <strong>Shift+Tab</strong> back out. The extension
+also adds a skip link ahead of the slides, so Shift+Tab lands there
+rather than on the slide element itself; either way
+<strong>Space</strong> still moves to the next slide.</p>
+</div>
+<div class="section level2">
 <h2 id="supported-plot-types">Supported Plot Types<a class="anchor" aria-label="anchor" href="#supported-plot-types"></a>
 </h2>
 <p>MAIDR supports a comprehensive range of visualizations:</p>
@@ -415,7 +460,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="histogram">Histogram<a class="anchor" aria-label="anchor" href="#histogram"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -436,7 +481,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="scatter-plot">Scatter Plot<a class="anchor" aria-label="anchor" href="#scatter-plot"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -461,7 +506,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="line-plot">Line Plot<a class="anchor" aria-label="anchor" href="#line-plot"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
