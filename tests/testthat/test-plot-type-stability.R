@@ -29,12 +29,32 @@ STABLE <- list(
   )
 )
 
+#' The README's lines, or `character(0)` where it is not reachable
+readme_lines <- function() {
+  path <- testthat::test_path("..", "..", "README.md")
+  if (!file.exists(path)) {
+    return(character(0))
+  }
+  readLines(path, warn = FALSE)
+}
+
+# `R CMD check` copies the tests into `<pkg>.Rcheck/tests/` and runs them
+# there, so `../..` is the check directory rather than the package root and
+# the README is not beside it -- the same shape as
+# `skip_without_sources()` in test-roxygen-orphans.R, and for the same
+# reason. This says so instead of failing. It runs on `devtools::test()` and
+# `testthat::test_local()`, which is the loop a type is added in.
+skip_without_readme <- function() {
+  testthat::skip_if(
+    length(readme_lines()) == 0L,
+    "README.md is not beside the tests under R CMD check"
+  )
+}
+
 #' The layer types named in one `####` sub-table of the experimental section
 experimental_in_readme <- function(heading) {
-  readme <- paste(
-    readLines(testthat::test_path("..", "..", "README.md"), warn = FALSE),
-    collapse = "\n"
-  )
+  skip_without_readme()
+  readme <- paste(readme_lines(), collapse = "\n")
 
   marker <- paste0("\n#### ", heading, "\n")
   testthat::expect_true(
@@ -96,10 +116,13 @@ test_that("the README says what the experimental set does not promise", {
   # wording without revisiting the split fails here. Whitespace is normalised
   # because these phrases wrap across lines and a reflow should not be what
   # breaks this test.
-  lines <- readLines(testthat::test_path("..", "..", "README.md"), warn = FALSE)
+  skip_without_readme()
   # The warning is a GitHub alert, so its lines carry a "> " prefix that would
   # otherwise land in the middle of a phrase once the lines are joined.
-  prose <- gsub("\\s+", " ", paste(sub("^> ?", "", lines), collapse = " "))
+  prose <- gsub(
+    "\\s+", " ",
+    paste(sub("^> ?", "", readme_lines()), collapse = " ")
+  )
 
   testthat::expect_true(grepl(
     "These are prototypes. Treat them as prototypes.", prose, fixed = TRUE
