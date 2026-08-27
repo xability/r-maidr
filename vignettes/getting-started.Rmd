@@ -166,7 +166,7 @@ Plots can be heard through:
 - Volume changes
 - Different tones for different series
 
-## Quarto revealjs Slides
+## Quarto Reveal.js Slides
 
 A `revealjs` deck needs nothing special from this package: call
 `maidr_on()` once in a setup chunk, as in any other Quarto or R Markdown
@@ -179,7 +179,7 @@ slide, so **Space** advances the deck again. None of that needs configuring.
 What does need attention is a reveal.js behaviour that has nothing to do with
 MAIDR. reveal.js keeps the slides on either side of the current one rendered so
 that transitions stay smooth, and marking them `hidden` does not take them out
-of the tab order --- reveal's own inline style overrides the attribute. On a
+of the tab order — reveal's own inline style overrides the attribute. On a
 deck with a chart on every slide, a single **Tab** can therefore land on an
 off-screen slide's chart rather than the one in front of the reader. This is
 [hakimel/reveal.js#1587](https://github.com/hakimel/reveal.js/issues/1587),
@@ -187,7 +187,7 @@ open since 2016.
 
 The fix is now on reveal.js `master`, which marks every slide but the current
 one `inert`. It has not reached a published release yet, and Quarto carries its
-own copy of reveal.js --- Quarto 1.10 ships 5.1.0 --- so it will arrive in a
+own copy of reveal.js — Quarto 1.10 ships 5.1.0 — so it will arrive in a
 Quarto release some time after reveal.js cuts one. Nothing will need to change
 in your deck when it does.
 
@@ -216,7 +216,6 @@ With the extension enabled, each slide gives one **Tab** to its own chart and
 **Shift+Tab** back out. The extension also adds a skip link ahead of the
 slides, so Shift+Tab lands there rather than on the slide element itself;
 either way **Space** still moves to the next slide.
-
 
 ## Supported Plot Types
 
