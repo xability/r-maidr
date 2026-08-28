@@ -1121,3 +1121,271 @@ p <- ggplot(mtcars, aes(x = wt, y = mpg)) +
 
 p
 ```
+
+---
+
+## Experimental Base R Charts
+
+Base R draws a long tail of statistical charts that have no ggplot2
+equivalent maidr reads — a correlogram, a periodogram, a biplot, a star
+plot. maidr reads each of them by mapping it onto a layer type it already
+knows, so a chart drawn for the eye becomes a series a reader can walk.
+
+> **Experimental.** Every layer type in this section is one of the
+> experimental types. None has been through a user study, and each may
+> change without a deprecation period. See the experimental table in the
+> README.
+
+> **Note:** Everything below is Base R, so no `#### ggplot2` counterpart is
+> shown. Each section names the reading its chart gets, because the mapping
+> is not always the one the chart's name suggests — a correlogram is read as
+> a lollipop, a conditional density plot as a 100% stacked area.
+
+### Correlogram
+
+`acf()`, `pacf()` and `ccf()` draw a spike per lag, and maidr reads each as
+a **lollipop**: one term per lag, carrying the correlation at that lag. The
+axes come from the function itself, so the reading says `Lag` against
+`ACF`, `Partial ACF` or `CCF` without being told.
+
+`acf()` starts at lag 0, whose autocorrelation is always exactly 1, so the
+first term of an ACF is a constant rather than a measurement. `pacf()` has
+no lag 0 and starts at lag 1.
+
+```{r}
+acf(lh, lag.max = 5, main = "Luteinizing hormone: autocorrelation")
+```
+
+```{r}
+pacf(lh, lag.max = 5, main = "Luteinizing hormone: partial autocorrelation")
+```
+
+`ccf()` correlates two series across negative and positive lags, so its
+terms are signed and the sign says which series leads.
+
+```{r}
+ccf(mdeaths, fdeaths, lag.max = 4, main = "Male vs female deaths")
+```
+
+### Spectral Density
+
+`spectrum()` estimates how a series' variance is distributed across
+frequencies. maidr reads the periodogram as a **line** of `spectrum`
+against `frequency`.
+
+```{r}
+spectrum(lh, main = "Luteinizing hormone: spectral density")
+```
+
+### Cumulative Periodogram
+
+`cpgram()` draws the cumulative periodogram against its confidence band.
+The cumulative curve is read as a **step**; the band is drawing rather than
+data, and is not announced.
+
+> **Note:** `cpgram()` labels only its x axis, so the reading carries
+> `frequency` and no y label. It takes no `ylab` argument to supply one.
+
+```{r}
+cpgram(lh, main = "Luteinizing hormone: cumulative periodogram")
+```
+
+### Seasonal Subseries
+
+`monthplot()` breaks a seasonal series into one segment per cycle position,
+so every January sits together and the seasonal shape is read directly.
+maidr reads it as a **line**.
+
+> **Note:** `monthplot()` has a `ylab` argument but no `xlab`, so the
+> reading carries the series name on y and nothing on x.
+
+```{r}
+monthplot(nottem, ylab = "Temperature (F)", main = "Nottingham temperatures by month")
+```
+
+### Lag Plot
+
+`lag.plot()` plots a series against itself shifted by *k*, which is how
+serial dependence is read by eye. maidr reads it as a **point** layer whose
+x axis is named for the shift — `lag 1` against the series.
+
+```{r}
+lag.plot(lh, lags = 1, main = "Luteinizing hormone against its own lag")
+```
+
+### Partial Effects
+
+`termplot()` draws each term's fitted contribution against its own
+predictor, holding the rest fixed. maidr reads each panel as a **line**,
+labelled `partial for <term>` so the reading says it is a contribution
+rather than a fitted value.
+
+```{r}
+termplot(lm(mpg ~ wt, data = mtcars), main = "Partial effect of weight")
+```
+
+### Biplot
+
+`biplot()` puts observations and variable loadings on one pair of principal
+component axes. maidr reads the observations as a **point** layer on `PC1`
+and `PC2`, and each point carries its own row name, so a reader hears which
+observation they are on rather than a bare coordinate pair.
+
+```{r}
+biplot(prcomp(USArrests, scale. = TRUE), main = "US arrests: PC1 vs PC2")
+```
+
+### Radar
+
+`stars()` draws one star per row, with a ray per variable. maidr reads it as
+a **radar**: one series per observation, each carrying a value per variable.
+
+> **Note:** A star plot has no x and y axes to name, so the reading carries
+> no axis labels — the variable names come through as the rays themselves.
+
+```{r}
+stars(mtcars[1:5, 1:4], main = "Five cars over four measures")
+```
+
+### Interaction Plot
+
+`interaction.plot()` draws a line per level of the trace factor, so a
+non-parallel pair is the interaction. maidr reads one **line** per level and
+puts `trace.label` on the z axis, which is what names the two series apart.
+
+```{r}
+interaction.plot(ToothGrowth$dose, ToothGrowth$supp, ToothGrowth$len,
+  xlab = "Dose (mg/day)", ylab = "Mean tooth length", trace.label = "Supplement"
+)
+```
+
+### Box Plot from Summary Statistics
+
+`bxp()` draws a box plot from statistics already computed, rather than from
+raw data — which is exactly what `boxplot(plot = FALSE)` hands back. maidr
+reads it as a **box**, the same reading `boxplot()` gets, so a pre-summarised
+box is not a second-class one.
+
+```{r}
+bxp(boxplot(count ~ spray, data = InsectSprays, plot = FALSE),
+  main = "Insect counts by spray"
+)
+```
+
+### Strip Chart
+
+`stripchart()` is the one-dimensional scatter you reach for when a box plot
+would hide too few points. maidr reads **one point layer per group**, so the
+groups are navigated as separate series rather than flattened together.
+
+```{r}
+stripchart(count ~ spray,
+  data = InsectSprays, method = "jitter",
+  xlab = "Count", ylab = "Spray"
+)
+```
+
+### Dot Chart
+
+`dotchart()` is Cleveland's alternative to a bar chart for labelled values.
+maidr reads it as a **dot** layer.
+
+```{r}
+dotchart(VADeaths[, "Rural Male"],
+  xlab = "Deaths per 1000", ylab = "Age group",
+  main = "Virginia death rates, rural males"
+)
+```
+
+### Lollipop
+
+`plot(type = "h")` draws a vertical spike down to each value. maidr reads it
+as a **lollipop**, the same type the correlogram uses.
+
+```{r}
+plot(1:8, c(2, 5, 3, 9, 4, 7, 6, 8),
+  type = "h", xlab = "Index", ylab = "Value", main = "Spikes"
+)
+```
+
+### Mosaic and Spine Plots
+
+Both tile a contingency table so that area is proportion, and maidr reads
+both as a **mosaic**: the y axis is `Proportion`, and the second factor is
+named on z. `mosaicplot()` takes a two-way table.
+
+```{r}
+mosaicplot(HairEyeColor[, , "Male"], main = "Hair and eye colour, males")
+```
+
+`spineplot()` takes a factor response against one predictor, which makes it
+the two-column case of the same reading.
+
+```{r}
+spineplot(factor(am) ~ wt, data = mtcars, xlab = "Weight", ylab = "Transmission")
+```
+
+### Conditional Density
+
+`cdplot()` is the continuous-predictor counterpart to a spine plot: it draws
+how the conditional distribution of a factor shifts along a numeric axis.
+maidr reads it as a **100% stacked area**, since every vertical slice sums
+to one.
+
+```{r}
+cdplot(factor(am) ~ mpg, data = mtcars, xlab = "Miles per gallon")
+```
+
+### Association Plot
+
+`assocplot()` states one signed Pearson residual per cell of a contingency
+table — how far that cell sits from independence. maidr reads it as a
+**heat**: a named grid navigated row then column, with the residual on z, so
+the sign and size of each departure are read out per cell.
+
+```{r}
+assocplot(HairEyeColor[, , "Male"], main = "Hair and eye colour: residuals")
+```
+
+### Filled Contour
+
+`filled.contour()` shades the bands between contour lines. maidr reads the
+**contour** levels themselves, so a reader walks the level curves rather
+than the shading.
+
+> **Note:** Passing `x` and `y` is worth doing here. Given only `z`,
+> `filled.contour()` positions the grid on 0–1 and the reading has no axis
+> labels at all; given real coordinates it announces them in their own
+> units.
+
+```{r}
+filled.contour(
+  x = 10 * (1:nrow(volcano)), y = 10 * (1:ncol(volcano)), z = volcano,
+  xlab = "Easting (m)", ylab = "Northing (m)", main = "Maunga Whau"
+)
+```
+
+### Q-Q Plot
+
+`qqnorm()` plots sample quantiles against theoretical ones, and `qqline()`
+adds the reference line through the quartiles. Both are read — the points as
+a **point** layer and the reference as a **line** — so the line a sighted
+reader compares against is navigable rather than decoration.
+
+```{r}
+z <- rnorm(50)
+qqnorm(z, main = "Normal Q-Q plot")
+qqline(z)
+```
+
+### 100% Stacked Bar
+
+A `barplot()` of a proportion table draws columns that each sum to one.
+maidr reads it as a **100% stacked bar**, so a segment is announced as its
+share rather than as a raw count.
+
+```{r}
+barplot(prop.table(table(mtcars$cyl, mtcars$gear), 2),
+  xlab = "Gears", ylab = "Proportion", legend.text = TRUE
+)
+```
