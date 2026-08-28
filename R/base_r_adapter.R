@@ -371,6 +371,11 @@ BaseRAdapter <- R6::R6Class(
         # a multi-line layer with the matrix turned on its side, since MAIDR's
         # radar is navigated as one series per row (#262).
         "stars" = "radar",
+        # A term and its count, drawn as glyph size and written down nowhere
+        # on the page. `wordcloud()` takes the counts directly, so unlike the
+        # Python binding the raw frequencies survive in the call and the
+        # reading announces occurrences rather than ratios.
+        "wordcloud" = "word_cloud",
         # A grid of scatters again, this time of one series against shifted
         # copies of itself: one panel per series and lag, `X[t + k]` across
         # against `X[t]` up. Read as a figure of subplots for the same reason

@@ -64,6 +64,10 @@ BaseRProcessorFactory <- R6::R6Class(
         # The same set of lines once more, this time around a circle: one
         # series per observation, one spoke per variable.
         "radar" = BaseRStarsLayerProcessor$new(layer_info),
+        # A term and its count. The chart draws the count as glyph size and
+        # writes it down nowhere, so the reading is the whole of what it
+        # encodes and none of what it draws.
+        "word_cloud" = BaseRWordcloudLayerProcessor$new(layer_info),
         # The other call that answers with a grid: one scatter per series and
         # lag, the series against a shifted copy of itself.
         "lag" = BaseRLagLayerProcessor$new(layer_info),
@@ -155,6 +159,7 @@ BaseRProcessorFactory <- R6::R6Class(
         # figure bound and then failed to construct (#214).
         "contour",
         "candlestick",
+        "word_cloud",
         "unknown"
       )
     },

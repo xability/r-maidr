@@ -197,6 +197,85 @@ vioplot <- function(...) {
 
 #' @rdname base-r-wrappers
 #' @export
+wordcloud <- function(...) {
+  if (!requireNamespace("wordcloud", quietly = TRUE)) {
+    stop(
+      "Package 'wordcloud' is required for wordcloud(). ",
+      "Please install it via install.packages('wordcloud').",
+      call. = FALSE
+    )
+  }
+
+  # Same shape and same reason as the vioplot stub above: `wordcloud` is in
+  # Suggests, so when it loads after maidr the namespace is already sealed and
+  # `wrap_function()` cannot replace this stub. Without a full recording
+  # wrapper here the call draws and is never recorded -- which is exactly what
+  # happened before, and which only shows up against an *installed* package,
+  # since `load_all()` leaves the namespace open and lets `wrap_function()`
+  # succeed.
+  original <- get("wordcloud", envir = asNamespace("wordcloud"))
+  if (is.null(.maidr_patching_env$.saved_graphics_fns[["wordcloud"]])) {
+    .maidr_patching_env$.saved_graphics_fns[["wordcloud"]] <- original
+  }
+
+  if (!is_patching_enabled()) {
+    return(original(...))
+  }
+
+  this_call <- match.call()
+  caller_env <- parent.frame()
+
+  ensure_maidr_device()
+
+  call_failed <- FALSE
+  result <- tryCatch(
+    original(...),
+    error = function(e) {
+      call_failed <<- TRUE
+      e
+    }
+  )
+  if (call_failed) {
+    result <- retry_call_in_caller_frame(original, this_call, caller_env, result)
+  }
+
+  args_list <- tryCatch(list(...), error = function(e) NULL)
+  call_env <- NULL
+  if (is.null(args_list)) {
+    args_list <- as.list(this_call)[-1L]
+    call_env <- snapshot_call_env(args_list, caller_env)
+  }
+  # `wordcloud(words, freq)` is as natural to write positionally as by name,
+  # and the layer reads `args$words` / `args$freq`. Name-matching here is what
+  # keeps the positional spelling from recording a call with nothing to read.
+  #
+  # Called on both paths, including after the NSE fallback above -- which the
+  # generated wrapper template deliberately does not do, because matching an
+  # unevaluated `as.list(this_call)` would force `args[[1]]` to find an S3
+  # method. That only happens for a generic: `dispatched_definition()` looks at
+  # the first argument solely when the target's body contains `UseMethod`.
+  # Measured, `wordcloud::wordcloud()` does not -- it is a plain function -- so
+  # the concern cannot arise here. Written down because it would if this stub
+  # were ever copied for a function that is generic (`vioplot()` is one, which
+  # is why its stub records the arguments unmatched).
+  args_list <- tryCatch(
+    match_recorded_args("wordcloud", original, args_list),
+    error = function(e) args_list
+  )
+
+  log_plot_call_to_device(
+    "wordcloud",
+    this_call,
+    args_list,
+    grDevices::dev.cur(),
+    call_env = call_env
+  )
+
+  invisible(result)
+}
+
+#' @rdname base-r-wrappers
+#' @export
 chartSeries <- function(...) {
   if (!requireNamespace("quantmod", quietly = TRUE)) {
     stop(

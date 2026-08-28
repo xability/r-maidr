@@ -169,6 +169,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `strip` | `stripchart()` |
 | `subseries` | `monthplot()` |
 | `termplot` | `termplot()` |
+| `word_cloud` | `wordcloud::wordcloud()` |
 
 The split is the diff of each factory's `get_supported_types()` against
 `8de0e98`, the last commit on `main` before
