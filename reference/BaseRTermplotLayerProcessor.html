@@ -215,15 +215,15 @@ out of the grid rather than given a wrong shape."><meta property="og:image" cont
     </div>
 
     <div class="ref-description section level2">
-    <p>Reads <code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code> as the partial-effect curves it draws: one panel per
+    <p>Reads <code><a href="base-r-wrappers.html">termplot()</a></code> as the partial-effect curves it draws: one panel per
 term, the term's contribution to the fit plotted against its own carrier.</p>
-<p><strong>A grid, not a layer.</strong> Like <code><a href="base-r-wrappers.html">pairs()</a></code> and <code><a href="https://rdrr.io/r/stats/lag.plot.html" class="external-link">lag.plot()</a></code>, one <code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code>
+<p><strong>A grid, not a layer.</strong> Like <code><a href="base-r-wrappers.html">pairs()</a></code> and <code><a href="base-r-wrappers.html">lag.plot()</a></code>, one <code><a href="base-r-wrappers.html">termplot()</a></code>
 call draws several panels, and the orchestrator's ordinary multipanel path
 cannot split them: <code>combine_layer_results()</code> maps a layer to a cell by its
 <em>group</em> index, and one recorded call is one group, so every curve would
 land in the same cell. So this answers <code>multi_panel = TRUE</code> and places each
 curve at its own cell.</p>
-<p><strong>The panels are pages, not terms.</strong> <code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code> sets no layout of its
+<p><strong>The panels are pages, not terms.</strong> <code><a href="base-r-wrappers.html">termplot()</a></code> sets no layout of its
 own – unlike <code><a href="base-r-wrappers.html">pairs()</a></code>, which calls <code>par(mfrow)</code> itself – so the caller's
 <code>par(mfrow)</code> decides how many terms share a page, and R starts a new page
 when it runs out of cells. Only the last page is exported. Measured on a
@@ -244,7 +244,7 @@ the orchestrator uses, so the two cannot disagree about the grid.</p>
 <p><strong>What a panel draws.</strong> The curve is the term's fitted contribution,
 <code>predict(model, type = "terms")[, term]</code>, against that term's carrier from
 the model frame, in increasing carrier order – which is the order
-<code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code> sorts them into before drawing. With
+<code><a href="base-r-wrappers.html">termplot()</a></code> sorts them into before drawing. With
 <code>partial.resid = TRUE</code> it adds the partial residuals,
 <code>contribution + residuals(model)</code>, as points beside the curve; measured,
 that is a second grob in the same panel:</p>
@@ -252,8 +252,8 @@ that is a second grob in the same panel:</p>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">termplot</span>(fit, <span class="at">partial.resid =</span> T)  panel k<span class="sc">:</span> lines<span class="dv">-1</span> and points<span class="dv">-1</span></span></code></pre><p></p></div>
 <p>The points are left for a follow-up rather than emitted as a second layer:
 they are a different reading of the same panel, and the curve is the thing
-<code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code> exists to draw.</p>
-<p><strong>A factor term is declined.</strong> <code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code> draws it as a step function
+<code><a href="base-r-wrappers.html">termplot()</a></code> exists to draw.</p>
+<p><strong>A factor term is declined.</strong> <code><a href="base-r-wrappers.html">termplot()</a></code> draws it as a step function
 over the levels, which is neither this line nor a bar, and reading it as a
 line would announce a slope between levels that have no order. It is left
 out of the grid rather than given a wrong shape.</p>

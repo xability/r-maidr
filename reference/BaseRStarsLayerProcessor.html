@@ -189,16 +189,16 @@ marks and the cursor cannot be paired with confidence."><meta property="og:image
     </div>
 
     <div class="ref-description section level2">
-    <p>Reads <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars()</a></code> as the radar it draws: one closed outline per observation,
+    <p>Reads <code><a href="base-r-wrappers.html">stars()</a></code> as the radar it draws: one closed outline per observation,
 with a spoke for each variable.</p>
 <p><strong>It is a multi-line layer.</strong> MAIDR's <code>radar</code> trace is navigated as one –
 "each spoke a column and each series a row" – so the whole reading is
 handing over the matrix with its axes the other way round from the way
-<code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars()</a></code> takes it. <code>stars(m)</code> draws a glyph per <strong>row</strong>, so the rows are
+<code><a href="base-r-wrappers.html">stars()</a></code> takes it. <code>stars(m)</code> draws a glyph per <strong>row</strong>, so the rows are
 the series and the columns are the spokes, and
 <a href="BaseRLineLayerProcessor.html">BaseRLineLayerProcessor</a>'s <code>extract_multiline_data()</code> wants series in
 <em>columns</em>. Hence the transpose, which is the only rearranging here.</p>
-<p><strong>The values are the caller's, not the drawing's.</strong> <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars()</a></code> scales every
+<p><strong>The values are the caller's, not the drawing's.</strong> <code><a href="base-r-wrappers.html">stars()</a></code> scales every
 column to <code>[0, 1]</code> before drawing, so the radii on the page are shares of
 each column's range rather than the readings themselves. Announcing those
 would tell a reader that observation 1 scores 0 on a variable it merely

@@ -1,8 +1,8 @@
 # Base R Lag Plot Processor
 
-Reads [`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html) as the grid
-of scatters it draws: one panel per series and lag, the series plotted
-against a shifted copy of itself.
+Reads [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+the grid of scatters it draws: one panel per series and lag, the series
+plotted against a shifted copy of itself.
 
 **A grid, not a layer.** Like
 [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md), this call
@@ -32,10 +32,10 @@ measured against a `grid.echo()` export, a two-column matrix at
 `(k - 1) %/% ncols + 1`, column `(k - 1) %% ncols + 1`.
 
 **A panel's marks are symbols or labels, and `labels` decides which.**
-[`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html) writes the time
-index at each pair rather than a symbol when `labels` is true, and
-`labels` defaults to `do.lines`, which defaults to `n <= 150` – so the
-*default* chart is the labelled one. Measured, the four combinations
+[`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) writes
+the time index at each pair rather than a symbol when `labels` is true,
+and `labels` defaults to `do.lines`, which defaults to `n <= 150` – so
+the *default* chart is the labelled one. Measured, the four combinations
 give:
 
     labels  do.lines   grobs in a panel

@@ -199,10 +199,10 @@ hands over the readings instead."><meta property="og:image" content="https://raw
     </div>
 
     <div class="ref-description section level2">
-    <p>Reads <code><a href="https://rdrr.io/r/stats/biplot.html" class="external-link">biplot()</a></code> as the two things it draws: the observations in principal
+    <p>Reads <code><a href="base-r-wrappers.html">biplot()</a></code> as the two things it draws: the observations in principal
 component space, and the variables' loadings on the same components.</p>
 <p><strong>It is a grid, and for a reason the other grids do not have.</strong> <code><a href="base-r-wrappers.html">pairs()</a></code>,
-<code><a href="https://rdrr.io/r/stats/lag.plot.html" class="external-link">lag.plot()</a></code> and <code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code> are read as grids because they draw several
+<code><a href="base-r-wrappers.html">lag.plot()</a></code> and <code><a href="base-r-wrappers.html">termplot()</a></code> are read as grids because they draw several
 panels. A biplot draws its two halves <em>on top of each other</em> – but on
 <strong>two different pairs of axes</strong>, which is the whole trick of the chart.
 Measured, the two <code>plot.xy</code> calls run over different ranges, and the
@@ -220,17 +220,17 @@ of a ten-observation, four-variable fit:</p>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>graphics<span class="sc">-</span>plot<span class="dv">-2</span><span class="sc">-</span>text<span class="dv">-1</span>      <span class="dv">4</span> children   the variables</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>graphics<span class="sc">-</span>plot<span class="dv">-2</span><span class="sc">-</span>arrows<span class="dv">-1</span>    <span class="dv">4</span> children   the arrows</span></code></pre><p></p></div>
 <p>Both text grobs are addressable per datum, in data order, which is the
-shape <code><a href="https://rdrr.io/r/stats/lag.plot.html" class="external-link">lag.plot()</a></code>'s labelled panels already established – one <code>g</code> per
+shape <code><a href="base-r-wrappers.html">lag.plot()</a></code>'s labelled panels already established – one <code>g</code> per
 label rather than one <code>use</code> per symbol. The arrows are not emitted
 separately: an arrow and its label name the same variable and sit at the
 same place, so the label is the mark a reader is moved to.</p>
-<p><strong>The values are the caller's, not the drawing's.</strong> <code><a href="https://rdrr.io/r/stats/biplot.html" class="external-link">biplot()</a></code> apportions
+<p><strong>The values are the caller's, not the drawing's.</strong> <code><a href="base-r-wrappers.html">biplot()</a></code> apportions
 the two halves between the axes so that both fit one page – it divides
 the scores by <code>sdev * sqrt(n)</code> and multiplies the loadings by it, so
 <em>neither</em> set is drawn at its own scale. What a reader wants is the pair
 that mean something: the <strong>scores</strong>, an observation's coordinate in
 component space, and the <strong>loadings</strong>, a variable's weight on each
-component. Those are announced. This is the same choice <code><a href="https://rdrr.io/r/graphics/stars.html" class="external-link">stars()</a></code> makes,
+component. Those are announced. This is the same choice <code><a href="base-r-wrappers.html">stars()</a></code> makes,
 where the radii on the page are shares of a column's range and the reading
 hands over the readings instead.</p>
     </div>

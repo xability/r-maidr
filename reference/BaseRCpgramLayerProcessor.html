@@ -153,19 +153,19 @@ is cpgram()'s own, and it reproduces the traced plot.xy call exactly."><meta pro
     </div>
 
     <div class="ref-description section level2">
-    <p>Reads <code><a href="https://rdrr.io/r/stats/cpgram.html" class="external-link">cpgram()</a></code> as the staircase it draws: the cumulative periodogram
+    <p>Reads <code><a href="base-r-wrappers.html">cpgram()</a></code> as the staircase it draws: the cumulative periodogram
 against frequency, held across each interval and then jumping.</p>
-<p><strong>It is a step, not a line.</strong> <code><a href="https://rdrr.io/r/stats/cpgram.html" class="external-link">cpgram()</a></code> plots with <code>type = "s"</code>, which
+<p><strong>It is a step, not a line.</strong> <code><a href="base-r-wrappers.html">cpgram()</a></code> plots with <code>type = "s"</code>, which
 draws the horizontal segment first – MAIDR's <code>"hv"</code>. A line would imply
 the value slides between frequencies, which is not what a cumulative sum
 does, and the export agrees: the grob is <code>step-1</code>, not <code>lines-1</code>.</p>
-<p><strong>It does NOT use <code><a href="https://rdrr.io/r/stats/spectrum.html" class="external-link">spectrum()</a></code>'s estimate.</strong> This is the trap the reading
-exists to avoid. <code><a href="https://rdrr.io/r/stats/spectrum.html" class="external-link">spectrum()</a></code> defaults to <code>taper = 0.1, detrend = TRUE, demean = FALSE</code> and smooths; <code><a href="https://rdrr.io/r/stats/cpgram.html" class="external-link">cpgram()</a></code> computes its own periodogram –
+<p><strong>It does NOT use <code><a href="base-r-wrappers.html">spectrum()</a></code>'s estimate.</strong> This is the trap the reading
+exists to avoid. <code><a href="base-r-wrappers.html">spectrum()</a></code> defaults to <code>taper = 0.1, detrend = TRUE, demean = FALSE</code> and smooths; <code><a href="base-r-wrappers.html">cpgram()</a></code> computes its own periodogram –
 taper, FFT, zero the first ordinate, then normalise the cumulative sum –
 and the two disagree. Measured, the second step of the drawn curve is
-0.0801 while <code><a href="https://rdrr.io/r/stats/spectrum.html" class="external-link">spectrum()</a></code>'s estimate gives 0.0817: close enough to look
+0.0801 while <code><a href="base-r-wrappers.html">spectrum()</a></code>'s estimate gives 0.0817: close enough to look
 right and wrong enough to announce wrong numbers. So the computation below
-is <code><a href="https://rdrr.io/r/stats/cpgram.html" class="external-link">cpgram()</a></code>'s own, and it reproduces the traced <code>plot.xy</code> call exactly.</p>
+is <code><a href="base-r-wrappers.html">cpgram()</a></code>'s own, and it reproduces the traced <code>plot.xy</code> call exactly.</p>
     </div>
 
 

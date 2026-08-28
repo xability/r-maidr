@@ -3,14 +3,15 @@
 Reads a [`graphics::bxp()`](https://rdrr.io/r/graphics/bxp.html) call as
 the box plot it draws.
 
-[`bxp()`](https://rdrr.io/r/graphics/bxp.html) is the drawing half of
+[`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) is the
+drawing half of
 [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md):
 [`boxplot.default()`](https://rdrr.io/r/graphics/boxplot.html) computes
 the five-number summaries and then hands them to
-[`bxp()`](https://rdrr.io/r/graphics/bxp.html), which puts the boxes,
-whiskers, medians and outliers on the page. Calling it directly is how a
-caller draws boxes from summaries they already have – from
-`boxplot(plot = FALSE)`, from
+[`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md), which puts
+the boxes, whiskers, medians and outliers on the page. Calling it
+directly is how a caller draws boxes from summaries they already have –
+from `boxplot(plot = FALSE)`, from
 [`boxplot.stats()`](https://rdrr.io/r/grDevices/boxplot.stats.html), or
 computed elsewhere entirely – and it is one of the twelve calls \#262
 found drawing while the save reported no plot at all.
@@ -24,19 +25,20 @@ produced `z` emit the same grob names in the same order – `polygon-1`,
 `segments-1`, `points-1`, ... – because the same code drew them. Every
 selector `BaseRBoxplotLayerProcessor` builds, including the index shift
 each box with no outliers puts on the boxes after it, therefore
-addresses a [`bxp()`](https://rdrr.io/r/graphics/bxp.html) chart
-unchanged, and this class inherits all of it.
+addresses a [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+chart unchanged, and this class inherits all of it.
 
 The one difference is where the summaries come from.
 [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is handed
 observations, so its processor replays `boxplot(plot = FALSE)` to
-recover them; [`bxp()`](https://rdrr.io/r/graphics/bxp.html) is handed
-the summaries themselves, in its first argument. Replaying
+recover them; [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+is handed the summaries themselves, in its first argument. Replaying
 [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) on *that*
 would read the six-element list as six groups of numbers and summarise
 them – so the only thing this class overrides is `read_stats()`.
 
-Two things [`bxp()`](https://rdrr.io/r/graphics/bxp.html) shares with
+Two things [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+shares with
 [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) are
 shared including their limits: `horizontal = TRUE` means the same thing
 to both, and `at =` repositions boxes without reordering the drawing in

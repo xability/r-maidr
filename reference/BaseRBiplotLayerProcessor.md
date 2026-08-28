@@ -1,18 +1,18 @@
 # Base R Biplot Processor
 
-Reads [`biplot()`](https://rdrr.io/r/stats/biplot.html) as the two
-things it draws: the observations in principal component space, and the
-variables' loadings on the same components.
+Reads [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+the two things it draws: the observations in principal component space,
+and the variables' loadings on the same components.
 
 **It is a grid, and for a reason the other grids do not have.**
 [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md),
-[`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html) and
-[`termplot()`](https://rdrr.io/r/stats/termplot.html) are read as grids
-because they draw several panels. A biplot draws its two halves *on top
-of each other* – but on **two different pairs of axes**, which is the
-whole trick of the chart. Measured, the two `plot.xy` calls run over
-different ranges, and the quantities behind them are different sizes
-again:
+[`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) are read
+as grids because they draw several panels. A biplot draws its two halves
+*on top of each other* – but on **two different pairs of axes**, which
+is the whole trick of the chart. Measured, the two `plot.xy` calls run
+over different ranges, and the quantities behind them are different
+sizes again:
 
     scores   PC1 range  -1.716 ..  2.199
     loadings PC1 range  -0.962 .. -0.012
@@ -31,23 +31,23 @@ export of a ten-observation, four-variable fit:
     graphics-plot-2-arrows-1    4 children   the arrows
 
 Both text grobs are addressable per datum, in data order, which is the
-shape [`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html)'s labelled
-panels already established – one `g` per label rather than one `use` per
-symbol. The arrows are not emitted separately: an arrow and its label
-name the same variable and sit at the same place, so the label is the
-mark a reader is moved to.
+shape [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s
+labelled panels already established – one `g` per label rather than one
+`use` per symbol. The arrows are not emitted separately: an arrow and
+its label name the same variable and sit at the same place, so the label
+is the mark a reader is moved to.
 
 **The values are the caller's, not the drawing's.**
-[`biplot()`](https://rdrr.io/r/stats/biplot.html) apportions the two
-halves between the axes so that both fit one page – it divides the
-scores by `sdev * sqrt(n)` and multiplies the loadings by it, so
+[`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) apportions
+the two halves between the axes so that both fit one page – it divides
+the scores by `sdev * sqrt(n)` and multiplies the loadings by it, so
 *neither* set is drawn at its own scale. What a reader wants is the pair
 that mean something: the **scores**, an observation's coordinate in
 component space, and the **loadings**, a variable's weight on each
 component. Those are announced. This is the same choice
-[`stars()`](https://rdrr.io/r/graphics/stars.html) makes, where the
-radii on the page are shares of a column's range and the reading hands
-over the readings instead.
+[`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) makes,
+where the radii on the page are shares of a column's range and the
+reading hands over the readings instead.
 
 ## Super classes
 

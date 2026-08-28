@@ -1,8 +1,8 @@
 # Base R Interaction Plot Layer Processor
 
 Reads
-[`interaction.plot()`](https://rdrr.io/r/stats/interaction.plot.html) as
-the set of lines it draws: one series per level of the trace factor,
+[`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+as the set of lines it draws: one series per level of the trace factor,
 running across the levels of the x factor at `fun(response)` for each
 cell.
 

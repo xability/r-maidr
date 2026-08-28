@@ -190,8 +190,8 @@ for boxplot().
 
     <div class="ref-description section level2">
     <p>Reads a <code><a href="https://rdrr.io/r/graphics/bxp.html" class="external-link">graphics::bxp()</a></code> call as the box plot it draws.</p>
-<p><code><a href="https://rdrr.io/r/graphics/bxp.html" class="external-link">bxp()</a></code> is the drawing half of <code><a href="base-r-wrappers.html">boxplot()</a></code>: <code><a href="https://rdrr.io/r/graphics/boxplot.html" class="external-link">boxplot.default()</a></code> computes the
-five-number summaries and then hands them to <code><a href="https://rdrr.io/r/graphics/bxp.html" class="external-link">bxp()</a></code>, which puts the boxes,
+<p><code><a href="base-r-wrappers.html">bxp()</a></code> is the drawing half of <code><a href="base-r-wrappers.html">boxplot()</a></code>: <code><a href="https://rdrr.io/r/graphics/boxplot.html" class="external-link">boxplot.default()</a></code> computes the
+five-number summaries and then hands them to <code><a href="base-r-wrappers.html">bxp()</a></code>, which puts the boxes,
 whiskers, medians and outliers on the page. Calling it directly is how a
 caller draws boxes from summaries they already have – from
 <code>boxplot(plot = FALSE)</code>, from <code><a href="https://rdrr.io/r/grDevices/boxplot.stats.html" class="external-link">boxplot.stats()</a></code>, or computed elsewhere
@@ -205,15 +205,15 @@ save reported no plot at all.</p><div class="section">
 the same grob names in the same order – <code>polygon-1</code>, <code>segments-1</code>,
 <code>points-1</code>, ... – because the same code drew them. Every selector
 <code>BaseRBoxplotLayerProcessor</code> builds, including the index shift each box
-with no outliers puts on the boxes after it, therefore addresses a <code><a href="https://rdrr.io/r/graphics/bxp.html" class="external-link">bxp()</a></code>
+with no outliers puts on the boxes after it, therefore addresses a <code><a href="base-r-wrappers.html">bxp()</a></code>
 chart unchanged, and this class inherits all of it.</p>
 <p>The one difference is where the summaries come from. <code><a href="base-r-wrappers.html">boxplot()</a></code> is handed
 observations, so its processor replays <code>boxplot(plot = FALSE)</code> to recover
-them; <code><a href="https://rdrr.io/r/graphics/bxp.html" class="external-link">bxp()</a></code> is handed the summaries themselves, in its first argument.
+them; <code><a href="base-r-wrappers.html">bxp()</a></code> is handed the summaries themselves, in its first argument.
 Replaying <code><a href="base-r-wrappers.html">boxplot()</a></code> on <em>that</em> would read the six-element list as six
 groups of numbers and summarise them – so the only thing this class
 overrides is <code>read_stats()</code>.</p>
-<p>Two things <code><a href="https://rdrr.io/r/graphics/bxp.html" class="external-link">bxp()</a></code> shares with <code><a href="base-r-wrappers.html">boxplot()</a></code> are shared including their
+<p>Two things <code><a href="base-r-wrappers.html">bxp()</a></code> shares with <code><a href="base-r-wrappers.html">boxplot()</a></code> are shared including their
 limits: <code>horizontal = TRUE</code> means the same thing to both, and <code>at =</code>
 repositions boxes without reordering the drawing in either, so a
 non-monotonic <code>at</code> reads in drawing order here exactly as it already does

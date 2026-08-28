@@ -67,6 +67,30 @@ qqline(...)
 
 filled.contour(...)
 
+acf(...)
+
+pacf(...)
+
+ccf(...)
+
+cpgram(...)
+
+spectrum(...)
+
+monthplot(...)
+
+termplot(...)
+
+lag.plot(...)
+
+biplot(...)
+
+interaction.plot(...)
+
+bxp(...)
+
+stars(...)
+
 vioplot(...)
 
 wordcloud(...)

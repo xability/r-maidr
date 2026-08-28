@@ -31,9 +31,9 @@
   alike: a mosaic’s tiles are proportions of a whole, and these are
   signed departures from an expectation, which sum to nothing.
 
-- Base R [`bxp()`](https://rdrr.io/r/graphics/bxp.html) is now read as
-  the box plot it draws, instead of falling back to a static image.
-  [`bxp()`](https://rdrr.io/r/graphics/bxp.html) is
+- Base R [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+  now read as the box plot it draws, instead of falling back to a static
+  image. [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
   [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s own
   drawing half: it is handed the five-number summaries and puts the
   boxes, whiskers, medians and outliers on the page, which is how you
@@ -45,15 +45,16 @@
   that produced `z` emit the same grob names in the same order, so every
   selector the box reading already builds – including the index shift
   each box with no outliers puts on the boxes after it – addresses a
-  [`bxp()`](https://rdrr.io/r/graphics/bxp.html) chart unchanged. The
-  reading is therefore the box plot’s, shared rather than restated, with
-  one thing overridden: where the summaries come from.
+  [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) chart
+  unchanged. The reading is therefore the box plot’s, shared rather than
+  restated, with one thing overridden: where the summaries come from.
 
-  A bare [`bxp()`](https://rdrr.io/r/graphics/bxp.html) keeps the
-  generic axis names. Unlike `boxplot(y ~ g)`, it has no formula to take
-  titles from and draws no axis-label grobs at all, so naming the axes
-  after anything in particular would announce text that is not on the
-  page; `xlab` and `ylab` written on the call are used as usual.
+  A bare [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  keeps the generic axis names. Unlike `boxplot(y ~ g)`, it has no
+  formula to take titles from and draws no axis-label grobs at all, so
+  naming the axes after anything in particular would announce text that
+  is not on the page; `xlab` and `ylab` written on the call are used as
+  usual.
 
 - Base R [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   is now read as the 100% stacked area it draws, instead of falling back
@@ -252,6 +253,39 @@
 
 ### Bug Fixes
 
+- Twelve Base R calls that the README listed as supported drew their
+  chart and recorded nothing:
+  [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md).
+  Each had a layer processor and a passing test suite, and each was
+  silent for a real user – the chart appeared, and
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) then
+  reported that no Base R plot was found.
+
+  Interception works by shadowing: `.onLoad` installs the recording
+  wrapper into maidr’s own namespace, so a bare call reaches it only
+  when `package:maidr` carries the name. Unexported, these twelve
+  resolved straight to `stats::`/`graphics::`. Measured across all 22
+  experimental Base R types against an installed package, export status
+  and being read agreed 22 times out of 22. All twelve are now exported
+  and read.
+
+  The tests could not see this. `load_all()` leaves the namespace open
+  and runs each test in an environment whose parent is that namespace,
+  so a bare call reaches the wrapper there and nowhere else. A new check
+  asserts that every chart-producing Base R name is exported, which
+  reads the same from a source checkout and from an install.
+
 - A chart drawing a rect with a negative height or width no longer falls
   back to a static image.
   [`gridSVG::grid.export()`](https://rdrr.io/pkg/gridSVG/man/grid.export.html)
@@ -267,19 +301,19 @@
   move the rectangle rather than restate it.
 
 - Twelve more base R calls that draw a chart no longer report that none
-  exists. [`acf()`](https://rdrr.io/r/stats/acf.html),
-  [`pacf()`](https://rdrr.io/r/stats/acf.html),
-  [`ccf()`](https://rdrr.io/r/stats/acf.html),
-  [`biplot()`](https://rdrr.io/r/stats/biplot.html),
-  [`interaction.plot()`](https://rdrr.io/r/stats/interaction.plot.html),
-  [`cpgram()`](https://rdrr.io/r/stats/cpgram.html),
-  [`monthplot()`](https://rdrr.io/r/stats/monthplot.html),
-  [`spectrum()`](https://rdrr.io/r/stats/spectrum.html),
-  [`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html),
-  [`termplot()`](https://rdrr.io/r/stats/termplot.html),
-  [`stars()`](https://rdrr.io/r/graphics/stars.html) and
-  [`bxp()`](https://rdrr.io/r/graphics/bxp.html) each draw directly
-  rather than through
+  exists. [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) each draw
+  directly rather than through
   [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md), so
   nothing was recorded and
   [`save_html()`](https://r.maidr.ai/reference/save_html.md) stopped

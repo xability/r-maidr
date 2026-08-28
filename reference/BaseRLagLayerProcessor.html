@@ -219,7 +219,7 @@ child it reaches for."><meta property="og:image" content="https://raw.githubuser
     </div>
 
     <div class="ref-description section level2">
-    <p>Reads <code><a href="https://rdrr.io/r/stats/lag.plot.html" class="external-link">lag.plot()</a></code> as the grid of scatters it draws: one panel per series
+    <p>Reads <code><a href="base-r-wrappers.html">lag.plot()</a></code> as the grid of scatters it draws: one panel per series
 and lag, the series plotted against a shifted copy of itself.</p>
 <p><strong>A grid, not a layer.</strong> Like <code><a href="base-r-wrappers.html">pairs()</a></code>, this call lays out its own panels
 and hands nothing to the device's layout calls, so the grid has to come
@@ -241,7 +241,7 @@ against a <code>grid.echo()</code> export, a two-column matrix at <code>lags = 2
 So panel <code>k</code> sits at row <code>(k - 1) %/% ncols + 1</code>, column
 <code>(k - 1) %% ncols + 1</code>.</p>
 <p><strong>A panel's marks are symbols or labels, and <code>labels</code> decides which.</strong>
-<code><a href="https://rdrr.io/r/stats/lag.plot.html" class="external-link">lag.plot()</a></code> writes the time index at each pair rather than a symbol when
+<code><a href="base-r-wrappers.html">lag.plot()</a></code> writes the time index at each pair rather than a symbol when
 <code>labels</code> is true, and <code>labels</code> defaults to <code>do.lines</code>, which defaults to
 <code>n &lt;= 150</code> – so the <em>default</em> chart is the labelled one. Measured, the
 four combinations give:</p>

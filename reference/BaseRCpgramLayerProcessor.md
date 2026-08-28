@@ -1,30 +1,30 @@
 # Base R Cumulative Periodogram Processor
 
-Reads [`cpgram()`](https://rdrr.io/r/stats/cpgram.html) as the staircase
-it draws: the cumulative periodogram against frequency, held across each
-interval and then jumping.
+Reads [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+the staircase it draws: the cumulative periodogram against frequency,
+held across each interval and then jumping.
 
 **It is a step, not a line.**
-[`cpgram()`](https://rdrr.io/r/stats/cpgram.html) plots with
+[`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) plots with
 `type = "s"`, which draws the horizontal segment first – MAIDR's `"hv"`.
 A line would imply the value slides between frequencies, which is not
 what a cumulative sum does, and the export agrees: the grob is `step-1`,
 not `lines-1`.
 
 **It does NOT use
-[`spectrum()`](https://rdrr.io/r/stats/spectrum.html)'s estimate.** This
-is the trap the reading exists to avoid.
-[`spectrum()`](https://rdrr.io/r/stats/spectrum.html) defaults to
-`taper = 0.1, detrend = TRUE, demean = FALSE` and smooths;
-[`cpgram()`](https://rdrr.io/r/stats/cpgram.html) computes its own
-periodogram – taper, FFT, zero the first ordinate, then normalise the
-cumulative sum – and the two disagree. Measured, the second step of the
-drawn curve is 0.0801 while
-[`spectrum()`](https://rdrr.io/r/stats/spectrum.html)'s estimate gives
-0.0817: close enough to look right and wrong enough to announce wrong
-numbers. So the computation below is
-[`cpgram()`](https://rdrr.io/r/stats/cpgram.html)'s own, and it
-reproduces the traced `plot.xy` call exactly.
+[`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s
+estimate.** This is the trap the reading exists to avoid.
+[`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md) defaults
+to `taper = 0.1, detrend = TRUE, demean = FALSE` and smooths;
+[`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) computes
+its own periodogram – taper, FFT, zero the first ordinate, then
+normalise the cumulative sum – and the two disagree. Measured, the
+second step of the drawn curve is 0.0801 while
+[`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s
+estimate gives 0.0817: close enough to look right and wrong enough to
+announce wrong numbers. So the computation below is
+[`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s own, and
+it reproduces the traced `plot.xy` call exactly.
 
 ## Super classes
 

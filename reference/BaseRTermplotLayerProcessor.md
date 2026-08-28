@@ -1,22 +1,22 @@
 # Base R Term Plot Processor
 
-Reads [`termplot()`](https://rdrr.io/r/stats/termplot.html) as the
-partial-effect curves it draws: one panel per term, the term's
+Reads [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+the partial-effect curves it draws: one panel per term, the term's
 contribution to the fit plotted against its own carrier.
 
 **A grid, not a layer.** Like
 [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
-[`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html), one
-[`termplot()`](https://rdrr.io/r/stats/termplot.html) call draws several
-panels, and the orchestrator's ordinary multipanel path cannot split
-them: `combine_layer_results()` maps a layer to a cell by its *group*
-index, and one recorded call is one group, so every curve would land in
-the same cell. So this answers `multi_panel = TRUE` and places each
-curve at its own cell.
+[`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md), one
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) call
+draws several panels, and the orchestrator's ordinary multipanel path
+cannot split them: `combine_layer_results()` maps a layer to a cell by
+its *group* index, and one recorded call is one group, so every curve
+would land in the same cell. So this answers `multi_panel = TRUE` and
+places each curve at its own cell.
 
 **The panels are pages, not terms.**
-[`termplot()`](https://rdrr.io/r/stats/termplot.html) sets no layout of
-its own – unlike
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) sets no
+layout of its own – unlike
 [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md), which
 calls `par(mfrow)` itself – so the caller's `par(mfrow)` decides how
 many terms share a page, and R starts a new page when it runs out of
@@ -43,24 +43,26 @@ the orchestrator uses, so the two cannot disagree about the grid.
 **What a panel draws.** The curve is the term's fitted contribution,
 `predict(model, type = "terms")[, term]`, against that term's carrier
 from the model frame, in increasing carrier order – which is the order
-[`termplot()`](https://rdrr.io/r/stats/termplot.html) sorts them into
-before drawing. With `partial.resid = TRUE` it adds the partial
-residuals, `contribution + residuals(model)`, as points beside the
-curve; measured, that is a second grob in the same panel:
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) sorts
+them into before drawing. With `partial.resid = TRUE` it adds the
+partial residuals, `contribution + residuals(model)`, as points beside
+the curve; measured, that is a second grob in the same panel:
 
     termplot(fit)                     panel k: lines-1
     termplot(fit, partial.resid = T)  panel k: lines-1 and points-1
 
 The points are left for a follow-up rather than emitted as a second
 layer: they are a different reading of the same panel, and the curve is
-the thing [`termplot()`](https://rdrr.io/r/stats/termplot.html) exists
+the thing
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) exists
 to draw.
 
 **A factor term is declined.**
-[`termplot()`](https://rdrr.io/r/stats/termplot.html) draws it as a step
-function over the levels, which is neither this line nor a bar, and
-reading it as a line would announce a slope between levels that have no
-order. It is left out of the grid rather than given a wrong shape.
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws it
+as a step function over the levels, which is neither this line nor a
+bar, and reading it as a line would announce a slope between levels that
+have no order. It is left out of the grid rather than given a wrong
+shape.
 
 ## Super classes
 

@@ -1,26 +1,26 @@
 # Base R Star Plot Processor
 
-Reads [`stars()`](https://rdrr.io/r/graphics/stars.html) as the radar it
-draws: one closed outline per observation, with a spoke for each
-variable.
+Reads [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+the radar it draws: one closed outline per observation, with a spoke for
+each variable.
 
 **It is a multi-line layer.** MAIDR's `radar` trace is navigated as one
 – "each spoke a column and each series a row" – so the whole reading is
 handing over the matrix with its axes the other way round from the way
-[`stars()`](https://rdrr.io/r/graphics/stars.html) takes it. `stars(m)`
-draws a glyph per **row**, so the rows are the series and the columns
-are the spokes, and
+[`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) takes it.
+`stars(m)` draws a glyph per **row**, so the rows are the series and the
+columns are the spokes, and
 [BaseRLineLayerProcessor](https://r.maidr.ai/reference/BaseRLineLayerProcessor.md)'s
 `extract_multiline_data()` wants series in *columns*. Hence the
 transpose, which is the only rearranging here.
 
 **The values are the caller's, not the drawing's.**
-[`stars()`](https://rdrr.io/r/graphics/stars.html) scales every column
-to `[0, 1]` before drawing, so the radii on the page are shares of each
-column's range rather than the readings themselves. Announcing those
-would tell a reader that observation 1 scores 0 on a variable it merely
-has the smallest value of. The recorded matrix carries what the caller
-measured, and that is what a reader is told.
+[`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) scales
+every column to `[0, 1]` before drawing, so the radii on the page are
+shares of each column's range rather than the readings themselves.
+Announcing those would tell a reader that observation 1 scores 0 on a
+variable it merely has the smallest value of. The recorded matrix
+carries what the caller measured, and that is what a reader is told.
 
 **It is read without an outline, deliberately.** The marks are there and
 the pairing is known – measured by giving each observation its own

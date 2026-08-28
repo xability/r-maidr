@@ -1,7 +1,7 @@
 # Base R Spectral Density Processor
 
-Reads [`spectrum()`](https://rdrr.io/r/stats/spectrum.html) as the line
-it draws: the estimated spectral density against frequency.
+Reads [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md) as
+the line it draws: the estimated spectral density against frequency.
 
 **The values are the raw `spec`, not its logarithm.** `plot.spec` draws
 on a log y axis by default, but it puts the log on the *axis* and hands

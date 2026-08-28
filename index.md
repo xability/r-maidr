@@ -132,9 +132,10 @@ Each was measured against the chart it reads — that is what the issues
 and the tests record. But measuring that a reading is *faithful to the
 drawing* is a different claim from establishing that it is *useful to a
 reader*. Nobody has asked a blind or low-vision reader whether hearing
-[`stars()`](https://rdrr.io/r/graphics/stars.html) as a radar, or
-navigating a [`termplot()`](https://rdrr.io/r/stats/termplot.html) panel
-by panel, is the right way to read one. Until that happens these are
+[`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) as a radar,
+or navigating a
+[`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) panel by
+panel, is the right way to read one. Until that happens these are
 proposals about how a chart could be read, not answers.
 
 Feedback is exactly what would move one of these into the tables above.
@@ -158,27 +159,27 @@ Feedback is exactly what would move one of these into the tables above.
 
 | Layer type | Drawn by |
 |----|----|
-| `biplot` | [`biplot()`](https://rdrr.io/r/stats/biplot.html) |
-| `box_stats` | [`bxp()`](https://rdrr.io/r/graphics/bxp.html) |
+| `biplot` | [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `box_stats` | [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `conditional_density` | [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| `correlogram` | [`acf()`](https://rdrr.io/r/stats/acf.html), [`pacf()`](https://rdrr.io/r/stats/acf.html), [`ccf()`](https://rdrr.io/r/stats/acf.html) |
-| `cumulative_periodogram` | [`cpgram()`](https://rdrr.io/r/stats/cpgram.html) |
+| `correlogram` | [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md), [`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md), [`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `cumulative_periodogram` | [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `dot` | [`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) (ungrouped) |
 | `filled_contour` | [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| `interaction` | [`interaction.plot()`](https://rdrr.io/r/stats/interaction.plot.html) |
-| `lag` | [`lag.plot()`](https://rdrr.io/r/stats/lag.plot.html) |
+| `interaction` | [`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `lag` | [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `lollipop` | `plot(type = "h")` |
 | `mosaic` | [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (two-way tables) |
 | `qq` | [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `qqline` | [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| `radar` | [`stars()`](https://rdrr.io/r/graphics/stars.html) |
+| `radar` | [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `residual` | [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (two-way tables) |
-| `spectral_density` | [`spectrum()`](https://rdrr.io/r/stats/spectrum.html) |
+| `spectral_density` | [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `spine` | [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `stacked_normalized_bar` | [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of proportions |
 | `strip` | [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| `subseries` | [`monthplot()`](https://rdrr.io/r/stats/monthplot.html) |
-| `termplot` | [`termplot()`](https://rdrr.io/r/stats/termplot.html) |
+| `subseries` | [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `termplot` | [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `word_cloud` | [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html) |
 
 The split is the diff of each factory’s `get_supported_types()` against

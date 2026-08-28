@@ -1,11 +1,11 @@
 # Base R Correlogram Layer Processor
 
 Processes the three correlogram entry points –
-[`acf()`](https://rdrr.io/r/stats/acf.html),
-[`pacf()`](https://rdrr.io/r/stats/acf.html) and
-[`ccf()`](https://rdrr.io/r/stats/acf.html). Each draws one vertical
-spike per lag, from the zero line to the correlation at that lag, and
-joins nothing to anything.
+[`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+[`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md). Each draws
+one vertical spike per lag, from the zero line to the correlation at
+that lag, and joins nothing to anything.
 
 Read as a `lollipop` layer, for the reason `BaseRSpikeLayerProcessor`
 gives: a line would say the samples are joined and that the space

@@ -22,8 +22,9 @@ Nothing is inferred from the drawing:
 [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
 handed the table, so the recorded call carries every number the trace
 wants. It returns `NULL`, which is why the reading comes from the
-argument – the shape [`bxp()`](https://rdrr.io/r/graphics/bxp.html)'s
-reading took in \#265.
+argument – the shape
+[`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s reading
+took in \#265.
 
 ### Two things this deliberately does not do
 

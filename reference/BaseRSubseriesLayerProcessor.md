@@ -1,9 +1,9 @@
 # Base R Seasonal Subseries Layer Processor
 
-Reads [`monthplot()`](https://rdrr.io/r/stats/monthplot.html) as the set
-of lines it draws: one series per cycle position – month, quarter,
-whatever the frequency makes it – running over that position's own
-subseries.
+Reads [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+as the set of lines it draws: one series per cycle position – month,
+quarter, whatever the frequency makes it – running over that position's
+own subseries.
 
 [`stats::monthplot.default`](https://rdrr.io/r/stats/monthplot.html)
 draws exactly that, one
