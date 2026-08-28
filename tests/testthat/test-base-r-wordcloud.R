@@ -122,6 +122,25 @@ test_that("a cloud carries no selectors", {
 })
 
 
+test_that("maidr exports the wrapper the bare call has to resolve to", {
+  # This is how interception works for a Suggests package, and it is the one
+  # part of it a source-tree test run cannot see. `wrap_function("wordcloud")`
+  # assigns the wrapper into maidr's *own* namespace, so a bare `wordcloud()`
+  # after `library(maidr)` reaches the recording wrapper rather than
+  # upstream's function. But by the time `wordcloud` loads, maidr's namespace
+  # is sealed and that assignment silently no-ops -- which is why the stub in
+  # `base_r_wrapper_exports.R` has to be a full recording wrapper, exported.
+  #
+  # Missing that export is invisible under `load_all()`, which leaves the
+  # namespace open and lets `wrap_function()` succeed. It shows up only
+  # against an installed package: the drawing tests below reported
+  # `could not find function "wordcloud"`, and the cloud was silent for
+  # every real user. Pinned here so the dev-path run catches it too.
+  testthat::expect_true("wordcloud" %in% getNamespaceExports("maidr"))
+  testthat::expect_true(is.function(getExportedValue("maidr", "wordcloud")))
+})
+
+
 test_that("the call routes to the processor that reads it", {
   # The name the adapter types it as and the name the factory answers to have
   # to be the same string, and the registry has to list it (#200, #214).

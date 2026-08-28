@@ -54,6 +54,7 @@ export(symbols)
 export(text)
 export(title)
 export(vioplot)
+export(wordcloud)
 importFrom(R6,R6Class)
 importFrom(ggplotify,as.grob)
 importFrom(grid,

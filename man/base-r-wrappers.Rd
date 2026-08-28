@@ -29,6 +29,7 @@
 \alias{qqline}
 \alias{filled.contour}
 \alias{vioplot}
+\alias{wordcloud}
 \alias{chartSeries}
 \alias{lines}
 \alias{points}
@@ -102,6 +103,8 @@ qqline(...)
 filled.contour(...)
 
 vioplot(...)
+
+wordcloud(...)
 
 chartSeries(...)
 
