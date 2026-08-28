@@ -53,7 +53,7 @@ NULL
 #'
 #' @keywords internal
 #' @noRd
-BaseRWordcloudLayerProcessor <- R6::R6Class( # nolint: object_name_linter.
+BaseRWordcloudLayerProcessor <- R6::R6Class(
   "BaseRWordcloudLayerProcessor",
   inherit = LayerProcessor,
   public = list(

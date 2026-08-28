@@ -166,6 +166,27 @@ test_that("a threshold above every count draws the cloud rather than nothing", {
 })
 
 
+test_that("a zero count is announced, because the cloud draws it", {
+  # Reviewed as a possible drift: with `min.freq` reset to 0, does a term
+  # whose count is 0 get announced for a chart that skipped it?
+  #
+  # Measured against `wordcloud()` itself rather than assumed. Its filter is
+  # `freq >= min.freq` and nothing else -- there is no separate zero-skip --
+  # so with the threshold at 0 a zero-count term is drawn like any other.
+  # Tracing `graphics::text` through the real call confirmed it: all three
+  # terms below reach the page, `zero` among them.
+  #
+  # So announcing it is not drift, it is the match. Pinned here because the
+  # honest answer is the counter-intuitive one.
+  result <- read_args(list(
+    words = c("alpha", "beta", "zero"), freq = c(1, 2, 0), min.freq = 5
+  ))
+
+  testthat::expect_equal(terms_of(result), c("beta", "alpha", "zero"))
+  testthat::expect_equal(counts_of(result), c(2, 1, 0))
+})
+
+
 test_that("max.words keeps the heaviest terms and drops the rest", {
   result <- read_args(list(
     words = c("a", "b", "c", "d"), freq = c(1, 40, 2, 30),
