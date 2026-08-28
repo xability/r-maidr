@@ -541,6 +541,10 @@
 <td><code>termplot</code></td>
 <td><code><a href="https://rdrr.io/r/stats/termplot.html" class="external-link">termplot()</a></code></td>
 </tr>
+<tr>
+<td><code>word_cloud</code></td>
+<td><code><a href="https://rdrr.io/pkg/wordcloud/man/wordcloud.html" class="external-link">wordcloud::wordcloud()</a></code></td>
+</tr>
 </tbody>
 </table>
 <p>The split is the diff of each factory’s <code>get_supported_types()</code> against <code>8de0e98</code>, the last commit on <code>main</code> before <a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a> was filed. <code>tests/testthat/test-plot-type-stability.R</code> fails if a supported type appears in neither the stable tables nor the experimental ones, so a new layer type has to be placed deliberately rather than inherit either promise by being forgotten.</p>

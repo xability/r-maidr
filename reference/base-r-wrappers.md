@@ -69,6 +69,8 @@ filled.contour(...)
 
 vioplot(...)
 
+wordcloud(...)
+
 chartSeries(...)
 
 lines(...)

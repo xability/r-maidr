@@ -179,6 +179,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `strip` | [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `subseries` | [`monthplot()`](https://rdrr.io/r/stats/monthplot.html) |
 | `termplot` | [`termplot()`](https://rdrr.io/r/stats/termplot.html) |
+| `word_cloud` | [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html) |
 
 The split is the diff of each factory’s `get_supported_types()` against
 `8de0e98`, the last commit on `main` before
