@@ -227,6 +227,81 @@ pie(shares,
 
 ---
 
+## Word Cloud
+
+A word cloud is the extreme case of a chart that carries real data while
+being readable only by eye: each term's weight is drawn as **glyph size**
+and written down nowhere on the page. Structurally it is a categorical
+label and a magnitude, so maidr reads it as a term and its number.
+
+> **Experimental.** `word_cloud` is one of the experimental layer types.
+> It has not been through a user study, and it may change without a
+> deprecation period. See the experimental table in the README.
+
+> **Note:** Word clouds are a Base R feature. ggplot2 has no word cloud
+> geom, and the packages that add one draw through their own devices
+> rather than through a layer maidr can read.
+
+> **Requires the {wordcloud} package.** Install with
+> `install.packages("wordcloud")`.
+
+#### Base R
+
+The counts you pass survive into the reading, so the weight axis honestly
+says **Occurrences**. (The Python binding cannot: `wordcloud.WordCloud`
+divides every frequency by the largest and keeps only the ratio, so
+py-maidr announces a *relative* frequency. Same chart, two different
+honest readings.)
+
+```{r}
+mentions <- c(
+  accessibility = 412, sonification = 300, braille = 250,
+  screenreader = 190, keyboard = 155, contrast = 120
+)
+
+maidr::wordcloud(
+  words = names(mentions),
+  freq = mentions,
+  min.freq = 1,
+  random.order = FALSE,
+  colors = c(
+    "#3498db", "#2ecc71", "#9b59b6",
+    "#e67e22", "#e74c3c", "#16a085"
+  )
+)
+```
+
+> **Attach order matters.** `library(wordcloud)` after `library(maidr)`
+> puts `package:wordcloud` ahead of `package:maidr` on the search path, so
+> a bare `wordcloud()` call reaches the wordcloud package directly and
+> maidr never records it — the chart draws, but `show()` and
+> `save_html()` then report that no Base R plot was found. Measured on a
+> three-term cloud:
+>
+> | How it is called | Recorded? |
+> |---|---|
+> | `library(maidr)` then `library(wordcloud)`, bare `wordcloud()` | **no** |
+> | `library(wordcloud)` then `library(maidr)`, bare `wordcloud()` | yes |
+> | `maidr::wordcloud()` | yes |
+>
+> Either attach `wordcloud` **before** `maidr`, or call
+> `maidr::wordcloud()` explicitly as above, which works in either order.
+
+> **No highlighting.** `wordcloud()` draws each term with a bare `text()`
+> call at a rotation chosen by `rot.per`, and nothing names those — the
+> exported SVG carries no `id` attributes at all. So a word cloud is read
+> without a visual highlight, rather than pairing the terms with whatever
+> else happened to resolve.
+
+Two of `wordcloud()`'s arguments decide **which** terms are drawn, and the
+reading replicates both so it never announces a term the chart left out:
+`min.freq` (default 3) drops anything rarer, and `max.words` keeps only
+the heaviest. `wordcloud()` also lowers `min.freq` to 0 when it exceeds
+every frequency, which is what stops a cloud of rare terms coming out
+empty; that rule is copied rather than approximated.
+
+---
+
 ## Histogram
 
 A histogram shows the frequency distribution of a continuous variable by
