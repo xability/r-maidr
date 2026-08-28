@@ -264,7 +264,10 @@ maidr::wordcloud(
   freq = mentions,
   min.freq = 1,
   random.order = FALSE,
-  colors = c("#3498db", "#2ecc71", "#9b59b6", "#e67e22")
+  colors = c(
+    "#3498db", "#2ecc71", "#9b59b6",
+    "#e67e22", "#e74c3c", "#16a085"
+  )
 )
 ```
 
