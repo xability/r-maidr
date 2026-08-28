@@ -192,6 +192,26 @@
 
 ## Bug Fixes
 
+* Twelve Base R calls that the README listed as supported drew their chart
+  and recorded nothing: `acf()`, `pacf()`, `ccf()`, `cpgram()`, `spectrum()`,
+  `monthplot()`, `termplot()`, `lag.plot()`, `biplot()`, `bxp()`, `stars()`
+  and `interaction.plot()`. Each had a layer processor and a passing test
+  suite, and each was silent for a real user -- the chart appeared, and
+  `save_html()` then reported that no Base R plot was found.
+
+  Interception works by shadowing: `.onLoad` installs the recording wrapper
+  into maidr's own namespace, so a bare call reaches it only when
+  `package:maidr` carries the name. Unexported, these twelve resolved
+  straight to `stats::`/`graphics::`. Measured across all 22 experimental
+  Base R types against an installed package, export status and being read
+  agreed 22 times out of 22. All twelve are now exported and read.
+
+  The tests could not see this. `load_all()` leaves the namespace open and
+  runs each test in an environment whose parent is that namespace, so a bare
+  call reaches the wrapper there and nowhere else. A new check asserts that
+  every chart-producing Base R name is exported, which reads the same from a
+  source checkout and from an install.
+
 * A chart drawing a rect with a negative height or width no longer falls back
   to a static image. `gridSVG::grid.export()` warns "number of items to
   replace is not a multiple of replacement length" on such a rect -- measured

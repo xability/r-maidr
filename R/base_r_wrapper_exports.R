@@ -136,6 +136,69 @@ qqline <- function(...) stats::qqline(...)
 #' @export
 filled.contour <- function(...) graphics::filled.contour(...)
 
+# The twelve below were classified and given layer processors, but never
+# exported -- and an unexported stub is invisible to a caller. `.onLoad` runs
+# `wrap_function()`, which installs the recording wrapper into maidr's *own*
+# namespace, so a bare call only reaches it when it resolves through that
+# namespace. A user's call resolves through the search path instead, finds
+# `stats::`/`graphics::` directly, and the chart draws unrecorded. Exporting
+# the name is what puts maidr's copy in front of the original.
+
+#' @rdname base-r-wrappers
+#' @export
+acf <- function(...) stats::acf(...)
+
+#' @rdname base-r-wrappers
+#' @export
+pacf <- function(...) stats::pacf(...)
+
+#' @rdname base-r-wrappers
+#' @export
+ccf <- function(...) stats::ccf(...)
+
+#' @rdname base-r-wrappers
+#' @export
+cpgram <- function(...) stats::cpgram(...)
+
+#' @rdname base-r-wrappers
+#' @export
+spectrum <- function(...) stats::spectrum(...)
+
+#' @rdname base-r-wrappers
+#' @export
+monthplot <- function(...) stats::monthplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+termplot <- function(...) stats::termplot(...)
+
+#' @rdname base-r-wrappers
+#' @export lag.plot
+#' @usage lag.plot(...)
+# Both tags are given explicitly, and for the same reason: roxygen reads
+# `lag.plot` as an S3 method for a `lag` generic on class `plot`. Left to
+# infer, it writes `S3method(lag, plot)` -- exporting nothing a caller can
+# reach -- and renders the usage as `\method{lag}{plot}(...)`, so the man
+# page describes a dispatch that does not exist. `@export` fixes the first,
+# `@usage` the second; neither implies the other.
+lag.plot <- function(...) stats::lag.plot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+biplot <- function(...) stats::biplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+interaction.plot <- function(...) stats::interaction.plot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+bxp <- function(...) graphics::bxp(...)
+
+#' @rdname base-r-wrappers
+#' @export
+stars <- function(...) graphics::stars(...)
+
 #' @rdname base-r-wrappers
 #' @export
 vioplot <- function(...) {

@@ -28,6 +28,18 @@
 \alias{qqplot}
 \alias{qqline}
 \alias{filled.contour}
+\alias{acf}
+\alias{pacf}
+\alias{ccf}
+\alias{cpgram}
+\alias{spectrum}
+\alias{monthplot}
+\alias{termplot}
+\alias{lag.plot}
+\alias{biplot}
+\alias{interaction.plot}
+\alias{bxp}
+\alias{stars}
 \alias{vioplot}
 \alias{wordcloud}
 \alias{chartSeries}
@@ -101,6 +113,30 @@ qqplot(...)
 qqline(...)
 
 filled.contour(...)
+
+acf(...)
+
+pacf(...)
+
+ccf(...)
+
+cpgram(...)
+
+spectrum(...)
+
+monthplot(...)
+
+termplot(...)
+
+lag.plot(...)
+
+biplot(...)
+
+interaction.plot(...)
+
+bxp(...)
+
+stars(...)
 
 vioplot(...)
 
