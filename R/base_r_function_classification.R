@@ -174,7 +174,12 @@ NULL
     # vioplot entry point. Like chartSeries this lives in a Suggests package,
     # so it is wrapped late through the packageEvent hooks in .onLoad rather
     # than at load time -- vioplot may be attached after maidr.
-    "vioplot"
+    "vioplot",
+    # wordcloud entry point, on the same footing as vioplot: a Suggests
+    # package, wrapped late. Unwrapped, `wordcloud()` records nothing at all
+    # -- measured, a four-term call left the device with zero plot calls, so
+    # `save_html()` reported no Base R plot rather than reading one badly.
+    "wordcloud"
   ),
   LOW = c(
     "lines",

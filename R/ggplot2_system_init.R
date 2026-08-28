@@ -103,6 +103,17 @@ no_base_r_plots_message <- function() {
   tryCatch(wrap_function("vioplot"), error = function(e) NULL)
 }
 
+#' Wrap wordcloud's entry point once its namespace is available
+#'
+#' Same shape and same reason as the vioplot hook above: `wordcloud` is in
+#' Suggests, so a call made after a late `library(wordcloud)` would otherwise
+#' go unrecorded entirely.
+#'
+#' @keywords internal
+.maidr_wordcloud_onload_hook <- function(...) {
+  tryCatch(wrap_function("wordcloud"), error = function(e) NULL)
+}
+
 .maidr_quantmod_attach_hook <- function(...) {
   tryCatch(
     {
@@ -195,6 +206,15 @@ no_base_r_plots_message <- function() {
     ),
     error = function(e) NULL
   )
+
+  # wordcloud, for the same reason and with the same shape.
+  tryCatch(
+    setHook(
+      packageEvent("wordcloud", "onLoad"),
+      .maidr_wordcloud_onload_hook
+    ),
+    error = function(e) NULL
+  )
 }
 
 # Remove the quantmod onLoad hook installed in .onLoad so the package unloads
@@ -217,6 +237,7 @@ no_base_r_plots_message <- function() {
   drop_hook("onLoad", .maidr_quantmod_onload_hook)
   drop_hook("attach", .maidr_quantmod_attach_hook)
   drop_hook("onLoad", .maidr_vioplot_onload_hook, package = "vioplot")
+  drop_hook("onLoad", .maidr_wordcloud_onload_hook, package = "wordcloud")
 }
 
 # Show startup message when package is attached via library()
