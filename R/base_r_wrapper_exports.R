@@ -248,6 +248,16 @@ wordcloud <- function(...) {
   # `wordcloud(words, freq)` is as natural to write positionally as by name,
   # and the layer reads `args$words` / `args$freq`. Name-matching here is what
   # keeps the positional spelling from recording a call with nothing to read.
+  #
+  # Called on both paths, including after the NSE fallback above -- which the
+  # generated wrapper template deliberately does not do, because matching an
+  # unevaluated `as.list(this_call)` would force `args[[1]]` to find an S3
+  # method. That only happens for a generic: `dispatched_definition()` looks at
+  # the first argument solely when the target's body contains `UseMethod`.
+  # Measured, `wordcloud::wordcloud()` does not -- it is a plain function -- so
+  # the concern cannot arise here. Written down because it would if this stub
+  # were ever copied for a function that is generic (`vioplot()` is one, which
+  # is why its stub records the arguments unmatched).
   args_list <- tryCatch(
     match_recorded_args("wordcloud", original, args_list),
     error = function(e) args_list
