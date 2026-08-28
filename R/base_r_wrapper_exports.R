@@ -174,9 +174,13 @@ termplot <- function(...) stats::termplot(...)
 
 #' @rdname base-r-wrappers
 #' @export lag.plot
-# The export name is given explicitly: left to infer, roxygen reads
-# `lag.plot` as an S3 method for a `lag` generic on class `plot` and writes
-# `S3method(lag, plot)`, which exports nothing a caller can reach.
+#' @usage lag.plot(...)
+# Both tags are given explicitly, and for the same reason: roxygen reads
+# `lag.plot` as an S3 method for a `lag` generic on class `plot`. Left to
+# infer, it writes `S3method(lag, plot)` -- exporting nothing a caller can
+# reach -- and renders the usage as `\method{lag}{plot}(...)`, so the man
+# page describes a dispatch that does not exist. `@export` fixes the first,
+# `@usage` the second; neither implies the other.
 lag.plot <- function(...) stats::lag.plot(...)
 
 #' @rdname base-r-wrappers

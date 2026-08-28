@@ -128,7 +128,7 @@ monthplot(...)
 
 termplot(...)
 
-\method{lag}{plot}(...)
+lag.plot(...)
 
 biplot(...)
 
