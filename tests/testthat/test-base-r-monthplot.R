@@ -242,6 +242,21 @@ test_that("an explicit label wins over the deparsed default", {
   expect_equal(layer$axes$y$label, "Readings")
 })
 
+test_that("naming the x axis does not empty the series (#292)", {
+  # `xlab` is not a formal of `monthplot.default`, so it arrives through
+  # `...` and the series is left unnamed in the recorded arguments. `args$x`
+  # then partial-matched `xlab`, took the label for the series, and dropped
+  # every point as non-numeric -- while the chart drew normally.
+  unnamed <- monthplot_layers(function() monthplot(MONTHLY))[[1]]
+  named <- monthplot_layers(function() {
+    monthplot(MONTHLY, xlab = "Month")
+  })[[1]]
+
+  expect_length(named$data, 12L)
+  expect_equal(named$data, unnamed$data)
+  expect_equal(named$axes$x$label, "Month")
+})
+
 test_that("one selector per subseries, in the order the lines were drawn", {
   # The drawing runs `for (i in 1L:f)`, so the i-th `lines` grob is the i-th
   # cycle position. Series and selectors are built in that same order, and a
