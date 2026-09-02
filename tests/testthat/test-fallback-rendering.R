@@ -93,9 +93,17 @@ test_that("maidr_set_fallback(format = ) chooses the picture's format", {
 
   plot(1:10)
 
+  # The image itself is mocked: what is under test is that the configured
+  # format reaches the renderer, and `grDevices::svg()` is not available on
+  # every platform the suite runs on (the macOS runner has no cairo).
+  format_used <- NULL
   testthat::local_mocked_bindings(
     create_enhanced_svg = function(gt, maidr_data, ...) {
       stop("We shouldn't be here!")
+    },
+    create_fallback_image = function(plot = NULL, format = "png", ...) {
+      format_used <<- format
+      "data:image/svg+xml;base64,PHN2Zy8+"
     }
   )
 
@@ -103,7 +111,5 @@ test_that("maidr_set_fallback(format = ) chooses the picture's format", {
   on.exit(unlink(file), add = TRUE)
   expect_warning(maidr::save_html(plot = NULL, file = file))
 
-  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
-  expect_true(grepl("data:image/svg+xml", html, fixed = TRUE))
-  expect_false(grepl("data:image/png", html, fixed = TRUE))
+  expect_identical(format_used, "svg")
 })
