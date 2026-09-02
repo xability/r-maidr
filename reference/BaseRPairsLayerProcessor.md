@@ -95,8 +95,10 @@ Inherited methods
 - [`BaseRPointLayerProcessor$extract_base_r_axis_grid_info()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-extract_base_r_axis_grid_info)
 - [`BaseRPointLayerProcessor$extract_data()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-extract_data)
 - [`BaseRPointLayerProcessor$extract_main_title()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-extract_main_title)
+- [`BaseRPointLayerProcessor$formula_variables()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-formula_variables)
 - [`BaseRPointLayerProcessor$generate_selectors()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-generate_selectors)
 - [`BaseRPointLayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-needs_reordering)
+- [`BaseRPointLayerProcessor$resolve_coordinates()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-resolve_coordinates)
 
 ------------------------------------------------------------------------
 

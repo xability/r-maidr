@@ -17,6 +17,10 @@ Processes Base R scatter plot layers based on recorded plot calls
 
 - [`BaseRPointLayerProcessor$extract_data()`](#method-BaseRPointLayerProcessor-extract_data)
 
+- [`BaseRPointLayerProcessor$resolve_coordinates()`](#method-BaseRPointLayerProcessor-resolve_coordinates)
+
+- [`BaseRPointLayerProcessor$formula_variables()`](#method-BaseRPointLayerProcessor-formula_variables)
+
 - [`BaseRPointLayerProcessor$extract_axis_titles()`](#method-BaseRPointLayerProcessor-extract_axis_titles)
 
 - [`BaseRPointLayerProcessor$extract_base_r_axis_grid_info()`](#method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info)
@@ -108,6 +112,22 @@ Inherited methods
 #### Usage
 
     BaseRPointLayerProcessor$extract_data(layer_info)
+
+------------------------------------------------------------------------
+
+### `BaseRPointLayerProcessor$resolve_coordinates()`
+
+#### Usage
+
+    BaseRPointLayerProcessor$resolve_coordinates(plot_call)
+
+------------------------------------------------------------------------
+
+### `BaseRPointLayerProcessor$formula_variables()`
+
+#### Usage
+
+    BaseRPointLayerProcessor$formula_variables(plot_call)
 
 ------------------------------------------------------------------------
 

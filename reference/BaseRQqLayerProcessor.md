@@ -85,9 +85,11 @@ Inherited methods
 - [`LayerProcessor$unflip_columns()`](https://r.maidr.ai/reference/LayerProcessor.html#method-unflip_columns)
 - [`LayerProcessor$unflip_panel_params()`](https://r.maidr.ai/reference/LayerProcessor.html#method-unflip_panel_params)
 - [`BaseRPointLayerProcessor$extract_base_r_axis_grid_info()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-extract_base_r_axis_grid_info)
+- [`BaseRPointLayerProcessor$formula_variables()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-formula_variables)
 - [`BaseRPointLayerProcessor$generate_selectors()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-generate_selectors)
 - [`BaseRPointLayerProcessor$needs_reordering()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-needs_reordering)
 - [`BaseRPointLayerProcessor$process()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-process)
+- [`BaseRPointLayerProcessor$resolve_coordinates()`](https://r.maidr.ai/reference/BaseRPointLayerProcessor.html#method-resolve_coordinates)
 
 ------------------------------------------------------------------------
 
