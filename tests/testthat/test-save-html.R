@@ -194,7 +194,9 @@ test_that("save_html() works with relative paths", {
   # a working directory left changed follows every later test.
   old_wd <- setwd(tempdir())
   on.exit(setwd(old_wd), add = TRUE)
-  on.exit(unlink(relative_path), add = TRUE)
+  # By its full path: `on.exit()` handlers run in the order they were added,
+  # so the working directory is already restored when this one runs.
+  on.exit(unlink(file.path(tempdir(), relative_path)), add = TRUE)
 
   result <- save_html(p, file = relative_path)
 

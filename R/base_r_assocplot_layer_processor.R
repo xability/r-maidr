@@ -192,13 +192,7 @@ BaseRAssocplotLayerProcessor <- R6::R6Class(
       if (is.null(layer_info)) {
         return("")
       }
-      args <- layer_info$plot_call$args
-      title <- if (is.list(args)) args[["main"]] else NULL
-      if (is.null(title) || is.language(title)) {
-        return("")
-      }
-      title <- tryCatch(as.character(title)[1], error = function(e) NULL)
-      if (is.null(title) || is.na(title)) "" else title
+      recorded_main_title(layer_info$plot_call$args)
     },
 
     #' @description Address the tiles the chart drew.

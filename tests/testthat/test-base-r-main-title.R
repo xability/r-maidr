@@ -24,6 +24,16 @@ test_that("an expression title does not fail the save", {
   testthat::expect_true(grepl("maidr-data", html, fixed = TRUE))
 })
 
+test_that("a contour's expression title is declined the same way", {
+  # The one reader the shared helper had not reached (raised in review).
+  layer <- base_r_layers(function() {
+    suppressWarnings(contour(volcano, main = expression(alpha^2)))
+  })[[1]]
+
+  testthat::expect_identical(layer$type, "contour")
+  testthat::expect_identical(layer$title, "")
+})
+
 test_that("recorded_main_title reads text and declines the rest", {
   testthat::expect_identical(maidr:::recorded_main_title(list(main = "Title")), "Title")
   testthat::expect_identical(maidr:::recorded_main_title(list()), "")
