@@ -29,6 +29,27 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         domMapping = list(iqrDirection = iqr_direction)
       )
     },
+    # The five-number summaries the drawn boxes came from
+    #
+    # A `boxplot()` call carries the *observations*, so the summaries have to
+    # be recomputed from them -- which `boxplot(plot = FALSE)` does, using
+    # the same code path the drawing did, rather than a reimplementation of
+    # it here. `graphics::boxplot` is named directly so the replay does not
+    # go back through maidr's own wrapper and record a second call.
+    #
+    # Overridable because `bxp()` is handed the summaries already computed
+    # and draws exactly the same marks from them: everything below this
+    # method -- the outlier grouping, the polygon and segment indices, the
+    # shift each box with no outliers puts on the ones after it -- is the
+    # same reading either way, and only where the summaries come from
+    # differs (#262).
+    #
+    # @param args Recorded argument list
+    # @return The `boxplot.stats`-shaped list, or NULL when it cannot be had
+    read_stats = function(args) {
+      args$plot <- FALSE
+      tryCatch(do.call(graphics::boxplot, args), error = function(e) NULL)
+    },
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -37,20 +58,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # Recreate boxplot stats using original args with plot=FALSE
-      args_no_plot <- args
-      args_no_plot$plot <- FALSE
-
-      # Safely call boxplot() to get stats structure
-      # Use graphics::boxplot directly to avoid calling the wrapped version
-      stats_obj <- tryCatch(
-        {
-          do.call(graphics::boxplot, args_no_plot)
-        },
-        error = function(e) {
-          NULL
-        }
-      )
+      stats_obj <- self$read_stats(args)
       if (is.null(stats_obj) || is.null(stats_obj$stats)) {
         return(list())
       }
@@ -93,7 +101,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       }
 
       # For horizontal boxplots, reverse data to match visual order (bottom-to-top)
-      if (!is.null(args$horizontal) && isTRUE(args$horizontal)) {
+      if (recorded_flag(args, "horizontal")) {
         results <- rev(results)
       }
 
@@ -113,15 +121,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       stats_obj <- NULL
       if (!is.null(self$layer_info) && !is.null(self$layer_info$plot_call)) {
         plot_call <- self$layer_info$plot_call
-        args <- plot_call$args
-        args$plot <- FALSE
-        # Use graphics::boxplot directly to avoid calling the wrapped version
-        stats_obj <- tryCatch(
-          {
-            do.call(graphics::boxplot, args)
-          },
-          error = function(e) NULL
-        )
+        stats_obj <- self$read_stats(plot_call$args)
         if (!is.null(stats_obj) && !is.null(stats_obj$stats)) data_len <- ncol(stats_obj$stats)
       }
       if (data_len <= 0) {
@@ -207,7 +207,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
 
       plot_call <- if (!is.null(self$layer_info)) self$layer_info$plot_call else NULL
       args <- if (!is.null(plot_call)) plot_call$args else list()
-      is_horizontal <- !is.null(args$horizontal) && isTRUE(args$horizontal)
+      is_horizontal <- recorded_flag(args, "horizontal")
 
       # Pre-compute which boxes have outliers (for formula adjustment)
       # Boxes with no outliers cause subsequent boxes to shift their segment indices
@@ -257,8 +257,13 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
           max_sel <- make_whisker_sel(w_idx, 2)
         }
 
-        # Points group index follows pattern: 2 * svg_idx
-        points_idx <- 2 * svg_idx
+        # Points group index. `bxp()` draws each box's outliers as one
+        # `points()` call and skips it for a box that has none, so the
+        # index shifts by the number of earlier boxes without outliers --
+        # the same shift the segment indices above already apply. Without
+        # it a box after an outlier-free one was outlined on the next
+        # box's outliers.
+        points_idx <- 2 * svg_idx - no_outlier_count_before
 
         # Outliers for this box in DRAWING (data) order. bxp() draws them
         # unsorted, so the k-th <use> child is the k-th value of the
@@ -328,7 +333,9 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       args <- layer_info$plot_call$args
       horizontal <- self$determine_orientation(layer_info) == "horz"
 
-      formula_labels <- self$extract_formula_labels(args)
+      formula_labels <- self$extract_formula_labels(
+        args, layer_info$plot_call$formula_frame
+      )
       if (is.null(formula_labels)) {
         return(base_r_categorical_axes(args, horizontal = horizontal))
       }
@@ -356,7 +363,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
     # @param args Recorded argument list
     # @return List with `response` and `groups`, or NULL when this call is
     #   not the formula method or the model frame cannot be rebuilt
-    extract_formula_labels = function(args) {
+    extract_formula_labels = function(args, frame = NULL) {
       # boxplot()'s formula method names its first formal `formula`, and
       # match_recorded_args() leaves the dispatch argument as the author
       # wrote it, so a positional call records it unnamed.
@@ -368,10 +375,18 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      model_frame <- tryCatch(
-        stats::model.frame(formula, data = args[["data"]]),
-        error = function(e) NULL
-      )
+      # The frame the chart was drawn from, when the recording kept one.
+      # Rebuilding it here would resolve the formula's variables against
+      # whatever they are bound to *now* -- a staler axis title than the
+      # stripchart's stale values, but the same defect (#254).
+      model_frame <- if (!is.null(frame)) {
+        frame
+      } else {
+        tryCatch(
+          stats::model.frame(formula, data = args[["data"]]),
+          error = function(e) NULL
+        )
+      }
       if (is.null(model_frame)) {
         return(NULL)
       }
@@ -398,14 +413,14 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         return("")
       }
       args <- layer_info$plot_call$args
-      if (!is.null(args$main)) args$main else ""
+      recorded_main_title(args)
     },
     determine_orientation = function(layer_info) {
       if (is.null(layer_info)) {
         return("vert")
       }
       args <- layer_info$plot_call$args
-      horizontal <- if (!is.null(args$horizontal)) isTRUE(args$horizontal) else FALSE
+      horizontal <- recorded_flag(args, "horizontal")
       if (horizontal) "horz" else "vert"
     }
   )

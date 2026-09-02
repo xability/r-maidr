@@ -153,7 +153,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       # Use custom axis labels if available, otherwise use x values
       use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
-      for (i in 1:n) {
+      for (i in seq_len(n)) {
         x_value <- if (use_labels) x_labels[i] else as.character(x[i])
         data_points[[i]] <- list(
           x = x_value,
@@ -184,7 +184,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         # Use custom axis labels if available, otherwise use x values
         use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
-        for (i in 1:n) {
+        for (i in seq_len(n)) {
           x_value <- if (use_labels) x_labels[i] else as.character(x[i])
           series_points[[i]] <- list(
             x = x_value,
@@ -327,16 +327,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
 
       high_args <- group$high_call$args
-      x_data <- high_args[[1]]
-
-      if (is.null(x_data) || !is.numeric(x_data)) {
-        return(NULL)
-      }
-
-      x_min <- min(x_data, na.rm = TRUE)
-      x_max <- max(x_data, na.rm = TRUE)
-      x_padding <- (x_max - x_min) * 0.05
-      c(x_min - x_padding, x_max + x_padding)
+      self$axis_extent(high_args$xlim, resolve_xy_args(high_args)$x)
     },
     get_y_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
@@ -344,16 +335,23 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
 
       high_args <- group$high_call$args
-      y_data <- high_args[[2]]
-
-      if (is.null(y_data) || !is.numeric(y_data)) {
+      self$axis_extent(high_args$ylim, resolve_xy_args(high_args)$y)
+    },
+    # The extent of an axis the way `plot.default()` sets it: an explicit
+    # `xlim`/`ylim`, or the finite data extended by 4 % each way, which is
+    # what `abline()` draws its clipped line across.
+    axis_extent = function(limits, data) {
+      if (is.numeric(limits) && length(limits) == 2L && all(is.finite(limits))) {
+        return(grDevices::extendrange(limits, f = 0.04))
+      }
+      if (is.null(data) || !is.numeric(data)) {
         return(NULL)
       }
-
-      y_min <- min(y_data, na.rm = TRUE)
-      y_max <- max(y_data, na.rm = TRUE)
-      y_padding <- (y_max - y_min) * 0.05
-      c(y_min - y_padding, y_max + y_padding)
+      data <- data[is.finite(data)]
+      if (length(data) == 0L) {
+        return(NULL)
+      }
+      grDevices::extendrange(range(data), f = 0.04)
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
@@ -368,7 +366,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         group <- layer_info$group
         if (!is.null(group) && !is.null(group$high_call)) {
           high_args <- group$high_call$args
-          main_title <- if (!is.null(high_args$main)) high_args$main else ""
+          main_title <- recorded_main_title(high_args)
           return(main_title)
         }
       }
@@ -376,7 +374,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      main_title <- if (!is.null(args$main)) args$main else ""
+      main_title <- recorded_main_title(args)
       main_title
     },
     generate_selectors = function(layer_info, gt = NULL) {
@@ -403,6 +401,21 @@ BaseRLineLayerProcessor <- R6::R6Class(
         if (grob_type == "abline") {
           # Pattern for abline: graphics-plot-{group_index}-abline-*
           pattern <- paste0("^graphics-plot-", group_index, "-abline-")
+        } else if (grob_type == "spike") {
+          # `type = "h"` draws its verticals under `-spike-`, the same way a
+          # stairstep lands under `-step-`. One grob holds every spike of the
+          # layer, so one name is expected here rather than one per point
+          # (#239).
+          pattern <- paste0("^graphics-plot-", group_index, "-spike-[0-9]+$")
+        } else if (grob_type == "segments") {
+          # `segments()` is its own drawing call, not a `lines()` variant, so
+          # gridGraphics names its grobs `-segments-` and the line search
+          # finds none. `monthplot(type = "h")` is the caller that needs it:
+          # it draws each cycle position's spikes with `segments()` rather
+          # than handing `type = "h"` to `lines()`, so neither the line name
+          # nor the `-spike-` one above applies. One grob per call, holding
+          # every segment that call drew.
+          pattern <- paste0("^graphics-plot-", group_index, "-segments-[0-9]+$")
         } else if (grob_type == "step") {
           # gridGraphics names a stairstep grob after the `type` letter that
           # drew it -- `-step-` for type = "s", `-Step-` for type = "S" --
@@ -445,8 +458,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
       names
     },
     # Which family of grob names this layer's selectors are drawn from:
-    # "abline", "lines" or "step". Overridden by subclasses whose geometry
-    # lands under a different grob name (see BaseRStepLayerProcessor).
+    # "abline", "lines", "segments", "spike" or "step". Overridden by
+    # subclasses whose geometry lands under a different grob name (see
+    # BaseRStepLayerProcessor).
     selector_grob_type = function(layer_info) {
       function_name <- if (!is.null(layer_info)) layer_info$function_name else "lines"
       if (function_name == "abline") "abline" else "lines"

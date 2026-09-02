@@ -136,8 +136,75 @@ Ggplot2Adapter <- R6::R6Class(
         return("contour")
       }
 
-      if (geom_class %in% c("GeomSegment", "GeomCurve")) {
-        return(if (self$segments_span_lanes(layer, plot_object)) "gantt" else "unknown")
+      # `geom_rug()` marks one short tick per observation against the panel's
+      # edge -- the raw data, which the density curve or histogram it usually
+      # accompanies does not state. `GeomRug` is a direct `Geom` subclass, so
+      # it matched no branch above and reached the unknown processor: a
+      # rug-only chart emitted one empty layer and a rug beside a scatter
+      # added an empty one to land on (#222).
+      #
+      # py-maidr has read the same chart as points since
+      # xability/py-maidr#250, and the processor emits `point` to match. It is
+      # dispatched under its own name because what it reads and how it
+      # addresses its elements are both its own -- the arrangement `dotplot`
+      # already uses to emit `hist`.
+      if (geom_class == "GeomRug") {
+        return("rug")
+      }
+
+      # `geom_polygon()` is `geom_path()` with its ends joined and its
+      # interior filled, and `GeomPath` has read as `"line"` for as long as
+      # this dispatch has existed -- so claiming it decides nothing new
+      # about what a series of vertices means. It makes two spellings of one
+      # mark behave alike, the same argument `GeomSpoke` is routed on above.
+      #
+      # It was the last geom in the #225 sweep left `"unknown"`, which drops
+      # the *whole plot* to a static image (#176). Measured on ggplot2
+      # 3.4.4, thirty points, `save_html()`:
+      #
+      #     geom_point()                     interactive SVG   52,708 bytes
+      #     geom_point() + geom_polygon()    base64 image      30,913 bytes
+      #
+      # Read rather than skipped, which #225 asked for explicitly: every
+      # geom skipped today carries no observations, and a polygon's
+      # vertices are rows the author supplied. Skipping one that is the data
+      # would drop it silently -- worse than the picture, because the reader
+      # is not told anything is missing.
+      #
+      # `class(...)[1]` as everywhere else in this dispatch, and here it
+      # does work: `GeomMap` inherits `GeomPolygon` -- measured, `GeomMap <
+      # GeomPolygon < Geom` -- so an `inherits()` test would claim the map
+      # layers #225 puts out of scope. `GeomViolin` and `GeomCrossbar` draw
+      # *through* `GeomPolygon` without inheriting it, so they never reach
+      # here at all; what they leave behind is grob names this layer's own
+      # search has to tell apart, which is the polygon processor's problem
+      # rather than this branch's.
+      if (geom_class == "GeomPolygon") {
+        return("polygon")
+      }
+
+      # `geom_spoke()` is `geom_segment()` reparameterised: an angle and a
+      # radius rather than an endpoint, and ggplot2's `GeomSpoke$setup_data()`
+      # turns the pair into the `xend`/`yend` the segment branch already
+      # reads. It is a `GeomSegment` *subclass* -- measured, `GeomSpoke <
+      # GeomSegment < Geom` -- and still needs naming here, because this
+      # dispatch matches `class(geom)[1]` rather than asking `inherits()`.
+      # So it is dispatched here rather than given a rule of its own, and
+      # doing so decides nothing new -- it makes two spellings of one mark
+      # behave alike. Measured on ggplot2 3.4.4:
+      #
+      #     geom_spoke(angle = 0.5, radius = 0.3)   spans lanes FALSE
+      #     geom_spoke(angle = 0,   radius = r)     spans lanes TRUE
+      #
+      # An angled spoke is not a set of lanes and stays "unknown", exactly as
+      # the segment spelling of the same chart would; a flat one is a gantt
+      # written the other way round, a lane per y running from x to x + r,
+      # and was costing its chart every bit of interactivity (#225).
+      if (geom_class %in% c("GeomSegment", "GeomCurve", "GeomSpoke")) {
+        if (self$segments_span_lanes(layer, plot_object)) {
+          return("gantt")
+        }
+        return(self$unread_layer_type(layer, plot_object))
       }
 
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
@@ -150,10 +217,61 @@ Ggplot2Adapter <- R6::R6Class(
       # curve is sampled from a function at `n` renderer-chosen points, so
       # there are no observations to announce and the sample count is a
       # drawing parameter.
-      if (geom_class == "GeomFunction" || stat_class == "StatFunction") {
+      #
+      # Claimed only when the smooth processor can read the geom. A stat can
+      # name one it cannot -- `stat_function(fun = sin, geom = "point")` --
+      # and the processor then rejected the layer, found nothing in its
+      # fallback search and stopped the render outright rather than
+      # declining. `save_html()` raised; the caller's script stopped (#230).
+      # Declining here instead lets the layer fall through to the branch for
+      # the geom it was actually drawn with, so a function drawn as points
+      # reads as the scatter on the page. That loses "this is a fit, not
+      # observations" for those spellings, which is worth less than a chart
+      # that renders.
+      if ((geom_class == "GeomFunction" || stat_class == "StatFunction") &&
+            smooth_reads_geom(layer$geom)) {
         return("smooth")
       }
-      if (geom_class == "GeomSmooth" || stat_class == "StatDensity") {
+      # `GeomQuantile` is a `GeomPath` too, so it reached the line branch's
+      # name check, matched nothing, and took its chart down with it -- the
+      # third geom to be missed for being a subclass of a read one, after
+      # `GeomFunction` (#202) and `GeomSpoke` (#225). Measured on thirty
+      # points with a quantile layer that draws:
+      #
+      #     geom_point()                            interactive   50,409 bytes
+      #     geom_point() + a GeomQuantile layer     base64 image  44,724 bytes
+      #     geom_point() + geom_smooth(se = FALSE)  interactive   57,823 bytes
+      #
+      # `smooth` rather than `line` for the reason `StatFunction` is:
+      # `stat_quantile()` fits `rq`/`rqss` and evaluates it at
+      # renderer-chosen positions, exactly as `stat_smooth()` does for the
+      # conditional mean, so the curve is a model over the data rather than
+      # a series of it. Reading it as a line would announce a fit as
+      # observations (#229).
+      # Keyed on the geom alone, deliberately. `StatQuantile` would have been
+      # the symmetric addition beside `StatDensity` and is not needed: what a
+      # stat check buys is the spellings where the geom says nothing, and
+      # `smooth_reads_geom` now turns those away anyway when the processor
+      # cannot read them (#230).
+      if ((geom_class %in% c("GeomSmooth", "GeomQuantile") ||
+             stat_class == "StatDensity") &&
+            smooth_reads_geom(layer$geom)) {
+        # A quantile layer that drew nothing keeps the answer #227 gave it.
+        # `geom_quantile()` without quantreg is the case that rule was
+        # written for -- it is named in `layer_drew_nothing()`'s own docs --
+        # and claiming it regardless would put an empty `smooth` layer in the
+        # schema for a chart that had none: a series a reader can walk into
+        # and find nothing in, which is #421's shape. Caught in review on
+        # #231.
+        #
+        # Asked of `GeomQuantile` alone, because it is the only claim this
+        # branch newly makes and the only one that costs a second
+        # `ggplot_build()`. `geom_smooth(data = frame[0, ])` emits the same
+        # empty layer today and is left exactly as it was (#232).
+        if (geom_class == "GeomQuantile" &&
+              self$layer_drew_nothing(layer, plot_object)) {
+          return("skip")
+        }
         return("smooth")
       }
 
@@ -346,7 +464,7 @@ Ggplot2Adapter <- R6::R6Class(
         return("skip")
       }
 
-      "unknown"
+      self$unread_layer_type(layer, plot_object)
     },
 
     #' @description Check if a bar layer is drawn as pie wedges
@@ -572,6 +690,98 @@ Ggplot2Adapter <- R6::R6Class(
       }
 
       !is.null(segment_lane_axis(built$data[[index]]))
+    },
+
+    #' @description The answer for a layer no branch above claimed
+    #'
+    #' \code{"unknown"} is what makes \code{has_unsupported_layers()} true and
+    #' drops the whole plot to a static image. That is right for a layer
+    #' carrying marks nothing describes: a filled \code{geom_polygon()} is
+    #' drawn, and a reader told the chart was complete would be told wrong.
+    #'
+    #' It is not right for a layer that drew nothing. Then there is no mark,
+    #' so there is nothing the reader is missing, and the chart pays
+    #' everything to protect them from an absence. Measured with
+    #' \code{save_html()} on thirty points:
+    #'
+    #' \preformatted{
+    #' geom_point()                                interactive   50,406 bytes
+    #' geom_point() + geom_point(data = d[0, ])    interactive   51,313 bytes
+    #' geom_point() + geom_polygon(data = d[0, ])  base64 image  27,368 bytes
+    #' geom_point() + geom_polygon()               base64 image  31,848 bytes
+    #' }
+    #'
+    #' Rows two and three are the same chart in every way a reader could tell
+    #' -- thirty points and a layer of nothing -- and only one of them was
+    #' interactive, because its empty layer happened to be of a \emph{kind}
+    #' this function names. Row four is the case the fallback exists for, and
+    #' it keeps falling back.
+    #'
+    #' The case this turns up in is not contrived: a missing \strong{Suggests}
+    #' package. \code{geom_quantile()} without \pkg{quantreg} warns, computes
+    #' no rows and draws nothing; ggplot2 carries on and r-maidr turned the
+    #' whole figure into a picture, with no second warning connecting the two
+    #' (#227).
+    #'
+    #' A plot made only of such layers still falls back, for the reason #176
+    #' gives: \code{has_unsupported_layers()} is true when \emph{every} layer
+    #' is \code{"skip"} as well, so "nothing unsupported" cannot quietly come
+    #' to mean "nothing at all".
+    #'
+    #' Nothing here decides which geoms are readable. A \code{geom_polygon()}
+    #' with data in it is still \code{"unknown"} and still costs its chart
+    #' exactly what it costs today.
+    #'
+    #' @param layer The layer being classified
+    #' @param plot_object The ggplot2 plot object
+    #' @return \code{"skip"} when the layer drew no rows, \code{"unknown"}
+    #'   otherwise
+    unread_layer_type = function(layer, plot_object) {
+      if (self$layer_drew_nothing(layer, plot_object)) "skip" else "unknown"
+    },
+
+    #' @description Whether a layer put no mark on the page at all
+    #'
+    #' A layer's rows can vanish in its input, in a filter, in an aggregate
+    #' over no groups, or -- the case #227 was found through -- in a stat that
+    #' could not run because a \strong{Suggests} package is absent. All four
+    #' arrive here identically: \code{ggplot_build()} reports zero rows for
+    #' that layer while ggplot2 warns, draws the rest of the chart and carries
+    #' on.
+    #'
+    #' Asked by \code{unread_layer_type()}, which turns it into \code{"skip"}
+    #' rather than \code{"unknown"}, and by the quantile branch of
+    #' \code{detect_layer_type()}, which uses it to keep from claiming a
+    #' curve that was never drawn (#229). Kept as its own method for that
+    #' second caller: a rule two branches ask is a rule, not a fall-through.
+    #'
+    #' Declines whenever the build cannot answer -- it raised, or gave this
+    #' layer no frame. Absent is not empty: a build that said nothing about
+    #' what a layer drew must not have that read as "it drew nothing", which
+    #' would wave a mark through as harmless.
+    #'
+    #' @param layer The layer being asked about
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE when the layer built no rows
+    layer_drew_nothing = function(layer, plot_object) {
+      built <- tryCatch(
+        ggplot2::ggplot_build(plot_object),
+        error = function(e) NULL
+      )
+      if (is.null(built)) {
+        return(FALSE)
+      }
+
+      index <- self$find_layer_index(plot_object, layer)
+      if (is.null(index) || index < 1L || index > length(built$data)) {
+        return(FALSE)
+      }
+
+      # `isTRUE` rather than a bare comparison, so that absent is not read as
+      # empty: `nrow(NULL)` is `NULL`, and `NULL == 0L` is `logical(0)` rather
+      # than either answer. It declines without a branch of its own, which
+      # would be one no chart can reach and so no test can hold.
+      isTRUE(nrow(built$data[[index]]) == 0L)
     }
   )
 )

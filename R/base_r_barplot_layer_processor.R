@@ -55,10 +55,7 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       args <- plot_call$args
 
       # Elegant extraction: Get height (primary argument)
-      height <- args$height
-      if (is.null(height) && length(args) > 0) {
-        height <- args[[1]] # First argument if height not named
-      }
+      height <- recorded_barplot_height(args)
 
       labels <- args$names.arg
       if (is.null(labels)) {
@@ -130,7 +127,7 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      main_title <- if (!is.null(args$main)) args$main else ""
+      main_title <- recorded_main_title(args)
       main_title
     },
     generate_selectors = function(layer_info, gt = NULL) {

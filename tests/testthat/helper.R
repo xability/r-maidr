@@ -231,3 +231,86 @@ expect_valid_maidr_widget <- function(widget) {
   testthat::expect_s3_class(widget, "maidr")
   testthat::expect_true("x" %in% names(widget))
 }
+
+# Drawing a base R chart on a throwaway device and reading its layers back.
+#
+# Shared because four test files had grown their own copy of it, and two of
+# those copies cleared the device on the way *in* and not on the way out.
+# That is a leak rather than an untidiness: the recorded calls outlive the
+# device that made them, and R reuses device numbers, so the next file to
+# draw **without opening a device of its own** gets a fresh device 2 still
+# carrying the previous file's chart and reads it as its own.
+#
+# It is not hypothetical. `test-base-r-spike-plot-type.R` sorts immediately
+# before `test-base-r-step-layer-processor.R`, which reads `dev.cur()`
+# directly -- and the step file read the spike file's last control chart,
+# failing three assertions in a file whose author had touched nothing
+# (#241). Alphabetical order decides which pair collides, so the trap is
+# armed by *adding a file*, and it springs somewhere else.
+#
+# The same reason `helper-render.R` exists: one copy of a thing several
+# files depend on agreeing about.
+
+#' Draw a base R chart on a throwaway device and return its layers
+#'
+#' @param draw A function that draws one base R chart
+#' @return The layers of the first cell's schema
+base_r_layers <- function(draw) {
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+
+  draw()
+  schema <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
+  schema$subplots[[1]][[1]]$layers
+}
+
+#' One trace type per layer a base R drawing produces
+#'
+#' @param draw A function that draws one base R chart
+#' @return A character vector, empty when the chart is declined
+base_r_layer_types <- function(draw) {
+  vapply(base_r_layers(draw), function(layer) layer$type, character(1))
+}
+
+#' Drop a device's recorded calls, if it has any
+#'
+#' @param device_id The device number
+#' @return NULL
+clear_base_r_device <- function(device_id) {
+  if (maidr:::has_device_calls(device_id)) {
+    maidr:::clear_device_storage(device_id)
+  }
+  invisible(NULL)
+}
+
+#' Draw a base R chart that is recorded but has no processor
+#'
+#' Several tests need "a call `detect_layer_type()` falls through to
+#' `unknown` for" as a subject: the recorded-but-unread path degrades to a
+#' static image with a warning, and that is what they assert. Which call
+#' plays the part keeps changing, because the point of this project is to
+#' give those calls processors -- `dotchart` stood here until #242, then
+#' `mosaicplot` until #242's remainder, then `assocplot` until #266 -- and
+#' each move meant editing the same sentence in three files.
+#'
+#' `coplot()` is the current one: a conditioning plot, in HIGH like the
+#' others and with no branch in `detect_layer_type()`. When it gains a
+#' processor, change this function and the three call sites follow.
+#'
+#' @return NULL, invisibly. Called for the drawing.
+draw_unread_base_r_chart <- function() {
+  # Unqualified deliberately. maidr patches the name on the search path
+  # rather than inside the `graphics` namespace, so `graphics::coplot()`
+  # reaches the original and records nothing -- the chart then falls back for
+  # the wrong reason and these tests would pass without testing anything.
+  coplot(mpg ~ wt | factor(cyl), data = mtcars)
+  invisible(NULL)
+}

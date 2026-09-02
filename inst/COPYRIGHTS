@@ -3,7 +3,7 @@ maidr-math.css) are the compiled distribution of the MAIDR project
 (https://maidr.ai, MIT License) and embed the following third-party
 open-source components:
 
-- React (https://react.dev)
+- React and React DOM (https://react.dev)
   Copyright (c) Meta Platforms, Inc. and affiliates. MIT License.
 
 - KaTeX (https://katex.org)
@@ -15,12 +15,37 @@ open-source components:
   is done by .github/scripts/fetch-maidr-bundle.sh when the bundle is
   refreshed.)
 
-- D3 (https://d3js.org)
-  Copyright (c) Mike Bostock. ISC License.
+- MUI (Material UI and MUI Icons, https://mui.com)
+  Copyright (c) 2014 Call-Em-All. MIT License.
 
-- Tone.js (https://tonejs.github.io)
-  Copyright (c) Yotam Mann. MIT License.
+- Emotion (https://emotion.sh)
+  Copyright (c) Emotion team and other contributors. MIT License.
 
-All bundled components are distributed under permissive (MIT / ISC) licenses
-that are compatible with this package's GPL (>= 3) license. The full upstream
+- Popper (https://popper.js.org), used by Material UI
+  Copyright (c) 2019 Federico Zivolo. MIT License.
+
+- Redux Toolkit (https://redux-toolkit.js.org) and React Redux
+  Copyright (c) 2018 Mark Erikson; Copyright (c) 2015-present Dan Abramov.
+  MIT License.
+
+- Immer (https://immerjs.github.io/immer), used by Redux Toolkit
+  Copyright (c) 2017 Michel Weststrate. MIT License.
+
+- react-markdown (https://github.com/remarkjs/react-markdown)
+  Copyright (c) Espen Hovlandsdal. MIT License.
+
+- remark-gfm, remark-math, rehype-katex, rehype-sanitize and the unified,
+  remark, rehype and micromark libraries they build on
+  (https://unifiedjs.com). Copyright (c) Titus Wormer. MIT License.
+
+- hotkeys-js (https://github.com/jaywcjlove/hotkeys-js)
+  Copyright (c) 2015 kenny wong. MIT License.
+
+The list follows the dependencies of the bundled MAIDR release
+(package.json in https://github.com/xability/maidr) and is checked against
+the bundle when it is refreshed; refresh it here too when the upstream
+dependencies change.
+
+All bundled components are distributed under the MIT license, which is
+compatible with this package's GPL (>= 3) license. The full upstream
 license texts are available from each project's repository.

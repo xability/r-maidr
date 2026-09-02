@@ -34,7 +34,7 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
     extract_data = function(layer_info) {
       plot_call <- layer_info$plot_call
       args <- plot_call$args
-      height_matrix <- args[[1]]
+      height_matrix <- recorded_barplot_height(args)
 
       col_names <- args$names.arg
       row_names <- NULL
@@ -172,7 +172,7 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      main_title <- if (!is.null(args$main)) args$main else ""
+      main_title <- recorded_main_title(args)
 
       main_title
     }

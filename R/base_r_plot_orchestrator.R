@@ -31,7 +31,87 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .cached_gtable = NULL,
     .fallback_mode = "none",
     .fallback_groups = integer(0),
-    .fallback_panels = integer(0)
+    .fallback_panels = integer(0),
+
+    # The one result that declares its own subplot grid, or NULL.
+    #
+    # `pairs()` is the case: it draws an `n x n` matrix of panels, sets its
+    # own `par(mfrow)` internally and restores it, so nothing reaches the
+    # device's layout calls and `detect_panel_configuration()` sees a single
+    # panel (#272). The grid has to come from the reading.
+    #
+    # Only when it is the *only* result. A call that takes over the device's
+    # layout is by construction the whole page, and a second chart beside it
+    # would have no cell of its own to go in -- so a mixed page falls through
+    # to the ordinary path, where the grid-declaring result carries no `type`
+    # and is skipped, leaving the figure on the static fallback rather than
+    # in a grid that describes half of it.
+    declared_grid = function(layer_results) {
+      present <- Filter(Negate(is.null), layer_results)
+      if (length(present) != 1) {
+        return(NULL)
+      }
+      result <- present[[1]]
+      if (!isTRUE(result$multi_panel) || !length(result$panels)) {
+        return(NULL)
+      }
+      if (!is.numeric(result$nrows) || !is.numeric(result$ncols)) {
+        return(NULL)
+      }
+      result
+    },
+
+    # The subplot grid a declaring result asks for.
+    #
+    # A cell it named no layer for stays empty rather than absent: the
+    # orchestrator's own note for the layout() case applies unchanged -- "a
+    # bare NULL serializes as `{}`, which the maidr frontend cannot parse" --
+    # and a scatterplot matrix's diagonal is exactly that cell, drawing the
+    # variable's name and no marks.
+    build_declared_grid = function(result) {
+      grid <- vector("list", result$nrows)
+      for (r in seq_len(result$nrows)) {
+        grid[[r]] <- vector("list", result$ncols)
+        for (c_idx in seq_len(result$ncols)) {
+          grid[[r]][[c_idx]] <- list(
+            id = paste0("maidr-subplot-", r, "-", c_idx),
+            layers = list()
+          )
+        }
+      }
+
+      counter <- 0
+      for (panel in result$panels) {
+        row <- panel$row
+        col <- panel$col
+        if (row < 1 || col < 1 || row > result$nrows || col > result$ncols) {
+          next
+        }
+        for (layer in panel$layers) {
+          counter <- counter + 1
+          layer_axes <- if (!is.null(layer$axes)) layer$axes else build_axes()
+          validate_axes(layer_axes, context = "base_r orchestrator (declared grid)")
+          layer_obj <- list(
+            id = paste0("maidr-layer-", counter),
+            selectors = layer$selectors,
+            type = layer$type,
+            data = layer$data,
+            title = if (!is.null(layer$title)) layer$title else "",
+            axes = layer_axes
+          )
+          for (field_name in names(layer)) {
+            if (!field_name %in% c("selectors", "data", "title", "axes", "type")) {
+              layer_obj[[field_name]] <- layer[[field_name]]
+            }
+          }
+          grid[[row]][[col]]$layers <- append(
+            grid[[row]][[col]]$layers, list(layer_obj)
+          )
+        }
+      }
+
+      grid
+    }
   ),
   public = list(
     initialize = function(device_id = grDevices::dev.cur()) {
@@ -343,6 +423,20 @@ BaseRPlotOrchestrator <- R6::R6Class(
       layout
     },
     combine_layer_results = function(layer_results) {
+      grid_result <- private$declared_grid(layer_results)
+      if (!is.null(grid_result)) {
+        private$.combined_data <- private$build_declared_grid(grid_result)
+        private$.combined_selectors <- list()
+        for (panel in grid_result$panels) {
+          for (layer in panel$layers) {
+            private$.combined_selectors <- c(
+              private$.combined_selectors, layer$selectors
+            )
+          }
+        }
+        return(invisible(NULL))
+      }
+
       panel_config <- detect_panel_configuration(private$.device_id)
 
       if (is_multipanel_config(panel_config)) {
@@ -364,6 +458,15 @@ BaseRPlotOrchestrator <- R6::R6Class(
           result <- layer_results[[i]]
           # Skip NULL results (from unknown/unsupported layers)
           if (is.null(result)) {
+            next
+          }
+          # A result that declared its own grid but was not the only one on
+          # the page. `declared_grid()` has already refused it, and it
+          # carries no `type` and no `data` -- emitted here it would become a
+          # layer announcing nothing, with the grid's own bookkeeping leaked
+          # into the payload beside it (#272). Skipping leaves the figure
+          # reading exactly as it did before grids existed.
+          if (isTRUE(result$multi_panel)) {
             next
           }
           layer_info <- private$.layers[[i]]
@@ -482,6 +585,15 @@ BaseRPlotOrchestrator <- R6::R6Class(
           if (is.null(result)) {
             next
           }
+          # A result that declared its own grid but was not the only one on
+          # the page. `declared_grid()` has already refused it, and it
+          # carries no `type` and no `data` -- emitted here it would become a
+          # layer announcing nothing, with the grid's own bookkeeping leaked
+          # into the payload beside it (#272). Skipping leaves the figure
+          # reading exactly as it did before grids existed.
+          if (isTRUE(result$multi_panel)) {
+            next
+          }
 
           # --- Multi-layer expansion (e.g. candlestick + addVo volume) ---
           if (isTRUE(result$multi_layer) && !is.null(result$layers)) {
@@ -547,7 +659,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
             selectors = result$selectors,
             type = layer_type,
             data = result$data,
-            title = result$title,
+            # The same default the multipanel branch applies: a NULL title
+            # serialises as `{}`, which is not a string.
+            title = if (!is.null(result$title)) result$title else "",
             axes = layer_axes
           )
 

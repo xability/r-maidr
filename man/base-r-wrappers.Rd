@@ -26,8 +26,22 @@
 \alias{cdplot}
 \alias{qqnorm}
 \alias{qqplot}
+\alias{qqline}
 \alias{filled.contour}
+\alias{acf}
+\alias{pacf}
+\alias{ccf}
+\alias{cpgram}
+\alias{spectrum}
+\alias{monthplot}
+\alias{termplot}
+\alias{lag.plot}
+\alias{biplot}
+\alias{interaction.plot}
+\alias{bxp}
+\alias{stars}
 \alias{vioplot}
+\alias{wordcloud}
 \alias{chartSeries}
 \alias{lines}
 \alias{points}
@@ -96,9 +110,37 @@ qqnorm(...)
 
 qqplot(...)
 
+qqline(...)
+
 filled.contour(...)
 
+acf(...)
+
+pacf(...)
+
+ccf(...)
+
+cpgram(...)
+
+spectrum(...)
+
+monthplot(...)
+
+termplot(...)
+
+lag.plot(...)
+
+biplot(...)
+
+interaction.plot(...)
+
+bxp(...)
+
+stars(...)
+
 vioplot(...)
+
+wordcloud(...)
 
 chartSeries(...)
 

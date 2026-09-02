@@ -66,6 +66,64 @@ is_step_plot_type <- function(plot_type) {
   as.character(plot_type)[1] %in% c("s", "S")
 }
 
+#' Whether a `mosaicplot()` call was handed a two-way table
+#'
+#' A `mosaic` layer has one category axis and one fill, so it can carry a
+#' two-dimensional table and no more. `mosaicplot()` accepts deeper ones and
+#' splits them recursively.
+#'
+#' The table itself is resolved by `recorded_two_way_table()`, which the
+#' processor also reads, so dispatch and extraction cannot disagree about
+#' which calls are readable.
+#'
+#' @param args The arguments recorded from the `mosaicplot()` call.
+#' @return `TRUE` when the call's table has exactly two dimensions.
+#' @keywords internal
+is_two_way_table <- function(args) {
+  !is.null(recorded_two_way_table(args))
+}
+
+#' Whether a `dotchart()` call draws more than one group
+#'
+#' `dotchart()` draws a group per matrix column, or per level of `groups`,
+#' with a header in the left margin and every dot in one shared grob. The
+#' grouping is what the chart is drawn to show and there is nothing in a
+#' flat `dot` layer to carry it, so such a call is declined rather than
+#' flattened.
+#'
+#' @param args The arguments recorded from the `dotchart()` call.
+#' @return `TRUE` when the call draws groups, otherwise `FALSE`.
+#' @keywords internal
+is_grouped_dotchart <- function(args) {
+  if (!is.null(args$groups)) {
+    return(TRUE)
+  }
+  # `resolve_xy_args()` rather than `args$x`, which partial-matches `xlab`
+  # and friends -- see #245.
+  x <- resolve_xy_args(args)$x
+  is.matrix(x) || is.data.frame(x)
+}
+
+#' Whether a Base R `type` argument draws spikes
+#'
+#' `type = "h"` draws a vertical line from the baseline to each value --
+#' "histogram-like" in `plot()`'s own wording -- and joins nothing to
+#' anything. Read as a `lollipop` layer, which the core builds on `BarTrace`:
+#' one value per position, with no claim about the space between two of them.
+#'
+#' Case-sensitive, like the step test beside it: `plot()` has no `"H"`.
+#'
+#' @param plot_type The `type` argument recorded from the plot call (may be
+#'   NULL when the caller did not pass one).
+#' @return `TRUE` when `plot_type` is `"h"`, otherwise `FALSE`.
+#' @keywords internal
+is_spike_plot_type <- function(plot_type) {
+  if (is.null(plot_type) || length(plot_type) == 0) {
+    return(FALSE)
+  }
+  identical(as.character(plot_type)[1], "h")
+}
+
 #' Map a Base R `type` argument onto a MAIDR step direction
 #'
 #' `type = "s"` draws the horizontal segment first, which is MAIDR's `"hv"`;
@@ -98,6 +156,50 @@ BaseRAdapter <- R6::R6Class(
     #' @description Initialize the Base R adapter
     initialize = function() {
       super$initialize("base_r")
+    },
+
+    #' @description Was a formula call recorded without the frame it drew from?
+    #'
+    #' A formula reader takes its rows from the model frame kept at record
+    #' time. When that frame could not be built -- a `subset` written as an
+    #' expression with nothing to evaluate it in, a `data` that no longer
+    #' resolves -- the reader has nothing to announce, and a claimed layer
+    #' with nothing in it exports as an interactive chart that says nothing.
+    #' Declining the type sends the chart to the picture instead.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the call carries a formula but no frame
+    formula_frame_missing = function(layer) {
+      self$formula_call(layer) && is.null(layer$formula_frame)
+    },
+
+    #' @description Was the call handed a formula?
+    #'
+    #' Either written in the call, or -- `fmla <- y ~ x; plot(fmla)` --
+    #' bound to a name the recorder resolved.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the call carries a formula
+    formula_call = function(layer) {
+      inherits(layer$formula, "formula") ||
+        is_formula_argument(resolve_xy_args(layer$args)$x)
+    },
+
+    #' @description Does a recorded formula `plot()` draw a numeric scatter?
+    #'
+    #' `plot.formula()` draws a scatter only for a numeric response over one
+    #' numeric predictor; a factor predictor reaches `plot.factor()` and a
+    #' box plot, and a longer right-hand side is `plot.default()` over the
+    #' first term. Only the two-column numeric frame is read as points.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the frame is a numeric pair
+    formula_scatter_readable = function(layer) {
+      frame <- layer$formula_frame
+      if (!is.data.frame(frame) || ncol(frame) != 2L) {
+        return(FALSE)
+      }
+      all(vapply(frame, is.numeric, logical(1)))
     },
 
     #' @description Check if this adapter can handle a plot object
@@ -142,6 +244,12 @@ BaseRAdapter <- R6::R6Class(
           first_arg <- args[[1]]
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
+          } else if (self$formula_call(layer) && !self$formula_scatter_readable(layer)) {
+            # `plot(y ~ f)` on a factor dispatches to `plot.factor()`, which
+            # draws a box plot, and a formula whose frame could not be
+            # resolved has nothing to announce. Typed as points, either
+            # exported as an interactive chart with no points in it.
+            "unknown"
           } else {
             # plot() default type is "p" (points/scatter)
             # plot(x, y) with two numeric vectors defaults to scatter
@@ -169,9 +277,39 @@ BaseRAdapter <- R6::R6Class(
             # gridGraphics gives them, so they are addressable rather than
             # unpointable. Reaching here positionally is new, so
             # `plot(x, y, "s")` is described for the first time.
-            plot_type <- args$type
-            if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {
+            #
+            # `type = "n"` is the one that draws nothing at all: it sets up
+            # the axes and plots no points and no lines, which is how a custom
+            # chart is started before `segments`, `polygon` or `rect` add the
+            # marks. The catch-all below claimed it as a line, so an empty
+            # panel was announced as a full series of the values `plot()` was
+            # handed and deliberately did not draw -- ten points to walk and
+            # sonify, where a sighted reader sees nothing (#237).
+            #
+            # Worse than being unread, for the reason #572 gives about
+            # `triplot`: the data is real, the axes are real, and the only
+            # false thing is the claim that any of it was drawn. Declined, so
+            # the figure falls back to a picture of the empty panel it is --
+            # which is what the shapes drawn over it already get, since they
+            # contribute no layer of their own.
+            plot_type <- args[["type"]]
+            # `plot.ts` defaults to `type = "l"`, so `plot(AirPassengers)`
+            # draws a line and no points. Read off `type` alone it was typed
+            # `point`, with a selector on a points grob that was never drawn.
+            if (is.null(plot_type) && stats::is.ts(first_arg)) {
+              plot_type <- "l"
+            }
+            if (is.character(plot_type) && identical(plot_type[1], "n")) {
+              "unknown"
+            } else if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {
               "point"
+            } else if (is_spike_plot_type(plot_type)) {
+              # type = "h" draws a vertical from the baseline to each value
+              # and joins nothing to anything. The catch-all "line" below
+              # claimed it, which is the reading a spike chart most needs not
+              # to have: a line says the samples are joined and the space
+              # between them can be interpolated (#239).
+              "lollipop"
             } else if (is_step_plot_type(plot_type)) {
               # type = "s" / "S" draw stairsteps. This test must precede the
               # catch-all "line" below, which would otherwise claim them.
@@ -213,32 +351,184 @@ BaseRAdapter <- R6::R6Class(
             "line"
           }
         },
+        # A Cleveland dot plot: one value per category, marked on a guide
+        # line, categories down the page. Read as `dot`, which the core
+        # builds on its bar trace (#237).
+        #
+        # Only the one-value-per-category form. `dotchart()` also takes a
+        # matrix, or a `groups` factor, and then draws every group's dots
+        # into the *same* points grob with a header per group in the left
+        # margin -- so a flat reading would hand the reader one run of dots
+        # with no way to tell which group each belongs to, and the group
+        # names silently dropped. Declined, which is where it already was.
+        "dotchart" = {
+          if (is_grouped_dotchart(args)) "unknown" else "dot"
+        },
+        # A two-way contingency table drawn as tiles, where the column
+        # widths encode data as well as the tile heights. Read as `mosaic`,
+        # which exists for exactly this shape; read as a stacked bar it
+        # would lose the widths, and the widths are half the table (#242).
+        #
+        # Only a two-dimensional table. `mosaicplot()` accepts three and
+        # more, splitting recursively, and a `mosaic` layer has one category
+        # axis and one fill -- so a deeper table has nowhere to put its
+        # later dimensions and is declined rather than flattened into a
+        # cross-classification the chart does not claim.
+        "mosaicplot" = {
+          if (is_two_way_table(args)) "mosaic" else "unknown"
+        },
+        # A Cohen--Friendly association plot: the same two-way table, drawn
+        # as one tile per cell whose signed height is that cell's Pearson
+        # residual. Read as a `heat` -- a named grid of one number per cell,
+        # navigated row then column, which is how a contingency table is
+        # read. NOT as a `mosaic`, though the two look alike: a mosaic's
+        # tiles are proportions of a whole and these are signed departures
+        # from an expectation, which sum to nothing (#266).
+        "assocplot" = {
+          if (is_two_way_table(args)) "residual" else "unknown"
+        },
+        # A Q-Q plot: the scatter of one sample's quantiles against another
+        # distribution's. Read as `point` -- it is a scatter, and the only
+        # thing separating it from any other is that its coordinates are
+        # *computed* rather than handed in, which is what
+        # `BaseRQqLayerProcessor` exists for (#251).
+        "qqnorm" = "qq",
+        # `qqplot(conf.level = ...)` additionally draws a confidence band,
+        # as a `polygon()` from inside `stats` that the wrapper never sees
+        # and nothing in the payload could carry. Reading the points alone
+        # would hand a reader a chart with a drawn region silently missing
+        # from it, so the whole call is declined and keeps falling back to
+        # a picture, which at least says what it is.
+        #
+        # The caller's own argument is the whole test, which reads "no band"
+        # off the caller's *silence*. That is sound only while
+        # `stats::qqplot`'s own default is NULL, and it is -- so rather than
+        # consult `formals()` here, where a NULL default makes the extra
+        # branch unobservable and untestable, the assumption is asserted
+        # outright in `test-base-r-qq-plot.R`. A release that changed the
+        # default fails that test rather than silently turning every plain
+        # `qqplot()` into a chart with a drawn region missing from it.
+        # Raised in review of #253.
+        "qqplot" = {
+          if (is.null(args[["conf.level"]])) "qq" else "unknown"
+        },
+        # A one-dimensional scatter: every observation as its own mark,
+        # laid along a value axis at its group's position. Read as `point`,
+        # one layer per group, which is what the drawing forces -- gridSVG
+        # exports one `points` grob per group -- and what the same chart
+        # already gets in py-maidr (#251).
+        "stripchart" = {
+          if (self$formula_frame_missing(layer)) "unknown" else "strip"
+        },
+        # An `n x n` grid of scatters: every ordered pair of columns, the
+        # column across against the column down. Read as a *figure* of
+        # subplots rather than as one layer, which is the shape the same
+        # chart already gets in py-maidr (#272).
+        "pairs" = {
+          if (self$formula_frame_missing(layer)) "unknown" else "pairs"
+        },
+        # One closed outline per observation, a spoke per variable -- which is
+        # a multi-line layer with the matrix turned on its side, since MAIDR's
+        # radar is navigated as one series per row (#262).
+        "stars" = "radar",
+        # A term and its count, drawn as glyph size and written down nowhere
+        # on the page. `wordcloud()` takes the counts directly, so unlike the
+        # Python binding the raw frequencies survive in the call and the
+        # reading announces occurrences rather than ratios.
+        "wordcloud" = "word_cloud",
+        # A grid of scatters again, this time of one series against shifted
+        # copies of itself: one panel per series and lag, `X[t + k]` across
+        # against `X[t]` up. Read as a figure of subplots for the same reason
+        # `pairs()` is -- the call lays out its own panels and the device's
+        # layout calls never see them (#262).
+        "lag.plot" = "lag",
+        # One partial-effect curve per term of a fitted model, each against
+        # its own carrier. A grid again, for the third time and for the same
+        # reason -- except that this call sets no layout at all, so the
+        # caller's `par(mfrow)` decides how many terms share the page (#262).
+        "termplot" = "termplot",
+        # An estimated spectral density against frequency -- one curve, drawn
+        # as a line, with a confidence crosshair beside it that is a reference
+        # mark rather than a reading (#262).
+        "spectrum" = "spectral_density",
+        # The cumulative periodogram of the same series, drawn as a staircase
+        # rather than a line because a cumulative sum holds and then jumps.
+        # It computes its own periodogram rather than reusing `spectrum()`'s,
+        # which is why it has a processor of its own (#262).
+        "cpgram" = "cumulative_periodogram",
+        # The observations in principal component space and the variables'
+        # loadings on the same components, drawn on top of each other on two
+        # different pairs of axes. Read as a figure of two subplots, because
+        # the two halves do not share a scale (#262).
+        "biplot" = "biplot",
+        # The same level curves `contour()` draws, with the bands between
+        # them filled. Read as a contour, from `contourLines()` rather than
+        # from the fill, so one chart's two spellings read alike (#251).
+        "filled.contour" = "filled_contour",
+        # A mosaic of two categorical variables: one column per level of x,
+        # its width that level's share of all observations, split by y's
+        # conditional proportions. Read as `mosaic`, which is the shape
+        # `mosaicplot()` already gets (#251).
+        "spineplot" = "spine",
+        # The conditional distribution of a factor across a numeric x,
+        # drawn as bands that fill the height and sum to 1 at every x. Read
+        # as `stacked_normalized_area`, the shape `geom_area(position =
+        # "fill")` already gets (#251).
+        "cdplot" = "conditional_density",
+        # The three correlogram entry points. Each draws one vertical spike
+        # per lag, from the zero line to the correlation at that lag, and
+        # joins nothing to anything -- the shape `type = "h"` already reads
+        # as a `lollipop` for, and under the same `spike` grob name (#276).
+        # They are recorded but were read as nothing, so the chart came out
+        # as a picture.
+        "acf" = "correlogram",
+        "pacf" = "correlogram",
+        "ccf" = "correlogram",
         "hist" = "hist",
         "boxplot" = "box",
+        # `boxplot()`'s own drawing half, called directly by a caller who
+        # already has the five-number summaries. It draws the same marks
+        # `boxplot()` does -- the same grob names in the same order -- so it
+        # is the same `box` layer, and the separate name only routes it to
+        # the subclass that reads the summaries out of the call instead of
+        # recomputing them from observations that are not there (#262).
+        "bxp" = "box_stats",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the
         # same shape the ggplot2 adapter produces for geom_violin().
-        "vioplot" = "violin",
+        "vioplot" = {
+          # The formula interface is not read: resolving it needs an
+          # environment the processor no longer has. Declined here, so the
+          # chart falls back to a picture rather than exporting as an
+          # interactive chart with no layers in it.
+          if (self$formula_call(layer)) "unknown" else "violin"
+        },
         "pie" = "pie",
         "image" = "heat",
         "heatmap" = "heat",
-        # `contour()` has no processor, and typing it "contour" put the gap in
-        # the *payload* rather than in the fallback: the layer came out typed
+        # Typed "contour" again, now that `BaseRContourLayerProcessor` exists
+        # to read one (#218). It was "unknown" for a while, and the reason is
+        # worth keeping: with no processor behind it, this line put the gap in
+        # the *payload* rather than in the fallback. The layer came out typed
         # "unknown" -- which `unsupported_layer_flags` only looks for on
         # `layer$type`, so the static-image path never ran -- and the core's
         # trace factory ends with `throw new Error("Invalid trace type: ...")`,
         # so the figure never bound. An interactive shell answering no key,
         # and no picture either (#214).
         #
-        # Typed "unknown" here it takes the same fallback `dotchart` and
-        # `mosaicplot` take: a static image and a warning saying so. Worse
-        # than reading the chart, better than both of the above.
-        #
-        # Reading it properly is still open, and the type exists: the ggplot2
-        # adapter emits `contour` for `geom_contour()` (#198), and base R's
-        # `contour()` hands over the same `x`, `y`, `z` and `levels`. Adding
-        # the processor is what changes this line back.
-        "contour" = "unknown",
+        # So this name and the factory's dispatch have to move together. The
+        # registry in `base_r_processor_factory` is derived from that dispatch
+        # (#200), which is what stops them drifting apart again.
+        "contour" = "contour",
         "matplot" = "line",
+        # The same set of lines, over cell means the call computes
+        # rather than over a matrix the caller handed in. The separate
+        # name routes it to the subclass that recomputes them (#278).
+        "interaction.plot" = "interaction",
+        # One line per cycle position, over that position's own subseries.
+        # The same set of lines again -- what the separate name routes to is
+        # the subclass that recovers the times the slot offsets were computed
+        # from, which the drawing does not carry (#262).
+        "monthplot" = "subseries",
         # quantmod::chartSeries() candlestick path. The `type` argument
         # defaults to "auto"; we accept the call as candlestick only when
         # the user explicitly requests it (matching the MVP scope).
@@ -294,7 +584,16 @@ BaseRAdapter <- R6::R6Class(
           # lines() never inspected `type` before, so lines(x, y, type = "s")
           # was reported as a plain line. The wrapper captures named dots, so
           # the stairstep request is available here just as it is for plot().
-          step_fallback <- if (is_step_plot_type(args$type)) "step" else "line"
+          # Same ladder the `plot()` branch above runs, so an overlay drawn
+          # with `type = "s"` or `type = "h"` reads as the shape it draws
+          # rather than as a plain line.
+          step_fallback <- if (is_step_plot_type(args$type)) {
+            "step"
+          } else if (is_spike_plot_type(args$type)) {
+            "lollipop"
+          } else {
+            "line"
+          }
           if (!is.null(first_arg)) {
             if (inherits(first_arg, "density")) {
               "smooth" # Existing: density curves
@@ -318,6 +617,11 @@ BaseRAdapter <- R6::R6Class(
         },
         "points" = "point",
         "abline" = "line",
+        # `qqline()` draws an `abline` from inside the `stats`
+        # namespace, where the wrapper never sees it -- so it is
+        # recorded under its own name and read as the reference line
+        # it is, from its own arguments rather than the plot's (#252).
+        "qqline" = "qqline",
         "polygon" = "unknown", # Decorative element, triggers fallback if present
         "unknown"
       )
@@ -329,13 +633,14 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
-      height <- args[[1]]
-      beside <- args$beside
-
+      height <- recorded_barplot_height(args)
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
-      # For matrices, beside = TRUE creates dodged bars
-      beside_true <- if (is.null(beside)) FALSE else beside
+      # For matrices, beside = TRUE creates dodged bars. Read the way
+      # `barplot()` reads it -- `if (beside)` -- rather than passed through,
+      # which returned the caller's own value and made this expression a
+      # number rather than a logical (#256).
+      beside_true <- recorded_flag(args, "beside")
 
       is_matrix && beside_true
     },
@@ -344,15 +649,13 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
-      height <- args[[1]]
-      beside <- args[["beside"]]
-
+      height <- recorded_barplot_height(args)
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
       # For matrices, beside = FALSE creates stacked bars - and FALSE is
       # barplot()'s DEFAULT, so a matrix without an explicit `beside`
       # argument is also stacked
-      beside_false <- if (is.null(beside)) TRUE else !isTRUE(beside)
+      beside_false <- !recorded_flag(args, "beside")
 
       is_matrix && beside_false
     },
@@ -383,7 +686,7 @@ BaseRAdapter <- R6::R6Class(
         return(FALSE)
       }
 
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       if (nrow(height) < 2) {
         return(FALSE)
       }

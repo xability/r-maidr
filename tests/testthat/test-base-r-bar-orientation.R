@@ -18,20 +18,8 @@
 # combination #184 was about, so setting the key alone would have turned a
 # wrong announcement into a silent chart.
 
-bar_layers <- function(draw) {
-  grDevices::pdf(NULL)
-  on.exit(grDevices::dev.off(), add = TRUE)
-  device_id <- grDevices::dev.cur()
-  if (maidr:::has_device_calls(device_id)) {
-    maidr:::clear_device_storage(device_id)
-  }
-  draw()
-  schema <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
-  schema$subplots[[1]][[1]]$layers
-}
-
 bar_layer <- function(draw) {
-  bar_layers(draw)[[1]]
+  base_r_layers(draw)[[1]]
 }
 
 FRUIT <- local({

@@ -57,8 +57,12 @@ create_fallback_image <- function(plot = NULL, format = "png",
         device_id <- current_dev
         replay_base_r_plot(device_id)
       } else if (inherits(plot, "ggplot")) {
-        # ggplot2: print the plot
-        print(plot)
+        # ggplot2: draw with ggplot2's own print method. A bare `print()`
+        # dispatches to `maidr_print_ggplot()`, which builds the interactive
+        # chart again, fails again, and lands back here -- once per nested
+        # png() device until R runs out of them. The chart that could not be
+        # exported is drawn as the picture it is, not re-attempted.
+        print_ggplot_natively(plot)
       } else {
         stop("Unknown plot type")
       }
@@ -111,42 +115,38 @@ create_fallback_image <- function(plot = NULL, format = "png",
 #' @param device_id The device ID to get calls from
 #' @keywords internal
 replay_base_r_plot <- function(device_id) {
-  # Get plot calls from device storage
-  grouped <- group_device_calls(device_id)
-  plot_groups <- grouped$groups
+  # Every recorded call, in the order it was made. The grouped view keeps
+  # the HIGH and LOW calls and drops the LAYOUT ones, so a multi-panel
+  # figure's picture was replayed without its `par(mfrow = )` or
+  # `layout()` and came out as one panel drawn over another.
+  all_calls <- get_device_calls(device_id)
+  high_calls <- get_device_calls_by_class(device_id, "HIGH")
 
-  if (length(plot_groups) == 0) {
+  if (length(high_calls) == 0) {
     stop("No Base R plot calls found to replay")
   }
 
-  # Replay each group of calls. The recorded args carry maidr's own
-  # bookkeeping (the axis format config, the points curve() drew); passing
-  # those through to the plotting function reaches its `...` and warns
-  # '".maidr_..." is not a graphical parameter'.
-
-  for (group in plot_groups) {
-    # Execute high-level call first
-    high_call <- group$high_call
-    if (!is.null(high_call)) {
-      tryCatch(
-        {
-          do.call(high_call$function_name, clean_maidr_args(high_call$args))
-        },
-        error = function(e) {
-          warning("Failed to replay: ", high_call$function_name)
+  # Replay through `replay_plot_call()`, which resolves each name to the
+  # *original* graphics function and strips maidr's own bookkeeping
+  # arguments. Calling the name through `do.call()` reached maidr's recording
+  # wrapper instead, so the picture's replay was itself recorded -- against
+  # the temporary png() device, whose id R hands out again to the next device
+  # opened, where the stale calls surfaced as phantom layers. It also skipped
+  # the `call_env` an NSE call needs to evaluate its expressions the way the
+  # original did.
+  for (call_entry in all_calls) {
+    tryCatch(
+      replay_plot_call(
+        call_entry$function_name,
+        call_entry$args,
+        call_entry$call_env
+      ),
+      error = function(e) {
+        if (identical(call_entry$class_level, "HIGH")) {
+          warning("Failed to replay: ", call_entry$function_name)
         }
-      )
-    }
-
-    # Execute low-level calls
-    for (low_call in group$low_calls) {
-      tryCatch(
-        {
-          do.call(low_call$function_name, clean_maidr_args(low_call$args))
-        },
-        error = function(e) NULL
-      )
-    }
+      }
+    )
   }
 }
 
@@ -156,13 +156,15 @@ replay_base_r_plot <- function(device_id) {
 #'
 #' @param plot A ggplot2 object or NULL for Base R plots
 #' @param shiny If TRUE, returns just the image tag for Shiny/knitr use
-#' @param format Image format (default: "png")
+#' @param format Image format. Defaults to the `maidr.fallback_format`
+#'   option, which [maidr_set_fallback()] sets.
 #' @param width Image width in inches
 #' @param height Image height in inches
 #' @return HTML content string or htmltools object
 #' @keywords internal
 create_fallback_html <- function(plot = NULL, shiny = FALSE,
-                                 format = "png", width = 7, height = 5) {
+                                 format = get_fallback_format(),
+                                 width = 7, height = 5) {
   # Generate the fallback image
   img_data_uri <- create_fallback_image(
     plot = plot,

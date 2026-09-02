@@ -325,12 +325,6 @@ test_that("process_patchwork_panel generates unique id", {
   testthat::expect_true(grepl("^maidr-subplot-", result2$id))
 })
 
-test_that("process_patchwork_panel processes layers", {
-  # This test requires full system integration - skip in unit tests
-  # The function is tested implicitly through the patchwork integration tests
-  testthat::skip("Requires full system integration")
-})
-
 # ==============================================================================
 # Edge Cases
 # ==============================================================================
@@ -919,4 +913,26 @@ test_that("the axes gate passes every leaf of an unformatted composition", {
       }
     }
   }
+})
+
+
+test_that("a horizontal bar leaf keeps its orientation", {
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("patchwork")
+
+  # The leaf entry is rebuilt field by field, and the carry of the
+  # processor's remaining fields was restricted to expanded (violin)
+  # results, so a horizontal bar leaf lost `orientation` and a dodged count
+  # leaf lost the `domMapping` it highlights by.
+  df <- data.frame(g = c("a", "b"), n = c(1, 2))
+  horizontal <- ggplot2::ggplot(df, ggplot2::aes(y = g, x = n)) +
+    ggplot2::geom_col()
+  other <- ggplot2::ggplot(df, ggplot2::aes(g, n)) +
+    ggplot2::geom_col()
+
+  data <- maidr:::Ggplot2PlotOrchestrator$new(horizontal + other)$generate_maidr_data()
+  leaf <- data$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_identical(leaf$type, "bar")
+  testthat::expect_identical(leaf$orientation, "horz")
 })

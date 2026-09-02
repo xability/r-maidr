@@ -40,7 +40,7 @@ BaseRPointLayerProcessor <- R6::R6Class(
       args <- plot_call$args
 
       # For plot()/points(): named x/y win, then unnamed positionals
-      xy <- resolve_xy_args(args)
+      xy <- self$resolve_coordinates(plot_call)
       x <- xy$x
       y <- xy$y
 
@@ -88,6 +88,58 @@ BaseRPointLayerProcessor <- R6::R6Class(
 
       data_points
     },
+    # The x and y a recorded call plots, resolved as plot() resolves them.
+    #
+    # `plot(y ~ x, data = d)` carries a formula rather than two vectors, and
+    # its coordinates are the two columns of the model frame the recording
+    # kept (#254). Read from `resolve_xy_args()` alone, the formula is a
+    # language object and the layer came out with no points at all -- an
+    # interactive chart with nothing in it.
+    #
+    # @param plot_call The recorded call
+    # @return A list with `x` and `y`, either of which may be NULL
+    resolve_coordinates = function(plot_call) {
+      frame <- self$formula_variables(plot_call)
+      if (!is.null(frame)) {
+        return(list(x = frame$x, y = frame$y))
+      }
+      resolve_xy_args(plot_call$args)
+    },
+    # The two numeric variables of a recorded formula call, or NULL.
+    #
+    # Only a numeric pair is a scatter: `plot(y ~ f)` on a factor draws a
+    # box plot through `plot.factor()`, and a frame with more than one
+    # predictor draws something else again. Both are left as they were.
+    #
+    # @param plot_call The recorded call
+    # @return A list with `x`, `y`, `x_name`, `y_name`, or NULL
+    formula_variables = function(plot_call) {
+      args <- plot_call$args
+      handed <- resolve_xy_args(args)$x
+      if (!is_formula_argument(handed) && !inherits(plot_call$formula, "formula")) {
+        return(NULL)
+      }
+      frame <- plot_call$formula_frame
+      if (!is.data.frame(frame) || ncol(frame) != 2) {
+        return(NULL)
+      }
+      response <- attr(attr(frame, "terms"), "response")
+      if (!is.numeric(response) || !response %in% c(1L, 2L)) {
+        return(NULL)
+      }
+      predictor <- setdiff(1:2, response)
+      x <- frame[[predictor]]
+      y <- frame[[response]]
+      if (!is.numeric(x) || !is.numeric(y)) {
+        return(NULL)
+      }
+      list(
+        x = x,
+        y = y,
+        x_name = names(frame)[predictor],
+        y_name = names(frame)[response]
+      )
+    },
     # Extract axis information from Base R plot call
     #
     # Returns per-axis objects with an optional label and optional grid
@@ -116,8 +168,21 @@ BaseRPointLayerProcessor <- R6::R6Class(
       x_axis <- build_axis_config(label = recorded_axis_label(args, "xlab"))
       y_axis <- build_axis_config(label = recorded_axis_label(args, "ylab"))
 
+      # `plot(y ~ x, data = d)` labels its axes with the two variable names,
+      # which the recorded frame still carries.
+      frame <- self$formula_variables(plot_call)
+      if (!is.null(frame)) {
+        if (is.null(x_axis$label)) {
+          x_axis <- build_axis_config(label = frame$x_name)
+        }
+        if (is.null(y_axis$label)) {
+          y_axis <- build_axis_config(label = frame$y_name)
+        }
+      }
+
       # --- Optionally extract grid navigation fields ---
-      xy <- resolve_xy_args(args)
+      # The frame resolved above already holds a formula call's coordinates.
+      xy <- if (!is.null(frame)) frame else resolve_xy_args(args)
       x_data <- xy$x
       y_data <- xy$y
       # Let R resolve the coordinates, the way extract_data() already does.
@@ -223,7 +288,7 @@ BaseRPointLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      main_title <- if (!is.null(args$main)) args$main else ""
+      main_title <- recorded_main_title(args)
       main_title
     },
     generate_selectors = function(layer_info, gt = NULL) {

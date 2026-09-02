@@ -130,7 +130,74 @@ qqplot <- function(...) stats::qqplot(...)
 
 #' @rdname base-r-wrappers
 #' @export
+qqline <- function(...) stats::qqline(...)
+
+#' @rdname base-r-wrappers
+#' @export
 filled.contour <- function(...) graphics::filled.contour(...)
+
+# The twelve below were classified and given layer processors, but never
+# exported -- and an unexported stub is invisible to a caller. `.onLoad` runs
+# `wrap_function()`, which installs the recording wrapper into maidr's *own*
+# namespace, so a bare call only reaches it when it resolves through that
+# namespace. A user's call resolves through the search path instead, finds
+# `stats::`/`graphics::` directly, and the chart draws unrecorded. Exporting
+# the name is what puts maidr's copy in front of the original.
+
+#' @rdname base-r-wrappers
+#' @export
+acf <- function(...) stats::acf(...)
+
+#' @rdname base-r-wrappers
+#' @export
+pacf <- function(...) stats::pacf(...)
+
+#' @rdname base-r-wrappers
+#' @export
+ccf <- function(...) stats::ccf(...)
+
+#' @rdname base-r-wrappers
+#' @export
+cpgram <- function(...) stats::cpgram(...)
+
+#' @rdname base-r-wrappers
+#' @export
+spectrum <- function(...) stats::spectrum(...)
+
+#' @rdname base-r-wrappers
+#' @export
+monthplot <- function(...) stats::monthplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+termplot <- function(...) stats::termplot(...)
+
+#' @rdname base-r-wrappers
+#' @export lag.plot
+#' @usage lag.plot(...)
+# Both tags are given explicitly, and for the same reason: roxygen reads
+# `lag.plot` as an S3 method for a `lag` generic on class `plot`. Left to
+# infer, it writes `S3method(lag, plot)` -- exporting nothing a caller can
+# reach -- and renders the usage as `\method{lag}{plot}(...)`, so the man
+# page describes a dispatch that does not exist. `@export` fixes the first,
+# `@usage` the second; neither implies the other.
+lag.plot <- function(...) stats::lag.plot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+biplot <- function(...) stats::biplot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+interaction.plot <- function(...) stats::interaction.plot(...)
+
+#' @rdname base-r-wrappers
+#' @export
+bxp <- function(...) graphics::bxp(...)
+
+#' @rdname base-r-wrappers
+#' @export
+stars <- function(...) graphics::stars(...)
 
 #' @rdname base-r-wrappers
 #' @export
@@ -182,6 +249,85 @@ vioplot <- function(...) {
 
   log_plot_call_to_device(
     "vioplot",
+    this_call,
+    args_list,
+    grDevices::dev.cur(),
+    call_env = call_env
+  )
+
+  invisible(result)
+}
+
+#' @rdname base-r-wrappers
+#' @export
+wordcloud <- function(...) {
+  if (!requireNamespace("wordcloud", quietly = TRUE)) {
+    stop(
+      "Package 'wordcloud' is required for wordcloud(). ",
+      "Please install it via install.packages('wordcloud').",
+      call. = FALSE
+    )
+  }
+
+  # Same shape and same reason as the vioplot stub above: `wordcloud` is in
+  # Suggests, so when it loads after maidr the namespace is already sealed and
+  # `wrap_function()` cannot replace this stub. Without a full recording
+  # wrapper here the call draws and is never recorded -- which is exactly what
+  # happened before, and which only shows up against an *installed* package,
+  # since `load_all()` leaves the namespace open and lets `wrap_function()`
+  # succeed.
+  original <- get("wordcloud", envir = asNamespace("wordcloud"))
+  if (is.null(.maidr_patching_env$.saved_graphics_fns[["wordcloud"]])) {
+    .maidr_patching_env$.saved_graphics_fns[["wordcloud"]] <- original
+  }
+
+  if (!is_patching_enabled()) {
+    return(original(...))
+  }
+
+  this_call <- match.call()
+  caller_env <- parent.frame()
+
+  ensure_maidr_device()
+
+  call_failed <- FALSE
+  result <- tryCatch(
+    original(...),
+    error = function(e) {
+      call_failed <<- TRUE
+      e
+    }
+  )
+  if (call_failed) {
+    result <- retry_call_in_caller_frame(original, this_call, caller_env, result)
+  }
+
+  args_list <- tryCatch(list(...), error = function(e) NULL)
+  call_env <- NULL
+  if (is.null(args_list)) {
+    args_list <- as.list(this_call)[-1L]
+    call_env <- snapshot_call_env(args_list, caller_env)
+  }
+  # `wordcloud(words, freq)` is as natural to write positionally as by name,
+  # and the layer reads `args$words` / `args$freq`. Name-matching here is what
+  # keeps the positional spelling from recording a call with nothing to read.
+  #
+  # Called on both paths, including after the NSE fallback above -- which the
+  # generated wrapper template deliberately does not do, because matching an
+  # unevaluated `as.list(this_call)` would force `args[[1]]` to find an S3
+  # method. That only happens for a generic: `dispatched_definition()` looks at
+  # the first argument solely when the target's body contains `UseMethod`.
+  # Measured, `wordcloud::wordcloud()` does not -- it is a plain function -- so
+  # the concern cannot arise here. Written down because it would if this stub
+  # were ever copied for a function that is generic (`vioplot()` is one, which
+  # is why its stub records the arguments unmatched).
+  args_list <- tryCatch(
+    match_recorded_args("wordcloud", original, args_list),
+    error = function(e) args_list
+  )
+
+  log_plot_call_to_device(
+    "wordcloud",
     this_call,
     args_list,
     grDevices::dev.cur(),

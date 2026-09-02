@@ -25,9 +25,32 @@ NULL
     "curve",
     "dotchart",
     "stripchart",
-    "stem",
+    # `stem` is deliberately absent, though it lives in `package:graphics`.
+    # It writes a stem-and-leaf display to the console: it opens no device,
+    # draws no marks, and returns invisibly. Listed here it was recorded as a
+    # chart, and measured, that cost two things (#260):
+    #
+    #   stem() alone      the save stopped with "Failed to create fallback
+    #                     image" -- a recorded call over a blank device, the
+    #                     shape #216 found for `qqnorm(plot.it = FALSE)`, and
+    #                     a message that claims a plot exists;
+    #   hist(); stem()    the histogram, interactive on its own, degraded to
+    #                     a static image with "Plot contains unsupported
+    #                     elements". The console output the caller asked for
+    #                     cost them the accessible chart they also drew.
+    #
+    # Being unlisted is the right answer rather than a gap: `save_html()`
+    # then says "No Base R plots detected", which is accurate, and a real
+    # chart beside it is read on its own terms. The same call the wrapper
+    # makes for `hist(x, plot = FALSE)` and `qqnorm(x, plot.it = FALSE)`,
+    # except that those need an argument check and this one does not --
+    # `stem()` never draws.
     "pie",
     "mosaicplot",
+    # Read since #266, as a `heat` of Pearson residuals. Listed here already,
+    # so gaining the reading did not touch this list -- the point the
+    # paragraph below the next group makes: being recorded and being read are
+    # separate steps.
     "assocplot",
     "pairs",
     "coplot",
@@ -47,6 +70,28 @@ NULL
     # promise of a reading. Adding a reading later means adding a processor
     # and a `detect_layer_type()` branch; it does not mean touching this
     # list, because each of these is already recorded.
+    # Five of these eight have since gained readings, without this list
+    # changing -- `spineplot` as a `mosaic` (#258), `cdplot` as a normalized
+    # stacked area (#259), `qqnorm`/`qqplot` as `point`, and
+    # `filled.contour` as a `contour`. What is left is three, and the sweep
+    # #251 records has now measured each, so they are separated here rather
+    # than left to be re-derived:
+    #
+    #   persp          Declined. A 3D surface has no 2D reading that is not
+    #                  a different chart.
+    #   fourfoldplot   Declined. Quarter-circles whose radii encode a 2xk
+    #                  odds ratio: the numbers drawn are the ratio, not the
+    #                  table, so a `mosaic` would announce something the
+    #                  plot does not draw. #268 measures a second obstacle
+    #                  on top of that -- the counts reach the drawing only
+    #                  when the caller asks for no standardisation.
+    #   sunflowerplot  Not declined -- **blocked**. The petals count the
+    #                  observations at each position, which had no field
+    #                  until xability/maidr#1161 added a `sunflower` trace.
+    #                  It is on `main` there and after the 4.4.0 that
+    #                  `MAIDR_VERSION` pins, so a layer emitted today would
+    #                  name a trace the bundle this package loads cannot
+    #                  render. Nothing to decide; it waits on a release.
     "persp",
     "sunflowerplot",
     "fourfoldplot",
@@ -55,13 +100,86 @@ NULL
     "qqnorm",
     "qqplot",
     "filled.contour",
+    # Twelve more wearing the same defect, found by the sweep #262 records:
+    # each draws a chart and `save_html()` then reported "No Base R plots
+    # detected. Please create a plot first" -- told to a caller whose chart
+    # is on the device. Measured with bare calls, because a qualified
+    # `stats::acf(v)` does not go through the search-path patch and would
+    # have put `assocplot` and `coplot` on this list wrongly.
+    #
+    # What goes through `plot()` was already fine and is untouched:
+    # `plot(density(x))`, `plot(ecdf(x))`, `plot(ts)`, `plot(lm)` and
+    # `plot(acf(x, plot = FALSE))` all record, because `plot` is listed.
+    # These are the entry points that draw *without* the generic.
+    #
+    # Listed, not read: the lower claim again -- except for `bxp`, the three
+    # correlogram entry points, `interaction.plot` and `monthplot`. `acf`, `pacf` and
+    # `ccf` each draw one vertical spike per lag, which is the shape
+    # `type = "h"` already reads as a `lollipop` for and under the same
+    # `spike` grob name, so they gained a reading without this list changing
+    # (#276). `interaction.plot` is the same story once more: it computes a
+    # grid of cell means and hands it to `matplot`, so it draws the set of
+    # lines the line processor already reads, one series per trace level
+    # (#278). `monthplot` is the story after it: it lays out one `lines()`
+    # call per cycle position over that position's own subseries, so it is
+    # that same set of lines a fourth time, and the reading only had to
+    # recover the times its slot offsets were computed from (#262).
+    # `bxp` had the story before all of them. It draws the
+    # same marks `boxplot()` does, from the summaries it is handed instead of
+    # from observations, so it takes the `box` layer through a subclass that
+    # only overrides where the summaries come from. `lag.plot` breaks the
+    # pattern: it is the only one of the twelve that draws a *grid*, one
+    # panel per series and lag, so it is read the way `pairs()` is -- as a
+    # figure of subplots rather than as a layer -- and the panel numbering it
+    # places them by was measured off a real export (#262). `stars` breaks it
+    # the other way: it is the first base R call read as a `radar`, one closed
+    # outline per observation, which is the same set of lines once more with
+    # the matrix turned on its side. `termplot` is the third that draws a
+    # grid, and the only one whose grid is not its own: it sets no layout, so
+    # the caller's `par(mfrow)` decides how many of its partial-effect curves
+    # share a page, and R starts a new page when it runs out of cells. Only
+    # the last page is exported, so the reading announces the tail of the
+    # terms rather than all of them -- the rule `compute_panel_slots()`
+    # already applies to whole plot groups, one level down. `spectrum` and
+    # `cpgram` are the pair after it: each computes a periodogram of a series
+    # and draws one curve against frequency, the first as a line and the
+    # second as a staircase, with a two-point reference mark beside each that
+    # is not a reading. They are separate processors because `cpgram` does
+    # not reuse `spectrum`'s estimate -- it computes its own, and the two
+    # disagree by about 2%, which is small enough to look like rounding and
+    # large enough to announce wrong numbers. `biplot` closes the twelve: it
+    # draws the observations of a fitted model and the variables' loadings
+    # on top of each other against two *different* pairs of axes, so it is
+    # read as a cell each -- the only one of the four grids whose cells exist
+    # because the halves have different scales rather than because they were
+    # drawn apart. Every one of the twelve #262 found is now read. Gaining any of
+    # those readings did not touch this list, which is the point the paragraph
+    # above makes: being recorded and being read are separate steps. #262
+    # records the candidates for the rest.
+    "acf",
+    "pacf",
+    "ccf",
+    "biplot",
+    "interaction.plot",
+    "cpgram",
+    "monthplot",
+    "spectrum",
+    "lag.plot",
+    "termplot",
+    "stars",
+    "bxp",
     # quantmod entry point for OHLC / candlestick charts. Only chartSeries is
     # wrapped in the MVP; candleChart / barChart / lineChart are deferred.
     "chartSeries",
     # vioplot entry point. Like chartSeries this lives in a Suggests package,
     # so it is wrapped late through the packageEvent hooks in .onLoad rather
     # than at load time -- vioplot may be attached after maidr.
-    "vioplot"
+    "vioplot",
+    # wordcloud entry point, on the same footing as vioplot: a Suggests
+    # package, wrapped late. Unwrapped, `wordcloud()` records nothing at all
+    # -- measured, a four-term call left the device with zero plot calls, so
+    # `save_html()` reported no Base R plot rather than reading one badly.
+    "wordcloud"
   ),
   LOW = c(
     "lines",
@@ -69,6 +187,17 @@ NULL
     "text",
     "mtext",
     "abline",
+    # `qqnorm()` and `qqplot()` became readable in #251, and `qqline()` --
+    # which is how nearly every Q-Q plot in the wild is finished -- calls
+    # `graphics::abline()` from inside `stats`, where the wrapper never sees
+    # it. Unrecorded, the line left no trace at all, so the chart came out as
+    # a scatter with a drawn mark silently missing from it.
+    #
+    # It was first listed here with no `detect_layer_type()` branch, so that
+    # it typed "unknown" and took the unsupported-elements path -- the lower
+    # of the two claims. It now has a branch and a processor, and is read as
+    # the reference line it draws (#252).
+    "qqline",
     "segments",
     "arrows",
     "polygon",

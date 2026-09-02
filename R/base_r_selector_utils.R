@@ -121,3 +121,59 @@ generate_robust_selector <- function(
 
   return(NULL)
 }
+
+#' Every grob of one plot drawn by a given element type
+#'
+#' `find_graphics_plot_grob()` answers with the first match, which is what a
+#' chart drawing its whole layer into one grob wants. A chart drawing one grob
+#' per datum -- a pie's wedges, a mosaic's tiles -- needs all of them, in the
+#' order gridGraphics numbered them.
+#'
+#' Sorted by the trailing grob number rather than by tree order or
+#' lexicographically: `density =` shading interleaves a segments grob between
+#' a pie's wedges so tree order is not contiguous, and a lexicographic sort
+#' would put `-polygon-10` before `-polygon-2`.
+#'
+#' @param grob The grob tree to search
+#' @param element_type The element type, e.g. `"polygon"`
+#' @param plot_index The plot (panel) index to match
+#' @return Character vector of grob names, ascending by grob number
+#' @keywords internal
+find_graphics_plot_grobs <- function(grob, element_type, plot_index) {
+  pattern <- paste0("^graphics-plot-", plot_index, "-", element_type, "-[0-9]+$")
+
+  collect <- function(g) {
+    names <- character(0)
+    if (!is.null(g$name) && grepl(pattern, as.character(g$name))) {
+      names <- c(names, as.character(g$name))
+    }
+    if (inherits(g, "gList")) {
+      for (i in seq_along(g)) names <- c(names, collect(g[[i]]))
+    }
+    if (inherits(g, "gTree") && !is.null(g$children)) {
+      for (i in seq_along(g$children)) names <- c(names, collect(g$children[[i]]))
+    }
+    if (!is.null(g$grobs)) {
+      for (i in seq_along(g$grobs)) names <- c(names, collect(g$grobs[[i]]))
+    }
+    names
+  }
+
+  names <- collect(grob)
+  names[order(suppressWarnings(as.integer(sub(".*-([0-9]+)$", "\\1", names))))]
+}
+
+#' Address one grob that a chart draws a datum into as a polygon
+#'
+#' A pie's wedges and a mosaic's tiles are each their own grob, so each needs
+#' its own selector -- unlike a `barplot()`, whose bars all live inside one
+#' rect grob. gridSVG appends `.1` to the grob name and wraps the shape in a
+#' group of that id, and the `.` has to be escaped for CSS.
+#'
+#' @param grob_name A grob name, as `find_graphics_plot_grobs()` returns it
+#' @return A CSS selector for that grob's polygon
+#' @keywords internal
+polygon_cell_selector <- function(grob_name) {
+  escaped <- gsub("\\.", "\\\\.", paste0(grob_name, ".1"))
+  paste0("#", escaped, " polygon")
+}

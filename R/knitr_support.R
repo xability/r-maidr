@@ -418,8 +418,8 @@ is_html_output <- function() {
 #' @return Character string of HTML with img tag
 #' @keywords internal
 create_inline_image <- function(plot = NULL, width = "100%", height = "auto") {
-  # Generate PNG image
-  img_data <- create_fallback_image(plot, format = "png")
+  # The format the caller configured through `maidr_set_fallback()`.
+  img_data <- create_fallback_image(plot, format = get_fallback_format())
 
   # Create simple inline image HTML
   img_html <- sprintf(

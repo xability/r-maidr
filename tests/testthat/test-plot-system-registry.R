@@ -431,10 +431,26 @@ test_that("get_global_registry returns same instance on multiple calls", {
   testthat::expect_identical(registry1, registry2)
 })
 
-test_that("reset_global_registry exists as a function", {
-  # Note: reset_global_registry uses <<- which may not work with namespace
-  # locking in loaded packages. We just verify the function exists.
-  testthat::expect_true(is.function(maidr:::reset_global_registry))
+test_that("reset_global_registry replaces the instance, sealed namespace or not", {
+  # The registry used to live in a namespace variable written with `<<-`,
+  # which fails with "cannot change value of locked binding" once the
+  # package is installed rather than loaded from source. It is kept in a
+  # package-private environment now, so the reset works either way.
+  before <- maidr:::get_global_registry()
+  on.exit(
+    {
+      maidr:::reset_global_registry()
+      maidr:::initialize_ggplot2_system()
+      maidr:::initialize_base_r_system()
+    },
+    add = TRUE
+  )
+
+  maidr:::reset_global_registry()
+  after <- maidr:::get_global_registry()
+
+  testthat::expect_false(identical(before, after))
+  testthat::expect_s3_class(after, "PlotSystemRegistry")
 })
 
 # ==============================================================================

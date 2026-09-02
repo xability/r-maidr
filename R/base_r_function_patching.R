@@ -417,10 +417,10 @@ get_original_function <- function(function_name) {
     return(orig_fn)
   }
 
-  # Try the Suggests namespaces (chartSeries, vioplot) when loaded. These must
+  # Try the Suggests namespaces (chartSeries, vioplot, wordcloud) when loaded. These must
   # come before the generic get() fallback, which would otherwise resolve to
   # maidr's own recording wrapper and re-log calls during replay.
-  for (suggested in c("quantmod", "vioplot")) {
+  for (suggested in c("quantmod", "vioplot", "wordcloud")) {
     if (!(suggested %in% loadedNamespaces())) {
       next
     }
@@ -676,7 +676,7 @@ find_original_function <- function(function_name) {
   # chartSeries hit this: the quantmod attach hook fires while quantmod is
   # loaded but NOT yet attached, so maidr was ahead of it on the path.
   namespaces <- c("graphics", "stats", "grDevices", "base")
-  for (suggested in c("quantmod", "vioplot")) {
+  for (suggested in c("quantmod", "vioplot", "wordcloud")) {
     if (suggested %in% loadedNamespaces()) {
       namespaces <- c(namespaces, suggested)
     }
@@ -736,17 +736,22 @@ create_function_wrapper <- function(function_name, original_function) {
       ensure_maidr_device()
 
       # Fast path: forward the promises untouched, so each argument is
-      # evaluated exactly once and lazily.
+      # evaluated exactly once and lazily. `withVisible()` keeps the
+      # original's own answer about printing: `par("mar")` and
+      # `boxplot(x, plot = FALSE)` print their value at the console, and
+      # `hist(x)` does not.
       call_failed <- FALSE
       result <- tryCatch(
-        ORIG(...),
+        withVisible(ORIG(...)),
         error = function(e) {
           call_failed <<- TRUE
           e
         }
       )
       if (call_failed) {
-        result <- retry_call_in_caller_frame(ORIG, this_call, caller_env, result)
+        result <- withVisible(
+          retry_call_in_caller_frame(ORIG, this_call, caller_env, result)
+        )
       }
 
       # Force arguments only AFTER the original call succeeded. For
@@ -785,7 +790,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # image" because the device is blank (#216).
       if (identical(args_list[["plot"]], FALSE) ||
           identical(args_list[["plot.it"]], FALSE)) {
-        return(invisible(result))
+        return(as_drawn(result))
       }
 
       device_id <- grDevices::dev.cur()
@@ -801,14 +806,29 @@ create_function_wrapper <- function(function_name, original_function) {
       # fails with "plot.new has not been called yet". Auto-display needs a
       # non-destructive render path first; see NEWS.
 
-      # Return invisibly to prevent auto-printing in knitr
-      # Users can still capture the result with assignment
-      invisible(result)
+      # Returned with the visibility the original gave it. Every drawing
+      # function already returns invisibly, so nothing auto-prints in knitr
+      # that did not before; what this restores is the console answer of
+      # the calls that are queries.
+      as_drawn(result)
     },
     list(FNAME = function_name, ORIG = original_function, IS_HIGH = is_high)
   ))
 
   wrapper
+}
+
+#' Return a `withVisible()` result with the visibility it recorded
+#'
+#' The wrappers used to return everything invisibly, so `par("mar")` printed
+#' nothing once maidr was attached and `hist(x, plot = FALSE)` had to be
+#' wrapped in `print()` to be seen.
+#'
+#' @param result A list from [withVisible()]
+#' @return The value, invisibly when the original call made it so
+#' @keywords internal
+as_drawn <- function(result) {
+  if (isTRUE(result$visible)) result$value else invisible(result$value)
 }
 
 #' Create a wrapper for functions taking unevaluated expressions

@@ -24,6 +24,17 @@
 # `hist(x, plot = FALSE)`; `plot.it` is the same request under the spelling
 # `qqnorm()` and `qqplot()` use, and both of those are now recorded, so both
 # need it.
+#
+# **Five of the eight have since moved past the fallback.** `qqnorm` and
+# `qqplot` gained a processor in #251 and are now read as the quantile
+# scatter they draw; `filled.contour` followed, read as the contour it draws
+# with the bands between the levels filled; `spineplot` after it, read as the
+# mosaic of a two-way table it is; and `cdplot` after that, read as the 100%
+# stacked area its bands make. None of the five degrades to a picture any
+# more -- they do not need to. The lists below are split accordingly, and the
+# five are asserted to be *read* rather than dropped from the file: what #216
+# established about them is that a recorded call never stops the save, and
+# that still has to hold on the far side of gaining a reading.
 
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
@@ -77,7 +88,16 @@ save_base_figure <- function(plot_fun) {
   )
 }
 
-# Each of the eight, with the smallest call that draws one.
+# The three of the eight that are still recorded-but-unread, with the smallest
+# call that draws each. They are not alike, and #251's sweep separates them:
+# `persp` and `fourfoldplot` are **declined** -- a 3D surface has no 2D
+# reading that is not a different chart, and a fourfold plot's radii encode
+# an odds ratio rather than the table it came from -- while
+# `sunflowerplot` is **blocked**, on a maidr release carrying the
+# `sunflower` trace xability/maidr#1161 added after the 4.4.0
+# `MAIDR_VERSION` pins. The distinction matters here because a reading
+# arriving for the third would move it to `read_calls` below, and the other
+# two should stay put.
 unrecorded_calls <- list(
   persp = function() {
     z <- outer(
@@ -88,29 +108,40 @@ unrecorded_calls <- list(
     persp(z = z)
   },
   sunflowerplot = function() {
-    sunflowerplot(c(1, 1, 2, 2, 3), c(1, 1, 2, 3, 3))
+    sunflowerplot(y ~ x, data = data.frame(x = c(1, 1, 2, 2, 3),
+                                           y = c(1, 1, 2, 3, 3)))
   },
-  fourfoldplot = function() fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2)),
+  fourfoldplot = function() fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2))
+)
+
+# The five that are now read (#251). Still here, because #216's claim about
+# them -- that a recorded call never stops the save -- has to survive their
+# gaining a reading.
+read_calls <- list(
+  qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
+  qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
+  filled.contour = function() filled.contour(matrix(1:12, nrow = 3)),
   spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3)),
   cdplot = function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
-  },
-  qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
-  qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
-  filled.contour = function() filled.contour(matrix(1:12, nrow = 3))
+  }
 )
+
+all_calls <- c(unrecorded_calls, read_calls)
 
 
 test_that("none of the eight stops the save any more", {
   skip_unless_jsonlite()
 
-  for (name in names(unrecorded_calls)) {
-    result <- save_base_figure(unrecorded_calls[[name]])
+  # All eight, read and unread alike. This is #216's claim and it does not
+  # weaken as names move from one list to the other.
+  for (name in names(all_calls)) {
+    result <- save_base_figure(all_calls[[name]])
     expect_null(result$error, info = name)
   }
 })
 
-test_that("each of the eight falls back to a picture, and says so", {
+test_that("the four still unread fall back to a picture, and say so", {
   skip_unless_jsonlite()
 
   for (name in names(unrecorded_calls)) {
@@ -120,12 +151,32 @@ test_that("each of the eight falls back to a picture, and says so", {
   }
 })
 
+test_that("the four that gained a reading are read, not pictured", {
+  skip_unless_jsonlite()
+
+  # The far side of #216 for `qqnorm`, `qqplot`, `filled.contour` and
+  # `spineplot`: not
+  # "does not stop the save" but "is a chart". Asserted here rather than only
+  # in each type's own file so that a regression which put any of them back
+  # on the fallback shows up as a contradiction between two files rather than
+  # as one quietly weakened expectation.
+  for (name in names(read_calls)) {
+    result <- save_base_figure(read_calls[[name]])
+    expect_false(result$fell_back, info = name)
+    expect_false(result$warned, info = name)
+  }
+})
+
 test_that("it is the same path a recorded-but-unread call already took", {
   skip_unless_jsonlite()
 
-  # `dotchart` has always degraded correctly, being in HIGH with no
-  # processor. Asserted beside the eight so the two cannot drift apart.
-  result <- save_base_figure(function() dotchart(c(3, 7, 5)))
+  # A HIGH call with no processor degrades correctly. Asserted beside the
+  # eight so the two cannot drift apart.
+  #
+  # Which call plays the part lives in `helper.R`, because it keeps moving:
+  # `dotchart` stood here until #242, then `mosaicplot` until #242's
+  # remainder. The subject is a recorded-but-unread call, not a function.
+  result <- save_base_figure(draw_unread_base_r_chart)
 
   expect_null(result$error)
   expect_true(result$fell_back)
@@ -148,9 +199,12 @@ test_that("the picture is the chart, not a blank canvas", {
   skip_unless_jsonlite()
   skip_if_not_installed("base64enc")
 
-  # The replay has to rebuild `factor(...) ~ x` in the caller's frame, so a
-  # fallback that silently drew nothing would still pass every assertion
-  # above.
+  # The replay has to rebuild `y ~ x` in the caller's frame, so a fallback
+  # that silently drew nothing would still pass every assertion above.
+  # `sunflowerplot` plays the part, having the formula shape this needs and
+  # being one of the three still unread -- `spineplot` stood here until it
+  # gained a reading, then `cdplot` until it gained one too, and when
+  # `sunflowerplot` does the next one moves in.
   #
   # Measured against two references rendered on the same machine, rather
   # than against a byte count: this first read `> 10000`, calibrated on
@@ -159,10 +213,10 @@ test_that("the picture is the chart, not a blank canvas", {
   # whether the captured image is nearer the chart than an empty page is
   # the question that was meant, and it needs no constant at all.
   blank <- png_bytes(function() graphics::plot.new())
-  reference <- png_bytes(unrecorded_calls$spineplot)
+  reference <- png_bytes(unrecorded_calls$sunflowerplot)
   expect_gt(reference, blank)
 
-  result <- save_base_figure(unrecorded_calls$spineplot)
+  result <- save_base_figure(unrecorded_calls$sunflowerplot)
   encoded <- regmatches(
     result$html,
     regexpr("base64,[A-Za-z0-9+/=]+", result$html)
@@ -203,8 +257,9 @@ test_that("plot.it = FALSE is refused without disturbing plot = FALSE", {
   computed <- save_base_figure(function() hist(c(1, 2, 3), plot = FALSE))
   expect_match(computed$error, "No Base R plots detected")
 
-  # `cdplot.default` has a real `plot` argument, unlike most of the eight,
-  # so the existing half of the guard covers it.
+  # `cdplot.default` has a real `plot` argument, so the existing half of the
+  # guard covers it -- and it has to keep covering it now that a drawn
+  # `cdplot()` is read rather than dropped.
   computed <- save_base_figure(function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4), plot = FALSE)
   })
@@ -258,14 +313,363 @@ test_that("the charts that already read still read", {
 })
 
 test_that("all eight are classified, and classification is what changed", {
-  for (name in names(unrecorded_calls)) {
+  for (name in names(all_calls)) {
     expect_equal(classify_function(name), "HIGH", info = name)
   }
 
-  # Being in HIGH is not a claim that the type is read: none of the eight
+  # Being in HIGH is not a claim that the type is read: none of the four
   # gains a `detect_layer_type()` branch, so each falls through to "unknown".
+  # That is what #216 changed and all it changed -- the four that have since
+  # been read got there by gaining a processor, which is a separate step, so
+  # they are excluded from this half rather than from the classification
+  # above. The check is by *function* name, which is why it keeps holding as
+  # calls gain readings: `lag.plot` is read as the layer type "lag", so the
+  # function's own name is still absent from the registry.
   factory <- BaseRProcessorFactory$new()
   for (name in names(unrecorded_calls)) {
     expect_false(name %in% factory$get_supported_types(), info = name)
+  }
+})
+
+
+# `stem()` is not a plot, and listing it as one cost two things (#260)
+#
+# `stem()` writes a stem-and-leaf display to the console. It opens no device,
+# draws no marks and returns invisibly -- it lives in `package:graphics` for
+# documentation reasons rather than because it plots. It was nevertheless in
+# the HIGH list, between `stripchart` and `pie`, so it was recorded as a
+# chart.
+#
+# The two failures that produced are the mirror image of each other: on its
+# own it claimed a chart that was not there, and beside a real chart it made
+# the real one unreadable.
+
+test_that("stem() is not classified as a plotting call", {
+  expect_equal(maidr:::classify_function("stem"), "UNKNOWN")
+})
+
+test_that("stem() alone reports no plot rather than a failed fallback", {
+  skip_unless_jsonlite()
+
+  # Measured before the fix: "Failed to create fallback image" -- a recorded
+  # call over a blank device, the shape #216 found for
+  # `qqnorm(plot.it = FALSE)`. That message claims a plot exists and the
+  # picture of it could not be made; the truth is that there is no plot, and
+  # "No Base R plots detected" is what says so.
+  result <- save_base_figure(function() {
+    invisible(utils::capture.output(stem(c(10, 11, 12, 20, 21, 30))))
+  })
+
+  expect_match(result$error, "No Base R plots detected")
+})
+
+test_that("a stem beside a histogram leaves the histogram interactive", {
+  skip_unless_jsonlite()
+
+  # The half that costs a reader something. Measured before the fix, the
+  # histogram -- interactive on its own -- degraded to a static image with
+  # "Plot contains unsupported elements", because the `stem` call recorded
+  # beside it had no reading. The console output the caller asked for cost
+  # them the accessible chart they also drew, and nothing on the page said
+  # why. `hist(x); stem(x)` is not contrived: they are the two ways of
+  # looking at one distribution, and R's own documentation pairs them.
+  drawn <- save_base_figure(function() hist(c(1, 2, 2, 3, 3, 3, 4, 5)))
+  both <- save_base_figure(function() {
+    hist(c(1, 2, 2, 3, 3, 3, 4, 5))
+    invisible(utils::capture.output(stem(c(1, 2, 2, 3, 3, 3, 4, 5))))
+  })
+
+  expect_null(both$error)
+  expect_false(drawn$fell_back)
+  expect_false(both$fell_back)
+  expect_false(both$warned)
+})
+
+
+# Twelve more that drew a chart and were told there was none (#262)
+#
+# #216's defect, found again by sweeping every drawing entry point rather
+# than the eight it started from. Each of these draws directly instead of
+# going through `plot()`, so being absent from the classification list meant
+# nothing was recorded and `save_html()` reported "No Base R plots detected.
+# Please create a plot first" -- to a caller whose chart was on the device.
+#
+# Measured with **bare** calls, which is load-bearing: a qualified
+# `stats::acf(v)` does not go through the search-path patch, and a sweep
+# written that way reported `assocplot` and `coplot` as broken when they are
+# not. The fixtures below therefore call each function by its bare name, the
+# way a caller writes it.
+#
+# What reaches these through `plot()` was already fine and is asserted below
+# so it stays that way: `plot` is listed, so its methods record.
+#
+# **All twelve have since moved past the fallback.** `bxp()` was the
+# first, read as the box plot it draws -- it is `boxplot()`'s own drawing
+# half, handed the five-number summaries instead of the observations, and it
+# puts the same marks on the page. `acf`, `pacf` and `ccf` followed, each
+# drawing one vertical spike per lag (#276); `interaction.plot` after them,
+# drawing one line per trace level over the cell means it computes (#278);
+# `monthplot` after that, drawing one line per cycle position over that
+# position's own subseries; `lag.plot` after it, the only one of the twelve
+# that draws a *grid* -- one scatter per series and lag; `stars` after it,
+# one closed outline per observation, which is the first `radar` any base R
+# reading produces; and `termplot` last, one partial-effect curve per term of
+# a fitted model, which draws a grid it does not lay out itself; and
+# `spectrum` and `cpgram` after them, a pair that each compute a periodogram
+# of a series and draw one curve against frequency; and `biplot` last, which
+# draws the observations and the variables of a fitted model on top of each
+# other against two different pairs of axes, and is read as a cell each. The
+# list below is no longer split, and all twelve are
+# asserted to be *read* rather than dropped from the file: what #262 established about them is that a
+# recorded call never stops the save, and that still has to hold on the far
+# side of gaining a reading.
+
+# Empty on purpose. Every one of the twelve is read now; the last to move was
+# `biplot`. Kept as an empty list rather than deleted so that a call which
+# regresses to recorded-but-unread has somewhere to go, and so the two
+# assertions below keep their shape.
+DRAWS_DIRECTLY <- list()
+
+# All twelve, every one of them read. `bxp` was the first; the three
+# correlogram entry points followed, each drawing one vertical spike per lag
+# -- the shape `type = "h"` already read as a `lollipop` for (#276);
+# `interaction.plot` after them, which computes a grid of cell means and hands
+# it to `matplot`, so it is the set of lines that already reads (#278);
+# `monthplot` after that, one line per cycle position over that position's own
+# subseries, which is the same set of lines once more; and `lag.plot` last,
+# which is not a set of lines at all but a grid of scatters, read the way
+# `pairs()` is -- as a figure of subplots; `stars` after it, the first `radar`;
+# `termplot` after it, which draws a grid like `lag.plot` but lays out none of
+# it, so the caller's `par(mfrow)` decides how much of the fit is on the page;
+# `spectrum` and `cpgram` after them, the two periodogram entry points -- a
+# line and a staircase over the same kind of series, from estimates that are
+# NOT the same; and `biplot` last, the only one whose cells exist because its
+# halves have different scales rather than because they were drawn apart.
+#
+# `lag.plot` is listed in its *default* spelling on purpose. Its default is
+# the labelled one -- `labels` follows `do.lines`, which is `n <= 150` -- and
+# a labelled panel draws text where the others draw symbols, so listing the
+# spelling that draws points would have exercised the easier half.
+DRAWS_DIRECTLY_READ <- local({
+  set.seed(5)
+  v <- stats::rnorm(60)
+  # `m` used to live in the list above; that list is empty now, so the fixture
+  # that needs it carries it.
+  m <- matrix(stats::rnorm(40), nrow = 10)
+  list(
+    bxp = function() bxp(boxplot(stats::rnorm(60), plot = FALSE)),
+    acf = function() acf(v),
+    pacf = function() pacf(v),
+    ccf = function() ccf(v, rev(v)),
+    interaction.plot = function() {
+      interaction.plot(factor(rep(1:2, 30)), factor(rep(1:3, 20)), v)
+    },
+    monthplot = function() {
+      monthplot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12))
+    },
+    lag.plot = function() {
+      lag.plot(stats::ts(cumsum(stats::rnorm(48)), frequency = 12), lags = 2)
+    },
+    stars = function() stars(abs(matrix(stats::rnorm(12), nrow = 4))),
+    termplot = function() termplot(stats::lm(v ~ seq_along(v))),
+    spectrum = function() spectrum(v),
+    cpgram = function() cpgram(v),
+    biplot = function() biplot(stats::prcomp(m))
+  )
+})
+
+DRAWS_DIRECTLY_ALL <- c(DRAWS_DIRECTLY, DRAWS_DIRECTLY_READ)
+
+test_that("a call that draws without plot() no longer stops the save", {
+  skip_unless_jsonlite()
+
+  # Read and unread alike. This is #262's claim and it does not weaken as a
+  # name moves from one list to the other.
+  for (name in names(DRAWS_DIRECTLY_ALL)) {
+    result <- save_base_figure(function() {
+      invisible(utils::capture.output(suppressWarnings(DRAWS_DIRECTLY_ALL[[name]]())))
+    })
+
+    expect_null(result$error, info = name)
+  }
+})
+
+test_that("nothing among the twelve is left recorded-but-unread", {
+  skip_unless_jsonlite()
+
+  # `DRAWS_DIRECTLY` is empty, and this asserts it rather than leaving the
+  # loop below to pass by having nothing to iterate. An emptied list makes a
+  # for-loop test vacuous -- it stops being able to fail -- so the emptiness
+  # is stated outright and the loop is kept for whatever lands there next.
+  expect_length(DRAWS_DIRECTLY, 0)
+
+  # Being listed is the *lower* of the two claims -- recorded, so the figure
+  # falls back to a static image, not read. Asserting the fallback actually
+  # arrives is what keeps "listed" from meaning "silently empty".
+  for (name in names(DRAWS_DIRECTLY)) {
+    result <- save_base_figure(function() {
+      invisible(utils::capture.output(suppressWarnings(DRAWS_DIRECTLY[[name]]())))
+    })
+
+    expect_true(result$fell_back, info = name)
+  }
+})
+
+test_that("bxp() ships a box plot rather than a picture of one", {
+  skip_unless_jsonlite()
+
+  # The upper claim, for the first of the twelve to have it. Before the
+  # reading this call fell back with "Plot contains unsupported elements";
+  # `boxplot()` on the same numbers never did, and the two draw the same
+  # marks.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$bxp)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_false(result$warned)
+  # The payload is HTML-escaped inside the `maidr-data` attribute.
+  expect_match(result$html, "&quot;type&quot;:&quot;box&quot;", fixed = TRUE)
+})
+
+test_that("the correlograms ship spikes rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The same upper claim for the three that gained it next. Each drew a
+  # chart that fell back with "Plot contains unsupported elements" while
+  # `plot(x, y, type = "h")` -- the same spikes, drawn per observation
+  # rather than per lag -- never did (#276).
+  for (name in c("acf", "pacf", "ccf")) {
+    result <- save_base_figure(DRAWS_DIRECTLY_READ[[name]])
+
+    expect_null(result$error, info = name)
+    expect_false(result$fell_back, info = name)
+    expect_match(
+      result$html, "&quot;type&quot;:&quot;lollipop&quot;",
+      fixed = TRUE, info = name
+    )
+  }
+})
+
+test_that("monthplot() ships its subseries rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The same upper claim for the sixth. It drew twelve lines and fell back
+  # with "Plot contains unsupported elements", while `matplot()` on the same
+  # twelve series -- the shape `monthplot` lays out by hand -- never did.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$monthplot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;line&quot;",
+    fixed = TRUE
+  )
+})
+
+test_that("lag.plot() ships its grid of scatters rather than a picture", {
+  skip_unless_jsonlite()
+
+  # The same upper claim for the seventh, and the first of the twelve to
+  # answer with a *figure* rather than a layer: two panels, each a scatter of
+  # the series against a shifted copy of itself. Before the reading it fell
+  # back with "Plot contains unsupported elements".
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$lag.plot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;point&quot;",
+    fixed = TRUE
+  )
+  # A grid, so the payload carries a second subplot rather than a second
+  # layer in the first.
+  expect_match(
+    result$html, "maidr-subplot-2-1",
+    fixed = TRUE
+  )
+})
+
+test_that("stars() ships its outlines rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the eighth, and the first `radar` any base R reading
+  # produces. Before it the chart fell back with "Plot contains unsupported
+  # elements".
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$stars)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;radar&quot;",
+    fixed = TRUE
+  )
+})
+
+test_that("termplot() ships its curves rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the ninth. One term and no `par(mfrow)`, so the page
+  # holds a single panel -- which is the whole of what was drawn.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$termplot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(
+    result$html, "&quot;type&quot;:&quot;line&quot;",
+    fixed = TRUE
+  )
+})
+
+test_that("the periodogram pair ship their curves rather than pictures", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the tenth and eleventh, and the one place the two are
+  # asserted to read as *different* marks: a line and a staircase.
+  density <- save_base_figure(DRAWS_DIRECTLY_READ$spectrum)
+  expect_null(density$error)
+  expect_false(density$fell_back)
+  expect_match(density$html, "&quot;type&quot;:&quot;line&quot;", fixed = TRUE)
+
+  cumulative <- save_base_figure(DRAWS_DIRECTLY_READ$cpgram)
+  expect_null(cumulative$error)
+  expect_false(cumulative$fell_back)
+  expect_match(cumulative$html, "&quot;type&quot;:&quot;step&quot;", fixed = TRUE)
+})
+
+test_that("biplot() ships its two halves rather than a picture of them", {
+  skip_unless_jsonlite()
+
+  # The upper claim for the twelfth and last. Two subplots, because the
+  # scores and the loadings do not share a scale.
+  result <- save_base_figure(DRAWS_DIRECTLY_READ$biplot)
+
+  expect_null(result$error)
+  expect_false(result$fell_back)
+  expect_match(result$html, "&quot;type&quot;:&quot;point&quot;", fixed = TRUE)
+  expect_match(result$html, "maidr-subplot-1-2", fixed = TRUE)
+})
+
+test_that("what reaches stats plots through plot() still reads", {
+  skip_unless_jsonlite()
+
+  # The bound on the change. These are S3 methods dispatched from `plot`,
+  # which is listed, so they were never part of the defect -- and none of
+  # them may start falling back to a picture now that their direct-drawing
+  # siblings are recorded.
+  set.seed(5)
+  v <- stats::rnorm(40)
+
+  through_plot <- list(
+    density = function() plot(stats::density(v)),
+    ecdf = function() plot(stats::ecdf(v)),
+    ts = function() plot(stats::ts(cumsum(v))),
+    acf_object = function() plot(acf(v, plot = FALSE))
+  )
+
+  for (name in names(through_plot)) {
+    result <- save_base_figure(through_plot[[name]])
+
+    expect_null(result$error, info = name)
+    expect_false(result$fell_back, info = name)
   }
 })

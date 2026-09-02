@@ -132,15 +132,11 @@ BaseRPieLayerProcessor <- R6::R6Class(
         layer_info$index
       }
 
-      poly_names <- self$find_polygon_grobs(gt, plot_index)
-
       # `density =` shading interleaves a segments grob per hatch line between
       # the wedges, so the polygon grobs are no longer contiguous in tree
-      # order. Sort by the trailing grob number; a lexicographic sort would
-      # also place "-polygon-10" before "-polygon-2".
-      poly_names <- poly_names[order(suppressWarnings(
-        as.integer(sub(".*-([0-9]+)$", "\\1", poly_names))
-      ))]
+      # order; the shared walker sorts by the trailing grob number, which a
+      # lexicographic sort would get wrong ("-polygon-10" before "-polygon-2").
+      poly_names <- find_graphics_plot_grobs(gt, "polygon", plot_index)
 
       # pie() emits one polygon per slice, zero-valued slices included, so a
       # short list means these are not this pie's grobs. Filling the gap with
@@ -151,43 +147,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
 
       # Unlike barplot, whose n bars all live inside a single rect grob, each
       # wedge is its own grob and therefore needs its own selector.
-      lapply(poly_names[seq_len(n_slices)], function(name) {
-        escaped <- gsub("\\.", "\\\\.", paste0(name, ".1"))
-        paste0("#", escaped, " polygon")
-      })
-    },
-
-    #' @description Recursively collect this plot's wedge polygon grob names
-    #' @param grob The grob tree to search
-    #' @param plot_index The plot (panel) index to match
-    #' @return Character vector of grob names
-    find_polygon_grobs = function(grob, plot_index) {
-      names <- character(0)
-
-      pattern <- paste0("^graphics-plot-", plot_index, "-polygon-[0-9]+$")
-      if (!is.null(grob$name) && grepl(pattern, grob$name)) {
-        names <- c(names, grob$name)
-      }
-
-      if (inherits(grob, "gList")) {
-        for (i in seq_along(grob)) {
-          names <- c(names, self$find_polygon_grobs(grob[[i]], plot_index))
-        }
-      }
-
-      if (inherits(grob, "gTree") && !is.null(grob$children)) {
-        for (i in seq_along(grob$children)) {
-          names <- c(names, self$find_polygon_grobs(grob$children[[i]], plot_index))
-        }
-      }
-
-      if (!is.null(grob$grobs)) {
-        for (i in seq_along(grob$grobs)) {
-          names <- c(names, self$find_polygon_grobs(grob$grobs[[i]], plot_index))
-        }
-      }
-
-      names
+      lapply(poly_names[seq_len(n_slices)], polygon_cell_selector)
     },
 
     #' @description Extract the axis titles for this layer
@@ -212,7 +172,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
       }
 
       args <- layer_info$plot_call$args
-      if (!is.null(args$main)) args$main else ""
+      recorded_main_title(args)
     }
   )
 )

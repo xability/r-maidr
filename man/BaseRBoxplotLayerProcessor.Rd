@@ -15,6 +15,7 @@ and generating selectors for boxplot components.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-BaseRBoxplotLayerProcessor-process}{\code{BaseRBoxplotLayerProcessor$process()}}
+    \item \href{#method-BaseRBoxplotLayerProcessor-read_stats}{\code{BaseRBoxplotLayerProcessor$read_stats()}}
     \item \href{#method-BaseRBoxplotLayerProcessor-extract_data}{\code{BaseRBoxplotLayerProcessor$extract_data()}}
     \item \href{#method-BaseRBoxplotLayerProcessor-generate_selectors}{\code{BaseRBoxplotLayerProcessor$generate_selectors()}}
     \item \href{#method-BaseRBoxplotLayerProcessor-extract_axis_titles}{\code{BaseRBoxplotLayerProcessor$extract_axis_titles()}}
@@ -77,6 +78,17 @@ and generating selectors for boxplot components.
 }
 
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-read_stats"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-read_stats}{}}}
+\subsection{\code{BaseRBoxplotLayerProcessor$read_stats()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRBoxplotLayerProcessor$read_stats(args)}
+    \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_data()}}{
@@ -126,7 +138,7 @@ and generating selectors for boxplot components.
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}{
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args)}
+    \preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args, frame = NULL)}
     \if{html}{\out{</div>}}
   }
 }

@@ -8,7 +8,10 @@
 #'   \itemize{
 #'     \item \code{TRUE}: Use CDN (requires internet)
 #'     \item \code{FALSE}: Use local bundled files (works offline)
-#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'     \item \code{NULL} (default): Use the bundled files, so the viewer
+#'       works offline. With \code{as_widget = TRUE} the widget instead
+#'       auto-detects internet availability and uses the CDN when online,
+#'       as the knitr and Shiny paths do.
 #'   }
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
@@ -72,9 +75,11 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
         replay_to_native_device(device_id)
         clear_device_storage(device_id)
       } else {
-        # ggplot2: Print to native graphics device
+        # ggplot2: Print to native graphics device with ggplot2's own
+        # method, not the one maidr registered, which would run the support
+        # check a second time.
         grDevices::dev.new()
-        print(plot)
+        print_ggplot_natively(plot)
       }
 
       return(invisible(NULL))
@@ -121,8 +126,8 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
 
 #' Create HTML document with maidr enhancements using the orchestrator
 #' @param plot A ggplot2 object
-#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-#'   If `NULL` (default), auto-detect based on internet availability.
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL`
+#'   (default), use bundled files; see [maidr_html_dependencies()].
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param orchestrator Optional pre-created orchestrator to reuse (avoids double creation)
 #' @param ... Additional arguments passed to internal functions
@@ -151,12 +156,14 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   warn_panel_fallback(orchestrator)
 
-  gt <- orchestrator$get_gtable()
+  svg_content <- build_interactive_svg(orchestrator, ...)
 
-  # All plot types now use the unified orchestrator data generation
-  maidr_data <- orchestrator$generate_maidr_data()
-
-  svg_content <- create_enhanced_svg(gt, maidr_data, ...)
+  # `build_interactive_svg()` answers NULL for a plot that could not be built,
+  # which is the same outcome as the gate above reaching a chart it cannot
+  # read: a picture rather than nothing.
+  if (is.null(svg_content)) {
+    return(create_fallback_html(plot, shiny = shiny, ...))
+  }
 
   if (shiny) {
     return(htmltools::HTML(paste(svg_content, collapse = "\n")))
@@ -164,6 +171,62 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   html_doc <- create_html_document(svg_content, use_cdn = use_cdn)
   html_doc
+}
+
+#' Build the Interactive SVG, or Answer NULL When It Cannot Be Built
+#'
+#' `should_fallback()` answers whether the recorded layers are ones maidr can
+#' read. It cannot answer whether the plot can be *exported*, because that is
+#' gridSVG's question and gridSVG is not consulted until the export runs. Two
+#' base R charts fail there on plots that pass the gate -- `matplot()` with
+#' "non-numeric argument to binary operator" and `symbols()` with gridSVG's
+#' own "We shouldn't be here!" assertion, both raised inside `grid.export()`
+#' rather than by anything this package computes.
+#'
+#' Left to propagate, those kill the save outright: the caller gets neither
+#' the interactive chart nor the static image, and an error naming a package
+#' they never called. The lower claim the package makes about a recorded plot
+#' is that it is *at worst a picture* (#216), and an export that throws is no
+#' more a reason to break that than a layer it cannot classify.
+#'
+#' The whole build is guarded rather than the export alone. From the caller's
+#' side the gtable, the data and the SVG are one step -- producing the
+#' interactive chart -- and which of the three threw does not change what they
+#' should be given instead.
+#'
+#' `maidr_set_fallback(enabled = FALSE)` is the caller asking for the failure
+#' rather than the picture, so the error is re-raised untouched there.
+#'
+#' @param orchestrator The orchestrator for the plot being rendered.
+#' @param ... Passed through to `create_enhanced_svg()`.
+#' @return The SVG content, or `NULL` when the build failed and fallback is
+#'   enabled.
+#' @keywords internal
+build_interactive_svg <- function(orchestrator, ...) {
+  build <- function() {
+    gt <- orchestrator$get_gtable()
+
+    # All plot types now use the unified orchestrator data generation
+    maidr_data <- orchestrator$generate_maidr_data()
+
+    create_enhanced_svg(gt, maidr_data, ...)
+  }
+
+  if (!is_fallback_enabled()) {
+    return(build())
+  }
+
+  tryCatch(build(), error = function(e) {
+    if (is_fallback_warning_enabled()) {
+      warning(
+        "Plot could not be rendered interactively (",
+        conditionMessage(e),
+        "). Rendering as static image instead.",
+        call. = FALSE
+      )
+    }
+    NULL
+  })
 }
 
 #' Warn About Panels That Lost Their Accessible Data
@@ -203,9 +266,11 @@ warn_panel_fallback <- function(orchestrator) {
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
-#'     \item \code{TRUE}: Use CDN (requires internet)
-#'     \item \code{FALSE}: Use local bundled files (works offline)
-#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'     \item \code{TRUE}: Use CDN. The file is self-contained but needs
+#'       internet access when it is viewed.
+#'     \item \code{FALSE} or \code{NULL} (default): Use the bundled files.
+#'       The MAIDR.js library is written to a \code{lib/} folder beside
+#'       \code{file}, which has to travel with it.
 #'   }
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)

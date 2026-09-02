@@ -692,6 +692,12 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         points[[length(points) + 1L]] <- point
       }
 
+      # No rows drawn -- an unused facet level under `drop = FALSE` -- is no
+      # series, not one empty series the panel would list as a layer.
+      if (length(points) == 0L) {
+        return(list())
+      }
+
       list(points)
     },
 

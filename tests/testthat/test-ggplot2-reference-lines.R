@@ -33,6 +33,10 @@
 
 testthat::skip_if_not_installed("ggplot2")
 
+# Built at top level: inside a closure the bare column names in `aes()` read
+# as undefined globals to static analysis.
+crossings <- ggplot2::aes(x = g, xend = rev(g), y = v, yend = v + 1)
+
 df <- function() {
   data.frame(
     g = rep(c("a", "b"), each = 25),
@@ -328,6 +332,19 @@ test_that("an annotation-only plot is caught because it reads as nothing", {
 # A genuinely unsupported geom still falls back
 # ==============================================================================
 
+# The stand-in for "a geom maidr cannot read" is a `geom_segment()` laying no
+# lanes. It was `geom_rug()` until #222 gave a rug its own processor, and
+# `geom_polygon()` until #225 read one as the closed path it draws -- which
+# is the risk a stand-in carries, and the reason this note is here rather
+# than left for the next reader to work out from a failure. What these three
+# tests are about is the fallback, not the geom: any layer that reads as
+# `unknown` serves, and this one is measured as one.
+#
+# `crossings` runs every segment between the two categories *and* between two
+# heights, so no pair of ends shares a coordinate. `segment_lane_axis()` then
+# finds no lane, and the segment branch answers `unknown` (#194) -- which is
+# a rule of its own rather than a geom nothing has claimed, and so is not
+# about to be claimed out from under these tests the way the last two were.
 test_that("an unsupported geom over a boxplot still falls back", {
   # "skip" must stay narrow. Widening it into a general "ignore what we do not
   # understand" would leave charts announcing a partial reading as a complete
@@ -335,7 +352,7 @@ test_that("an unsupported geom over a boxplot still falls back", {
   result <- rendered(
     ggplot2::ggplot(df(), ggplot2::aes(g, v)) +
       ggplot2::geom_boxplot() +
-      ggplot2::geom_rug()
+      ggplot2::geom_segment(crossings)
   )
 
   testthat::expect_false(result$interactive)
@@ -347,7 +364,7 @@ test_that("an unsupported geom alongside a reference line still falls back", {
     ggplot2::ggplot(df(), ggplot2::aes(g, v)) +
       ggplot2::geom_boxplot() +
       ggplot2::geom_hline(yintercept = 6) +
-      ggplot2::geom_rug()
+      ggplot2::geom_segment(crossings)
   )
 
   testthat::expect_false(result$interactive)
@@ -381,7 +398,8 @@ test_that("the adapter tags each reference-line geom as skip", {
 
 test_that("an unsupported geom is still unknown rather than skipped", {
   adapter <- maidr:::Ggplot2Adapter$new()
-  plot <- ggplot2::ggplot(df(), ggplot2::aes(x, v)) + ggplot2::geom_rug()
+  plot <- ggplot2::ggplot(df(), ggplot2::aes(x, v)) +
+    ggplot2::geom_segment(crossings)
 
   testthat::expect_identical(
     adapter$detect_layer_type(plot$layers[[1]], plot), "unknown"

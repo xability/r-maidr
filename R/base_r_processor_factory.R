@@ -35,13 +35,77 @@ BaseRProcessorFactory <- R6::R6Class(
         "stacked_normalized_bar" = BaseRStackedBarLayerProcessor$new(layer_info),
         "smooth" = BaseRSmoothLayerProcessor$new(layer_info),
         "line" = BaseRLineLayerProcessor$new(layer_info),
+        # One line per trace-factor level, over the cell means
+        # `interaction.plot()` computes and hands to `matplot`.
+        "interaction" = BaseRInteractionLayerProcessor$new(layer_info),
+        # One line per cycle position of a seasonal series, the shape
+        # `monthplot()` draws.
+        "subseries" = BaseRSubseriesLayerProcessor$new(layer_info),
         "step" = BaseRStepLayerProcessor$new(layer_info),
+        "lollipop" = BaseRSpikeLayerProcessor$new(layer_info),
+        # The same spikes, drawn per lag rather than per observation. The
+        # separate name routes it to the subclass that replays the recorded
+        # call to get the correlations, which the drawing does not carry.
+        "correlogram" = BaseRCorrelogramLayerProcessor$new(layer_info),
         "point" = BaseRPointLayerProcessor$new(layer_info),
+        # A scatter whose coordinates the call computed rather than took.
+        # It emits a `point` layer; the separate name is what routes it here
+        # instead of to the processor that would read the raw sample.
+        "qq" = BaseRQqLayerProcessor$new(layer_info),
+        "qqline" = BaseRQqlineLayerProcessor$new(layer_info),
+        # A scatter split into one layer per group. The separate name routes
+        # it here rather than to the processor that would emit one layer and
+        # highlight only the first group's marks.
+        "strip" = BaseRStripchartLayerProcessor$new(layer_info),
+        # A scatter per ordered pair of columns, each in its own cell of a
+        # grid the reading derives -- the one processor that answers with a
+        # figure's shape rather than a layer's.
+        "pairs" = BaseRPairsLayerProcessor$new(layer_info),
+        # The same set of lines once more, this time around a circle: one
+        # series per observation, one spoke per variable.
+        "radar" = BaseRStarsLayerProcessor$new(layer_info),
+        # A term and its count. The chart draws the count as glyph size and
+        # writes it down nowhere, so the reading is the whole of what it
+        # encodes and none of what it draws.
+        "word_cloud" = BaseRWordcloudLayerProcessor$new(layer_info),
+        # The other call that answers with a grid: one scatter per series and
+        # lag, the series against a shifted copy of itself.
+        "lag" = BaseRLagLayerProcessor$new(layer_info),
+        # The third, and the only one whose grid is the caller's rather than
+        # its own: one partial-effect curve per term of a fitted model.
+        "termplot" = BaseRTermplotLayerProcessor$new(layer_info),
+        # The two periodogram entry points. Separate names because they draw
+        # different marks from different estimates of the same series.
+        "spectral_density" = BaseRSpectrumLayerProcessor$new(layer_info),
+        "cumulative_periodogram" = BaseRCpgramLayerProcessor$new(layer_info),
+        # The fourth call that answers with a grid, and the only one whose
+        # cells exist because the halves have different scales rather than
+        # because they were drawn side by side.
+        "biplot" = BaseRBiplotLayerProcessor$new(layer_info),
+        # A contour whose levels default to twice as many, and whose field
+        # is one polygon grob rather than one per curve. The separate name
+        # routes it to the subclass that knows both.
+        "filled_contour" = BaseRFilledContourLayerProcessor$new(layer_info),
+        # A mosaic whose table has to be replayed out of the call rather
+        # than read from it, and whose tiles are one grob rather than many.
+        "spine" = BaseRSpineplotLayerProcessor$new(layer_info),
+        "conditional_density" = BaseRCdplotLayerProcessor$new(layer_info),
+        "dot" = BaseRDotchartLayerProcessor$new(layer_info),
+        "mosaic" = BaseRMosaicLayerProcessor$new(layer_info),
+        # The same table read as residuals rather than proportions. A
+        # separate name because the numbers, the axes and the trace all
+        # differ; only the argument they come from is shared.
+        "residual" = BaseRAssocplotLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
+        # A box plot handed its summaries rather than its observations. The
+        # separate name routes it to the subclass that reads them out of the
+        # call; the layer it emits is a `box` like any other.
+        "box_stats" = BaseRBxpLayerProcessor$new(layer_info),
         "violin" = BaseRViolinLayerProcessor$new(layer_info),
         "pie" = BaseRPieLayerProcessor$new(layer_info),
         "heat" = BaseRHeatmapLayerProcessor$new(layer_info),
+        "contour" = BaseRContourLayerProcessor$new(layer_info),
         "candlestick" = BaseRCandlestickLayerProcessor$new(layer_info),
         # For unknown types, use the generic processor
         BaseRUnknownLayerProcessor$new(layer_info)
@@ -59,27 +123,47 @@ BaseRProcessorFactory <- R6::R6Class(
         "stacked_normalized_bar",
         "smooth",
         "line",
+        "interaction",
+        "subseries",
         "step",
+        "lollipop",
+        "correlogram",
         "point",
+        "qq",
+        "qqline",
+        "strip",
+        "lag",
+        "radar",
+        "termplot",
+        "spectral_density",
+        "cumulative_periodogram",
+        "biplot",
+        "filled_contour",
+        "spine",
+        "conditional_density",
+        "dot",
+        "mosaic",
+        "residual",
         "hist",
         "box",
+        "box_stats",
         "pie",
         "heat",
-        # `contour` is deliberately absent. `base_r_adapter` maps the call to
-        # that type and the factory had no processor for it, so the layer was
-        # emitted typed "unknown" -- and because the type was listed here, the
-        # unsupported-elements fallback that saves `dotchart` never ran. The
-        # core's factory ends its dispatch with
-        # `throw new Error("Invalid trace type: " + layer.type)`, so the figure
-        # never bound: an interactive shell answering no key, and no picture
-        # either. A static image with a warning is worse than reading the
-        # chart and better than both of those (#214).
-        #
-        # Reading it properly is still open. `contour` *is* a trace type --
-        # the ggplot2 side emits it for `geom_contour` (#198) -- and base R's
-        # `contour()` hands over the same `x`, `y`, `z` and `levels`. Adding
-        # the processor is what puts the type back on this list.
+        # Back on the list with `BaseRContourLayerProcessor` behind it (#218).
+        # It was absent for a while because listing a type the factory cannot
+        # dispatch is worse than not claiming it: the layer shipped typed
+        # "unknown", the unsupported-elements fallback that saves `dotchart`
+        # never ran because the type *was* claimed here, and the core's
+        # factory ends its dispatch with
+        # `throw new Error("Invalid trace type: " + layer.type)` -- so the
+        # figure bound and then failed to construct (#214).
+        "contour",
         "candlestick",
+        "word_cloud",
+        # Both dispatched by `create_processor()` above and emitted by the
+        # adapter; the list had simply not been kept in step with the switch.
+        "violin",
+        "pairs",
         "unknown"
       )
     },

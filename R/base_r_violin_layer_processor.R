@@ -316,7 +316,7 @@ BaseRViolinLayerProcessor <- R6::R6Class(
         return("")
       }
       args <- layer_info$plot_call$args
-      if (!is.null(args$main)) args$main else ""
+      recorded_main_title(args)
     },
 
     #' @description Whether the violins run up the page or across it
@@ -327,7 +327,7 @@ BaseRViolinLayerProcessor <- R6::R6Class(
         return("vert")
       }
       args <- layer_info$plot_call$args
-      if (isTRUE(args$horizontal)) "horz" else "vert"
+      if (recorded_flag(args, "horizontal")) "horz" else "vert"
     }
   )
 )

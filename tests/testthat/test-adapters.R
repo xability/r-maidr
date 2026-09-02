@@ -559,9 +559,16 @@ test_that("BaseRAdapter detect_layer_type keeps type = 'l' as line", {
     )
   }
 
-  for (plot_type in c("l", "o", "h", "c")) {
+  for (plot_type in c("l", "o", "c")) {
     testthat::expect_equal(adapter$detect_layer_type(layer_for(plot_type)), "line")
   }
+
+  # "h" was in that list until #239 moved it to its own branch ahead of the
+  # step test. It draws a vertical from the baseline to each value and joins
+  # nothing to anything, so the catch-all was telling the reader the samples
+  # were connected and interpolable -- the one relationship the chart is
+  # drawn to deny. "o" and "c" stay: both draw the polyline "l" does.
+  testthat::expect_equal(adapter$detect_layer_type(layer_for("h")), "lollipop")
 
   # "b" was in that list until #113 moved it to the points branch ahead of
   # the step test: it draws its segments with a gap at every symbol, which

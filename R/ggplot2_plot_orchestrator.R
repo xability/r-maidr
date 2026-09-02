@@ -1,3 +1,38 @@
+#' Which of a plot's layers drew no rows
+#'
+#' The one place the emptiness rule lives, so the orchestrator and the
+#' patchwork leaf path cannot disagree about it. A leaf inside a
+#' \code{patchwork} composition is classified by
+#' \code{ggplot2_patchwork_utils.R} rather than by
+#' \code{Ggplot2PlotOrchestrator$detect_layers()}, so a rule written only in
+#' the orchestrator would have left every composed chart ghosting (#232).
+#'
+#' One \code{ggplot_build()} per plot, not per layer. That is what makes this
+#' affordable at all: the same question asked inside
+#' \code{detect_layer_type()} would multiply the build by the layer count,
+#' which is why #231 applied it to one geom only.
+#'
+#' A build that cannot answer reports nothing empty. A plot that will not
+#' build is a bigger problem than this one, and it is about to be met by
+#' whatever else needs the build.
+#'
+#' @param plot A ggplot object.
+#' @return Integer indices into \code{plot$layers}, possibly empty.
+#' @keywords internal
+layers_that_drew_nothing <- function(plot) {
+  built <- tryCatch(ggplot2::ggplot_build(plot), error = function(e) NULL)
+  if (is.null(built) || is.null(built$data)) {
+    return(integer(0))
+  }
+
+  which(vapply(
+    built$data,
+    function(drawn) !is.null(drawn) && isTRUE(nrow(drawn) == 0L),
+    logical(1)
+  ))
+}
+
+
 #' Plot Orchestrator Class
 #'
 #' @description
@@ -65,6 +100,49 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         layer_info <- self$analyze_single_layer(layers[[i]], i)
         private$.layers[[i]] <- layer_info
       }
+
+      self$skip_layers_that_drew_nothing()
+    },
+
+    #' @description Retag every layer that drew no rows as \code{"skip"}.
+    #'
+    #' A layer can be typed perfectly well and still have nothing in it -- a
+    #' \code{data =} filtered to nothing, a stat that dropped every row, a
+    #' facet arrangement in which one layer's data is empty, a **Suggests**
+    #' package absent so the stat could not run. It then reaches the schema
+    #' as a layer a reader can walk into and find nothing in. Measured on ten
+    #' points, the second layer drawn from \code{d[0, ]}:
+    #'
+    #' \preformatted{
+    #' geom_point()   point(0)      an empty layer of points
+    #' geom_col()     bar(0)        an empty layer of bars
+    #' geom_line()    line(1x0)     one series, holding nothing
+    #' geom_smooth()  smooth(1x0)   one series, holding nothing
+    #' }
+    #'
+    #' Asked here rather than in \code{detect_layer_type()} because emptiness
+    #' is not a fact about what *kind* of chart a layer is, and because the
+    #' classifier runs per layer: one \code{ggplot_build()} for the whole
+    #' pass costs a chart ~37 ms once, where asking per layer would multiply
+    #' it. \code{"skip"} rather than a fourth answer, because that is the tag
+    #' the rest of the orchestrator already understands -- including the #176
+    #' guard, so a chart whose *only* layer is empty falls back to an image
+    #' rather than announcing itself as interactive with nothing in it.
+    #'
+    #' A build that cannot answer changes nothing. That is the same posture
+    #' \code{layer_drew_nothing()} takes: a plot that will not build is a
+    #' bigger problem than this, and it is about to be met by whatever else
+    #' needs the build.
+    #'
+    #' @return NULL, invisibly. Rewrites \code{private$.layers} in place.
+    skip_layers_that_drew_nothing = function() {
+      for (i in layers_that_drew_nothing(private$.plot)) {
+        if (i <= length(private$.layers)) {
+          private$.layers[[i]]$type <- "skip"
+        }
+      }
+
+      invisible(NULL)
     },
     analyze_single_layer = function(layer, layer_index) {
       # Safely extract layer components with error handling

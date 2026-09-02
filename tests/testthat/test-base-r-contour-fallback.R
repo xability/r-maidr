@@ -1,6 +1,6 @@
-# Base R contour() shipped a layer the core refuses (#214)
+# A base R call must never ship a type the factory cannot dispatch (#214)
 #
-# `base_r_adapter` mapped the call to the type "contour" and the processor
+# `base_r_adapter` mapped `contour()` to the type "contour" and the processor
 # factory had no processor for it, so the generic one ran and the layer was
 # emitted typed **"unknown"**. Two things then compounded:
 #
@@ -11,14 +11,16 @@
 #
 # So the figure rendered interactively and then failed to construct: an
 # interactive-looking shell that answers no key, and no picture either.
-# Measured before the fix, `contour(matrix(1:12, nrow = 3))` gave
-# `types=[unknown]` with no fallback warning, while `dotchart()` -- unclaimed
-# by anything -- correctly gave a static image.
 #
-# Typed "unknown" at the adapter it takes that same path. Worse than reading
-# the chart and better than a figure that never binds. Reading it properly is
-# still open: `contour` *is* a trace type, the ggplot2 adapter emits it for
-# `geom_contour()` (#198), and base R hands over the same x, y, z and levels.
+# #214 fixed that by typing the call "unknown" so it degraded to a picture.
+# #218 replaced the picture with the reading, and `test-base-r-contour.R`
+# covers what a contour now announces.
+#
+# What is left here is the part that outlived both: the rule they were two
+# answers to. A call is either dispatchable or it falls back, and "unknown"
+# on `layer$type` is the only thing that reaches the fallback. `dotchart`
+# stands for the unclaimed side and is unchanged; the contour cases assert
+# the claimed side now reads rather than that it degrades.
 
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
@@ -86,26 +88,38 @@ test_that("a base R contour never emits a layer the core would refuse", {
 
   result <- render_base_figure(function() contour(matrix(1:12, nrow = 3)))
 
-  # The heart of it. "unknown" is not a trace type, and a payload carrying one
-  # makes the whole figure fail to construct.
+  # The heart of it, and the assertion that survives both fixes unchanged.
+  # "unknown" is not a trace type, and a payload carrying one makes the whole
+  # figure fail to construct -- whether the call is read or handed back.
   expect_false("unknown" %in% result$types)
 })
 
-test_that("it falls back to a picture, and says so", {
+test_that("it is read rather than turned into a picture", {
   skip_unless_jsonlite()
 
+  # The inversion of what this test asserted under #214, kept in place rather
+  # than deleted so the two behaviours are visibly one story: the call used to
+  # degrade to an image, and now it reads. `test-base-r-contour.R` covers what
+  # it announces; what matters here is that the fallback no longer fires for a
+  # type the factory can dispatch.
   result <- render_base_figure(function() contour(matrix(1:12, nrow = 3)))
 
-  expect_true(result$fell_back)
-  expect_true(result$warned)
+  expect_equal(result$types, "contour")
+  expect_false(result$fell_back)
+  expect_false(result$warned)
 })
 
 test_that("it takes the same path an unclaimed call takes", {
   skip_unless_jsonlite()
 
-  # `dotchart` has no processor and nothing claims it does, so it has always
-  # degraded correctly. Asserted beside the contour so the two cannot drift.
-  result <- render_base_figure(function() dotchart(c(3, 7, 5)))
+  # A call with no processor and nothing claiming it has one degrades
+  # correctly. Asserted beside the contour so the two cannot drift.
+  #
+  # Which call plays the part lives in `helper.R`, because it keeps moving:
+  # `dotchart` stood here until #242 gave it a processor, then `mosaicplot`
+  # until #242's remainder gave it one. The subject is a *recorded call with
+  # no processor*, not any particular function.
+  result <- render_base_figure(draw_unread_base_r_chart)
 
   expect_true(result$fell_back)
   expect_true(result$warned)
@@ -126,11 +140,17 @@ test_that("the charts beside it still read", {
   )
 })
 
-test_that("the factory no longer claims contour among its supported types", {
-  # The other half of the contradiction: `get_supported_types()` listed
-  # "contour" while `create_processor()` handed it the generic processor.
+test_that("the factory claims contour only because it can dispatch it", {
+  # The other half of the contradiction #214 found: `get_supported_types()`
+  # listed "contour" while `create_processor()` handed it the generic
+  # processor. Both are true again now, together -- which is the invariant,
+  # not the individual answers.
   factory <- BaseRProcessorFactory$new()
 
-  expect_false("contour" %in% factory$get_supported_types())
+  expect_true("contour" %in% factory$get_supported_types())
+  expect_s3_class(
+    factory$create_processor("contour", list(index = 1)),
+    "BaseRContourLayerProcessor"
+  )
   expect_true("heat" %in% factory$get_supported_types())
 })

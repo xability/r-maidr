@@ -405,11 +405,17 @@ augment_leaf_plot <- function(leaf_plot) {
   factory <- registry$get_processor_factory("ggplot2")
   adapter <- registry$get_adapter("ggplot2")
 
+  # A leaf is classified here rather than by the orchestrator, so the
+  # emptiness rule has to be asked here too -- otherwise a recognised layer
+  # that drew nothing reaches the schema inside a composition, which is the
+  # bug #232 fixed everywhere else. One build for the leaf, before the loop.
+  drew_nothing <- layers_that_drew_nothing(leaf_plot)
+
   augmented <- leaf_plot
   for (i in seq_along(leaf_plot$layers)) {
     layer <- leaf_plot$layers[[i]]
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
-    if (identical(layer_type, "skip")) {
+    if (identical(layer_type, "skip") || i %in% drew_nothing) {
       next
     }
     processor <- factory$create_processor(
@@ -572,18 +578,23 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
     min(n_original_layers, length(leaf_plot$layers))
   }
 
+  # See `augment_leaf_plot()`: the emptiness rule is asked per leaf, because
+  # a leaf never passes through the orchestrator's own pass (#232).
+  drew_nothing <- layers_that_drew_nothing(leaf_plot)
+
   layers <- list()
   for (layer_idx in seq_len(n_layers)) {
     layer <- leaf_plot$layers[[layer_idx]]
 
-    # Use unified layer processor creation logic
-    layer_info <- list(index = layer_idx, type = class(layer$geom)[1])
-
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
 
+    # The detected type, not the geom class: see the facet path for why.
+    layer_info <- list(index = layer_idx, type = layer_type)
+
     # Layers tagged "skip" (e.g. tidyquant's wick layer, which is folded
-    # into the candlestick body layer) must not produce a maidr layer.
-    if (identical(layer_type, "skip")) {
+    # into the candlestick body layer) must not produce a maidr layer. A
+    # layer that drew no rows is the same answer reached a different way.
+    if (identical(layer_type, "skip") || layer_idx %in% drew_nothing) {
       next
     }
 
@@ -650,30 +661,22 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           )
 
           # Carry the processor's remaining fields (orientation,
-          # violinOptions, domMapping, the .panel_* hints the SVG
-          # coordinate injection reads). Restricted to expanded results so
-          # single-layer patchwork payloads keep their current shape.
-          if (expanded) {
-            for (field_name in names(sub)) {
-              if (!field_name %in% c(
-                "id", "type", "selectors", "data", "title", "axes",
-                "labels", "multi_layer", "layers"
-              )) {
-                layer_entry[[field_name]] <- sub[[field_name]]
-              }
-            }
-            if (!is.null(sub$labels) && length(sub$labels) > 0) {
-              layer_entry$labels <- sub$labels
+          # stepDirection, violinOptions, domMapping, the .panel_* hints the
+          # SVG coordinate injection reads), as the single-plot and facet
+          # paths do. This used to be restricted to expanded results, which
+          # dropped `orientation` from a horizontal bar leaf and the
+          # `domMapping` a dodged count leaf needs to highlight the right
+          # bar -- the same loss the facet path had already fixed.
+          for (field_name in names(sub)) {
+            if (!field_name %in% c(
+              "id", "type", "selectors", "data", "title", "axes",
+              "labels", "multi_layer", "layers"
+            )) {
+              layer_entry[[field_name]] <- sub[[field_name]]
             }
           }
-
-          # A step layer is a single-layer result, so the carry above --
-          # deliberately scoped to expanded results -- does not reach it. Its
-          # hv/vh/mid convention is a layer-level sibling of axes/data, and
-          # this entry is rebuilt field by field, so without this the
-          # direction is dropped from every patchworked step plot.
-          if (!expanded && !is.null(sub$stepDirection)) {
-            layer_entry$stepDirection <- sub$stepDirection
+          if (!is.null(sub$labels) && length(sub$labels) > 0) {
+            layer_entry$labels <- sub$labels
           }
 
           layers[[length(layers) + 1]] <- layer_entry

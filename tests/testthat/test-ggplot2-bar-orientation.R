@@ -288,3 +288,23 @@ test_that("is_flipped declines rather than erroring on a missing layer", {
 
   testthat::expect_false(processor$is_flipped(plot))
 })
+
+
+test_that("a layer-level horizontal mapping leaves the caller's plot alone", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # A ggplot2 layer is a ggproto object, so writing its mapping back into
+  # `plot$layers[[i]]` reached the caller's object: reading this chart once
+  # turned it vertical, for the reader and for the user's next `print()`.
+  df <- data.frame(g = c("a", "b"), n = c(1, 2))
+  p <- ggplot2::ggplot(df) +
+    ggplot2::geom_col(ggplot2::aes(y = g, x = n))
+
+  layer <- maidr:::Ggplot2PlotOrchestrator$new(p)$generate_maidr_data()$
+    subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_identical(layer$orientation, "horz")
+  testthat::expect_identical(rlang::as_label(p$layers[[1]]$mapping$x), "n")
+  testthat::expect_identical(rlang::as_label(p$layers[[1]]$mapping$y), "g")
+  testthat::expect_true(isTRUE(ggplot2::ggplot_build(p)$data[[1]]$flipped_aes[1]))
+})

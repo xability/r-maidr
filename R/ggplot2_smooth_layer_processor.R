@@ -123,32 +123,35 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     resolve_target_layer = function(plot) {
       layer_index <- self$get_layer_index()
       own_layer <- plot$layers[[layer_index]]
-      # `GeomFunction` is named rather than reached through `GeomPath`,
-      # which it inherits: a plain `geom_path()` is typed `line` and never
-      # arrives here, so widening to the parent would claim nothing extra
-      # and would blur what this list is for -- the geoms that draw a
-      # *computed* curve (#202).
-      is_smooth_like <- inherits(own_layer$geom, "GeomSmooth") ||
-        inherits(own_layer$geom, "GeomLine") ||
-        inherits(own_layer$geom, "GeomDensity") ||
-        inherits(own_layer$geom, "GeomFunction") ||
-        inherits(own_layer$geom, "GeomArea")
-
-      if (is_smooth_like) {
+      # What this processor can read is stated by `smooth_reads_geom`, which
+      # the classifier consults too so the two cannot disagree (#230).
+      if (smooth_reads_geom(own_layer$geom)) {
         return(layer_index)
       }
 
-      smooth_layers <- which(sapply(plot$layers, function(layer) {
-        inherits(layer$geom, "GeomSmooth") ||
-          inherits(layer$geom, "GeomLine") ||
-          inherits(layer$geom, "GeomDensity") ||
-          inherits(layer$geom, "GeomFunction")
-      }))
-
-      if (length(smooth_layers) == 0) {
-        stop("No smooth curve layers found in plot")
-      }
-      smooth_layers[1]
+      # There used to be a search here for *some other* layer drawing a
+      # curve, taken when the own geom was rejected. It carried its own list
+      # of four geoms -- a third copy, next to `smooth_reads_geom`'s six and
+      # the dispatch's -- and #230 made it unreachable: a processor is built
+      # only for a layer the classifier typed, and the classifier now types
+      # `"smooth"` only when `smooth_reads_geom()` accepts the geom, so the
+      # early return above always fires first. Measured before removing it,
+      # instrumented on the full suite: entered three times, every one from
+      # the test below that hands this processor a bar plot by hand. No
+      # render reached it (#234).
+      #
+      # What it could never be allowed to become is the reason it is gone
+      # rather than widened. Succeeding here means pairing one layer's data
+      # with a sibling's curve, which announces one layer's fit as another's
+      # -- worse than the error, and the wider its list the likelier it got
+      # there. A caller who constructs this processor against a layer it
+      # cannot read is asking a question with no honest answer, and now gets
+      # told so directly.
+      stop(
+        "No smooth curve layers found in plot: ",
+        class(own_layer$geom)[[1]],
+        " is not a geom this processor can read"
+      )
     },
 
     #' @description Built data for this layer, restricted to one facet panel.
@@ -208,6 +211,13 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         built_data$x <- untransform_positions(built_data$x, built, "x", panel_id)
         built_data$y <- untransform_positions(built_data$y, built, "y", panel_id)
         built_data <- self$attach_interval(built_data, plot, built, panel_id)
+      }
+
+      # A panel with no rows -- an unused facet level under `drop = FALSE`
+      # -- has no curve, and one empty series would still be emitted as a
+      # layer the reader is told to enter.
+      if (is.null(built_data) || nrow(built_data) == 0L) {
+        return(list())
       }
 
       group_ids <- self$series_group_ids(built_data)
@@ -522,6 +532,47 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+#' Whether the smooth processor can read a layer drawn with this geom
+#'
+#' The list this processor works from, stated once so that the classifier can
+#' consult it. \code{Ggplot2Adapter$detect_layer_type()} decides a layer is a
+#' \code{"smooth"} partly on its \emph{stat} -- \code{StatFunction} and
+#' \code{StatDensity} both claim one -- and a stat can name a geom this list
+#' does not. When it did, \code{resolve_target_layer()} rejected the layer's
+#' own index, found nothing in the fallback search and \code{stop()}ped:
+#'
+#' \preformatted{
+#' stat_function(fun = sin, geom = "point")  Error: No smooth curve layers found in plot
+#' stat_function(fun = sin, geom = "step")   Error: No smooth curve layers found in plot
+#' stat_function(fun = sin)                  interactive
+#' }
+#'
+#' Not a fallback to a picture -- an error out of \code{save_html()}, so the
+#' caller's script stopped, and which geom the author passed decided whether
+#' the call returned at all (#230). A decline is a reading decision; an
+#' exception is a broken call.
+#'
+#' \code{inherits()} rather than \code{class(geom)[1]} here, unlike the
+#' dispatch: this asks whether the processor can \emph{read} the artist,
+#' which a subclass of a readable geom can. \code{GeomFunction} and
+#' \code{GeomQuantile} are named all the same, because both are
+#' \code{GeomPath} subclasses and a plain \code{geom_path()} is typed
+#' \code{"line"} and never arrives here -- widening to the parent would
+#' claim nothing extra and would blur what this list is for, the geoms that
+#' draw a \emph{computed} curve (#202, #229).
+#'
+#' @param geom A layer's geom
+#' @return TRUE when this processor can read a layer drawn with it
+#' @keywords internal
+smooth_reads_geom <- function(geom) {
+  inherits(geom, "GeomSmooth") ||
+    inherits(geom, "GeomLine") ||
+    inherits(geom, "GeomDensity") ||
+    inherits(geom, "GeomFunction") ||
+    inherits(geom, "GeomQuantile") ||
+    inherits(geom, "GeomArea")
+}
 
 #' Grob-name prefix ggplot2 gives a geom's layer grob
 #'

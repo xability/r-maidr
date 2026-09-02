@@ -48,6 +48,7 @@ the results into a comprehensive interactive plot.
   \itemize{
     \item \href{#method-Ggplot2PlotOrchestrator-initialize}{\code{Ggplot2PlotOrchestrator$new()}}
     \item \href{#method-Ggplot2PlotOrchestrator-detect_layers}{\code{Ggplot2PlotOrchestrator$detect_layers()}}
+    \item \href{#method-Ggplot2PlotOrchestrator-skip_layers_that_drew_nothing}{\code{Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()}}
     \item \href{#method-Ggplot2PlotOrchestrator-analyze_single_layer}{\code{Ggplot2PlotOrchestrator$analyze_single_layer()}}
     \item \href{#method-Ggplot2PlotOrchestrator-determine_layer_type}{\code{Ggplot2PlotOrchestrator$determine_layer_type()}}
     \item \href{#method-Ggplot2PlotOrchestrator-create_layer_processors}{\code{Ggplot2PlotOrchestrator$create_layer_processors()}}
@@ -97,6 +98,49 @@ the results into a comprehensive interactive plot.
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$detect_layers()}
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-skip_layers_that_drew_nothing"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-skip_layers_that_drew_nothing}{}}}
+\subsection{\code{Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()}}{
+  Retag every layer that drew no rows as \code{"skip"}.
+
+A layer can be typed perfectly well and still have nothing in it -- a
+\code{data =} filtered to nothing, a stat that dropped every row, a
+facet arrangement in which one layer's data is empty, a \strong{Suggests}
+package absent so the stat could not run. It then reaches the schema
+as a layer a reader can walk into and find nothing in. Measured on ten
+points, the second layer drawn from \code{d[0, ]}:
+
+\preformatted{
+geom_point()   point(0)      an empty layer of points
+geom_col()     bar(0)        an empty layer of bars
+geom_line()    line(1x0)     one series, holding nothing
+geom_smooth()  smooth(1x0)   one series, holding nothing
+}
+
+Asked here rather than in \code{detect_layer_type()} because emptiness
+is not a fact about what \emph{kind} of chart a layer is, and because the
+classifier runs per layer: one \code{ggplot_build()} for the whole
+pass costs a chart ~37 ms once, where asking per layer would multiply
+it. \code{"skip"} rather than a fourth answer, because that is the tag
+the rest of the orchestrator already understands -- including the #176
+guard, so a chart whose \emph{only} layer is empty falls back to an image
+rather than announcing itself as interactive with nothing in it.
+
+A build that cannot answer changes nothing. That is the same posture
+\code{layer_drew_nothing()} takes: a plot that will not build is a
+bigger problem than this, and it is about to be met by whatever else
+needs the build.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    NULL, invisibly. Rewrites \code{private$.layers} in place.
   }
 }
 

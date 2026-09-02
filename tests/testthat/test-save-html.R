@@ -190,16 +190,17 @@ test_that("save_html() works with relative paths", {
   tmp_file <- tempfile(fileext = ".html")
   relative_path <- basename(tmp_file)
 
-  # Save to temp directory
-  old_wd <- getwd()
-  setwd(tempdir())
+  # Save to temp directory, and come back even when an expectation fails:
+  # a working directory left changed follows every later test.
+  old_wd <- setwd(tempdir())
+  on.exit(setwd(old_wd), add = TRUE)
+  # By its full path: `on.exit()` handlers run in the order they were added,
+  # so the working directory is already restored when this one runs.
+  on.exit(unlink(file.path(tempdir(), relative_path)), add = TRUE)
 
   result <- save_html(p, file = relative_path)
 
   testthat::expect_true(file.exists(relative_path))
-
-  unlink(relative_path)
-  setwd(old_wd)
 })
 
 test_that("save_html() requires existing parent directory", {
