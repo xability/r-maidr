@@ -124,21 +124,25 @@ PlotSystemRegistry <- R6::R6Class(
   )
 )
 
-# Global registry instance
-global_registry <- NULL
+# Global registry instance, held in an environment rather than as a
+# namespace variable. The namespace is sealed once the package is loaded, so
+# `<<-` into it only worked because `.onLoad()` happened to create the
+# registry first; `reset_global_registry()` then failed on an installed
+# package with "cannot change value of locked binding".
+.maidr_registry <- new.env(parent = emptyenv())
 
 #' Get the global plot system registry
 #' @return PlotSystemRegistry instance
 #' @keywords internal
 get_global_registry <- function() {
-  if (is.null(global_registry)) {
-    global_registry <<- PlotSystemRegistry$new()
+  if (is.null(.maidr_registry$instance)) {
+    .maidr_registry$instance <- PlotSystemRegistry$new()
   }
-  global_registry
+  .maidr_registry$instance
 }
 
 #' Reset the global registry (mainly for testing)
 #' @keywords internal
 reset_global_registry <- function() {
-  global_registry <<- NULL
+  .maidr_registry$instance <- NULL
 }
