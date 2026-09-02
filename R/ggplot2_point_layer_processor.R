@@ -235,18 +235,10 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
         names(original_data)[2]
       }
 
-      # Determine color column name
-      color_col <- if (!is.null(layer_mapping$colour)) {
-        rlang::as_label(layer_mapping$colour)
-      } else if (!is.null(layer_mapping$color)) {
-        rlang::as_label(layer_mapping$color)
-      } else if (!is.null(plot_mapping$colour)) {
-        rlang::as_label(plot_mapping$colour)
-      } else if (!is.null(plot_mapping$color)) {
-        rlang::as_label(plot_mapping$color)
-      } else {
-        NULL
-      }
+      # Determine the colour aesthetic and the name it prints as
+      color_quo <- layer_mapping$colour %||% layer_mapping$color %||%
+        plot_mapping$colour %||% plot_mapping$color
+      color_col <- if (!is.null(color_quo)) rlang::as_label(color_quo) else NULL
 
       # The mapped grouping variable (e.g. "Species") only exists in the
       # ORIGINAL data; built data carries the mapped hex codes in
@@ -254,13 +246,25 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
       # `layer_data` holds one panel while `original_data` holds every row,
       # so comparing the two counts never matched and every faceted scatter
       # announced raw hex codes instead of category names.
+      #
+      # `colour = factor(cyl)` names no column, so the expression is
+      # evaluated over the data the way ggplot2 evaluates it, and the level
+      # each row was drawn with is announced rather than its hex code.
       color_values <- NULL
       if (!is.null(color_col)) {
+        mapped <- if (color_col %in% names(original_data)) {
+          original_data[[color_col]]
+        } else {
+          tryCatch(
+            rlang::eval_tidy(color_quo, data = original_data),
+            error = function(e) NULL
+          )
+        }
         if (
-          color_col %in% names(original_data) &&
+          length(mapped) == nrow(original_data) &&
             nrow(original_data) == nrow(full_layer_data)
         ) {
-          color_values <- as.character(original_data[[color_col]])[panel_rows]
+          color_values <- as.character(mapped)[panel_rows]
         } else if ("colour" %in% names(layer_data)) {
           color_values <- as.character(layer_data$colour)
         }
