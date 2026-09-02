@@ -76,11 +76,12 @@ LayerProcessor <- R6::R6Class(
       }
 
       if (!is.null(panel_id) && "PANEL" %in% names(layer_data)) {
-        subset <- layer_data[as.character(layer_data$PANEL) ==
-          as.character(panel_id), , drop = FALSE]
-        if (nrow(subset) > 0) {
-          return(subset)
-        }
+        # The panel's rows, even when there are none. A facet level the data
+        # never reaches (`drop = FALSE`) is drawn as an empty panel, and
+        # answering the whole frame for it described every other panel's
+        # series as that panel's own.
+        return(layer_data[as.character(layer_data$PANEL) ==
+          as.character(panel_id), , drop = FALSE])
       }
 
       layer_data
@@ -365,7 +366,7 @@ LayerProcessor <- R6::R6Class(
         return(FALSE)
       }
       layer_index <- self$get_layer_index()
-      if (layer_index > length(built$data)) {
+      if (is.null(layer_index) || layer_index > length(built$data)) {
         return(FALSE)
       }
       isTRUE(built$data[[layer_index]]$flipped_aes[1])
@@ -393,7 +394,7 @@ LayerProcessor <- R6::R6Class(
 
     #' @description Was this base R call drawn with `horiz = TRUE`?
     #'
-    #' The base R counterpart of {@link is_flipped_layer}: `barplot()` takes
+    #' The base R counterpart of `is_flipped_layer()`: `barplot()` takes
     #' the orientation as an argument rather than marking the built layer, so
     #' the answer is read back off the captured call.
     #'

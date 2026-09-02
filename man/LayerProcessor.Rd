@@ -534,7 +534,7 @@ both columns hold plausible numbers.
 \subsection{\code{LayerProcessor$is_horizontal_call()}}{
   Was this base R call drawn with \code{horiz = TRUE}?
 
-The base R counterpart of {@link is_flipped_layer}: \code{barplot()} takes
+The base R counterpart of \code{is_flipped_layer()}: \code{barplot()} takes
 the orientation as an argument rather than marking the built layer, so
 the answer is read back off the captured call.
   \subsection{Usage}{

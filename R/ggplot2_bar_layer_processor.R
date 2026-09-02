@@ -47,7 +47,7 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' move together: `"horz"` and the vertical `x = category, y = measure`
     #' pairing is precisely the combination #184 was about, and a
     #' `coord_flip()` chart currently reads correctly only because both halves
-    #' are left in their vertical form. That is what {@link swap_point_axes}
+    #' are left in their vertical form. That is what `swap_point_axes()`
     #' being driven from this same answer is for.
     #'
     #' @param plot The ggplot2 object.
@@ -65,6 +65,14 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' column name, and the caller's plot is still wanted unswapped for
     #' selectors and axis labels.
     #'
+    #' The layer is copied too. A ggplot2 layer is a ggproto object, which
+    #' is an environment, so assigning into `plot$layers[[i]]$mapping`
+    #' wrote through to the caller's plot: after one read a horizontal
+    #' `geom_col(aes(y = g, x = n))` was a vertical chart, for the render
+    #' and for the user. The swapped mapping goes on a child object that
+    #' inherits everything else from the layer, so the layer itself is
+    #' never written.
+    #'
     #' @param plot The ggplot2 object.
     #' @return A copy whose plot-level and layer-level x/y mappings are swapped.
     unflip_mapping = function(plot) {
@@ -80,8 +88,11 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       plot$mapping <- swap(plot$mapping)
       layer_index <- self$get_layer_index()
       if (layer_index <= length(plot$layers)) {
-        plot$layers[[layer_index]]$mapping <-
-          swap(plot$layers[[layer_index]]$mapping)
+        layer <- plot$layers[[layer_index]]
+        plot$layers[[layer_index]] <- ggplot2::ggproto(
+          NULL, layer,
+          mapping = swap(layer$mapping)
+        )
       }
       plot
     },

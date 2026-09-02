@@ -586,10 +586,10 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
   for (layer_idx in seq_len(n_layers)) {
     layer <- leaf_plot$layers[[layer_idx]]
 
-    # Use unified layer processor creation logic
-    layer_info <- list(index = layer_idx, type = class(layer$geom)[1])
-
     layer_type <- adapter$detect_layer_type(layer, leaf_plot)
+
+    # The detected type, not the geom class: see the facet path for why.
+    layer_info <- list(index = layer_idx, type = layer_type)
 
     # Layers tagged "skip" (e.g. tidyquant's wick layer, which is folded
     # into the candlestick body layer) must not produce a maidr layer. A
@@ -661,30 +661,22 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
           )
 
           # Carry the processor's remaining fields (orientation,
-          # violinOptions, domMapping, the .panel_* hints the SVG
-          # coordinate injection reads). Restricted to expanded results so
-          # single-layer patchwork payloads keep their current shape.
-          if (expanded) {
-            for (field_name in names(sub)) {
-              if (!field_name %in% c(
-                "id", "type", "selectors", "data", "title", "axes",
-                "labels", "multi_layer", "layers"
-              )) {
-                layer_entry[[field_name]] <- sub[[field_name]]
-              }
-            }
-            if (!is.null(sub$labels) && length(sub$labels) > 0) {
-              layer_entry$labels <- sub$labels
+          # stepDirection, violinOptions, domMapping, the .panel_* hints the
+          # SVG coordinate injection reads), as the single-plot and facet
+          # paths do. This used to be restricted to expanded results, which
+          # dropped `orientation` from a horizontal bar leaf and the
+          # `domMapping` a dodged count leaf needs to highlight the right
+          # bar -- the same loss the facet path had already fixed.
+          for (field_name in names(sub)) {
+            if (!field_name %in% c(
+              "id", "type", "selectors", "data", "title", "axes",
+              "labels", "multi_layer", "layers"
+            )) {
+              layer_entry[[field_name]] <- sub[[field_name]]
             }
           }
-
-          # A step layer is a single-layer result, so the carry above --
-          # deliberately scoped to expanded results -- does not reach it. Its
-          # hv/vh/mid convention is a layer-level sibling of axes/data, and
-          # this entry is rebuilt field by field, so without this the
-          # direction is dropped from every patchworked step plot.
-          if (!expanded && !is.null(sub$stepDirection)) {
-            layer_entry$stepDirection <- sub$stepDirection
+          if (!is.null(sub$labels) && length(sub$labels) > 0) {
+            layer_entry$labels <- sub$labels
           }
 
           layers[[length(layers) + 1]] <- layer_entry
