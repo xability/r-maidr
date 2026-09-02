@@ -153,9 +153,11 @@ MAIDR accessibility features.</p>
 
 
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
-<dd><p>Logical. Controls where MAIDR.js is loaded from:</p><ul><li><p><code>TRUE</code>: Use CDN (requires internet)</p></li>
-<li><p><code>FALSE</code>: Use local bundled files (works offline)</p></li>
-<li><p><code>NULL</code> (default): Auto-detect based on internet availability</p></li>
+<dd><p>Logical. Controls where MAIDR.js is loaded from:</p><ul><li><p><code>TRUE</code>: Use CDN. The file is self-contained but needs
+internet access when it is viewed.</p></li>
+<li><p><code>FALSE</code> or <code>NULL</code> (default): Use the bundled files.
+The MAIDR.js library is written to a <code>lib/</code> folder beside
+<code>file</code>, which has to travel with it.</p></li>
 </ul></dd>
 
 

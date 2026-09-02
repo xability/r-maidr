@@ -306,6 +306,11 @@
 <td><code><a href="reference/base-r-wrappers.html">image()</a></code></td>
 </tr>
 <tr>
+<td>Contour plots</td>
+<td>— (see below)</td>
+<td><code><a href="reference/base-r-wrappers.html">contour()</a></code></td>
+</tr>
+<tr>
 <td>Violin plots</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin()</a></code></td>
 <td>—</td>
@@ -500,6 +505,10 @@
 <code><a href="reference/base-r-wrappers.html">mosaicplot()</a></code> (two-way tables)</td>
 </tr>
 <tr>
+<td><code>pairs</code></td>
+<td><code><a href="reference/base-r-wrappers.html">pairs()</a></code></td>
+</tr>
+<tr>
 <td><code>qq</code></td>
 <td><code><a href="reference/base-r-wrappers.html">qqnorm()</a></code></td>
 </tr>
@@ -542,6 +551,10 @@
 <td><code><a href="reference/base-r-wrappers.html">termplot()</a></code></td>
 </tr>
 <tr>
+<td><code>violin</code></td>
+<td><code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code></td>
+</tr>
+<tr>
 <td><code>word_cloud</code></td>
 <td><code><a href="https://rdrr.io/pkg/wordcloud/man/wordcloud.html" class="external-link">wordcloud::wordcloud()</a></code></td>
 </tr>
@@ -549,7 +562,7 @@
 </table>
 <p>The split is the diff of each factory’s <code>get_supported_types()</code> against <code>8de0e98</code>, the last commit on <code>main</code> before <a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a> was filed. <code>tests/testthat/test-plot-type-stability.R</code> fails if a supported type appears in neither the stable tables nor the experimental ones, so a new layer type has to be placed deliberately rather than inherit either promise by being forgotten.</p>
 <p>The JavaScript core and the Python binding make the same distinction over their own type lists, with the same boundary and for the same reason.</p>
-<p>See <code>vignette("plot-types")</code> for detailed examples of each plot type.</p>
+<p>See the <a href="https://r.maidr.ai/articles/examples.html">examples gallery</a> for a worked example of each plot type.</p>
 </div>
 </div>
 </div>
@@ -570,7 +583,7 @@
 <div class="section level2">
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
-<p>By default, maidr auto-detects internet availability and loads the MAIDR.js library from a CDN. Use the <code>use_cdn</code> parameter for explicit control:</p>
+<p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled MAIDR.js library, so the result works offline (<code><a href="reference/save_html.html">save_html()</a></code> writes it to a <code>lib/</code> folder beside the file). Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. Use the <code>use_cdn</code> parameter for explicit control:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force CDN (requires internet)</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -595,8 +608,7 @@
 <ul>
 <li>
 <code><a href="articles/getting-started.html">vignette("getting-started", package = "maidr")</a></code> for an introduction</li>
-<li>
-<code>vignette("plot-types", package = "maidr")</code> for supported visualizations</li>
+<li>The <a href="https://r.maidr.ai/articles/examples.html">examples gallery</a> for supported visualizations</li>
 <li>
 <code><a href="articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code> for Shiny apps</li>
 </ul>

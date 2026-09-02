@@ -96,9 +96,12 @@ show()
 
 ## Offline vs CDN Usage
 
-By default, MAIDR auto-detects internet availability and loads the
-MAIDR.js library from a CDN when online. You can control this behavior
-with the `use_cdn` parameter:
+By default, [`show()`](https://r.maidr.ai/reference/show.md) and
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) use the
+bundled MAIDR.js library, so the result works offline; widgets, knitr
+documents and Shiny apps auto-detect internet availability and use the
+CDN when online. You can control this behavior with the `use_cdn`
+parameter:
 
 ``` r
 
@@ -108,7 +111,7 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 
-# Auto-detect (default) - uses CDN if internet available
+# Default - bundled files, works offline
 show(p)
 
 # Force CDN (requires internet when viewing)

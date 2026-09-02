@@ -91,6 +91,7 @@ Base R:
 | Step plots | [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html) | `plot(type = "s")`, `plot(type = "S")` |
 | Box plots | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html) | [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Heatmaps | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html) | [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Contour plots | — (see below) | [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Violin plots | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html) | — |
 | Candlestick (OHLC) | [`tidyquant::geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html) (+ `geom_ma()`, + patchwork volume) | [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html) (OHLC-only; no TA / no volume) |
 | Density/Smooth | [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html), [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) | `lines(density())` |
@@ -170,6 +171,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `lag` | [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `lollipop` | `plot(type = "h")` |
 | `mosaic` | [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (two-way tables) |
+| `pairs` | [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `qq` | [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `qqline` | [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `radar` | [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
@@ -180,6 +182,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `strip` | [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `subseries` | [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `termplot` | [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `violin` | [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html) |
 | `word_cloud` | [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html) |
 
 The split is the diff of each factory’s `get_supported_types()` against
@@ -194,7 +197,8 @@ The JavaScript core and the Python binding make the same distinction
 over their own type lists, with the same boundary and for the same
 reason.
 
-See `vignette("plot-types")` for detailed examples of each plot type.
+See the [examples gallery](https://r.maidr.ai/articles/examples.html)
+for a worked example of each plot type.
 
 ## Accessibility features
 
@@ -205,9 +209,13 @@ See `vignette("plot-types")` for detailed examples of each plot type.
 
 ## Offline support
 
-By default, maidr auto-detects internet availability and loads the
-MAIDR.js library from a CDN. Use the `use_cdn` parameter for explicit
-control:
+By default, [`show()`](https://r.maidr.ai/reference/show.md) and
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) use the
+bundled MAIDR.js library, so the result works offline
+([`save_html()`](https://r.maidr.ai/reference/save_html.md) writes it to
+a `lib/` folder beside the file). Widgets, knitr documents and Shiny
+apps auto-detect internet availability and use the CDN when online. Use
+the `use_cdn` parameter for explicit control:
 
 ``` r
 
@@ -229,7 +237,7 @@ save_html(p, "plot.html", use_cdn = FALSE)
 
 - [`vignette("getting-started", package = "maidr")`](https://r.maidr.ai/articles/getting-started.md)
   for an introduction
-- `vignette("plot-types", package = "maidr")` for supported
-  visualizations
+- The [examples gallery](https://r.maidr.ai/articles/examples.html) for
+  supported visualizations
 - [`vignette("shiny-integration", package = "maidr")`](https://r.maidr.ai/articles/shiny-integration.md)
   for Shiny apps

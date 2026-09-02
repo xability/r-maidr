@@ -151,7 +151,10 @@ using the MAIDR (Multimodal Access and Interactive Data Representation) system.<
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
 <dd><p>Logical. Controls where MAIDR.js is loaded from:</p><ul><li><p><code>TRUE</code>: Use CDN (requires internet)</p></li>
 <li><p><code>FALSE</code>: Use local bundled files (works offline)</p></li>
-<li><p><code>NULL</code> (default): Auto-detect based on internet availability</p></li>
+<li><p><code>NULL</code> (default): Use the bundled files, so the viewer
+works offline. With <code>as_widget = TRUE</code> the widget instead
+auto-detects internet availability and uses the CDN when online,
+as the knitr and Shiny paths do.</p></li>
 </ul></dd>
 
 

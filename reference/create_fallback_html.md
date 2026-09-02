@@ -8,7 +8,7 @@ Creates HTML content with the fallback image, styled to fit in iframes.
 create_fallback_html(
   plot = NULL,
   shiny = FALSE,
-  format = "png",
+  format = get_fallback_format(),
   width = 7,
   height = 5
 )
@@ -26,7 +26,9 @@ create_fallback_html(
 
 - format:
 
-  Image format (default: "png")
+  Image format. Defaults to the `maidr.fallback_format` option, which
+  [`maidr_set_fallback()`](https://r.maidr.ai/reference/maidr_set_fallback.md)
+  sets.
 
 - width:
 

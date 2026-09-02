@@ -49,7 +49,7 @@ argument as the x data. On a `qqnorm` group that argument is the
 **sample**, not the theoretical quantiles the chart puts on x – so
 inheriting it would stretch the line across the wrong interval, which is
 the class of mistake the Q-Q reading exists to avoid. The range comes
-from the drawn pairs instead, which @code BaseRQqLayerProcessor already
+from the drawn pairs instead, which `BaseRQqLayerProcessor` already
 computes from `stats`' own output.
 
 Highlighting needs nothing new: `qqnorm(x); qqline(x)` and

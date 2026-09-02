@@ -22,8 +22,9 @@ create_maidr_html(
 
 - use_cdn:
 
-  Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files. If `NULL`
-  (default), auto-detect based on internet availability.
+  Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default), use
+  bundled files; see
+  [`maidr_html_dependencies()`](https://r.maidr.ai/reference/maidr_html_dependencies.md).
 
 - shiny:
 

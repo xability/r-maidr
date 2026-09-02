@@ -24,7 +24,10 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 
   - `FALSE`: Use local bundled files (works offline)
 
-  - `NULL` (default): Auto-detect based on internet availability
+  - `NULL` (default): Use the bundled files, so the viewer works
+    offline. With `as_widget = TRUE` the widget instead auto-detects
+    internet availability and uses the CDN when online, as the knitr and
+    Shiny paths do.
 
 - shiny:
 

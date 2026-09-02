@@ -23,11 +23,12 @@ save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 
   Logical. Controls where MAIDR.js is loaded from:
 
-  - `TRUE`: Use CDN (requires internet)
+  - `TRUE`: Use CDN. The file is self-contained but needs internet
+    access when it is viewed.
 
-  - `FALSE`: Use local bundled files (works offline)
-
-  - `NULL` (default): Auto-detect based on internet availability
+  - `FALSE` or `NULL` (default): Use the bundled files. The MAIDR.js
+    library is written to a `lib/` folder beside `file`, which has to
+    travel with it.
 
 - ...:
 
