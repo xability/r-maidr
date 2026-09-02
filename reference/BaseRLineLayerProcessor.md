@@ -31,6 +31,8 @@ Processes Base R line plot layers based on recorded plot calls
 
 - [`BaseRLineLayerProcessor$get_y_range_from_group()`](#method-BaseRLineLayerProcessor-get_y_range_from_group)
 
+- [`BaseRLineLayerProcessor$axis_extent()`](#method-BaseRLineLayerProcessor-axis_extent)
+
 - [`BaseRLineLayerProcessor$extract_main_title()`](#method-BaseRLineLayerProcessor-extract_main_title)
 
 - [`BaseRLineLayerProcessor$generate_selectors()`](#method-BaseRLineLayerProcessor-generate_selectors)
@@ -196,6 +198,14 @@ Character vector of labels or NULL if not found
 #### Usage
 
     BaseRLineLayerProcessor$get_y_range_from_group(group)
+
+------------------------------------------------------------------------
+
+### `BaseRLineLayerProcessor$axis_extent()`
+
+#### Usage
+
+    BaseRLineLayerProcessor$axis_extent(limits, data)
 
 ------------------------------------------------------------------------
 

@@ -18,6 +18,12 @@ An R6 class inheriting from SystemAdapter
 
 - [`BaseRAdapter$new()`](#method-BaseRAdapter-initialize)
 
+- [`BaseRAdapter$formula_frame_missing()`](#method-BaseRAdapter-formula_frame_missing)
+
+- [`BaseRAdapter$formula_call()`](#method-BaseRAdapter-formula_call)
+
+- [`BaseRAdapter$formula_scatter_readable()`](#method-BaseRAdapter-formula_scatter_readable)
+
 - [`BaseRAdapter$can_handle()`](#method-BaseRAdapter-can_handle)
 
 - [`BaseRAdapter$detect_layer_type()`](#method-BaseRAdapter-detect_layer_type)
@@ -57,6 +63,84 @@ Initialize the Base R adapter
 #### Usage
 
     BaseRAdapter$new()
+
+------------------------------------------------------------------------
+
+### `BaseRAdapter$formula_frame_missing()`
+
+Was a formula call recorded without the frame it drew from?
+
+A formula reader takes its rows from the model frame kept at record
+time. When that frame could not be built – a `subset` written as an
+expression with nothing to evaluate it in, a `data` that no longer
+resolves – the reader has nothing to announce, and a claimed layer with
+nothing in it exports as an interactive chart that says nothing.
+Declining the type sends the chart to the picture instead.
+
+#### Usage
+
+    BaseRAdapter$formula_frame_missing(layer)
+
+#### Arguments
+
+- `layer`:
+
+  The recorded call entry
+
+#### Returns
+
+TRUE when the call carries a formula but no frame
+
+------------------------------------------------------------------------
+
+### `BaseRAdapter$formula_call()`
+
+Was the call handed a formula?
+
+Either written in the call, or – `fmla <- y ~ x; plot(fmla)` – bound to
+a name the recorder resolved.
+
+#### Usage
+
+    BaseRAdapter$formula_call(layer)
+
+#### Arguments
+
+- `layer`:
+
+  The recorded call entry
+
+#### Returns
+
+TRUE when the call carries a formula
+
+------------------------------------------------------------------------
+
+### `BaseRAdapter$formula_scatter_readable()`
+
+Does a recorded formula
+[`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) draw a
+numeric scatter?
+
+`plot.formula()` draws a scatter only for a numeric response over one
+numeric predictor; a factor predictor reaches `plot.factor()` and a box
+plot, and a longer right-hand side is
+[`plot.default()`](https://rdrr.io/r/graphics/plot.default.html) over
+the first term. Only the two-column numeric frame is read as points.
+
+#### Usage
+
+    BaseRAdapter$formula_scatter_readable(layer)
+
+#### Arguments
+
+- `layer`:
+
+  The recorded call entry
+
+#### Returns
+
+TRUE when the frame is a numeric pair
 
 ------------------------------------------------------------------------
 

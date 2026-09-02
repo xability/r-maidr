@@ -119,8 +119,7 @@
   [`sm::sm.density()`](https://rdrr.io/pkg/sm/man/sm.density.html) with
   the caller’s `h` and `range`; each section highlights its own grob. A
   category with no spread is omitted. The formula interface
-  `vioplot(y ~ g)` is not read and currently emits a chart with no
-  layers.
+  `vioplot(y ~ g)` is not read and falls back to a static image.
 - Added Base R
   [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
   [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
@@ -154,9 +153,7 @@
   [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md). The
   drawn table is recovered by replaying the call off-screen, so a
   numeric `x` announces the interval bins the chart labels; every cell,
-  including an empty one, is highlightable. Bare-vector calls currently
-  announce the deparsed data as axis titles unless `xlab`/`ylab` are
-  given.
+  including an empty one, is highlightable.
 - Added Base R
   [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) support,
   read as a `stacked_normalized_area` layer. Bands come from
@@ -231,9 +228,8 @@
   `wordcloud::wordcloud(words = , freq = )` is read as a `word_cloud`
   layer of terms and their counts, honouring `min.freq` and `max.words`.
   Attach ‘wordcloud’ before ‘maidr’ or call
-  [`maidr::wordcloud()`](https://r.maidr.ai/reference/base-r-wrappers.md).
-  No highlight, and the positional form `wordcloud(w, f)` is not yet
-  read.
+  [`maidr::wordcloud()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  with `words` and `freq` named or positional. No highlight.
 
 ### Bug Fixes
 
@@ -281,7 +277,9 @@
   paths.
 - LaTeX in MAIDR’s AI chat responses is styled again: the bundle ships
   `maidr-math.css` beside `maidr.js`, with the embedded KaTeX fonts
-  stripped to stay under CRAN’s size limit.
+  stripped to stay under CRAN’s size limit. `inst/COPYRIGHTS` lists the
+  components that bundle embeds (D3 and Tone.js were listed and are not
+  in it).
 - CDN-versus-bundled auto-detection re-probes internet access every five
   minutes instead of once per session.
 - maidr-data JSON keeps full numeric precision (values were rounded to
@@ -325,14 +323,14 @@
 - Faceted plots: a `position = "fill"` bar announces proportions; a
   panel whose facet value is `NA` announces its own rows (dodged bars,
   heat maps and stacked bars, which used to abort the export); an empty
-  panel (`drop = FALSE`) carries no layers and no fabricated selector
-  (an empty smooth or line panel still emits one empty series); a bar on
-  a continuous, `Date` or `POSIXct` axis announces its own x; a line on
-  a transformed x scale announces data values; box plot panels carry
-  their own category names; heat map panels report their own cells; box
-  plots, histograms, smooths, heat maps and stacked/dodged bars no
-  longer fail with “unused arguments”. Faceted violins render but are
-  not interactive.
+  panel (`drop = FALSE`) carries no layers and no fabricated selector,
+  for a smooth or a line as for the other geoms; a bar on a continuous,
+  `Date` or `POSIXct` axis announces its own x; a line on a transformed
+  x scale announces data values; box plot panels carry their own
+  category names; heat map panels report their own cells; box plots,
+  histograms, smooths, heat maps and stacked/dodged bars no longer fail
+  with “unused arguments”. Faceted violins render but are not
+  interactive.
 - ‘patchwork’: layer ids are unique across a composition; each leaf’s
   axis number formats and ggplot2-computed axis labels are kept; nested
   layouts (`(p1 | p2) / p3`) emit working selectors for every layer
@@ -393,9 +391,9 @@
   and
   [`position_jitterdodge()`](https://ggplot2.tidyverse.org/reference/position_jitterdodge.html)
   announce the observation rather than the displaced position;
-  colour/group categories are announced again in faceted scatters when
-  the aesthetic is a data column (an expression such as
-  `colour = factor(cyl)` still emits the hex colour).
+  colour/group categories are announced again in faceted scatters, for a
+  data column and for an expression such as `colour = factor(cyl)`
+  alike.
 - Histogram and smooth layers read their own layer’s built data in
   multi-layer plots; heat map axes follow factor level order and are
   named after the mapped columns or
@@ -454,10 +452,15 @@
   vector `subset` reads only the rows drawn; and a formula is
   snapshotted at record time, so rebinding its variables before
   [`show()`](https://r.maidr.ai/reference/show.md) does not change what
-  is announced. A `subset` written as an expression is not re-evaluated,
-  and such a
-  [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md)
-  currently exports with no readable layer.
+  is announced. A `subset` written as an expression
+  (`subset = dose == 0.5`) is evaluated through the snapshot the
+  recording keeps, so
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md) formula
+  calls read the rows drawn; a formula call whose frame cannot be built,
+  and `plot(y ~ f)` on a factor, fall back to a static image rather than
+  exporting a chart with no layers.
 - A deferred plot call inside a loop
   (`plot(y ~ x, data = d, subset = grp == g)`, `curve(f(x, k))`)
   captures the values its expressions reference at call time, so each
@@ -474,9 +477,19 @@
   matrix without `beside` is read as stacked; `horiz = TRUE` emits
   `orientation = "horz"` for plain, stacked and dodged bars;
   `legend.text` no longer adds legend swatches to the selectors; bar
-  data is emitted in drawn order. A named vector is still sorted
-  alphabetically before drawing, and the sorted arguments are what is
-  recorded.
+  data is emitted in drawn order; `height` is read from its own slot, so
+  `barplot(beside = TRUE, height = m)` is a dodged bar chart. A named
+  vector is still sorted alphabetically before drawing, and the sorted
+  arguments are what is recorded.
+- [`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md) spans
+  the axis [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  set up – the data extended 4% each way, or an explicit `xlim`/`ylim` –
+  rather than 5% beyond the data; `spineplot(x, y)` on bare vectors
+  names its axes after the variables rather than their written-out
+  values;
+  [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
+  [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) in a
+  later `par(mfrow)` panel highlight their own panel’s curve.
 - [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) honours
   `right`, `include.lowest` and `nclass`, and density histograms
   announce densities;
@@ -507,7 +520,8 @@
   [`rect()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`polygon()`](https://r.maidr.ai/reference/base-r-wrappers.md))
   silences only its own panel, with a warning naming it. Single-panel
-  figures still fall back whole.
+  figures still fall back whole, and the static image of a multi-panel
+  figure keeps its grid.
 - [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md),

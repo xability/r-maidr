@@ -226,6 +226,7 @@
 <url><loc>https://r.maidr.ai/reference/is_base_r_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_fallback_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_fallback_warning_enabled.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/is_formula_argument.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_ggplot2_enabled.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_grouped_dotchart.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/is_high_level_function.html</loc></url>
@@ -294,6 +295,7 @@
 <url><loc>https://r.maidr.ai/reference/panel_transformation.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/periodogram_args.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/periodogram_points.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/periodogram_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/perpendicular_distance.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polygon_cell_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/polyline_layer_position.html</loc></url>
@@ -312,7 +314,9 @@
 <url><loc>https://r.maidr.ai/reference/r_date_format_to_js_function.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/rdp.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_axis_label.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/recorded_barplot_height.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_flag.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/recorded_formula.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_formula_frame.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_main_title.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/recorded_two_way_table.html</loc></url>
@@ -329,6 +333,7 @@
 <url><loc>https://r.maidr.ai/reference/reset_global_registry.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/reset_jitter_cache.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_legend_label.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/resolve_recorded_value.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_series_group_mapping.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_series_group_names.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/resolve_xy_args.html</loc></url>
@@ -346,10 +351,12 @@
 <url><loc>https://r.maidr.ai/reference/series_group_utils.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/set_internal_guard.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/set_maidr_data_attr.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/set_recorded_barplot_height.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/show.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/simplify_curve.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/smooth_reads_geom.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/snapshot_call_env.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/spineplot_written_axis_names.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/split_one_curve.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/split_vectorised_curve_grobs.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/strip_chartseries_date_axis.html</loc></url>

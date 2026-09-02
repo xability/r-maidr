@@ -150,6 +150,9 @@ to intercept Base R plotting calls and detect plot types.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-BaseRAdapter-initialize"><code>BaseRAdapter$new()</code></a></p></li>
+<li><p><a href="#method-BaseRAdapter-formula_frame_missing"><code>BaseRAdapter$formula_frame_missing()</code></a></p></li>
+<li><p><a href="#method-BaseRAdapter-formula_call"><code>BaseRAdapter$formula_call()</code></a></p></li>
+<li><p><a href="#method-BaseRAdapter-formula_scatter_readable"><code>BaseRAdapter$formula_scatter_readable()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-can_handle"><code>BaseRAdapter$can_handle()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-detect_layer_type"><code>BaseRAdapter$detect_layer_type()</code></a></p></li>
 <li><p><a href="#method-BaseRAdapter-is_dodged_barplot"><code>BaseRAdapter$is_dodged_barplot()</code></a></p></li>
@@ -174,20 +177,89 @@ to intercept Base R plotting calls and detect plot types.</p>
 
 </div>
 
+<p></p><hr><a id="method-BaseRAdapter-formula_frame_missing"></a><div class="section">
+<h3 id="baseradapter-formula-frame-missing-"><code>BaseRAdapter$formula_frame_missing()</code><a class="anchor" aria-label="anchor" href="#baseradapter-formula-frame-missing-"></a></h3>
+<p>Was a formula call recorded without the frame it drew from?</p>
+<p>A formula reader takes its rows from the model frame kept at record
+time. When that frame could not be built – a <code>subset</code> written as an
+expression with nothing to evaluate it in, a <code>data</code> that no longer
+resolves – the reader has nothing to announce, and a claimed layer
+with nothing in it exports as an interactive chart that says nothing.
+Declining the type sends the chart to the picture instead.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">formula_frame_missing</span><span class="op">(</span><span class="va">layer</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>The recorded call entry</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>TRUE when the call carries a formula but no frame</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-formula_call"></a><div class="section">
+<h3 id="baseradapter-formula-call-"><code>BaseRAdapter$formula_call()</code><a class="anchor" aria-label="anchor" href="#baseradapter-formula-call-"></a></h3>
+<p>Was the call handed a formula?</p>
+<p>Either written in the call, or – <code>fmla &lt;- y ~ x; plot(fmla)</code> –
+bound to a name the recorder resolved.</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">formula_call</span><span class="op">(</span><span class="va">layer</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>The recorded call entry</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>TRUE when the call carries a formula</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRAdapter-formula_scatter_readable"></a><div class="section">
+<h3 id="baseradapter-formula-scatter-readable-"><code>BaseRAdapter$formula_scatter_readable()</code><a class="anchor" aria-label="anchor" href="#baseradapter-formula-scatter-readable-"></a></h3>
+<p>Does a recorded formula <code><a href="base-r-wrappers.html">plot()</a></code> draw a numeric scatter?</p>
+<p><code>plot.formula()</code> draws a scatter only for a numeric response over one
+numeric predictor; a factor predictor reaches <code>plot.factor()</code> and a
+box plot, and a longer right-hand side is <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot.default()</a></code> over the
+first term. Only the two-column numeric frame is read as points.</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">formula_scatter_readable</span><span class="op">(</span><span class="va">layer</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>The recorded call entry</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>TRUE when the frame is a numeric pair</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRAdapter-can_handle"></a><div class="section">
 <h3 id="baseradapter-can-handle-"><code>BaseRAdapter$can_handle()</code><a class="anchor" aria-label="anchor" href="#baseradapter-can-handle-"></a></h3>
 <p>Check if this adapter can handle a plot object</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">can_handle</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object to check (should be NULL for Base R)</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>TRUE if Base R plotting is active, FALSE otherwise</p>
 </div>
 
@@ -196,10 +268,10 @@ to intercept Base R plotting calls and detect plot types.</p>
 <p></p><hr><a id="method-BaseRAdapter-detect_layer_type"></a><div class="section">
 <h3 id="baseradapter-detect-layer-type-"><code>BaseRAdapter$detect_layer_type()</code><a class="anchor" aria-label="anchor" href="#baseradapter-detect-layer-type-"></a></h3>
 <p>Detect the type of a single layer from Base R plot calls</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">detect_layer_type</span><span class="op">(</span><span class="va">layer</span>, plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer</code></dt>
 <dd><p>The plot call entry from our logger</p></dd>
 
@@ -209,7 +281,7 @@ to intercept Base R plotting calls and detect plot types.</p>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>String indicating the layer type (e.g., "bar", "dodged_bar",
 "stacked_bar", "smooth", "line", "point")</p>
 </div>
@@ -219,17 +291,17 @@ to intercept Base R plotting calls and detect plot types.</p>
 <p></p><hr><a id="method-BaseRAdapter-is_dodged_barplot"></a><div class="section">
 <h3 id="baseradapter-is-dodged-barplot-"><code>BaseRAdapter$is_dodged_barplot()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-dodged-barplot-"></a></h3>
 <p>Check if a barplot call represents a dodged bar plot</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_dodged_barplot</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>The arguments from the barplot call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>TRUE if this is a dodged bar plot, FALSE otherwise</p>
 </div>
 
@@ -238,17 +310,17 @@ to intercept Base R plotting calls and detect plot types.</p>
 <p></p><hr><a id="method-BaseRAdapter-is_stacked_barplot"></a><div class="section">
 <h3 id="baseradapter-is-stacked-barplot-"><code>BaseRAdapter$is_stacked_barplot()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-stacked-barplot-"></a></h3>
 <p>Check if a barplot call represents a stacked bar plot</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_stacked_barplot</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>The arguments from the barplot call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>TRUE if this is a stacked bar plot, FALSE otherwise</p>
 </div>
 
@@ -271,17 +343,17 @@ because a matrix of raw counts can total 100 by coincidence and nothing
 about the drawing would distinguish that from percentages. And it needs
 two or more rows, because a single series stacked against nothing is not
 a stack.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_normalized_barplot</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>args</code></dt>
 <dd><p>The arguments from the barplot call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>TRUE if every column of the height matrix sums to 1</p>
 </div>
 
@@ -290,17 +362,17 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-create_orchestrator"></a><div class="section">
 <h3 id="baseradapter-create-orchestrator-"><code>BaseRAdapter$create_orchestrator()</code><a class="anchor" aria-label="anchor" href="#baseradapter-create-orchestrator-"></a></h3>
 <p>Create an orchestrator for this system (Base R)</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">create_orchestrator</span><span class="op">(</span>plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object to process (NULL for Base R)</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>PlotOrchestrator instance</p>
 </div>
 
@@ -309,10 +381,10 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-get_system_name"></a><div class="section">
 <h3 id="baseradapter-get-system-name-"><code>BaseRAdapter$get_system_name()</code><a class="anchor" aria-label="anchor" href="#baseradapter-get-system-name-"></a></h3>
 <p>Get the system name</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">get_system_name</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>System name string</p>
 </div>
 
@@ -321,10 +393,10 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-get_adapter"></a><div class="section">
 <h3 id="baseradapter-get-adapter-"><code>BaseRAdapter$get_adapter()</code><a class="anchor" aria-label="anchor" href="#baseradapter-get-adapter-"></a></h3>
 <p>Get a reference to this adapter (for use by orchestrator)</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">get_adapter</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>Self reference</p>
 </div>
 
@@ -333,17 +405,17 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-has_facets"></a><div class="section">
 <h3 id="baseradapter-has-facets-"><code>BaseRAdapter$has_facets()</code><a class="anchor" aria-label="anchor" href="#baseradapter-has-facets-"></a></h3>
 <p>Check if plot has facets (Base R doesn't support facets)</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">has_facets</span><span class="op">(</span>plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object (ignored for Base R)</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>FALSE (Base R doesn't support facets)</p>
 </div>
 
@@ -352,17 +424,17 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-is_patchwork"></a><div class="section">
 <h3 id="baseradapter-is-patchwork-"><code>BaseRAdapter$is_patchwork()</code><a class="anchor" aria-label="anchor" href="#baseradapter-is-patchwork-"></a></h3>
 <p>Check if plot is a patchwork plot (Base R doesn't support patchwork)</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">is_patchwork</span><span class="op">(</span>plot_object <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The plot object (ignored for Base R)</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>FALSE (Base R doesn't support patchwork)</p>
 </div>
 
@@ -371,17 +443,17 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-get_plot_calls"></a><div class="section">
 <h3 id="baseradapter-get-plot-calls-"><code>BaseRAdapter$get_plot_calls()</code><a class="anchor" aria-label="anchor" href="#baseradapter-get-plot-calls-"></a></h3>
 <p>Get recorded plot calls for processing</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">get_plot_calls</span><span class="op">(</span>device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>device_id</code></dt>
 <dd><p>Graphics device ID (defaults to current device)</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>List of recorded plot calls</p>
 </div>
 
@@ -390,10 +462,10 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-clear_plot_calls"></a><div class="section">
 <h3 id="baseradapter-clear-plot-calls-"><code>BaseRAdapter$clear_plot_calls()</code><a class="anchor" aria-label="anchor" href="#baseradapter-clear-plot-calls-"></a></h3>
 <p>Clear recorded plot calls (for cleanup)</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">clear_plot_calls</span><span class="op">(</span>device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>device_id</code></dt>
 <dd><p>Graphics device ID (defaults to current device)</p></dd>
 
@@ -406,10 +478,10 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-initialize_patching"></a><div class="section">
 <h3 id="baseradapter-initialize-patching-"><code>BaseRAdapter$initialize_patching()</code><a class="anchor" aria-label="anchor" href="#baseradapter-initialize-patching-"></a></h3>
 <p>Initialize function patching</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">initialize_patching</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>NULL (invisible)</p>
 </div>
 
@@ -418,10 +490,10 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-restore_functions"></a><div class="section">
 <h3 id="baseradapter-restore-functions-"><code>BaseRAdapter$restore_functions()</code><a class="anchor" aria-label="anchor" href="#baseradapter-restore-functions-"></a></h3>
 <p>Restore original functions</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">restore_functions</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p>NULL (invisible)</p>
 </div>
 
@@ -430,10 +502,10 @@ a stack.</p><div class="section">
 <p></p><hr><a id="method-BaseRAdapter-clone"></a><div class="section">
 <h3 id="baseradapter-clone-"><code>BaseRAdapter$clone()</code><a class="anchor" aria-label="anchor" href="#baseradapter-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

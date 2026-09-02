@@ -9,7 +9,11 @@ rebinding the name it came from afterwards changes nothing.
 ## Usage
 
 ``` r
-recorded_formula_frame(args)
+recorded_formula_frame(
+  args,
+  call_env = NULL,
+  formula = recorded_formula(args, call_env)
+)
 ```
 
 ## Arguments
@@ -17,6 +21,17 @@ recorded_formula_frame(args)
 - args:
 
   Recorded argument list
+
+- call_env:
+
+  The environment snapshot a deferred call was recorded with, or NULL
+  when every argument is a plain value.
+
+- formula:
+
+  The formula the call carries, as
+  [`recorded_formula()`](https://r.maidr.ai/reference/recorded_formula.md)
+  resolves it; passed in when the recorder has already resolved it.
 
 ## Value
 

@@ -152,6 +152,7 @@
 <li><p><a href="#method-BaseRLineLayerProcessor-extract_abline_data"><code>BaseRLineLayerProcessor$extract_abline_data()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-get_x_range_from_group"><code>BaseRLineLayerProcessor$get_x_range_from_group()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-get_y_range_from_group"><code>BaseRLineLayerProcessor$get_y_range_from_group()</code></a></p></li>
+<li><p><a href="#method-BaseRLineLayerProcessor-axis_extent"><code>BaseRLineLayerProcessor$axis_extent()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-extract_main_title"><code>BaseRLineLayerProcessor$extract_main_title()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-generate_selectors"><code>BaseRLineLayerProcessor$generate_selectors()</code></a></p></li>
 <li><p><a href="#method-BaseRLineLayerProcessor-find_lines_grobs"><code>BaseRLineLayerProcessor$find_lines_grobs()</code></a></p></li>
@@ -312,10 +313,19 @@
 
 </div>
 
+<p></p><hr><a id="method-BaseRLineLayerProcessor-axis_extent"></a><div class="section">
+<h3 id="baserlinelayerprocessor-axis-extent-"><code>BaseRLineLayerProcessor$axis_extent()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-axis-extent-"></a></h3>
+<p></p><div class="section">
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">axis_extent</span><span class="op">(</span><span class="va">limits</span>, <span class="va">data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-main-title-"><code>BaseRLineLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-main-title-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -324,7 +334,7 @@
 <p></p><hr><a id="method-BaseRLineLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserlinelayerprocessor-generate-selectors-"><code>BaseRLineLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-generate-selectors-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
@@ -340,7 +350,7 @@
 <p></p><hr><a id="method-BaseRLineLayerProcessor-find_lines_grobs"></a><div class="section">
 <h3 id="baserlinelayerprocessor-find-lines-grobs-"><code>BaseRLineLayerProcessor$find_lines_grobs()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-find-lines-grobs-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">find_lines_grobs</span><span class="op">(</span></span>
 <span>  <span class="va">grob</span>,</span>
 <span>  <span class="va">group_index</span>,</span>
@@ -353,7 +363,7 @@
 <p></p><hr><a id="method-BaseRLineLayerProcessor-selector_grob_type"></a><div class="section">
 <h3 id="baserlinelayerprocessor-selector-grob-type-"><code>BaseRLineLayerProcessor$selector_grob_type()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-selector-grob-type-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">selector_grob_type</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -362,7 +372,7 @@
 <p></p><hr><a id="method-BaseRLineLayerProcessor-generate_selectors_from_grob"></a><div class="section">
 <h3 id="baserlinelayerprocessor-generate-selectors-from-grob-"><code>BaseRLineLayerProcessor$generate_selectors_from_grob()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-generate-selectors-from-grob-"></a></h3>
 <p></p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors_from_grob</span><span class="op">(</span></span>
 <span>  <span class="va">grob</span>,</span>
 <span>  <span class="va">group_index</span>,</span>
@@ -375,7 +385,7 @@
 <p></p><hr><a id="method-BaseRLineLayerProcessor-clone"></a><div class="section">
 <h3 id="baserlinelayerprocessor-clone-"><code>BaseRLineLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
