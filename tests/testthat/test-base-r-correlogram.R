@@ -112,7 +112,10 @@ test_that("a caller who named nothing gets no invented title", {
   # that produced it would announce a call rather than a series.
   layer <- correlogram_layers(function() acf(rnorm(60), lag.max = 3))[[1]]
 
-  expect_null(layer$title)
+  # The processor answers NULL; the layer carries the empty string, which is
+  # what the multipanel path already emits for it and what the JSON encoder
+  # can write -- a NULL serialised as `{}`, which is not a title either.
+  expect_identical(layer$title, "")
 })
 
 test_that("the caller's own main wins", {
