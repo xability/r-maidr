@@ -659,7 +659,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
             selectors = result$selectors,
             type = layer_type,
             data = result$data,
-            title = result$title,
+            # The same default the multipanel branch applies: a NULL title
+            # serialises as `{}`, which is not a string.
+            title = if (!is.null(result$title)) result$title else "",
             axes = layer_axes
           )
 

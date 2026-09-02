@@ -242,7 +242,13 @@ BaseRAdapter <- R6::R6Class(
             # the figure falls back to a picture of the empty panel it is --
             # which is what the shapes drawn over it already get, since they
             # contribute no layer of their own.
-            plot_type <- args$type
+            plot_type <- args[["type"]]
+            # `plot.ts` defaults to `type = "l"`, so `plot(AirPassengers)`
+            # draws a line and no points. Read off `type` alone it was typed
+            # `point`, with a selector on a points grob that was never drawn.
+            if (is.null(plot_type) && stats::is.ts(first_arg)) {
+              plot_type <- "l"
+            }
             if (is.character(plot_type) && identical(plot_type[1], "n")) {
               "unknown"
             } else if (is.null(plot_type) || plot_type[1] %in% c("p", "b")) {

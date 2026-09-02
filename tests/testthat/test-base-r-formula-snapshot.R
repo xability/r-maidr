@@ -232,3 +232,26 @@ test_that("`data =` still masks variables of the same name in scope", {
     c("OJ", "VC")
   )
 })
+
+
+test_that("a recorded subset keeps the rows the chart left out out of the frame", {
+  # `stripchart.formula` hands `subset` to `model.frame()`, so the frame
+  # kept at record time has to as well; without it the reading carried every
+  # row of the data against a chart that drew a fraction of them.
+  tg <- datasets::ToothGrowth
+  layers <- base_r_layers(function() {
+    stripchart(len ~ supp, data = tg, subset = tg$dose == 0.5)
+  })
+
+  # One point layer per group, each holding the ten observations drawn for
+  # it rather than the thirty the data has.
+  testthat::expect_length(layers, 2L)
+  testthat::expect_identical(
+    vapply(layers, function(layer) layer$type, character(1)),
+    c("point", "point")
+  )
+  testthat::expect_identical(
+    vapply(layers, function(layer) length(layer$data), integer(1)),
+    c(10L, 10L)
+  )
+})

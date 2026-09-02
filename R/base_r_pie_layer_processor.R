@@ -172,7 +172,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
       }
 
       args <- layer_info$plot_call$args
-      if (!is.null(args$main)) args$main else ""
+      recorded_main_title(args)
     }
   )
 )

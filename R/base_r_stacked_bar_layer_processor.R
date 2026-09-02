@@ -125,7 +125,7 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
         return("")
       }
       args <- layer_info$plot_call$args
-      if (!is.null(args$main)) args$main else ""
+      recorded_main_title(args)
     },
     generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       if (is.null(layer_info) || is.null(gt)) {

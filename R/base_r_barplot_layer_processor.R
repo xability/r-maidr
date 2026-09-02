@@ -130,7 +130,7 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      main_title <- if (!is.null(args$main)) args$main else ""
+      main_title <- recorded_main_title(args)
       main_title
     },
     generate_selectors = function(layer_info, gt = NULL) {
