@@ -1,7 +1,7 @@
 Package: maidr
 Type: Package
 Title: Multimodal Access and Interactive Data Representation
-Version: 0.4.0
+Version: 0.4.0.9000
 Authors@R: c(
     person("JooYoung", "Seo", email = "jseo1005@illinois.edu", role = c("aut", "cph", "cre")),
     person("Niranjan", "Kalaiselvan", email = "nk46@illinois.edu", role = c("aut"))

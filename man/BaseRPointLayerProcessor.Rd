@@ -16,6 +16,8 @@ Processes Base R scatter plot layers based on recorded plot calls
     \item \href{#method-BaseRPointLayerProcessor-process}{\code{BaseRPointLayerProcessor$process()}}
     \item \href{#method-BaseRPointLayerProcessor-needs_reordering}{\code{BaseRPointLayerProcessor$needs_reordering()}}
     \item \href{#method-BaseRPointLayerProcessor-extract_data}{\code{BaseRPointLayerProcessor$extract_data()}}
+    \item \href{#method-BaseRPointLayerProcessor-resolve_coordinates}{\code{BaseRPointLayerProcessor$resolve_coordinates()}}
+    \item \href{#method-BaseRPointLayerProcessor-formula_variables}{\code{BaseRPointLayerProcessor$formula_variables()}}
     \item \href{#method-BaseRPointLayerProcessor-extract_axis_titles}{\code{BaseRPointLayerProcessor$extract_axis_titles()}}
     \item \href{#method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info}{\code{BaseRPointLayerProcessor$extract_base_r_axis_grid_info()}}
     \item \href{#method-BaseRPointLayerProcessor-extract_main_title}{\code{BaseRPointLayerProcessor$extract_main_title()}}
@@ -97,6 +99,28 @@ Processes Base R scatter plot layers based on recorded plot calls
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$extract_data(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPointLayerProcessor-resolve_coordinates"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-resolve_coordinates}{}}}
+\subsection{\code{BaseRPointLayerProcessor$resolve_coordinates()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPointLayerProcessor$resolve_coordinates(plot_call)}
+    \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPointLayerProcessor-formula_variables"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-formula_variables}{}}}
+\subsection{\code{BaseRPointLayerProcessor$formula_variables()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPointLayerProcessor$formula_variables(plot_call)}
     \if{html}{\out{</div>}}
   }
 }
