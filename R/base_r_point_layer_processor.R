@@ -181,7 +181,8 @@ BaseRPointLayerProcessor <- R6::R6Class(
       }
 
       # --- Optionally extract grid navigation fields ---
-      xy <- self$resolve_coordinates(plot_call)
+      # The frame resolved above already holds a formula call's coordinates.
+      xy <- if (!is.null(frame)) frame else resolve_xy_args(args)
       x_data <- xy$x
       y_data <- xy$y
       # Let R resolve the coordinates, the way extract_data() already does.
