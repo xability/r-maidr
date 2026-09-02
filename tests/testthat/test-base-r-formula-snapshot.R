@@ -234,7 +234,7 @@ test_that("`data =` still masks variables of the same name in scope", {
 })
 
 
-test_that("a recorded subset keeps the rows the chart left out out of the frame", {
+test_that("a recorded subset keeps the rows the chart left out of the frame", {
   # `stripchart.formula` hands `subset` to `model.frame()`, so the frame
   # kept at record time has to as well; without it the reading carried every
   # row of the data against a chart that drew a fraction of them.
