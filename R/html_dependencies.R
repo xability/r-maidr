@@ -158,8 +158,14 @@ maidr_inline_asset_tags <- function() {
   }
 
   assets <- maidr_local_assets()
-  css_content <- paste(readLines(assets$math_css, warn = FALSE), collapse = "\n")
-  js_content <- paste(readLines(assets$js, warn = FALSE), collapse = "\n")
+  css_content <- paste(
+    readLines(assets$math_css, warn = FALSE, encoding = "UTF-8"),
+    collapse = "\n"
+  )
+  js_content <- paste(
+    readLines(assets$js, warn = FALSE, encoding = "UTF-8"),
+    collapse = "\n"
+  )
 
   tags <- list(
     css_tag = sprintf("<style>\n%s\n</style>", css_content),

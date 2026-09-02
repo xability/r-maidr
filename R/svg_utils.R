@@ -96,7 +96,7 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   # Export to SVG
   grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
 
-  svg_content <- readLines(svg_file, warn = FALSE)
+  svg_content <- readLines(svg_file, warn = FALSE, encoding = "UTF-8")
 
   # Candlestick post-processing + maidr-data injection. Parse the SVG
   # ONCE and apply all transformations to the same xml2 document (which

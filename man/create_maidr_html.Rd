@@ -15,8 +15,8 @@ create_maidr_html(
 \arguments{
 \item{plot}{A ggplot2 object}
 
-\item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE}, use bundled files.
-If \code{NULL} (default), auto-detect based on internet availability.}
+\item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE} or \code{NULL}
+(default), use bundled files; see \code{\link[=maidr_html_dependencies]{maidr_html_dependencies()}}.}
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}
 

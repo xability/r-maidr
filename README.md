@@ -85,6 +85,7 @@ maidr supports a wide range of visualization types in both ggplot2 and Base R:
 | Step plots | `geom_step()` | `plot(type = "s")`, `plot(type = "S")` |
 | Box plots | `geom_boxplot()` | `boxplot()` |
 | Heatmaps | `geom_tile()` | `image()` |
+| Contour plots | — (see below) | `contour()` |
 | Violin plots | `geom_violin()` | — |
 | Candlestick (OHLC) | `tidyquant::geom_candlestick()` (+ `geom_ma()`, + patchwork volume) | `quantmod::chartSeries()` (OHLC-only; no TA / no volume) |
 | Density/Smooth | `geom_smooth()`, `geom_density()` | `lines(density())` |
@@ -159,6 +160,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `lag` | `lag.plot()` |
 | `lollipop` | `plot(type = "h")` |
 | `mosaic` | `mosaicplot()` (two-way tables) |
+| `pairs` | `pairs()` |
 | `qq` | `qqnorm()` |
 | `qqline` | `qqline()` |
 | `radar` | `stars()` |
@@ -169,6 +171,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `strip` | `stripchart()` |
 | `subseries` | `monthplot()` |
 | `termplot` | `termplot()` |
+| `violin` | `vioplot::vioplot()` |
 | `word_cloud` | `wordcloud::wordcloud()` |
 
 The split is the diff of each factory's `get_supported_types()` against
@@ -182,7 +185,8 @@ forgotten.
 The JavaScript core and the Python binding make the same distinction over their
 own type lists, with the same boundary and for the same reason.
 
-See `vignette("plot-types")` for detailed examples of each plot type.
+See the [examples gallery](https://r.maidr.ai/articles/examples.html) for a
+worked example of each plot type.
 
 ## Accessibility features
 
@@ -193,7 +197,11 @@ See `vignette("plot-types")` for detailed examples of each plot type.
 
 ## Offline support
 
-By default, maidr auto-detects internet availability and loads the MAIDR.js library from a CDN. Use the `use_cdn` parameter for explicit control:
+By default, `show()` and `save_html()` use the bundled MAIDR.js library, so
+the result works offline (`save_html()` writes it to a `lib/` folder beside
+the file). Widgets, knitr documents and Shiny apps auto-detect internet
+availability and use the CDN when online. Use the `use_cdn` parameter for
+explicit control:
 
 ``` r
 # Force CDN (requires internet)
@@ -211,5 +219,5 @@ save_html(p, "plot.html", use_cdn = FALSE)
 
 ## Learning more
 - `vignette("getting-started", package = "maidr")` for an introduction
-- `vignette("plot-types", package = "maidr")` for supported visualizations
+- The [examples gallery](https://r.maidr.ai/articles/examples.html) for supported visualizations
 - `vignette("shiny-integration", package = "maidr")` for Shiny apps

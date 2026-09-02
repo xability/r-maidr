@@ -192,6 +192,89 @@
 
 ## Bug Fixes
 
+* A ggplot2 chart that maidr could read but could not export -- the case
+  the static-picture fallback exists for -- now gets its picture. Drawing
+  the fallback with a bare `print()` dispatched back into maidr's own print
+  method, which built the chart again, failed again and asked for another
+  picture, opening a fresh `png()` device on every round until R ran out of
+  them; the caller then got neither the chart nor the picture, after
+  several seconds. The picture is drawn with ggplot2's own method.
+
+* The Base R fallback picture no longer records its own replay. The
+  recorded calls were replayed by name, which reached maidr's recording
+  wrappers rather than the graphics functions, so the picture's replay was
+  logged against the throwaway `png()` device -- a device number R hands
+  out again to the next device opened, where the stale calls surfaced as
+  phantom layers. The replay goes through the same original-function path
+  the interactive render uses, which also restores the environment an NSE
+  call is evaluated in.
+
+* `maidr_set_fallback(format = "svg")` is honoured. The option was
+  validated and stored and then read by nothing; every fallback was a PNG.
+
+* `monthplot(x, xlab = "Month")` drew its chart and emitted a layer with no
+  points in it. `xlab` is not a formal of `monthplot.default`, so the series
+  is left unnamed in the recorded arguments, and `args$x` partial-matched
+  the label and dropped every observation as non-numeric (#292). The series
+  is read through `resolve_xy_args()` like every other Base R reading.
+
+* Reading a bar chart whose orientation is set on the layer --
+  `geom_col(aes(y = g, x = n))` -- no longer rewrites the caller's plot.
+  A ggplot2 layer is an environment, so swapping its mapping in place
+  turned the user's horizontal chart vertical, for the render and for every
+  later `print()`. The swapped mapping now lives on a copy.
+
+* A facet panel that no row of the data reaches (`facet_wrap(~ g, drop =
+  FALSE)`) is read as empty. The panel's layer used to be handed every
+  *other* panel's rows and described the rest of the grid as its own
+  series.
+
+* A faceted `geom_bar(position = "fill")` announces proportions. The facet
+  and patchwork paths passed each processor the geom's class as its layer
+  type, where the single-plot path passes the detected type, so the stacked
+  bar reader never recognised the normalized variant and read the counts.
+
+* A patchwork leaf keeps its processor's `orientation`, `stepDirection` and
+  `domMapping`; the leaf entry carried them only for violin results, so a
+  horizontal bar leaf read as vertical and a dodged count leaf highlighted
+  the wrong bar.
+
+* A ggplot2 box plot is named by the label `scale_x_discrete(labels = )`
+  writes on the axis, as the line reader on the same panel already was,
+  rather than by the raw level.
+
+* Base R box plots: a box drawn after one with no outliers is outlined on
+  its own outliers. `bxp()` draws no `points` grob for a box without them,
+  which shifts every later grob by one; the segment selectors applied that
+  shift and the outlier selector did not.
+
+* A Base R formula call recorded with a `subset` -- `stripchart(len ~ supp,
+  data = tg, subset = tg$dose == 0.5)` -- reads the rows the chart drew.
+  The frame kept at record time was built without the subset, so every row
+  of the data was announced against a chart that drew a fraction of them.
+  A `subset` written as an expression cannot be re-evaluated faithfully
+  after the fact, so the frame is declined and the reader falls back.
+
+* `plot()` of a time series is read as the line it draws. `plot.ts`
+  defaults to `type = "l"`, and typed from `type` alone the chart was a
+  `point` layer whose selector named a points grob that was never drawn.
+
+* `main = expression(alpha^2)` no longer fails the save. A dozen Base R
+  readers passed the recorded title straight through, and the JSON encoder
+  has no method for an expression; a title that is not text is announced as
+  empty and the drawing keeps it.
+
+* `lines(numeric(0))` after a plot no longer aborts the render with
+  "attempt to select less than one element".
+
+* A wrapped Base R call returns with the visibility the original gave it.
+  Every wrapper returned invisibly, so `par("mar")` and
+  `hist(x, plot = FALSE)` printed nothing once maidr was attached.
+
+* `reset_global_registry()` works on an installed package. The registry
+  lived in a namespace variable written with `<<-`, which fails once the
+  namespace is sealed; it is kept in a package-private environment now.
+
 * Twelve Base R calls that the README listed as supported drew their chart
   and recorded nothing: `acf()`, `pacf()`, `ccf()`, `cpgram()`, `spectrum()`,
   `monthplot()`, `termplot()`, `lag.plot()`, `biplot()`, `bxp()`, `stars()`
