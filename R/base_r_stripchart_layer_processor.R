@@ -123,7 +123,7 @@ BaseRStripchartLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      groups <- if (inherits(handed, "formula")) {
+      groups <- if (is_formula_argument(handed)) {
         self$split_by_formula(
           handed, args[["data"]], layer_info$plot_call$formula_frame
         )

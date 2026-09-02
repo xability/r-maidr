@@ -461,20 +461,22 @@ recorded_main_title <- function(args) {
 #' that reads a formula later inherits the same defect.
 #'
 #' @param args Recorded argument list
+#' @param call_env The environment snapshot a deferred call was recorded
+#'   with, or NULL when every argument is a plain value.
 #' @return The model frame, or NULL when the call carries no formula or the
 #'   frame cannot be built -- in which case the reader falls back to
 #'   resolving it itself, exactly as before.
 #' @keywords internal
-recorded_formula_frame <- function(args) {
+recorded_formula_frame <- function(args, call_env = NULL) {
   if (!is.list(args) || length(args) == 0) {
     return(NULL)
   }
 
   formula <- args[["formula"]]
-  if (!inherits(formula, "formula")) {
+  if (!is_formula_argument(formula)) {
     formula <- NULL
     for (value in args) {
-      if (inherits(value, "formula")) {
+      if (is_formula_argument(value)) {
         formula <- value
         break
       }
@@ -485,6 +487,16 @@ recorded_formula_frame <- function(args) {
   # measured, `stats::model.frame(NULL)` stops with "argument is not a valid
   # model" -- so this changes no reading, only whether the common path raises
   # and catches a condition to reach the same NULL.
+  if (!is_formula_argument(formula)) {
+    return(NULL)
+  }
+
+  # On the NSE path every argument arrives as the expression the caller
+  # wrote, with a snapshot of the bindings those expressions name. The
+  # formula and the data are resolved in that snapshot, which is where the
+  # drawing resolved them.
+  formula <- resolve_recorded_value(formula, call_env)
+  data <- resolve_recorded_value(args[["data"]], call_env)
   if (!inherits(formula, "formula")) {
     return(NULL)
   }
@@ -493,19 +505,30 @@ recorded_formula_frame <- function(args) {
   # `stripchart.formula` hand it to `model.frame()`, so a frame built
   # without it carried every row the chart left out. A plain vector is
   # applied the way the drawing applied it; an expression -- `subset = g ==
-  # "a"`, which reaches here unevaluated on the NSE path -- cannot be
-  # evaluated faithfully after the fact, so the frame is declined and the
-  # reader falls back rather than announcing the wrong rows.
+  # "a"` -- is evaluated the way `model.frame()` evaluates it, in the data
+  # and then in the snapshot, so a call recorded inside a loop keeps the
+  # rows of its own iteration. Without a snapshot to evaluate it in, the
+  # frame is declined and the reader falls back rather than announcing the
+  # wrong rows.
   subset <- args[["subset"]]
   if (is.language(subset)) {
-    return(NULL)
+    if (!is.environment(call_env)) {
+      return(NULL)
+    }
+    subset <- tryCatch(
+      eval(subset, if (is.list(data)) data else NULL, call_env),
+      error = function(e) NULL
+    )
+    if (is.null(subset)) {
+      return(NULL)
+    }
   }
 
   # Through `do.call()` so the vector itself is in the call:
   # `model.frame()` reads its `subset` with `substitute()`, and handed the
   # bare name it would look that name up in the data and then in the
   # formula's environment -- where `subset` is `base::subset`.
-  frame_args <- list(formula, data = args[["data"]])
+  frame_args <- list(formula, data = data)
   if (!is.null(subset)) {
     frame_args$subset <- subset
   }
@@ -513,4 +536,86 @@ recorded_formula_frame <- function(args) {
     do.call(stats::model.frame, frame_args),
     error = function(e) NULL
   )
+}
+
+#' The `height` a recorded `barplot()` call draws
+#'
+#' `barplot()` reads its data from `height`, which is its first formal. The
+#' recorder names positional dots but leaves the dispatch argument as the
+#' caller wrote it, so `height` arrives unnamed when it was passed by
+#' position and named when it was not -- and `barplot(beside = TRUE, height
+#' = m)` put `beside` in the first slot, where every reader used to look.
+#'
+#' @param args Recorded argument list
+#' @return The height vector or matrix, or NULL
+#' @keywords internal
+recorded_barplot_height <- function(args) {
+  if (!is.list(args) || length(args) == 0) {
+    return(NULL)
+  }
+  height <- args[["height"]]
+  if (!is.null(height)) {
+    return(height)
+  }
+  arg_names <- names(args)
+  unnamed <- if (is.null(arg_names)) seq_along(args) else which(!nzchar(arg_names))
+  if (length(unnamed) == 0) {
+    return(NULL)
+  }
+  args[[unnamed[1]]]
+}
+
+#' Write a `height` back into a recorded `barplot()` call
+#'
+#' The counterpart of [recorded_barplot_height()]: the value goes back into
+#' the slot it was read from, named or positional.
+#'
+#' @param args Recorded argument list
+#' @param height The replacement height
+#' @return The argument list with `height` replaced
+#' @keywords internal
+set_recorded_barplot_height <- function(args, height) {
+  if (!is.null(args[["height"]])) {
+    args[["height"]] <- height
+    return(args)
+  }
+  arg_names <- names(args)
+  unnamed <- if (is.null(arg_names)) seq_along(args) else which(!nzchar(arg_names))
+  if (length(unnamed) == 0) {
+    return(args)
+  }
+  args[[unnamed[1]]] <- height
+  args
+}
+
+#' Is a recorded argument a formula, evaluated or not?
+#'
+#' A value recorded on the ordinary path is a `formula` object; on the NSE
+#' path the same argument is the unevaluated call to `~`, which `inherits()`
+#' does not recognise.
+#'
+#' @param value A recorded argument
+#' @return TRUE for either spelling
+#' @keywords internal
+is_formula_argument <- function(value) {
+  inherits(value, "formula") ||
+    (is.call(value) && identical(value[[1L]], as.name("~")))
+}
+
+#' A recorded argument as a value
+#'
+#' @param value A recorded argument, a plain value or an expression
+#' @param call_env The snapshot to evaluate an expression in, or NULL
+#' @return The value, or NULL when an expression has nowhere to be evaluated
+#'   or fails there
+#' @keywords internal
+resolve_recorded_value <- function(value, call_env = NULL) {
+  # A formula object is a language object too, and is already the value.
+  if (!is.language(value) || inherits(value, "formula")) {
+    return(value)
+  }
+  if (!is.environment(call_env)) {
+    return(NULL)
+  }
+  tryCatch(eval(value, call_env), error = function(e) NULL)
 }

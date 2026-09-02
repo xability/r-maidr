@@ -70,7 +70,7 @@ log_plot_call_to_device <- function(
     # argument that is a reference rather than a value, so a reader that
     # resolved it later would read whatever the names are bound to *then* --
     # see `recorded_formula_frame()` for the measurement (#254).
-    formula_frame = recorded_formula_frame(args)
+    formula_frame = recorded_formula_frame(args, call_env)
   )
 
   storage$calls <- append(storage$calls, list(call_entry))
