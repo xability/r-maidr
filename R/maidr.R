@@ -8,7 +8,10 @@
 #'   \itemize{
 #'     \item \code{TRUE}: Use CDN (requires internet)
 #'     \item \code{FALSE}: Use local bundled files (works offline)
-#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'     \item \code{NULL} (default): Use the bundled files, so the viewer
+#'       works offline. With \code{as_widget = TRUE} the widget instead
+#'       auto-detects internet availability and uses the CDN when online,
+#'       as the knitr and Shiny paths do.
 #'   }
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
@@ -72,9 +75,11 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
         replay_to_native_device(device_id)
         clear_device_storage(device_id)
       } else {
-        # ggplot2: Print to native graphics device
+        # ggplot2: Print to native graphics device with ggplot2's own
+        # method, not the one maidr registered, which would run the support
+        # check a second time.
         grDevices::dev.new()
-        print(plot)
+        print_ggplot_natively(plot)
       }
 
       return(invisible(NULL))
@@ -121,8 +126,8 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
 
 #' Create HTML document with maidr enhancements using the orchestrator
 #' @param plot A ggplot2 object
-#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
-#'   If `NULL` (default), auto-detect based on internet availability.
+#' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL`
+#'   (default), use bundled files; see [maidr_html_dependencies()].
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param orchestrator Optional pre-created orchestrator to reuse (avoids double creation)
 #' @param ... Additional arguments passed to internal functions
@@ -261,9 +266,11 @@ warn_panel_fallback <- function(orchestrator) {
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
-#'     \item \code{TRUE}: Use CDN (requires internet)
-#'     \item \code{FALSE}: Use local bundled files (works offline)
-#'     \item \code{NULL} (default): Auto-detect based on internet availability
+#'     \item \code{TRUE}: Use CDN. The file is self-contained but needs
+#'       internet access when it is viewed.
+#'     \item \code{FALSE} or \code{NULL} (default): Use the bundled files.
+#'       The MAIDR.js library is written to a \code{lib/} folder beside
+#'       \code{file}, which has to travel with it.
 #'   }
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)

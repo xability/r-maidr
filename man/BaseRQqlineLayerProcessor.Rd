@@ -45,7 +45,7 @@ argument as the x data. On a \code{qqnorm} group that argument is the
 \strong{sample}, not the theoretical quantiles the chart puts on x -- so
 inheriting it would stretch the line across the wrong interval, which is
 the class of mistake the Q-Q reading exists to avoid. The range comes from
-the drawn pairs instead, which {@code BaseRQqLayerProcessor} already
+the drawn pairs instead, which \code{BaseRQqLayerProcessor} already
 computes from \code{stats}' own output.
 
 Highlighting needs nothing new: \verb{qqnorm(x); qqline(x)} and

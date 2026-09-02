@@ -203,10 +203,13 @@ BaseRSubseriesLayerProcessor <- R6::R6Class(
     #
     # `x` is read positionally because `match_recorded_args()` deliberately
     # leaves the dispatch slot named as the caller wrote it, so a positional
-    # first argument arrives unnamed.
+    # first argument arrives unnamed. Through `resolve_xy_args()` rather than
+    # `args$x`: `$` partial-matches, so on a call that wrote `xlab` and left
+    # `x` unnamed it answered the label, which is not numeric, and the whole
+    # series was dropped (#292).
     subseries = function(layer_info) {
       args <- private$recorded_args(layer_info)
-      x <- args$x %||% (if (length(args)) args[[1]] else NULL)
+      x <- resolve_xy_args(args)$x
       if (is.null(x) || is.language(x) || !is.numeric(x)) {
         return(NULL)
       }

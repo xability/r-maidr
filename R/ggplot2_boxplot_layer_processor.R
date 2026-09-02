@@ -449,6 +449,15 @@ Ggplot2BoxplotLayerProcessor <- R6::R6Class(
         if (is.null(pp_axis)) {
           return(character(0))
         }
+        # A ViewScale answers `scale_x_discrete(labels = )` through
+        # `get_labels()`; `breaks` below is the raw limits, which every other
+        # reader on the same panel had already stopped announcing.
+        if (is.function(pp_axis$get_labels)) {
+          labels <- tryCatch(pp_axis$get_labels(), error = function(e) NULL)
+          if (!is.null(labels) && !all(is.na(labels))) {
+            return(as.character(labels))
+          }
+        }
         if (!is.null(pp_axis$labels)) {
           return(as.character(pp_axis$labels))
         }

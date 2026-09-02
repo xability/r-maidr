@@ -257,8 +257,13 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
           max_sel <- make_whisker_sel(w_idx, 2)
         }
 
-        # Points group index follows pattern: 2 * svg_idx
-        points_idx <- 2 * svg_idx
+        # Points group index. `bxp()` draws each box's outliers as one
+        # `points()` call and skips it for a box that has none, so the
+        # index shifts by the number of earlier boxes without outliers --
+        # the same shift the segment indices above already apply. Without
+        # it a box after an outlier-free one was outlined on the next
+        # box's outliers.
+        points_idx <- 2 * svg_idx - no_outlier_count_before
 
         # Outliers for this box in DRAWING (data) order. bxp() draws them
         # unsorted, so the k-th <use> child is the k-th value of the
@@ -408,7 +413,7 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         return("")
       }
       args <- layer_info$plot_call$args
-      if (!is.null(args$main)) args$main else ""
+      recorded_main_title(args)
     },
     determine_orientation = function(layer_info) {
       if (is.null(layer_info)) {

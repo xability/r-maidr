@@ -405,6 +405,30 @@ recorded_flag <- function(args, name, default = FALSE) {
   default
 }
 
+#' The `main` title a recorded call wrote, as text
+#'
+#' `main = expression(alpha^2)` is an ordinary way to put a Greek letter on a
+#' chart, and a dozen readers passed the recorded value straight into the
+#' layer's `title`. `jsonlite::toJSON()` has no method for an expression, so
+#' the whole save failed on a title. A title that is not text is announced
+#' as empty rather than failing the chart it sits on; the drawing keeps it.
+#'
+#' Exact-name lookup, since `args$main` would partial-match nothing today but
+#' is the same shape as the `args$x` / `xlab` collision that emptied
+#' `monthplot()` (#292).
+#'
+#' @param args Recorded argument list
+#' @return Character scalar, empty when there is no usable title
+#' @keywords internal
+recorded_main_title <- function(args) {
+  title <- if (is.list(args)) args[["main"]] else NULL
+  if (is.null(title) || is.language(title)) {
+    return("")
+  }
+  title <- tryCatch(as.character(title)[1], error = function(e) NULL)
+  if (is.null(title) || is.na(title)) "" else title
+}
+
 #' Resolve a recorded formula into the frame the chart was drawn from
 #'
 #' Base R calls are recorded and read later, at `show()`/`save_html()` time,
@@ -465,8 +489,28 @@ recorded_formula_frame <- function(args) {
     return(NULL)
   }
 
+  # `subset` is part of what was drawn: `pairs.formula` and
+  # `stripchart.formula` hand it to `model.frame()`, so a frame built
+  # without it carried every row the chart left out. A plain vector is
+  # applied the way the drawing applied it; an expression -- `subset = g ==
+  # "a"`, which reaches here unevaluated on the NSE path -- cannot be
+  # evaluated faithfully after the fact, so the frame is declined and the
+  # reader falls back rather than announcing the wrong rows.
+  subset <- args[["subset"]]
+  if (is.language(subset)) {
+    return(NULL)
+  }
+
+  # Through `do.call()` so the vector itself is in the call:
+  # `model.frame()` reads its `subset` with `substitute()`, and handed the
+  # bare name it would look that name up in the data and then in the
+  # formula's environment -- where `subset` is `base::subset`.
+  frame_args <- list(formula, data = args[["data"]])
+  if (!is.null(subset)) {
+    frame_args$subset <- subset
+  }
   tryCatch(
-    stats::model.frame(formula, data = args[["data"]]),
+    do.call(stats::model.frame, frame_args),
     error = function(e) NULL
   )
 }

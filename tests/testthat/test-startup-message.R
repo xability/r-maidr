@@ -47,14 +47,15 @@ test_that("the startup message honours maidr.startup_message", {
 })
 
 test_that("reading the message leaves maidr.startup_message as it found it", {
+  previous <- options(maidr.startup_message = NULL)
+  on.exit(options(previous), add = TRUE)
+
   for (ambient in list(TRUE, FALSE, NULL)) {
     options(maidr.startup_message = ambient)
     invisible(startup_message())
     invisible(startup_message(enabled = FALSE))
     testthat::expect_identical(getOption("maidr.startup_message"), ambient)
   }
-
-  options(maidr.startup_message = TRUE)
 })
 
 # Note: that Base R auto-display is genuinely unwired -- schedule_auto_show()

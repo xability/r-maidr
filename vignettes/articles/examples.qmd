@@ -1196,13 +1196,16 @@ cpgram(lh, main = "Luteinizing hormone: cumulative periodogram")
 so every January sits together and the seasonal shape is read directly.
 maidr reads it as a **line**.
 
-> **Note:** `monthplot()` takes `ylab` but has no `xlab` argument, so the x
-> axis cannot be named and the reading carries nothing on x. The example
-> below passes `ylab` explicitly; left out, y falls back to the series name
-> — `nottem` here.
+> **Note:** `monthplot()` has no default for `xlab` -- the axis it writes
+> carries the cycle labels, not a quantity -- so x is named only when the
+> call names it. Left out, y falls back to the series name — `nottem` here.
 
 ```{r}
-monthplot(nottem, ylab = "Temperature (F)", main = "Nottingham temperatures by month")
+monthplot(
+  nottem,
+  xlab = "Month", ylab = "Temperature (F)",
+  main = "Nottingham temperatures by month"
+)
 ```
 
 ### Lag Plot

@@ -21,7 +21,7 @@ Description: Provides accessible, interactive visualizations through the 'MAIDR'
     <https://maidr.ai/>.
 License: GPL (>= 3)
 Encoding: UTF-8
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.0.0)
 Imports:
     base64enc,
     curl,

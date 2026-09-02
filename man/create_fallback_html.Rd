@@ -7,7 +7,7 @@
 create_fallback_html(
   plot = NULL,
   shiny = FALSE,
-  format = "png",
+  format = get_fallback_format(),
   width = 7,
   height = 5
 )
@@ -17,7 +17,8 @@ create_fallback_html(
 
 \item{shiny}{If TRUE, returns just the image tag for Shiny/knitr use}
 
-\item{format}{Image format (default: "png")}
+\item{format}{Image format. Defaults to the \code{maidr.fallback_format}
+option, which \code{\link[=maidr_set_fallback]{maidr_set_fallback()}} sets.}
 
 \item{width}{Image width in inches}
 

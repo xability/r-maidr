@@ -13,7 +13,10 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 \itemize{
 \item \code{TRUE}: Use CDN (requires internet)
 \item \code{FALSE}: Use local bundled files (works offline)
-\item \code{NULL} (default): Auto-detect based on internet availability
+\item \code{NULL} (default): Use the bundled files, so the viewer
+works offline. With \code{as_widget = TRUE} the widget instead
+auto-detects internet availability and uses the CDN when online,
+as the knitr and Shiny paths do.
 }}
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}

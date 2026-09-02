@@ -160,6 +160,10 @@ BaseRProcessorFactory <- R6::R6Class(
         "contour",
         "candlestick",
         "word_cloud",
+        # Both dispatched by `create_processor()` above and emitted by the
+        # adapter; the list had simply not been kept in step with the switch.
+        "violin",
+        "pairs",
         "unknown"
       )
     },

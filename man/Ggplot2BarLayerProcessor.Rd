@@ -104,7 +104,7 @@ Should it ever be answered here, the key and the point layout have to
 move together: \code{"horz"} and the vertical \verb{x = category, y = measure}
 pairing is precisely the combination #184 was about, and a
 \code{coord_flip()} chart currently reads correctly only because both halves
-are left in their vertical form. That is what {@link swap_point_axes}
+are left in their vertical form. That is what \code{swap_point_axes()}
 being driven from this same answer is for.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
@@ -133,6 +133,14 @@ being driven from this same answer is for.
 Returns a copy: the mapping is only read to recover the category's
 column name, and the caller's plot is still wanted unswapped for
 selectors and axis labels.
+
+The layer is copied too. A ggplot2 layer is a ggproto object, which
+is an environment, so assigning into \code{plot$layers[[i]]$mapping}
+wrote through to the caller's plot: after one read a horizontal
+\code{geom_col(aes(y = g, x = n))} was a vertical chart, for the render
+and for the user. The swapped mapping goes on a child object that
+inherits everything else from the layer, so the layer itself is
+never written.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$unflip_mapping(plot)}

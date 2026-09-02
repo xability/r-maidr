@@ -153,7 +153,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       # Use custom axis labels if available, otherwise use x values
       use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
-      for (i in 1:n) {
+      for (i in seq_len(n)) {
         x_value <- if (use_labels) x_labels[i] else as.character(x[i])
         data_points[[i]] <- list(
           x = x_value,
@@ -184,7 +184,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         # Use custom axis labels if available, otherwise use x values
         use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
-        for (i in 1:n) {
+        for (i in seq_len(n)) {
           x_value <- if (use_labels) x_labels[i] else as.character(x[i])
           series_points[[i]] <- list(
             x = x_value,
@@ -368,7 +368,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         group <- layer_info$group
         if (!is.null(group) && !is.null(group$high_call)) {
           high_args <- group$high_call$args
-          main_title <- if (!is.null(high_args$main)) high_args$main else ""
+          main_title <- recorded_main_title(high_args)
           return(main_title)
         }
       }
@@ -376,7 +376,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      main_title <- if (!is.null(args$main)) args$main else ""
+      main_title <- recorded_main_title(args)
       main_title
     },
     generate_selectors = function(layer_info, gt = NULL) {

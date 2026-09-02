@@ -13,9 +13,11 @@ save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:
 \itemize{
-\item \code{TRUE}: Use CDN (requires internet)
-\item \code{FALSE}: Use local bundled files (works offline)
-\item \code{NULL} (default): Auto-detect based on internet availability
+\item \code{TRUE}: Use CDN. The file is self-contained but needs
+internet access when it is viewed.
+\item \code{FALSE} or \code{NULL} (default): Use the bundled files.
+The MAIDR.js library is written to a \code{lib/} folder beside
+\code{file}, which has to travel with it.
 }}
 
 \item{...}{Additional arguments passed to internal functions}

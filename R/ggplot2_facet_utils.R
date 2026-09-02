@@ -137,7 +137,6 @@ process_facet_panel <- function(
 
   for (layer_idx in seq_along(plot$layers)) {
     layer <- plot$layers[[layer_idx]]
-    layer_info <- list(index = layer_idx, type = class(layer$geom)[1])
 
     registry <- get_global_registry()
     system_name <- "ggplot2"
@@ -145,6 +144,12 @@ process_facet_panel <- function(
     adapter <- registry$get_adapter(system_name)
 
     layer_type <- adapter$detect_layer_type(layer, plot)
+    # The detected type, as the single-plot path passes it. Processors read
+    # `layer_info$type` to tell their variants apart -- the stacked bar
+    # reader announces proportions only for `stacked_normalized_bar` -- and
+    # the geom class this used to carry matched none of them, so a faceted
+    # `position = "fill"` chart announced counts.
+    layer_info <- list(index = layer_idx, type = layer_type)
 
     # A layer tagged "skip" is drawn but carries no observations -- a
     # reference line, a text annotation, a candlestick's wick folded into its

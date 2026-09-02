@@ -491,3 +491,28 @@ test_that("BaseRLineLayerProcessor extracts all metadata correctly", {
 })
 
 # Selector tests with grob tree skipped - tested at orchestrator level
+
+
+test_that("a lines() call with nothing in it does not fail the chart", {
+  # `for (i in 1:n)` with `n = 0` runs for `i = 1` and `i = 0`, and
+  # `data_points[[0]] <-` stops with "attempt to select less than one
+  # element" -- out of `process()`, where nothing caught it.
+  layers <- base_r_layers(function() {
+    plot(1:5)
+    lines(numeric(0))
+  })
+
+  types <- vapply(layers, function(layer) layer$type, character(1))
+  testthat::expect_true("point" %in% types)
+})
+
+test_that("plot() of a time series is read as the line it draws", {
+  # `plot.ts` defaults to `type = "l"`. Typed from `type` alone the chart
+  # was a `point` layer whose selector named a points grob that was never
+  # drawn, so nothing highlighted.
+  layer <- base_r_layers(function() plot(AirPassengers))[[1]]
+
+  testthat::expect_identical(layer$type, "line")
+  testthat::expect_length(layer$data[[1]], length(AirPassengers))
+  testthat::expect_true(all(grepl("lines-", unlist(layer$selectors), fixed = TRUE)))
+})

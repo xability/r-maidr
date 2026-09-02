@@ -262,8 +262,7 @@ BaseRContourLayerProcessor <- R6::R6Class(
       if (is.null(layer_info)) {
         return("")
       }
-      main <- layer_info$plot_call$args$main
-      if (is.null(main)) "" else main
+      recorded_main_title(layer_info$plot_call$args)
     },
 
     #' @description Address each curve by the element that drew it
