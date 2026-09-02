@@ -81,9 +81,11 @@ pairing positionally. Nothing is sorted.
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_columns"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-unflip_columns'><code>LayerProcessor$unflip_columns()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href='../../maidr/html/LayerProcessor.html#method-LayerProcessor-unflip_panel_params'><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRPointLayerProcessor" data-id="extract_base_r_axis_grid_info"><a href='../../maidr/html/BaseRPointLayerProcessor.html#method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info'><code>BaseRPointLayerProcessor$extract_base_r_axis_grid_info()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRPointLayerProcessor" data-id="formula_variables"><a href='../../maidr/html/BaseRPointLayerProcessor.html#method-BaseRPointLayerProcessor-formula_variables'><code>BaseRPointLayerProcessor$formula_variables()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRPointLayerProcessor" data-id="generate_selectors"><a href='../../maidr/html/BaseRPointLayerProcessor.html#method-BaseRPointLayerProcessor-generate_selectors'><code>BaseRPointLayerProcessor$generate_selectors()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRPointLayerProcessor" data-id="needs_reordering"><a href='../../maidr/html/BaseRPointLayerProcessor.html#method-BaseRPointLayerProcessor-needs_reordering'><code>BaseRPointLayerProcessor$needs_reordering()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRPointLayerProcessor" data-id="process"><a href='../../maidr/html/BaseRPointLayerProcessor.html#method-BaseRPointLayerProcessor-process'><code>BaseRPointLayerProcessor$process()</code></a></span></li>
+  <li><span class="pkg-link" data-pkg="maidr" data-topic="BaseRPointLayerProcessor" data-id="resolve_coordinates"><a href='../../maidr/html/BaseRPointLayerProcessor.html#method-BaseRPointLayerProcessor-resolve_coordinates'><code>BaseRPointLayerProcessor$resolve_coordinates()</code></a></span></li>
 </ul>
 </details>}}
 \if{html}{\out{<hr>}}
