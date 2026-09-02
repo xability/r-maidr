@@ -623,7 +623,7 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
       # For matrices, beside = TRUE creates dodged bars. Read the way
@@ -639,7 +639,7 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
       # For matrices, beside = FALSE creates stacked bars - and FALSE is
@@ -676,7 +676,7 @@ BaseRAdapter <- R6::R6Class(
         return(FALSE)
       }
 
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       if (nrow(height) < 2) {
         return(FALSE)
       }

@@ -114,8 +114,11 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
     #' announced here --- the author passed it, and R told them out loud that
     #' it was not drawn.
     terms = function(args) {
-      words <- args$words
-      freq <- args$freq
+      # `wordcloud(w, f)` passes both by position; the recorder names dots
+      # but leaves the dispatch arguments as written.
+      xy <- resolve_xy_args(args)
+      words <- args[["words"]] %||% xy$x
+      freq <- args[["freq"]] %||% (if (is.null(args[["words"]])) xy$y else xy$x)
       if (is.null(words) || is.null(freq) || !length(words)) {
         return(NULL)
       }

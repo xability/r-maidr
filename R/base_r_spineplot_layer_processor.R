@@ -83,6 +83,7 @@ BaseRSpineplotLayerProcessor <- R6::R6Class(
       if (!is.list(args) || !length(args)) {
         return(NULL)
       }
+      args <- spineplot_written_axis_names(args, layer_info$call_expr)
 
       grDevices::pdf(NULL)
       on.exit(grDevices::dev.off(), add = TRUE)
@@ -156,6 +157,46 @@ BaseRSpineplotLayerProcessor <- R6::R6Class(
     drawn_table = NULL
   )
 )
+
+#' Name a replayed `spineplot(x, y)`'s axes the way the caller's call did
+#'
+#' `spineplot.default()` titles its axes `deparse1(substitute(x))` and
+#' `deparse1(substitute(y))` when no `xlab`/`ylab` is given. Replayed through
+#' `do.call()` on the recorded *values*, the substitute is the data itself,
+#' and a reader was told the axis was called `c(1, 2, 3, ...)` for as many
+#' characters as the vector took to write. The names the caller wrote are in
+#' the recorded call text, so they are matched against the default method's
+#' formals and passed as the titles. A table or a formula names its own
+#' axes and is left alone.
+#'
+#' @param args Recorded argument list
+#' @param call_expr The recorded call, deparsed
+#' @return `args`, with `xlab`/`ylab` filled in where the call named them
+#' @keywords internal
+spineplot_written_axis_names <- function(args, call_expr) {
+  if (!is.character(call_expr) || anyNA(call_expr)) {
+    return(args)
+  }
+  written <- tryCatch(
+    parse(text = call_expr, keep.source = FALSE)[[1]],
+    error = function(e) NULL
+  )
+  if (!is.call(written)) {
+    return(args)
+  }
+  method <- utils::getS3method("spineplot", "default", envir = asNamespace("graphics"))
+  written <- tryCatch(match.call(method, written), error = function(e) NULL)
+  if (is.null(written) || is.null(written$y)) {
+    return(args)
+  }
+  if (is.null(args$xlab)) {
+    args$xlab <- deparse1(written$x)
+  }
+  if (is.null(args$ylab)) {
+    args$ylab <- deparse1(written$y)
+  }
+  args
+}
 
 #' Address one tile of a grob that draws a whole panel of them
 #'
