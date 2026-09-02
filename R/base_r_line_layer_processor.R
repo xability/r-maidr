@@ -327,16 +327,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
 
       high_args <- group$high_call$args
-      x_data <- high_args[[1]]
-
-      if (is.null(x_data) || !is.numeric(x_data)) {
-        return(NULL)
-      }
-
-      x_min <- min(x_data, na.rm = TRUE)
-      x_max <- max(x_data, na.rm = TRUE)
-      x_padding <- (x_max - x_min) * 0.05
-      c(x_min - x_padding, x_max + x_padding)
+      self$axis_extent(high_args$xlim, resolve_xy_args(high_args)$x)
     },
     get_y_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
@@ -344,16 +335,23 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
 
       high_args <- group$high_call$args
-      y_data <- high_args[[2]]
-
-      if (is.null(y_data) || !is.numeric(y_data)) {
+      self$axis_extent(high_args$ylim, resolve_xy_args(high_args)$y)
+    },
+    # The extent of an axis the way `plot.default()` sets it: an explicit
+    # `xlim`/`ylim`, or the finite data extended by 4 % each way, which is
+    # what `abline()` draws its clipped line across.
+    axis_extent = function(limits, data) {
+      if (is.numeric(limits) && length(limits) == 2L && all(is.finite(limits))) {
+        return(grDevices::extendrange(limits, f = 0.04))
+      }
+      if (is.null(data) || !is.numeric(data)) {
         return(NULL)
       }
-
-      y_min <- min(y_data, na.rm = TRUE)
-      y_max <- max(y_data, na.rm = TRUE)
-      y_padding <- (y_max - y_min) * 0.05
-      c(y_min - y_padding, y_max + y_padding)
+      data <- data[is.finite(data)]
+      if (length(data) == 0L) {
+        return(NULL)
+      }
+      grDevices::extendrange(range(data), f = 0.04)
     },
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {

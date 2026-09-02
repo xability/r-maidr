@@ -79,7 +79,7 @@ BaseRSpectrumLayerProcessor <- R6::R6Class(
         data = periodogram_points(curve$x, curve$y),
         # `lines-1` is the density; `lines-2` and `lines-3` are the
         # confidence crosshair, which is not a reading.
-        selectors = list("g#graphics-plot-1-lines-1\\.1"),
+        selectors = list(periodogram_selector(info, "lines")),
         type = "line",
         title = self$extract_main_title(info),
         axes = build_axes(x = "frequency", y = "spectrum")
@@ -156,7 +156,7 @@ BaseRCpgramLayerProcessor <- R6::R6Class(
       list(
         data = periodogram_points(curve$x, curve$y),
         # `step-1` is the curve; `lines-1` and `lines-2` are the KS bounds.
-        selectors = list("g#graphics-plot-1-step-1\\.1"),
+        selectors = list(periodogram_selector(info, "step")),
         type = "step",
         # `type = "s"` draws the horizontal segment first.
         stepDirection = "hv",
@@ -251,4 +251,20 @@ periodogram_points <- function(x, y) {
   keep <- seq_len(min(length(x), length(y)))
   keep <- keep[is.finite(x[keep]) & is.finite(y[keep])]
   lapply(keep, function(i) list(x = x[[i]], y = y[[i]]))
+}
+
+#' The grob a periodogram's curve was drawn as, in its own panel
+#'
+#' gridGraphics numbers panels in draw order, so under `par(mfrow = )` the
+#' second chart's curve is `graphics-plot-2-lines-1`. The panel index is the
+#' one the orchestrator assigned the layer; a layer without one is the first
+#' panel.
+#'
+#' @param layer_info Layer information carrying `group_index` or `index`
+#' @param grob The grob name gridGraphics wrote: `"lines"` or `"step"`
+#' @return A CSS selector for the curve's `g` element
+#' @keywords internal
+periodogram_selector <- function(layer_info, grob) {
+  index <- layer_info$group_index %||% layer_info$index %||% 1L
+  paste0("g#graphics-plot-", index, "-", grob, "-1\\.1")
 }

@@ -30,7 +30,7 @@ SortingPatcher <- R6::R6Class(
     can_patch = function(function_name, args) {
       # Handle barplot function
       if (function_name == "barplot") {
-        height <- args[[1]]
+        height <- recorded_barplot_height(args)
         # Only patch if height is a vector or matrix
         is.vector(height) || is.matrix(height)
       } else {
@@ -45,7 +45,7 @@ SortingPatcher <- R6::R6Class(
       }
     },
     patch_barplot = function(args) {
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
 
       if (is.vector(height)) {
         # Simple bar plot - sort by x values (names)
@@ -62,7 +62,7 @@ SortingPatcher <- R6::R6Class(
       }
     },
     patch_simple_barplot = function(args) {
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
 
       names_arg <- args$names.arg
       if (is.null(names_arg)) {
@@ -74,7 +74,7 @@ SortingPatcher <- R6::R6Class(
 
         # Reorder height vector
         height <- height[sorted_indices]
-        args[[1]] <- height
+        args <- set_recorded_barplot_height(args, height)
 
         if ("names.arg" %in% names(args)) {
           args$names.arg <- names_arg[sorted_indices]
@@ -88,7 +88,7 @@ SortingPatcher <- R6::R6Class(
       args
     },
     patch_dodged_barplot = function(args) {
-      height_matrix <- args[[1]]
+      height_matrix <- recorded_barplot_height(args)
 
       # Sort fill values (rows) in ascending order for consistent visual ordering
       if (!is.null(rownames(height_matrix))) {
@@ -109,7 +109,7 @@ SortingPatcher <- R6::R6Class(
         }
       }
 
-      args[[1]] <- reordered_matrix
+      args <- set_recorded_barplot_height(args, reordered_matrix)
       args
     },
     patch_stacked_barplot = function(args) {

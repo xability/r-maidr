@@ -115,11 +115,14 @@ create_fallback_image <- function(plot = NULL, format = "png",
 #' @param device_id The device ID to get calls from
 #' @keywords internal
 replay_base_r_plot <- function(device_id) {
-  # Get plot calls from device storage
-  grouped <- group_device_calls(device_id)
-  plot_groups <- grouped$groups
+  # Every recorded call, in the order it was made. The grouped view keeps
+  # the HIGH and LOW calls and drops the LAYOUT ones, so a multi-panel
+  # figure's picture was replayed without its `par(mfrow = )` or
+  # `layout()` and came out as one panel drawn over another.
+  all_calls <- get_device_calls(device_id)
+  high_calls <- get_device_calls_by_class(device_id, "HIGH")
 
-  if (length(plot_groups) == 0) {
+  if (length(high_calls) == 0) {
     stop("No Base R plot calls found to replay")
   }
 
@@ -131,33 +134,19 @@ replay_base_r_plot <- function(device_id) {
   # opened, where the stale calls surfaced as phantom layers. It also skipped
   # the `call_env` an NSE call needs to evaluate its expressions the way the
   # original did.
-  for (group in plot_groups) {
-    # Execute high-level call first
-    high_call <- group$high_call
-    if (!is.null(high_call)) {
-      tryCatch(
-        replay_plot_call(
-          high_call$function_name,
-          high_call$args,
-          high_call$call_env
-        ),
-        error = function(e) {
-          warning("Failed to replay: ", high_call$function_name)
+  for (call_entry in all_calls) {
+    tryCatch(
+      replay_plot_call(
+        call_entry$function_name,
+        call_entry$args,
+        call_entry$call_env
+      ),
+      error = function(e) {
+        if (identical(call_entry$class_level, "HIGH")) {
+          warning("Failed to replay: ", call_entry$function_name)
         }
-      )
-    }
-
-    # Execute low-level calls
-    for (low_call in group$low_calls) {
-      tryCatch(
-        replay_plot_call(
-          low_call$function_name,
-          low_call$args,
-          low_call$call_env
-        ),
-        error = function(e) NULL
-      )
-    }
+      }
+    )
   }
 }
 

@@ -61,10 +61,7 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      height <- args$height
-      if (is.null(height) && length(args) > 0) {
-        height <- args[[1]]
-      }
+      height <- recorded_barplot_height(args)
 
       if (is.null(height) || !is.matrix(height)) {
         return(list())

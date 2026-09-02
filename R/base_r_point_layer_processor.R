@@ -116,7 +116,7 @@ BaseRPointLayerProcessor <- R6::R6Class(
     formula_variables = function(plot_call) {
       args <- plot_call$args
       handed <- resolve_xy_args(args)$x
-      if (!inherits(handed, "formula")) {
+      if (!is_formula_argument(handed) && !inherits(plot_call$formula, "formula")) {
         return(NULL)
       }
       frame <- plot_call$formula_frame

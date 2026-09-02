@@ -18,6 +18,9 @@ to intercept Base R plotting calls and detect plot types.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-BaseRAdapter-initialize}{\code{BaseRAdapter$new()}}
+    \item \href{#method-BaseRAdapter-formula_frame_missing}{\code{BaseRAdapter$formula_frame_missing()}}
+    \item \href{#method-BaseRAdapter-formula_call}{\code{BaseRAdapter$formula_call()}}
+    \item \href{#method-BaseRAdapter-formula_scatter_readable}{\code{BaseRAdapter$formula_scatter_readable()}}
     \item \href{#method-BaseRAdapter-can_handle}{\code{BaseRAdapter$can_handle()}}
     \item \href{#method-BaseRAdapter-detect_layer_type}{\code{BaseRAdapter$detect_layer_type()}}
     \item \href{#method-BaseRAdapter-is_dodged_barplot}{\code{BaseRAdapter$is_dodged_barplot()}}
@@ -44,6 +47,87 @@ to intercept Base R plotting calls and detect plot types.
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRAdapter$new()}
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRAdapter-formula_frame_missing"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRAdapter-formula_frame_missing}{}}}
+\subsection{\code{BaseRAdapter$formula_frame_missing()}}{
+  Was a formula call recorded without the frame it drew from?
+
+A formula reader takes its rows from the model frame kept at record
+time. When that frame could not be built -- a \code{subset} written as an
+expression with nothing to evaluate it in, a \code{data} that no longer
+resolves -- the reader has nothing to announce, and a claimed layer
+with nothing in it exports as an interactive chart that says nothing.
+Declining the type sends the chart to the picture instead.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRAdapter$formula_frame_missing(layer)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The recorded call entry}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the call carries a formula but no frame
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRAdapter-formula_call"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRAdapter-formula_call}{}}}
+\subsection{\code{BaseRAdapter$formula_call()}}{
+  Was the call handed a formula?
+
+Either written in the call, or -- \verb{fmla <- y ~ x; plot(fmla)} --
+bound to a name the recorder resolved.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRAdapter$formula_call(layer)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The recorded call entry}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the call carries a formula
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRAdapter-formula_scatter_readable"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRAdapter-formula_scatter_readable}{}}}
+\subsection{\code{BaseRAdapter$formula_scatter_readable()}}{
+  Does a recorded formula \code{plot()} draw a numeric scatter?
+
+\code{plot.formula()} draws a scatter only for a numeric response over one
+numeric predictor; a factor predictor reaches \code{plot.factor()} and a
+box plot, and a longer right-hand side is \code{plot.default()} over the
+first term. Only the two-column numeric frame is read as points.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRAdapter$formula_scatter_readable(layer)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The recorded call entry}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the frame is a numeric pair
   }
 }
 

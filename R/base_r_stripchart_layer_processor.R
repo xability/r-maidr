@@ -123,9 +123,15 @@ BaseRStripchartLayerProcessor <- R6::R6Class(
         return(list())
       }
 
-      groups <- if (inherits(handed, "formula")) {
+      # The recorder resolves a formula bound to a name; the name itself
+      # is what was handed.
+      formula <- layer_info$plot_call$formula
+      if (!inherits(formula, "formula")) {
+        formula <- handed
+      }
+      groups <- if (is_formula_argument(formula)) {
         self$split_by_formula(
-          handed, args[["data"]], layer_info$plot_call$formula_frame
+          formula, args[["data"]], layer_info$plot_call$formula_frame
         )
       } else if (is.list(handed)) {
         handed

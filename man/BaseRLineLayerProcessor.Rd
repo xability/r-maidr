@@ -23,6 +23,7 @@ Processes Base R line plot layers based on recorded plot calls
     \item \href{#method-BaseRLineLayerProcessor-extract_abline_data}{\code{BaseRLineLayerProcessor$extract_abline_data()}}
     \item \href{#method-BaseRLineLayerProcessor-get_x_range_from_group}{\code{BaseRLineLayerProcessor$get_x_range_from_group()}}
     \item \href{#method-BaseRLineLayerProcessor-get_y_range_from_group}{\code{BaseRLineLayerProcessor$get_y_range_from_group()}}
+    \item \href{#method-BaseRLineLayerProcessor-axis_extent}{\code{BaseRLineLayerProcessor$axis_extent()}}
     \item \href{#method-BaseRLineLayerProcessor-extract_main_title}{\code{BaseRLineLayerProcessor$extract_main_title()}}
     \item \href{#method-BaseRLineLayerProcessor-generate_selectors}{\code{BaseRLineLayerProcessor$generate_selectors()}}
     \item \href{#method-BaseRLineLayerProcessor-find_lines_grobs}{\code{BaseRLineLayerProcessor$find_lines_grobs()}}
@@ -194,6 +195,17 @@ Processes Base R line plot layers based on recorded plot calls
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$get_y_range_from_group(group)}
+    \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRLineLayerProcessor-axis_extent"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-axis_extent}{}}}
+\subsection{\code{BaseRLineLayerProcessor$axis_extent()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRLineLayerProcessor$axis_extent(limits, data)}
     \if{html}{\out{</div>}}
   }
 }

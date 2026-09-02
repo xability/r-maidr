@@ -358,7 +358,7 @@ test_that("BaseRLineLayerProcessor get_x_range_from_group() calculates with padd
   x_range <- processor$get_x_range_from_group(group)
 
   testthat::expect_length(x_range, 2)
-  # Should have padding (5% on each side)
+  # Extended 4% each way, as plot.default() extends the axis
   testthat::expect_lt(x_range[1], 10) # Min with padding < 10
   testthat::expect_gt(x_range[2], 30) # Max with padding > 30
 })

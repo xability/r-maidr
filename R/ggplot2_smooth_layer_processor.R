@@ -213,6 +213,13 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
         built_data <- self$attach_interval(built_data, plot, built, panel_id)
       }
 
+      # A panel with no rows -- an unused facet level under `drop = FALSE`
+      # -- has no curve, and one empty series would still be emitted as a
+      # layer the reader is told to enter.
+      if (is.null(built_data) || nrow(built_data) == 0L) {
+        return(list())
+      }
+
       group_ids <- self$series_group_ids(built_data)
       if (length(group_ids) == 0L) {
         return(list(self$curve_points(built_data)))

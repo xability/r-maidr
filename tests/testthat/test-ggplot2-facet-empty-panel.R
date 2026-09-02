@@ -61,3 +61,25 @@ test_that("a faceted position = 'fill' bar announces proportions", {
   testthat::expect_equal(values_of(faceted), values_of(plain))
   testthat::expect_true(all(values_of(faceted) <= 1))
 })
+
+test_that("a smooth or line panel with no rows has no series in it", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(
+    x = 1:10,
+    y = (1:10)^1.5,
+    g = factor("a", levels = c("a", "b"))
+  )
+  base <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::facet_wrap(~g, drop = FALSE)
+
+  smooth <- facet_layers(
+    base + ggplot2::geom_smooth(method = "lm", formula = y ~ x, se = FALSE)
+  )
+  testthat::expect_length(smooth[[1]][[1]]$data, 1L)
+  testthat::expect_length(smooth[[2]], 0L)
+
+  line <- facet_layers(base + ggplot2::geom_line())
+  testthat::expect_length(line[[1]][[1]]$data[[1]], 10L)
+  testthat::expect_length(line[[2]], 0L)
+})

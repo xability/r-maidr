@@ -387,8 +387,10 @@ test_that("Ggplot2StepLayerProcessor handles an empty data frame", {
   processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
   data <- processor$extract_data(p)
 
+  # No rows is no series: an empty series would be listed as a layer the
+  # reader is told to enter.
   testthat::expect_type(data, "list")
-  testthat::expect_equal(length(data[[1]]), 0)
+  testthat::expect_length(data, 0)
 })
 
 test_that("Ggplot2StepLayerProcessor drops NA-y rows", {

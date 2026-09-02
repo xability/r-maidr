@@ -158,6 +158,50 @@ BaseRAdapter <- R6::R6Class(
       super$initialize("base_r")
     },
 
+    #' @description Was a formula call recorded without the frame it drew from?
+    #'
+    #' A formula reader takes its rows from the model frame kept at record
+    #' time. When that frame could not be built -- a `subset` written as an
+    #' expression with nothing to evaluate it in, a `data` that no longer
+    #' resolves -- the reader has nothing to announce, and a claimed layer
+    #' with nothing in it exports as an interactive chart that says nothing.
+    #' Declining the type sends the chart to the picture instead.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the call carries a formula but no frame
+    formula_frame_missing = function(layer) {
+      self$formula_call(layer) && is.null(layer$formula_frame)
+    },
+
+    #' @description Was the call handed a formula?
+    #'
+    #' Either written in the call, or -- `fmla <- y ~ x; plot(fmla)` --
+    #' bound to a name the recorder resolved.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the call carries a formula
+    formula_call = function(layer) {
+      inherits(layer$formula, "formula") ||
+        is_formula_argument(resolve_xy_args(layer$args)$x)
+    },
+
+    #' @description Does a recorded formula `plot()` draw a numeric scatter?
+    #'
+    #' `plot.formula()` draws a scatter only for a numeric response over one
+    #' numeric predictor; a factor predictor reaches `plot.factor()` and a
+    #' box plot, and a longer right-hand side is `plot.default()` over the
+    #' first term. Only the two-column numeric frame is read as points.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the frame is a numeric pair
+    formula_scatter_readable = function(layer) {
+      frame <- layer$formula_frame
+      if (!is.data.frame(frame) || ncol(frame) != 2L) {
+        return(FALSE)
+      }
+      all(vapply(frame, is.numeric, logical(1)))
+    },
+
     #' @description Check if this adapter can handle a plot object
     #' @param plot_object The plot object to check (should be NULL for Base R)
     #' @return TRUE if Base R plotting is active, FALSE otherwise
@@ -200,6 +244,12 @@ BaseRAdapter <- R6::R6Class(
           first_arg <- args[[1]]
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
+          } else if (self$formula_call(layer) && !self$formula_scatter_readable(layer)) {
+            # `plot(y ~ f)` on a factor dispatches to `plot.factor()`, which
+            # draws a box plot, and a formula whose frame could not be
+            # resolved has nothing to announce. Typed as points, either
+            # exported as an interactive chart with no points in it.
+            "unknown"
           } else {
             # plot() default type is "p" (points/scatter)
             # plot(x, y) with two numeric vectors defaults to scatter
@@ -367,12 +417,16 @@ BaseRAdapter <- R6::R6Class(
         # one layer per group, which is what the drawing forces -- gridSVG
         # exports one `points` grob per group -- and what the same chart
         # already gets in py-maidr (#251).
-        "stripchart" = "strip",
+        "stripchart" = {
+          if (self$formula_frame_missing(layer)) "unknown" else "strip"
+        },
         # An `n x n` grid of scatters: every ordered pair of columns, the
         # column across against the column down. Read as a *figure* of
         # subplots rather than as one layer, which is the shape the same
         # chart already gets in py-maidr (#272).
-        "pairs" = "pairs",
+        "pairs" = {
+          if (self$formula_frame_missing(layer)) "unknown" else "pairs"
+        },
         # One closed outline per observation, a spoke per variable -- which is
         # a multi-line layer with the matrix turned on its side, since MAIDR's
         # radar is navigated as one series per row (#262).
@@ -441,7 +495,13 @@ BaseRAdapter <- R6::R6Class(
         "bxp" = "box_stats",
         # vioplot::vioplot() -- read as the violin_box + violin_kde pair, the
         # same shape the ggplot2 adapter produces for geom_violin().
-        "vioplot" = "violin",
+        "vioplot" = {
+          # The formula interface is not read: resolving it needs an
+          # environment the processor no longer has. Declined here, so the
+          # chart falls back to a picture rather than exporting as an
+          # interactive chart with no layers in it.
+          if (self$formula_call(layer)) "unknown" else "violin"
+        },
         "pie" = "pie",
         "image" = "heat",
         "heatmap" = "heat",
@@ -573,7 +633,7 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a dodged bar plot, FALSE otherwise
     is_dodged_barplot = function(args) {
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
       # For matrices, beside = TRUE creates dodged bars. Read the way
@@ -589,7 +649,7 @@ BaseRAdapter <- R6::R6Class(
     #' @param args The arguments from the barplot call
     #' @return TRUE if this is a stacked bar plot, FALSE otherwise
     is_stacked_barplot = function(args) {
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       is_matrix <- is.matrix(height) || (is.array(height) && length(dim(height)) == 2)
 
       # For matrices, beside = FALSE creates stacked bars - and FALSE is
@@ -626,7 +686,7 @@ BaseRAdapter <- R6::R6Class(
         return(FALSE)
       }
 
-      height <- args[[1]]
+      height <- recorded_barplot_height(args)
       if (nrow(height) < 2) {
         return(FALSE)
       }
