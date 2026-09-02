@@ -521,3 +521,23 @@ test_that("Patching handles matrix barplot", {
 
   clear_base_r_state()
 })
+
+test_that("a wrapped call keeps the visibility the original gave it", {
+  # Every wrapper returned invisibly, so `par("mar")` printed nothing once
+  # maidr was attached and `hist(x, plot = FALSE)` had to be wrapped in
+  # `print()`. The drawing calls are invisible in base R already; the
+  # queries are the ones that changed.
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(), add = TRUE)
+  clear_base_r_device(device_id)
+  on.exit(clear_base_r_device(device_id), add = TRUE)
+
+  testthat::expect_true(withVisible(par("mar"))$visible)
+  testthat::expect_false(withVisible(par(mar = c(4, 4, 2, 1)))$visible)
+  testthat::expect_true(withVisible(hist(1:20, plot = FALSE))$visible)
+  testthat::expect_false(withVisible(hist(1:20))$visible)
+  testthat::expect_true(withVisible(boxplot(1:20, plot = FALSE))$visible)
+  testthat::expect_false(withVisible(boxplot(1:20))$visible)
+  testthat::expect_false(withVisible(plot(1:3))$visible)
+})
