@@ -118,6 +118,8 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
       # but leaves the dispatch arguments as written.
       xy <- resolve_xy_args(args)
       words <- args[["words"]] %||% xy$x
+      # When `words` is named, an unnamed `freq` is the *first* positional
+      # value, so it lands in `xy$x`; when neither is named it is the second.
       freq <- args[["freq"]] %||% (if (is.null(args[["words"]])) xy$y else xy$x)
       if (is.null(words) || is.null(freq) || !length(words)) {
         return(NULL)

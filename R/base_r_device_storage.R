@@ -57,6 +57,7 @@ log_plot_call_to_device <- function(
     call_env = NULL) {
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
+  formula <- recorded_formula(args, call_env)
 
   call_entry <- list(
     function_name = function_name,
@@ -70,7 +71,8 @@ log_plot_call_to_device <- function(
     # argument that is a reference rather than a value, so a reader that
     # resolved it later would read whatever the names are bound to *then* --
     # see `recorded_formula_frame()` for the measurement (#254).
-    formula_frame = recorded_formula_frame(args, call_env)
+    formula = formula,
+    formula_frame = recorded_formula_frame(args, call_env, formula)
   )
 
   storage$calls <- append(storage$calls, list(call_entry))

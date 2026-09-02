@@ -98,6 +98,68 @@ test_that("a vioplot formula call falls back rather than exporting no layers", {
   expect_true(figure$fallback)
 })
 
+test_that("a formula bound to a name is read like one written in the call", {
+  fmla <- mpg ~ wt
+  plotted <- formula_figure(function() {
+    plot(fmla, data = mtcars, subset = cyl == 4)
+  })
+  layer <- plotted$subplots[[1]][[1]]$layers[[1]]
+  expect_identical(layer$type, "point")
+  expect_length(layer$data, sum(mtcars$cyl == 4))
+
+  grouped <- len ~ supp
+  tg <- datasets::ToothGrowth
+  strip <- formula_figure(function() {
+    stripchart(grouped, data = tg, subset = dose == 0.5)
+  })
+  expect_false(strip$fallback)
+  expect_identical(
+    vapply(strip$subplots[[1]][[1]]$layers, function(layer) length(layer$data), integer(1)),
+    c(10L, 10L)
+  )
+
+  # A bound formula the reader cannot draw as points declines like a
+  # written one.
+  boxed <- mpg ~ factor(cyl)
+  expect_true(formula_figure(function() plot(boxed, data = mtcars))$fallback)
+})
+
+test_that("recorded_formula resolves a name or a ~ call, and runs nothing else", {
+  snapshot <- new.env()
+  snapshot$fmla <- y ~ x
+  expect_identical(maidr:::recorded_formula(list(quote(fmla)), snapshot), y ~ x)
+  expect_null(maidr:::recorded_formula(list(quote(fmla))))
+  expect_s3_class(maidr:::recorded_formula(list(quote(y ~ x)), snapshot), "formula")
+  expect_identical(maidr:::recorded_formula(list(x = quote(fmla)), snapshot), y ~ x)
+
+  # An expression in the data slot is not evaluated to find out.
+  snapshot$draws <- 0L
+  snapshot$f <- function() {
+    snapshot$draws <- snapshot$draws + 1L
+    y ~ x
+  }
+  expect_null(maidr:::recorded_formula(list(quote(f())), snapshot))
+  expect_identical(snapshot$draws, 0L)
+})
+
+test_that("recorded_formula_frame evaluates an expression subset in an environment data", {
+  vars <- new.env()
+  vars$y <- 1:6
+  vars$g <- rep(c("a", "b"), 3)
+  vars$k <- 1:6
+  snapshot <- new.env()
+  snapshot$vars <- vars
+
+  # As `model.frame()` has it: with an environment as `data`, the subset
+  # is evaluated in that environment.
+  frame <- maidr:::recorded_formula_frame(
+    list(y ~ g, data = quote(vars), subset = quote(k <= 4)),
+    call_env = snapshot
+  )
+  expect_s3_class(frame, "data.frame")
+  expect_identical(nrow(frame), 4L)
+})
+
 test_that("recorded_formula_frame resolves a deferred call through its snapshot", {
   snapshot <- new.env()
   snapshot$d <- data.frame(y = 1:6, g = rep(c("a", "b"), 3), k = 1:6)

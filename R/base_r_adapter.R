@@ -170,8 +170,19 @@ BaseRAdapter <- R6::R6Class(
     #' @param layer The recorded call entry
     #' @return TRUE when the call carries a formula but no frame
     formula_frame_missing = function(layer) {
-      handed <- resolve_xy_args(layer$args)$x
-      is_formula_argument(handed) && is.null(layer$formula_frame)
+      self$formula_call(layer) && is.null(layer$formula_frame)
+    },
+
+    #' @description Was the call handed a formula?
+    #'
+    #' Either written in the call, or -- `fmla <- y ~ x; plot(fmla)` --
+    #' bound to a name the recorder resolved.
+    #'
+    #' @param layer The recorded call entry
+    #' @return TRUE when the call carries a formula
+    formula_call = function(layer) {
+      inherits(layer$formula, "formula") ||
+        is_formula_argument(resolve_xy_args(layer$args)$x)
     },
 
     #' @description Does a recorded formula `plot()` draw a numeric scatter?
@@ -233,8 +244,7 @@ BaseRAdapter <- R6::R6Class(
           first_arg <- args[[1]]
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
-          } else if (is_formula_argument(first_arg) &&
-            !self$formula_scatter_readable(layer)) {
+          } else if (self$formula_call(layer) && !self$formula_scatter_readable(layer)) {
             # `plot(y ~ f)` on a factor dispatches to `plot.factor()`, which
             # draws a box plot, and a formula whose frame could not be
             # resolved has nothing to announce. Typed as points, either
@@ -490,7 +500,7 @@ BaseRAdapter <- R6::R6Class(
           # environment the processor no longer has. Declined here, so the
           # chart falls back to a picture rather than exporting as an
           # interactive chart with no layers in it.
-          if (is_formula_argument(resolve_xy_args(args)$x)) "unknown" else "violin"
+          if (self$formula_call(layer)) "unknown" else "violin"
         },
         "pie" = "pie",
         "image" = "heat",

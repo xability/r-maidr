@@ -463,39 +463,26 @@ recorded_main_title <- function(args) {
 #' @param args Recorded argument list
 #' @param call_env The environment snapshot a deferred call was recorded
 #'   with, or NULL when every argument is a plain value.
+#' @param formula The formula the call carries, as [recorded_formula()]
+#'   resolves it; passed in when the recorder has already resolved it.
 #' @return The model frame, or NULL when the call carries no formula or the
 #'   frame cannot be built -- in which case the reader falls back to
 #'   resolving it itself, exactly as before.
 #' @keywords internal
-recorded_formula_frame <- function(args, call_env = NULL) {
-  if (!is.list(args) || length(args) == 0) {
-    return(NULL)
-  }
-
-  formula <- args[["formula"]]
-  if (!is_formula_argument(formula)) {
-    formula <- NULL
-    for (value in args) {
-      if (is_formula_argument(value)) {
-        formula <- value
-        break
-      }
-    }
-  }
+recorded_formula_frame <- function(args, call_env = NULL,
+                                   formula = recorded_formula(args, call_env)) {
   # Nearly every recorded call carries no formula at all, and this runs on
   # all of them. The `tryCatch` below would cover the case on its own --
   # measured, `stats::model.frame(NULL)` stops with "argument is not a valid
   # model" -- so this changes no reading, only whether the common path raises
   # and catches a condition to reach the same NULL.
-  if (!is_formula_argument(formula)) {
+  if (!inherits(formula, "formula")) {
     return(NULL)
   }
 
   # On the NSE path every argument arrives as the expression the caller
-  # wrote, with a snapshot of the bindings those expressions name. The
-  # formula and the data are resolved in that snapshot, which is where the
-  # drawing resolved them.
-  formula <- resolve_recorded_value(formula, call_env)
+  # wrote, with a snapshot of the bindings those expressions name. The data
+  # is resolved in that snapshot, which is where the drawing resolved it.
   data <- resolve_recorded_value(args[["data"]], call_env)
   if (!inherits(formula, "formula")) {
     return(NULL)
@@ -515,8 +502,15 @@ recorded_formula_frame <- function(args, call_env = NULL) {
     if (!is.environment(call_env)) {
       return(NULL)
     }
+    # `model.frame()` takes `data` as a list or as an environment; either
+    # is where the variables live, and a `data` of any other kind leaves
+    # only the snapshot to look in.
     subset <- tryCatch(
-      eval(subset, if (is.list(data)) data else NULL, call_env),
+      eval(
+        subset,
+        if (is.list(data) || is.environment(data)) data else NULL,
+        call_env
+      ),
       error = function(e) NULL
     )
     if (is.null(subset)) {
@@ -586,6 +580,46 @@ set_recorded_barplot_height <- function(args, height) {
   }
   args[[unnamed[1]]] <- height
   args
+}
+
+#' The formula a recorded call carries, resolved
+#'
+#' The formula is the `formula` argument, the `x` argument, or the first
+#' positional one, whichever is found first. On the NSE path it arrives as
+#' the unevaluated call to `~`, or -- `fmla <- y ~ x; plot(fmla, ...)` -- as
+#' the name it was bound to, and either is resolved in the snapshot the
+#' call was recorded with. Only a name or a `~` call is evaluated: an
+#' arbitrary expression in the data slot (`plot(rnorm(10))`) is not a
+#' formula and is not run again to find out.
+#'
+#' @param args Recorded argument list
+#' @param call_env The environment snapshot a deferred call was recorded
+#'   with, or NULL when every argument is a plain value.
+#' @return The formula object, or NULL when the call carries none
+#' @keywords internal
+recorded_formula <- function(args, call_env = NULL) {
+  if (!is.list(args) || length(args) == 0) {
+    return(NULL)
+  }
+  arg_names <- names(args)
+  unnamed <- if (is.null(arg_names)) seq_along(args) else which(!nzchar(arg_names))
+  candidates <- list(
+    args[["formula"]],
+    args[["x"]],
+    if (length(unnamed)) args[[unnamed[1]]]
+  )
+  for (candidate in candidates) {
+    if (inherits(candidate, "formula")) {
+      return(candidate)
+    }
+    if (is_formula_argument(candidate) || is.name(candidate)) {
+      resolved <- resolve_recorded_value(candidate, call_env)
+      if (inherits(resolved, "formula")) {
+        return(resolved)
+      }
+    }
+  }
+  NULL
 }
 
 #' Is a recorded argument a formula, evaluated or not?

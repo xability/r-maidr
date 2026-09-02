@@ -4,13 +4,20 @@
 \alias{recorded_formula_frame}
 \title{Resolve a recorded formula into the frame the chart was drawn from}
 \usage{
-recorded_formula_frame(args, call_env = NULL)
+recorded_formula_frame(
+  args,
+  call_env = NULL,
+  formula = recorded_formula(args, call_env)
+)
 }
 \arguments{
 \item{args}{Recorded argument list}
 
 \item{call_env}{The environment snapshot a deferred call was recorded
 with, or NULL when every argument is a plain value.}
+
+\item{formula}{The formula the call carries, as \code{\link[=recorded_formula]{recorded_formula()}}
+resolves it; passed in when the recorder has already resolved it.}
 }
 \value{
 The model frame, or NULL when the call carries no formula or the

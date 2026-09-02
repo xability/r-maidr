@@ -19,6 +19,7 @@ to intercept Base R plotting calls and detect plot types.
   \itemize{
     \item \href{#method-BaseRAdapter-initialize}{\code{BaseRAdapter$new()}}
     \item \href{#method-BaseRAdapter-formula_frame_missing}{\code{BaseRAdapter$formula_frame_missing()}}
+    \item \href{#method-BaseRAdapter-formula_call}{\code{BaseRAdapter$formula_call()}}
     \item \href{#method-BaseRAdapter-formula_scatter_readable}{\code{BaseRAdapter$formula_scatter_readable()}}
     \item \href{#method-BaseRAdapter-can_handle}{\code{BaseRAdapter$can_handle()}}
     \item \href{#method-BaseRAdapter-detect_layer_type}{\code{BaseRAdapter$detect_layer_type()}}
@@ -75,6 +76,31 @@ Declining the type sends the chart to the picture instead.
   }
   \subsection{Returns}{
     TRUE when the call carries a formula but no frame
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRAdapter-formula_call"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRAdapter-formula_call}{}}}
+\subsection{\code{BaseRAdapter$formula_call()}}{
+  Was the call handed a formula?
+
+Either written in the call, or -- \verb{fmla <- y ~ x; plot(fmla)} --
+bound to a name the recorder resolved.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRAdapter$formula_call(layer)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The recorded call entry}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the call carries a formula
   }
 }
 
