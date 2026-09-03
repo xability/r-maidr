@@ -41,6 +41,10 @@ testthat::test_that("a UTF-8 marked string keeps its bytes", {
   testthat::expect_identical(
     charToRaw(escaped), as.raw(c(0xed, 0x95, 0x9c))
   )
+  # And loses its mark: `useBytes = TRUE` would have kept it, and a marked
+  # string is what the `sprintf` building the tag transliterates under a C
+  # locale.
+  testthat::expect_identical(Encoding(escaped), "unknown")
 })
 
 testthat::test_that("a latin1 marked string is converted to UTF-8", {
@@ -55,6 +59,7 @@ testthat::test_that("a latin1 marked string is converted to UTF-8", {
   testthat::expect_identical(
     charToRaw(escaped), as.raw(c(0x63, 0x61, 0x66, 0xc3, 0xa9))
   )
+  testthat::expect_identical(Encoding(escaped), "unknown")
 })
 
 testthat::test_that("ampersands are escaped before the entities that contain them", {

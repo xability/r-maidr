@@ -1581,7 +1581,13 @@ escape_for_attribute <- function(html) {
   escaped <- gsub("&", "&amp;", escaped, fixed = TRUE, useBytes = TRUE)
   escaped <- gsub("<", "&lt;", escaped, fixed = TRUE, useBytes = TRUE)
   escaped <- gsub(">", "&gt;", escaped, fixed = TRUE, useBytes = TRUE)
-  gsub('"', "&quot;", escaped, fixed = TRUE, useBytes = TRUE)
+  escaped <- gsub('"', "&quot;", escaped, fixed = TRUE, useBytes = TRUE)
+  # Unmarked deliberately, as documented above. `useBytes = TRUE` leaves the
+  # mark of a marked input in place, and a UTF-8-marked string handed to the
+  # `sprintf` that builds the tag under a C locale comes back as the text
+  # `<U+D55C>` -- measured -- where the same bytes unmarked pass through.
+  Encoding(escaped) <- "unknown"
+  escaped
 }
 
 #' Create iframe HTML tag for isolated MAIDR plot

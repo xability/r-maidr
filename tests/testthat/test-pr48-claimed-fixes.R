@@ -421,7 +421,7 @@ test_that("an unnamed barplot keeps call order in both data and geometry", {
 #' `escape_for_attribute()` introduced have to come back out before anything
 #' can be parsed from it. Only those four: it escapes nothing else.
 widget_maidr_data <- function(widget) {
-  html <- sub('^.*srcdoc="([^"]*)".*$', "\\1", widget$x$iframe_content)
+  html <- sub('^.*srcdoc="([^"]*)".*$', "\\1", widget$x$iframe_content, useBytes = TRUE)
   html <- gsub("&quot;", '"', html, fixed = TRUE, useBytes = TRUE)
   html <- gsub("&lt;", "<", html, fixed = TRUE, useBytes = TRUE)
   html <- gsub("&gt;", ">", html, fixed = TRUE, useBytes = TRUE)
