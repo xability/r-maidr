@@ -1,9 +1,9 @@
 # Create iframe HTML tag for isolated MAIDR plot
 
-Creates an iframe element with base64-encoded src containing the
-complete MAIDR plot. Uses data URI with base64 encoding to avoid quote
-escaping issues with JSON. This isolates each plot in its own
-document/JavaScript context.
+Creates an iframe element whose `srcdoc` carries the complete MAIDR
+plot. This isolates each plot in its own document/JavaScript context
+while leaving it same-origin with the page, which is what Web Bluetooth
+and Web Serial — and so the tactile display — require.
 
 ## Usage
 

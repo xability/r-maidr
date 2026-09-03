@@ -1,9 +1,8 @@
 # Create iframe HTML tag for fallback static image
 
-Creates an iframe element with base64-encoded src containing a static
-image. Used when plots contain unsupported layers and fall back to PNG
-rendering. Unlike create_maidr_iframe, this does not include MAIDR.js
-dependencies.
+Creates an iframe element whose `srcdoc` carries a static image. Used
+when plots contain unsupported layers and fall back to PNG rendering.
+Unlike create_maidr_iframe, this does not include MAIDR.js dependencies.
 
 ## Usage
 
