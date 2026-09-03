@@ -1385,6 +1385,13 @@ display_html_file <- function(file) {
 #' @return Character string of complete HTML document
 #' @keywords internal
 create_standalone_html <- function(svg_content, use_cdn = NULL) {
+  # Spliced in as raw markup, and the document this builds is now same-origin
+  # with the page: `create_maidr_iframe()` carries it in `srcdoc`, so script
+  # reaching the frame reaches the host too, where the `data:` URL that
+  # preceded it was walled off by its opaque origin. Nothing is escaped here
+  # and nothing should need to be --- the labels arrive already escaped by the
+  # XML serialisation that produced the SVG --- but that is now an invariant
+  # with the page behind it, not just the frame.
   svg_html <- paste(svg_content, collapse = "\n")
 
   # Auto-detect with a time-boxed cached probe. CDN (pinned to the bundled
@@ -1531,11 +1538,64 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
   html
 }
 
+#' Escape a document so it can travel in an HTML attribute
+#'
+#' Byte-wise, and deliberately not [htmltools::htmlEscape()]. That function
+#' works in characters, so on a system whose locale is not UTF-8 it renders
+#' every byte it cannot represent as `<ed>`, `<95>`, `<9c>` --- and then
+#' escapes the angle brackets it just invented. A Korean title comes out as
+#' `&lt;ed&gt;&lt;95&gt;&lt;9c&gt;`, which is the garbling the base64 encoding
+#' this replaced was chosen to avoid.
+#'
+#' `useBytes = TRUE` keeps the substitutions off the encoding entirely. It is
+#' safe here because every byte being replaced is ASCII and every byte of a
+#' multi-byte UTF-8 sequence is not, so no replacement can land inside one.
+#'
+#' Ampersands first, or the ampersands introduced by the later replacements
+#' would be escaped a second time.
+#'
+#' Quotes and angle brackets are enough for a double-quoted attribute: an
+#' apostrophe cannot end one, and a newline inside one is legal and preserved,
+#' so leaving both alone keeps the document readable and smaller.
+#'
+#' The result is deliberately left unmarked rather than declared UTF-8. Marking
+#' it is what makes the `sprintf` that builds the tag transliterate it: a
+#' UTF-8-marked string handed to `sprintf` under a C locale comes back with
+#' every non-ASCII character rendered `<c3>`, `<a9>`. Unmarked, the bytes pass
+#' through untouched, which is how the base64 encoding this replaced stayed
+#' safe --- `charToRaw` never consulted the mark either.
+#'
+#' @param html Character string holding a complete HTML document
+#' @return The same document, escaped for use as an attribute value
+#' @keywords internal
+escape_for_attribute <- function(html) {
+  # Converted only when the string says what it is. `enc2utf8` on an unmarked
+  # string assumes the native encoding, and under a C locale --- which is what
+  # a container, a CI runner and plenty of servers give you --- it cannot
+  # represent the bytes it finds, so it rewrites each one as the text `<c3>`,
+  # `<a9>`. That is what garbles a Korean or accented label, and it garbled it
+  # through the base64 encoding this replaced as well, which called `enc2utf8`
+  # the same way. Marked strings are still normalised; unmarked bytes are left
+  # to travel as they are.
+  escaped <- if (Encoding(html) %in% c("latin1", "UTF-8")) enc2utf8(html) else html
+  escaped <- gsub("&", "&amp;", escaped, fixed = TRUE, useBytes = TRUE)
+  escaped <- gsub("<", "&lt;", escaped, fixed = TRUE, useBytes = TRUE)
+  escaped <- gsub(">", "&gt;", escaped, fixed = TRUE, useBytes = TRUE)
+  escaped <- gsub('"', "&quot;", escaped, fixed = TRUE, useBytes = TRUE)
+  # Unmarked deliberately, as documented above. `useBytes = TRUE` leaves the
+  # mark of a marked input in place, and a UTF-8-marked string handed to the
+  # `sprintf` that builds the tag under a C locale comes back as the text
+  # `<U+D55C>` -- measured -- where the same bytes unmarked pass through.
+  Encoding(escaped) <- "unknown"
+  escaped
+}
+
 #' Create iframe HTML tag for isolated MAIDR plot
 #'
-#' Creates an iframe element with base64-encoded src containing the complete MAIDR plot.
-#' Uses data URI with base64 encoding to avoid quote escaping issues with JSON.
-#' This isolates each plot in its own document/JavaScript context.
+#' Creates an iframe element whose `srcdoc` carries the complete MAIDR plot.
+#' This isolates each plot in its own document/JavaScript context while leaving
+#' it same-origin with the page, which is what Web Bluetooth and Web Serial ---
+#' and so the tactile display --- require.
 #'
 #' @param svg_content Character vector of SVG content with maidr-data attribute
 #' @param width Width of the iframe (default: "100%")
@@ -1552,17 +1612,36 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
 
   standalone_html <- create_standalone_html(svg_content, use_cdn = use_cdn)
 
-  # Use base64 encoding to avoid quote escaping issues with JSON in maidr-data.
-  # Force UTF-8 first: the document declares charset=UTF-8, so encoding the
-  # native-locale bytes would garble non-ASCII titles/labels on non-UTF-8
-  # systems.
-  html_base64 <- base64enc::base64encode(charToRaw(enc2utf8(standalone_html)))
-  data_uri <- paste0("data:text/html;base64,", html_base64)
+  # `srcdoc`, not a `data:` URL, and the difference is the tactile display.
+  # A `data:` document has an opaque origin, and Web Bluetooth and Web Serial
+  # are unavailable to one whatever the `allow` attribute says: measured in
+  # Chromium, a `data:` frame carrying `allow="serial"` reports the feature
+  # allowed by Permissions Policy and still has no `navigator.serial` on it, so
+  # a Dot Pad could not be connected from an R chart at all. A `srcdoc`
+  # document inherits this page's origin and has both.
+  #
+  # `allow` covers the case inheritance does not: a chart inside a frame that
+  # is itself cross-origin, which is what an RMarkdown document embedded in
+  # another site is. This delegates a capability rather than creating one --- a
+  # frame cannot receive a feature the embedding page lacks, and the browser
+  # still asks the reader to pick the device.
+  #
+  # Same-origin cuts both ways and it is worth saying so: script inside the
+  # frame can now reach this document, where a `data:` frame could not. What
+  # goes in is the plot this R session drew, so the trust boundary is the one
+  # that was already there --- but a label carrying markup now reaches further
+  # than it did, and `create_standalone_html` is where that has to keep being
+  # handled.
+  #
+  # Escaped as an attribute rather than base64-encoded, and escaped byte-wise:
+  # see `escape_for_attribute`, which exists because the obvious call garbles
+  # every non-ASCII label on a system whose locale is not UTF-8.
+  srcdoc <- escape_for_attribute(standalone_html)
 
   iframe_html <- sprintf(
-    '<iframe id="maidr-iframe-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" role="img" tabindex="0"></iframe>',
+    '<iframe id="maidr-iframe-%s" srcdoc="%s" allow="bluetooth; serial" style="width: %s; height: %s; border: none; display: block; margin: 0 auto; outline: none;" role="img" tabindex="0"></iframe>',
     plot_id,
-    data_uri,
+    srcdoc,
     width,
     height
   )
@@ -1588,9 +1667,10 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", p
 #'   browser's own UI, the page cannot be driven from the keyboard at all. On a
 #'   reveal.js slide that is exactly what happens --- the deck renders no
 #'   controls of its own, so a chart is the first thing on the page --- and no
-#'   key reaches the deck. The chart is embedded through a `data:` URL, whose
-#'   opaque origin puts it beyond the reach of this document's DOM, so it asks
-#'   for the handoff instead of performing it.
+#'   key reaches the deck. The frame asks for the handoff rather than
+#'   performing it, which keeps working whether or not it can reach this
+#'   document: it could not when the chart was embedded through a `data:` URL,
+#'   and a message costs nothing now that `srcdoc` means it could.
 #'
 #' Focus goes to the tab stop before the frame where this page has a reachable
 #' one, which is what the browser would have done. Where it has none, focus
@@ -1693,7 +1773,7 @@ maidr_iframe_host_script <- function() {
 
 #' Create iframe HTML tag for fallback static image
 #'
-#' Creates an iframe element with base64-encoded src containing a static image.
+#' Creates an iframe element whose `srcdoc` carries a static image.
 #' Used when plots contain unsupported layers and fall back to PNG rendering.
 #' Unlike create_maidr_iframe, this does not include MAIDR.js dependencies.
 #'
@@ -1743,15 +1823,15 @@ create_fallback_iframe <- function(html_content, width = "100%", height = "450px
     html_content
   )
 
-  # Use base64 encoding for the iframe src (UTF-8, matching the declared
-  # charset)
-  html_base64 <- base64enc::base64encode(charToRaw(enc2utf8(standalone_html)))
-  data_uri <- paste0("data:text/html;base64,", html_base64)
+  # `srcdoc` for the same reason as the interactive frame, and for consistency:
+  # this one carries a static image and asks for no device, but keeping the two
+  # frames the same shape means one embedding to reason about rather than two.
+  srcdoc <- escape_for_attribute(standalone_html)
 
   iframe_html <- sprintf(
-    '<iframe id="maidr-fallback-%s" src="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto;" role="img" tabindex="0"></iframe>',
+    '<iframe id="maidr-fallback-%s" srcdoc="%s" style="width: %s; height: %s; border: none; display: block; margin: 0 auto;" role="img" tabindex="0"></iframe>',
     plot_id,
-    data_uri,
+    srcdoc,
     width,
     height
   )

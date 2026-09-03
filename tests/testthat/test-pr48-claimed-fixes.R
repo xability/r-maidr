@@ -415,14 +415,17 @@ test_that("an unnamed barplot keeps call order in both data and geometry", {
 # ggplot object" - the one show() mode Base R could not use.
 # ==============================================================================
 
-#' Decode the maidr-data of a widget's base64 data-URI iframe
+#' Read the maidr-data out of a widget's `srcdoc` iframe
+#'
+#' The document travels as an attribute value, so the entities
+#' `escape_for_attribute()` introduced have to come back out before anything
+#' can be parsed from it. Only those four: it escapes nothing else.
 widget_maidr_data <- function(widget) {
-  encoded <- sub(
-    '^.*src="data:text/html;base64,([^"]*)".*$', "\\1",
-    widget$x$iframe_content
-  )
-  html <- rawToChar(base64enc::base64decode(encoded))
-  Encoding(html) <- "UTF-8"
+  html <- sub('^.*srcdoc="([^"]*)".*$', "\\1", widget$x$iframe_content, useBytes = TRUE)
+  html <- gsub("&quot;", '"', html, fixed = TRUE, useBytes = TRUE)
+  html <- gsub("&lt;", "<", html, fixed = TRUE, useBytes = TRUE)
+  html <- gsub("&gt;", ">", html, fixed = TRUE, useBytes = TRUE)
+  html <- gsub("&amp;", "&", html, fixed = TRUE, useBytes = TRUE)
   parse_maidr_data(html)
 }
 

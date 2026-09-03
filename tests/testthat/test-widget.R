@@ -237,19 +237,41 @@ test_that("widget has sizing policy", {
   testthat::expect_type(widget$sizingPolicy, "list")
 })
 
-test_that("widget iframe uses data URL with embedded content", {
+test_that("widget iframe carries its content in srcdoc, not a data URL", {
   testthat::skip_if_not_installed("ggplot2")
 
   p <- create_test_ggplot_bar()
   widget <- maidr_widget(p)
 
-  # With iframe-based approach, CSS and JS are bundled inside a base64-encoded data URL
-
   iframe_content <- widget$x$iframe_content
 
-  # The iframe content should be an iframe tag with data URL src
+  # `srcdoc` rather than `data:`, because a `data:` document has an opaque
+  # origin and Web Bluetooth and Web Serial are unavailable to one whatever
+  # the `allow` attribute says --- so a Dot Pad could not be connected from an
+  # R chart at all. Measured in Chromium: a `data:` frame carrying
+  # `allow="serial"` reports the feature allowed and still has no
+  # `navigator.serial`; a `srcdoc` frame has it.
   testthat::expect_match(iframe_content, "<iframe", fixed = TRUE)
-  testthat::expect_match(iframe_content, "src=\"data:text/html;base64,", fixed = TRUE)
+  testthat::expect_match(iframe_content, "srcdoc=\"", fixed = TRUE)
+  testthat::expect_false(grepl("data:text/html", iframe_content, fixed = TRUE))
+})
+
+test_that("widget iframe delegates bluetooth and serial", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  p <- create_test_ggplot_bar()
+  widget <- maidr_widget(p)
+
+  # Inheritance covers the same-origin case on its own; `allow` is what
+  # carries the features into a chart that is itself inside a cross-origin
+  # frame. It delegates rather than creates: a frame cannot receive a feature
+  # the embedding page lacks, and the browser still asks the reader to pick
+  # the device.
+  testthat::expect_match(
+    widget$x$iframe_content,
+    'allow="bluetooth; serial"',
+    fixed = TRUE
+  )
 })
 
 # ==============================================================================
@@ -347,4 +369,45 @@ test_that("widget works with dodged bar plots", {
   widget <- maidr_widget(p)
 
   expect_valid_maidr_widget(widget)
+})
+
+# ==============================================================================
+# Non-ASCII labels survive the trip into the frame
+#
+# They did not before. `enc2utf8()` on an unmarked string assumes the native
+# encoding, and under a C locale — a container, a CI runner, plenty of servers
+# — it cannot represent the bytes it finds and rewrites each one as the text
+# `<ed>`, `<95>`, `<9c>`. A Korean title reached the reader as that, and it did
+# so through the base64 encoding `srcdoc` replaced as well.
+# ==============================================================================
+
+test_that("a non-ASCII title reaches the frame intact", {
+  title <- "éü 한글"
+  svg <- paste0(
+    '<svg xmlns="http://www.w3.org/2000/svg" maidr-data=\'{"id":"x","title":"',
+    title, '"}\'><rect/></svg>'
+  )
+
+  iframe <- maidr:::create_maidr_iframe(svg, use_cdn = TRUE, plot_id = "enc")
+
+  # The bytes themselves, not a rendering of them: `grepl` would compare a
+  # marked needle against unmarked hay and convert one of them on the way.
+  testthat::expect_true(
+    length(grepRaw(charToRaw(title), charToRaw(iframe), fixed = TRUE)) > 0
+  )
+  testthat::expect_false(grepl("&lt;ed&gt;", iframe, fixed = TRUE))
+})
+
+test_that("attribute-significant characters in a label are escaped, not dropped", {
+  svg <- paste0(
+    '<svg xmlns="http://www.w3.org/2000/svg" maidr-data=\'{"id":"x",',
+    '"title":"A &amp; B"}\'><rect/></svg>'
+  )
+
+  iframe <- maidr:::create_maidr_iframe(svg, use_cdn = TRUE, plot_id = "esc")
+
+  # A raw quote would end the attribute and spill the rest of the document
+  # into the page as markup.
+  testthat::expect_match(iframe, "&quot;", fixed = TRUE)
+  testthat::expect_match(iframe, "&lt;rect/&gt;", fixed = TRUE)
 })

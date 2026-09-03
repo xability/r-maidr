@@ -177,6 +177,17 @@
 * maidr-data JSON keeps full numeric precision (values were rounded to four
   decimals), iframe content is UTF-8 encoded on every locale, and plot ids
   no longer advance the RNG, so `set.seed()` scripts stay reproducible.
+* A non-ASCII label -- a Korean or accented title, axis label or category
+  name -- reached the reader as `<ed><95><9c>` under a C locale (a container,
+  a CI runner, many servers): the chart's document was passed through
+  `enc2utf8()` while carrying no encoding mark. It is now converted only when
+  it says what it is, and escaped byte-wise.
+* Charts are embedded with `srcdoc` rather than a `data:` URL, whose opaque
+  origin has neither Web Bluetooth nor Web Serial whatever the `allow`
+  attribute says, so a tactile display such as a Dot Pad can be reached from
+  an R chart; the frame carries `allow="bluetooth; serial"` for a chart
+  inside a cross-origin frame. Reading by touch also needs a maidr build
+  that supports the display, which is later than the bundled 4.6.0.
 * `save_html()` and `show()` no longer warn "number of items to replace is
   not a multiple of replacement length" on a chart with a rect of negative
   height or width, such as `barplot()` with a bar below the baseline.

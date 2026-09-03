@@ -22,7 +22,8 @@
     if (typeof height !== "number" || height < 50) return;
 
     // Find the iframe that sent this message
-    // Since data: URLs are opaque origins, we check all MAIDR iframes
+    // Matched by contentWindow rather than by id: the frames carry their
+    // document in srcdoc and there is no URL on the message to key off.
     var iframes = document.querySelectorAll('iframe[id^="maidr-iframe-"]');
     iframes.forEach(function(iframe) {
       // Check if this iframe's contentWindow matches the message source
