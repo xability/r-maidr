@@ -5,13 +5,6 @@
 #' in Base R plots. It analyzes each recorded plot call individually and combines
 #' the results into a comprehensive interactive plot.
 #'
-#' @field plot_calls List of recorded Base R plot calls
-#' @field layers List of detected layer information
-#' @field layer_processors List of layer-specific processors
-#' @field combined_data Combined data from all layers
-#' @field combined_selectors Combined selectors from all layers
-#' @field layout Layout information from the plot
-#'
 #' @keywords internal
 BaseRPlotOrchestrator <- R6::R6Class(
   "BaseRPlotOrchestrator",

@@ -18,7 +18,7 @@
 #' `level_label()` is what turns a level into the text on the tick, and
 #' `level_keys()` is what keys a cell without the two collapsing together.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Distinct values of an aesthetic, in the order ggplot2 draws them

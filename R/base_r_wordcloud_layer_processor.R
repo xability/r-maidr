@@ -33,7 +33,7 @@
 #' `WordCloudTrace` returns no highlight rather than pairing the terms with
 #' whatever else resolved.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' `wordcloud()`'s own defaults, replicated so the reading matches the drawing
@@ -95,7 +95,7 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
     }
   ),
   private = list(
-    #' The terms the call drew, with their counts, or NULL
+    #' @description The terms the call drew, with their counts, or NULL
     #'
     #' Replicates the two filters `wordcloud()` applies before drawing, so a
     #' term the chart left out is not announced:
@@ -172,7 +172,7 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
       list(words = words[by_weight], freq = freq[by_weight])
     },
 
-    #' One drawing setting, from the call or from `wordcloud()`'s default
+    #' @description One drawing setting, from the call or from `wordcloud()`'s default
     setting = function(args, name) {
       value <- args[[name]]
       if (is.null(value) || !length(value)) {

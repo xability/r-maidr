@@ -26,7 +26,7 @@
 #' way the function computes it. Both were checked against the traced
 #' `plot.xy` call and reproduce it exactly (`all.equal` on every value).
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Base R Spectral Density Processor

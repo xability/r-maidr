@@ -3,7 +3,7 @@
 #' This module tracks the plotting state for each graphics device,
 #' including active plot index, panel configuration, and plot grouping.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Get or Initialize Device State

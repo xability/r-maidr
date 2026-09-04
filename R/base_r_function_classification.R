@@ -5,7 +5,7 @@
 #' - LOW: Drawing functions that add to existing plots (lines, points, etc.)
 #' - LAYOUT: Canvas layout functions (par, layout, etc.)
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Function Classification Maps

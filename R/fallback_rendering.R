@@ -4,7 +4,7 @@
 #' contain unsupported layers or plot types. Instead of failing silently,
 #' these plots are rendered as standard PNG images.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Create Fallback Image for Unsupported Plots

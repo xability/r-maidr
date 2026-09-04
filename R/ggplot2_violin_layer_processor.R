@@ -79,7 +79,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     # Main process
     # ------------------------------------------------------------------
 
-    #' Process the violin layer
+    #' @description Process the violin layer
     #'
     #' Returns a list with `multi_layer = TRUE` and two maidr layers:
     #' violin_box (with BoxSelector objects) and violin_kde.
@@ -211,7 +211,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     # Data extraction
     # ------------------------------------------------------------------
 
-    #' Extract box-summary statistics per violin group
+    #' @description Extract box-summary statistics per violin group
     #'
     #' Computes min, Q1, median, Q3, max from the original data (since
     #' geom_violin only stores the KDE curve, not quartiles).
@@ -316,7 +316,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       box_data
     },
 
-    #' Extract KDE density-curve data per violin group
+    #' @description Extract KDE density-curve data per violin group
     #'
     #' Uses ggplot2's built violin data (violinwidth, x, y, width columns)
     #' to compute left/right violin edges, applies RDP simplification to
@@ -352,7 +352,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       kde_data
     },
 
-    #' Simplify a single violin's KDE curve using RDP
+    #' @description Simplify a single violin's KDE curve using RDP
     #'
     #' Uses ggplot2's built violin data columns (y, violinwidth, x, width)
     #' to compute the left/right edges, then applies RDP simplification.
@@ -455,7 +455,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       points
     },
 
-    #' Not used directly - required by base class interface
+    #' @description Not used directly - required by base class interface
     extract_data = function(plot, built = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
@@ -467,7 +467,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     # Selectors
     # ------------------------------------------------------------------
 
-    #' Generate CSS selectors for violin polygons (for violin_kde layer)
+    #' @description Generate CSS selectors for violin polygons (for violin_kde layer)
     #'
     #' @param plot The ggplot2 object
     #' @param gt Gtable object
@@ -513,7 +513,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
       selectors
     },
 
-    #' Generate BoxSelector objects for the injected boxplot grobs
+    #' @description Generate BoxSelector objects for the injected boxplot grobs
     #'
     #' Walks the gtable to find geom_boxplot grobs and produces a
     #' BoxSelector list (one per violin) with CSS selectors for min,
@@ -700,7 +700,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     # Helpers
     # ------------------------------------------------------------------
 
-    #' Determine orientation from built data
+    #' @description Determine orientation from built data
     determine_orientation = function(built) {
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]

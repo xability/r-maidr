@@ -14,24 +14,6 @@ Processes line plot layers using the actual gridSVG structure discovered:
 \section{Super class}{
 \code{\link[maidr:LayerProcessor]{LayerProcessor}} -> \code{Ggplot2LineLayerProcessor}
 }
-\section{Public fields}{
-  \if{html}{\out{<div class="r6-fields">}}
-  \describe{
-    \item{\code{layer_info}}{Information about the layer being processed}
-
-    \item{\code{last_result}}{The last processing result}
-  }
-  \if{html}{\out{</div>}}
-}
-\section{Active bindings}{
-  \if{html}{\out{<div class="r6-active-bindings">}}
-  \describe{
-    \item{\code{layer_info}}{Information about the layer being processed}
-
-    \item{\code{last_result}}{The last processing result}
-  }
-  \if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{

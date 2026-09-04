@@ -12,8 +12,6 @@ interface that all layer processors must implement.
   \if{html}{\out{<div class="r6-fields">}}
   \describe{
     \item{\code{layer_info}}{Information about the layer}
-
-    \item{\code{layer_info}}{Information about the layer}
   }
   \if{html}{\out{</div>}}
 }

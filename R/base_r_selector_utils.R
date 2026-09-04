@@ -2,6 +2,9 @@
 #'
 #' These functions provide a robust way to find grob elements and generate
 #' CSS selectors, independent of panel structure or hardcoded values.
+#'
+#' @noRd
+NULL
 
 #' Find grob by element type pattern
 #'

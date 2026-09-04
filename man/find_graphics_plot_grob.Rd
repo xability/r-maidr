@@ -2,7 +2,7 @@
 % Please edit documentation in R/base_r_selector_utils.R
 \name{find_graphics_plot_grob}
 \alias{find_graphics_plot_grob}
-\title{Utility functions for robust selector generation in Base R plots}
+\title{Find grob by element type pattern}
 \usage{
 find_graphics_plot_grob(grob, element_type, plot_index = NULL)
 }
@@ -17,11 +17,6 @@ find_graphics_plot_grob(grob, element_type, plot_index = NULL)
 The name of the first matching grob, or NULL if not found
 }
 \description{
-These functions provide a robust way to find grob elements and generate
-CSS selectors, independent of panel structure or hardcoded values.
-Find grob by element type pattern
-}
-\details{
 Searches recursively through a grob tree to find a grob whose name matches
 the pattern: graphics-plot-\if{html}{\out{<number>}}-<element_type>-\if{html}{\out{<number>}}
 }

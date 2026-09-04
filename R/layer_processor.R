@@ -3,7 +3,6 @@
 #' This is the abstract base class for all layer processors. It defines the
 #' interface that all layer processors must implement.
 #'
-#' @field layer_info Information about the layer
 #' @keywords internal
 LayerProcessor <- R6::R6Class(
   "LayerProcessor",

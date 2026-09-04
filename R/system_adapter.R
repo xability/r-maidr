@@ -19,14 +19,14 @@ SystemAdapter <- R6::R6Class(
       self$system_name <- system_name
     },
 
-    #' Abstract method to check if this adapter can handle a plot object
+    #' @description Abstract method to check if this adapter can handle a plot object
     #' @param plot_object The plot object to check
     #' @return TRUE if this adapter can handle the object, FALSE otherwise
     can_handle = function(plot_object) {
       stop("can_handle method must be implemented by subclass")
     },
 
-    #' Abstract method to create an orchestrator for this system
+    #' @description Abstract method to create an orchestrator for this system
     #' @param plot_object The plot object to process
     #' @return Orchestrator instance specific to this system
     create_orchestrator = function(plot_object) {

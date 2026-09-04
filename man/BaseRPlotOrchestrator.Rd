@@ -9,40 +9,6 @@ in Base R plots. It analyzes each recorded plot call individually and combines
 the results into a comprehensive interactive plot.
 }
 \keyword{internal}
-\section{Public fields}{
-  \if{html}{\out{<div class="r6-fields">}}
-  \describe{
-    \item{\code{plot_calls}}{List of recorded Base R plot calls}
-
-    \item{\code{layers}}{List of detected layer information}
-
-    \item{\code{layer_processors}}{List of layer-specific processors}
-
-    \item{\code{combined_data}}{Combined data from all layers}
-
-    \item{\code{combined_selectors}}{Combined selectors from all layers}
-
-    \item{\code{layout}}{Layout information from the plot}
-  }
-  \if{html}{\out{</div>}}
-}
-\section{Active bindings}{
-  \if{html}{\out{<div class="r6-active-bindings">}}
-  \describe{
-    \item{\code{plot_calls}}{List of recorded Base R plot calls}
-
-    \item{\code{layers}}{List of detected layer information}
-
-    \item{\code{layer_processors}}{List of layer-specific processors}
-
-    \item{\code{combined_data}}{Combined data from all layers}
-
-    \item{\code{combined_selectors}}{Combined selectors from all layers}
-
-    \item{\code{layout}}{Layout information from the plot}
-  }
-  \if{html}{\out{</div>}}
-}
 \section{Methods}{
 \subsection{Public methods}{
   \itemize{

@@ -98,10 +98,6 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.
   }
   \subsection{Returns}{
     Augmented ggplot2 object with boxplot layer added
-Process the violin layer
-
-Returns a list with \code{multi_layer = TRUE} and two maidr layers:
-violin_box (with BoxSelector objects) and violin_kde.
   }
 }
 
@@ -109,6 +105,10 @@ violin_box (with BoxSelector objects) and violin_kde.
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$process()}}{
+  Process the violin layer
+
+Returns a list with \code{multi_layer = TRUE} and two maidr layers:
+violin_box (with BoxSelector objects) and violin_kde.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$process(
@@ -137,10 +137,6 @@ violin_box (with BoxSelector objects) and violin_kde.
   }
   \subsection{Returns}{
     List with multi_layer flag and layers, or NULL for facet panels
-Extract box-summary statistics per violin group
-
-Computes min, Q1, median, Q3, max from the original data (since
-geom_violin only stores the KDE curve, not quartiles).
   }
 }
 
@@ -148,6 +144,10 @@ geom_violin only stores the KDE curve, not quartiles).
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-extract_box_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-extract_box_data}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$extract_box_data()}}{
+  Extract box-summary statistics per violin group
+
+Computes min, Q1, median, Q3, max from the original data (since
+geom_violin only stores the KDE curve, not quartiles).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$extract_box_data(plot, built)}
@@ -163,13 +163,6 @@ geom_violin only stores the KDE curve, not quartiles).
   }
   \subsection{Returns}{
     List of BoxPoint objects (one per violin)
-Extract KDE density-curve data per violin group
-
-Uses ggplot2's built violin data (violinwidth, x, y, width columns)
-to compute left/right violin edges, applies RDP simplification to
-~30 points per violin, and includes the \code{width} field needed by the
-maidr frontend.  The \code{svg_x}/\code{svg_y} coordinates are injected later
-by \code{create_enhanced_svg()} after the grid device is drawn.
   }
 }
 
@@ -177,6 +170,13 @@ by \code{create_enhanced_svg()} after the grid device is drawn.
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-extract_kde_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-extract_kde_data}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$extract_kde_data()}}{
+  Extract KDE density-curve data per violin group
+
+Uses ggplot2's built violin data (violinwidth, x, y, width columns)
+to compute left/right violin edges, applies RDP simplification to
+~30 points per violin, and includes the \code{width} field needed by the
+maidr frontend.  The \code{svg_x}/\code{svg_y} coordinates are injected later
+by \code{create_enhanced_svg()} after the grid device is drawn.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$extract_kde_data(plot, built, max_kde_points = 30L)}
@@ -193,10 +193,6 @@ by \code{create_enhanced_svg()} after the grid device is drawn.
   }
   \subsection{Returns}{
     List of lists (ViolinKdePoint[][])
-Simplify a single violin's KDE curve using RDP
-
-Uses ggplot2's built violin data columns (y, violinwidth, x, width)
-to compute the left/right edges, then applies RDP simplification.
   }
 }
 
@@ -204,6 +200,10 @@ to compute the left/right edges, then applies RDP simplification.
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-simplify_violin_kde"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-simplify_violin_kde}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$simplify_violin_kde()}}{
+  Simplify a single violin's KDE curve using RDP
+
+Uses ggplot2's built violin data columns (y, violinwidth, x, width)
+to compute the left/right edges, then applies RDP simplification.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$simplify_violin_kde(
@@ -226,8 +226,6 @@ to compute the left/right edges, then applies RDP simplification.
   }
   \subsection{Returns}{
     List of ViolinKdePoint dicts with data_left_x/data_right_x/data_y
-Not used directly - required by base class interface
-Generate CSS selectors for violin polygons (for violin_kde layer)
   }
 }
 
@@ -235,6 +233,7 @@ Generate CSS selectors for violin polygons (for violin_kde layer)
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$extract_data()}}{
+  Not used directly - required by base class interface
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$extract_data(plot, built = NULL)}
@@ -254,6 +253,7 @@ Generate CSS selectors for violin polygons (for violin_kde layer)
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$generate_selectors()}}{
+  Generate CSS selectors for violin polygons (for violin_kde layer)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$generate_selectors(
@@ -276,11 +276,6 @@ Generate CSS selectors for violin polygons (for violin_kde layer)
   }
   \subsection{Returns}{
     List of CSS selector strings (one per violin)
-Generate BoxSelector objects for the injected boxplot grobs
-
-Walks the gtable to find geom_boxplot grobs and produces a
-BoxSelector list (one per violin) with CSS selectors for min,
-iq, q2, max, lowerOutliers, upperOutliers.
   }
 }
 
@@ -288,6 +283,11 @@ iq, q2, max, lowerOutliers, upperOutliers.
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-generate_box_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-generate_box_selectors}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$generate_box_selectors()}}{
+  Generate BoxSelector objects for the injected boxplot grobs
+
+Walks the gtable to find geom_boxplot grobs and produces a
+BoxSelector list (one per violin) with CSS selectors for min,
+iq, q2, max, lowerOutliers, upperOutliers.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$generate_box_selectors(
@@ -310,7 +310,6 @@ iq, q2, max, lowerOutliers, upperOutliers.
   }
   \subsection{Returns}{
     List of BoxSelector objects
-Determine orientation from built data
   }
 }
 
@@ -318,6 +317,7 @@ Determine orientation from built data
 \if{html}{\out{<a id="method-Ggplot2ViolinLayerProcessor-determine_orientation"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2ViolinLayerProcessor-determine_orientation}{}}}
 \subsection{\code{Ggplot2ViolinLayerProcessor$determine_orientation()}}{
+  Determine orientation from built data
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2ViolinLayerProcessor$determine_orientation(built)}

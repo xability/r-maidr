@@ -472,18 +472,19 @@ same reason.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{node}}{A grob
-The name test is a guard rather than a live branch, and is kept as
+      \item{\code{node}}{A grob}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Details}{
+    The name test is a guard rather than a live branch, and is kept as
 one deliberately. Measured across every geom that draws segments --
 boxplot, violin, errorbar, crossbar, pointrange, linerange, step, a
 reference line -- \strong{none} produces a gTree whose children are all
 segments, so today the class test alone decides and dropping the name
 test changes no reading. \code{test-ggplot2-rug.R} pins that measurement,
 so the ggplot2 release that ends it turns a test red rather than
-leaving this silently load-bearing.}
-      \item{\code{node}}{A grob}
-    }
-    \if{html}{\out{</div>}}
+leaving this silently load-bearing.
   }
   \subsection{Returns}{
     TRUE when it is a \code{GRID.gTree} of nothing but segments
