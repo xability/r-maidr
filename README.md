@@ -1,6 +1,8 @@
 # maidr <img src="man/figures/logo.svg" align="right" height="139" alt="maidr logo" />
 
 <!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/maidr)](https://CRAN.R-project.org/package=maidr)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/maidr)](https://CRAN.R-project.org/package=maidr)
 [![R-CMD-check](https://github.com/xability/r-maidr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/xability/r-maidr/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
