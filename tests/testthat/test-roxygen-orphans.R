@@ -1,18 +1,25 @@
-# No roxygen block may be immediately followed by another.
+# Roxygen blocks that document something other than what they sit on
 #
-# Inserting a method next to a landmark without checking what the landmark is
-# attached to strands the block already there: roxygen glues the two comments
-# together, so the new method inherits the old one's @description, @param and
-# @return, and the old method is left with a bare Usage section naming
-# arguments that belong to something else.
+# roxygen2 attaches a comment block to the next object, and it does so
+# silently in three ways this package has been bitten by:
 #
-# `tools::checkRd()` cannot see it -- the generated Rd is valid, it just
-# documents the wrong function. It happened in #152, where
-# `resolve_layer_polygon_grob(plot, roots)` was documented as taking a `grob`,
-# and it took a reviewer reading the man page to notice.
+# 1. Two blocks with only blank lines between them are ONE block. The first
+#    is merged into the second, its title becomes the page title, and the
+#    second block's title is scattered into `\keyword{}` entries, one word
+#    each. A helper inserted above a landmark without a line of code between
+#    them takes the landmark's page with it (#152, and twice more since).
+# 2. An R6 method block that opens with untagged text instead of
+#    `@description` glues that sentence onto the previous method's Returns
+#    or the last `@param` of the method before it (#109, #116).
+# 3. A file-level block that is not terminated by `NULL` and carries no
+#    `@name` documents whatever object comes next (#116).
 #
-# The check is on the SOURCE rather than on man/, because man/ is regenerated
-# and this is about what the sources say.
+# `tools::checkRd()` and `R CMD check` cannot see any of it -- the Rd is
+# valid, it just describes the wrong thing -- and `docs-drift` only asks
+# whether `man/` matches the sources, not whether the sources say what
+# their author meant. The checks here are on the SOURCE, because `man/` is
+# regenerated; the one on `man/` catches the scattered keywords whatever
+# their cause.
 
 r_sources <- function() {
   list.files(
@@ -22,10 +29,19 @@ r_sources <- function() {
   )
 }
 
+rd_sources <- function() {
+  list.files(
+    testthat::test_path("..", "..", "man"),
+    pattern = "\\.Rd$",
+    full.names = TRUE
+  )
+}
+
 # `R CMD check` runs the tests against an *installed* package, where `R/` holds
 # the lazy-load database rather than the sources -- so there is nothing to read
-# and this says so instead of failing. It runs on `devtools::test()` and
-# `testthat::test_dir()`, which is the loop the mistake is made in.
+# and this says so instead of failing. It runs on `devtools::test()`,
+# `testthat::test_local()` and the `test-local` CI job, which is the loop the
+# mistake is made in.
 skip_without_sources <- function() {
   testthat::skip_if(
     length(r_sources()) == 0L,
@@ -33,23 +49,25 @@ skip_without_sources <- function() {
   )
 }
 
-# Two roxygen blocks in a row: a line that is roxygen, then a line that starts
-# one, with only blank or roxygen-blank lines between. A block ends at the
-# first line that is neither, so anything else in between is code and the two
-# are separate blocks.
+is_roxygen_line <- function(lines) grepl("^\\s*#'", lines)
+
+# The first line of every contiguous run of roxygen lines.
+block_starts <- function(is_roxygen) {
+  which(is_roxygen & !c(FALSE, is_roxygen[-length(is_roxygen)]))
+}
+
+# A `@description` after the first one in the same block: roxygen takes one
+# per object, so a second means two blocks were merged.
 orphaned_blocks <- function(path) {
   lines <- readLines(path, warn = FALSE)
-  is_roxygen <- grepl("^\\s*#'", lines)
+  is_roxygen <- is_roxygen_line(lines)
   if (!any(is_roxygen)) {
     return(integer(0))
   }
 
-  # A `@description` after the first one in the same block is the signature:
-  # roxygen takes one per object, so a second means two blocks were merged.
   starts <- which(grepl("^\\s*#'\\s*@description", lines))
   offenders <- integer(0)
   for (start in starts) {
-    # Walk back to the top of this contiguous roxygen block.
     top <- start
     while (top > 1L && is_roxygen[top - 1L]) {
       top <- top - 1L
@@ -70,61 +88,209 @@ orphaned_blocks <- function(path) {
   offenders
 }
 
+# A block followed, across blank lines only, by another block or by the end
+# of the file. Measured with roxygen2 8.1.0: the two are read as one, the
+# first block's title wins, and the second block's title is scattered into
+# `\keyword{}` entries. Returns the first line of each block left stranded.
+adjacent_blocks <- function(path) {
+  lines <- readLines(path, warn = FALSE)
+  is_roxygen <- is_roxygen_line(lines)
+  is_blank <- grepl("^\\s*$", lines)
+  n <- length(lines)
+  offenders <- integer(0)
+  for (start in block_starts(is_roxygen)) {
+    after <- start
+    while (after <= n && is_roxygen[after]) {
+      after <- after + 1L
+    }
+    while (after <= n && is_blank[after]) {
+      after <- after + 1L
+    }
+    if (after > n || is_roxygen[after]) {
+      offenders <- c(offenders, start)
+    }
+  }
+  offenders
+}
+
+# An indented block -- an R6 method's -- whose first line is prose rather
+# than a tag. A top-level block opens with its title, but a method has no
+# title: roxygen glues untagged text onto whatever section the previous
+# method's block ended in. Returns the first line of each such block.
+untitled_method_blocks <- function(path) {
+  lines <- readLines(path, warn = FALSE)
+  is_roxygen <- is_roxygen_line(lines)
+  starts <- block_starts(is_roxygen)
+  starts <- starts[grepl("^\\s+#'", lines[starts])]
+  first_words <- sub("^\\s*#'\\s*", "", lines[starts])
+  starts[nzchar(first_words) & !grepl("^@", first_words)]
+}
+
+# The keywords roxygen is expected to write. Anything else is a title that
+# was scattered, one word per entry, and `R CMD check` NOTEs each of them.
+known_keywords <- c("internal", "datasets", "hplot", "utilities", "misc")
+
+stray_keywords <- function(path) {
+  lines <- readLines(path, warn = FALSE)
+  found <- regmatches(lines, regexpr("^\\\\keyword\\{([^}]*)\\}", lines))
+  words <- sub("^\\\\keyword\\{([^}]*)\\}$", "\\1", found)
+  setdiff(words, known_keywords)
+}
+
+report <- function(paths, finder) {
+  reported <- character(0)
+  for (path in paths) {
+    for (hit in finder(path)) {
+      reported <- c(reported, paste0(basename(path), ":", hit))
+    }
+  }
+  reported
+}
+
 test_that("there are R sources to check", {
   skip_without_sources()
 
-  # A path that stopped resolving would make the case below vacuous.
+  # A path that stopped resolving would make the cases below vacuous.
   testthat::expect_gt(length(r_sources()), 20L)
 })
 
 test_that("no roxygen block carries two descriptions", {
   skip_without_sources()
 
-  reported <- character(0)
-  for (path in r_sources()) {
-    for (line in orphaned_blocks(path)) {
-      reported <- c(reported, paste0(basename(path), ":", line))
-    }
-  }
-
-  testthat::expect_equal(reported, character(0))
+  testthat::expect_equal(report(r_sources(), orphaned_blocks), character(0))
 })
 
-test_that("the check can see a stranded block", {
-  # Written to a temporary file rather than asserted against a real source,
-  # so the case keeps testing the check after the sources are all clean.
-  path <- tempfile(fileext = ".R")
-  on.exit(unlink(path), add = TRUE)
-  writeLines(
-    c(
-      "    #' @description The first one",
-      "    #' @param grob A grob",
-      "    #' @return Something",
-      "    #' @description The second one, stranding the first",
-      "    #' @return Something else",
-      "    only_one = function(x) x"
-    ),
-    path
+test_that("no roxygen block is followed by another with only blank lines between", {
+  skip_without_sources()
+
+  testthat::expect_equal(report(r_sources(), adjacent_blocks), character(0))
+})
+
+test_that("every R6 method block opens with a tag", {
+  skip_without_sources()
+
+  testthat::expect_equal(
+    report(r_sources(), untitled_method_blocks), character(0)
   )
+})
+
+test_that("no generated page carries a keyword that is a scattered title", {
+  testthat::skip_if(length(rd_sources()) == 0L, "man/ is not shipped")
+
+  testthat::expect_equal(report(rd_sources(), stray_keywords), character(0))
+})
+
+# The detectors, each against a temporary file rather than a real source, so
+# the cases keep testing the checks after the sources are all clean.
+
+write_case <- function(lines) {
+  path <- tempfile(fileext = ".R")
+  writeLines(lines, path)
+  path
+}
+
+test_that("the check can see a stranded block", {
+  path <- write_case(c(
+    "    #' @description The first one",
+    "    #' @param grob A grob",
+    "    #' @return Something",
+    "    #' @description The second one, stranding the first",
+    "    #' @return Something else",
+    "    only_one = function(x) x"
+  ))
+  on.exit(unlink(path), add = TRUE)
 
   testthat::expect_length(orphaned_blocks(path), 1L)
 })
 
 test_that("two separated blocks are not reported", {
-  path <- tempfile(fileext = ".R")
+  path <- write_case(c(
+    "    #' @description The first one",
+    "    #' @return Something",
+    "    first = function(x) x,",
+    "",
+    "    #' @description The second one",
+    "    #' @return Something else",
+    "    second = function(x) x"
+  ))
   on.exit(unlink(path), add = TRUE)
+
+  testthat::expect_length(orphaned_blocks(path), 0L)
+  testthat::expect_length(adjacent_blocks(path), 0L)
+  testthat::expect_length(untitled_method_blocks(path), 0L)
+})
+
+test_that("a block separated from the next only by blank lines is reported", {
+  path <- write_case(c(
+    "#' First helper",
+    "#' @param x A value",
+    "",
+    "#' Second helper",
+    "#' @param y A value",
+    "second <- function(y) y",
+    "",
+    "first <- function(x) x"
+  ))
+  on.exit(unlink(path), add = TRUE)
+
+  testthat::expect_identical(adjacent_blocks(path), 1L)
+})
+
+test_that("a block at the end of a file is reported", {
+  path <- write_case(c(
+    "helper <- function(x) x",
+    "",
+    "#' Documents nothing",
+    "#' @param x A value"
+  ))
+  on.exit(unlink(path), add = TRUE)
+
+  testthat::expect_identical(adjacent_blocks(path), 3L)
+})
+
+test_that("a NULL-terminated file-level block is not reported", {
+  path <- write_case(c(
+    "#' What this file holds",
+    "#'",
+    "#' @keywords internal",
+    "NULL",
+    "",
+    "#' A helper",
+    "#' @param x A value",
+    "helper <- function(x) x"
+  ))
+  on.exit(unlink(path), add = TRUE)
+
+  testthat::expect_length(adjacent_blocks(path), 0L)
+})
+
+test_that("a method block opening with prose is reported", {
+  path <- write_case(c(
+    "    #' Process the layer",
+    "    #' @param plot The plot",
+    "    process = function(plot) plot,",
+    "",
+    "    #' @description Tagged, so fine",
+    "    #' @param plot The plot",
+    "    other = function(plot) plot"
+  ))
+  on.exit(unlink(path), add = TRUE)
+
+  testthat::expect_identical(untitled_method_blocks(path), 1L)
+})
+
+test_that("a scattered title shows up as stray keywords", {
+  path <- tempfile(fileext = ".Rd")
   writeLines(
     c(
-      "    #' @description The first one",
-      "    #' @return Something",
-      "    first = function(x) x,",
-      "",
-      "    #' @description The second one",
-      "    #' @return Something else",
-      "    second = function(x) x"
+      "\\name{second}",
+      "\\keyword{Second}",
+      "\\keyword{helper}",
+      "\\keyword{internal}"
     ),
     path
   )
+  on.exit(unlink(path), add = TRUE)
 
-  testthat::expect_length(orphaned_blocks(path), 0L)
+  testthat::expect_identical(stray_keywords(path), c("Second", "helper"))
 })
