@@ -314,6 +314,9 @@ what \code{abline()} draws its clipped line across.
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Numeric vector of two, or NULL when nothing finite was plotted
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -408,6 +411,9 @@ BaseRStepLayerProcessor).
       \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "abline" or "lines"
   }
 }
 

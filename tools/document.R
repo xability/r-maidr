@@ -50,7 +50,10 @@ if (installed != pinned) {
 }
 
 # roxygen2 reports through cli, whose alerts are `message` conditions; with
-# unicode off the ones that matter start with "x ".
+# unicode off the ones that matter start with "x ". That prefix is cli's
+# rendering, not an API: if a cli release changes its alert glyph, this
+# pattern is the line to update, and the throwaway-package check in #297
+# (a block merged into the next one must exit 1) is how to tell.
 options(cli.unicode = FALSE, cli.num_colors = 1)
 faults <- character(0)
 withCallingHandlers(

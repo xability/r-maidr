@@ -66,6 +66,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
 
     #' @description Detect whether the chartSeries call requests addVo()
     #' @param layer_info Layer information with the recorded call
+    #' @return Logical
     has_add_vo = function(layer_info) {
       if (is.null(layer_info)) {
         return(FALSE)
@@ -144,6 +145,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     #' @param layer_info Layer information with the recorded call
     #' @param gt Gtable of the replayed drawing (optional)
     #' @param n_bars Number of volume bars
+    #' @return List of selectors, one per volume bar
     generate_volume_selectors = function(layer_info, gt, n_bars) {
       if (is.null(gt) || is.null(n_bars) || n_bars <= 0L) {
         return(list())
@@ -460,6 +462,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
 
     #' @description Format a vector of x-axis index values to character
     #' @param idx Integer x-axis positions
+    #' @return Character vector
     format_x_values = function(idx) {
       if (inherits(idx, c("Date", "POSIXct", "POSIXlt"))) {
         format(idx)
@@ -470,6 +473,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
 
     #' @description Recursively collect all grob names in a grob tree
     #' @param g A grob
+    #' @return Character vector of grob names
     collect_grob_names = function(g) {
       names <- character(0)
       if (is.null(g)) {
@@ -498,6 +502,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
 
     #' @description Sort grob ids by trailing integer suffix
     #' @param ids Grob ids
+    #' @return The ids in numeric order of their suffix
     sort_ids = function(ids) {
       if (length(ids) == 0L) {
         return(ids)
@@ -511,6 +516,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     #' @description Find the grob node whose name matches `id`
     #' @param g A grob
     #' @param id The grob name to find
+    #' @return The grob, or NULL when no name matches
     find_grob_by_name = function(g, id) {
       if (is.null(g)) {
         return(NULL)
@@ -547,6 +553,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
 
     #' @description Count the number of primitive coordinates a grob carries
     #' @param g A grob
+    #' @return Integer
     grob_coord_count = function(g) {
       if (is.null(g)) {
         return(0L)

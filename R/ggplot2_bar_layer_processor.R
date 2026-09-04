@@ -310,6 +310,7 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' `as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
     #' so candle and bar layers from the same Date column align string-wise.
     #' @param x The value to format
+    #' @return Character vector
     format_x_value = function(x) {
       if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
         return(format(x))

@@ -531,6 +531,9 @@ from the same Date column align string-wise.
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Character vector
+  }
 }
 
 \if{html}{\out{<hr>}}

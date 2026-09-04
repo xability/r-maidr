@@ -383,6 +383,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
     #' what `abline()` draws its clipped line across.
     #' @param limits An explicit `xlim`/`ylim`, or NULL
     #' @param data The plotted values on that axis
+    #' @return Numeric vector of two, or NULL when nothing finite was plotted
     axis_extent = function(limits, data) {
       if (is.numeric(limits) && length(limits) == 2L && all(is.finite(limits))) {
         return(grDevices::extendrange(limits, f = 0.04))
@@ -517,6 +518,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
     #' subclasses whose geometry lands under a different grob name (see
     #' BaseRStepLayerProcessor).
     #' @param layer_info Layer information with the recorded call
+    #' @return "abline" or "lines"
     selector_grob_type = function(layer_info) {
       function_name <- if (!is.null(layer_info)) layer_info$function_name else "lines"
       if (function_name == "abline") "abline" else "lines"

@@ -277,6 +277,7 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
     #' @description Resolve a mapping quosure to a column name in `data`
     #' @param mapping_expr A mapping quosure
     #' @param data The data frame to resolve the column in
+    #' @return The column name, or NULL when the mapping names no column of `data`
     resolve_col = function(mapping_expr, data) {
       if (is.null(mapping_expr)) return(NULL)
       nm <- tryCatch(rlang::as_label(mapping_expr), error = function(e) NULL)
@@ -286,6 +287,7 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
 
     #' @description Format an x-axis value as character
     #' @param x The value to format
+    #' @return Character vector
     format_x_value = function(x) {
       if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
         return(format(x))
@@ -322,6 +324,7 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
 
     #' @description Count candles from the original data
     #' @param plot The ggplot2 object
+    #' @return Integer, 0 when there is no data
     count_candles = function(plot) {
       d <- self$get_original_data(plot)
       if (is.data.frame(d)) nrow(d) else 0L
@@ -339,6 +342,7 @@ Ggplot2CandlestickProcessor <- R6::R6Class(
     #' @description Find the first descendant whose name matches `pattern`
     #' @param grob The grob tree to search
     #' @param pattern Regular expression the grob name must match
+    #' @return The matching grob name, or NULL
     find_first_child_name = function(grob, pattern) {
       if (!inherits(grob, "gTree") || is.null(grob$children)) {
         return(NULL)

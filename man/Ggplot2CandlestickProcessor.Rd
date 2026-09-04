@@ -213,6 +213,9 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    The column name, or NULL when the mapping names no column of \code{data}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -231,6 +234,9 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
       \item{\code{x}}{The value to format}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector
   }
 }
 
@@ -289,6 +295,9 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Integer, 0 when there is no data
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -332,6 +341,9 @@ for a single plot, where the panel is the cell literally named "panel"}
       \item{\code{pattern}}{Regular expression the grob name must match}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The matching grob name, or NULL
   }
 }
 

@@ -118,6 +118,9 @@ wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Logical
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -169,6 +172,9 @@ bar layer contract used by the Base R barplot processor.
       \item{\code{n_bars}}{Number of volume bars}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors, one per volume bar
   }
 }
 
@@ -310,6 +316,9 @@ grobs cannot be located.
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Character vector
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -329,6 +338,9 @@ grobs cannot be located.
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Character vector of grob names
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -347,6 +359,9 @@ grobs cannot be located.
       \item{\code{ids}}{Grob ids}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The ids in numeric order of their suffix
   }
 }
 
@@ -368,6 +383,9 @@ grobs cannot be located.
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    The grob, or NULL when no name matches
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -386,6 +404,9 @@ grobs cannot be located.
       \item{\code{g}}{A grob}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer
   }
 }
 
