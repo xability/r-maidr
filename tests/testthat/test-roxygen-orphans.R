@@ -15,24 +15,18 @@
 #    `@name` documents whatever object comes next (#116).
 #
 # `tools::checkRd()` and `R CMD check` cannot see any of it -- the Rd is
-# valid, it just describes the wrong thing -- and `docs-drift` only asks
-# whether `man/` matches the sources, not whether the sources say what
-# their author meant. The checks here are on the SOURCE, because `man/` is
-# regenerated; the one on `man/` catches the scattered keywords whatever
-# their cause.
+# valid, it just describes the wrong thing. roxygen2 itself warns on some
+# of it ("@keywords must be only 1 line long" when the merged block ends in
+# a keyword, "Skipping; no name and/or title" for the class), and
+# `tools/document.R` and the `docs-drift` CI job fail on any such warning.
+# The rest is silent: a block merged into one ending in `@return` or
+# `@param`, and the method prose glued onto the previous section. The
+# checks here are on the SOURCE, because `man/` is regenerated.
 
 r_sources <- function() {
   list.files(
     testthat::test_path("..", "..", "R"),
     pattern = "\\.R$",
-    full.names = TRUE
-  )
-}
-
-rd_sources <- function() {
-  list.files(
-    testthat::test_path("..", "..", "man"),
-    pattern = "\\.Rd$",
     full.names = TRUE
   )
 }
@@ -126,17 +120,6 @@ untitled_method_blocks <- function(path) {
   starts[nzchar(first_words) & !grepl("^@", first_words)]
 }
 
-# The keywords roxygen is expected to write. Anything else is a title that
-# was scattered, one word per entry, and `R CMD check` NOTEs each of them.
-known_keywords <- c("internal", "datasets", "hplot", "utilities", "misc")
-
-stray_keywords <- function(path) {
-  lines <- readLines(path, warn = FALSE)
-  found <- regmatches(lines, regexpr("^\\\\keyword\\{([^}]*)\\}", lines))
-  words <- sub("^\\\\keyword\\{([^}]*)\\}$", "\\1", found)
-  setdiff(words, known_keywords)
-}
-
 report <- function(paths, finder) {
   reported <- character(0)
   for (path in paths) {
@@ -172,12 +155,6 @@ test_that("every R6 method block opens with a tag", {
   testthat::expect_equal(
     report(r_sources(), untitled_method_blocks), character(0)
   )
-})
-
-test_that("no generated page carries a keyword that is a scattered title", {
-  testthat::skip_if(length(rd_sources()) == 0L, "man/ is not shipped")
-
-  testthat::expect_equal(report(rd_sources(), stray_keywords), character(0))
 })
 
 # The detectors, each against a temporary file rather than a real source, so
@@ -277,20 +254,4 @@ test_that("a method block opening with prose is reported", {
   on.exit(unlink(path), add = TRUE)
 
   testthat::expect_identical(untitled_method_blocks(path), 1L)
-})
-
-test_that("a scattered title shows up as stray keywords", {
-  path <- tempfile(fileext = ".Rd")
-  writeLines(
-    c(
-      "\\name{second}",
-      "\\keyword{Second}",
-      "\\keyword{helper}",
-      "\\keyword{internal}"
-    ),
-    path
-  )
-  on.exit(unlink(path), add = TRUE)
-
-  testthat::expect_identical(stray_keywords(path), c("Second", "helper"))
 })

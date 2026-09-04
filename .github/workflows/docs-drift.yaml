@@ -61,13 +61,18 @@ jobs:
           needs: check
           cache-version: 1
 
-      # No `load_code` argument: the default loader is what generated what is
-      # committed, and roxygen2's loaders do not all see the same thing. R6
-      # class methods are documented from the object roxygen2 loads, so
-      # sourcing the files instead of loading the package would produce a
-      # different `man/` and this job would fail on a tree that is correct.
-      - name: Regenerate
-        run: Rscript -e 'roxygen2::roxygenise()'
+      # Through the same script a contributor runs, which checks the pin it
+      # was installed against and fails on any roxygen2 warning: a warning
+      # is a block roxygen attached somewhere other than where its author
+      # meant, and the page it then writes is valid Rd that nothing else
+      # can see through (#296). It calls `roxygenise()` with no `load_code`
+      # argument: the default loader is what generated what is committed,
+      # and roxygen2's loaders do not all see the same thing. R6 class
+      # methods are documented from the object roxygen2 loads, so sourcing
+      # the files instead of loading the package would produce a different
+      # `man/` and this job would fail on a tree that is correct.
+      - name: Regenerate, failing on any roxygen2 warning
+        run: Rscript tools/document.R
 
       # `git diff --exit-code` prints what moved and fails on any of it, so
       # the log names the files rather than only reporting that something
