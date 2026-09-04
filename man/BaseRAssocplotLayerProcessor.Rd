@@ -125,10 +125,15 @@ areas are shares of a total when they are a departure from an expectation.
 \if{html}{\out{<a id="method-BaseRAssocplotLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRAssocplotLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRAssocplotLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRAssocplotLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 

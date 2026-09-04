@@ -8,14 +8,22 @@
 BaseRPatcher <- R6::R6Class(
   "BaseRPatcher",
   public = list(
+    #' @description Abstract: whether this patcher applies to the call
+    #' @param function_name Name of the plotting function
+    #' @param args Recorded argument list
+    #' @return Logical
     can_patch = function(function_name, args) {
       stop("Abstract method - must be implemented by subclass")
     },
+    #' @description Abstract: the argument list with this patcher's change applied
+    #' @param function_name Name of the plotting function
+    #' @param args Recorded argument list
+    #' @return Argument list
     apply_patch = function(function_name, args) {
       stop("Abstract method - must be implemented by subclass")
     },
 
-    # Get the patcher name for debugging
+    #' @description Get the patcher name for debugging
     get_name = function() {
       stop("Abstract method - must be implemented by subclass")
     }

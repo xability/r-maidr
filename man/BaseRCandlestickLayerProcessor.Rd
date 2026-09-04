@@ -72,6 +72,8 @@ wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
 \if{html}{\out{<a id="method-BaseRCandlestickLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRCandlestickLayerProcessor-process}{}}}
 \subsection{\code{BaseRCandlestickLayerProcessor$process()}}{
+  Process the layer: the candlestick layer, plus a volume bar layer when
+\code{addVo()} was requested
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$process(
@@ -86,12 +88,16 @@ wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A candlestick layer, or a multi-layer list with the volume bars
   }
 }
 
@@ -105,6 +111,13 @@ wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
     \preformatted{BaseRCandlestickLayerProcessor$has_add_vo(layer_info)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -115,6 +128,15 @@ wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$build_volume_layer(layer_info, gt, candle_data)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
+      \item{\code{candle_data}}{The candlestick data already extracted}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -137,6 +159,15 @@ bar layer contract used by the Base R barplot processor.
   gt,
   n_bars
 )}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
+      \item{\code{n_bars}}{Number of volume bars}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -222,10 +253,21 @@ grobs cannot be located.
 \if{html}{\out{<a id="method-BaseRCandlestickLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRCandlestickLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRCandlestickLayerProcessor$extract_axis_titles()}}{
+  The axis titles, defaulting to Date and Price
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -233,10 +275,21 @@ grobs cannot be located.
 \if{html}{\out{<a id="method-BaseRCandlestickLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRCandlestickLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRCandlestickLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -248,6 +301,13 @@ grobs cannot be located.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$format_x_values(idx)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{idx}}{Integer x-axis positions}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -262,6 +322,13 @@ grobs cannot be located.
     \preformatted{BaseRCandlestickLayerProcessor$collect_grob_names(g)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{g}}{A grob}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -272,6 +339,13 @@ grobs cannot be located.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$sort_ids(ids)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{ids}}{Grob ids}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -286,6 +360,14 @@ grobs cannot be located.
     \preformatted{BaseRCandlestickLayerProcessor$find_grob_by_name(g, id)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{g}}{A grob}
+      \item{\code{id}}{The grob name to find}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -298,6 +380,13 @@ grobs cannot be located.
     \preformatted{BaseRCandlestickLayerProcessor$grob_coord_count(g)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{g}}{A grob}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -308,6 +397,14 @@ grobs cannot be located.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$pick_largest_child_group(gt, ids)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
+      \item{\code{ids}}{Grob ids}
+    }
     \if{html}{\out{</div>}}
   }
 }

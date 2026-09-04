@@ -9,6 +9,17 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
   "BaseRStackedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param grob_id Unused; present for the processor interface
+    #' @param panel_id Unused; present for the processor interface
+    #' @param panel_ctx Unused; present for the processor interface
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -50,9 +61,15 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
         domMapping = list(groupDirection = "forward")
       )
     },
+    #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
+    #'   from the recorded call and never is
+    #' @return FALSE
     needs_reordering = function() {
       FALSE
     },
+    #' @description One series per row of the recorded height matrix
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of series
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -104,19 +121,22 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
 
       data
     },
-    # Extract the axis titles for this layer
-    #
-    # A stacked `barplot()` records no title unless the author wrote one, and
-    # its points always carry the column category on x and the segment height
-    # on y, so the defaults name those two. The stack's own dimension is
-    # already announced per point as z; nothing in the call names the
-    # variable those groups came from, so no z title is claimed.
-    #
-    # @param layer_info Layer information
-    # @return Canonical axes list
+    #' @description Extract the axis titles for this layer
+    #'
+    #' A stacked `barplot()` records no title unless the author wrote one, and
+    #' its points always carry the column category on x and the segment height
+    #' on y, so the defaults name those two. The stack's own dimension is
+    #' already announced per point as z; nothing in the call names the
+    #' variable those groups came from, so no z title is claimed.
+    #'
+    #' @param layer_info Layer information
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       base_r_categorical_axes(layer_info$plot_call$args)
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -124,6 +144,11 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
       args <- layer_info$plot_call$args
       recorded_main_title(args)
     },
+    #' @description The selector for the segments, scoped to this layer's plot group
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @param extracted_data The data already extracted for this layer (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       if (is.null(layer_info) || is.null(gt)) {
         return(list())
@@ -168,6 +193,10 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
 
       list(selectors)
     },
+    #' @description Find every rect group drawn by the plot group at `call_index`
+    #' @param grob The grob tree to search
+    #' @param call_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return Character vector of grob names
     find_rect_groups = function(grob, call_index) {
       names <- character(0)
 

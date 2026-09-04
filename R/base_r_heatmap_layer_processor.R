@@ -7,6 +7,17 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
   "BaseRHeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param grob_id Unused; present for the processor interface
+    #' @param panel_id Unused; present for the processor interface
+    #' @param panel_ctx Unused; present for the processor interface
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -29,6 +40,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         domMapping = list(order = "row") # Explicit row-major DOM mapping
       )
     },
+    #' @description One row per cell of the recorded matrix, in drawn order
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of rows
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -186,6 +200,11 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
       }
       result
     },
+    #' @description Selectors for the image tiles, one per cell
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @param extracted_data The data already extracted for this layer (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       if (is.null(gt)) {
         return(list())
@@ -236,6 +255,10 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
 
       list(selector)
     },
+    #' @description Find the image-rect grobs drawn by the plot group at `group_index`
+    #' @param grob The grob tree to search
+    #' @param group_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return Character vector of grob names
     find_image_rect_grobs = function(grob, group_index) {
       names <- character(0)
 
@@ -275,6 +298,10 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
 
       names
     },
+    #' @description Build this layer's selector from the grob tree
+    #' @param grob The grob tree to search
+    #' @param group_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return A selector string, or an empty string when no grob matches
     generate_selectors_from_grob = function(grob, group_index = NULL) {
       rect_names <- self$find_image_rect_grobs(grob, group_index)
 
@@ -290,16 +317,16 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
 
       selector
     },
-    # Extract the axis titles for this layer
-    #
-    # `heatmap()` lays the matrix out one way round only -- its columns run
-    # along x and its rows up y -- so those two words are facts about the
-    # call. `image()` is not the same picture: it draws a coordinate grid,
-    # and `image(x, y, z)` puts the caller's own coordinates on those axes,
-    # so naming them after a matrix would be a guess. It gets no default.
-    #
-    # @param layer_info Layer information
-    # @return Canonical axes list
+    #' @description Extract the axis titles for this layer
+    #'
+    #' `heatmap()` lays the matrix out one way round only -- its columns run
+    #' along x and its rows up y -- so those two words are facts about the
+    #' call. `image()` is not the same picture: it draws a coordinate grid,
+    #' and `image(x, y, z)` puts the caller's own coordinates on those axes,
+    #' so naming them after a matrix would be a guess. It gets no default.
+    #'
+    #' @param layer_info Layer information
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       args <- layer_info$plot_call$args
       is_heatmap <- identical(layer_info$function_name, "heatmap")
@@ -312,6 +339,9 @@ BaseRHeatmapLayerProcessor <- R6::R6Class(
         z = "value"
       )
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")

@@ -7,6 +7,14 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
   "BaseRDodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot, layout, built = NULL, gt = NULL, layer_info = NULL) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt)
@@ -31,6 +39,9 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
         domMapping = list(groupDirection = "forward")
       )
     },
+    #' @description One series per row of the recorded height matrix
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of series
     extract_data = function(layer_info) {
       plot_call <- layer_info$plot_call
       args <- plot_call$args
@@ -85,6 +96,10 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
 
       data_by_fill
     },
+    #' @description The selector for the bars, scoped to this layer's plot group
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL) {
       # For multipanel plots, use group_index (panel number)
       # For single panel, use the regular index
@@ -106,6 +121,10 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       main_selector <- paste0("rect[id^='graphics-plot-", plot_call_index, "-rect-1']")
       list(main_selector)
     },
+    #' @description Find the rect grobs drawn by the recorded call at `call_index`
+    #' @param grob The grob tree to search
+    #' @param call_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return Character vector of grob names
     find_rect_grobs = function(grob, call_index) {
       names <- character(0)
 
@@ -134,6 +153,10 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
 
       names
     },
+    #' @description Build this layer's selector from the grob tree
+    #' @param grob The grob tree to search
+    #' @param call_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return A selector string, or an empty string when no grob matches
     generate_selectors_from_grob = function(grob, call_index) {
       rect_names <- self$find_rect_grobs(grob, call_index)
 
@@ -152,18 +175,21 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
       escaped_parent <- gsub("\\.", "\\\\.", paste0(main_container, ".1"))
       paste0("#", escaped_parent, " rect")
     },
-    # Extract the axis titles for this layer
-    #
-    # Same shape as the stacked processor: `barplot(beside = TRUE)` writes no
-    # title, its points carry the column category on x and the bar height on
-    # y, and the group each bar belongs to travels with the point as z rather
-    # than as a named axis.
-    #
-    # @param layer_info Layer information
-    # @return Canonical axes list
+    #' @description Extract the axis titles for this layer
+    #'
+    #' Same shape as the stacked processor: `barplot(beside = TRUE)` writes no
+    #' title, its points carry the column category on x and the bar height on
+    #' y, and the group each bar belongs to travels with the point as z rather
+    #' than as a named axis.
+    #'
+    #' @param layer_info Layer information
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       base_r_categorical_axes(layer_info$plot_call$args)
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")

@@ -10,6 +10,17 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
   "BaseRSmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param grob_id Unused; present for the processor interface
+    #' @param panel_id Unused; present for the processor interface
+    #' @param panel_ctx Unused; present for the processor interface
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -31,6 +42,9 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
         axes = axes
       )
     },
+    #' @description One point per fitted value of the smooth, density or curve
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of points
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -81,6 +95,10 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
 
       list()
     },
+    #' @description The selector for the curve's polyline
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL) {
       if (is.null(gt)) {
         return(list())
@@ -98,11 +116,19 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
 
       selectors
     },
+    #' @description Find the lines container grob for this layer
+    #' @param grob The grob tree to search
+    #' @param call_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return Grob name, or NULL
     find_polyline_grobs = function(grob, call_index = NULL) {
       # Use robust utility function to find lines container
       # This doesn't rely on call_index matching the actual grob names
       find_graphics_plot_grob(grob, "lines")
     },
+    #' @description Build this layer's selector from the grob tree
+    #' @param grob The grob tree to search
+    #' @param call_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @return A selector string, or an empty string when no grob matches
     generate_selectors_from_grob = function(grob, call_index = NULL) {
       # Scope to this plot group's grobs so multipanel layouts don't
       # match another panel's lines
@@ -123,15 +149,15 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
 
       list(selector)
     },
-    # Extract the axis titles for this layer
-    #
-    # The x axis holds whatever variable was smoothed, which the recorded
-    # arguments no longer name, so it carries no default. The y axis does
-    # when the curve came from `density()`: that estimate is a density, and
-    # plot.density() prints exactly that word.
-    #
-    # @param layer_info Layer information
-    # @return Canonical axes list
+    #' @description Extract the axis titles for this layer
+    #'
+    #' The x axis holds whatever variable was smoothed, which the recorded
+    #' arguments no longer name, so it carries no default. The y axis does
+    #' when the curve came from `density()`: that estimate is a density, and
+    #' plot.density() prints exactly that word.
+    #'
+    #' @param layer_info Layer information
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(build_axes())
@@ -158,6 +184,9 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
         y = recorded_axis_label(args, "ylab", y_default)
       )
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")

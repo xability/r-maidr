@@ -107,6 +107,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   ),
   public = list(
+    #' @description Create an orchestrator for the calls recorded on a device
+    #' @param device_id Graphics device ID
     initialize = function(device_id = grDevices::dev.cur()) {
       private$.device_id <- device_id
       registry <- get_global_registry()
@@ -122,6 +124,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
       self$create_layer_processors()
       self$process_layers()
     },
+    #' @description Turn each recorded plot group into layer entries: one for its HIGH-level call
+    #'   and one per LOW-level overlay
     detect_layers = function() {
       plot_groups <- private$.plot_groups
       private$.layers <- list()
@@ -178,6 +182,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
       }
     },
+    #' @description Describe one recorded call as a layer entry with its detected type
+    #' @param plot_call The recorded call
+    #' @param layer_index Index of the layer
+    #' @param group The recorded plot group holding the HIGH-level call
+    #' @return Layer information list
     analyze_single_layer = function(plot_call, layer_index, group = NULL) {
       function_name <- plot_call$function_name
       args <- plot_call$args
@@ -197,6 +206,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       layer_info
     },
+    #' @description Create a processor for every layer of a known type
     create_layer_processors = function() {
       # Pre-allocate list to avoid sparse list issues
       # In R, list[[i]] <- NULL deletes instead of setting NULL
@@ -213,6 +223,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # Unknown types keep their pre-allocated NULL value
       }
     },
+    #' @description Create the processor for one layer
+    #' @param layer_info Layer information with the recorded call
+    #' @return A layer processor, or NULL for an unknown type
     create_layer_processor = function(layer_info) {
       # Use unified layer processor creation logic
       self$create_unified_layer_processor(layer_info)
@@ -232,6 +245,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       processor
     },
+    #' @description Run every layer processor and combine the results
     process_layers = function() {
       private$.layout <- self$extract_layout()
 
@@ -353,6 +367,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
       config
     },
 
+    #' @description Read the figure-level title, subtitle and axis labels from the recorded
+    #'   HIGH-level calls
+    #' @return List
     extract_layout = function() {
       # Extract layout from the recorded HIGH-level plot calls
       # We scan all plot groups for main, sub, xlab, ylab arguments
@@ -415,6 +432,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       layout
     },
+    #' @description Combine the per-layer results into the subplot grid
+    #' @param layer_results List of per-layer results, one per processor
     combine_layer_results = function(layer_results) {
       grid_result <- private$declared_grid(layer_results)
       if (!is.null(grid_result)) {
@@ -688,6 +707,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
         private$.combined_selectors <- combined_selectors
       }
     },
+    #' @description Assemble the MAIDR data object for the figure
+    #' @return List with an id and the subplots
     generate_maidr_data = function() {
       # Base R plots use the same unified structure as ggplot2
       # title, subtitle, caption are figure-level (root of the Maidr object)
@@ -710,21 +731,33 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       maidr_obj
     },
+    #' @description The figure-level layout read by `extract_layout()`
+    #' @return List
     get_layout = function() {
       private$.layout
     },
+    #' @description The combined per-layer data
+    #' @return List
     get_combined_data = function() {
       private$.combined_data
     },
+    #' @description The processors created for the layers
+    #' @return List
     get_layer_processors = function() {
       private$.layer_processors
     },
+    #' @description The detected layer entries
+    #' @return List
     get_layers = function() {
       private$.layers
     },
+    #' @description The recorded plot calls
+    #' @return List
     get_plot_calls = function() {
       private$.plot_calls
     },
+    #' @description The gtable of the replayed drawing, built once and cached
+    #' @return A gtable, or NULL when nothing was recorded
     get_gtable = function() {
       if (length(private$.plot_groups) == 0) {
         return(NULL)
@@ -901,6 +934,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
         NULL
       }
     },
+    #' @description The grob a layer's processor searches for its selectors
+    #' @param layer_index Index of the layer
+    #' @return A grob, or NULL
     get_grob_for_layer = function(layer_index) {
       if (layer_index < 1 || layer_index > length(private$.layers)) {
         return(NULL)

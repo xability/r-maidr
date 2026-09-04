@@ -48,6 +48,7 @@ Handles unsupported layer types gracefully by returning empty data
 \if{html}{\out{<a id="method-Ggplot2UnknownLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2UnknownLayerProcessor$process()}}{
+  Describe a layer nothing is known about
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2UnknownLayerProcessor$process(
@@ -69,9 +70,13 @@ Handles unsupported layer types gracefully by returning empty data
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with no data and no selectors
   }
 }
 
@@ -79,6 +84,7 @@ Handles unsupported layer types gracefully by returning empty data
 \if{html}{\out{<a id="method-Ggplot2UnknownLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2UnknownLayerProcessor$extract_data()}}{
+  Nothing: an unknown layer has no data to announce
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2UnknownLayerProcessor$extract_data(plot, built = NULL)}
@@ -92,12 +98,16 @@ Handles unsupported layer types gracefully by returning empty data
     }
     \if{html}{\out{</div>}}
   }
+  \subsection{Returns}{
+    Empty list
+  }
 }
 
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Ggplot2UnknownLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2UnknownLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2UnknownLayerProcessor$generate_selectors()}}{
+  Nothing: an unknown layer has no elements to address
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2UnknownLayerProcessor$generate_selectors(
@@ -117,6 +127,9 @@ Handles unsupported layer types gracefully by returning empty data
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Empty list
   }
 }
 

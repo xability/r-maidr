@@ -8,6 +8,14 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
   "BaseRBoxplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot, layout, built = NULL, gt = NULL, layer_info = NULL) {
       data <- self$extract_data(layer_info)
       selectors <- self$generate_selectors(layer_info, gt, data)
@@ -29,27 +37,30 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
         domMapping = list(iqrDirection = iqr_direction)
       )
     },
-    # The five-number summaries the drawn boxes came from
-    #
-    # A `boxplot()` call carries the *observations*, so the summaries have to
-    # be recomputed from them -- which `boxplot(plot = FALSE)` does, using
-    # the same code path the drawing did, rather than a reimplementation of
-    # it here. `graphics::boxplot` is named directly so the replay does not
-    # go back through maidr's own wrapper and record a second call.
-    #
-    # Overridable because `bxp()` is handed the summaries already computed
-    # and draws exactly the same marks from them: everything below this
-    # method -- the outlier grouping, the polygon and segment indices, the
-    # shift each box with no outliers puts on the ones after it -- is the
-    # same reading either way, and only where the summaries come from
-    # differs (#262).
-    #
-    # @param args Recorded argument list
-    # @return The `boxplot.stats`-shaped list, or NULL when it cannot be had
+    #' @description The five-number summaries the drawn boxes came from
+    #'
+    #' A `boxplot()` call carries the *observations*, so the summaries have to
+    #' be recomputed from them -- which `boxplot(plot = FALSE)` does, using
+    #' the same code path the drawing did, rather than a reimplementation of
+    #' it here. `graphics::boxplot` is named directly so the replay does not
+    #' go back through maidr's own wrapper and record a second call.
+    #'
+    #' Overridable because `bxp()` is handed the summaries already computed
+    #' and draws exactly the same marks from them: everything below this
+    #' method -- the outlier grouping, the polygon and segment indices, the
+    #' shift each box with no outliers puts on the ones after it -- is the
+    #' same reading either way, and only where the summaries come from
+    #' differs (#262).
+    #'
+    #' @param args Recorded argument list
+    #' @return The `boxplot.stats`-shaped list, or NULL when it cannot be had
     read_stats = function(args) {
       args$plot <- FALSE
       tryCatch(do.call(graphics::boxplot, args), error = function(e) NULL)
     },
+    #' @description One five-number summary per group, recomputed from the recorded observations
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of box summaries
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -107,6 +118,11 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
 
       results
     },
+    #' @description Selectors for each box's polygon, whiskers, median and outliers
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @param extracted_data The data already extracted for this layer (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL, extracted_data = NULL) {
       # Simplified selector mapping: use the IQ polygon selector for all parts
       data_len <- 0
@@ -317,18 +333,18 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
 
       selectors
     },
-    # Extract the axis titles for this layer
-    #
-    # `boxplot()` records no title unless the author wrote one, but the
-    # formula method derives both from the formula itself and draws them, so
-    # a `y ~ g` call already names its axes: the response on the value axis
-    # and the grouping terms on the category axis. Everything else falls back
-    # to what a box plot always shows -- groups against their distributions.
-    # `horizontal = TRUE` swaps which visual axis is which, exactly as
-    # boxplot.formula()'s own defaults do.
-    #
-    # @param layer_info Layer information
-    # @return Canonical axes list
+    #' @description Extract the axis titles for this layer
+    #'
+    #' `boxplot()` records no title unless the author wrote one, but the
+    #' formula method derives both from the formula itself and draws them, so
+    #' a `y ~ g` call already names its axes: the response on the value axis
+    #' and the grouping terms on the category axis. Everything else falls back
+    #' to what a box plot always shows -- groups against their distributions.
+    #' `horizontal = TRUE` swaps which visual axis is which, exactly as
+    #' boxplot.formula()'s own defaults do.
+    #'
+    #' @param layer_info Layer information
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       args <- layer_info$plot_call$args
       horizontal <- self$determine_orientation(layer_info) == "horz"
@@ -352,17 +368,18 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       )
     },
 
-    # Read the axis titles boxplot.formula() derives from its formula
-    #
-    # `boxplot.formula()` builds them out of the model frame's column names:
-    # the response column names the value axis and the remaining columns,
-    # joined with " : ", name the category axis. Building the same model
-    # frame reproduces the drawn titles for expressions (`log(mpg) ~ cyl`)
-    # and for `.` alike, where deparsing the formula's terms would not.
-    #
-    # @param args Recorded argument list
-    # @return List with `response` and `groups`, or NULL when this call is
-    #   not the formula method or the model frame cannot be rebuilt
+    #' @description Read the axis titles boxplot.formula() derives from its formula
+    #'
+    #' `boxplot.formula()` builds them out of the model frame's column names:
+    #' the response column names the value axis and the remaining columns,
+    #' joined with " : ", name the category axis. Building the same model
+    #' frame reproduces the drawn titles for expressions (`log(mpg) ~ cyl`)
+    #' and for `.` alike, where deparsing the formula's terms would not.
+    #'
+    #' @param args Recorded argument list
+    #' @return List with `response` and `groups`, or NULL when this call is
+    #'   not the formula method or the model frame cannot be rebuilt
+    #' @param frame The model frame kept by the recording (optional)
     extract_formula_labels = function(args, frame = NULL) {
       # boxplot()'s formula method names its first formal `formula`, and
       # match_recorded_args() leaves the dispatch argument as the author
@@ -408,6 +425,9 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
 
       labels
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -415,6 +435,9 @@ BaseRBoxplotLayerProcessor <- R6::R6Class(
       args <- layer_info$plot_call$args
       recorded_main_title(args)
     },
+    #' @description Which way the boxes were drawn, from the recorded `horizontal` flag
+    #' @param layer_info Layer information with the recorded call
+    #' @return "horz" or "vert"
     determine_orientation = function(layer_info) {
       if (is.null(layer_info)) {
         return("vert")

@@ -7,6 +7,16 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
   "Ggplot2StackedBarProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its series, selectors and the fill legend title from
+    #'   the built plot
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -45,9 +55,17 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         axes = axes
       )
     },
+    #' @description Whether the plot data must be reordered before drawing, so the emitted order
+    #'   matches the drawn rects
+    #' @return TRUE
     needs_reordering = function() {
       TRUE
     },
+    #' @description Reorder the plot data by category and fill so the emitted rows match the drawn
+    #'   rects
+    #' @param data The data frame ggplot2 will draw from
+    #' @param plot The ggplot2 object
+    #' @return The reordered data frame
     reorder_layer_data = function(data, plot) {
       columns <- self$extract_plot_columns(plot)
       fill_col <- columns$fill_col
@@ -62,6 +80,9 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
       data <- data[order(data[[category_col]], data[[fill_col]]), , drop = FALSE]
       data
     },
+    #' @description The column names the plot maps to x, y and fill
+    #' @param plot The ggplot2 object
+    #' @return List with `category_col`, `value_col` and `fill_col`
     extract_plot_columns = function(plot) {
       plot_mapping <- plot$mapping
 
@@ -82,6 +103,12 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         category_col = extract_col_name(plot_mapping$x)
       )
     },
+    #' @description One series per fill level, restricted to the panel's rows under faceting
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List of series
     extract_data = function(plot, built = NULL, panel_id = NULL, panel_ctx = NULL) {
       original_data <- plot$data
 
@@ -458,6 +485,12 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
     # regrouping above reunites data[0] = v with the v rects.
     #
     # Pinned by tests/testthat/test-segmented-bar-selector-contract.R.
+    #' @description One flat selector matching every rect in the layer, which is the contract the
+    #'   frontend expects (see the note above)
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List holding one selector
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         return(list())

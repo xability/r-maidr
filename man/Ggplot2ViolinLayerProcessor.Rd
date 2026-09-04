@@ -323,6 +323,13 @@ iq, q2, max, lowerOutliers, upperOutliers.
     \preformatted{Ggplot2ViolinLayerProcessor$determine_orientation(built)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
 \if{html}{\out{<hr>}}

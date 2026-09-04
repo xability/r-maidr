@@ -7,6 +7,17 @@ BaseRPointLayerProcessor <- R6::R6Class(
   "BaseRPointLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param grob_id Unused; present for the processor interface
+    #' @param panel_id Unused; present for the processor interface
+    #' @param panel_ctx Unused; present for the processor interface
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -28,9 +39,16 @@ BaseRPointLayerProcessor <- R6::R6Class(
         axes = axes
       )
     },
+    #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
+    #'   from the recorded call and never is
+    #' @return FALSE
     needs_reordering = function() {
       FALSE
     },
+    #' @description One point per observation, from the recorded x and y or from the formula's
+    #'   model frame
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of points
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -88,16 +106,16 @@ BaseRPointLayerProcessor <- R6::R6Class(
 
       data_points
     },
-    # The x and y a recorded call plots, resolved as plot() resolves them.
-    #
-    # `plot(y ~ x, data = d)` carries a formula rather than two vectors, and
-    # its coordinates are the two columns of the model frame the recording
-    # kept (#254). Read from `resolve_xy_args()` alone, the formula is a
-    # language object and the layer came out with no points at all -- an
-    # interactive chart with nothing in it.
-    #
-    # @param plot_call The recorded call
-    # @return A list with `x` and `y`, either of which may be NULL
+    #' @description The x and y a recorded call plots, resolved as plot() resolves them.
+    #'
+    #' `plot(y ~ x, data = d)` carries a formula rather than two vectors, and
+    #' its coordinates are the two columns of the model frame the recording
+    #' kept (#254). Read from `resolve_xy_args()` alone, the formula is a
+    #' language object and the layer came out with no points at all -- an
+    #' interactive chart with nothing in it.
+    #'
+    #' @param plot_call The recorded call
+    #' @return A list with `x` and `y`, either of which may be NULL
     resolve_coordinates = function(plot_call) {
       frame <- self$formula_variables(plot_call)
       if (!is.null(frame)) {
@@ -105,14 +123,14 @@ BaseRPointLayerProcessor <- R6::R6Class(
       }
       resolve_xy_args(plot_call$args)
     },
-    # The two numeric variables of a recorded formula call, or NULL.
-    #
-    # Only a numeric pair is a scatter: `plot(y ~ f)` on a factor draws a
-    # box plot through `plot.factor()`, and a frame with more than one
-    # predictor draws something else again. Both are left as they were.
-    #
-    # @param plot_call The recorded call
-    # @return A list with `x`, `y`, `x_name`, `y_name`, or NULL
+    #' @description The two numeric variables of a recorded formula call, or NULL.
+    #'
+    #' Only a numeric pair is a scatter: `plot(y ~ f)` on a factor draws a
+    #' box plot through `plot.factor()`, and a frame with more than one
+    #' predictor draws something else again. Both are left as they were.
+    #'
+    #' @param plot_call The recorded call
+    #' @return A list with `x`, `y`, `x_name`, `y_name`, or NULL
     formula_variables = function(plot_call) {
       args <- plot_call$args
       handed <- resolve_xy_args(args)$x
@@ -140,16 +158,16 @@ BaseRPointLayerProcessor <- R6::R6Class(
         y_name = names(frame)[response]
       )
     },
-    # Extract axis information from Base R plot call
-    #
-    # Returns per-axis objects with an optional label and optional grid
-    # navigation fields (min, max, tickStep). Grid fields are derived from
-    # xlim/ylim args or data range, and tick intervals via pretty(). Every
-    # field is included only when extraction succeeds, and an axis that ends
-    # up with none of them is left out of the payload entirely.
-    #
-    # @param layer_info Layer information with recorded plot call
-    # @return Canonical axes list
+    #' @description Extract axis information from Base R plot call
+    #'
+    #' Returns per-axis objects with an optional label and optional grid
+    #' navigation fields (min, max, tickStep). Grid fields are derived from
+    #' xlim/ylim args or data range, and tick intervals via pretty(). Every
+    #' field is included only when extraction succeeds, and an axis that ends
+    #' up with none of them is left out of the payload entirely.
+    #'
+    #' @param layer_info Layer information with recorded plot call
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(build_axes())
@@ -226,14 +244,14 @@ BaseRPointLayerProcessor <- R6::R6Class(
       build_axes(x = x_axis, y = y_axis)
     },
 
-    # Extract grid navigation info for a Base R axis
-    #
-    # Computes min, max from xlim/ylim or data range, and tickStep from
-    # pretty() tick positions. Returns NULL if extraction fails.
-    #
-    # @param data Numeric vector of data values
-    # @param lim Optional axis limits (xlim or ylim)
-    # @return List with min, max, tickStep or NULL
+    #' @description Extract grid navigation info for a Base R axis
+    #'
+    #' Computes min, max from xlim/ylim or data range, and tickStep from
+    #' pretty() tick positions. Returns NULL if extraction fails.
+    #'
+    #' @param data Numeric vector of data values
+    #' @param lim Optional axis limits (xlim or ylim)
+    #' @return List with min, max, tickStep or NULL
     extract_base_r_axis_grid_info = function(data, lim = NULL) {
       tryCatch(
         {
@@ -280,6 +298,9 @@ BaseRPointLayerProcessor <- R6::R6Class(
         }
       )
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -291,6 +312,10 @@ BaseRPointLayerProcessor <- R6::R6Class(
       main_title <- recorded_main_title(args)
       main_title
     },
+    #' @description The selector for the points, scoped to this layer's plot group
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL) {
       if (is.null(gt)) {
         return(list())

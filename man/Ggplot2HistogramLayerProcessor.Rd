@@ -49,6 +49,7 @@ Processes histogram plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2HistogramLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2HistogramLayerProcessor$process()}}{
+  Process the layer: read its bins, selectors and orientation from the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HistogramLayerProcessor$process(
@@ -70,9 +71,13 @@ Processes histogram plot layers with complete logic included
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -122,6 +127,7 @@ horizontal would swap a pair that is already the right way round.
 \if{html}{\out{<a id="method-Ggplot2HistogramLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2HistogramLayerProcessor$extract_data()}}{
+  One point per bin, read from this layer's own built data
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HistogramLayerProcessor$extract_data(
@@ -136,8 +142,12 @@ horizontal would swap a pair that is already the right way round.
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points
   }
 }
 
@@ -145,6 +155,7 @@ horizontal would swap a pair that is already the right way round.
 \if{html}{\out{<a id="method-Ggplot2HistogramLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HistogramLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2HistogramLayerProcessor$generate_selectors()}}{
+  Selectors for the bins, scoped to the panel
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HistogramLayerProcessor$generate_selectors(
@@ -162,6 +173,9 @@ horizontal would swap a pair that is already the right way round.
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

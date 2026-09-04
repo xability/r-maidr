@@ -20,6 +20,14 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
   "BaseRCandlestickLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: the candlestick layer, plus a volume bar layer when
+    #'   `addVo()` was requested
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param layer_info Layer information with the recorded call
+    #' @return A candlestick layer, or a multi-layer list with the volume bars
     process = function(plot, layout, built = NULL, gt = NULL,
                        layer_info = NULL) {
       data <- self$extract_data(layer_info)
@@ -57,6 +65,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Detect whether the chartSeries call requests addVo()
+    #' @param layer_info Layer information with the recorded call
     has_add_vo = function(layer_info) {
       if (is.null(layer_info)) {
         return(FALSE)
@@ -78,6 +87,9 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Build a "bar" layer carrying volume data
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @param candle_data The candlestick data already extracted
     build_volume_layer = function(layer_info, gt, candle_data) {
       if (is.null(layer_info)) {
         return(NULL)
@@ -129,6 +141,9 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     #' (typically N = 2). Returns a per-bar selector list so each volume
     #' bar can be individually highlighted on navigation; matches the
     #' bar layer contract used by the Base R barplot processor.
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @param n_bars Number of volume bars
     generate_volume_selectors = function(layer_info, gt, n_bars) {
       if (is.null(gt) || is.null(n_bars) || n_bars <= 0L) {
         return(list())
@@ -389,6 +404,9 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     # Axes / title
     # ------------------------------------------------------------------
 
+    #' @description The axis titles, defaulting to Date and Price
+    #' @param layer_info Layer information with the recorded call
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(build_axes(x = "Date", y = "Price"))
@@ -407,6 +425,9 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
       build_axes(x = x_title, y = y_title)
     },
 
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -438,6 +459,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     # ------------------------------------------------------------------
 
     #' @description Format a vector of x-axis index values to character
+    #' @param idx Integer x-axis positions
     format_x_values = function(idx) {
       if (inherits(idx, c("Date", "POSIXct", "POSIXlt"))) {
         format(idx)
@@ -447,6 +469,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Recursively collect all grob names in a grob tree
+    #' @param g A grob
     collect_grob_names = function(g) {
       names <- character(0)
       if (is.null(g)) {
@@ -474,6 +497,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Sort grob ids by trailing integer suffix
+    #' @param ids Grob ids
     sort_ids = function(ids) {
       if (length(ids) == 0L) {
         return(ids)
@@ -485,6 +509,8 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Find the grob node whose name matches `id`
+    #' @param g A grob
+    #' @param id The grob name to find
     find_grob_by_name = function(g, id) {
       if (is.null(g)) {
         return(NULL)
@@ -520,6 +546,7 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Count the number of primitive coordinates a grob carries
+    #' @param g A grob
     grob_coord_count = function(g) {
       if (is.null(g)) {
         return(0L)
@@ -538,6 +565,8 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
     },
 
     #' @description Pick the rect-id whose grob has the most coordinates
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @param ids Grob ids
     pick_largest_child_group = function(gt, ids) {
       if (length(ids) == 0L) {
         return(NULL)

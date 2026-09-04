@@ -42,9 +42,17 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-initialize}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$new()}}{
+  Create an orchestrator for a ggplot2 object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$new(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -53,6 +61,7 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-detect_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-detect_layers}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$detect_layers()}}{
+  Turn each layer of the plot into a layer entry with its detected type
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$detect_layers()}
@@ -107,10 +116,22 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-analyze_single_layer"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-analyze_single_layer}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$analyze_single_layer()}}{
+  Describe one ggplot2 layer as a layer entry with its detected type
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$analyze_single_layer(layer, layer_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{A ggplot2 layer object}
+      \item{\code{layer_index}}{Index of the layer}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Layer information list
   }
 }
 
@@ -118,10 +139,22 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-determine_layer_type"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-determine_layer_type}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$determine_layer_type()}}{
+  The layer type the adapter detects for one layer of the plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$determine_layer_type(plot, layer_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{layer_index}}{Index of the layer}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -129,6 +162,7 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-create_layer_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-create_layer_processors}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$create_layer_processors()}}{
+  Create a processor for every layer of a known type
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$create_layer_processors()}
@@ -140,10 +174,21 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-create_layer_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-create_layer_processor}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$create_layer_processor()}}{
+  Create the processor for one layer
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$create_layer_processor(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A layer processor, or NULL for an unknown type
   }
 }
 
@@ -173,6 +218,7 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-process_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-process_layers}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$process_layers()}}{
+  Run every layer processor and combine the results
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$process_layers()}
@@ -184,10 +230,22 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-extract_layout"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-extract_layout}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$extract_layout()}}{
+  Read the figure-level title, subtitle, caption and axis labels from the built
+plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$extract_layout(built = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -195,9 +253,17 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-combine_layer_results"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-combine_layer_results}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$combine_layer_results()}}{
+  Combine the per-layer results into the subplot grid
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$combine_layer_results(layer_results)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_results}}{List of per-layer results, one per processor}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -206,10 +272,14 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-generate_maidr_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-generate_maidr_data}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$generate_maidr_data()}}{
+  Assemble the MAIDR data object for the figure
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$generate_maidr_data()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with an id and the subplots
   }
 }
 
@@ -217,10 +287,14 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-get_gtable"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-get_gtable}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$get_gtable()}}{
+  The gtable the plot was drawn to
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$get_gtable()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A gtable, or NULL before the layers are processed
   }
 }
 
@@ -228,10 +302,14 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-get_layout"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-get_layout}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$get_layout()}}{
+  The figure-level layout read by \code{extract_layout()}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$get_layout()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -239,10 +317,14 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-get_combined_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-get_combined_data}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$get_combined_data()}}{
+  The combined per-layer data
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$get_combined_data()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -250,10 +332,14 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-get_layer_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-get_layer_processors}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$get_layer_processors()}}{
+  The processors created for the layers
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$get_layer_processors()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -261,10 +347,14 @@ needs the build.
 \if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-get_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-get_layers}{}}}
 \subsection{\code{Ggplot2PlotOrchestrator$get_layers()}}{
+  The detected layer entries
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2PlotOrchestrator$get_layers()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 

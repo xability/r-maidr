@@ -8,6 +8,17 @@ BaseRLineLayerProcessor <- R6::R6Class(
   "BaseRLineLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param grob_id Unused; present for the processor interface
+    #' @param panel_id Unused; present for the processor interface
+    #' @param panel_ctx Unused; present for the processor interface
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -29,9 +40,16 @@ BaseRLineLayerProcessor <- R6::R6Class(
         axes = axes
       )
     },
+    #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
+    #'   from the recorded call and never is
+    #' @return FALSE
     needs_reordering = function() {
       FALSE
     },
+    #' @description One series per line: a vector, each column of a matrix, a time series, or the
+    #'   endpoints of `abline()`
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of series
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -144,6 +162,11 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       NULL
     },
+    #' @description The points of one line, pairing each x with its y
+    #' @param x x positions
+    #' @param y y values
+    #' @param x_labels Category labels to announce in place of the x positions (optional)
+    #' @return List holding one series
     extract_single_line_data = function(x, y, x_labels = NULL) {
       data_points <- list()
 
@@ -163,6 +186,11 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       list(data_points)
     },
+    #' @description One series per column of `y_matrix`, named after the columns
+    #' @param x x positions
+    #' @param y_matrix One column of y values per series
+    #' @param x_labels Category labels to announce in place of the x positions (optional)
+    #' @return List of series
     extract_multiline_data = function(x, y_matrix, x_labels = NULL) {
       series_names <- colnames(y_matrix)
       if (is.null(series_names)) {
@@ -198,6 +226,10 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       series_list
     },
+    #' @description The axis titles, taken from the HIGH-level call for an overlay such as
+    #'   `abline()`
+    #' @param layer_info Layer information with the recorded call
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       if (is.null(layer_info)) {
         return(build_axes())
@@ -237,6 +269,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
         y = recorded_axis_label(args, "ylab", curve_labels$y)
       )
     },
+    #' @description The endpoints of an `abline()` call across the axis the HIGH-level call set up
+    #' @param layer_info Layer information with the recorded call
+    #' @return List holding one two-point series, or empty
     extract_abline_data = function(layer_info) {
       plot_call <- layer_info$plot_call
       args <- plot_call$args
@@ -321,6 +356,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       list(data_points)
     },
+    #' @description The x extent of the group's HIGH-level call, as the axis was drawn
+    #' @param group The recorded plot group holding the HIGH-level call
+    #' @return Numeric vector of two, or NULL
     get_x_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
         return(NULL)
@@ -329,6 +367,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
       high_args <- group$high_call$args
       self$axis_extent(high_args$xlim, resolve_xy_args(high_args)$x)
     },
+    #' @description The y extent of the group's HIGH-level call, as the axis was drawn
+    #' @param group The recorded plot group holding the HIGH-level call
+    #' @return Numeric vector of two, or NULL
     get_y_range_from_group = function(group) {
       if (is.null(group) || is.null(group$high_call)) {
         return(NULL)
@@ -337,9 +378,11 @@ BaseRLineLayerProcessor <- R6::R6Class(
       high_args <- group$high_call$args
       self$axis_extent(high_args$ylim, resolve_xy_args(high_args)$y)
     },
-    # The extent of an axis the way `plot.default()` sets it: an explicit
-    # `xlim`/`ylim`, or the finite data extended by 4 % each way, which is
-    # what `abline()` draws its clipped line across.
+    #' @description The extent of an axis the way `plot.default()` sets it: an explicit
+    #' `xlim`/`ylim`, or the finite data extended by 4 % each way, which is
+    #' what `abline()` draws its clipped line across.
+    #' @param limits An explicit `xlim`/`ylim`, or NULL
+    #' @param data The plotted values on that axis
     axis_extent = function(limits, data) {
       if (is.numeric(limits) && length(limits) == 2L && all(is.finite(limits))) {
         return(grDevices::extendrange(limits, f = 0.04))
@@ -353,6 +396,9 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
       grDevices::extendrange(range(data), f = 0.04)
     },
+    #' @description The main title, taken from the HIGH-level call for `abline()`
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -377,6 +423,10 @@ BaseRLineLayerProcessor <- R6::R6Class(
       main_title <- recorded_main_title(args)
       main_title
     },
+    #' @description One selector per polyline, in series order
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL) {
       selectors <- list()
 
@@ -393,6 +443,11 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       selectors
     },
+    #' @description Find every grob of the given family drawn by the plot group at `group_index`
+    #' @param grob The grob tree to search
+    #' @param group_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @param grob_type The grob family to match: "lines", "abline", "segments", "spike" or "step"
+    #' @return Character vector of grob names
     find_lines_grobs = function(grob, group_index, grob_type = "lines") {
       names <- character(0)
 
@@ -457,14 +512,20 @@ BaseRLineLayerProcessor <- R6::R6Class(
 
       names
     },
-    # Which family of grob names this layer's selectors are drawn from:
-    # "abline", "lines", "segments", "spike" or "step". Overridden by
-    # subclasses whose geometry lands under a different grob name (see
-    # BaseRStepLayerProcessor).
+    #' @description Which family of grob names this layer's selectors are drawn from:
+    #' "abline", "lines", "segments", "spike" or "step". Overridden by
+    #' subclasses whose geometry lands under a different grob name (see
+    #' BaseRStepLayerProcessor).
+    #' @param layer_info Layer information with the recorded call
     selector_grob_type = function(layer_info) {
       function_name <- if (!is.null(layer_info)) layer_info$function_name else "lines"
       if (function_name == "abline") "abline" else "lines"
     },
+    #' @description One selector per matching polyline, sorted by the grob number
+    #' @param grob The grob tree to search
+    #' @param group_index Index of the recorded plot group, which numbers the panel's grobs
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of selectors
     generate_selectors_from_grob = function(grob, group_index, layer_info) {
       grob_type <- self$selector_grob_type(layer_info)
 

@@ -55,6 +55,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     .format_config = NULL
   ),
   public = list(
+    #' @description Create an orchestrator for a ggplot2 object
+    #' @param plot The ggplot2 object
     initialize = function(plot) {
       private$.plot <- plot
 
@@ -85,6 +87,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         self$process_layers()
       }
     },
+    #' @description Turn each layer of the plot into a layer entry with its detected type
     detect_layers = function() {
       layers <- private$.plot$layers
       private$.layers <- list()
@@ -137,6 +140,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       invisible(NULL)
     },
+    #' @description Describe one ggplot2 layer as a layer entry with its detected type
+    #' @param layer A ggplot2 layer object
+    #' @param layer_index Index of the layer
+    #' @return Layer information list
     analyze_single_layer = function(layer, layer_index) {
       # Safely extract layer components with error handling
       geom <- tryCatch(layer$geom, error = function(e) NULL)
@@ -164,6 +171,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       layer_info
     },
+    #' @description The layer type the adapter detects for one layer of the plot
+    #' @param plot The ggplot2 object
+    #' @param layer_index Index of the layer
+    #' @return Character string
     determine_layer_type = function(plot, layer_index) {
       layer <- plot$layers[[layer_index]]
       if (is.null(layer)) {
@@ -173,6 +184,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # Delegate layer type detection to the adapter
       private$.adapter$detect_layer_type(layer, plot)
     },
+    #' @description Create a processor for every layer of a known type
     create_layer_processors = function() {
       private$.layer_processors <- list()
 
@@ -185,6 +197,9 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         }
       }
     },
+    #' @description Create the processor for one layer
+    #' @param layer_info Layer information
+    #' @return A layer processor, or NULL for an unknown type
     create_layer_processor = function(layer_info) {
       # Use unified layer processor creation logic
       self$create_unified_layer_processor(layer_info)
@@ -204,6 +219,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       processor
     },
+    #' @description Run every layer processor and combine the results
     process_layers = function() {
       plot_for_render <- private$.plot
       for (i in seq_along(private$.layer_processors)) {
@@ -275,6 +291,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       self$combine_layer_results(layer_results)
     },
+    #' @description Read the figure-level title, subtitle, caption and axis labels from the built
+    #'   plot
+    #' @param built Built plot data (optional)
+    #' @return List
     extract_layout = function(built = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(private$.plot)
@@ -320,6 +340,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       layout
     },
+    #' @description Combine the per-layer results into the subplot grid
+    #' @param layer_results List of per-layer results, one per processor
     combine_layer_results = function(layer_results) {
       combined_data <- list()
 
@@ -438,6 +460,8 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       private$.combined_selectors <- combined_selectors
     },
+    #' @description Assemble the MAIDR data object for the figure
+    #' @return List with an id and the subplots
     generate_maidr_data = function() {
       # All plot types use the same unified structure
       # The combined_data already has the correct format for each plot type
@@ -461,18 +485,28 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
 
       maidr_obj
     },
+    #' @description The gtable the plot was drawn to
+    #' @return A gtable, or NULL before the layers are processed
     get_gtable = function() {
       private$.gtable
     },
+    #' @description The figure-level layout read by `extract_layout()`
+    #' @return List
     get_layout = function() {
       private$.layout
     },
+    #' @description The combined per-layer data
+    #' @return List
     get_combined_data = function() {
       private$.combined_data
     },
+    #' @description The processors created for the layers
+    #' @return List
     get_layer_processors = function() {
       private$.layer_processors
     },
+    #' @description The detected layer entries
+    #' @return List
     get_layers = function() {
       private$.layers
     },

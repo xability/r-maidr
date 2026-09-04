@@ -49,6 +49,8 @@ Processes dodged bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2DodgedBarLayerProcessor$process()}}{
+  Process the layer: read its series, selectors and DOM mapping from the built
+plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2DodgedBarLayerProcessor$process(
@@ -70,9 +72,13 @@ Processes dodged bar plot layers with complete logic included
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -80,10 +86,15 @@ Processes dodged bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-needs_reordering}{}}}
 \subsection{\code{Ggplot2DodgedBarLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing, so the emitted order
+matches the drawn rects
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2DodgedBarLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE
   }
 }
 
@@ -120,6 +131,8 @@ i.e. NULL.
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-reorder_layer_data}{}}}
 \subsection{\code{Ggplot2DodgedBarLayerProcessor$reorder_layer_data()}}{
+  Reorder the plot data by x and fill so each column's rects are drawn in the
+order the frontend walks them
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2DodgedBarLayerProcessor$reorder_layer_data(data, plot)}
@@ -128,10 +141,13 @@ i.e. NULL.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{data}}{data.frame effective for this layer}
-      \item{\code{plot}}{full ggplot object (for mappings)}
+      \item{\code{data}}{The data frame ggplot2 will draw from}
+      \item{\code{plot}}{The ggplot2 object}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The reordered data frame
   }
 }
 
@@ -139,6 +155,8 @@ i.e. NULL.
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2DodgedBarLayerProcessor$extract_data()}}{
+  One series per fill level, as a rectangular grid with a \code{0} for every missing
+bar
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2DodgedBarLayerProcessor$extract_data(
@@ -153,8 +171,12 @@ i.e. NULL.
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 
@@ -162,6 +184,8 @@ i.e. NULL.
 \if{html}{\out{<a id="method-Ggplot2DodgedBarLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2DodgedBarLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2DodgedBarLayerProcessor$generate_selectors()}}{
+  One flat selector matching every rect in the layer, which is the contract the
+frontend expects (see the note above)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2DodgedBarLayerProcessor$generate_selectors(
@@ -179,6 +203,9 @@ i.e. NULL.
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List holding one selector
   }
 }
 

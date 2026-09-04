@@ -566,6 +566,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' `ggplot_build()`. All other types use `as.character()`. Mirrors
     #' `Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers
     #' from the same Date column align string-wise.
+    #' @param x The value to format
     format_x_value = function(x) {
       if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
         return(format(x))

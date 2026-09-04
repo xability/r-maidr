@@ -54,6 +54,8 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-process}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$process(
@@ -68,12 +70,16 @@ and generating selectors for boxplot components.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -81,10 +87,34 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-read_stats"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-read_stats}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$read_stats()}}{
+  The five-number summaries the drawn boxes came from
+
+A \code{boxplot()} call carries the \emph{observations}, so the summaries have to
+be recomputed from them -- which \code{boxplot(plot = FALSE)} does, using
+the same code path the drawing did, rather than a reimplementation of
+it here. \code{graphics::boxplot} is named directly so the replay does not
+go back through maidr's own wrapper and record a second call.
+
+Overridable because \code{bxp()} is handed the summaries already computed
+and draws exactly the same marks from them: everything below this
+method -- the outlier grouping, the polygon and segment indices, the
+shift each box with no outliers puts on the ones after it -- is the
+same reading either way, and only where the summaries come from
+differs (#262).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$read_stats(args)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The \code{boxplot.stats}-shaped list, or NULL when it cannot be had
   }
 }
 
@@ -92,10 +122,21 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_data()}}{
+  One five-number summary per group, recomputed from the recorded observations
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of box summaries
   }
 }
 
@@ -103,6 +144,7 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$generate_selectors()}}{
+  Selectors for each box's polygon, whiskers, median and outliers
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$generate_selectors(
@@ -115,9 +157,14 @@ and generating selectors for boxplot components.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
+      \item{\code{extracted_data}}{The data already extracted for this layer (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -125,10 +172,29 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+\code{boxplot()} records no title unless the author wrote one, but the
+formula method derives both from the formula itself and draws them, so
+a \code{y ~ g} call already names its axes: the response on the value axis
+and the grouping terms on the category axis. Everything else falls back
+to what a box plot always shows -- groups against their distributions.
+\code{horizontal = TRUE} swaps which visual axis is which, exactly as
+boxplot.formula()'s own defaults do.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -136,10 +202,29 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_formula_labels"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_formula_labels}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_formula_labels()}}{
+  Read the axis titles boxplot.formula() derives from its formula
+
+\code{boxplot.formula()} builds them out of the model frame's column names:
+the response column names the value axis and the remaining columns,
+joined with " : ", name the category axis. Building the same model
+frame reproduces the drawn titles for expressions (\code{log(mpg) ~ cyl})
+and for \code{.} alike, where deparsing the formula's terms would not.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$extract_formula_labels(args, frame = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+      \item{\code{frame}}{The model frame kept by the recording (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with \code{response} and \code{groups}, or NULL when this call is
+not the formula method or the model frame cannot be rebuilt
   }
 }
 
@@ -147,10 +232,21 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -158,10 +254,21 @@ and generating selectors for boxplot components.
 \if{html}{\out{<a id="method-BaseRBoxplotLayerProcessor-determine_orientation"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBoxplotLayerProcessor-determine_orientation}{}}}
 \subsection{\code{BaseRBoxplotLayerProcessor$determine_orientation()}}{
+  Which way the boxes were drawn, from the recorded \code{horizontal} flag
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBoxplotLayerProcessor$determine_orientation(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "horz" or "vert"
   }
 }
 

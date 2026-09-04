@@ -39,25 +39,25 @@ BaseRBxpLayerProcessor <- R6::R6Class(
   "BaseRBxpLayerProcessor",
   inherit = BaseRBoxplotLayerProcessor,
   public = list(
-    # The summaries `bxp()` was handed
-    #
-    # `bxp()`'s first formal is `z`, and it draws nothing without a numeric
-    # `z$stats` with five rows -- so a recorded call that reached this
-    # package has one. It is still checked rather than assumed: a shape that
-    # does not answer leaves the layer empty and the figure falls back to the
-    # picture it already was, where reaching past it would raise out of
-    # `process()` with nothing to catch it.
-    #
-    # The positional half looks for the first *unnamed* argument rather than
-    # for slot 1. `match_recorded_args()` keeps the author's order and leaves
-    # only the dispatch argument unnamed, wherever it was written, so
-    # `bxp(horizontal = TRUE, z)` records `z` in slot 2 -- a call R itself
-    # accepts and draws. Reading slot 1 there hands `TRUE` to the check below
-    # and leaves the layer empty. `resolve_xy_args()` resolves a positional
-    # argument the same way, for the same reason. Raised in review of #265.
-    #
-    # @param args Recorded argument list
-    # @return The `boxplot.stats`-shaped list, or NULL when it is not one
+    #' @description The summaries `bxp()` was handed
+    #'
+    #' `bxp()`'s first formal is `z`, and it draws nothing without a numeric
+    #' `z$stats` with five rows -- so a recorded call that reached this
+    #' package has one. It is still checked rather than assumed: a shape that
+    #' does not answer leaves the layer empty and the figure falls back to the
+    #' picture it already was, where reaching past it would raise out of
+    #' `process()` with nothing to catch it.
+    #'
+    #' The positional half looks for the first *unnamed* argument rather than
+    #' for slot 1. `match_recorded_args()` keeps the author's order and leaves
+    #' only the dispatch argument unnamed, wherever it was written, so
+    #' `bxp(horizontal = TRUE, z)` records `z` in slot 2 -- a call R itself
+    #' accepts and draws. Reading slot 1 there hands `TRUE` to the check below
+    #' and leaves the layer empty. `resolve_xy_args()` resolves a positional
+    #' argument the same way, for the same reason. Raised in review of #265.
+    #'
+    #' @param args Recorded argument list
+    #' @return The `boxplot.stats`-shaped list, or NULL when it is not one
     read_stats = function(args) {
       z <- args[["z"]]
       if (is.null(z)) {

@@ -57,6 +57,8 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-process}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$process(
@@ -74,14 +76,19 @@ Processes Base R smooth curves including:
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -89,10 +96,21 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$extract_data()}}{
+  One point per fitted value of the smooth, density or curve
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points
   }
 }
 
@@ -100,6 +118,7 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$generate_selectors()}}{
+  The selector for the curve's polyline
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$generate_selectors(layer_info, gt = NULL)}
@@ -108,9 +127,13 @@ Processes Base R smooth curves including:
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -118,10 +141,22 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-find_polyline_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-find_polyline_grobs}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$find_polyline_grobs()}}{
+  Find the lines container grob for this layer
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$find_polyline_grobs(grob, call_index = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Grob name, or NULL
   }
 }
 
@@ -129,10 +164,22 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-generate_selectors_from_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-generate_selectors_from_grob}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$generate_selectors_from_grob()}}{
+  Build this layer's selector from the grob tree
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$generate_selectors_from_grob(grob, call_index = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A selector string, or an empty string when no grob matches
   }
 }
 
@@ -140,10 +187,26 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+The x axis holds whatever variable was smoothed, which the recorded
+arguments no longer name, so it carries no default. The y axis does
+when the curve came from \code{density()}: that estimate is a density, and
+plot.density() prints exactly that word.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -151,10 +214,21 @@ Processes Base R smooth curves including:
 \if{html}{\out{<a id="method-BaseRSmoothLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRSmoothLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRSmoothLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 

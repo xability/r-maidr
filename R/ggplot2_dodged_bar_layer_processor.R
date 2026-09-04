@@ -7,6 +7,16 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
   "Ggplot2DodgedBarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its series, selectors and DOM mapping from the built
+    #'   plot
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -58,6 +68,9 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
       }
       result
     },
+    #' @description Whether the plot data must be reordered before drawing, so the emitted order
+    #'   matches the drawn rects
+    #' @return TRUE
     needs_reordering = function() {
       TRUE
     },
@@ -114,6 +127,11 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         fill = evaluate(quo_for("fill"))
       )
     },
+    #' @description Reorder the plot data by x and fill so each column's rects are drawn in the
+    #'   order the frontend walks them
+    #' @param data The data frame ggplot2 will draw from
+    #' @param plot The ggplot2 object
+    #' @return The reordered data frame
     reorder_layer_data = function(data, plot) {
       aes_values <- self$resolve_aes_values(plot, data)
       x_values <- aes_values$x
@@ -144,6 +162,12 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
 
       data[order(x_ordered, fill_ordered), , drop = FALSE]
     },
+    #' @description One series per fill level, as a rectangular grid with a `0` for every missing
+    #'   bar
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List of series
     extract_data = function(plot, built = NULL, panel_ctx = NULL) {
       if (!inherits(plot, "ggplot")) {
         stop("Input must be a ggplot object.")
@@ -431,6 +455,12 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     #
     # Pinned by test-segmented-bar-selector-contract.R (stat = "identity")
     # and by test-dodged-bar-count-grid.R (stat = "count").
+    #' @description One flat selector matching every rect in the layer, which is the contract the
+    #'   frontend expects (see the note above)
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List holding one selector
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         gt <- ggplot2::ggplotGrob(plot)

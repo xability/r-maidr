@@ -53,6 +53,8 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-process}{}}}
 \subsection{\code{BaseRPointLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$process(
@@ -70,14 +72,19 @@ Processes Base R scatter plot layers based on recorded plot calls
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -85,10 +92,15 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRPointLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 
@@ -96,10 +108,22 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRPointLayerProcessor$extract_data()}}{
+  One point per observation, from the recorded x and y or from the formula's
+model frame
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points
   }
 }
 
@@ -107,10 +131,27 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-resolve_coordinates"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-resolve_coordinates}{}}}
 \subsection{\code{BaseRPointLayerProcessor$resolve_coordinates()}}{
+  The x and y a recorded call plots, resolved as plot() resolves them.
+
+\code{plot(y ~ x, data = d)} carries a formula rather than two vectors, and
+its coordinates are the two columns of the model frame the recording
+kept (#254). Read from \code{resolve_xy_args()} alone, the formula is a
+language object and the layer came out with no points at all -- an
+interactive chart with nothing in it.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$resolve_coordinates(plot_call)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_call}}{The recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with \code{x} and \code{y}, either of which may be NULL
   }
 }
 
@@ -118,10 +159,25 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-formula_variables"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-formula_variables}{}}}
 \subsection{\code{BaseRPointLayerProcessor$formula_variables()}}{
+  The two numeric variables of a recorded formula call, or NULL.
+
+Only a numeric pair is a scatter: \code{plot(y ~ f)} on a factor draws a
+box plot through \code{plot.factor()}, and a frame with more than one
+predictor draws something else again. Both are left as they were.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$formula_variables(plot_call)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_call}}{The recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list with \code{x}, \code{y}, \code{x_name}, \code{y_name}, or NULL
   }
 }
 
@@ -129,10 +185,27 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRPointLayerProcessor$extract_axis_titles()}}{
+  Extract axis information from Base R plot call
+
+Returns per-axis objects with an optional label and optional grid
+navigation fields (min, max, tickStep). Grid fields are derived from
+xlim/ylim args or data range, and tick intervals via pretty(). Every
+field is included only when extraction succeeds, and an axis that ends
+up with none of them is left out of the payload entirely.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with recorded plot call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -140,10 +213,25 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-extract_base_r_axis_grid_info}{}}}
 \subsection{\code{BaseRPointLayerProcessor$extract_base_r_axis_grid_info()}}{
+  Extract grid navigation info for a Base R axis
+
+Computes min, max from xlim/ylim or data range, and tickStep from
+pretty() tick positions. Returns NULL if extraction fails.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$extract_base_r_axis_grid_info(data, lim = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{data}}{Numeric vector of data values}
+      \item{\code{lim}}{Optional axis limits (xlim or ylim)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with min, max, tickStep or NULL
   }
 }
 
@@ -151,10 +239,21 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRPointLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -162,6 +261,7 @@ Processes Base R scatter plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRPointLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPointLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRPointLayerProcessor$generate_selectors()}}{
+  The selector for the points, scoped to this layer's plot group
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPointLayerProcessor$generate_selectors(layer_info, gt = NULL)}
@@ -170,9 +270,13 @@ Processes Base R scatter plot layers based on recorded plot calls
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

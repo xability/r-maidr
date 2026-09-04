@@ -54,6 +54,7 @@ Processes bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$process()}}{
+  Process the layer: read its bars, selectors and orientation from the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$process(
@@ -75,9 +76,13 @@ Processes bar plot layers with complete logic included
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -162,10 +167,15 @@ never written.
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-needs_reordering}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing, so the emitted order
+matches the drawn rects
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE
   }
 }
 
@@ -173,6 +183,7 @@ never written.
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-reorder_layer_data}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$reorder_layer_data()}}{
+  Reorder the plot data by category so the emitted rows match the drawn rects
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$reorder_layer_data(data, plot)}
@@ -181,10 +192,13 @@ never written.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{data}}{data.frame effective for this layer}
-      \item{\code{plot}}{full ggplot object (for mappings)}
+      \item{\code{data}}{The data frame ggplot2 will draw from}
+      \item{\code{plot}}{The ggplot2 object}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The reordered data frame
   }
 }
 
@@ -192,6 +206,7 @@ never written.
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$extract_data()}}{
+  One point per bar, read from the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}
@@ -202,8 +217,12 @@ never written.
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points
   }
 }
 
@@ -221,6 +240,13 @@ so candle and bar layers from the same Date column align string-wise.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$format_x_value(x)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{The value to format}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -309,6 +335,7 @@ in \code{Ggplot2LineLayerProcessor}.
 \if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2BarLayerProcessor$generate_selectors()}}{
+  Selectors for the layer's rects
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2BarLayerProcessor$generate_selectors(
@@ -328,6 +355,9 @@ in \code{Ggplot2LineLayerProcessor}.
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

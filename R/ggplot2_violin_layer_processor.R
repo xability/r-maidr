@@ -701,6 +701,7 @@ Ggplot2ViolinLayerProcessor <- R6::R6Class(
     # ------------------------------------------------------------------
 
     #' @description Determine orientation from built data
+    #' @param built Built plot data (optional)
     determine_orientation = function(built) {
       layer_index <- self$get_layer_index()
       layer_data <- built$data[[layer_index]]

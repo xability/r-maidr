@@ -84,10 +84,21 @@ would lose the trace grouping that makes it an interaction plot.
 \if{html}{\out{<a id="method-BaseRInteractionLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRInteractionLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRInteractionLayerProcessor$extract_data()}}{
+  One series per trace level, read from the grid of cell means
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRInteractionLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 

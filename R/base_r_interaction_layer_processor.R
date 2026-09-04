@@ -33,6 +33,9 @@ BaseRInteractionLayerProcessor <- R6::R6Class(
   "BaseRInteractionLayerProcessor",
   inherit = BaseRLineLayerProcessor,
   public = list(
+    #' @description One series per trace level, read from the grid of cell means
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of series
     extract_data = function(layer_info) {
       cells <- private$cell_grid(layer_info)
       if (is.null(cells)) {
