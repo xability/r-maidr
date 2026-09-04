@@ -14,26 +14,6 @@ discovered:
 [`LayerProcessor`](https://r.maidr.ai/reference/LayerProcessor.md) -\>
 `Ggplot2LineLayerProcessor`
 
-## Public fields
-
-- `layer_info`:
-
-  Information about the layer being processed
-
-- `last_result`:
-
-  The last processing result
-
-## Active bindings
-
-- `layer_info`:
-
-  Information about the layer being processed
-
-- `last_result`:
-
-  The last processing result
-
 ## Methods
 
 ### Public methods

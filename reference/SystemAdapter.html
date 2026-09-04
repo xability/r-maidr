@@ -168,8 +168,7 @@ have its own adapter implementation.</p>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>system_name</code></dt>
-<dd><p>Name of the plotting system
-Abstract method to check if this adapter can handle a plot object</p></dd>
+<dd><p>Name of the plotting system</p></dd>
 
 
 </dl><p></p></div>
@@ -179,7 +178,7 @@ Abstract method to check if this adapter can handle a plot object</p></dd>
 
 <p></p><hr><a id="method-SystemAdapter-can_handle"></a><div class="section">
 <h3 id="systemadapter-can-handle-"><code>SystemAdapter$can_handle()</code><a class="anchor" aria-label="anchor" href="#systemadapter-can-handle-"></a></h3>
-<p></p><div class="section">
+<p>Abstract method to check if this adapter can handle a plot object</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SystemAdapter</span><span class="op">$</span><span class="fu">can_handle</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -191,15 +190,14 @@ Abstract method to check if this adapter can handle a plot object</p></dd>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>TRUE if this adapter can handle the object, FALSE otherwise
-Abstract method to create an orchestrator for this system</p>
+<p>TRUE if this adapter can handle the object, FALSE otherwise</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-SystemAdapter-create_orchestrator"></a><div class="section">
 <h3 id="systemadapter-create-orchestrator-"><code>SystemAdapter$create_orchestrator()</code><a class="anchor" aria-label="anchor" href="#systemadapter-create-orchestrator-"></a></h3>
-<p></p><div class="section">
+<p>Abstract method to create an orchestrator for this system</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">SystemAdapter</span><span class="op">$</span><span class="fu">create_orchestrator</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

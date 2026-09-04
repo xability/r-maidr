@@ -543,18 +543,18 @@ Whether a grob is one rug layer's wrapper
 
 - `node`:
 
-  A grob The name test is a guard rather than a live branch, and is kept
-  as one deliberately. Measured across every geom that draws segments –
-  boxplot, violin, errorbar, crossbar, pointrange, linerange, step, a
-  reference line – **none** produces a gTree whose children are all
-  segments, so today the class test alone decides and dropping the name
-  test changes no reading. `test-ggplot2-rug.R` pins that measurement,
-  so the ggplot2 release that ends it turns a test red rather than
-  leaving this silently load-bearing.
-
-- `node`:
-
   A grob
+
+#### Details
+
+The name test is a guard rather than a live branch, and is kept as one
+deliberately. Measured across every geom that draws segments – boxplot,
+violin, errorbar, crossbar, pointrange, linerange, step, a reference
+line – **none** produces a gTree whose children are all segments, so
+today the class test alone decides and dropping the name test changes no
+reading. `test-ggplot2-rug.R` pins that measurement, so the ggplot2
+release that ends it turns a test red rather than leaving this silently
+load-bearing.
 
 #### Returns
 

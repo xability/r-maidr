@@ -1,8 +1,7 @@
-# Utility functions for robust selector generation in Base R plots
+# Find grob by element type pattern
 
-These functions provide a robust way to find grob elements and generate
-CSS selectors, independent of panel structure or hardcoded values. Find
-grob by element type pattern
+Searches recursively through a grob tree to find a grob whose name
+matches the pattern: graphics-plot--\<element_type\>-
 
 ## Usage
 
@@ -27,8 +26,3 @@ find_graphics_plot_grob(grob, element_type, plot_index = NULL)
 ## Value
 
 The name of the first matching grob, or NULL if not found
-
-## Details
-
-Searches recursively through a grob tree to find a grob whose name
-matches the pattern: graphics-plot--\<element_type\>-

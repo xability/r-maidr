@@ -58,7 +58,7 @@ Internal functions for package developers
   : Find children matching a type pattern
 
 - [`find_graphics_plot_grob()`](https://r.maidr.ai/reference/find_graphics_plot_grob.md)
-  : Utility functions for robust selector generation in Base R plots
+  : Find grob by element type pattern
 
 - [`find_patchwork_panels()`](https://r.maidr.ai/reference/find_patchwork_panels.md)
   :

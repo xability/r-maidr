@@ -222,17 +222,16 @@ CSS selectors can drive the violin_box highlight in the maidr frontend.</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
-<p>Augmented ggplot2 object with boxplot layer added
-Process the violin layer</p>
-<p>Returns a list with <code>multi_layer = TRUE</code> and two maidr layers:
-violin_box (with BoxSelector objects) and violin_kde.</p>
+<p>Augmented ggplot2 object with boxplot layer added</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-process"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-process-"><code>Ggplot2ViolinLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the violin layer</p>
+<p>Returns a list with <code>multi_layer = TRUE</code> and two maidr layers:
+violin_box (with BoxSelector objects) and violin_kde.</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -270,17 +269,16 @@ violin_box (with BoxSelector objects) and violin_kde.</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>List with multi_layer flag and layers, or NULL for facet panels
-Extract box-summary statistics per violin group</p>
-<p>Computes min, Q1, median, Q3, max from the original data (since
-geom_violin only stores the KDE curve, not quartiles).</p>
+<p>List with multi_layer flag and layers, or NULL for facet panels</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-extract_box_data"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-extract-box-data-"><code>Ggplot2ViolinLayerProcessor$extract_box_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-extract-box-data-"></a></h3>
-<p></p><div class="section">
+<p>Extract box-summary statistics per violin group</p>
+<p>Computes min, Q1, median, Q3, max from the original data (since
+geom_violin only stores the KDE curve, not quartiles).</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">extract_box_data</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -295,20 +293,19 @@ geom_violin only stores the KDE curve, not quartiles).</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
-<p>List of BoxPoint objects (one per violin)
-Extract KDE density-curve data per violin group</p>
-<p>Uses ggplot2's built violin data (violinwidth, x, y, width columns)
-to compute left/right violin edges, applies RDP simplification to
-~30 points per violin, and includes the <code>width</code> field needed by the
-maidr frontend.  The <code>svg_x</code>/<code>svg_y</code> coordinates are injected later
-by <code><a href="create_enhanced_svg.html">create_enhanced_svg()</a></code> after the grid device is drawn.</p>
+<p>List of BoxPoint objects (one per violin)</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-extract_kde_data"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-extract-kde-data-"><code>Ggplot2ViolinLayerProcessor$extract_kde_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-extract-kde-data-"></a></h3>
-<p></p><div class="section">
+<p>Extract KDE density-curve data per violin group</p>
+<p>Uses ggplot2's built violin data (violinwidth, x, y, width columns)
+to compute left/right violin edges, applies RDP simplification to
+~30 points per violin, and includes the <code>width</code> field needed by the
+maidr frontend.  The <code>svg_x</code>/<code>svg_y</code> coordinates are injected later
+by <code><a href="create_enhanced_svg.html">create_enhanced_svg()</a></code> after the grid device is drawn.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">extract_kde_data</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, max_kde_points <span class="op">=</span> <span class="fl">30L</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -326,17 +323,16 @@ by <code><a href="create_enhanced_svg.html">create_enhanced_svg()</a></code> aft
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
-<p>List of lists (ViolinKdePoint[][])
-Simplify a single violin's KDE curve using RDP</p>
-<p>Uses ggplot2's built violin data columns (y, violinwidth, x, width)
-to compute the left/right edges, then applies RDP simplification.</p>
+<p>List of lists (ViolinKdePoint[][])</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-simplify_violin_kde"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-simplify-violin-kde-"><code>Ggplot2ViolinLayerProcessor$simplify_violin_kde()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-simplify-violin-kde-"></a></h3>
-<p></p><div class="section">
+<p>Simplify a single violin's KDE curve using RDP</p>
+<p>Uses ggplot2's built violin data columns (y, violinwidth, x, width)
+to compute the left/right edges, then applies RDP simplification.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">simplify_violin_kde</span><span class="op">(</span></span>
 <span>  <span class="va">rows</span>,</span>
@@ -362,16 +358,14 @@ to compute the left/right edges, then applies RDP simplification.</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
-<p>List of ViolinKdePoint dicts with data_left_x/data_right_x/data_y
-Not used directly - required by base class interface
-Generate CSS selectors for violin polygons (for violin_kde layer)</p>
+<p>List of ViolinKdePoint dicts with data_left_x/data_right_x/data_y</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-extract-data-"><code>Ggplot2ViolinLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>Not used directly - required by base class interface</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -390,7 +384,7 @@ Generate CSS selectors for violin polygons (for violin_kde layer)</p>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-generate-selectors-"><code>Ggplot2ViolinLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Generate CSS selectors for violin polygons (for violin_kde layer)</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -416,18 +410,17 @@ Generate CSS selectors for violin polygons (for violin_kde layer)</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>List of CSS selector strings (one per violin)
-Generate BoxSelector objects for the injected boxplot grobs</p>
-<p>Walks the gtable to find geom_boxplot grobs and produces a
-BoxSelector list (one per violin) with CSS selectors for min,
-iq, q2, max, lowerOutliers, upperOutliers.</p>
+<p>List of CSS selector strings (one per violin)</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-generate_box_selectors"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-generate-box-selectors-"><code>Ggplot2ViolinLayerProcessor$generate_box_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-generate-box-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Generate BoxSelector objects for the injected boxplot grobs</p>
+<p>Walks the gtable to find geom_boxplot grobs and produces a
+BoxSelector list (one per violin) with CSS selectors for min,
+iq, q2, max, lowerOutliers, upperOutliers.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">generate_box_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -453,15 +446,14 @@ iq, q2, max, lowerOutliers, upperOutliers.</p>
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
-<p>List of BoxSelector objects
-Determine orientation from built data</p>
+<p>List of BoxSelector objects</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2ViolinLayerProcessor-determine_orientation"></a><div class="section">
 <h3 id="ggplot-violinlayerprocessor-determine-orientation-"><code>Ggplot2ViolinLayerProcessor$determine_orientation()</code><a class="anchor" aria-label="anchor" href="#ggplot-violinlayerprocessor-determine-orientation-"></a></h3>
-<p></p><div class="section">
+<p>Determine orientation from built data</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2ViolinLayerProcessor</span><span class="op">$</span><span class="fu">determine_orientation</span><span class="op">(</span><span class="va">built</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>

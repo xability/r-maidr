@@ -4,58 +4,6 @@ This class orchestrates the detection and processing of multiple layers
 in a ggplot2 object. It analyzes each layer individually and combines
 the results into a comprehensive interactive plot.
 
-## Public fields
-
-- `plot`:
-
-  The ggplot2 object being processed
-
-- `layers`:
-
-  List of detected layer information
-
-- `layer_processors`:
-
-  List of layer-specific processors
-
-- `combined_data`:
-
-  Combined data from all layers
-
-- `combined_selectors`:
-
-  Combined selectors from all layers
-
-- `layout`:
-
-  Layout information from the plot
-
-## Active bindings
-
-- `plot`:
-
-  The ggplot2 object being processed
-
-- `layers`:
-
-  List of detected layer information
-
-- `layer_processors`:
-
-  List of layer-specific processors
-
-- `combined_data`:
-
-  Combined data from all layers
-
-- `combined_selectors`:
-
-  Combined selectors from all layers
-
-- `layout`:
-
-  Layout information from the plot
-
 ## Methods
 
 ### Public methods
@@ -115,12 +63,6 @@ the results into a comprehensive interactive plot.
 #### Usage
 
     Ggplot2PlotOrchestrator$new(plot)
-
-#### Arguments
-
-- `plot`:
-
-  The ggplot2 object being processed
 
 ------------------------------------------------------------------------
 

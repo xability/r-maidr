@@ -654,21 +654,20 @@ same reason.</p><div class="section">
 </div><p></p><div class="section">
 <h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>node</code></dt>
-<dd><p>A grob
-The name test is a guard rather than a live branch, and is kept as
+<dd><p>A grob</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
+<p>The name test is a guard rather than a live branch, and is kept as
 one deliberately. Measured across every geom that draws segments –
 boxplot, violin, errorbar, crossbar, pointrange, linerange, step, a
 reference line – <strong>none</strong> produces a gTree whose children are all
 segments, so today the class test alone decides and dropping the name
 test changes no reading. <code>test-ggplot2-rug.R</code> pins that measurement,
 so the ggplot2 release that ends it turns a test red rather than
-leaving this silently load-bearing.</p></dd>
-
-      <dt><code>node</code></dt>
-<dd><p>A grob</p></dd>
-
-
-</dl><p></p></div>
+leaving this silently load-bearing.</p>
 </div><p></p><div class="section">
 <h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>TRUE when it is a <code>GRID.gTree</code> of nothing but segments</p>

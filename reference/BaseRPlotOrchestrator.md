@@ -4,58 +4,6 @@ This class orchestrates the detection and processing of multiple layers
 in Base R plots. It analyzes each recorded plot call individually and
 combines the results into a comprehensive interactive plot.
 
-## Public fields
-
-- `plot_calls`:
-
-  List of recorded Base R plot calls
-
-- `layers`:
-
-  List of detected layer information
-
-- `layer_processors`:
-
-  List of layer-specific processors
-
-- `combined_data`:
-
-  Combined data from all layers
-
-- `combined_selectors`:
-
-  Combined selectors from all layers
-
-- `layout`:
-
-  Layout information from the plot
-
-## Active bindings
-
-- `plot_calls`:
-
-  List of recorded Base R plot calls
-
-- `layers`:
-
-  List of detected layer information
-
-- `layer_processors`:
-
-  List of layer-specific processors
-
-- `combined_data`:
-
-  Combined data from all layers
-
-- `combined_selectors`:
-
-  Combined selectors from all layers
-
-- `layout`:
-
-  Layout information from the plot
-
 ## Methods
 
 ### Public methods

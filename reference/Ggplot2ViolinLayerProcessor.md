@@ -113,15 +113,16 @@ Inject geom_boxplot into the plot for visual box + selectors
 
 #### Returns
 
-Augmented ggplot2 object with boxplot layer added Process the violin
-layer
-
-Returns a list with `multi_layer = TRUE` and two maidr layers:
-violin_box (with BoxSelector objects) and violin_kde.
+Augmented ggplot2 object with boxplot layer added
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$process()`
+
+Process the violin layer
+
+Returns a list with `multi_layer = TRUE` and two maidr layers:
+violin_box (with BoxSelector objects) and violin_kde.
 
 #### Usage
 
@@ -167,15 +168,16 @@ violin_box (with BoxSelector objects) and violin_kde.
 
 #### Returns
 
-List with multi_layer flag and layers, or NULL for facet panels Extract
-box-summary statistics per violin group
-
-Computes min, Q1, median, Q3, max from the original data (since
-geom_violin only stores the KDE curve, not quartiles).
+List with multi_layer flag and layers, or NULL for facet panels
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$extract_box_data()`
+
+Extract box-summary statistics per violin group
+
+Computes min, Q1, median, Q3, max from the original data (since
+geom_violin only stores the KDE curve, not quartiles).
 
 #### Usage
 
@@ -193,8 +195,13 @@ geom_violin only stores the KDE curve, not quartiles).
 
 #### Returns
 
-List of BoxPoint objects (one per violin) Extract KDE density-curve data
-per violin group
+List of BoxPoint objects (one per violin)
+
+------------------------------------------------------------------------
+
+### `Ggplot2ViolinLayerProcessor$extract_kde_data()`
+
+Extract KDE density-curve data per violin group
 
 Uses ggplot2's built violin data (violinwidth, x, y, width columns) to
 compute left/right violin edges, applies RDP simplification to ~30
@@ -202,10 +209,6 @@ points per violin, and includes the `width` field needed by the maidr
 frontend. The `svg_x`/`svg_y` coordinates are injected later by
 [`create_enhanced_svg()`](https://r.maidr.ai/reference/create_enhanced_svg.md)
 after the grid device is drawn.
-
-------------------------------------------------------------------------
-
-### `Ggplot2ViolinLayerProcessor$extract_kde_data()`
 
 #### Usage
 
@@ -227,15 +230,16 @@ after the grid device is drawn.
 
 #### Returns
 
-List of lists (ViolinKdePoint\[\]\[\]) Simplify a single violin's KDE
-curve using RDP
-
-Uses ggplot2's built violin data columns (y, violinwidth, x, width) to
-compute the left/right edges, then applies RDP simplification.
+List of lists (ViolinKdePoint\[\]\[\])
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$simplify_violin_kde()`
+
+Simplify a single violin's KDE curve using RDP
+
+Uses ggplot2's built violin data columns (y, violinwidth, x, width) to
+compute the left/right edges, then applies RDP simplification.
 
 #### Usage
 
@@ -266,13 +270,13 @@ compute the left/right edges, then applies RDP simplification.
 
 #### Returns
 
-List of ViolinKdePoint dicts with data_left_x/data_right_x/data_y Not
-used directly - required by base class interface Generate CSS selectors
-for violin polygons (for violin_kde layer)
+List of ViolinKdePoint dicts with data_left_x/data_right_x/data_y
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$extract_data()`
+
+Not used directly - required by base class interface
 
 #### Usage
 
@@ -291,6 +295,8 @@ for violin polygons (for violin_kde layer)
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$generate_selectors()`
+
+Generate CSS selectors for violin polygons (for violin_kde layer)
 
 #### Usage
 
@@ -321,16 +327,17 @@ for violin polygons (for violin_kde layer)
 
 #### Returns
 
-List of CSS selector strings (one per violin) Generate BoxSelector
-objects for the injected boxplot grobs
-
-Walks the gtable to find geom_boxplot grobs and produces a BoxSelector
-list (one per violin) with CSS selectors for min, iq, q2, max,
-lowerOutliers, upperOutliers.
+List of CSS selector strings (one per violin)
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$generate_box_selectors()`
+
+Generate BoxSelector objects for the injected boxplot grobs
+
+Walks the gtable to find geom_boxplot grobs and produces a BoxSelector
+list (one per violin) with CSS selectors for min, iq, q2, max,
+lowerOutliers, upperOutliers.
 
 #### Usage
 
@@ -361,11 +368,13 @@ lowerOutliers, upperOutliers.
 
 #### Returns
 
-List of BoxSelector objects Determine orientation from built data
+List of BoxSelector objects
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$determine_orientation()`
+
+Determine orientation from built data
 
 #### Usage
 

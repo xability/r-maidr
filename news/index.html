@@ -268,7 +268,7 @@
 </ul></div>
 <div class="section level3">
 <h3 id="documentation-development-version">Documentation<a class="anchor" aria-label="anchor" href="#documentation-development-version"></a></h3>
-<ul><li>Help pages render the roxygen markdown they were written in, the internal R6 reference pages no longer carry stray keyword entries, and <code>R CMD check</code> no longer NOTEs “Lost braces” in four of them.</li>
+<ul><li>Help pages render the roxygen markdown they were written in, the internal R6 reference pages no longer carry stray keyword entries, and <code>R CMD check</code> no longer NOTEs “Lost braces” in four of them. Ten method descriptions on <code>SystemAdapter</code> and <code>Ggplot2ViolinLayerProcessor</code> that had been glued onto the previous method’s section have their own, and <code>find_graphics_plot_grob</code> has its own title rather than its file’s. The test suite now rejects the three roxygen layouts that produce such pages, and <code>tools/document.R</code> regenerates <code>man/</code> with the pinned roxygen2 release.</li>
 <li>The README lists every roadmap-added layer type under “Experimental Plot Types”, the examples gallery has a worked example for each Base R and ggplot2 chart, and <code>use_cdn</code> is documented as it behaves: <code><a href="../reference/show.html">show()</a></code> and <code><a href="../reference/save_html.html">save_html()</a></code> use the bundled files by default (with a <code>lib/</code> folder beside the saved file), while widgets, knitr and Shiny auto-detect the CDN.</li>
 <li>The getting-started vignette tells Quarto <code>revealjs</code> authors how to keep off-slide charts out of the tab order.</li>
 </ul></div>

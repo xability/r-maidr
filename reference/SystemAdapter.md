@@ -40,12 +40,13 @@ Initialize the adapter
 
 - `system_name`:
 
-  Name of the plotting system Abstract method to check if this adapter
-  can handle a plot object
+  Name of the plotting system
 
 ------------------------------------------------------------------------
 
 ### `SystemAdapter$can_handle()`
+
+Abstract method to check if this adapter can handle a plot object
 
 #### Usage
 
@@ -59,12 +60,13 @@ Initialize the adapter
 
 #### Returns
 
-TRUE if this adapter can handle the object, FALSE otherwise Abstract
-method to create an orchestrator for this system
+TRUE if this adapter can handle the object, FALSE otherwise
 
 ------------------------------------------------------------------------
 
 ### `SystemAdapter$create_orchestrator()`
+
+Abstract method to create an orchestrator for this system
 
 #### Usage
 

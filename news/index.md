@@ -593,7 +593,13 @@
 
 - Help pages render the roxygen markdown they were written in, the
   internal R6 reference pages no longer carry stray keyword entries, and
-  `R CMD check` no longer NOTEs “Lost braces” in four of them.
+  `R CMD check` no longer NOTEs “Lost braces” in four of them. Ten
+  method descriptions on `SystemAdapter` and
+  `Ggplot2ViolinLayerProcessor` that had been glued onto the previous
+  method’s section have their own, and `find_graphics_plot_grob` has its
+  own title rather than its file’s. The test suite now rejects the three
+  roxygen layouts that produce such pages, and `tools/document.R`
+  regenerates `man/` with the pinned roxygen2 release.
 - The README lists every roadmap-added layer type under “Experimental
   Plot Types”, the examples gallery has a worked example for each Base R
   and ggplot2 chart, and `use_cdn` is documented as it behaves:

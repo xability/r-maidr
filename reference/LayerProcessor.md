@@ -9,10 +9,6 @@ interface that all layer processors must implement.
 
   Information about the layer
 
-- `layer_info`:
-
-  Information about the layer
-
 ## Methods
 
 ### Public methods
