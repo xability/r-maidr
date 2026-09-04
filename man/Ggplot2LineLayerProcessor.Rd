@@ -524,6 +524,16 @@ from the same Date column align string-wise.
     \preformatted{Ggplot2LineLayerProcessor$format_x_value(x)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{The value to format}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector
+  }
 }
 
 \if{html}{\out{<hr>}}

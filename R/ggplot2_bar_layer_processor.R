@@ -7,6 +7,15 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
   "Ggplot2BarLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its bars, selectors and orientation from the built plot
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -96,9 +105,16 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       }
       plot
     },
+    #' @description Whether the plot data must be reordered before drawing, so the emitted order
+    #'   matches the drawn rects
+    #' @return TRUE
     needs_reordering = function() {
       TRUE
     },
+    #' @description Reorder the plot data by category so the emitted rows match the drawn rects
+    #' @param data The data frame ggplot2 will draw from
+    #' @param plot The ggplot2 object
+    #' @return The reordered data frame
     reorder_layer_data = function(data, plot) {
       # Sorted by the *category*, which is the y mapping on a flipped layer.
       # Sorting by x there ordered the rows by the measure, so the emitted
@@ -120,6 +136,11 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
         data
       }
     },
+    #' @description One point per bar, read from the built plot
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return List of points
     extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
@@ -288,6 +309,8 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
     #' default scale-tick labels ("Jan 02"). All other types use
     #' `as.character()`. Mirrors `Ggplot2CandlestickProcessor$format_x_value()`
     #' so candle and bar layers from the same Date column align string-wise.
+    #' @param x The value to format
+    #' @return Character vector
     format_x_value = function(x) {
       if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
         return(format(x))
@@ -390,6 +413,12 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       x_values
     },
 
+    #' @description Selectors for the layer's rects
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List of selectors
     generate_selectors = function(plot, gt = NULL, grob_id = NULL, panel_ctx = NULL) {
       # Prefer panel-scoped selection when panel_ctx is provided
       if (!is.null(panel_ctx) && !is.null(gt)) {

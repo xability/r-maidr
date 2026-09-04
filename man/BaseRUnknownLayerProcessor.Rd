@@ -48,6 +48,7 @@ Processes unknown Base R layer types as a fallback
 \if{html}{\out{<a id="method-BaseRUnknownLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRUnknownLayerProcessor-process}{}}}
 \subsection{\code{BaseRUnknownLayerProcessor$process()}}{
+  Describe a layer nothing is known about
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRUnknownLayerProcessor$process(
@@ -65,14 +66,19 @@ Processes unknown Base R layer types as a fallback
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with no data and no selectors
   }
 }
 
@@ -80,10 +86,15 @@ Processes unknown Base R layer types as a fallback
 \if{html}{\out{<a id="method-BaseRUnknownLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRUnknownLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRUnknownLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRUnknownLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 
@@ -91,10 +102,21 @@ Processes unknown Base R layer types as a fallback
 \if{html}{\out{<a id="method-BaseRUnknownLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRUnknownLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRUnknownLayerProcessor$extract_data()}}{
+  Nothing: an unknown layer has no data to announce
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRUnknownLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Empty list
   }
 }
 
@@ -102,10 +124,21 @@ Processes unknown Base R layer types as a fallback
 \if{html}{\out{<a id="method-BaseRUnknownLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRUnknownLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRUnknownLayerProcessor$generate_selectors()}}{
+  Nothing: an unknown layer has no elements to address
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRUnknownLayerProcessor$generate_selectors(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Empty list
   }
 }
 

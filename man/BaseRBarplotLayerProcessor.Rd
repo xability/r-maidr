@@ -53,6 +53,8 @@ Processes Base R bar plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-process}{}}}
 \subsection{\code{BaseRBarplotLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBarplotLayerProcessor$process(
@@ -70,14 +72,19 @@ Processes Base R bar plot layers based on recorded plot calls
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -107,10 +114,15 @@ Processes Base R bar plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRBarplotLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBarplotLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 
@@ -118,10 +130,21 @@ Processes Base R bar plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRBarplotLayerProcessor$extract_data()}}{
+  One point per bar, read from the recorded \code{height}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBarplotLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points
   }
 }
 
@@ -129,10 +152,27 @@ Processes Base R bar plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRBarplotLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+\code{barplot()} writes no title of its own, so an author who wrote none
+leaves both axes nameless. A bar chart always plots categories against
+their measured heights, whether or not the heights arrived named, so
+that is what the defaults say. \code{horiz = TRUE} puts the heights on the
+visual x axis -- the same swap extract_data() applies to the points.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBarplotLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -140,10 +180,21 @@ Processes Base R bar plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRBarplotLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBarplotLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -151,6 +202,7 @@ Processes Base R bar plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRBarplotLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBarplotLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRBarplotLayerProcessor$generate_selectors()}}{
+  Generate the CSS selectors that address this layer's drawn elements
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBarplotLayerProcessor$generate_selectors(layer_info, gt = NULL)}
@@ -159,9 +211,13 @@ Processes Base R bar plot layers based on recorded plot calls
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

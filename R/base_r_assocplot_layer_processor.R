@@ -70,6 +70,9 @@ BaseRAssocplotLayerProcessor <- R6::R6Class(
         domMapping = list(order = "row")
       )
     },
+    #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
+    #'   from the recorded call and never is
+    #' @return FALSE
     needs_reordering = function() {
       FALSE
     },

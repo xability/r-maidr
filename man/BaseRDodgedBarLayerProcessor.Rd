@@ -52,6 +52,8 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-process}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$process(
@@ -66,12 +68,16 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -79,10 +85,21 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$extract_data()}}{
+  One series per row of the recorded height matrix
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 
@@ -90,6 +107,7 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$generate_selectors()}}{
+  The selector for the bars, scoped to this layer's plot group
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$generate_selectors(layer_info, gt = NULL)}
@@ -98,9 +116,13 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -108,10 +130,22 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-find_rect_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-find_rect_grobs}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$find_rect_grobs()}}{
+  Find the rect grobs drawn by the recorded call at \code{call_index}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$find_rect_grobs(grob, call_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
   }
 }
 
@@ -119,10 +153,22 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-generate_selectors_from_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-generate_selectors_from_grob}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$generate_selectors_from_grob()}}{
+  Build this layer's selector from the grob tree
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$generate_selectors_from_grob(grob, call_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A selector string, or an empty string when no grob matches
   }
 }
 
@@ -130,10 +176,26 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+Same shape as the stacked processor: \code{barplot(beside = TRUE)} writes no
+title, its points carry the column category on x and the bar height on
+y, and the group each bar belongs to travels with the point as z rather
+than as a named axis.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -141,10 +203,21 @@ Processes Base R dodged bar plot layers with proper ordering to match backend lo
 \if{html}{\out{<a id="method-BaseRDodgedBarLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRDodgedBarLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRDodgedBarLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRDodgedBarLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 

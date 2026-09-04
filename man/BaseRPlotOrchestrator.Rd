@@ -44,9 +44,17 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-initialize"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-initialize}{}}}
 \subsection{\code{BaseRPlotOrchestrator$new()}}{
+  Create an orchestrator for the calls recorded on a device
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$new(device_id = grDevices::dev.cur())}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{device_id}}{Graphics device ID}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -55,6 +63,8 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-detect_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-detect_layers}{}}}
 \subsection{\code{BaseRPlotOrchestrator$detect_layers()}}{
+  Turn each recorded plot group into layer entries: one for its HIGH-level call
+and one per LOW-level overlay
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$detect_layers()}
@@ -66,6 +76,7 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-analyze_single_layer"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-analyze_single_layer}{}}}
 \subsection{\code{BaseRPlotOrchestrator$analyze_single_layer()}}{
+  Describe one recorded call as a layer entry with its detected type
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$analyze_single_layer(
@@ -75,12 +86,25 @@ the results into a comprehensive interactive plot.
 )}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot_call}}{The recorded call}
+      \item{\code{layer_index}}{Index of the layer}
+      \item{\code{group}}{The recorded plot group holding the HIGH-level call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Layer information list
+  }
 }
 
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-create_layer_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-create_layer_processors}{}}}
 \subsection{\code{BaseRPlotOrchestrator$create_layer_processors()}}{
+  Create a processor for every layer of a known type
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$create_layer_processors()}
@@ -92,10 +116,21 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-create_layer_processor"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-create_layer_processor}{}}}
 \subsection{\code{BaseRPlotOrchestrator$create_layer_processor()}}{
+  Create the processor for one layer
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$create_layer_processor(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A layer processor, or NULL for an unknown type
   }
 }
 
@@ -125,6 +160,7 @@ the results into a comprehensive interactive plot.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-process_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-process_layers}{}}}
 \subsection{\code{BaseRPlotOrchestrator$process_layers()}}{
+  Run every layer processor and combine the results
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$process_layers()}
@@ -154,10 +190,15 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-extract_layout"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-extract_layout}{}}}
 \subsection{\code{BaseRPlotOrchestrator$extract_layout()}}{
+  Read the figure-level title, subtitle and axis labels from the recorded
+HIGH-level calls
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$extract_layout()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -165,9 +206,17 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-combine_layer_results"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-combine_layer_results}{}}}
 \subsection{\code{BaseRPlotOrchestrator$combine_layer_results()}}{
+  Combine the per-layer results into the subplot grid
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$combine_layer_results(layer_results)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_results}}{List of per-layer results, one per processor}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -176,10 +225,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-generate_maidr_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-generate_maidr_data}{}}}
 \subsection{\code{BaseRPlotOrchestrator$generate_maidr_data()}}{
+  Assemble the MAIDR data object for the figure
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$generate_maidr_data()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with an id and the subplots
   }
 }
 
@@ -187,10 +240,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_layout"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_layout}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_layout()}}{
+  The figure-level layout read by \code{extract_layout()}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_layout()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -198,10 +255,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_combined_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_combined_data}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_combined_data()}}{
+  The combined per-layer data
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_combined_data()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -209,10 +270,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_layer_processors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_layer_processors}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_layer_processors()}}{
+  The processors created for the layers
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_layer_processors()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -220,10 +285,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_layers"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_layers}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_layers()}}{
+  The detected layer entries
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_layers()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -231,10 +300,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_plot_calls"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_plot_calls}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_plot_calls()}}{
+  The recorded plot calls
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_plot_calls()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -242,10 +315,14 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_gtable"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_gtable}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_gtable()}}{
+  The gtable of the replayed drawing, built once and cached
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_gtable()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A gtable, or NULL when nothing was recorded
   }
 }
 
@@ -253,10 +330,21 @@ The wrapper stores .maidr_format_config when labels is a scales:: function.
 \if{html}{\out{<a id="method-BaseRPlotOrchestrator-get_grob_for_layer"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-get_grob_for_layer}{}}}
 \subsection{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}{
+  The grob a layer's processor searches for its selectors
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$get_grob_for_layer(layer_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_index}}{Index of the layer}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A grob, or NULL
   }
 }
 

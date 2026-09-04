@@ -46,6 +46,9 @@ BaseRMosaicLayerProcessor <- R6::R6Class(
         axes = self$extract_axis_titles(layer_info)
       )
     },
+    #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
+    #'   from the recorded call and never is
+    #' @return FALSE
     needs_reordering = function() {
       FALSE
     },

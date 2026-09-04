@@ -205,6 +205,17 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
     \preformatted{Ggplot2CandlestickProcessor$resolve_col(mapping_expr, data)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{mapping_expr}}{A mapping quosure}
+      \item{\code{data}}{The data frame to resolve the column in}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The column name, or NULL when the mapping names no column of \code{data}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -217,6 +228,16 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
     \preformatted{Ggplot2CandlestickProcessor$format_x_value(x)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{The value to format}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -227,6 +248,13 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2CandlestickProcessor$get_effective_mapping(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
     \if{html}{\out{</div>}}
   }
 }
@@ -241,6 +269,13 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
     \preformatted{Ggplot2CandlestickProcessor$get_original_data(plot)}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
 \if{html}{\out{<hr>}}
@@ -252,6 +287,16 @@ Here we additionally fall back to \code{plot$mapping$x} and synthesize a
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2CandlestickProcessor$count_candles(plot)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Integer, 0 when there is no data
   }
 }
 
@@ -288,6 +333,17 @@ for a single plot, where the panel is the cell literally named "panel"}
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2CandlestickProcessor$find_first_child_name(grob, pattern)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{pattern}}{Regular expression the grob name must match}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The matching grob name, or NULL
   }
 }
 

@@ -52,6 +52,7 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2HeatmapLayerProcessor$process()}}{
+  Process the layer: read its tiles, selectors and axis names from the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HeatmapLayerProcessor$process(
@@ -73,9 +74,13 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -83,10 +88,15 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-needs_reordering}{}}}
 \subsection{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing, so the emitted order
+matches the drawn tiles
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HeatmapLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE
   }
 }
 
@@ -94,6 +104,7 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{}}}
 \subsection{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}{
+  Reorder the plot data row-wise so the emitted cells match the drawn tiles
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HeatmapLayerProcessor$reorder_layer_data(data, plot)}
@@ -102,10 +113,13 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{data}}{data.frame effective for this layer}
-      \item{\code{plot}}{full ggplot object (for mappings)}
+      \item{\code{data}}{The data frame ggplot2 will draw from}
+      \item{\code{plot}}{The ggplot2 object}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The reordered data frame
   }
 }
 
@@ -239,6 +253,7 @@ which is still a coordinate rather than an index.
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2HeatmapLayerProcessor$extract_data()}}{
+  One row per tile plus the fill label, read from the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HeatmapLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)}
@@ -249,8 +264,12 @@ which is still a coordinate rather than an index.
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List
   }
 }
 
@@ -258,6 +277,7 @@ which is still a coordinate rather than an index.
 \if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2HeatmapLayerProcessor$generate_selectors()}}{
+  Selectors for the tiles, scoped to the panel
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2HeatmapLayerProcessor$generate_selectors(
@@ -275,6 +295,9 @@ which is still a coordinate rather than an index.
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

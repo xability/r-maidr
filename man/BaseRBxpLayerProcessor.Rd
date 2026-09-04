@@ -84,10 +84,36 @@ for \code{boxplot()}.
 \if{html}{\out{<a id="method-BaseRBxpLayerProcessor-read_stats"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRBxpLayerProcessor-read_stats}{}}}
 \subsection{\code{BaseRBxpLayerProcessor$read_stats()}}{
+  The summaries \code{bxp()} was handed
+
+\code{bxp()}'s first formal is \code{z}, and it draws nothing without a numeric
+\code{z$stats} with five rows -- so a recorded call that reached this
+package has one. It is still checked rather than assumed: a shape that
+does not answer leaves the layer empty and the figure falls back to the
+picture it already was, where reaching past it would raise out of
+\code{process()} with nothing to catch it.
+
+The positional half looks for the first \emph{unnamed} argument rather than
+for slot 1. \code{match_recorded_args()} keeps the author's order and leaves
+only the dispatch argument unnamed, wherever it was written, so
+\code{bxp(horizontal = TRUE, z)} records \code{z} in slot 2 -- a call R itself
+accepts and draws. Reading slot 1 there hands \code{TRUE} to the check below
+and leaves the layer empty. \code{resolve_xy_args()} resolves a positional
+argument the same way, for the same reason. Raised in review of #265.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRBxpLayerProcessor$read_stats(args)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The \code{boxplot.stats}-shaped list, or NULL when it is not one
   }
 }
 

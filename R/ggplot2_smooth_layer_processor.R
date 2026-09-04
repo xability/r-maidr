@@ -7,6 +7,15 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
   "Ggplot2SmoothLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its curves, selectors and axes from the built plot
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -332,6 +341,14 @@ Ggplot2SmoothLayerProcessor <- R6::R6Class(
     # the empty panel highlighted panel 1's fitted line. Emit nothing
     # instead: the caller can tell an empty selector list apart from a
     # wrong one, a user cannot.
+    #' @description The selector for the polyline this layer drew, or none when it cannot be found
+    #'   (see the note above)
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @param built Built plot data (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return List of selectors
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL,
                                   built = NULL, panel_id = NULL) {
       if (is.null(gt)) {

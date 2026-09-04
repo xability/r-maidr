@@ -53,6 +53,8 @@ Processes Base R heatmap layers using the heatmap() function
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-process}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$process(
@@ -70,14 +72,19 @@ Processes Base R heatmap layers using the heatmap() function
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -85,10 +92,21 @@ Processes Base R heatmap layers using the heatmap() function
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$extract_data()}}{
+  One row per cell of the recorded matrix, in drawn order
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of rows
   }
 }
 
@@ -118,6 +136,7 @@ Processes Base R heatmap layers using the heatmap() function
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$generate_selectors()}}{
+  Selectors for the image tiles, one per cell
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$generate_selectors(
@@ -130,9 +149,14 @@ Processes Base R heatmap layers using the heatmap() function
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
+      \item{\code{extracted_data}}{The data already extracted for this layer (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -140,10 +164,22 @@ Processes Base R heatmap layers using the heatmap() function
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-find_image_rect_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-find_image_rect_grobs}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$find_image_rect_grobs()}}{
+  Find the image-rect grobs drawn by the plot group at \code{group_index}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$find_image_rect_grobs(grob, group_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{group_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
   }
 }
 
@@ -151,6 +187,7 @@ Processes Base R heatmap layers using the heatmap() function
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-generate_selectors_from_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-generate_selectors_from_grob}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$generate_selectors_from_grob()}}{
+  Build this layer's selector from the grob tree
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$generate_selectors_from_grob(
@@ -159,16 +196,44 @@ Processes Base R heatmap layers using the heatmap() function
 )}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{group_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A selector string, or an empty string when no grob matches
+  }
 }
 
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+\code{heatmap()} lays the matrix out one way round only -- its columns run
+along x and its rows up y -- so those two words are facts about the
+call. \code{image()} is not the same picture: it draws a coordinate grid,
+and \code{image(x, y, z)} puts the caller's own coordinates on those axes,
+so naming them after a matrix would be a guess. It gets no default.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -176,10 +241,21 @@ Processes Base R heatmap layers using the heatmap() function
 \if{html}{\out{<a id="method-BaseRHeatmapLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHeatmapLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRHeatmapLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHeatmapLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 

@@ -49,6 +49,8 @@ Processes stacked bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-process}{}}}
 \subsection{\code{Ggplot2StackedBarProcessor$process()}}{
+  Process the layer: read its series, selectors and the fill legend title from
+the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2StackedBarProcessor$process(
@@ -70,9 +72,13 @@ Processes stacked bar plot layers with complete logic included
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -80,10 +86,15 @@ Processes stacked bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-needs_reordering}{}}}
 \subsection{\code{Ggplot2StackedBarProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing, so the emitted order
+matches the drawn rects
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2StackedBarProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE
   }
 }
 
@@ -91,6 +102,8 @@ Processes stacked bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-reorder_layer_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-reorder_layer_data}{}}}
 \subsection{\code{Ggplot2StackedBarProcessor$reorder_layer_data()}}{
+  Reorder the plot data by category and fill so the emitted rows match the drawn
+rects
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2StackedBarProcessor$reorder_layer_data(data, plot)}
@@ -99,10 +112,13 @@ Processes stacked bar plot layers with complete logic included
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{data}}{data.frame effective for this layer}
-      \item{\code{plot}}{full ggplot object (for mappings)}
+      \item{\code{data}}{The data frame ggplot2 will draw from}
+      \item{\code{plot}}{The ggplot2 object}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The reordered data frame
   }
 }
 
@@ -110,10 +126,21 @@ Processes stacked bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-extract_plot_columns"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-extract_plot_columns}{}}}
 \subsection{\code{Ggplot2StackedBarProcessor$extract_plot_columns()}}{
+  The column names the plot maps to x, y and fill
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2StackedBarProcessor$extract_plot_columns(plot)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List with \code{category_col}, \code{value_col} and \code{fill_col}
   }
 }
 
@@ -121,6 +148,7 @@ Processes stacked bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-extract_data}{}}}
 \subsection{\code{Ggplot2StackedBarProcessor$extract_data()}}{
+  One series per fill level, restricted to the panel's rows under faceting
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2StackedBarProcessor$extract_data(
@@ -136,8 +164,13 @@ Processes stacked bar plot layers with complete logic included
     \describe{
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 
@@ -145,6 +178,8 @@ Processes stacked bar plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2StackedBarProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2StackedBarProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2StackedBarProcessor$generate_selectors()}}{
+  One flat selector matching every rect in the layer, which is the contract the
+frontend expects (see the note above)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2StackedBarProcessor$generate_selectors(
@@ -162,6 +197,9 @@ Processes stacked bar plot layers with complete logic included
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List holding one selector
   }
 }
 

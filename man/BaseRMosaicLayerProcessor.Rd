@@ -102,10 +102,15 @@ the counts, the margins they imply, and the level names from \code{dimnames()}.
 \if{html}{\out{<a id="method-BaseRMosaicLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRMosaicLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRMosaicLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRMosaicLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 

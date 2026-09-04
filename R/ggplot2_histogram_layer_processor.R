@@ -7,6 +7,15 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class(
   "Ggplot2HistogramLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its bins, selectors and orientation from the built plot
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -60,6 +69,11 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class(
       layer_data <- built$data[[layer_index]]
       if (isTRUE(layer_data$flipped_aes[1])) "horz" else "vert"
     },
+    #' @description One point per bin, read from this layer's own built data
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return List of points
     extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
@@ -90,6 +104,11 @@ Ggplot2HistogramLayerProcessor <- R6::R6Class(
         )
       })
     },
+    #' @description Selectors for the bins, scoped to the panel
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List of selectors
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       if (is.null(gt)) {
         return(list())

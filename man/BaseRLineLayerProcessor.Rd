@@ -60,6 +60,8 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-process}{}}}
 \subsection{\code{BaseRLineLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$process(
@@ -77,14 +79,19 @@ Processes Base R line plot layers based on recorded plot calls
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -92,10 +99,15 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRLineLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 
@@ -103,10 +115,22 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRLineLayerProcessor$extract_data()}}{
+  One series per line: a vector, each column of a matrix, a time series, or the
+endpoints of \code{abline()}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 
@@ -137,10 +161,23 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_single_line_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_single_line_data}{}}}
 \subsection{\code{BaseRLineLayerProcessor$extract_single_line_data()}}{
+  The points of one line, pairing each x with its y
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$extract_single_line_data(x, y, x_labels = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{x positions}
+      \item{\code{y}}{y values}
+      \item{\code{x_labels}}{Category labels to announce in place of the x positions (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List holding one series
   }
 }
 
@@ -148,10 +185,23 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_multiline_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_multiline_data}{}}}
 \subsection{\code{BaseRLineLayerProcessor$extract_multiline_data()}}{
+  One series per column of \code{y_matrix}, named after the columns
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$extract_multiline_data(x, y_matrix, x_labels = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{x}}{x positions}
+      \item{\code{y_matrix}}{One column of y values per series}
+      \item{\code{x_labels}}{Category labels to announce in place of the x positions (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 
@@ -159,10 +209,22 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRLineLayerProcessor$extract_axis_titles()}}{
+  The axis titles, taken from the HIGH-level call for an overlay such as
+\code{abline()}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -170,10 +232,21 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_abline_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_abline_data}{}}}
 \subsection{\code{BaseRLineLayerProcessor$extract_abline_data()}}{
+  The endpoints of an \code{abline()} call across the axis the HIGH-level call set up
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$extract_abline_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List holding one two-point series, or empty
   }
 }
 
@@ -181,10 +254,21 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_x_range_from_group"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_x_range_from_group}{}}}
 \subsection{\code{BaseRLineLayerProcessor$get_x_range_from_group()}}{
+  The x extent of the group's HIGH-level call, as the axis was drawn
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$get_x_range_from_group(group)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{group}}{The recorded plot group holding the HIGH-level call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Numeric vector of two, or NULL
   }
 }
 
@@ -192,10 +276,21 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-get_y_range_from_group"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-get_y_range_from_group}{}}}
 \subsection{\code{BaseRLineLayerProcessor$get_y_range_from_group()}}{
+  The y extent of the group's HIGH-level call, as the axis was drawn
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$get_y_range_from_group(group)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{group}}{The recorded plot group holding the HIGH-level call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Numeric vector of two, or NULL
   }
 }
 
@@ -203,10 +298,24 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-axis_extent"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-axis_extent}{}}}
 \subsection{\code{BaseRLineLayerProcessor$axis_extent()}}{
+  The extent of an axis the way \code{plot.default()} sets it: an explicit
+\code{xlim}/\code{ylim}, or the finite data extended by 4 \% each way, which is
+what \code{abline()} draws its clipped line across.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$axis_extent(limits, data)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{limits}}{An explicit \code{xlim}/\code{ylim}, or NULL}
+      \item{\code{data}}{The plotted values on that axis}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Numeric vector of two, or NULL when nothing finite was plotted
   }
 }
 
@@ -214,10 +323,21 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRLineLayerProcessor$extract_main_title()}}{
+  The main title, taken from the HIGH-level call for \code{abline()}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -225,6 +345,7 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRLineLayerProcessor$generate_selectors()}}{
+  One selector per polyline, in series order
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$generate_selectors(layer_info, gt = NULL)}
@@ -233,9 +354,13 @@ Processes Base R line plot layers based on recorded plot calls
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -243,6 +368,7 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-find_lines_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-find_lines_grobs}{}}}
 \subsection{\code{BaseRLineLayerProcessor$find_lines_grobs()}}{
+  Find every grob of the given family drawn by the plot group at \code{group_index}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$find_lines_grobs(
@@ -252,16 +378,42 @@ Processes Base R line plot layers based on recorded plot calls
 )}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{group_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+      \item{\code{grob_type}}{The grob family to match: "lines", "abline", "segments", "spike" or "step"}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
+  }
 }
 
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-selector_grob_type"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-selector_grob_type}{}}}
 \subsection{\code{BaseRLineLayerProcessor$selector_grob_type()}}{
+  Which family of grob names this layer's selectors are drawn from:
+"abline", "lines", "segments", "spike" or "step". Overridden by
+subclasses whose geometry lands under a different grob name (see
+BaseRStepLayerProcessor).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$selector_grob_type(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "abline" or "lines"
   }
 }
 
@@ -269,6 +421,7 @@ Processes Base R line plot layers based on recorded plot calls
 \if{html}{\out{<a id="method-BaseRLineLayerProcessor-generate_selectors_from_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRLineLayerProcessor-generate_selectors_from_grob}{}}}
 \subsection{\code{BaseRLineLayerProcessor$generate_selectors_from_grob()}}{
+  One selector per matching polyline, sorted by the grob number
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRLineLayerProcessor$generate_selectors_from_grob(
@@ -277,6 +430,18 @@ Processes Base R line plot layers based on recorded plot calls
   layer_info
 )}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{group_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

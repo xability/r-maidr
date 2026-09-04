@@ -7,6 +7,17 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
   "BaseRBarplotLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its data, selectors, axis titles and main title from
+    #'   the recorded call
+    #' @param plot Unused; present for the processor interface
+    #' @param layout Unused; present for the processor interface
+    #' @param built Unused; present for the processor interface
+    #' @param gt Gtable of the replayed drawing, searched for selectors (optional)
+    #' @param grob_id Unused; present for the processor interface
+    #' @param panel_id Unused; present for the processor interface
+    #' @param panel_ctx Unused; present for the processor interface
+    #' @param layer_info Layer information with the recorded call
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -43,9 +54,15 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
     is_horizontal = function(layer_info) {
       self$is_horizontal_call(layer_info)
     },
+    #' @description Whether the plot data must be reordered before drawing; a Base R layer is read
+    #'   from the recorded call and never is
+    #' @return FALSE
     needs_reordering = function() {
       FALSE # Base R bar plots don't need reordering like ggplot2
     },
+    #' @description One point per bar, read from the recorded `height`
+    #' @param layer_info Layer information with the recorded call
+    #' @return List of points
     extract_data = function(layer_info) {
       if (is.null(layer_info)) {
         return(list())
@@ -103,22 +120,25 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
 
       data_points
     },
-    # Extract the axis titles for this layer
-    #
-    # `barplot()` writes no title of its own, so an author who wrote none
-    # leaves both axes nameless. A bar chart always plots categories against
-    # their measured heights, whether or not the heights arrived named, so
-    # that is what the defaults say. `horiz = TRUE` puts the heights on the
-    # visual x axis -- the same swap extract_data() applies to the points.
-    #
-    # @param layer_info Layer information
-    # @return Canonical axes list
+    #' @description Extract the axis titles for this layer
+    #'
+    #' `barplot()` writes no title of its own, so an author who wrote none
+    #' leaves both axes nameless. A bar chart always plots categories against
+    #' their measured heights, whether or not the heights arrived named, so
+    #' that is what the defaults say. `horiz = TRUE` puts the heights on the
+    #' visual x axis -- the same swap extract_data() applies to the points.
+    #'
+    #' @param layer_info Layer information
+    #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       base_r_categorical_axes(
         layer_info$plot_call$args,
         horizontal = self$is_horizontal(layer_info)
       )
     },
+    #' @description The main title of the recorded call, or an empty string
+    #' @param layer_info Layer information with the recorded call
+    #' @return Character string
     extract_main_title = function(layer_info) {
       if (is.null(layer_info)) {
         return("")
@@ -130,6 +150,10 @@ BaseRBarplotLayerProcessor <- R6::R6Class(
       main_title <- recorded_main_title(args)
       main_title
     },
+    #' @description Generate the CSS selectors that address this layer's drawn elements
+    #' @param layer_info Layer information with the recorded call
+    #' @param gt Gtable of the replayed drawing (optional)
+    #' @return List of selectors
     generate_selectors = function(layer_info, gt = NULL) {
       # For Base R plots converted with ggplotify, we generate selectors
       # using the same recursive approach as ggplot2

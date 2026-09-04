@@ -60,6 +60,7 @@ Processes smooth plot layers with complete logic included
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-process}{}}}
 \subsection{\code{Ggplot2SmoothLayerProcessor$process()}}{
+  Process the layer: read its curves, selectors and axes from the built plot
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2SmoothLayerProcessor$process(
@@ -81,9 +82,13 @@ Processes smooth plot layers with complete logic included
       \item{\code{built}}{Built plot data (optional)}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -346,6 +351,8 @@ can key on their presence instead of re-asking the stat per sample.
 \if{html}{\out{<a id="method-Ggplot2SmoothLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2SmoothLayerProcessor-generate_selectors}{}}}
 \subsection{\code{Ggplot2SmoothLayerProcessor$generate_selectors()}}{
+  The selector for the polyline this layer drew, or none when it cannot be found
+(see the note above)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2SmoothLayerProcessor$generate_selectors(
@@ -363,8 +370,13 @@ can key on their presence instead of re-asking the stat per sample.
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{gt}}{Gtable object (optional)}
       \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{built}}{Built plot data (optional)}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 

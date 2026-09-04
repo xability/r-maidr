@@ -20,10 +20,22 @@ Modular system for patching Base R plotting functions with chain of responsibili
 \if{html}{\out{<a id="method-BaseRPatcher-can_patch"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPatcher-can_patch}{}}}
 \subsection{\code{BaseRPatcher$can_patch()}}{
+  Abstract: whether this patcher applies to the call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPatcher$can_patch(function_name, args)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{function_name}}{Name of the plotting function}
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Logical
   }
 }
 
@@ -31,10 +43,22 @@ Modular system for patching Base R plotting functions with chain of responsibili
 \if{html}{\out{<a id="method-BaseRPatcher-apply_patch"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPatcher-apply_patch}{}}}
 \subsection{\code{BaseRPatcher$apply_patch()}}{
+  Abstract: the argument list with this patcher's change applied
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPatcher$apply_patch(function_name, args)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{function_name}}{Name of the plotting function}
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Argument list
   }
 }
 
@@ -42,6 +66,7 @@ Modular system for patching Base R plotting functions with chain of responsibili
 \if{html}{\out{<a id="method-BaseRPatcher-get_name"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRPatcher-get_name}{}}}
 \subsection{\code{BaseRPatcher$get_name()}}{
+  Get the patcher name for debugging
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPatcher$get_name()}

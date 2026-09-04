@@ -53,6 +53,8 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-process}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$process(
@@ -70,14 +72,19 @@ applied by the \code{SortingPatcher}.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
-      \item{\code{grob_id}}{Grob ID for faceted plots (optional)}
-      \item{\code{panel_ctx}}{Panel context for panel-scoped selector generation (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{grob_id}}{Unused; present for the processor interface}
+      \item{\code{panel_id}}{Unused; present for the processor interface}
+      \item{\code{panel_ctx}}{Unused; present for the processor interface}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -85,10 +92,15 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-needs_reordering"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-needs_reordering}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$needs_reordering()}}{
+  Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$needs_reordering()}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    FALSE
   }
 }
 
@@ -96,10 +108,21 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$extract_data()}}{
+  One series per row of the recorded height matrix
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of series
   }
 }
 
@@ -107,10 +130,27 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+A stacked \code{barplot()} records no title unless the author wrote one, and
+its points always carry the column category on x and the segment height
+on y, so the defaults name those two. The stack's own dimension is
+already announced per point as z; nothing in the call names the
+variable those groups came from, so no z title is claimed.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -118,10 +158,21 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
@@ -129,6 +180,7 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$generate_selectors()}}{
+  The selector for the segments, scoped to this layer's plot group
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$generate_selectors(
@@ -141,9 +193,14 @@ applied by the \code{SortingPatcher}.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
+      \item{\code{extracted_data}}{The data already extracted for this layer (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -151,10 +208,22 @@ applied by the \code{SortingPatcher}.
 \if{html}{\out{<a id="method-BaseRStackedBarLayerProcessor-find_rect_groups"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRStackedBarLayerProcessor-find_rect_groups}{}}}
 \subsection{\code{BaseRStackedBarLayerProcessor$find_rect_groups()}}{
+  Find every rect group drawn by the plot group at \code{call_index}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRStackedBarLayerProcessor$find_rect_groups(grob, call_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
   }
 }
 

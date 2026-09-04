@@ -7,6 +7,15 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
   "Ggplot2HeatmapLayerProcessor",
   inherit = LayerProcessor,
   public = list(
+    #' @description Process the layer: read its tiles, selectors and axis names from the built plot
+    #' @param plot The ggplot2 object
+    #' @param layout Layout information
+    #' @param built Built plot data (optional)
+    #' @param gt Gtable object (optional)
+    #' @param grob_id Grob ID for faceted plots (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List describing the layer for the MAIDR payload
     process = function(plot,
                        layout,
                        built = NULL,
@@ -41,9 +50,16 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         axes = axes
       )
     },
+    #' @description Whether the plot data must be reordered before drawing, so the emitted order
+    #'   matches the drawn tiles
+    #' @return TRUE
     needs_reordering = function() {
       TRUE
     },
+    #' @description Reorder the plot data row-wise so the emitted cells match the drawn tiles
+    #' @param data The data frame ggplot2 will draw from
+    #' @param plot The ggplot2 object
+    #' @return The reordered data frame
     reorder_layer_data = function(data, plot) {
       # Generic data reordering for heatmaps
       # Reorder data to match visual order (row-wise)
@@ -222,6 +238,11 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         paste0(self$format_bin_edge(lower), " to ", self$format_bin_edge(upper))
       }, character(1))
     },
+    #' @description One row per tile plus the fill label, read from the built plot
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data (optional)
+    #' @param panel_id Panel ID for faceted plots (optional)
+    #' @return List
     extract_data = function(plot, built = NULL, panel_id = NULL) {
       if (is.null(built)) {
         built <- ggplot2::ggplot_build(plot)
@@ -368,6 +389,11 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         fill_label = fill_col
       ))
     },
+    #' @description Selectors for the tiles, scoped to the panel
+    #' @param plot The ggplot2 object
+    #' @param gt Gtable object (optional)
+    #' @param panel_ctx Panel context for panel-scoped selector generation (optional)
+    #' @return List of selectors
     generate_selectors = function(plot, gt = NULL, panel_ctx = NULL) {
       selectors <- list()
 

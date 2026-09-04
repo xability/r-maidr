@@ -56,6 +56,8 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-process"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-process}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$process()}}{
+  Process the layer: read its data, selectors, axis titles and main title from
+the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$process(
@@ -70,12 +72,16 @@ and selector generation logic.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{plot}}{The ggplot2 object}
-      \item{\code{layout}}{Layout information}
-      \item{\code{built}}{Built plot data (optional)}
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{plot}}{Unused; present for the processor interface}
+      \item{\code{layout}}{Unused; present for the processor interface}
+      \item{\code{built}}{Unused; present for the processor interface}
+      \item{\code{gt}}{Gtable of the replayed drawing, searched for selectors (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List describing the layer for the MAIDR payload
   }
 }
 
@@ -83,10 +89,21 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_data"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_data}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$extract_data()}}{
+  One point per bin, from the histogram recomputed from the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$extract_data(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points
   }
 }
 
@@ -94,10 +111,21 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-recompute_histogram"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-recompute_histogram}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$recompute_histogram()}}{
+  Recompute the plotted histogram from the recorded call
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$recompute_histogram(args)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A "histogram" object, or NULL when the call recorded no data
   }
 }
 
@@ -105,10 +133,26 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-is_frequency"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-is_frequency}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$is_frequency()}}{
+  Is this a frequency histogram rather than a density one?
+
+The plotted y-axis shows counts only for frequency histograms; with
+freq = FALSE or probability = TRUE it shows densities. hist()'s own
+default is freq = TRUE only for equidistant breaks.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$is_frequency(args, hist_obj = NULL)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+      \item{\code{hist_obj}}{The recomputed histogram, or NULL when there is none}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Logical
   }
 }
 
@@ -116,6 +160,7 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-generate_selectors"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-generate_selectors}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$generate_selectors()}}{
+  The selector for the bins, scoped to this layer's plot group
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$generate_selectors(layer_info, gt = NULL)}
@@ -124,9 +169,13 @@ and selector generation logic.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{gt}}{Gtable object (optional)}
+      \item{\code{layer_info}}{Layer information with the recorded call}
+      \item{\code{gt}}{Gtable of the replayed drawing (optional)}
     }
     \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of selectors
   }
 }
 
@@ -134,10 +183,22 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-find_rect_grobs"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-find_rect_grobs}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$find_rect_grobs()}}{
+  Find the rect grobs drawn by the recorded call at \code{call_index}
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$find_rect_grobs(grob, call_index)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of grob names
   }
 }
 
@@ -145,6 +206,7 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-generate_selectors_from_grob"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-generate_selectors_from_grob}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$generate_selectors_from_grob()}}{
+  Build this layer's selector from the grob tree
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$generate_selectors_from_grob(
@@ -153,16 +215,47 @@ and selector generation logic.
 )}
     \if{html}{\out{</div>}}
   }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grob}}{The grob tree to search}
+      \item{\code{call_index}}{Index of the recorded plot group, which numbers the panel's grobs}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A selector string, or an empty string when no grob matches
+  }
 }
 
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_axis_titles"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_axis_titles}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$extract_axis_titles()}}{
+  Extract the axis titles for this layer
+
+\code{hist()} derives both titles inside the call and so records neither:
+the x title is \code{deparse(substitute(x))}, which is gone by the time the
+evaluated arguments reach us, and the y title is "Frequency" or
+"Density" depending on what the bars measure. The y default therefore
+repeats hist()'s own choice -- resolved by the same rule that decides
+which values extract_data() emits, so the noun always names the number
+being announced -- while x says only what the axis certainly holds:
+the bins.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Canonical axes list
   }
 }
 
@@ -170,10 +263,21 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-frequency_label"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-frequency_label}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$frequency_label()}}{
+  The title hist() itself would print above the counted axis
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$frequency_label(args)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{args}}{Recorded argument list}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    "Frequency" or "Density"
   }
 }
 
@@ -181,10 +285,21 @@ and selector generation logic.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$extract_main_title()}}{
+  The main title of the recorded call, or an empty string
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$extract_main_title(layer_info)}
     \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information with the recorded call}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character string
   }
 }
 
