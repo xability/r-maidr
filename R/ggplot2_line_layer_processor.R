@@ -5,9 +5,6 @@
 #' - Lines: GRID.polyline.61.1.1, GRID.polyline.61.1.2, GRID.polyline.61.1.3
 #' - Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by series)
 #'
-#' @field layer_info Information about the layer being processed
-#' @field last_result The last processing result
-#'
 #' @keywords internal
 Ggplot2LineLayerProcessor <- R6::R6Class(
   "Ggplot2LineLayerProcessor",

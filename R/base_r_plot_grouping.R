@@ -5,7 +5,7 @@
 #' - Subsequent LOW-level calls are associated with the current plot group
 #' - LAYOUT calls affect multi-panel configuration
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Group Device Calls into Plot Units

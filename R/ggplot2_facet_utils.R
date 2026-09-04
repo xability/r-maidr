@@ -4,7 +4,7 @@
 #' These functions handle panel extraction, processing, and grid organization
 #' for faceted plots in a unified way.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Process a faceted plot and return organized subplot data

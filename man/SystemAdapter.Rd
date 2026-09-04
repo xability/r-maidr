@@ -41,8 +41,7 @@ have its own adapter implementation.
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
-      \item{\code{system_name}}{Name of the plotting system
-Abstract method to check if this adapter can handle a plot object}
+      \item{\code{system_name}}{Name of the plotting system}
     }
     \if{html}{\out{</div>}}
   }
@@ -52,6 +51,7 @@ Abstract method to check if this adapter can handle a plot object}
 \if{html}{\out{<a id="method-SystemAdapter-can_handle"></a>}}
 \if{latex}{\out{\hypertarget{method-SystemAdapter-can_handle}{}}}
 \subsection{\code{SystemAdapter$can_handle()}}{
+  Abstract method to check if this adapter can handle a plot object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{SystemAdapter$can_handle(plot_object)}
@@ -66,7 +66,6 @@ Abstract method to check if this adapter can handle a plot object}
   }
   \subsection{Returns}{
     TRUE if this adapter can handle the object, FALSE otherwise
-Abstract method to create an orchestrator for this system
   }
 }
 
@@ -74,6 +73,7 @@ Abstract method to create an orchestrator for this system
 \if{html}{\out{<a id="method-SystemAdapter-create_orchestrator"></a>}}
 \if{latex}{\out{\hypertarget{method-SystemAdapter-create_orchestrator}{}}}
 \subsection{\code{SystemAdapter$create_orchestrator()}}{
+  Abstract method to create an orchestrator for this system
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{SystemAdapter$create_orchestrator(plot_object)}

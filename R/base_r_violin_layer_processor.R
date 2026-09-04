@@ -1,19 +1,3 @@
-#' Base R Violin Layer Processor
-#'
-#' @description
-#' Reads a `vioplot::vioplot()` call as the `violin_box` + `violin_kde` layer
-#' pair, matching what the ggplot2 adapter produces for `geom_violin()`. Which
-#' plotting system a user chose should not decide whether their chart is
-#' accessible.
-#'
-#' `vioplot()` returns its box summary but not the density curve it drew, so
-#' both are recovered by replaying the call vioplot makes internally --- see
-#' [compute_vioplot_stats()], which records why that is a transcription rather
-#' than an approximation.
-#'
-#' @keywords internal
-NULL
-
 #' Grobs vioplot draws, one of each per violin
 #'
 #' Measured by echoing a two-group call through `gridGraphics::grid.echo()`:
@@ -64,6 +48,20 @@ vioplot_grob_selector <- function(element, id) {
   paste0(element, "[id^='", id, ".1']")
 }
 
+#' Base R Violin Layer Processor
+#'
+#' @description
+#' Reads a `vioplot::vioplot()` call as the `violin_box` + `violin_kde` layer
+#' pair, matching what the ggplot2 adapter produces for `geom_violin()`. Which
+#' plotting system a user chose should not decide whether their chart is
+#' accessible.
+#'
+#' `vioplot()` returns its box summary but not the density curve it drew, so
+#' both are recovered by replaying the call vioplot makes internally --- see
+#' [compute_vioplot_stats()], which records why that is a transcription rather
+#' than an approximation.
+#'
+#' @keywords internal
 BaseRViolinLayerProcessor <- R6::R6Class(
   "BaseRViolinLayerProcessor",
   inherit = LayerProcessor,

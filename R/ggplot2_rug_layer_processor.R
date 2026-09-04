@@ -411,7 +411,7 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
     },
 
     #' @description Whether a grob is one rug layer's wrapper
-    #' @param node A grob
+    #' @details
     #'   The name test is a guard rather than a live branch, and is kept as
     #'   one deliberately. Measured across every geom that draws segments --
     #'   boxplot, violin, errorbar, crossbar, pointrange, linerange, step, a

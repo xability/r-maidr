@@ -81,9 +81,10 @@ jobs:
               echo "man/, NAMESPACE or DESCRIPTION does not match the roxygen"
               echo "comments in R/. Run:"
               echo
-              echo "    Rscript -e 'roxygen2::roxygenise()'"
+              echo "    Rscript tools/document.R"
               echo
-              echo "with roxygen2 ${{ steps.roxygen.outputs.version }} and commit the result."
+              echo "which regenerates with roxygen2 ${{ steps.roxygen.outputs.version }}, the"
+              echo "version that generated what is committed, and commit the result."
             } >&2
             exit 1
           fi

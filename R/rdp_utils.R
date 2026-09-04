@@ -6,7 +6,7 @@
 #'
 #' Ported from py-maidr (`maidr/util/rdp_utils.py`).
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Perpendicular distance from points to a line segment

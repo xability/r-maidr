@@ -6,6 +6,7 @@
 #' @importFrom grid grid.newpage grid.draw
 #' @importFrom gridSVG grid.export
 #' @importFrom stats setNames
+#' @noRd
 NULL
 
 # Counter for unique ID generation

@@ -33,7 +33,7 @@
 #'
 #' Both are asserted in `tests/testthat/test-vioplot-stats.R`.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' vioplot's default whisker reach, in interquartile ranges

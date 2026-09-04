@@ -4,6 +4,7 @@
 #' It provides the interface between MAIDR and Shiny applications.
 #'
 #' @importFrom shiny installExprFunction
+#' @noRd
 NULL
 
 #' MAIDR Output Container for Shiny UI

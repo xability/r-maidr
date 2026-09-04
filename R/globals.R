@@ -4,7 +4,8 @@
 #' "no visible binding for global variable" and "no visible global function
 #' definition" NOTEs during R CMD check.
 #'
-#' @keywords internal
+#' @noRd
+NULL
 
 # Suppress R CMD check NOTEs for R6 internal references
 if (getRversion() >= "2.15.1") {

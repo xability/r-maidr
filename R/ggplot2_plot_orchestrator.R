@@ -40,13 +40,6 @@ layers_that_drew_nothing <- function(plot) {
 #' in a ggplot2 object. It analyzes each layer individually and combines
 #' the results into a comprehensive interactive plot.
 #'
-#' @field plot The ggplot2 object being processed
-#' @field layers List of detected layer information
-#' @field layer_processors List of layer-specific processors
-#' @field combined_data Combined data from all layers
-#' @field combined_selectors Combined selectors from all layers
-#' @field layout Layout information from the plot
-#'
 #' @keywords internal
 Ggplot2PlotOrchestrator <- R6::R6Class(
   "Ggplot2PlotOrchestrator",

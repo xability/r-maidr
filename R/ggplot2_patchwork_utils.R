@@ -4,7 +4,7 @@
 #' These functions handle panel discovery, leaf extraction, and processing
 #' for patchwork plots in a unified way.
 #'
-#' @keywords internal
+#' @noRd
 NULL
 
 #' Process a patchwork plot and return organized subplot data
