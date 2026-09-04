@@ -19,21 +19,55 @@ responsibility pattern
 
 ### `BaseRPatcher$can_patch()`
 
+Abstract: whether this patcher applies to the call
+
 #### Usage
 
     BaseRPatcher$can_patch(function_name, args)
+
+#### Arguments
+
+- `function_name`:
+
+  Name of the plotting function
+
+- `args`:
+
+  Recorded argument list
+
+#### Returns
+
+Logical
 
 ------------------------------------------------------------------------
 
 ### `BaseRPatcher$apply_patch()`
 
+Abstract: the argument list with this patcher's change applied
+
 #### Usage
 
     BaseRPatcher$apply_patch(function_name, args)
 
+#### Arguments
+
+- `function_name`:
+
+  Name of the plotting function
+
+- `args`:
+
+  Recorded argument list
+
+#### Returns
+
+Argument list
+
 ------------------------------------------------------------------------
 
 ### `BaseRPatcher$get_name()`
+
+Get the patcher name for debugging
 
 #### Usage
 

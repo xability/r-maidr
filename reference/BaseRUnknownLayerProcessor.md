@@ -48,6 +48,8 @@ Inherited methods
 
 ### `BaseRUnknownLayerProcessor$process()`
 
+Describe a layer nothing is known about
+
 #### Usage
 
     BaseRUnknownLayerProcessor$process(
@@ -65,51 +67,94 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List with no data and no selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRUnknownLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRUnknownLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 
 ### `BaseRUnknownLayerProcessor$extract_data()`
 
+Nothing: an unknown layer has no data to announce
+
 #### Usage
 
     BaseRUnknownLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Empty list
 
 ------------------------------------------------------------------------
 
 ### `BaseRUnknownLayerProcessor$generate_selectors()`
 
+Nothing: an unknown layer has no elements to address
+
 #### Usage
 
     BaseRUnknownLayerProcessor$generate_selectors(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Empty list
 
 ------------------------------------------------------------------------
 

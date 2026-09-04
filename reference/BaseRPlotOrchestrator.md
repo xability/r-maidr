@@ -64,13 +64,24 @@ combines the results into a comprehensive interactive plot.
 
 ### `BaseRPlotOrchestrator$new()`
 
+Create an orchestrator for the calls recorded on a device
+
 #### Usage
 
     BaseRPlotOrchestrator$new(device_id = grDevices::dev.cur())
 
+#### Arguments
+
+- `device_id`:
+
+  Graphics device ID
+
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$detect_layers()`
+
+Turn each recorded plot group into layer entries: one for its HIGH-level
+call and one per LOW-level overlay
 
 #### Usage
 
@@ -80,6 +91,8 @@ combines the results into a comprehensive interactive plot.
 
 ### `BaseRPlotOrchestrator$analyze_single_layer()`
 
+Describe one recorded call as a layer entry with its detected type
+
 #### Usage
 
     BaseRPlotOrchestrator$analyze_single_layer(
@@ -88,9 +101,29 @@ combines the results into a comprehensive interactive plot.
       group = NULL
     )
 
+#### Arguments
+
+- `plot_call`:
+
+  The recorded call
+
+- `layer_index`:
+
+  Index of the layer
+
+- `group`:
+
+  The recorded plot group holding the HIGH-level call
+
+#### Returns
+
+Layer information list
+
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$create_layer_processors()`
+
+Create a processor for every layer of a known type
 
 #### Usage
 
@@ -100,9 +133,21 @@ combines the results into a comprehensive interactive plot.
 
 ### `BaseRPlotOrchestrator$create_layer_processor()`
 
+Create the processor for one layer
+
 #### Usage
 
     BaseRPlotOrchestrator$create_layer_processor(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+A layer processor, or NULL for an unknown type
 
 ------------------------------------------------------------------------
 
@@ -127,6 +172,8 @@ Layer processor instance
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$process_layers()`
+
+Run every layer processor and combine the results
 
 #### Usage
 
@@ -154,81 +201,150 @@ A list with x and/or y format configurations, or NULL
 
 ### `BaseRPlotOrchestrator$extract_layout()`
 
+Read the figure-level title, subtitle and axis labels from the recorded
+HIGH-level calls
+
 #### Usage
 
     BaseRPlotOrchestrator$extract_layout()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$combine_layer_results()`
 
+Combine the per-layer results into the subplot grid
+
 #### Usage
 
     BaseRPlotOrchestrator$combine_layer_results(layer_results)
+
+#### Arguments
+
+- `layer_results`:
+
+  List of per-layer results, one per processor
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$generate_maidr_data()`
 
+Assemble the MAIDR data object for the figure
+
 #### Usage
 
     BaseRPlotOrchestrator$generate_maidr_data()
+
+#### Returns
+
+List with an id and the subplots
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_layout()`
 
+The figure-level layout read by `extract_layout()`
+
 #### Usage
 
     BaseRPlotOrchestrator$get_layout()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_combined_data()`
 
+The combined per-layer data
+
 #### Usage
 
     BaseRPlotOrchestrator$get_combined_data()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_layer_processors()`
 
+The processors created for the layers
+
 #### Usage
 
     BaseRPlotOrchestrator$get_layer_processors()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_layers()`
 
+The detected layer entries
+
 #### Usage
 
     BaseRPlotOrchestrator$get_layers()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_plot_calls()`
 
+The recorded plot calls
+
 #### Usage
 
     BaseRPlotOrchestrator$get_plot_calls()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_gtable()`
 
+The gtable of the replayed drawing, built once and cached
+
 #### Usage
 
     BaseRPlotOrchestrator$get_gtable()
+
+#### Returns
+
+A gtable, or NULL when nothing was recorded
 
 ------------------------------------------------------------------------
 
 ### `BaseRPlotOrchestrator$get_grob_for_layer()`
 
+The grob a layer's processor searches for its selectors
+
 #### Usage
 
     BaseRPlotOrchestrator$get_grob_for_layer(layer_index)
+
+#### Arguments
+
+- `layer_index`:
+
+  Index of the layer
+
+#### Returns
+
+A grob, or NULL
 
 ------------------------------------------------------------------------
 

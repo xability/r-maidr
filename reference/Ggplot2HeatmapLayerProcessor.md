@@ -58,6 +58,9 @@ Inherited methods
 
 ### `Ggplot2HeatmapLayerProcessor$process()`
 
+Process the layer: read its tiles, selectors and axis names from the
+built plot
+
 #### Usage
 
     Ggplot2HeatmapLayerProcessor$process(
@@ -92,21 +95,39 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2HeatmapLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing, so the emitted
+order matches the drawn tiles
+
 #### Usage
 
     Ggplot2HeatmapLayerProcessor$needs_reordering()
 
+#### Returns
+
+TRUE
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2HeatmapLayerProcessor$reorder_layer_data()`
+
+Reorder the plot data row-wise so the emitted cells match the drawn
+tiles
 
 #### Usage
 
@@ -116,11 +137,15 @@ Inherited methods
 
 - `data`:
 
-  data.frame effective for this layer
+  The data frame ggplot2 will draw from
 
 - `plot`:
 
-  full ggplot object (for mappings)
+  The ggplot2 object
+
+#### Returns
+
+The reordered data frame
 
 ------------------------------------------------------------------------
 
@@ -251,6 +276,8 @@ Character labels, one per position, in the same order
 
 ### `Ggplot2HeatmapLayerProcessor$extract_data()`
 
+One row per tile plus the fill label, read from the built plot
+
 #### Usage
 
     Ggplot2HeatmapLayerProcessor$extract_data(plot, built = NULL, panel_id = NULL)
@@ -265,9 +292,19 @@ Character labels, one per position, in the same order
 
   Built plot data (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+List
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2HeatmapLayerProcessor$generate_selectors()`
+
+Selectors for the tiles, scoped to the panel
 
 #### Usage
 
@@ -290,6 +327,10 @@ Character labels, one per position, in the same order
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 

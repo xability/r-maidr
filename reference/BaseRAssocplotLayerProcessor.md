@@ -154,9 +154,16 @@ List with data, selectors, type, title and axes
 
 ### `BaseRAssocplotLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRAssocplotLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 

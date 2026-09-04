@@ -169,7 +169,7 @@
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-BaseRUnknownLayerProcessor-process"></a><div class="section">
 <h3 id="baserunknownlayerprocessor-process-"><code>BaseRUnknownLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#baserunknownlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Describe a layer nothing is known about</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRUnknownLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -184,52 +184,85 @@
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>layout</code></dt>
-<dd><p>Layout information</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<dd><p>Gtable of the replayed drawing, searched for selectors (optional)</p></dd>
 
       <dt><code>grob_id</code></dt>
-<dd><p>Grob ID for faceted plots (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>panel_ctx</code></dt>
-<dd><p>Panel context for panel-scoped selector generation (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
+
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List with no data and no selectors</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRUnknownLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="baserunknownlayerprocessor-needs-reordering-"><code>BaseRUnknownLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserunknownlayerprocessor-needs-reordering-"></a></h3>
-<p></p><div class="section">
+<p>Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRUnknownLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>FALSE</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRUnknownLayerProcessor-extract_data"></a><div class="section">
 <h3 id="baserunknownlayerprocessor-extract-data-"><code>BaseRUnknownLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserunknownlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>Nothing: an unknown layer has no data to announce</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRUnknownLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>Empty list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRUnknownLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserunknownlayerprocessor-generate-selectors-"><code>BaseRUnknownLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserunknownlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Nothing: an unknown layer has no elements to address</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRUnknownLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>Empty list</p>
 </div>
 
 </div>
@@ -240,7 +273,7 @@
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRUnknownLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

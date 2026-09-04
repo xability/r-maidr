@@ -72,6 +72,9 @@ Inherited methods
 
 ### `Ggplot2SmoothLayerProcessor$process()`
 
+Process the layer: read its curves, selectors and axes from the built
+plot
+
 #### Usage
 
     Ggplot2SmoothLayerProcessor$process(
@@ -106,9 +109,17 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
@@ -388,6 +399,9 @@ on their presence instead of re-asking the stat per sample.
 
 ### `Ggplot2SmoothLayerProcessor$generate_selectors()`
 
+The selector for the polyline this layer drew, or none when it cannot be
+found (see the note above)
+
 #### Usage
 
     Ggplot2SmoothLayerProcessor$generate_selectors(
@@ -411,6 +425,18 @@ on their presence instead of re-asking the stat per sample.
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+- `built`:
+
+  Built plot data (optional)
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 

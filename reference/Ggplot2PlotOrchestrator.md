@@ -60,13 +60,23 @@ the results into a comprehensive interactive plot.
 
 ### `Ggplot2PlotOrchestrator$new()`
 
+Create an orchestrator for a ggplot2 object
+
 #### Usage
 
     Ggplot2PlotOrchestrator$new(plot)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$detect_layers()`
+
+Turn each layer of the plot into a layer entry with its detected type
 
 #### Usage
 
@@ -118,21 +128,55 @@ NULL, invisibly. Rewrites `private$.layers` in place.
 
 ### `Ggplot2PlotOrchestrator$analyze_single_layer()`
 
+Describe one ggplot2 layer as a layer entry with its detected type
+
 #### Usage
 
     Ggplot2PlotOrchestrator$analyze_single_layer(layer, layer_index)
+
+#### Arguments
+
+- `layer`:
+
+  A ggplot2 layer object
+
+- `layer_index`:
+
+  Index of the layer
+
+#### Returns
+
+Layer information list
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$determine_layer_type()`
 
+The layer type the adapter detects for one layer of the plot
+
 #### Usage
 
     Ggplot2PlotOrchestrator$determine_layer_type(plot, layer_index)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `layer_index`:
+
+  Index of the layer
+
+#### Returns
+
+Character string
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$create_layer_processors()`
+
+Create a processor for every layer of a known type
 
 #### Usage
 
@@ -142,9 +186,21 @@ NULL, invisibly. Rewrites `private$.layers` in place.
 
 ### `Ggplot2PlotOrchestrator$create_layer_processor()`
 
+Create the processor for one layer
+
 #### Usage
 
     Ggplot2PlotOrchestrator$create_layer_processor(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+A layer processor, or NULL for an unknown type
 
 ------------------------------------------------------------------------
 
@@ -170,6 +226,8 @@ Layer processor instance
 
 ### `Ggplot2PlotOrchestrator$process_layers()`
 
+Run every layer processor and combine the results
+
 #### Usage
 
     Ggplot2PlotOrchestrator$process_layers()
@@ -178,65 +236,122 @@ Layer processor instance
 
 ### `Ggplot2PlotOrchestrator$extract_layout()`
 
+Read the figure-level title, subtitle, caption and axis labels from the
+built plot
+
 #### Usage
 
     Ggplot2PlotOrchestrator$extract_layout(built = NULL)
+
+#### Arguments
+
+- `built`:
+
+  Built plot data (optional)
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$combine_layer_results()`
 
+Combine the per-layer results into the subplot grid
+
 #### Usage
 
     Ggplot2PlotOrchestrator$combine_layer_results(layer_results)
+
+#### Arguments
+
+- `layer_results`:
+
+  List of per-layer results, one per processor
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$generate_maidr_data()`
 
+Assemble the MAIDR data object for the figure
+
 #### Usage
 
     Ggplot2PlotOrchestrator$generate_maidr_data()
+
+#### Returns
+
+List with an id and the subplots
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$get_gtable()`
 
+The gtable the plot was drawn to
+
 #### Usage
 
     Ggplot2PlotOrchestrator$get_gtable()
+
+#### Returns
+
+A gtable, or NULL before the layers are processed
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$get_layout()`
 
+The figure-level layout read by `extract_layout()`
+
 #### Usage
 
     Ggplot2PlotOrchestrator$get_layout()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$get_combined_data()`
 
+The combined per-layer data
+
 #### Usage
 
     Ggplot2PlotOrchestrator$get_combined_data()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$get_layer_processors()`
 
+The processors created for the layers
+
 #### Usage
 
     Ggplot2PlotOrchestrator$get_layer_processors()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2PlotOrchestrator$get_layers()`
 
+The detected layer entries
+
 #### Usage
 
     Ggplot2PlotOrchestrator$get_layers()
+
+#### Returns
+
+List
 
 ------------------------------------------------------------------------
 

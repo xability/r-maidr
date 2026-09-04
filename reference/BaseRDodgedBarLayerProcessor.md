@@ -56,6 +56,9 @@ Inherited methods
 
 ### `BaseRDodgedBarLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRDodgedBarLayerProcessor$process(
@@ -70,31 +73,53 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRDodgedBarLayerProcessor$extract_data()`
 
+One series per row of the recorded height matrix
+
 #### Usage
 
     BaseRDodgedBarLayerProcessor$extract_data(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of series
+
 ------------------------------------------------------------------------
 
 ### `BaseRDodgedBarLayerProcessor$generate_selectors()`
+
+The selector for the bars, scoped to this layer's plot group
 
 #### Usage
 
@@ -102,41 +127,110 @@ Inherited methods
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRDodgedBarLayerProcessor$find_rect_grobs()`
 
+Find the rect grobs drawn by the recorded call at `call_index`
+
 #### Usage
 
     BaseRDodgedBarLayerProcessor$find_rect_grobs(grob, call_index)
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+Character vector of grob names
 
 ------------------------------------------------------------------------
 
 ### `BaseRDodgedBarLayerProcessor$generate_selectors_from_grob()`
 
+Build this layer's selector from the grob tree
+
 #### Usage
 
     BaseRDodgedBarLayerProcessor$generate_selectors_from_grob(grob, call_index)
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+A selector string, or an empty string when no grob matches
 
 ------------------------------------------------------------------------
 
 ### `BaseRDodgedBarLayerProcessor$extract_axis_titles()`
 
+Extract the axis titles for this layer
+
+Same shape as the stacked processor: `barplot(beside = TRUE)` writes no
+title, its points carry the column category on x and the bar height on
+y, and the group each bar belongs to travels with the point as z rather
+than as a named axis.
+
 #### Usage
 
     BaseRDodgedBarLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRDodgedBarLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRDodgedBarLayerProcessor$extract_main_title(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
 
 ------------------------------------------------------------------------
 

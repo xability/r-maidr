@@ -86,6 +86,9 @@ Inherited methods
 
 ### `BaseRCandlestickLayerProcessor$process()`
 
+Process the layer: the candlestick layer, plus a volume bar layer when
+`addVo()` was requested
+
 #### Usage
 
     BaseRCandlestickLayerProcessor$process(
@@ -100,19 +103,27 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+A candlestick layer, or a multi-layer list with the volume bars
 
 ------------------------------------------------------------------------
 
@@ -124,6 +135,16 @@ Detect whether the chartSeries call requests addVo()
 
     BaseRCandlestickLayerProcessor$has_add_vo(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Logical
+
 ------------------------------------------------------------------------
 
 ### `BaseRCandlestickLayerProcessor$build_volume_layer()`
@@ -133,6 +154,20 @@ Build a "bar" layer carrying volume data
 #### Usage
 
     BaseRCandlestickLayerProcessor$build_volume_layer(layer_info, gt, candle_data)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+- `gt`:
+
+  Gtable of the replayed drawing (optional)
+
+- `candle_data`:
+
+  The candlestick data already extracted
 
 ------------------------------------------------------------------------
 
@@ -153,6 +188,24 @@ contract used by the Base R barplot processor.
       gt,
       n_bars
     )
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+- `gt`:
+
+  Gtable of the replayed drawing (optional)
+
+- `n_bars`:
+
+  Number of volume bars
+
+#### Returns
+
+List of selectors, one per volume bar
 
 ------------------------------------------------------------------------
 
@@ -242,17 +295,41 @@ located.
 
 ### `BaseRCandlestickLayerProcessor$extract_axis_titles()`
 
+The axis titles, defaulting to Date and Price
+
 #### Usage
 
     BaseRCandlestickLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRCandlestickLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRCandlestickLayerProcessor$extract_main_title(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
 
 ------------------------------------------------------------------------
 
@@ -264,6 +341,16 @@ Format a vector of x-axis index values to character
 
     BaseRCandlestickLayerProcessor$format_x_values(idx)
 
+#### Arguments
+
+- `idx`:
+
+  Integer x-axis positions
+
+#### Returns
+
+Character vector
+
 ------------------------------------------------------------------------
 
 ### `BaseRCandlestickLayerProcessor$collect_grob_names()`
@@ -273,6 +360,16 @@ Recursively collect all grob names in a grob tree
 #### Usage
 
     BaseRCandlestickLayerProcessor$collect_grob_names(g)
+
+#### Arguments
+
+- `g`:
+
+  A grob
+
+#### Returns
+
+Character vector of grob names
 
 ------------------------------------------------------------------------
 
@@ -284,6 +381,16 @@ Sort grob ids by trailing integer suffix
 
     BaseRCandlestickLayerProcessor$sort_ids(ids)
 
+#### Arguments
+
+- `ids`:
+
+  Grob ids
+
+#### Returns
+
+The ids in numeric order of their suffix
+
 ------------------------------------------------------------------------
 
 ### `BaseRCandlestickLayerProcessor$find_grob_by_name()`
@@ -293,6 +400,20 @@ Find the grob node whose name matches `id`
 #### Usage
 
     BaseRCandlestickLayerProcessor$find_grob_by_name(g, id)
+
+#### Arguments
+
+- `g`:
+
+  A grob
+
+- `id`:
+
+  The grob name to find
+
+#### Returns
+
+The grob, or NULL when no name matches
 
 ------------------------------------------------------------------------
 
@@ -304,6 +425,16 @@ Count the number of primitive coordinates a grob carries
 
     BaseRCandlestickLayerProcessor$grob_coord_count(g)
 
+#### Arguments
+
+- `g`:
+
+  A grob
+
+#### Returns
+
+Integer
+
 ------------------------------------------------------------------------
 
 ### `BaseRCandlestickLayerProcessor$pick_largest_child_group()`
@@ -313,6 +444,16 @@ Pick the rect-id whose grob has the most coordinates
 #### Usage
 
     BaseRCandlestickLayerProcessor$pick_largest_child_group(gt, ids)
+
+#### Arguments
+
+- `gt`:
+
+  Gtable of the replayed drawing (optional)
+
+- `ids`:
+
+  Grob ids
 
 ------------------------------------------------------------------------
 

@@ -175,7 +175,7 @@
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-Ggplot2BarLayerProcessor-process"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-process-"><code>Ggplot2BarLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the layer: read its bars, selectors and orientation from the built plot</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -203,11 +203,17 @@
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
 
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
       <dt><code>panel_ctx</code></dt>
 <dd><p>Panel context for panel-scoped selector generation (optional)</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List describing the layer for the MAIDR payload</p>
 </div>
 
 </div>
@@ -245,7 +251,7 @@ being driven from this same answer is for.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p><code>TRUE</code> when the category runs up the y axis.</p>
 </div>
 
@@ -274,7 +280,7 @@ never written.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>A copy whose plot-level and layer-level x/y mappings are swapped.</p>
 </div>
 
@@ -282,35 +288,42 @@ never written.</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2BarLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-needs-reordering-"><code>Ggplot2BarLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-needs-reordering-"></a></h3>
-<p></p><div class="section">
+<p>Whether the plot data must be reordered before drawing, so the emitted order
+matches the drawn rects</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>TRUE</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2BarLayerProcessor-reorder_layer_data"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-reorder-layer-data-"><code>Ggplot2BarLayerProcessor$reorder_layer_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-reorder-layer-data-"></a></h3>
-<p></p><div class="section">
+<p>Reorder the plot data by category so the emitted rows match the drawn rects</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">reorder_layer_data</span><span class="op">(</span><span class="va">data</span>, <span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>data</code></dt>
-<dd><p>data.frame effective for this layer</p></dd>
+<dd><p>The data frame ggplot2 will draw from</p></dd>
 
       <dt><code>plot</code></dt>
-<dd><p>full ggplot object (for mappings)</p></dd>
+<dd><p>The ggplot2 object</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>The reordered data frame</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2BarLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-extract-data-"><code>Ggplot2BarLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>One point per bar, read from the built plot</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -321,8 +334,14 @@ never written.</p><div class="section">
       <dt><code>built</code></dt>
 <dd><p>Built plot data (optional)</p></dd>
 
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>List of points</p>
 </div>
 
 </div>
@@ -337,6 +356,16 @@ default scale-tick labels ("Jan 02"). All other types use
 so candle and bar layers from the same Date column align string-wise.</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">format_x_value</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>x</code></dt>
+<dd><p>The value to format</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Character vector</p>
 </div>
 
 </div>
@@ -349,7 +378,7 @@ makes indexing the break labels with them legitimate.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">panel_x_is_discrete</span><span class="op">(</span><span class="va">panel_params</span>, <span class="va">x_pos</span>, <span class="va">panel_labels</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>panel_params</code></dt>
 <dd><p>This panel's entry from <code>built$layout$panel_params</code></p></dd>
 
@@ -362,7 +391,7 @@ makes indexing the break labels with them legitimate.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>TRUE for a discrete x scale</p>
 </div>
 
@@ -374,7 +403,7 @@ makes indexing the break labels with them legitimate.</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">map_discrete_x</span><span class="op">(</span><span class="va">x_pos</span>, <span class="va">panel_labels</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>x_pos</code></dt>
 <dd><p>Built x positions for this panel</p></dd>
 
@@ -384,7 +413,7 @@ makes indexing the break labels with them legitimate.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>Character vector of x labels</p>
 </div>
 
@@ -401,7 +430,7 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">map_continuous_x</span><span class="op">(</span><span class="va">x_pos</span>, <span class="va">plot</span>, <span class="va">layer_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>x_pos</code></dt>
 <dd><p>Built x positions for this panel</p></dd>
 
@@ -414,7 +443,7 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>Character vector of x labels</p>
 </div>
 
@@ -422,7 +451,7 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2BarLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-generate-selectors-"><code>Ggplot2BarLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Selectors for the layer's rects</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -431,7 +460,7 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 <span>  panel_ctx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -446,6 +475,9 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>List of selectors</p>
 </div>
 
 </div>
@@ -456,7 +488,7 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

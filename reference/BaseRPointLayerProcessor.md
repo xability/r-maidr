@@ -58,6 +58,9 @@ Inherited methods
 
 ### `BaseRPointLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRPointLayerProcessor$process(
@@ -75,87 +78,205 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRPointLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$extract_data()`
 
+One point per observation, from the recorded x and y or from the
+formula's model frame
+
 #### Usage
 
     BaseRPointLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of points
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$resolve_coordinates()`
 
+The x and y a recorded call plots, resolved as plot() resolves them.
+
+`plot(y ~ x, data = d)` carries a formula rather than two vectors, and
+its coordinates are the two columns of the model frame the recording
+kept (#254). Read from
+[`resolve_xy_args()`](https://r.maidr.ai/reference/resolve_xy_args.md)
+alone, the formula is a language object and the layer came out with no
+points at all – an interactive chart with nothing in it.
+
 #### Usage
 
     BaseRPointLayerProcessor$resolve_coordinates(plot_call)
+
+#### Arguments
+
+- `plot_call`:
+
+  The recorded call
+
+#### Returns
+
+A list with `x` and `y`, either of which may be NULL
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$formula_variables()`
 
+The two numeric variables of a recorded formula call, or NULL.
+
+Only a numeric pair is a scatter: `plot(y ~ f)` on a factor draws a box
+plot through `plot.factor()`, and a frame with more than one predictor
+draws something else again. Both are left as they were.
+
 #### Usage
 
     BaseRPointLayerProcessor$formula_variables(plot_call)
+
+#### Arguments
+
+- `plot_call`:
+
+  The recorded call
+
+#### Returns
+
+A list with `x`, `y`, `x_name`, `y_name`, or NULL
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$extract_axis_titles()`
 
+Extract axis information from Base R plot call
+
+Returns per-axis objects with an optional label and optional grid
+navigation fields (min, max, tickStep). Grid fields are derived from
+xlim/ylim args or data range, and tick intervals via pretty(). Every
+field is included only when extraction succeeds, and an axis that ends
+up with none of them is left out of the payload entirely.
+
 #### Usage
 
     BaseRPointLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with recorded plot call
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$extract_base_r_axis_grid_info()`
 
+Extract grid navigation info for a Base R axis
+
+Computes min, max from xlim/ylim or data range, and tickStep from
+pretty() tick positions. Returns NULL if extraction fails.
+
 #### Usage
 
     BaseRPointLayerProcessor$extract_base_r_axis_grid_info(data, lim = NULL)
+
+#### Arguments
+
+- `data`:
+
+  Numeric vector of data values
+
+- `lim`:
+
+  Optional axis limits (xlim or ylim)
+
+#### Returns
+
+List with min, max, tickStep or NULL
 
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRPointLayerProcessor$extract_main_title(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
+
 ------------------------------------------------------------------------
 
 ### `BaseRPointLayerProcessor$generate_selectors()`
+
+The selector for the points, scoped to this layer's plot group
 
 #### Usage
 
@@ -163,9 +284,17 @@ Inherited methods
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 

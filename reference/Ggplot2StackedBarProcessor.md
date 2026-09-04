@@ -51,6 +51,9 @@ Inherited methods
 
 ### `Ggplot2StackedBarProcessor$process()`
 
+Process the layer: read its series, selectors and the fill legend title
+from the built plot
+
 #### Usage
 
     Ggplot2StackedBarProcessor$process(
@@ -85,21 +88,39 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2StackedBarProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing, so the emitted
+order matches the drawn rects
+
 #### Usage
 
     Ggplot2StackedBarProcessor$needs_reordering()
 
+#### Returns
+
+TRUE
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2StackedBarProcessor$reorder_layer_data()`
+
+Reorder the plot data by category and fill so the emitted rows match the
+drawn rects
 
 #### Usage
 
@@ -109,23 +130,41 @@ Inherited methods
 
 - `data`:
 
-  data.frame effective for this layer
+  The data frame ggplot2 will draw from
 
 - `plot`:
 
-  full ggplot object (for mappings)
+  The ggplot2 object
+
+#### Returns
+
+The reordered data frame
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2StackedBarProcessor$extract_plot_columns()`
 
+The column names the plot maps to x, y and fill
+
 #### Usage
 
     Ggplot2StackedBarProcessor$extract_plot_columns(plot)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+List with `category_col`, `value_col` and `fill_col`
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2StackedBarProcessor$extract_data()`
+
+One series per fill level, restricted to the panel's rows under faceting
 
 #### Usage
 
@@ -146,9 +185,24 @@ Inherited methods
 
   Built plot data (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List of series
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2StackedBarProcessor$generate_selectors()`
+
+One flat selector matching every rect in the layer, which is the
+contract the frontend expects (see the note above)
 
 #### Usage
 
@@ -171,6 +225,10 @@ Inherited methods
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List holding one selector
 
 ------------------------------------------------------------------------
 

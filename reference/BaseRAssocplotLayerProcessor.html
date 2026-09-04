@@ -324,9 +324,13 @@ areas are shares of a total when they are a departure from an expectation.</p>
 
 <p></p><hr><a id="method-BaseRAssocplotLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="baserassocplotlayerprocessor-needs-reordering-"><code>BaseRAssocplotLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserassocplotlayerprocessor-needs-reordering-"></a></h3>
-<p></p><div class="section">
+<p>Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAssocplotLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>FALSE</p>
 </div>
 
 </div>
@@ -354,7 +358,7 @@ from an expectation of nothing being nothing.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>List with points, x and y, empty when there is no table</p>
 </div>
 
@@ -375,7 +379,7 @@ taken from the margins the same way <code><a href="base-r-wrappers.html">assocpl
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>A numeric matrix of the same shape</p>
 </div>
 
@@ -397,7 +401,7 @@ the function does.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>A 2-D table, or NULL</p>
 </div>
 
@@ -421,7 +425,7 @@ be told a level name where a number is.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>Canonical axes list</p>
 </div>
 
@@ -440,7 +444,7 @@ be told a level name where a number is.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>Character scalar, empty when the author wrote no title</p>
 </div>
 
@@ -472,7 +476,7 @@ cells need no picking out of the drawing the way a gantt's bars do.</p><div clas
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>List of selectors, one per cell</p>
 </div>
 

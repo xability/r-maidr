@@ -51,6 +51,9 @@ Inherited methods
 
 ### `Ggplot2DodgedBarLayerProcessor$process()`
 
+Process the layer: read its series, selectors and DOM mapping from the
+built plot
+
 #### Usage
 
     Ggplot2DodgedBarLayerProcessor$process(
@@ -85,17 +88,32 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2DodgedBarLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing, so the emitted
+order matches the drawn rects
+
 #### Usage
 
     Ggplot2DodgedBarLayerProcessor$needs_reordering()
+
+#### Returns
+
+TRUE
 
 ------------------------------------------------------------------------
 
@@ -131,6 +149,9 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 
 ### `Ggplot2DodgedBarLayerProcessor$reorder_layer_data()`
 
+Reorder the plot data by x and fill so each column's rects are drawn in
+the order the frontend walks them
+
 #### Usage
 
     Ggplot2DodgedBarLayerProcessor$reorder_layer_data(data, plot)
@@ -139,15 +160,22 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 
 - `data`:
 
-  data.frame effective for this layer
+  The data frame ggplot2 will draw from
 
 - `plot`:
 
-  full ggplot object (for mappings)
+  The ggplot2 object
+
+#### Returns
+
+The reordered data frame
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2DodgedBarLayerProcessor$extract_data()`
+
+One series per fill level, as a rectangular grid with a `0` for every
+missing bar
 
 #### Usage
 
@@ -167,9 +195,20 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 
   Built plot data (optional)
 
+- `panel_ctx`:
+
+  Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List of series
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2DodgedBarLayerProcessor$generate_selectors()`
+
+One flat selector matching every rect in the layer, which is the
+contract the frontend expects (see the note above)
 
 #### Usage
 
@@ -192,6 +231,10 @@ List with `x`, `y` and `fill` vectors (any may be NULL)
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List holding one selector
 
 ------------------------------------------------------------------------
 

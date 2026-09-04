@@ -169,7 +169,7 @@
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-Ggplot2UnknownLayerProcessor-process"></a><div class="section">
 <h3 id="ggplot-unknownlayerprocessor-process-"><code>Ggplot2UnknownLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#ggplot-unknownlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Describe a layer nothing is known about</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2UnknownLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -197,18 +197,24 @@
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
 
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
       <dt><code>panel_ctx</code></dt>
 <dd><p>Panel context for panel-scoped selector generation (optional)</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List with no data and no selectors</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2UnknownLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-unknownlayerprocessor-extract-data-"><code>Ggplot2UnknownLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-unknownlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>Nothing: an unknown layer has no data to announce</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2UnknownLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -221,13 +227,16 @@
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Empty list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2UnknownLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-unknownlayerprocessor-generate-selectors-"><code>Ggplot2UnknownLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-unknownlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Nothing: an unknown layer has no elements to address</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2UnknownLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -251,6 +260,9 @@
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>Empty list</p>
 </div>
 
 </div>

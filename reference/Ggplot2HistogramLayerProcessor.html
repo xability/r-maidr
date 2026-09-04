@@ -170,7 +170,7 @@
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-Ggplot2HistogramLayerProcessor-process"></a><div class="section">
 <h3 id="ggplot-histogramlayerprocessor-process-"><code>Ggplot2HistogramLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the layer: read its bins, selectors and orientation from the built plot</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -198,11 +198,17 @@
       <dt><code>grob_id</code></dt>
 <dd><p>Grob ID for faceted plots (optional)</p></dd>
 
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
       <dt><code>panel_ctx</code></dt>
 <dd><p>Panel context for panel-scoped selector generation (optional)</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List describing the layer for the MAIDR payload</p>
 </div>
 
 </div>
@@ -239,7 +245,7 @@ horizontal would swap a pair that is already the right way round.</p><div class=
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p><code>"horz"</code> or <code>"vert"</code>.</p>
 </div>
 
@@ -247,7 +253,7 @@ horizontal would swap a pair that is already the right way round.</p><div class=
 
 <p></p><hr><a id="method-Ggplot2HistogramLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-histogramlayerprocessor-extract-data-"><code>Ggplot2HistogramLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>One point per bin, read from this layer's own built data</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -262,15 +268,21 @@ horizontal would swap a pair that is already the right way round.</p><div class=
       <dt><code>built</code></dt>
 <dd><p>Built plot data (optional)</p></dd>
 
+      <dt><code>panel_id</code></dt>
+<dd><p>Panel ID for faceted plots (optional)</p></dd>
+
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>List of points</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2HistogramLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="ggplot-histogramlayerprocessor-generate-selectors-"><code>Ggplot2HistogramLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#ggplot-histogramlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Selectors for the bins, scoped to the panel</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2HistogramLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -290,6 +302,9 @@ horizontal would swap a pair that is already the right way round.</p><div class=
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>List of selectors</p>
 </div>
 
 </div>

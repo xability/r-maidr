@@ -380,6 +380,12 @@ Determine orientation from built data
 
     Ggplot2ViolinLayerProcessor$determine_orientation(built)
 
+#### Arguments
+
+- `built`:
+
+  Built plot data (optional)
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2ViolinLayerProcessor$get_effective_mapping()`

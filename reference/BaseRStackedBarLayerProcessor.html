@@ -178,7 +178,8 @@ applied by the <code>SortingPatcher</code>.</p>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-BaseRStackedBarLayerProcessor-process"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-process-"><code>BaseRStackedBarLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the layer: read its data, selectors, axis titles and main title from
+the recorded call</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -193,68 +194,116 @@ applied by the <code>SortingPatcher</code>.</p>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>layout</code></dt>
-<dd><p>Layout information</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<dd><p>Gtable of the replayed drawing, searched for selectors (optional)</p></dd>
 
       <dt><code>grob_id</code></dt>
-<dd><p>Grob ID for faceted plots (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>panel_ctx</code></dt>
-<dd><p>Panel context for panel-scoped selector generation (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
+
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List describing the layer for the MAIDR payload</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRStackedBarLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-needs-reordering-"><code>BaseRStackedBarLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-needs-reordering-"></a></h3>
-<p></p><div class="section">
+<p>Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>FALSE</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRStackedBarLayerProcessor-extract_data"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-extract-data-"><code>BaseRStackedBarLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>One series per row of the recorded height matrix</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>List of series</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRStackedBarLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-extract-axis-titles-"><code>BaseRStackedBarLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-extract-axis-titles-"></a></h3>
-<p></p><div class="section">
+<p>Extract the axis titles for this layer</p>
+<p>A stacked <code><a href="base-r-wrappers.html">barplot()</a></code> records no title unless the author wrote one, and
+its points always carry the column category on x and the segment height
+on y, so the defaults name those two. The stack's own dimension is
+already announced per point as z; nothing in the call names the
+variable those groups came from, so no z title is claimed.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>Canonical axes list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRStackedBarLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-extract-main-title-"><code>BaseRStackedBarLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-extract-main-title-"></a></h3>
-<p></p><div class="section">
+<p>The main title of the recorded call, or an empty string</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>Character string</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRStackedBarLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-generate-selectors-"><code>BaseRStackedBarLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>The selector for the segments, scoped to this layer's plot group</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">layer_info</span>,</span>
@@ -262,21 +311,43 @@ applied by the <code>SortingPatcher</code>.</p>
 <span>  extracted_data <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable of the replayed drawing (optional)</p></dd>
+
+      <dt><code>extracted_data</code></dt>
+<dd><p>The data already extracted for this layer (optional)</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>List of selectors</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRStackedBarLayerProcessor-find_rect_groups"></a><div class="section">
 <h3 id="baserstackedbarlayerprocessor-find-rect-groups-"><code>BaseRStackedBarLayerProcessor$find_rect_groups()</code><a class="anchor" aria-label="anchor" href="#baserstackedbarlayerprocessor-find-rect-groups-"></a></h3>
-<p></p><div class="section">
+<p>Find every rect group drawn by the plot group at <code>call_index</code></p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">find_rect_groups</span><span class="op">(</span><span class="va">grob</span>, <span class="va">call_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>The grob tree to search</p></dd>
+
+      <dt><code>call_index</code></dt>
+<dd><p>Index of the recorded plot group, which numbers the panel's grobs</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Character vector of grob names</p>
 </div>
 
 </div>
@@ -287,7 +358,7 @@ applied by the <code>SortingPatcher</code>.</p>
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRStackedBarLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

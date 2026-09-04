@@ -61,6 +61,9 @@ Inherited methods
 
 ### `BaseRSmoothLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRSmoothLayerProcessor$process(
@@ -78,39 +81,65 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRSmoothLayerProcessor$extract_data()`
 
+One point per fitted value of the smooth, density or curve
+
 #### Usage
 
     BaseRSmoothLayerProcessor$extract_data(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of points
+
 ------------------------------------------------------------------------
 
 ### `BaseRSmoothLayerProcessor$generate_selectors()`
+
+The selector for the curve's polyline
 
 #### Usage
 
@@ -118,41 +147,110 @@ Inherited methods
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRSmoothLayerProcessor$find_polyline_grobs()`
 
+Find the lines container grob for this layer
+
 #### Usage
 
     BaseRSmoothLayerProcessor$find_polyline_grobs(grob, call_index = NULL)
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+Grob name, or NULL
 
 ------------------------------------------------------------------------
 
 ### `BaseRSmoothLayerProcessor$generate_selectors_from_grob()`
 
+Build this layer's selector from the grob tree
+
 #### Usage
 
     BaseRSmoothLayerProcessor$generate_selectors_from_grob(grob, call_index = NULL)
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+A selector string, or an empty string when no grob matches
 
 ------------------------------------------------------------------------
 
 ### `BaseRSmoothLayerProcessor$extract_axis_titles()`
 
+Extract the axis titles for this layer
+
+The x axis holds whatever variable was smoothed, which the recorded
+arguments no longer name, so it carries no default. The y axis does when
+the curve came from [`density()`](https://rdrr.io/r/stats/density.html):
+that estimate is a density, and plot.density() prints exactly that word.
+
 #### Usage
 
     BaseRSmoothLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRSmoothLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRSmoothLayerProcessor$extract_main_title(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
 
 ------------------------------------------------------------------------
 

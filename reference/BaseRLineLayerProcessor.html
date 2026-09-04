@@ -181,7 +181,8 @@
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-BaseRLineLayerProcessor-process"></a><div class="section">
 <h3 id="baserlinelayerprocessor-process-"><code>BaseRLineLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the layer: read its data, selectors, axis titles and main title from
+the recorded call</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -196,43 +197,67 @@
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>layout</code></dt>
-<dd><p>Layout information</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<dd><p>Gtable of the replayed drawing, searched for selectors (optional)</p></dd>
 
       <dt><code>grob_id</code></dt>
-<dd><p>Grob ID for faceted plots (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>panel_ctx</code></dt>
-<dd><p>Panel context for panel-scoped selector generation (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
+
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List describing the layer for the MAIDR payload</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-needs_reordering"></a><div class="section">
 <h3 id="baserlinelayerprocessor-needs-reordering-"><code>BaseRLineLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-needs-reordering-"></a></h3>
-<p></p><div class="section">
+<p>Whether the plot data must be reordered before drawing; a Base R layer is read
+from the recorded call and never is</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>FALSE</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_data"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-data-"><code>BaseRLineLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>One series per line: a vector, each column of a matrix, a time series, or the
+endpoints of <code><a href="base-r-wrappers.html">abline()</a></code></p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>List of series</p>
 </div>
 
 </div>
@@ -243,7 +268,7 @@
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">get_axis_labels</span><span class="op">(</span><span class="va">layer_info</span>, axis_side <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information containing group data</p></dd>
 
@@ -253,7 +278,7 @@
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>Character vector of labels or NULL if not found</p>
 </div>
 
@@ -261,123 +286,272 @@
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_single_line_data"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-single-line-data-"><code>BaseRLineLayerProcessor$extract_single_line_data()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-single-line-data-"></a></h3>
-<p></p><div class="section">
+<p>The points of one line, pairing each x with its y</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_single_line_data</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, x_labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>x</code></dt>
+<dd><p>x positions</p></dd>
+
+      <dt><code>y</code></dt>
+<dd><p>y values</p></dd>
+
+      <dt><code>x_labels</code></dt>
+<dd><p>Category labels to announce in place of the x positions (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>List holding one series</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_multiline_data"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-multiline-data-"><code>BaseRLineLayerProcessor$extract_multiline_data()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-multiline-data-"></a></h3>
-<p></p><div class="section">
+<p>One series per column of <code>y_matrix</code>, named after the columns</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_multiline_data</span><span class="op">(</span><span class="va">x</span>, <span class="va">y_matrix</span>, x_labels <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>x</code></dt>
+<dd><p>x positions</p></dd>
+
+      <dt><code>y_matrix</code></dt>
+<dd><p>One column of y values per series</p></dd>
+
+      <dt><code>x_labels</code></dt>
+<dd><p>Category labels to announce in place of the x positions (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>List of series</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-axis-titles-"><code>BaseRLineLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-axis-titles-"></a></h3>
-<p></p><div class="section">
+<p>The axis titles, taken from the HIGH-level call for an overlay such as
+<code><a href="base-r-wrappers.html">abline()</a></code></p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Canonical axes list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_abline_data"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-abline-data-"><code>BaseRLineLayerProcessor$extract_abline_data()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-abline-data-"></a></h3>
-<p></p><div class="section">
+<p>The endpoints of an <code><a href="base-r-wrappers.html">abline()</a></code> call across the axis the HIGH-level call set up</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_abline_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>List holding one two-point series, or empty</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-get_x_range_from_group"></a><div class="section">
 <h3 id="baserlinelayerprocessor-get-x-range-from-group-"><code>BaseRLineLayerProcessor$get_x_range_from_group()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-get-x-range-from-group-"></a></h3>
-<p></p><div class="section">
+<p>The x extent of the group's HIGH-level call, as the axis was drawn</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">get_x_range_from_group</span><span class="op">(</span><span class="va">group</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>group</code></dt>
+<dd><p>The recorded plot group holding the HIGH-level call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>Numeric vector of two, or NULL</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-get_y_range_from_group"></a><div class="section">
 <h3 id="baserlinelayerprocessor-get-y-range-from-group-"><code>BaseRLineLayerProcessor$get_y_range_from_group()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-get-y-range-from-group-"></a></h3>
-<p></p><div class="section">
+<p>The y extent of the group's HIGH-level call, as the axis was drawn</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">get_y_range_from_group</span><span class="op">(</span><span class="va">group</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>group</code></dt>
+<dd><p>The recorded plot group holding the HIGH-level call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>Numeric vector of two, or NULL</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-axis_extent"></a><div class="section">
 <h3 id="baserlinelayerprocessor-axis-extent-"><code>BaseRLineLayerProcessor$axis_extent()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-axis-extent-"></a></h3>
-<p></p><div class="section">
+<p>The extent of an axis the way <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot.default()</a></code> sets it: an explicit
+<code>xlim</code>/<code>ylim</code>, or the finite data extended by 4 % each way, which is
+what <code><a href="base-r-wrappers.html">abline()</a></code> draws its clipped line across.</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">axis_extent</span><span class="op">(</span><span class="va">limits</span>, <span class="va">data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>limits</code></dt>
+<dd><p>An explicit <code>xlim</code>/<code>ylim</code>, or NULL</p></dd>
+
+      <dt><code>data</code></dt>
+<dd><p>The plotted values on that axis</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>Numeric vector of two, or NULL when nothing finite was plotted</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="baserlinelayerprocessor-extract-main-title-"><code>BaseRLineLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-extract-main-title-"></a></h3>
-<p></p><div class="section">
+<p>The main title, taken from the HIGH-level call for <code><a href="base-r-wrappers.html">abline()</a></code></p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>Character string</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserlinelayerprocessor-generate-selectors-"><code>BaseRLineLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>One selector per polyline, in series order</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">layer_info</span>, gt <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable of the replayed drawing (optional)</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>List of selectors</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-find_lines_grobs"></a><div class="section">
 <h3 id="baserlinelayerprocessor-find-lines-grobs-"><code>BaseRLineLayerProcessor$find_lines_grobs()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-find-lines-grobs-"></a></h3>
-<p></p><div class="section">
+<p>Find every grob of the given family drawn by the plot group at <code>group_index</code></p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">find_lines_grobs</span><span class="op">(</span></span>
 <span>  <span class="va">grob</span>,</span>
 <span>  <span class="va">group_index</span>,</span>
 <span>  grob_type <span class="op">=</span> <span class="st">"lines"</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>The grob tree to search</p></dd>
+
+      <dt><code>group_index</code></dt>
+<dd><p>Index of the recorded plot group, which numbers the panel's grobs</p></dd>
+
+      <dt><code>grob_type</code></dt>
+<dd><p>The grob family to match: "lines", "abline", "segments", "spike" or "step"</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<p>Character vector of grob names</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-selector_grob_type"></a><div class="section">
 <h3 id="baserlinelayerprocessor-selector-grob-type-"><code>BaseRLineLayerProcessor$selector_grob_type()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-selector-grob-type-"></a></h3>
-<p></p><div class="section">
+<p>Which family of grob names this layer's selectors are drawn from:
+"abline", "lines", "segments", "spike" or "step". Overridden by
+subclasses whose geometry lands under a different grob name (see
+BaseRStepLayerProcessor).</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">selector_grob_type</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<p>"abline" or "lines"</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRLineLayerProcessor-generate_selectors_from_grob"></a><div class="section">
 <h3 id="baserlinelayerprocessor-generate-selectors-from-grob-"><code>BaseRLineLayerProcessor$generate_selectors_from_grob()</code><a class="anchor" aria-label="anchor" href="#baserlinelayerprocessor-generate-selectors-from-grob-"></a></h3>
-<p></p><div class="section">
+<p>One selector per matching polyline, sorted by the grob number</p><div class="section">
 <h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors_from_grob</span><span class="op">(</span></span>
 <span>  <span class="va">grob</span>,</span>
 <span>  <span class="va">group_index</span>,</span>
 <span>  <span class="va">layer_info</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>grob</code></dt>
+<dd><p>The grob tree to search</p></dd>
+
+      <dt><code>group_index</code></dt>
+<dd><p>Index of the recorded plot group, which numbers the panel's grobs</p></dd>
+
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<p>List of selectors</p>
 </div>
 
 </div>
@@ -388,7 +562,7 @@
 <h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRLineLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

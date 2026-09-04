@@ -177,7 +177,8 @@ and generating selectors for boxplot components.</p>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-BaseRBoxplotLayerProcessor-process"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-process-"><code>BaseRBoxplotLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the layer: read its data, selectors, axis titles and main title from
+the recorded call</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -189,44 +190,81 @@ and generating selectors for boxplot components.</p>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>layout</code></dt>
-<dd><p>Layout information</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<dd><p>Gtable of the replayed drawing, searched for selectors (optional)</p></dd>
+
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>List describing the layer for the MAIDR payload</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-read_stats"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-read-stats-"><code>BaseRBoxplotLayerProcessor$read_stats()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-read-stats-"></a></h3>
-<p></p><div class="section">
+<p>The five-number summaries the drawn boxes came from</p>
+<p>A <code><a href="base-r-wrappers.html">boxplot()</a></code> call carries the <em>observations</em>, so the summaries have to
+be recomputed from them – which <code>boxplot(plot = FALSE)</code> does, using
+the same code path the drawing did, rather than a reimplementation of
+it here. <code><a href="https://rdrr.io/r/graphics/boxplot.html" class="external-link">graphics::boxplot</a></code> is named directly so the replay does not
+go back through maidr's own wrapper and record a second call.</p>
+<p>Overridable because <code><a href="base-r-wrappers.html">bxp()</a></code> is handed the summaries already computed
+and draws exactly the same marks from them: everything below this
+method – the outlier grouping, the polygon and segment indices, the
+shift each box with no outliers puts on the ones after it – is the
+same reading either way, and only where the summaries come from
+differs (#262).</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">read_stats</span><span class="op">(</span><span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>args</code></dt>
+<dd><p>Recorded argument list</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>The <code>boxplot.stats</code>-shaped list, or NULL when it cannot be had</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-extract_data"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-extract-data-"><code>BaseRBoxplotLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-extract-data-"></a></h3>
-<p></p><div class="section">
+<p>One five-number summary per group, recomputed from the recorded observations</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>List of box summaries</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-generate-selectors-"><code>BaseRBoxplotLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-generate-selectors-"></a></h3>
-<p></p><div class="section">
+<p>Selectors for each box's polygon, whiskers, median and outliers</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">layer_info</span>,</span>
@@ -234,48 +272,113 @@ and generating selectors for boxplot components.</p>
 <span>  extracted_data <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable of the replayed drawing (optional)</p></dd>
+
+      <dt><code>extracted_data</code></dt>
+<dd><p>The data already extracted for this layer (optional)</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>List of selectors</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-extract-axis-titles-"><code>BaseRBoxplotLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-extract-axis-titles-"></a></h3>
-<p></p><div class="section">
+<p>Extract the axis titles for this layer</p>
+<p><code><a href="base-r-wrappers.html">boxplot()</a></code> records no title unless the author wrote one, but the
+formula method derives both from the formula itself and draws them, so
+a <code>y ~ g</code> call already names its axes: the response on the value axis
+and the grouping terms on the category axis. Everything else falls back
+to what a box plot always shows – groups against their distributions.
+<code>horizontal = TRUE</code> swaps which visual axis is which, exactly as
+boxplot.formula()'s own defaults do.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>Canonical axes list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-extract_formula_labels"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-extract-formula-labels-"><code>BaseRBoxplotLayerProcessor$extract_formula_labels()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-extract-formula-labels-"></a></h3>
-<p></p><div class="section">
+<p>Read the axis titles boxplot.formula() derives from its formula</p>
+<p><code>boxplot.formula()</code> builds them out of the model frame's column names:
+the response column names the value axis and the remaining columns,
+joined with " : ", name the category axis. Building the same model
+frame reproduces the drawn titles for expressions (<code>log(mpg) ~ cyl</code>)
+and for <code>.</code> alike, where deparsing the formula's terms would not.</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_formula_labels</span><span class="op">(</span><span class="va">args</span>, frame <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>args</code></dt>
+<dd><p>Recorded argument list</p></dd>
+
+      <dt><code>frame</code></dt>
+<dd><p>The model frame kept by the recording (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>List with <code>response</code> and <code>groups</code>, or NULL when this call is
+not the formula method or the model frame cannot be rebuilt</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-extract-main-title-"><code>BaseRBoxplotLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-extract-main-title-"></a></h3>
-<p></p><div class="section">
+<p>The main title of the recorded call, or an empty string</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Character string</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRBoxplotLayerProcessor-determine_orientation"></a><div class="section">
 <h3 id="baserboxplotlayerprocessor-determine-orientation-"><code>BaseRBoxplotLayerProcessor$determine_orientation()</code><a class="anchor" aria-label="anchor" href="#baserboxplotlayerprocessor-determine-orientation-"></a></h3>
-<p></p><div class="section">
+<p>Which way the boxes were drawn, from the recorded <code>horizontal</code> flag</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">determine_orientation</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>"horz" or "vert"</p>
 </div>
 
 </div>
@@ -286,7 +389,7 @@ and generating selectors for boxplot components.</p>
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRBoxplotLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

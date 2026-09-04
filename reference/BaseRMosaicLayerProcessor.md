@@ -127,9 +127,16 @@ List with data, selectors, type, title and axes
 
 ### `BaseRMosaicLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRMosaicLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 

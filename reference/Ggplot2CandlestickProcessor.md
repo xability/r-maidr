@@ -240,6 +240,20 @@ Resolve a mapping quosure to a column name in `data`
 
     Ggplot2CandlestickProcessor$resolve_col(mapping_expr, data)
 
+#### Arguments
+
+- `mapping_expr`:
+
+  A mapping quosure
+
+- `data`:
+
+  The data frame to resolve the column in
+
+#### Returns
+
+The column name, or NULL when the mapping names no column of `data`
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2CandlestickProcessor$format_x_value()`
@@ -249,6 +263,16 @@ Format an x-axis value as character
 #### Usage
 
     Ggplot2CandlestickProcessor$format_x_value(x)
+
+#### Arguments
+
+- `x`:
+
+  The value to format
+
+#### Returns
+
+Character vector
 
 ------------------------------------------------------------------------
 
@@ -260,6 +284,12 @@ Get the effective mapping (layer mapping merged on top)
 
     Ggplot2CandlestickProcessor$get_effective_mapping(plot)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2CandlestickProcessor$get_original_data()`
@@ -270,6 +300,12 @@ Get original data for the layer (falls back to plot\$data)
 
     Ggplot2CandlestickProcessor$get_original_data(plot)
 
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2CandlestickProcessor$count_candles()`
@@ -279,6 +315,16 @@ Count candles from the original data
 #### Usage
 
     Ggplot2CandlestickProcessor$count_candles(plot)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+#### Returns
+
+Integer, 0 when there is no data
 
 ------------------------------------------------------------------------
 
@@ -314,6 +360,20 @@ Find the first descendant whose name matches `pattern`
 #### Usage
 
     Ggplot2CandlestickProcessor$find_first_child_name(grob, pattern)
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `pattern`:
+
+  Regular expression the grob name must match
+
+#### Returns
+
+The matching grob name, or NULL
 
 ------------------------------------------------------------------------
 

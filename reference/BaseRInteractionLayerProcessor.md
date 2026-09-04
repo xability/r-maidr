@@ -86,9 +86,21 @@ Inherited methods
 
 ### `BaseRInteractionLayerProcessor$extract_data()`
 
+One series per trace level, read from the grid of cell means
+
 #### Usage
 
     BaseRInteractionLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of series
 
 ------------------------------------------------------------------------
 

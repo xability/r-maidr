@@ -58,6 +58,9 @@ Inherited methods
 
 ### `BaseRBarplotLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRBarplotLayerProcessor$process(
@@ -75,27 +78,39 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
@@ -121,37 +136,89 @@ Logical
 
 ### `BaseRBarplotLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRBarplotLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 
 ### `BaseRBarplotLayerProcessor$extract_data()`
 
+One point per bar, read from the recorded `height`
+
 #### Usage
 
     BaseRBarplotLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of points
 
 ------------------------------------------------------------------------
 
 ### `BaseRBarplotLayerProcessor$extract_axis_titles()`
 
+Extract the axis titles for this layer
+
+[`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) writes no
+title of its own, so an author who wrote none leaves both axes nameless.
+A bar chart always plots categories against their measured heights,
+whether or not the heights arrived named, so that is what the defaults
+say. `horiz = TRUE` puts the heights on the visual x axis – the same
+swap extract_data() applies to the points.
+
 #### Usage
 
     BaseRBarplotLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRBarplotLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRBarplotLayerProcessor$extract_main_title(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
+
 ------------------------------------------------------------------------
 
 ### `BaseRBarplotLayerProcessor$generate_selectors()`
+
+Generate the CSS selectors that address this layer's drawn elements
 
 #### Usage
 
@@ -159,9 +226,17 @@ Logical
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 

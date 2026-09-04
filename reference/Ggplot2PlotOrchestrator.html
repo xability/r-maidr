@@ -170,16 +170,23 @@ the results into a comprehensive interactive plot.</p>
 <li><p><a href="#method-Ggplot2PlotOrchestrator-clone"><code>Ggplot2PlotOrchestrator$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Ggplot2PlotOrchestrator-initialize"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-new-"><code>Ggplot2PlotOrchestrator$new()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-new-"></a></h3>
-<p></p><div class="section">
+<p>Create an orchestrator for a ggplot2 object</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/Ggplot2PlotOrchestrator.html">Ggplot2PlotOrchestrator</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+
+</dl><p></p></div>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-detect_layers"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-detect-layers-"><code>Ggplot2PlotOrchestrator$detect_layers()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-detect-layers-"></a></h3>
-<p></p><div class="section">
+<p>Turn each layer of the plot into a layer entry with its detected type</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">detect_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -225,25 +232,51 @@ needs the build.</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-analyze_single_layer"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-analyze-single-layer-"><code>Ggplot2PlotOrchestrator$analyze_single_layer()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-analyze-single-layer-"></a></h3>
-<p></p><div class="section">
+<p>Describe one ggplot2 layer as a layer entry with its detected type</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">analyze_single_layer</span><span class="op">(</span><span class="va">layer</span>, <span class="va">layer_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>A ggplot2 layer object</p></dd>
+
+      <dt><code>layer_index</code></dt>
+<dd><p>Index of the layer</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Layer information list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-determine_layer_type"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-determine-layer-type-"><code>Ggplot2PlotOrchestrator$determine_layer_type()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-determine-layer-type-"></a></h3>
-<p></p><div class="section">
+<p>The layer type the adapter detects for one layer of the plot</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">determine_layer_type</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layer_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>layer_index</code></dt>
+<dd><p>Index of the layer</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>Character string</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-create_layer_processors"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-create-layer-processors-"><code>Ggplot2PlotOrchestrator$create_layer_processors()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-create-layer-processors-"></a></h3>
-<p></p><div class="section">
+<p>Create a processor for every layer of a known type</p><div class="section">
 <h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">create_layer_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -252,9 +285,19 @@ needs the build.</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-create_layer_processor"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-create-layer-processor-"><code>Ggplot2PlotOrchestrator$create_layer_processor()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-create-layer-processor-"></a></h3>
-<p></p><div class="section">
+<p>Create the processor for one layer</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">create_layer_processor</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<p>A layer processor, or NULL for an unknown type</p>
 </div>
 
 </div>
@@ -265,14 +308,14 @@ needs the build.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">create_unified_layer_processor</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>Layer processor instance</p>
 </div>
 
@@ -280,7 +323,7 @@ needs the build.</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-process_layers"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-process-layers-"><code>Ggplot2PlotOrchestrator$process_layers()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-process-layers-"></a></h3>
-<p></p><div class="section">
+<p>Run every layer processor and combine the results</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">process_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
@@ -289,72 +332,108 @@ needs the build.</p><div class="section">
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-extract_layout"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-extract-layout-"><code>Ggplot2PlotOrchestrator$extract_layout()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-extract-layout-"></a></h3>
-<p></p><div class="section">
+<p>Read the figure-level title, subtitle, caption and axis labels from the built
+plot</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">extract_layout</span><span class="op">(</span>built <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>built</code></dt>
+<dd><p>Built plot data (optional)</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>List</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-combine_layer_results"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-combine-layer-results-"><code>Ggplot2PlotOrchestrator$combine_layer_results()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-combine-layer-results-"></a></h3>
-<p></p><div class="section">
+<p>Combine the per-layer results into the subplot grid</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">combine_layer_results</span><span class="op">(</span><span class="va">layer_results</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_results</code></dt>
+<dd><p>List of per-layer results, one per processor</p></dd>
+
+
+</dl><p></p></div>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-generate_maidr_data"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-generate-maidr-data-"><code>Ggplot2PlotOrchestrator$generate_maidr_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-generate-maidr-data-"></a></h3>
-<p></p><div class="section">
+<p>Assemble the MAIDR data object for the figure</p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">generate_maidr_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>List with an id and the subplots</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-get_gtable"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-get-gtable-"><code>Ggplot2PlotOrchestrator$get_gtable()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-get-gtable-"></a></h3>
-<p></p><div class="section">
+<p>The gtable the plot was drawn to</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">get_gtable</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>A gtable, or NULL before the layers are processed</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-get_layout"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-get-layout-"><code>Ggplot2PlotOrchestrator$get_layout()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-get-layout-"></a></h3>
-<p></p><div class="section">
+<p>The figure-level layout read by <code>extract_layout()</code></p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">get_layout</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>List</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-get_combined_data"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-get-combined-data-"><code>Ggplot2PlotOrchestrator$get_combined_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-get-combined-data-"></a></h3>
-<p></p><div class="section">
+<p>The combined per-layer data</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">get_combined_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>List</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-get_layer_processors"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-get-layer-processors-"><code>Ggplot2PlotOrchestrator$get_layer_processors()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-get-layer-processors-"></a></h3>
-<p></p><div class="section">
+<p>The processors created for the layers</p><div class="section">
 <h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">get_layer_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>List</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-Ggplot2PlotOrchestrator-get_layers"></a><div class="section">
 <h3 id="ggplot-plotorchestrator-get-layers-"><code>Ggplot2PlotOrchestrator$get_layers()</code><a class="anchor" aria-label="anchor" href="#ggplot-plotorchestrator-get-layers-"></a></h3>
-<p></p><div class="section">
+<p>The detected layer entries</p><div class="section">
 <h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">get_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>List</p>
 </div>
 
 </div>
@@ -365,7 +444,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">is_patchwork_plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Logical indicating if the plot is a patchwork plot</p>
 </div>
 
@@ -377,7 +456,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">is_faceted_plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>Logical indicating if the plot is faceted</p>
 </div>
 
@@ -389,7 +468,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">process_faceted_plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>NULL (sets internal state)</p>
 </div>
 
@@ -401,7 +480,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">process_patchwork_plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p>NULL (sets internal state)</p>
 </div>
 
@@ -413,7 +492,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
 <p>Logical indicating if there are unsupported layers</p>
 </div>
 
@@ -425,7 +504,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
 <p>Logical indicating if fallback should be used</p>
 </div>
 
@@ -437,7 +516,7 @@ needs the build.</p><div class="section">
 <h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

@@ -599,6 +599,16 @@ the same Date column align string-wise.
 
     Ggplot2LineLayerProcessor$format_x_value(x)
 
+#### Arguments
+
+- `x`:
+
+  The value to format
+
+#### Returns
+
+Character vector
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2LineLayerProcessor$extract_multiline_data()`

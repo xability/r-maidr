@@ -57,6 +57,9 @@ Inherited methods
 
 ### `BaseRHeatmapLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRHeatmapLayerProcessor$process(
@@ -74,35 +77,59 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRHeatmapLayerProcessor$extract_data()`
 
+One row per cell of the recorded matrix, in drawn order
+
 #### Usage
 
     BaseRHeatmapLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of rows
 
 ------------------------------------------------------------------------
 
@@ -128,6 +155,8 @@ List with rowInd/colInd, or NULL if unavailable
 
 ### `BaseRHeatmapLayerProcessor$generate_selectors()`
 
+Selectors for the image tiles, one per cell
+
 #### Usage
 
     BaseRHeatmapLayerProcessor$generate_selectors(
@@ -138,21 +167,51 @@ List with rowInd/colInd, or NULL if unavailable
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+- `extracted_data`:
+
+  The data already extracted for this layer (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRHeatmapLayerProcessor$find_image_rect_grobs()`
 
+Find the image-rect grobs drawn by the plot group at `group_index`
+
 #### Usage
 
     BaseRHeatmapLayerProcessor$find_image_rect_grobs(grob, group_index)
 
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `group_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+Character vector of grob names
+
 ------------------------------------------------------------------------
 
 ### `BaseRHeatmapLayerProcessor$generate_selectors_from_grob()`
+
+Build this layer's selector from the grob tree
 
 #### Usage
 
@@ -161,21 +220,67 @@ List with rowInd/colInd, or NULL if unavailable
       group_index = NULL
     )
 
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `group_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+A selector string, or an empty string when no grob matches
+
 ------------------------------------------------------------------------
 
 ### `BaseRHeatmapLayerProcessor$extract_axis_titles()`
+
+Extract the axis titles for this layer
+
+[`heatmap()`](https://r.maidr.ai/reference/base-r-wrappers.md) lays the
+matrix out one way round only – its columns run along x and its rows up
+y – so those two words are facts about the call.
+[`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) is not the
+same picture: it draws a coordinate grid, and `image(x, y, z)` puts the
+caller's own coordinates on those axes, so naming them after a matrix
+would be a guess. It gets no default.
 
 #### Usage
 
     BaseRHeatmapLayerProcessor$extract_axis_titles(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Canonical axes list
+
 ------------------------------------------------------------------------
 
 ### `BaseRHeatmapLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRHeatmapLayerProcessor$extract_main_title(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
 
 ------------------------------------------------------------------------
 

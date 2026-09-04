@@ -47,6 +47,8 @@ Inherited methods
 
 ### `Ggplot2UnknownLayerProcessor$process()`
 
+Describe a layer nothing is known about
+
 #### Usage
 
     Ggplot2UnknownLayerProcessor$process(
@@ -81,13 +83,23 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
 
+#### Returns
+
+List with no data and no selectors
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2UnknownLayerProcessor$extract_data()`
+
+Nothing: an unknown layer has no data to announce
 
 #### Usage
 
@@ -103,9 +115,15 @@ Inherited methods
 
   Built plot data (optional)
 
+#### Returns
+
+Empty list
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2UnknownLayerProcessor$generate_selectors()`
+
+Nothing: an unknown layer has no elements to address
 
 #### Usage
 
@@ -133,6 +151,10 @@ Inherited methods
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+Empty list
 
 ------------------------------------------------------------------------
 

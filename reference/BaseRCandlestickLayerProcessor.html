@@ -213,7 +213,8 @@ wicks via <code><a href="base-r-wrappers.html">segments()</a></code> calls (one 
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="unflip_panel_params"><a href="LayerProcessor.html#method-unflip_panel_params"><code>LayerProcessor$unflip_panel_params()</code></a></span></li>
 </ul></details></p><hr><a id="method-BaseRCandlestickLayerProcessor-process"></a><div class="section">
 <h3 id="basercandlesticklayerprocessor-process-"><code>BaseRCandlestickLayerProcessor$process()</code><a class="anchor" aria-label="anchor" href="#basercandlesticklayerprocessor-process-"></a></h3>
-<p></p><div class="section">
+<p>Process the layer: the candlestick layer, plus a volume bar layer when
+<code>addVo()</code> was requested</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">process</span><span class="op">(</span></span>
 <span>  <span class="va">plot</span>,</span>
@@ -225,19 +226,25 @@ wicks via <code><a href="base-r-wrappers.html">segments()</a></code> calls (one 
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
-<dd><p>The ggplot2 object</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>layout</code></dt>
-<dd><p>Layout information</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>built</code></dt>
-<dd><p>Built plot data (optional)</p></dd>
+<dd><p>Unused; present for the processor interface</p></dd>
 
       <dt><code>gt</code></dt>
-<dd><p>Gtable object (optional)</p></dd>
+<dd><p>Gtable of the replayed drawing, searched for selectors (optional)</p></dd>
+
+      <dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
 
 
 </dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>A candlestick layer, or a multi-layer list with the volume bars</p>
 </div>
 
 </div>
@@ -247,6 +254,16 @@ wicks via <code><a href="base-r-wrappers.html">segments()</a></code> calls (one 
 <p>Detect whether the chartSeries call requests addVo()</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">has_add_vo</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Logical</p>
 </div>
 
 </div>
@@ -256,6 +273,19 @@ wicks via <code><a href="base-r-wrappers.html">segments()</a></code> calls (one 
 <p>Build a "bar" layer carrying volume data</p><div class="section">
 <h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">build_volume_layer</span><span class="op">(</span><span class="va">layer_info</span>, <span class="va">gt</span>, <span class="va">candle_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable of the replayed drawing (optional)</p></dd>
+
+      <dt><code>candle_data</code></dt>
+<dd><p>The candlestick data already extracted</p></dd>
+
+
+</dl><p></p></div>
 </div>
 
 </div>
@@ -274,6 +304,22 @@ bar layer contract used by the Base R barplot processor.</p><div class="section"
 <span>  <span class="va">gt</span>,</span>
 <span>  <span class="va">n_bars</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+      <dt><code>gt</code></dt>
+<dd><p>Gtable of the replayed drawing (optional)</p></dd>
+
+      <dt><code>n_bars</code></dt>
+<dd><p>Number of volume bars</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>List of selectors, one per volume bar</p>
 </div>
 
 </div>
@@ -284,14 +330,14 @@ bar layer contract used by the Base R barplot processor.</p><div class="section"
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer info containing the recorded plot call</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>List of CandlestickPoint dicts</p>
 </div>
 
@@ -327,7 +373,7 @@ does NOT apply here because each chart model has its own contract.</p><div class
 <span>  extracted_data <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer info (used for fallback plot index)</p></dd>
 
@@ -340,7 +386,7 @@ does NOT apply here because each chart model has its own contract.</p><div class
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>Named list (single CandlestickSelector) or <code><a href="https://rdrr.io/r/base/list.html" class="external-link">list()</a></code> when
 grobs cannot be located.</p>
 </div>
@@ -349,18 +395,38 @@ grobs cannot be located.</p>
 
 <p></p><hr><a id="method-BaseRCandlestickLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="basercandlesticklayerprocessor-extract-axis-titles-"><code>BaseRCandlestickLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#basercandlesticklayerprocessor-extract-axis-titles-"></a></h3>
-<p></p><div class="section">
+<p>The axis titles, defaulting to Date and Price</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>Canonical axes list</p>
 </div>
 
 </div>
 
 <p></p><hr><a id="method-BaseRCandlestickLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="basercandlesticklayerprocessor-extract-main-title-"><code>BaseRCandlestickLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#basercandlesticklayerprocessor-extract-main-title-"></a></h3>
-<p></p><div class="section">
+<p>The main title of the recorded call, or an empty string</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information with the recorded call</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Character string</p>
 </div>
 
 </div>
@@ -370,6 +436,16 @@ grobs cannot be located.</p>
 <p>Format a vector of x-axis index values to character</p><div class="section">
 <h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">format_x_values</span><span class="op">(</span><span class="va">idx</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>idx</code></dt>
+<dd><p>Integer x-axis positions</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<p>Character vector</p>
 </div>
 
 </div>
@@ -379,6 +455,16 @@ grobs cannot be located.</p>
 <p>Recursively collect all grob names in a grob tree</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">collect_grob_names</span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>g</code></dt>
+<dd><p>A grob</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<p>Character vector of grob names</p>
 </div>
 
 </div>
@@ -388,6 +474,16 @@ grobs cannot be located.</p>
 <p>Sort grob ids by trailing integer suffix</p><div class="section">
 <h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">sort_ids</span><span class="op">(</span><span class="va">ids</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>ids</code></dt>
+<dd><p>Grob ids</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<p>The ids in numeric order of their suffix</p>
 </div>
 
 </div>
@@ -397,6 +493,19 @@ grobs cannot be located.</p>
 <p>Find the grob node whose name matches <code>id</code></p><div class="section">
 <h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">find_grob_by_name</span><span class="op">(</span><span class="va">g</span>, <span class="va">id</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>g</code></dt>
+<dd><p>A grob</p></dd>
+
+      <dt><code>id</code></dt>
+<dd><p>The grob name to find</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<p>The grob, or NULL when no name matches</p>
 </div>
 
 </div>
@@ -406,6 +515,16 @@ grobs cannot be located.</p>
 <p>Count the number of primitive coordinates a grob carries</p><div class="section">
 <h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">grob_coord_count</span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>g</code></dt>
+<dd><p>A grob</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>Integer</p>
 </div>
 
 </div>
@@ -415,6 +534,16 @@ grobs cannot be located.</p>
 <p>Pick the rect-id whose grob has the most coordinates</p><div class="section">
 <h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">pick_largest_child_group</span><span class="op">(</span><span class="va">gt</span>, <span class="va">ids</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>gt</code></dt>
+<dd><p>Gtable of the replayed drawing (optional)</p></dd>
+
+      <dt><code>ids</code></dt>
+<dd><p>Grob ids</p></dd>
+
+
+</dl><p></p></div>
 </div>
 
 </div>
@@ -425,7 +554,7 @@ grobs cannot be located.</p>
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRCandlestickLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

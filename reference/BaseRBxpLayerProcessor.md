@@ -95,9 +95,41 @@ Inherited methods
 
 ### `BaseRBxpLayerProcessor$read_stats()`
 
+The summaries [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+was handed
+
+[`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s first
+formal is `z`, and it draws nothing without a numeric `z$stats` with
+five rows – so a recorded call that reached this package has one. It is
+still checked rather than assumed: a shape that does not answer leaves
+the layer empty and the figure falls back to the picture it already was,
+where reaching past it would raise out of `process()` with nothing to
+catch it.
+
+The positional half looks for the first *unnamed* argument rather than
+for slot 1.
+[`match_recorded_args()`](https://r.maidr.ai/reference/match_recorded_args.md)
+keeps the author's order and leaves only the dispatch argument unnamed,
+wherever it was written, so `bxp(horizontal = TRUE, z)` records `z` in
+slot 2 – a call R itself accepts and draws. Reading slot 1 there hands
+`TRUE` to the check below and leaves the layer empty.
+[`resolve_xy_args()`](https://r.maidr.ai/reference/resolve_xy_args.md)
+resolves a positional argument the same way, for the same reason. Raised
+in review of \#265.
+
 #### Usage
 
     BaseRBxpLayerProcessor$read_stats(args)
+
+#### Arguments
+
+- `args`:
+
+  Recorded argument list
+
+#### Returns
+
+The `boxplot.stats`-shaped list, or NULL when it is not one
 
 ------------------------------------------------------------------------
 

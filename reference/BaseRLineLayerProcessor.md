@@ -72,6 +72,9 @@ Inherited methods
 
 ### `BaseRLineLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRLineLayerProcessor$process(
@@ -89,43 +92,76 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRLineLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$extract_data()`
 
+One series per line: a vector, each column of a matrix, a time series,
+or the endpoints of
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+
 #### Usage
 
     BaseRLineLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of series
 
 ------------------------------------------------------------------------
 
@@ -155,69 +191,196 @@ Character vector of labels or NULL if not found
 
 ### `BaseRLineLayerProcessor$extract_single_line_data()`
 
+The points of one line, pairing each x with its y
+
 #### Usage
 
     BaseRLineLayerProcessor$extract_single_line_data(x, y, x_labels = NULL)
+
+#### Arguments
+
+- `x`:
+
+  x positions
+
+- `y`:
+
+  y values
+
+- `x_labels`:
+
+  Category labels to announce in place of the x positions (optional)
+
+#### Returns
+
+List holding one series
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$extract_multiline_data()`
 
+One series per column of `y_matrix`, named after the columns
+
 #### Usage
 
     BaseRLineLayerProcessor$extract_multiline_data(x, y_matrix, x_labels = NULL)
+
+#### Arguments
+
+- `x`:
+
+  x positions
+
+- `y_matrix`:
+
+  One column of y values per series
+
+- `x_labels`:
+
+  Category labels to announce in place of the x positions (optional)
+
+#### Returns
+
+List of series
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$extract_axis_titles()`
 
+The axis titles, taken from the HIGH-level call for an overlay such as
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+
 #### Usage
 
     BaseRLineLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$extract_abline_data()`
 
+The endpoints of an
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md) call
+across the axis the HIGH-level call set up
+
 #### Usage
 
     BaseRLineLayerProcessor$extract_abline_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List holding one two-point series, or empty
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$get_x_range_from_group()`
 
+The x extent of the group's HIGH-level call, as the axis was drawn
+
 #### Usage
 
     BaseRLineLayerProcessor$get_x_range_from_group(group)
+
+#### Arguments
+
+- `group`:
+
+  The recorded plot group holding the HIGH-level call
+
+#### Returns
+
+Numeric vector of two, or NULL
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$get_y_range_from_group()`
 
+The y extent of the group's HIGH-level call, as the axis was drawn
+
 #### Usage
 
     BaseRLineLayerProcessor$get_y_range_from_group(group)
+
+#### Arguments
+
+- `group`:
+
+  The recorded plot group holding the HIGH-level call
+
+#### Returns
+
+Numeric vector of two, or NULL
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$axis_extent()`
 
+The extent of an axis the way
+[`plot.default()`](https://rdrr.io/r/graphics/plot.default.html) sets
+it: an explicit `xlim`/`ylim`, or the finite data extended by 4 % each
+way, which is what
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws its
+clipped line across.
+
 #### Usage
 
     BaseRLineLayerProcessor$axis_extent(limits, data)
+
+#### Arguments
+
+- `limits`:
+
+  An explicit `xlim`/`ylim`, or NULL
+
+- `data`:
+
+  The plotted values on that axis
+
+#### Returns
+
+Numeric vector of two, or NULL when nothing finite was plotted
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$extract_main_title()`
 
+The main title, taken from the HIGH-level call for
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+
 #### Usage
 
     BaseRLineLayerProcessor$extract_main_title(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
+
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$generate_selectors()`
+
+One selector per polyline, in series order
 
 #### Usage
 
@@ -225,13 +388,24 @@ Character vector of labels or NULL if not found
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$find_lines_grobs()`
+
+Find every grob of the given family drawn by the plot group at
+`group_index`
 
 #### Usage
 
@@ -241,17 +415,53 @@ Character vector of labels or NULL if not found
       grob_type = "lines"
     )
 
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `group_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+- `grob_type`:
+
+  The grob family to match: "lines", "abline", "segments", "spike" or
+  "step"
+
+#### Returns
+
+Character vector of grob names
+
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$selector_grob_type()`
+
+Which family of grob names this layer's selectors are drawn from:
+"abline", "lines", "segments", "spike" or "step". Overridden by
+subclasses whose geometry lands under a different grob name (see
+BaseRStepLayerProcessor).
 
 #### Usage
 
     BaseRLineLayerProcessor$selector_grob_type(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+"abline" or "lines"
+
 ------------------------------------------------------------------------
 
 ### `BaseRLineLayerProcessor$generate_selectors_from_grob()`
+
+One selector per matching polyline, sorted by the grob number
 
 #### Usage
 
@@ -260,6 +470,24 @@ Character vector of labels or NULL if not found
       group_index,
       layer_info
     )
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `group_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 

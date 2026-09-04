@@ -61,6 +61,9 @@ Inherited methods
 
 ### `Ggplot2BarLayerProcessor$process()`
 
+Process the layer: read its bars, selectors and orientation from the
+built plot
+
 #### Usage
 
     Ggplot2BarLayerProcessor$process(
@@ -95,9 +98,17 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
@@ -184,13 +195,23 @@ A copy whose plot-level and layer-level x/y mappings are swapped.
 
 ### `Ggplot2BarLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing, so the emitted
+order matches the drawn rects
+
 #### Usage
 
     Ggplot2BarLayerProcessor$needs_reordering()
 
+#### Returns
+
+TRUE
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2BarLayerProcessor$reorder_layer_data()`
+
+Reorder the plot data by category so the emitted rows match the drawn
+rects
 
 #### Usage
 
@@ -200,15 +221,21 @@ A copy whose plot-level and layer-level x/y mappings are swapped.
 
 - `data`:
 
-  data.frame effective for this layer
+  The data frame ggplot2 will draw from
 
 - `plot`:
 
-  full ggplot object (for mappings)
+  The ggplot2 object
+
+#### Returns
+
+The reordered data frame
 
 ------------------------------------------------------------------------
 
 ### `Ggplot2BarLayerProcessor$extract_data()`
+
+One point per bar, read from the built plot
 
 #### Usage
 
@@ -223,6 +250,14 @@ A copy whose plot-level and layer-level x/y mappings are swapped.
 - `built`:
 
   Built plot data (optional)
+
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+List of points
 
 ------------------------------------------------------------------------
 
@@ -241,6 +276,16 @@ from the same Date column align string-wise.
 #### Usage
 
     Ggplot2BarLayerProcessor$format_x_value(x)
+
+#### Arguments
+
+- `x`:
+
+  The value to format
+
+#### Returns
+
+Character vector
 
 ------------------------------------------------------------------------
 
@@ -335,6 +380,8 @@ Character vector of x labels
 
 ### `Ggplot2BarLayerProcessor$generate_selectors()`
 
+Selectors for the layer's rects
+
 #### Usage
 
     Ggplot2BarLayerProcessor$generate_selectors(
@@ -361,6 +408,10 @@ Character vector of x labels
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 

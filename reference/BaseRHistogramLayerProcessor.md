@@ -62,6 +62,9 @@ Inherited methods
 
 ### `BaseRHistogramLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRHistogramLayerProcessor$process(
@@ -76,47 +79,101 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$extract_data()`
 
+One point per bin, from the histogram recomputed from the recorded call
+
 #### Usage
 
     BaseRHistogramLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of points
 
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$recompute_histogram()`
 
+Recompute the plotted histogram from the recorded call
+
 #### Usage
 
     BaseRHistogramLayerProcessor$recompute_histogram(args)
+
+#### Arguments
+
+- `args`:
+
+  Recorded argument list
+
+#### Returns
+
+A "histogram" object, or NULL when the call recorded no data
 
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$is_frequency()`
 
+Is this a frequency histogram rather than a density one?
+
+The plotted y-axis shows counts only for frequency histograms; with freq
+= FALSE or probability = TRUE it shows densities. hist()'s own default
+is freq = TRUE only for equidistant breaks.
+
 #### Usage
 
     BaseRHistogramLayerProcessor$is_frequency(args, hist_obj = NULL)
 
+#### Arguments
+
+- `args`:
+
+  Recorded argument list
+
+- `hist_obj`:
+
+  The recomputed histogram, or NULL when there is none
+
+#### Returns
+
+Logical
+
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$generate_selectors()`
+
+The selector for the bins, scoped to this layer's plot group
 
 #### Usage
 
@@ -124,21 +181,47 @@ Inherited methods
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$find_rect_grobs()`
 
+Find the rect grobs drawn by the recorded call at `call_index`
+
 #### Usage
 
     BaseRHistogramLayerProcessor$find_rect_grobs(grob, call_index)
 
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+Character vector of grob names
+
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$generate_selectors_from_grob()`
+
+Build this layer's selector from the grob tree
 
 #### Usage
 
@@ -147,29 +230,88 @@ Inherited methods
       call_index = NULL
     )
 
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+A selector string, or an empty string when no grob matches
+
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$extract_axis_titles()`
+
+Extract the axis titles for this layer
+
+[`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) derives both
+titles inside the call and so records neither: the x title is
+`deparse(substitute(x))`, which is gone by the time the evaluated
+arguments reach us, and the y title is "Frequency" or "Density"
+depending on what the bars measure. The y default therefore repeats
+hist()'s own choice – resolved by the same rule that decides which
+values extract_data() emits, so the noun always names the number being
+announced – while x says only what the axis certainly holds: the bins.
 
 #### Usage
 
     BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Canonical axes list
+
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$frequency_label()`
+
+The title hist() itself would print above the counted axis
 
 #### Usage
 
     BaseRHistogramLayerProcessor$frequency_label(args)
 
+#### Arguments
+
+- `args`:
+
+  Recorded argument list
+
+#### Returns
+
+"Frequency" or "Density"
+
 ------------------------------------------------------------------------
 
 ### `BaseRHistogramLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRHistogramLayerProcessor$extract_main_title(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
 
 ------------------------------------------------------------------------
 

@@ -56,6 +56,9 @@ Inherited methods
 
 ### `BaseRStackedBarLayerProcessor$process()`
 
+Process the layer: read its data, selectors, axis titles and main title
+from the recorded call
+
 #### Usage
 
     BaseRStackedBarLayerProcessor$process(
@@ -73,63 +76,127 @@ Inherited methods
 
 - `plot`:
 
-  The ggplot2 object
+  Unused; present for the processor interface
 
 - `layout`:
 
-  Layout information
+  Unused; present for the processor interface
 
 - `built`:
 
-  Built plot data (optional)
+  Unused; present for the processor interface
 
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing, searched for selectors (optional)
 
 - `grob_id`:
 
-  Grob ID for faceted plots (optional)
+  Unused; present for the processor interface
+
+- `panel_id`:
+
+  Unused; present for the processor interface
 
 - `panel_ctx`:
 
-  Panel context for panel-scoped selector generation (optional)
+  Unused; present for the processor interface
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
 ### `BaseRStackedBarLayerProcessor$needs_reordering()`
 
+Whether the plot data must be reordered before drawing; a Base R layer
+is read from the recorded call and never is
+
 #### Usage
 
     BaseRStackedBarLayerProcessor$needs_reordering()
+
+#### Returns
+
+FALSE
 
 ------------------------------------------------------------------------
 
 ### `BaseRStackedBarLayerProcessor$extract_data()`
 
+One series per row of the recorded height matrix
+
 #### Usage
 
     BaseRStackedBarLayerProcessor$extract_data(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+List of series
 
 ------------------------------------------------------------------------
 
 ### `BaseRStackedBarLayerProcessor$extract_axis_titles()`
 
+Extract the axis titles for this layer
+
+A stacked [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+records no title unless the author wrote one, and its points always
+carry the column category on x and the segment height on y, so the
+defaults name those two. The stack's own dimension is already announced
+per point as z; nothing in the call names the variable those groups came
+from, so no z title is claimed.
+
 #### Usage
 
     BaseRStackedBarLayerProcessor$extract_axis_titles(layer_info)
+
+#### Arguments
+
+- `layer_info`:
+
+  Layer information
+
+#### Returns
+
+Canonical axes list
 
 ------------------------------------------------------------------------
 
 ### `BaseRStackedBarLayerProcessor$extract_main_title()`
 
+The main title of the recorded call, or an empty string
+
 #### Usage
 
     BaseRStackedBarLayerProcessor$extract_main_title(layer_info)
 
+#### Arguments
+
+- `layer_info`:
+
+  Layer information with the recorded call
+
+#### Returns
+
+Character string
+
 ------------------------------------------------------------------------
 
 ### `BaseRStackedBarLayerProcessor$generate_selectors()`
+
+The selector for the segments, scoped to this layer's plot group
 
 #### Usage
 
@@ -141,17 +208,45 @@ Inherited methods
 
 #### Arguments
 
+- `layer_info`:
+
+  Layer information with the recorded call
+
 - `gt`:
 
-  Gtable object (optional)
+  Gtable of the replayed drawing (optional)
+
+- `extracted_data`:
+
+  The data already extracted for this layer (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
 ### `BaseRStackedBarLayerProcessor$find_rect_groups()`
 
+Find every rect group drawn by the plot group at `call_index`
+
 #### Usage
 
     BaseRStackedBarLayerProcessor$find_rect_groups(grob, call_index)
+
+#### Arguments
+
+- `grob`:
+
+  The grob tree to search
+
+- `call_index`:
+
+  Index of the recorded plot group, which numbers the panel's grobs
+
+#### Returns
+
+Character vector of grob names
 
 ------------------------------------------------------------------------
 

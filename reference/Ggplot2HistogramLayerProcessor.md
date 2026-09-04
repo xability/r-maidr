@@ -49,6 +49,9 @@ Inherited methods
 
 ### `Ggplot2HistogramLayerProcessor$process()`
 
+Process the layer: read its bins, selectors and orientation from the
+built plot
+
 #### Usage
 
     Ggplot2HistogramLayerProcessor$process(
@@ -83,9 +86,17 @@ Inherited methods
 
   Grob ID for faceted plots (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List describing the layer for the MAIDR payload
 
 ------------------------------------------------------------------------
 
@@ -139,6 +150,8 @@ horizontal would swap a pair that is already the right way round.
 
 ### `Ggplot2HistogramLayerProcessor$extract_data()`
 
+One point per bin, read from this layer's own built data
+
 #### Usage
 
     Ggplot2HistogramLayerProcessor$extract_data(
@@ -157,9 +170,19 @@ horizontal would swap a pair that is already the right way round.
 
   Built plot data (optional)
 
+- `panel_id`:
+
+  Panel ID for faceted plots (optional)
+
+#### Returns
+
+List of points
+
 ------------------------------------------------------------------------
 
 ### `Ggplot2HistogramLayerProcessor$generate_selectors()`
+
+Selectors for the bins, scoped to the panel
 
 #### Usage
 
@@ -182,6 +205,10 @@ horizontal would swap a pair that is already the right way round.
 - `panel_ctx`:
 
   Panel context for panel-scoped selector generation (optional)
+
+#### Returns
+
+List of selectors
 
 ------------------------------------------------------------------------
 
