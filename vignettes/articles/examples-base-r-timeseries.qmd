@@ -1,0 +1,131 @@
+---
+title: "Base R Time-Series and Diagnostic Examples"
+description: "Accessible Base R time-series and model diagnostics with maidr: acf() correlograms, spectrum() and cpgram() periodograms, monthplot() seasonal subseries, lag plots, termplot() and Q-Q plots."
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include = FALSE}
+library(maidr)
+library(ggplot2)
+maidr_on()
+set.seed(42)
+```
+
+Base R's time-series and model-diagnostic charts have no ggplot2
+equivalent, so maidr reads each by mapping it onto a layer type it already
+knows: a correlogram becomes a lollipop walked lag by lag, a periodogram or
+seasonal subseries a line, a lag plot or Q-Q plot a point layer, and the
+Left and Right arrow keys and sonification then work exactly as they do
+for those types. Every reading on this page is an experimental plot type
+(see "Experimental Plot Types" in the README): none has been through a
+user study and each may change without a deprecation period. The
+[examples hub](examples.html) lists every other plot family.
+
+> **Note:** Everything below is Base R, so no ggplot2 counterpart is
+> shown. Each section names the reading its chart gets, because the mapping
+> is not always the one the chart's name suggests: a correlogram is read as
+> a lollipop, a cumulative periodogram as a step.
+
+## Correlogram
+
+`acf()`, `pacf()` and `ccf()` draw a spike per lag, and maidr reads each as
+a **lollipop**: one term per lag, carrying the correlation at that lag. The
+axes come from the function itself, so the reading says `Lag` against
+`ACF`, `Partial ACF` or `CCF` without being told.
+
+`acf()` starts at lag 0, whose autocorrelation is always exactly 1, so the
+first term of an ACF is a constant rather than a measurement. `pacf()` has
+no lag 0 and starts at lag 1.
+
+```{r}
+acf(lh, lag.max = 5, main = "Luteinizing hormone: autocorrelation")
+```
+
+```{r}
+pacf(lh, lag.max = 5, main = "Luteinizing hormone: partial autocorrelation")
+```
+
+`ccf()` correlates two series across negative and positive lags, so its
+terms are signed and the sign says which series leads.
+
+```{r}
+ccf(mdeaths, fdeaths, lag.max = 4, main = "Male vs female deaths")
+```
+
+## Spectral Density
+
+`spectrum()` estimates how a series' variance is distributed across
+frequencies. maidr reads the periodogram as a **line** of `spectrum`
+against `frequency`.
+
+```{r}
+spectrum(lh, main = "Luteinizing hormone: spectral density")
+```
+
+## Cumulative Periodogram
+
+`cpgram()` draws the cumulative periodogram against its confidence band.
+The cumulative curve is read as a **step**; the band is drawing rather than
+data, and is not announced.
+
+> **Note:** `cpgram()` labels only its x axis, so the reading carries
+> `frequency` and no y label. It takes no `ylab` argument to supply one.
+
+```{r}
+cpgram(lh, main = "Luteinizing hormone: cumulative periodogram")
+```
+
+## Seasonal Subseries
+
+`monthplot()` breaks a seasonal series into one segment per cycle position,
+so every January sits together and the seasonal shape is read directly.
+maidr reads it as a **line**.
+
+> **Note:** `monthplot()` has no default for `xlab` -- the axis it writes
+> carries the cycle labels, not a quantity -- so x is named only when the
+> call names it. Left out, y falls back to the series name — `nottem` here.
+
+```{r}
+monthplot(
+  nottem,
+  xlab = "Month", ylab = "Temperature (F)",
+  main = "Nottingham temperatures by month"
+)
+```
+
+## Lag Plot
+
+`lag.plot()` plots a series against itself shifted by *k*, which is how
+serial dependence is read by eye. maidr reads it as a **point** layer whose
+x axis is named for the shift — `lag 1` against the series.
+
+```{r}
+lag.plot(lh, lags = 1, main = "Luteinizing hormone against its own lag")
+```
+
+## Partial Effects
+
+`termplot()` draws each term's fitted contribution against its own
+predictor, holding the rest fixed. maidr reads each panel as a **line**,
+labelled `partial for <term>` so the reading says it is a contribution
+rather than a fitted value.
+
+```{r}
+termplot(lm(mpg ~ wt, data = mtcars), main = "Partial effect of weight")
+```
+
+## Q-Q Plot
+
+`qqnorm()` plots sample quantiles against theoretical ones, and `qqline()`
+adds the reference line through the quartiles. Both are read — the points as
+a **point** layer and the reference as a **line** — so the line a sighted
+reader compares against is navigable rather than decoration.
+
+```{r}
+z <- rnorm(50)
+qqnorm(z, main = "Normal Q-Q plot")
+qqline(z)
+```

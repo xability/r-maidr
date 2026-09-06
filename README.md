@@ -9,7 +9,7 @@
 
 ## Overview
 
-maidr (Multimodal Access and Interactive Data Representation) makes data visualizations accessible to users with visual impairments. It converts ggplot2 and Base R plots into interactive, accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification.
+maidr (Multimodal Access and Interactive Data Representation) makes data visualizations accessible to users with visual impairments. It converts ggplot2 and Base R plots into interactive, accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification. maidr for R is the R binding of [MAIDR](https://maidr.ai/), the JavaScript core developed by the (x)Ability Design Lab at the University of Illinois Urbana-Champaign; the same accessibility layer is available for Python as [py-maidr](https://py.maidr.ai/).
 
 The package provides two main functions:
 
@@ -18,7 +18,7 @@ The package provides two main functions:
 
 ## Installation
 
-Install the stable release from CRAN:
+maidr requires R 4.0.0 or later. Install the stable release from CRAN:
 
 ``` r
 install.packages("maidr")
@@ -184,8 +184,9 @@ in neither the stable tables nor the experimental ones, so a new layer type has
 to be placed deliberately rather than inherit either promise by being
 forgotten.
 
-The JavaScript core and the Python binding make the same distinction over their
-own type lists, with the same boundary and for the same reason.
+The [JavaScript core](https://maidr.ai/) and the [Python binding](https://py.maidr.ai/)
+make the same distinction over their own type lists, with the same boundary and
+for the same reason.
 
 See the [examples gallery](https://r.maidr.ai/articles/examples.html) for a
 worked example of each plot type.
@@ -199,7 +200,7 @@ worked example of each plot type.
 
 ## Offline support
 
-By default, `show()` and `save_html()` use the bundled MAIDR.js library, so
+By default, `show()` and `save_html()` use the bundled maidr.js library, so
 the result works offline (`save_html()` writes it to a `lib/` folder beside
 the file). Widgets, knitr documents and Shiny apps auto-detect internet
 availability and use the CDN when online. Use the `use_cdn` parameter for
@@ -223,3 +224,34 @@ save_html(p, "plot.html", use_cdn = FALSE)
 - `vignette("getting-started", package = "maidr")` for an introduction
 - The [examples gallery](https://r.maidr.ai/articles/examples.html) for supported visualizations
 - `vignette("shiny-integration", package = "maidr")` for Shiny apps
+
+## Related projects
+
+maidr for R is one of three MAIDR packages, all developed by the (x)Ability
+Design Lab at the University of Illinois Urbana-Champaign:
+
+- [MAIDR JavaScript core](https://maidr.ai/), the TypeScript engine (npm package
+  `maidr`) that renders every accessible chart, including the ones this package
+  produces.
+- [py-maidr for Python](https://py.maidr.ai/), the Python binding for
+  matplotlib, seaborn, Plotly and Altair (PyPI package `maidr`).
+- [maidr for R](https://r.maidr.ai/), this package, for ggplot2 and Base R
+  graphics (CRAN package `maidr`; source at
+  [xability/r-maidr](https://github.com/xability/r-maidr)).
+
+## Citation
+
+If you use maidr in research, please cite the MAIDR papers:
+
+- Seo, J., Xia, Y., Lee, B., Mccurry, S., & Yam, Y. J. (2024). MAIDR: Making
+  Statistical Visualizations Accessible with Multimodal Data Representation. In
+  Proceedings of the CHI Conference on Human Factors in Computing Systems
+  (CHI '24). ACM. <https://doi.org/10.1145/3613904.3642730>
+- Seo, J., O'Modhrain, S., Xia, Y., Kamath, S., Lee, B., & Coughlan, J. M.
+  (2024). Designing Born-Accessible Courses in Data Science and Visualization:
+  Challenges and Opportunities of a Remote Curriculum Taught by Blind
+  Instructors to Blind Students. In EuroVis 2024 - Education Papers. The
+  Eurographics Association. <https://doi.org/10.2312/eved.20241053>
+
+`citation("maidr")` prints both, plus an entry for the package itself, in
+text and BibTeX form.

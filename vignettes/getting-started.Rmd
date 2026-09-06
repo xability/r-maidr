@@ -1,7 +1,7 @@
 ---
 title: "Getting Started with MAIDR"
 author: "JooYoung Seo"
-date: "`r Sys.Date()`"
+description: "Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html() and maidr_on()."
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Getting Started with MAIDR}
@@ -241,8 +241,8 @@ MAIDR supports a comprehensive range of visualizations:
 - Heatmaps
 - Density/smooth curves
 
-See the [Examples article](https://r.maidr.ai/articles/examples.html) for the full candlestick + MA + volume
-pipeline and the Base R support matrix.
+See the [Heat Map and Candlestick Examples](https://r.maidr.ai/articles/examples-heatmap-candlestick.html)
+article for the full candlestick + MA + volume pipeline and the Base R support matrix.
 
 ### Advanced Plot Types
 - **Faceted plots** - `facet_wrap()` and `facet_grid()` in ggplot2

@@ -1,0 +1,220 @@
+---
+title: "Multi-Layered, Multi-Panel and Facet Examples"
+description: "Accessible multi-layered plots, patchwork and par(mfrow) multi-panel layouts, and facet_wrap() and facet_grid() facets with maidr: switch layers and subplots by keyboard, each with its own sonification."
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include = FALSE}
+library(maidr)
+library(ggplot2)
+maidr_on()
+set.seed(42)
+```
+
+These are the composite plots: several layers on one set of axes, several
+independent panels in one figure, or one chart repeated per subgroup. maidr
+keeps each layer and each panel separate, so a reader switches layer or
+panel with the keyboard and hears each one sonified on its own axes rather
+than as one merged series. Faceted plots, multi-panel
+layouts and multi-layered plots are stable plot types (see "Supported plot
+types" in the README). The [examples hub](examples.html) lists every other
+plot family.
+
+## Multi-Layered Plots
+
+Multi-layered plots combine multiple visualization types in a single
+chart. For example, a histogram overlaid with a density curve, or a bar
+chart with a line overlay.
+
+### Histogram with Density Overlay
+
+#### ggplot2
+
+```{r}
+p <- ggplot(mtcars, aes(x = mpg)) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    bins = 15, fill = "lightblue", color = "white"
+  ) +
+  geom_density(color = "red", linewidth = 1.2) +
+  labs(title = "MPG: Histogram with Density Curve") +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+hist(mtcars$mpg,
+  breaks = 15, freq = FALSE,
+  col = "lightblue", border = "white",
+  main = "MPG: Histogram with Density Curve",
+  xlab = "Miles per Gallon",
+  ylab = "Density"
+)
+lines(density(mtcars$mpg), col = "red", lwd = 2)
+```
+
+### Bar Chart with Line Overlay
+
+#### ggplot2
+
+```{r}
+combo_data <- data.frame(
+  month = factor(month.abb[1:6], levels = month.abb[1:6]),
+  sales = c(100, 120, 90, 150, 130, 160),
+  target = c(110, 110, 110, 140, 140, 140)
+)
+
+p <- ggplot(combo_data, aes(x = month)) +
+  geom_bar(aes(y = sales), stat = "identity", fill = "steelblue", alpha = 0.7) +
+  geom_line(aes(y = target, group = 1), color = "red", linewidth = 1.5) +
+  labs(title = "Monthly Sales vs Target", y = "Value") +
+  theme_minimal()
+
+p
+```
+
+---
+
+## Multi-Panel Plots (Multiple Subplots)
+
+Multi-panel layouts arrange several independent plots in a grid. This is
+useful for dashboards or comparing different views of the same dataset.
+
+### ggplot2 (patchwork)
+
+```{r}
+library(patchwork)
+
+# Line plot with currency formatting
+line_df <- data.frame(
+  Month = 1:8,
+  Revenue = c(2500, 4200, 3100, 5500, 4300, 6700, 5600, 7800)
+)
+pw_line <- ggplot(line_df, aes(Month, Revenue)) +
+  geom_line(color = "steelblue", linewidth = 1) +
+  labs(title = "Monthly Revenue", x = "Month", y = "Revenue") +
+  theme_minimal()
+
+# Bar plot with rates
+bar_df1 <- data.frame(
+  Category = c("A", "B", "C", "D", "E"),
+  Rate = c(0.15, 0.22, 0.18, 0.28, 0.17)
+)
+pw_bar1 <- ggplot(bar_df1, aes(Category, Rate)) +
+  geom_bar(stat = "identity", fill = "forestgreen", alpha = 0.7) +
+  labs(title = "Conversion Rates", x = "Category", y = "Rate") +
+  theme_minimal()
+
+# Bar plot with large numbers
+bar_df2 <- data.frame(
+  Category = c("A", "B", "C", "D", "E"),
+  Count = c(125000, 98000, 145000, 112000, 88000)
+)
+pw_bar2 <- ggplot(bar_df2, aes(Category, Count)) +
+  geom_bar(stat = "identity", fill = "royalblue", alpha = 0.7) +
+  labs(title = "User Counts", x = "Category", y = "Count") +
+  theme_minimal()
+
+# Line plot with exponential growth
+line_df2 <- data.frame(
+  x = 1:8,
+  y = 10^(seq(3, 6.5, length.out = 8))
+)
+pw_line2 <- ggplot(line_df2, aes(x, y)) +
+  geom_line(color = "tomato", linewidth = 1) +
+  labs(title = "Exponential Growth", x = "Time", y = "Value") +
+  theme_minimal()
+
+combined <- (pw_line + pw_bar1 + pw_bar2 + pw_line2) +
+  plot_layout(ncol = 2)
+combined
+```
+
+### Base R (par)
+
+```{r}
+par(mfrow = c(2, 2))
+
+barplot(table(mtcars$cyl),
+  col = "steelblue",
+  main = "Cars by Cylinder Count",
+  xlab = "Cylinders"
+)
+
+hist(mtcars$mpg,
+  breaks = 12, col = "coral", border = "white",
+  main = "MPG Distribution", xlab = "MPG"
+)
+
+plot(mtcars$wt, mtcars$mpg,
+  pch = 19, col = "forestgreen",
+  main = "MPG vs Weight",
+  xlab = "Weight (1000 lbs)", ylab = "MPG"
+)
+
+boxplot(hp ~ gear,
+  data = mtcars, col = "plum",
+  main = "Horsepower by Gear Count",
+  xlab = "Gears", ylab = "Horsepower"
+)
+invisible(par(mfrow = c(1, 1)))
+```
+
+---
+
+## Facet Plots
+
+Faceted plots split data into a grid of subplots by one or more grouping
+variables. Each panel shows the same type of chart for a different
+subset of the data. This is a ggplot2-only feature using `facet_wrap()`
+or `facet_grid()`.
+
+### facet_wrap
+
+```{r}
+facet_data <- data.frame(
+  x = rep(c("A", "B", "C", "D"), 4),
+  y = c(
+    30, 25, 35, 20,
+    45, 30, 25, 40,
+    20, 35, 30, 45,
+    35, 40, 20, 30
+  ),
+  panel = rep(c("Group 1", "Group 2", "Group 3", "Group 4"), each = 4)
+)
+
+p <- ggplot(facet_data, aes(x = x, y = y)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  facet_wrap(~panel, ncol = 2) +
+  labs(title = "Sales by Category Across Groups", x = "Category", y = "Sales") +
+  theme_minimal()
+
+p
+```
+
+### facet_grid
+
+```{r}
+p <- ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point(size = 2, color = "steelblue") +
+  facet_grid(vs ~ am,
+    labeller = labeller(
+      vs = c("0" = "V-engine", "1" = "Straight"),
+      am = c("0" = "Automatic", "1" = "Manual")
+    )
+  ) +
+  labs(
+    title = "MPG vs Weight by Engine Type and Transmission",
+    x = "Weight (1000 lbs)",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+p
+```

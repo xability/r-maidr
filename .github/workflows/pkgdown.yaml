@@ -48,6 +48,28 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      # Canonical links, og:url, noindex on 404.html and internal reference
+      # topics, descriptions for the pages pkgdown leaves without one, and a
+      # sitemap without the noindexed pages. pkgdown has no hook for any of
+      # these, so they are added to the built HTML before it is deployed.
+      - name: Add canonical links, descriptions and prune the sitemap
+        run: python3 "tools/seo-postprocess.py" "docs" "https://r.maidr.ai"
+
+      # Googlebot fetches only the first 2 MB (2,097,152 bytes, uncompressed)
+      # of an HTML file and indexes nothing past that, so a page over the
+      # limit is silently half-indexed. The examples gallery once weighed
+      # 9 MB; this fails the build before that can happen again.
+      - name: Fail on HTML pages near the Googlebot 2 MB fetch limit
+        run: |
+          echo "Ten largest HTML files:"
+          find docs -type f -name '*.html' -printf '%s %p\n' | sort -rn | head -n 10
+          large="$(find docs -type f -name '*.html' -size +1900000c)"
+          if [ -n "$large" ]; then
+            echo "::error::HTML files larger than 1,900,000 bytes (Googlebot indexes only the first 2 MB):" >&2
+            echo "$large" >&2
+            exit 1
+          fi
+
       - name: Deploy to GitHub pages 🚀
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.5.0
