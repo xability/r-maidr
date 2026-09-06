@@ -612,9 +612,25 @@
   while widgets, knitr and Shiny auto-detect the CDN.
 - The getting-started vignette tells Quarto `revealjs` authors how to
   keep off-slide charts out of the tab order.
+- The examples gallery on the package website is one article per plot
+  family (bar and pie, distributions, scatter and line, heat map and
+  candlestick, multi-panel and facet, and two Base R pages) linked from
+  a short hub at the old URL, so each page stays well inside the 2 MB of
+  HTML that Googlebot reads. The website also gains a `robots.txt`,
+  canonical links, per-page descriptions, and cross-links to the MAIDR
+  JavaScript core and py-maidr.
+- `citation("maidr")` returns the CHI 2024 and EuroVis 2024 MAIDR papers
+  alongside the package entry (new `inst/CITATION`), and the README
+  cites them.
 
 ### Performance
 
+- Rendered SVGs no longer carry gridSVG’s inline `gridSVGCoords` and
+  `gridSVGMappings` script blocks. Nothing in maidr.js or this package
+  read them, and they made up about a quarter of every chart’s HTML, so
+  [`show()`](https://r.maidr.ai/reference/show.md),
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md), knitr and
+  Shiny output is correspondingly smaller.
 - ggplot2 layer processors reuse one built plot and gtable per render,
   and the faceted and patchwork paths do the same per panel and leaf.
 - Base R renders cache the replayed gtable instead of re-replaying every

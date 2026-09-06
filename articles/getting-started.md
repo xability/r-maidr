@@ -249,9 +249,10 @@ MAIDR supports a comprehensive range of visualizations:
 - Heatmaps
 - Density/smooth curves
 
-See the [Examples article](https://r.maidr.ai/articles/examples.html)
-for the full candlestick + MA + volume pipeline and the Base R support
-matrix.
+See the [Heat Map and Candlestick
+Examples](https://r.maidr.ai/articles/examples-heatmap-candlestick.html)
+article for the full candlestick + MA + volume pipeline and the Base R
+support matrix.
 
 ### Advanced Plot Types
 

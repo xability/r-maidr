@@ -1,0 +1,206 @@
+# Experimental Base R Chart Examples
+
+Base R draws a long tail of statistical charts, from a biplot to a
+mosaic plot, that maidr reads by mapping each onto a layer type it
+already knows: a star plot becomes a radar with one series per row, a
+mosaic a proportion grid, an association plot a heat map, so arrow-key
+navigation and sonification carry over from those types. Every reading
+on this page is an experimental plot type (see “Experimental Plot Types”
+in the README): none has been through a user study and each may change
+without a deprecation period. The [examples
+hub](https://r.maidr.ai/articles/examples.md) lists every other plot
+family.
+
+> **Note:** Everything below is Base R, so no ggplot2 counterpart is
+> shown. Each section names the reading its chart gets, because the
+> mapping is not always the one the chart’s name suggests: an
+> association plot is read as a heat map, a conditional density plot as
+> a 100% stacked area.
+
+## Biplot
+
+[`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) puts
+observations and variable loadings on one pair of principal component
+axes. maidr reads the observations as a **point** layer on `PC1` and
+`PC2`, and each point carries its own row name, so a reader hears which
+observation they are on rather than a bare coordinate pair.
+
+``` r
+
+biplot(prcomp(USArrests, scale. = TRUE), main = "US arrests: PC1 vs PC2")
+```
+
+## Radar
+
+[`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws one
+star per row, with a ray per variable. maidr reads it as a **radar**:
+one series per observation, each carrying a value per variable.
+
+> **Note:** A star plot has no x and y axes to name, so the reading
+> carries no axis labels — the variable names come through as the rays
+> themselves.
+
+``` r
+
+stars(mtcars[1:5, 1:4], main = "Five cars over four measures")
+```
+
+## Interaction Plot
+
+[`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+draws a line per level of the trace factor, so a non-parallel pair is
+the interaction. maidr reads one **line** per level and puts
+`trace.label` on the z axis, which is what names the two series apart.
+
+``` r
+
+interaction.plot(ToothGrowth$dose, ToothGrowth$supp, ToothGrowth$len,
+  xlab = "Dose (mg/day)", ylab = "Mean tooth length", trace.label = "Supplement"
+)
+```
+
+## Box Plot from Summary Statistics
+
+[`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws a box
+plot from statistics already computed, rather than from raw data — which
+is exactly what `boxplot(plot = FALSE)` hands back. maidr reads it as a
+**box**, the same reading
+[`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) gets, so
+a pre-summarised box is not a second-class one.
+
+``` r
+
+bxp(boxplot(count ~ spray, data = InsectSprays, plot = FALSE),
+  main = "Insect counts by spray"
+)
+```
+
+## Strip Chart
+
+[`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) is the
+one-dimensional scatter you reach for when a box plot would hide too few
+points. maidr reads **one point layer per group**, so the groups are
+navigated as separate series rather than flattened together.
+
+``` r
+
+stripchart(count ~ spray,
+  data = InsectSprays, method = "jitter",
+  xlab = "Count", ylab = "Spray"
+)
+```
+
+## Dot Chart
+
+[`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
+Cleveland’s alternative to a bar chart for labelled values. maidr reads
+it as a **dot** layer.
+
+``` r
+
+dotchart(VADeaths[, "Rural Male"],
+  xlab = "Deaths per 1000", ylab = "Age group",
+  main = "Virginia death rates, rural males"
+)
+```
+
+## Lollipop
+
+`plot(type = "h")` draws a vertical spike down to each value. maidr
+reads it as a **lollipop**, the same type the correlogram uses.
+
+``` r
+
+plot(1:8, c(2, 5, 3, 9, 4, 7, 6, 8),
+  type = "h", xlab = "Index", ylab = "Value", main = "Spikes"
+)
+```
+
+## Mosaic and Spine Plots
+
+Both tile a contingency table so that area is proportion, and maidr
+reads both as a **mosaic**: the y axis is `Proportion`, and the second
+factor is named on z.
+[`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) takes
+a two-way table.
+
+``` r
+
+mosaicplot(HairEyeColor[, , "Male"], main = "Hair and eye colour, males")
+```
+
+[`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) takes a
+factor response against one predictor, which makes it the two-column
+case of the same reading.
+
+``` r
+
+spineplot(factor(am) ~ wt, data = mtcars, xlab = "Weight", ylab = "Transmission")
+```
+
+## Conditional Density
+
+[`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is the
+continuous-predictor counterpart to a spine plot: it draws how the
+conditional distribution of a factor shifts along a numeric axis. maidr
+reads it as a **100% stacked area**, since every vertical slice sums to
+one.
+
+``` r
+
+cdplot(factor(am) ~ mpg, data = mtcars, xlab = "Miles per gallon")
+```
+
+## Association Plot
+
+[`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) states
+one signed Pearson residual per cell of a contingency table — how far
+that cell sits from independence. maidr reads it as a **heat**: a named
+grid navigated row then column, with the residual on z, so the sign and
+size of each departure are read out per cell.
+
+``` r
+
+assocplot(HairEyeColor[, , "Male"], main = "Hair and eye colour: residuals")
+```
+
+## Filled Contour
+
+[`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+shades the bands between contour lines. maidr reads the **contour**
+levels themselves, so a reader walks the level curves rather than the
+shading.
+
+> **Note:** Passing `x` and `y` is worth doing here. Given only `z`,
+> [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+> positions the grid on 0–1 and the reading has no axis labels at all;
+> given real coordinates it announces them in their own units.
+
+``` r
+
+# Every third row and column of the 87 x 61 grid: the level curves read the
+# same, and the page carries about a ninth of the polygons.
+volcano_coarse <- volcano[
+  seq(1, nrow(volcano), by = 3), seq(1, ncol(volcano), by = 3)
+]
+filled.contour(
+  x = 30 * seq_len(nrow(volcano_coarse)),
+  y = 30 * seq_len(ncol(volcano_coarse)),
+  z = volcano_coarse,
+  xlab = "Easting (m)", ylab = "Northing (m)", main = "Maunga Whau"
+)
+```
+
+## 100% Stacked Bar
+
+A [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a
+proportion table draws columns that each sum to one. maidr reads it as a
+**100% stacked bar**, so a segment is announced as its share rather than
+as a raw count.
+
+``` r
+
+barplot(prop.table(table(mtcars$cyl, mtcars$gear), 2),
+  xlab = "Gears", ylab = "Proportion", legend.text = TRUE
+)
+```
