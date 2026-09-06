@@ -579,6 +579,42 @@
 <li>
 <strong>Text descriptions</strong> - automatic statistical summaries</li>
 </ul>
+<p>Press <strong>Tab</strong> (or click) to focus a rendered plot, move between data points with the <strong>arrow keys</strong>, and toggle <strong>B</strong> braille, <strong>T</strong> text, <strong>S</strong> sonification, and <strong>R</strong> review mode. Four global shortcuts open maidr’s own interfaces:</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th>Action</th>
+<th>Windows / Linux</th>
+<th>macOS</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Show or hide the keyboard shortcut help</td>
+<td>Ctrl + /</td>
+<td>Command + /</td>
+</tr>
+<tr>
+<td>Open the command palette listing every available command</td>
+<td>Ctrl + Shift + P</td>
+<td>Command + Shift + P</td>
+</tr>
+<tr>
+<td>Open the AI chat (requires your own API key, entered in Settings, or a local Ollama server)</td>
+<td>Shift + / (that is, <strong>?</strong>)</td>
+<td>Shift + / (<strong>?</strong>)</td>
+</tr>
+<tr>
+<td>Open Settings</td>
+<td>Ctrl + ,</td>
+<td>Command + ,</td>
+</tr>
+</tbody>
+</table>
+<p>The full list, including autoplay, label announcements, and layer switching, is in the <a href="https://maidr.ai/docs/CONTROLS.html" class="external-link">maidr controls documentation</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
@@ -611,6 +647,7 @@
 <li>The <a href="https://r.maidr.ai/articles/examples.html">examples gallery</a> for supported visualizations</li>
 <li>
 <code><a href="articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code> for Shiny apps</li>
+<li>The <a href="https://github.com/xability/maidr-skill" class="external-link">maidr skill</a> for AI coding agents (Claude Code, Codex, Cursor, and others): once installed with <code>npx skills add xability/maidr-skill</code>, an agent that writes ggplot2 or base R plotting code routes the result through this package so the chart comes out accessible</li>
 </ul>
 </div>
 </div>
