@@ -27,6 +27,12 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: tools/seo-postprocess.py dates each page from the
+          # commit that last touched its source. A shallow clone has one
+          # commit with no parent, so git reports that commit for every path
+          # and every page would carry the build date instead.
+          fetch-depth: 0
 
       - uses: r-lib/actions/setup-pandoc@v2
 

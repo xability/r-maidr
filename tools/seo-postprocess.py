@@ -170,6 +170,48 @@ def description_for(root: Path, rel: str) -> str | None:
 
 
 _DATE_CACHE: dict[str, str] = {}
+_HISTORY_CACHE: dict[Path, bool] = {}
+
+
+def has_history(root: Path) -> bool:
+    """Whether ``root`` holds enough history to date a file by.
+
+    A depth-1 checkout has a single commit with no parent, so git treats every
+    tracked path as added by it and ``git log -1 -- <path>`` reports that one
+    commit for all of them -- every page would carry the build date while
+    looking correctly per-page. A wrong date that looks right is worse than
+    none, so that case is reported rather than dated.
+
+    Being shallow is not itself the problem: a checkout deepened to many
+    commits still distinguishes the files changed recently, which is what the
+    dates are for. Only the single-commit case is unusable.
+    """
+    if root in _HISTORY_CACHE:
+        return _HISTORY_CACHE[root]
+    try:
+        run = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return False
+    usable = False
+    if run.returncode == 0:
+        try:
+            usable = int(run.stdout.strip()) > 1
+        except ValueError:
+            usable = False
+    if not usable:
+        print(
+            "seo-postprocess: single-commit checkout, omitting DC.date "
+            "(set fetch-depth: 0 on the checkout step)",
+            file=sys.stderr,
+        )
+    _HISTORY_CACHE[root] = usable
+    return usable
 
 
 def git_date(root: Path, rel_path: str) -> str:
@@ -203,6 +245,8 @@ def source_date(root: Path, rel: str) -> str:
     from its Rd. A page whose source cannot be located falls back to the
     package metadata, which changes with every release.
     """
+    if not has_history(root):
+        return ""
     stem = Path(rel).stem
     if rel == "index.html":
         candidates = ["README.md"]
