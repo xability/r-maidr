@@ -1,0 +1,170 @@
+---
+title: "Histogram, Density, Box and Violin Examples"
+description: "Accessible histograms, kernel density (KDE) curves and box plots in ggplot2 and Base R, plus ggplot2 violin plots, with maidr: navigate bins, quartiles and density curves by keyboard with sonification."
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include = FALSE}
+library(maidr)
+library(ggplot2)
+maidr_on()
+set.seed(42)
+```
+
+Distribution plots describe the shape of one variable. A histogram is
+walked bin by bin, a density curve point by point along the smoothed
+curve, and a box plot as its five-number summary plus outliers, with
+sonification tracing the rise and fall of each. Histograms, box plots and
+density curves are stable plot types in both ggplot2 and Base R, and violin
+plots are stable in ggplot2 (`geom_violin()`); the Base R reading of
+`vioplot::vioplot()` is an experimental plot type (see "Supported plot
+types" and "Experimental Plot Types" in the README), so this page shows
+only the ggplot2 violin example. The [examples hub](examples.html) lists
+every other plot family.
+
+## Histogram
+
+A histogram shows the frequency distribution of a continuous variable by
+grouping values into bins. The height of each bar indicates how many
+observations fall within that range.
+
+### ggplot2
+
+```{r}
+exam_scores <- data.frame(score = c(
+  rnorm(500, mean = 72, sd = 10),
+  rnorm(500, mean = 85, sd = 8)
+))
+
+p <- ggplot(exam_scores, aes(x = score)) +
+  geom_histogram(bins = 25, fill = "skyblue", color = "white") +
+  labs(
+    title = "Distribution of Exam Scores",
+    x = "Score",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+p
+```
+
+### Base R
+
+```{r}
+scores <- c(rnorm(500, mean = 72, sd = 10), rnorm(500, mean = 85, sd = 8))
+hist(scores,
+  breaks = 25,
+  col = "skyblue",
+  border = "white",
+  main = "Distribution of Exam Scores",
+  xlab = "Score",
+  ylab = "Frequency"
+)
+```
+
+---
+
+## KDE (Kernel Density Estimation) Plots
+
+A density curve shows the estimated probability distribution of a
+continuous variable. It provides a smooth alternative to histograms for
+understanding the shape of data.
+
+### ggplot2
+
+```{r}
+density_values <- data.frame(value = c(
+  rnorm(400, mean = 25, sd = 5),
+  rnorm(600, mean = 40, sd = 8)
+))
+
+p <- ggplot(density_values, aes(x = value)) +
+  geom_density(fill = "lightblue", alpha = 0.5, color = "steelblue") +
+  labs(
+    title = "Age Distribution of Survey Respondents",
+    x = "Age",
+    y = "Density"
+  ) +
+  theme_minimal()
+
+p
+```
+
+### Base R
+
+```{r}
+ages <- c(rnorm(400, mean = 25, sd = 5), rnorm(600, mean = 40, sd = 8))
+d <- density(ages)
+plot(d,
+  col = "steelblue", lwd = 2,
+  main = "Age Distribution of Survey Respondents",
+  xlab = "Age",
+  ylab = "Density"
+)
+polygon(d, col = rgb(0.678, 0.847, 0.902, 0.5), border = "steelblue")
+```
+
+---
+
+## Box Plot
+
+A box plot summarizes a distribution using its five-number summary:
+minimum, first quartile (Q1), median (Q2), third quartile (Q3), and
+maximum. Outliers appear as individual points.
+
+### ggplot2
+
+```{r}
+p <- ggplot(iris, aes(x = Species, y = Sepal.Length)) +
+  geom_boxplot(fill = "lightblue", alpha = 0.7) +
+  labs(
+    title = "Sepal Length by Iris Species",
+    x = "Species",
+    y = "Sepal Length (cm)"
+  ) +
+  theme_minimal()
+
+p
+```
+
+### Base R
+
+```{r}
+boxplot(Sepal.Length ~ Species,
+  data = iris,
+  col = "lightblue",
+  main = "Sepal Length by Iris Species",
+  xlab = "Species",
+  ylab = "Sepal Length (cm)"
+)
+```
+
+---
+
+## Violin Plot
+
+A violin plot combines kernel density estimation (KDE) curves with
+box-summary statistics, providing a richer view of the data distribution
+than a box plot alone. MAIDR renders each violin as two navigable
+layers: a **box** layer (min, Q1, median, Q3, max) and a **KDE** layer
+(density curve).
+
+> **Note:** Stable violin support is ggplot2 only. `vioplot::vioplot()` is
+> read as an experimental Base R type; see the experimental table in the
+> README.
+
+```{r}
+p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_violin(fill = "lightblue", alpha = 0.7) +
+  labs(
+    title = "MPG Distribution by Cylinder Count",
+    x = "Cylinders",
+    y = "Miles per Gallon"
+  ) +
+  theme_minimal()
+
+p
+```

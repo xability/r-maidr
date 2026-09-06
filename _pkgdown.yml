@@ -2,10 +2,15 @@ url: https://r.maidr.ai/
 lang: en
 
 home:
-  title: "maidr - Accessible ggplot2 & R Plots with Sonification"
+  title: "Accessible ggplot2 and Base R Plots with Sonification"
   description: >-
     maidr makes ggplot2 and Base R plots accessible with keyboard navigation,
     screen reader support, and sonification for blind and low-vision users.
+  links:
+    - text: MAIDR JavaScript core
+      href: https://maidr.ai/
+    - text: py-maidr for Python
+      href: https://py.maidr.ai/
 
 template:
   bootstrap: 5
@@ -18,81 +23,16 @@ template:
       creator: "@seo_jooyoung"
       card: summary
   includes:
+    # Site-wide head additions. Canonical links, og:url and the per-page
+    # descriptions pkgdown cannot emit are added after the build by
+    # tools/seo-postprocess.py; the home page's JSON-LD lives in
+    # pkgdown/templates/in-header-home.html.
     in_header: |
-      <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "maidr",
-        "alternateName": "Multimodal Access and Interactive Data Representation",
-        "description": "R package that makes ggplot2 and Base R plots accessible through keyboard navigation, screen reader support, and sonification for blind and low-vision users.",
-        "url": "https://r.maidr.ai/",
-        "codeRepository": "https://github.com/xability/r-maidr",
-        "downloadUrl": "https://cran.r-project.org/package=maidr",
-        "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "Windows, macOS, Linux",
-        "programmingLanguage": "R",
-        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-        "isAccessibleForFree": true,
-        "keywords": ["accessibility", "data visualization", "ggplot2", "R package", "screen reader", "sonification", "keyboard navigation", "blind", "low-vision"],
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-        "sameAs": [
-          "https://github.com/xability/r-maidr",
-          "https://cran.r-project.org/package=maidr",
-          "https://maidr.ai/"
-        ],
-        "author": [
-          {
-            "@type": "Person",
-            "name": "JooYoung Seo",
-            "url": "https://jooyoungseo.github.io",
-            "jobTitle": "Assistant Professor",
-            "affiliation": {
-              "@type": "Organization",
-              "name": "School of Information Sciences, University of Illinois Urbana-Champaign"
-            },
-            "sameAs": [
-              "https://scholar.google.com/citations?user=c0x8E5YAAAAJ&hl=en",
-              "https://www.linkedin.com/in/jooyoungseo",
-              "https://github.com/jooyoungseo",
-              "https://ischool.illinois.edu/people/jooyoung-seo"
-            ]
-          },
-          {
-            "@type": "Person",
-            "name": "Niranjan Kalaiselvan",
-            "sameAs": ["https://github.com/nk46"]
-          }
-        ],
-        "publisher": {
-          "@type": "Organization",
-          "name": "(x)Ability Design Lab",
-          "url": "https://xabilitylab.ischool.illinois.edu/",
-          "sameAs": [
-            "https://github.com/xability",
-            "https://xabilitylab.ischool.illinois.edu/"
-          ]
-        },
-        "softwareHelp": {
-          "@type": "WebPage",
-          "url": "https://r.maidr.ai/articles/"
-        }
-      }
-      </script>
-      <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "maidr R Package Documentation",
-        "url": "https://r.maidr.ai/",
-        "inLanguage": "en",
-        "publisher": {
-          "@type": "Organization",
-          "name": "(x)Ability Design Lab",
-          "url": "https://xabilitylab.ischool.illinois.edu/"
-        }
-      }
-      </script>
+      <meta property="og:type" content="website">
+      <meta property="og:site_name" content="maidr">
+      <meta property="og:locale" content="en_US">
+      <meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg">
+      <meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R">
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous">
       <script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script>
       <script type="text/plain" data-category="analytics">
@@ -120,16 +60,31 @@ navbar:
   structure:
     left: [intro, reference, articles, news]
     right: [search, github]
-  components:
-    articles:
-      text: Articles
-      menu:
-        - text: Getting Started
-          href: articles/getting-started.html
-        - text: Examples
-          href: articles/examples.html
-        - text: Shiny Integration
-          href: articles/shiny-integration.html
+
+# Every vignette must be listed here: pkgdown errors on an `articles:`
+# config that omits one. The `navbar` field on each section puts it in the
+# Articles dropdown as well as on articles/index.html.
+articles:
+  - title: Get started
+    navbar: ~
+    contents:
+      - getting-started
+      - shiny-integration
+
+  - title: Examples by plot family
+    desc: >-
+      Worked, interactive examples of every supported plot type, split by
+      family so each page stays small enough to crawl and load quickly.
+    navbar: Examples
+    contents:
+      - articles/examples
+      - articles/examples-bar-pie
+      - articles/examples-distribution
+      - articles/examples-scatter-line
+      - articles/examples-heatmap-candlestick
+      - articles/examples-multi
+      - articles/examples-base-r-timeseries
+      - articles/examples-base-r-experimental
 
 reference:
   - title: Main functions

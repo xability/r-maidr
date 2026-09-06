@@ -94,8 +94,11 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   # closing the device)
   maidr_data <- inject_violin_kde_svg_coords(gt, maidr_data)
 
-  # Export to SVG
-  grid.export(svg_file, exportCoords = "inline", exportMappings = "inline")
+  # Export to SVG. gridSVG's coordinate and mapping tables are left out:
+  # nothing in maidr.js, this package or its tests reads `gridSVGCoords` or
+  # `gridSVGMappings` (selectors are built from element ids), and inlining
+  # them was a quarter of every rendered chart.
+  grid.export(svg_file, exportCoords = "none", exportMappings = "none")
 
   svg_content <- readLines(svg_file, warn = FALSE, encoding = "UTF-8")
 

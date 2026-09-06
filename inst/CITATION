@@ -1,0 +1,48 @@
+citHeader("To cite maidr in publications, please cite the MAIDR papers and the package:")
+
+bibentry(
+  bibtype = "InProceedings",
+  title = "MAIDR: Making Statistical Visualizations Accessible with Multimodal Data Representation",
+  author = c(
+    person(given = "JooYoung", family = "Seo"),
+    person(given = "Yilin", family = "Xia"),
+    person(given = "Bongshin", family = "Lee"),
+    person(given = "Sean", family = "Mccurry"),
+    person(given = "Yu Jun", family = "Yam")
+  ),
+  booktitle = "Proceedings of the CHI Conference on Human Factors in Computing Systems (CHI '24)",
+  year = "2024",
+  publisher = "Association for Computing Machinery",
+  doi = "10.1145/3613904.3642730",
+  isbn = "9798400703300"
+)
+
+bibentry(
+  bibtype = "InProceedings",
+  title = "Designing Born-Accessible Courses in Data Science and Visualization: Challenges and Opportunities of a Remote Curriculum Taught by Blind Instructors to Blind Students",
+  author = c(
+    person(given = "JooYoung", family = "Seo"),
+    person(given = "Sile", family = "O'Modhrain"),
+    person(given = "Yilin", family = "Xia"),
+    person(given = "Sanchita", family = "Kamath"),
+    person(given = "Bongshin", family = "Lee"),
+    person(given = "James M.", family = "Coughlan")
+  ),
+  booktitle = "EuroVis 2024 - Education Papers",
+  year = "2024",
+  publisher = "The Eurographics Association",
+  doi = "10.2312/eved.20241053",
+  isbn = "978-3-03868-257-8"
+)
+
+bibentry(
+  bibtype = "Manual",
+  title = "maidr: Multimodal Access and Interactive Data Representation",
+  author = c(
+    person(given = "JooYoung", family = "Seo"),
+    person(given = "Niranjan", family = "Kalaiselvan")
+  ),
+  year = format(Sys.Date(), "%Y"),
+  note = paste("R package version", meta$Version),
+  url = "https://r.maidr.ai/"
+)

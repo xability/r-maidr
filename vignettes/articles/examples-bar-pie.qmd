@@ -1,0 +1,271 @@
+---
+title: "Bar, Pie and Word Cloud Examples"
+description: "Accessible bar charts (simple, dodged and stacked), pie charts and word clouds in ggplot2 and Base R with maidr: keyboard navigation, screen reader text and sonification for each category."
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r setup, include = FALSE}
+library(maidr)
+library(ggplot2)
+maidr_on()
+set.seed(42)
+```
+
+Bar and pie charts are the categorical family: one navigable term per bar,
+wedge or word, moved through with the Left and Right arrow keys, with the
+value of each announced and mapped to pitch when sonification is on. Bar
+and pie charts are stable plot types in both ggplot2 and Base R (see
+"Supported plot types" in the README); the word cloud is an experimental
+Base R type whose reading may change without a deprecation period. The
+[examples hub](examples.html) lists every other plot family.
+
+## Bar Plots
+
+### Simple Bar Chart
+
+A simple bar chart compares values across categories. Each bar
+represents one category with its height proportional to its value.
+
+#### ggplot2
+
+```{r}
+bar_data <- data.frame(
+  Product = c("Laptop", "Tablet", "Phone", "Monitor"),
+  Sales = c(150, 230, 180, 290)
+)
+
+p <- ggplot(bar_data, aes(x = Product, y = Sales)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(
+    title = "Product Sales by Category",
+    x = "Product",
+    y = "Sales (units)"
+  ) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+products <- c("Laptop", "Tablet", "Phone", "Monitor")
+sales <- c(150, 230, 180, 290)
+
+barplot(sales,
+  names.arg = products,
+  col = "steelblue",
+  main = "Product Sales by Category",
+  xlab = "Product",
+  ylab = "Sales (units)"
+)
+```
+
+### Dodged / Grouped Bar Chart
+
+A dodged bar chart places bars for each sub-group side by side, making
+it easy to compare values within and across categories.
+
+#### ggplot2
+
+```{r}
+dodged_data <- data.frame(
+  Region = rep(c("North", "South", "East"), each = 2),
+  Quarter = rep(c("Q1", "Q2"), 3),
+  Revenue = c(120, 150, 200, 180, 160, 210)
+)
+
+p <- ggplot(dodged_data, aes(x = Region, y = Revenue, fill = Quarter)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+  labs(title = "Quarterly Revenue by Region") +
+  scale_fill_manual(values = c("steelblue", "coral")) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+revenue_matrix <- matrix(c(120, 150, 200, 180, 160, 210), nrow = 2)
+rownames(revenue_matrix) <- c("Q1", "Q2")
+barplot(revenue_matrix,
+  beside = TRUE,
+  names.arg = c("North", "South", "East"),
+  col = c("steelblue", "coral"),
+  legend.text = rownames(revenue_matrix),
+  main = "Quarterly Revenue by Region",
+  xlab = "Region",
+  ylab = "Revenue"
+)
+```
+
+### Stacked Bar Chart
+
+A stacked bar chart layers sub-groups on top of each other within each
+category, showing both individual contributions and the total.
+
+#### ggplot2
+
+```{r}
+stacked_data <- data.frame(
+  Year = rep(c("2022", "2023", "2024"), each = 3),
+  Source = rep(c("Solar", "Wind", "Hydro"), 3),
+  Output = c(40, 30, 50, 55, 45, 48, 70, 60, 52)
+)
+
+p <- ggplot(stacked_data, aes(x = Year, y = Output, fill = Source)) +
+  geom_bar(stat = "identity", position = position_stack()) +
+  labs(
+    title = "Renewable Energy Output by Source",
+    y = "Output (GWh)"
+  ) +
+  scale_fill_manual(values = c("#2ecc71", "#3498db", "#9b59b6")) +
+  theme_minimal()
+
+p
+```
+
+#### Base R
+
+```{r}
+energy_matrix <- matrix(
+  c(40, 30, 50, 55, 45, 48, 70, 60, 52),
+  nrow = 3
+)
+rownames(energy_matrix) <- c("Solar", "Wind", "Hydro")
+barplot(energy_matrix,
+  beside = FALSE,
+  names.arg = c("2022", "2023", "2024"),
+  col = c("#2ecc71", "#3498db", "#9b59b6"),
+  legend.text = rownames(energy_matrix),
+  main = "Renewable Energy Output by Source",
+  xlab = "Year",
+  ylab = "Output (GWh)"
+)
+```
+
+---
+
+## Pie Chart
+
+A pie chart splits a whole into wedges, one per category, each wedge's
+angle proportional to its share. maidr announces every slice by name and
+value, and derives its percentage of the total for you.
+
+### ggplot2
+
+ggplot2 has no pie geom: a pie is a single stacked column bent around by
+`coord_polar("y")`, so `x` is the literal `""` and the categories go on
+`fill`. `coord_radial(theta = "y")` works the same way. Note that
+`coord_polar("x")` draws a coxcomb instead, which maidr still describes as a
+bar chart.
+
+```{r}
+market_share <- data.frame(
+  Browser = c("Chrome", "Safari", "Edge", "Firefox"),
+  Share = c(64, 19, 5, 3)
+)
+
+p <- ggplot(market_share, aes(x = "", y = Share, fill = Browser)) +
+  geom_col(width = 1) +
+  coord_polar("y") +
+  labs(
+    title = "Browser Market Share",
+    fill = "Browser",
+    y = "Share (%)"
+  ) +
+  theme_void()
+
+p
+```
+
+### Base R
+
+```{r}
+shares <- c(Chrome = 64, Safari = 19, Edge = 5, Firefox = 3)
+pie(shares,
+  col = c("#3498db", "#2ecc71", "#9b59b6", "#e67e22"),
+  main = "Browser Market Share",
+  xlab = "Browser",
+  ylab = "Share (%)"
+)
+```
+
+---
+
+## Word Cloud
+
+A word cloud is the extreme case of a chart that carries real data while
+being readable only by eye: each term's weight is drawn as **glyph size**
+and written down nowhere on the page. Structurally it is a categorical
+label and a magnitude, so maidr reads it as a term and its number.
+
+> **Experimental.** `word_cloud` is one of the experimental layer types.
+> It has not been through a user study, and it may change without a
+> deprecation period. See the experimental table in the README.
+
+> **Note:** Word clouds are a Base R feature. ggplot2 has no word cloud
+> geom, and the packages that add one draw through their own devices
+> rather than through a layer maidr can read.
+
+> **Requires the {wordcloud} package.** Install with
+> `install.packages("wordcloud")`.
+
+### Base R
+
+The counts you pass survive into the reading, so the weight axis honestly
+says **Occurrences**. (The Python binding cannot: `wordcloud.WordCloud`
+divides every frequency by the largest and keeps only the ratio, so
+py-maidr announces a *relative* frequency. Same chart, two different
+honest readings.)
+
+```{r}
+mentions <- c(
+  accessibility = 412, sonification = 300, braille = 250,
+  screenreader = 190, keyboard = 155, contrast = 120
+)
+
+maidr::wordcloud(
+  words = names(mentions),
+  freq = mentions,
+  min.freq = 1,
+  random.order = FALSE,
+  colors = c(
+    "#3498db", "#2ecc71", "#9b59b6",
+    "#e67e22", "#e74c3c", "#16a085"
+  )
+)
+```
+
+> **Attach order matters.** `library(wordcloud)` after `library(maidr)`
+> puts `package:wordcloud` ahead of `package:maidr` on the search path, so
+> a bare `wordcloud()` call reaches the wordcloud package directly and
+> maidr never records it — the chart draws, but `show()` and
+> `save_html()` then report that no Base R plot was found. Measured on a
+> three-term cloud:
+>
+> | How it is called | Recorded? |
+> |---|---|
+> | `library(maidr)` then `library(wordcloud)`, bare `wordcloud()` | **no** |
+> | `library(wordcloud)` then `library(maidr)`, bare `wordcloud()` | yes |
+> | `maidr::wordcloud()` | yes |
+>
+> Either attach `wordcloud` **before** `maidr`, or call
+> `maidr::wordcloud()` explicitly as above, which works in either order.
+
+> **No highlighting.** `wordcloud()` draws each term with a bare `text()`
+> call at a rotation chosen by `rot.per`, and nothing names those — the
+> exported SVG carries no `id` attributes at all. So a word cloud is read
+> without a visual highlight, rather than pairing the terms with whatever
+> else happened to resolve.
+
+Two of `wordcloud()`'s arguments decide **which** terms are drawn, and the
+reading replicates both so it never announces a term the chart left out:
+`min.freq` (default 3) drops anything rarer, and `max.words` keeps only
+the heaviest. `wordcloud()` also lowers `min.freq` to 0 when it exceeds
+every frequency, which is what stops a cloud of rare terms coming out
+empty; that rule is copied rather than approximated.

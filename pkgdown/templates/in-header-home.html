@@ -1,0 +1,235 @@
+{{#includes}}{{{in_header}}}{{/includes}}
+<!-- Home page only: pkgdown resolves pkgdown/templates/in-header-home.html
+     for the README-rendered index page and whisker-renders it. The graph
+     mirrors what the page shows: the Overview paragraph, the Developers
+     sidebar, the Related projects and Citation sections. Keep @id values
+     identical to those on maidr.ai and py.maidr.ai. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://maidr.ai/#organization",
+      "name": "(x)Ability Design Lab",
+      "url": "https://xabilitylab.ischool.illinois.edu/",
+      "sameAs": [
+        "https://github.com/xability",
+        "https://xability.github.io/"
+      ],
+      "parentOrganization": {
+        "@type": "CollegeOrUniversity",
+        "name": "University of Illinois Urbana-Champaign",
+        "url": "https://illinois.edu/"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://maidr.ai/#jooyoung-seo",
+      "name": "JooYoung Seo",
+      "url": "https://ischool.illinois.edu/people/jooyoung-seo",
+      "affiliation": {
+        "@id": "https://maidr.ai/#organization"
+      },
+      "sameAs": [
+        "https://github.com/jooyoungseo",
+        "https://scholar.google.com/citations?user=c0x8E5YAAAAJ",
+        "https://www.linkedin.com/in/jooyoungseo"
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://r.maidr.ai/#niranjan-kalaiselvan",
+      "name": "Niranjan Kalaiselvan",
+      "sameAs": [
+        "https://github.com/nk46"
+      ]
+    },
+    {
+      "@type": [
+        "SoftwareSourceCode",
+        "SoftwareApplication"
+      ],
+      "@id": "https://maidr.ai/#software",
+      "sameAs": [
+        "https://github.com/xability/maidr"
+      ],
+      "name": "MAIDR",
+      "url": "https://maidr.ai/"
+    },
+    {
+      "@type": [
+        "SoftwareSourceCode",
+        "SoftwareApplication"
+      ],
+      "@id": "https://r.maidr.ai/#software",
+      "sameAs": [
+        "https://github.com/xability/r-maidr",
+        "https://cran.r-project.org/package=maidr"
+      ],
+      "name": "maidr",
+      "alternateName": [
+        "r-maidr",
+        "maidr for R"
+      ],
+      "description": "R package that converts ggplot2 and Base R plots into interactive, accessible HTML/SVG with keyboard navigation, screen reader support, and sonification for blind and low-vision users.",
+      "url": "https://r.maidr.ai/",
+      "codeRepository": "https://github.com/xability/r-maidr",
+      "downloadUrl": "https://cran.r-project.org/package=maidr",
+      "programmingLanguage": "R",
+      "runtimePlatform": "R >= 4.0.0",
+      "softwareRequirements": [
+        "R >= 4.0.0",
+        "ggplot2"
+      ],
+      "operatingSystem": "Windows, macOS, Linux",
+      "applicationCategory": "DeveloperApplication",
+      "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@id": "https://maidr.ai/#organization"
+      },
+      "maintainer": {
+        "@id": "https://maidr.ai/#jooyoung-seo"
+      },
+      "isBasedOn": {
+        "@id": "https://maidr.ai/#software"
+      },
+      "citation": [
+        {
+          "@id": "https://doi.org/10.1145/3613904.3642730"
+        },
+        {
+          "@id": "https://doi.org/10.2312/eved.20241053"
+        }
+      ],
+      "keywords": [
+        "accessibility",
+        "data visualization",
+        "ggplot2",
+        "Base R",
+        "screen reader",
+        "sonification",
+        "keyboard navigation"
+      ],
+      "softwareHelp": {
+        "@type": "WebPage",
+        "url": "https://r.maidr.ai/articles/"
+      }
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "@id": "https://doi.org/10.1145/3613904.3642730",
+      "name": "MAIDR: Making Statistical Visualizations Accessible with Multimodal Data Representation",
+      "author": [
+        {
+          "@id": "https://maidr.ai/#jooyoung-seo"
+        },
+        {
+          "@type": "Person",
+          "name": "Yilin Xia"
+        },
+        {
+          "@type": "Person",
+          "name": "Bongshin Lee"
+        },
+        {
+          "@type": "Person",
+          "name": "Sean Mccurry"
+        },
+        {
+          "@type": "Person",
+          "name": "Yu Jun Yam"
+        }
+      ],
+      "datePublished": "2024-05",
+      "isPartOf": {
+        "@type": "Book",
+        "name": "Proceedings of the CHI Conference on Human Factors in Computing Systems (CHI '24)",
+        "isbn": "9798400703300"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Association for Computing Machinery"
+      },
+      "identifier": "10.1145/3613904.3642730",
+      "url": "https://doi.org/10.1145/3613904.3642730"
+    },
+    {
+      "@type": "ScholarlyArticle",
+      "@id": "https://doi.org/10.2312/eved.20241053",
+      "name": "Designing Born-Accessible Courses in Data Science and Visualization: Challenges and Opportunities of a Remote Curriculum Taught by Blind Instructors to Blind Students",
+      "author": [
+        {
+          "@id": "https://maidr.ai/#jooyoung-seo"
+        },
+        {
+          "@type": "Person",
+          "name": "Sile O'Modhrain"
+        },
+        {
+          "@type": "Person",
+          "name": "Yilin Xia"
+        },
+        {
+          "@type": "Person",
+          "name": "Sanchita Kamath"
+        },
+        {
+          "@type": "Person",
+          "name": "Bongshin Lee"
+        },
+        {
+          "@type": "Person",
+          "name": "James M. Coughlan"
+        }
+      ],
+      "datePublished": "2024",
+      "isPartOf": {
+        "@type": "Book",
+        "name": "EuroVis 2024 - Education Papers",
+        "isbn": "978-3-03868-257-8"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "The Eurographics Association"
+      },
+      "identifier": "10.2312/eved.20241053",
+      "url": "https://doi.org/10.2312/eved.20241053"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://r.maidr.ai/#website",
+      "name": "maidr",
+      "url": "https://r.maidr.ai/",
+      "inLanguage": "en",
+      "publisher": {
+        "@id": "https://maidr.ai/#organization"
+      },
+      "about": {
+        "@id": "https://r.maidr.ai/#software"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://r.maidr.ai/#webpage",
+      "url": "https://r.maidr.ai/",
+      "isPartOf": {
+        "@id": "https://r.maidr.ai/#website"
+      },
+      "mainEntity": {
+        "@id": "https://r.maidr.ai/#software"
+      },
+      "relatedLink": [
+        "https://maidr.ai/",
+        "https://py.maidr.ai/"
+      ]
+    }
+  ]
+}
+</script>
