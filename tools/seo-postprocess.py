@@ -59,6 +59,14 @@ CREATORS = ["Seo, JooYoung", "Kalaiselvan, Niranjan"]
 RIGHTS = "GPL-3.0-or-later"
 
 TITLE_RE = re.compile(r"<title>(?P<title>.*?)</title>", re.S)
+SITE_NAME_RE = re.compile(
+    r'<meta\s+property="og:site_name"\s+content="(?P<content>[^"]*)"', re.I
+)
+
+# pkgdown writes "<page title> <separator> <package>". Which separator it uses
+# is a template detail, so match any of them -- but only as part of an exact
+# trailing site name, never on their own.
+SEPARATORS = (" • ", " | ", " – ", " — ", " - ")
 DESCRIPTION_RE = re.compile(
     r'<meta\s+name="description"\s+content="(?P<content>[^"]*)"', re.I
 )
@@ -214,6 +222,27 @@ def has_history(root: Path) -> bool:
     return usable
 
 
+def strip_site_name(title: str, site_name: str) -> str:
+    """Drop the trailing site name from a page title.
+
+    ``<title>`` and ``og:title`` carry the suffix, which is right for a browser
+    tab and a link preview. A bibliographic record is neither: a reference
+    manager should file the page under its own title.
+
+    Only an exact ``<separator><site name>`` ending is removed, so a title that
+    merely contains a separator keeps all of it -- a reference topic rendered
+    as "Show a plot — show" survives whole -- and a page titled with the site
+    name alone is left as it is rather than emptied.
+    """
+    if not site_name:
+        return title
+    for separator in SEPARATORS:
+        suffix = f"{separator}{site_name}"
+        if title.endswith(suffix) and len(title) > len(suffix):
+            return title[: -len(suffix)]
+    return title
+
+
 def git_date(root: Path, rel_path: str) -> str:
     """Last commit date for ``rel_path``, or "" when git cannot answer.
 
@@ -341,11 +370,13 @@ def process_page(root: Path, site: Path, path: Path, base: str, stats: dict) -> 
     if 'name="DC.' not in text:
         title_match = TITLE_RE.search(text)
         if title_match:
-            # pkgdown renders "<page title> • <package>"; the suffix is site
-            # furniture, and a reference manager should record the page's own
-            # title.
-            title = html.unescape(title_match.group("title")).strip()
-            title = re.split(r"\s+[•|]\s+", title)[0].strip() or title
+            site_match = SITE_NAME_RE.search(text)
+            site_name = (
+                html.unescape(site_match.group("content")) if site_match else ""
+            )
+            title = strip_site_name(
+                html.unescape(title_match.group("title")).strip(), site_name
+            )
             tags.extend(
                 dublin_core_tags(
                     title, description, url, source_date(root, rel), rel
