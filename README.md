@@ -197,6 +197,17 @@ worked example of each plot type.
 - **Sonification** - hear data patterns through sound
 - **Text descriptions** - automatic statistical summaries
 
+Press **Tab** (or click) to focus a rendered plot, move between data points with the **arrow keys**, and toggle **B** braille, **T** text, **S** sonification, and **R** review mode. Four global shortcuts open maidr's own interfaces:
+
+| Action | Windows / Linux | macOS |
+|---|---|---|
+| Show or hide the keyboard shortcut help | Ctrl + / | Command + / |
+| Open the command palette listing every available command | Ctrl + Shift + P | Command + Shift + P |
+| Open the AI chat (requires your own API key, entered in Settings, or a local Ollama server) | Shift + / (that is, **?**) | Shift + / (**?**) |
+| Open Settings | Ctrl + , | Command + , |
+
+The full list, including autoplay, label announcements, and layer switching, is in the [maidr controls documentation](https://maidr.ai/docs/CONTROLS.html).
+
 ## Offline support
 
 By default, `show()` and `save_html()` use the bundled MAIDR.js library, so
@@ -223,3 +234,4 @@ save_html(p, "plot.html", use_cdn = FALSE)
 - `vignette("getting-started", package = "maidr")` for an introduction
 - The [examples gallery](https://r.maidr.ai/articles/examples.html) for supported visualizations
 - `vignette("shiny-integration", package = "maidr")` for Shiny apps
+- The [maidr skill](https://github.com/xability/maidr-skill) for AI coding agents (Claude Code, Codex, Cursor, and others): once installed with `npx skills add xability/maidr-skill`, an agent that writes ggplot2 or base R plotting code routes the result through this package so the chart comes out accessible
