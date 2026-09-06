@@ -32,3 +32,4 @@
 ^vignettes/\.quarto$
 ^vignettes/articles$
 \.DS_Store$
+^CITATION\.cff$
