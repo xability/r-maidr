@@ -80,6 +80,47 @@ marks and the cursor cannot be paired with confidence."><meta property="og:image
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRStarsLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRStarsLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Star Plot Processor — BaseRStarsLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads stars() as the radar it draws: one closed outline per observation,
+with a spoke for each variable.
+It is a multi-line layer. MAIDR&#x27;s radar trace is navigated as one –
+&quot;each spoke a column and each series a row&quot; – so the whole reading is
+handing over the matrix with its axes the other way round from the way
+stars() takes it. stars(m) draws a glyph per row, so the rows are
+the series and the columns are the spokes, and
+BaseRLineLayerProcessor&#x27;s extract_multiline_data() wants series in
+columns. Hence the transpose, which is the only rearranging here.
+The values are the caller&#x27;s, not the drawing&#x27;s. stars() scales every
+column to [0, 1] before drawing, so the radii on the page are shares of
+each column&#x27;s range rather than the readings themselves. Announcing those
+would tell a reader that observation 1 scores 0 on a variable it merely
+has the smallest value of. The recorded matrix carries what the caller
+measured, and that is what a reader is told.
+It is read without an outline, deliberately. The marks are there and
+the pairing is known – measured by giving each observation its own
+col.stars and reading every polygon&#x27;s fill, observation k owns
+polygons 2k - 1 and 2k, both filled its colour, plus a segments-k
+carrying one segment per variable:
+polygon-1  #111199   polygon-2  #111199   segments-1   observation 1
+polygon-3  #229922   polygon-4  #229922   segments-2   observation 2
+...
+
+What is not established is the selector those grobs export to. A
+selector is only worth emitting once it has been resolved against a real
+export, and a real export cannot be had until the chart stops falling back
+to a picture – which is what this reading is for. So the outline is left
+for a follow-up that can measure it, rather than guessed from the grob
+names. Reading without one is what gauge already does upstream when the
+marks and the cursor cannot be paired with confidence.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRStarsLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

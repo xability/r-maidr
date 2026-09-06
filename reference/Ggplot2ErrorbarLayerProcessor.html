@@ -88,6 +88,51 @@ interval.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2ErrorbarLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2ErrorbarLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="ggplot2 Error Bar Layer Processor — Ggplot2ErrorbarLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes ggplot2&#x27;s uncertainty geoms – geom_errorbar(),
+geom_errorbarh(), geom_linerange(), geom_pointrange() and
+geom_crossbar() – into MAIDR&#x27;s error_bar layer.
+Uncertainty is usually the finding rather than the decoration: whether two
+group means differ is answered by whether their intervals overlap. Until
+this processor existed every one of these geoms fell through to
+Ggplot2UnknownLayerProcessor, so the interval was dropped and that
+comparison was unavailable to a MAIDR reader.
+Reading the right pair of bounds
+
+
+The trap this class exists to avoid is that ggplot2&#x27;s built data carries
+both pairs for most of these geoms, and only one of them is the
+interval. A vertical geom_errorbar() computes:
+  x  y  ymin ymax  xmin  xmax  flipped_aes
+  1 4.2  3.8  4.6  0.55  1.45  FALSE
+
+ymin/ymax are the interval; xmin/xmax are the cap width – how
+wide the little crossbars are drawn, which is a styling parameter and not
+data at all. Reading the wrong pair yields a chart describing the cap
+geometry, which is both wrong and plausible-looking.
+Which pair is the interval is decided by the layer&#x27;s orientation, and
+ggplot2 records that in two different ways depending on the geom:
+
+geom_errorbar(orientation = &quot;y&quot;) and friends set a flipped_aes
+column to TRUE in the built data.
+geom_errorbarh() has no flipped_aes column at all – it is
+horizontal by construction.
+
+
+Both are handled, because a layer that read only flipped_aes would treat
+every geom_errorbarh() as vertical and emit the cap heights as the
+interval.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2ErrorbarLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-20">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

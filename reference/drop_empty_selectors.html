@@ -32,6 +32,23 @@ key is falsy and takes the frontend's own &quot;no selectors&quot; path instead.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/drop_empty_selectors.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/drop_empty_selectors.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Drop selectors entries that carry no selector — drop_empty_selectors">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="A layer that resolved no highlight target must say so by OMITTING the key,
+never by sending an empty list. The frontend hands layer.selectors
+straight to document.querySelectorAll(), and an empty array stringifies
+to &quot;&quot;, which is a SyntaxError – thrown inside the trace constructor,
+so the whole figure fails to initialise: no announcement, no sonification,
+no braille, no keyboard entry, on a chart that still looks fine. An absent
+key is falsy and takes the frontend&#x27;s own &quot;no selectors&quot; path instead.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/drop_empty_selectors.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-09">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

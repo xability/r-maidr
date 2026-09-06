@@ -42,6 +42,28 @@ half of its points."><meta property="og:image" content="https://raw.githubuserco
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2ContourLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2ContourLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Contour Layer Processor — Ggplot2ContourLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes contour layers (geom_contour, geom_density_2d).
+A contour is the one chart of its family whose value is a number rather
+than a colour: ggplot2 computes level per row, so both halves of the
+reading invert exactly and nothing is recovered from a fill. That is what
+separates it from the same chart in a renderer that keeps its magnitude
+only in a continuous colour, which is why xability/maidr#1084 left
+Observable Plot&#x27;s contour unread.
+The filled forms are not this chart. geom_contour_filled() and
+geom_density_2d_filled() draw the bands between levels, and say so in
+the frame: their level is a factor of intervals rather than a number.
+Announcing one of those outlines as a level&#x27;s own curve would be right for
+half of its points.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2ContourLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-20">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

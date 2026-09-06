@@ -184,6 +184,99 @@ already makes, it is not written twice.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRCdplotLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRCdplotLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Conditional Density Plot Layer Processor — BaseRCdplotLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads cdplot() as the 100% stacked area chart it draws.
+A conditional density plot shows, for each value of a numeric x, how the
+levels of a factor y divide up: the bands are stacked, they fill the
+whole height, and their shares sum to 1 at every x. That is a normalized
+stacked area, which Ggplot2AreaLayerProcessor already emits for
+position = &quot;fill&quot;, so a cdplot() is read as
+stacked_normalized_area and the two adapters describe one chart the
+same way – each series a list of {x, y, z} where y is the band&#x27;s own
+share and z names the level, and one selector per band.
+Before this, cdplot() had no branch in detect_layer_type(), so the
+switch fell through to &quot;unknown&quot; and the chart degraded to a static
+image (#216, #251).
+Where the curves come from
+
+
+cdplot() has a plot argument, so it can be asked for what it drew
+without drawing it again. It returns the boundaries between the bands:
+nlevels(y) - 1 functions, each approxfun() over the density grid,
+named for the level below the boundary.
+
+rval &amp;lt;- cdplot(x, y, plot = FALSE)
+names(rval)          # &quot;c&quot; &quot;b&quot;   for a factor with levels a, b, c
+rval[[1]](50)        # the cumulative share at x = 50
+
+
+Stacking them the way cdplot() does – rbind(0, boundaries, 1), band
+i running from row i to row i + 1 – gives the shares back. Measured
+over three hundred random charts, every column&#x27;s shares sum to 1 and no
+band comes out negative, so the boundaries do not cross in the drawn
+range.
+graphics::cdplot by the qualified name, not the bare one: maidr patches
+the name on the search path, and a bare call would record the replay as a
+second chart. The same line BaseRSpineplotLayerProcessor draws.
+
+
+
+Which x values were drawn
+
+
+The returned functions interpolate over the density grid, which
+stats::density() pads past the data by three bandwidths. cdplot()
+throws that padding away before drawing:
+
+y1 &amp;lt;- y1[, which(x1 &amp;gt;= min(x) &amp;amp; x1 &amp;lt;= max(x))]
+x1 &amp;lt;- x1[x1 &amp;gt;= min(x) &amp;amp; x1 &amp;lt;= max(x)]
+
+
+so the announced grid is trimmed the same way – 372 of the 512 points on
+a measured chart. Announcing the untrimmed grid would put readings either
+side of the data at x values the chart has no marks at.
+The grid itself is read off the first returned function rather than
+recomputed: approxfun() keeps its knots, and environment(f)$x is the
+grid cdplot() built. Recomputing density() here would have to guess
+bw, n, from, to and weights back out of the recorded call, and
+a guess that differed by one point would shift every reading.
+
+
+
+What the replay proves
+
+
+A cdplot() that returned rather than stopping has already established
+most of what a reader here would otherwise have to check, because
+cdplot() checks it first and stops. Each was measured:
+
+y is a factor – &quot;dependent variable should be a factor&quot;;
+x is finite – stats::density() stops on a missing or
+infinite value;
+a formula names exactly two variables – &quot;&#x27;formula&#x27; should
+specify exactly two variables&quot;;
+the grid overlaps the data – a from/to that put it elsewhere
+stops with &quot;need at least two non-NA values to interpolate&quot;;
+the factor has at least two levels – one stops with &quot;subscript
+out of bounds&quot;.
+
+
+The NULL checks that remain below are therefore not checking any of that.
+They are there so that a shape none of the above rules out cannot throw
+out of the pipeline, where declining to read leaves the static image the
+figure produces today. Where a check would only repeat one another check
+already makes, it is not written twice.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRCdplotLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-24">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

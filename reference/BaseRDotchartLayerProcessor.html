@@ -62,6 +62,38 @@ read out of the call rather than how the marks are addressed."><meta property="o
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRDotchartLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRDotchartLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Dot Chart Layer Processor — BaseRDotchartLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes Base R dotchart() layers – a Cleveland dot plot: one value
+per category, marked with a dot on a horizontal guide line, with the
+categories running down the page.
+Read as a dot layer, which the core builds on BarTrace: a bar chart&#x27;s
+reading with a different mark. The guide lines and the category labels are
+frame rather than data – gridGraphics draws them as -abline-h- and
+-mtext-left-, and only the dots carry a value.
+orientation is &quot;horz&quot;, which is not a detail: dotchart() puts the
+categories on the vertical axis and the value along the horizontal one,
+and the core reads a horz layer&#x27;s magnitude from x and its category
+from y. Without the key the layer defaults to vertical and reads the
+category name where the magnitude belongs – no number to pitch, and the
+announcement inverted (#184, #480).
+The dots are emitted in the order dotchart() was handed them, which is
+bottom-up on the drawn chart – base R puts the first element at the
+bottom. That is the arrangement barplot(horiz = TRUE) already ships for
+the same reason, so the two horizontal base R charts read from the same
+end.
+Selectors come from the points grob, which is the one thing a dotchart
+shares with a scatter: graphics-plot-N-points-1 holds one &amp;lt;use&amp;gt; per
+dot. So this inherits BaseRPointLayerProcessor and replaces what is
+read out of the call rather than how the marks are addressed.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRDotchartLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

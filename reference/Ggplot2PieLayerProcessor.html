@@ -42,6 +42,28 @@ declines them, and they stay bar / stacked / dodged as before."><meta property="
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2PieLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2PieLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Pie Layer Processor — Ggplot2PieLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes the ggplot2 idiom for a pie chart: a geom_col() /
+geom_bar() layer drawn in polar coordinates with theta mapped to y,
+so the stack&#x27;s segments become wedges. The payload is 1-D and flat – one
+point per wedge, x the slice label and y its magnitude. The
+percentage MAIDR announces is derived from those values by the frontend, so
+this layer deliberately does not emit one.
+Multi-ring &quot;bullseye&quot; polar bars are out of scope. geom_col() with a
+non-constant x under coord_polar(&quot;y&quot;) draws one concentric ring per
+x category, and a flat list of wedges cannot carry that second dimension –
+wedges from different rings would collapse onto the same label. Those
+layers never reach this processor: Ggplot2Adapter$is_pie_coord()
+declines them, and they stay bar / stacked / dodged as before.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2PieLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-20">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

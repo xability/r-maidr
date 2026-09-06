@@ -88,6 +88,51 @@ areas are shares of a total when they are a departure from an expectation.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRAssocplotLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRAssocplotLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Association Plot Layer Processor — BaseRAssocplotLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes Base R assocplot() layers – a Cohen–Friendly association
+plot, which draws one tile per cell of a two-way table whose signed height
+is that cell&#x27;s Pearson residual, (observed - expected) / sqrt(expected).
+Read as a heat layer, because a named grid of one number per cell is what
+the chart states and row-then-column is how a reader navigates a
+contingency table. Measured on assocplot(HairEyeColor[, , 1]), the rects
+the drawing produces carry the residuals exactly:
+
+       Brown    Blue   Hazel   Green
+Black  2.780  -2.059   0.184  -1.408
+Brown  0.391  -0.246   0.185  -0.465
+Red   -0.562  -0.658   0.532   1.485
+Blond -3.273   3.271  -0.988   1.097
+
+
+Nothing is inferred from the drawing: assocplot() is handed the table, so
+the recorded call carries every number the trace wants. It returns NULL,
+which is why the reading comes from the argument – the shape bxp()&#x27;s
+reading took in #265.
+Two things this deliberately does not do
+
+
+The tile width is dropped. Each tile is drawn sqrt(expected) wide, so
+the marginals are on the chart as a second encoding. A heat layer has no
+width, and the residual is what an association plot exists to show – the
+eye reads height and sign, and the width is why a cell&#x27;s box is wider
+rather than a value the reader is asked to compare. Announcing it in z
+instead would replace the number the chart is about.
+It is not a mosaic. mosaicplot() is read as one and the two look
+alike, but a mosaic&#x27;s tiles tile the space and carry proportions of a
+whole. These float above and below a baseline and carry residuals, which
+are signed and sum to nothing. Calling it a mosaic would tell a reader the
+areas are shares of a total when they are a departure from an expectation.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRAssocplotLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

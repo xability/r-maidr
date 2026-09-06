@@ -40,6 +40,27 @@ names."><meta property="og:image" content="https://raw.githubusercontent.com/xab
 </script><link rel="canonical" href="https://r.maidr.ai/reference/polyline_layer_position.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/polyline_layer_position.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Position (1-based) of a layer among the polyline-producing layers of a plot — polyline_layer_position">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="layer_polyline_grobs() returns every polyline in the panel that no
+geom-named grob tree claims, so the index used to pick one out has to be
+counted over the same population.
+geom_line() / geom_path() / tidyquant::geom_ma() (detected as
+&quot;line&quot;), geom_step() (detected as &quot;step&quot;) and geom_contour() /
+geom_density_2d() (detected as &quot;contour&quot;) each render one auto-named
+polyline grob per layer, so all three types count. Counting only &quot;line&quot;
+layers would index the wrong polyline for every layer of a plot that
+combines them – and both charts would read correctly while outlining each
+other&#x27;s curves, which is the highlight-only failure xability/maidr#814
+names.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/polyline_layer_position.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-20">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

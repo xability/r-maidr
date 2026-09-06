@@ -66,6 +66,40 @@ lengths."><meta property="og:image" content="https://raw.githubusercontent.com/x
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="ggplot2 Step Layer Processor — Ggplot2StepLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes geom_step() layers. A step chart is piecewise constant: the
+value is held across an interval and then jumps, rather than being
+interpolated between samples the way a line implies. The canonical case is
+a hypnogram – an ordinal sleep stage (Awake / REM / N1 / N2 / N3) against
+time.
+Everything about extracting x/y and locating the rendered polyline is the
+same as for a line, so this class inherits Ggplot2LineLayerProcessor and
+adds only what a step layer has that a line layer does not:
+
+stepDirection – the hv / vh / mid convention the layer was
+drawn with, emitted as a sibling of axes and data on the layer.
+a per-point label – the name of the ordinal level, so the
+frontend announces &quot;REM&quot; rather than the numeric level code that
+encodes it. y stays numeric because it drives sonification, braille
+and the min/max range.
+
+
+One data point is emitted per data sample, never one per stairstep
+vertex. ggplot2 expands the stairsteps inside GeomStep$draw_panel(), so
+the rendered polyline carries 2n - 1 vertices (hv / vh) or 2n
+(mid) for n samples; the MAIDR frontend&#x27;s StepTrace maps those
+vertices back onto the samples. Emitting vertex-level data to &quot;match&quot; the
+polyline would double every level and misreport transitions and run
+lengths.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2StepLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-01">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

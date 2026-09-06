@@ -122,6 +122,68 @@ so the positional pairing holds. There is a test for exactly that."><meta proper
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRSpineplotLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRSpineplotLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Spine Plot Layer Processor — BaseRSpineplotLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads spineplot() as the two-way contingency table it draws.
+A spine plot is a mosaic of one categorical axis against another: one
+column per level of x, its width that level&#x27;s share of all
+observations, split vertically by y&#x27;s conditional proportions inside it.
+That is the shape BaseRMosaicLayerProcessor was written for in #247 –
+&quot;the column widths encode data too&quot; – so a spine plot is read as a
+mosaic layer, and this class changes only the two things that differ.
+Where the table comes from. mosaicplot() is handed its table, so the
+recorded call carries it. spineplot() is handed the two variables and
+builds the table itself, and it has no plot argument to be asked for
+the table without drawing – cdplot() has one, spineplot() does not.
+But it returns what it drew:
+
+spineplot(table(f, g))
+#       g
+# f      no yes
+#   low  11  12
+#   mid   7  14
+#   high 12   4
+
+
+so the call is replayed on a throwaway device and the return value taken.
+graphics::spineplot by the qualified name, not the bare one: maidr
+patches the name on the search path, and the bare call would record the
+replay as a second chart. Reproducing the binning by hand instead would be
+a re-derivation – spineplot cuts a numeric x by its own rule – and
+the point of every reading in this package is that the library is asked
+rather than imitated.
+Where the tiles are. mosaicplot() writes one polygon grob per
+cell. spineplot() writes one rect grob for the whole panel, and
+gridSVG exports it as one &amp;lt;rect&amp;gt; element per tile. Measured on a 3x2
+table:
+
+graphics-plot-1-rect-1.1.1   x  59.04   w 152.86   h 118.71
+graphics-plot-1-rect-1.1.2   x  59.04   w 152.86   h 108.81
+graphics-plot-1-rect-1.1.3   x 219.88   w 139.57   h 151.68
+graphics-plot-1-rect-1.1.4   x 219.88   w 139.57   h  75.84
+graphics-plot-1-rect-1.1.5   x 367.42   w 106.34   h  56.88
+graphics-plot-1-rect-1.1.6   x 367.42   w 106.34   h 170.64
+
+
+Six elements for six cells, sharing an x within a column, and the widths
+152.86 : 139.57 : 106.34 in the marginals&#x27; own ratio 23 : 21 : 16. The
+order is column-major, and within a column the last fill level is drawn
+first: the heights pair 118.71 : 108.81 with 12 : 11, which is yes
+above no. That is the opposite of the mosaic&#x27;s ascending order, which is
+why the index is computed here rather than inherited.
+A zero cell still draws. The hazard this shape invites is the one
+xability/maidr#1002 found elsewhere: a count of zero skipped rather than
+drawn, shifting every later tile&#x27;s index by one. Measured on a table with
+a genuine zero in it, spineplot draws the tile anyway with height=&quot;0&quot;,
+so the positional pairing holds. There is a test for exactly that.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRSpineplotLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-24">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

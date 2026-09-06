@@ -106,6 +106,60 @@ out of the grid rather than given a wrong shape."><meta property="og:image" cont
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRTermplotLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRTermplotLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Term Plot Processor — BaseRTermplotLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads termplot() as the partial-effect curves it draws: one panel per
+term, the term&#x27;s contribution to the fit plotted against its own carrier.
+A grid, not a layer. Like pairs() and lag.plot(), one termplot()
+call draws several panels, and the orchestrator&#x27;s ordinary multipanel path
+cannot split them: combine_layer_results() maps a layer to a cell by its
+group index, and one recorded call is one group, so every curve would
+land in the same cell. So this answers multi_panel = TRUE and places each
+curve at its own cell.
+The panels are pages, not terms. termplot() sets no layout of its
+own – unlike pairs(), which calls par(mfrow) itself – so the caller&#x27;s
+par(mfrow) decides how many terms share a page, and R starts a new page
+when it runs out of cells. Only the last page is exported. Measured on a
+three-term lm:
+no mfrow      (k = 1)   graphics-plot-1                 1 panel
+mfrow c(1,2)  (k = 2)   graphics-plot-1                 1 panel
+mfrow c(1,3)  (k = 3)   graphics-plot-1 .. -3           3 panels
+mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
+
+So with n terms and k cells the page carries the last
+((n - 1) %% k) + 1 of them, which is the rule
+compute_panel_slots() already applies to whole plot groups – the same
+arithmetic, one level down. A reading that announced all n terms would
+name curves that are not on the page.
+The par call is recorded as LAYOUT rather than as a layer, so it does not
+reach the processor with the rest of the call. It is read off the device
+the call was recorded on, through the same detect_panel_configuration()
+the orchestrator uses, so the two cannot disagree about the grid.
+What a panel draws. The curve is the term&#x27;s fitted contribution,
+predict(model, type = &quot;terms&quot;)[, term], against that term&#x27;s carrier from
+the model frame, in increasing carrier order – which is the order
+termplot() sorts them into before drawing. With
+partial.resid = TRUE it adds the partial residuals,
+contribution + residuals(model), as points beside the curve; measured,
+that is a second grob in the same panel:
+termplot(fit)                     panel k: lines-1
+termplot(fit, partial.resid = T)  panel k: lines-1 and points-1
+
+The points are left for a follow-up rather than emitted as a second layer:
+they are a different reading of the same panel, and the curve is the thing
+termplot() exists to draw.
+A factor term is declined. termplot() draws it as a step function
+over the levels, which is neither this line nor a bar, and reading it as a
+line would announce a slope between levels that have no order. It is left
+out of the grid rather than given a wrong shape.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRTermplotLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

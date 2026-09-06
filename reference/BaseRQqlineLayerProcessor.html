@@ -120,6 +120,67 @@ unchanged.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRQqlineLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRQqlineLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Q-Q Reference Line Layer Processor — BaseRQqlineLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads qqline() as the reference line it draws.
+qqnorm() and qqplot() became readable in #251, and qqline() – how
+nearly every Q-Q plot in the wild is finished – was listed in LOW with
+no reading at all, purely so a chart carrying one would decline rather
+than come out as a scatter with a drawn mark silently missing from it.
+That was the lower of the two claims; this is the reading (#252).
+Why it is recorded at all
+
+
+stats::qqline() ends in abline(int, slope, ...), and that call is
+reached from inside the stats namespace, where maidr&#x27;s search-path
+wrapper never sees it. Measured: before qqline was listed, qqnorm(x); qqline(x) recorded exactly one call and the reference line left no trace.
+
+
+
+Where the endpoints come from
+
+
+Not from the drawn grob and not re-derived. stats::qqline&#x27;s body is four
+lines, and the line it draws is the one through two points:
+y &amp;lt;- quantile(y, probs, names = FALSE, type = qtype, na.rm = TRUE)
+x &amp;lt;- distribution(probs)
+
+with probs defaulting to c(0.25, 0.75) and distribution to qnorm.
+This class asks stats for the same two anchors, from the call&#x27;s own
+arguments, so a qqline() written with a non-default probs, qtype or
+distribution is read from what it was given rather than from the
+defaults. datax = TRUE swaps which of the two the slope is taken over,
+and qqline() takes its own copy of that argument rather than inheriting
+the plot&#x27;s – so a qqline(datax = TRUE) over a qqnorm(datax = FALSE)
+is expressible, and is read from the qqline call.
+
+
+
+Why the x range is not the parent&#x27;s
+
+
+BaseRLineLayerProcessor$extract_abline_data() takes its x range from
+get_x_range_from_group(), which reads the group&#x27;s HIGH call&#x27;s first
+argument as the x data. On a qqnorm group that argument is the
+sample, not the theoretical quantiles the chart puts on x – so
+inheriting it would stretch the line across the wrong interval, which is
+the class of mistake the Q-Q reading exists to avoid. The range comes from
+the drawn pairs instead, which BaseRQqLayerProcessor already
+computes from stats&#x27; own output.
+Highlighting needs nothing new: qqnorm(x); qqline(x) and
+plot(x, y); abline(0, 1) export the same grob,
+graphics-plot-1-abline-ab-1, so the parent&#x27;s abline selector reaches it
+unchanged.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRQqlineLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

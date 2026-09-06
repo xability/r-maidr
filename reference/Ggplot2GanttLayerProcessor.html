@@ -38,6 +38,26 @@ into a save_html() that raises. See the adapter's own note."><meta property="og:
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2GanttLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2GanttLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Gantt Layer Processor — Ggplot2GanttLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes geom_segment() layers that draw intervals in lanes.
+A segment with the two ends of a span on one axis and a lane on the other
+is how ggplot2 draws a schedule, a range plot and a high-low chart.
+ggplot_build computes both ends and the lane exactly, so nothing is
+inverted from a pixel: the four columns x, xend, y and
+yend are the interval and the lane the caller wrote.
+geom_curve() computes the same four columns and would read the same
+way, but is not claimed – gridSVG cannot export the curve
+grob it draws, so reading it would turn a curve chart from a static image
+into a save_html() that raises. See the adapter&#x27;s own note.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2GanttLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-22">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

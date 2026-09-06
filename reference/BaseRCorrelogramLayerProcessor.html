@@ -70,6 +70,42 @@ spike on the chart."><meta property="og:image" content="https://raw.githubuserco
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRCorrelogramLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRCorrelogramLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Correlogram Layer Processor — BaseRCorrelogramLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes the three correlogram entry points – acf(), pacf() and
+ccf(). Each draws one vertical spike per lag, from the zero line to the
+correlation at that lag, and joins nothing to anything.
+Read as a lollipop layer, for the reason BaseRSpikeLayerProcessor
+gives: a line would say the samples are joined and that the space between
+two lags can be interpolated, which is the one relationship a correlogram
+is drawn to deny. The spikes even export under the same grob name –
+measured, plot(acf(v)) names them graphics-plot-1-spike-1 – so the
+inherited selector search needs no override.
+What this adds is where the numbers come from. The recorded call holds the
+series, not the correlogram: measured, acf(v, lag.max = 5) records
+one HIGH call whose args are the 60 observations and lag.max. So the
+reading replays the call with plot = FALSE and takes $lag and $acf
+off the result, which is the same shape BaseRSpineplotLayerProcessor
+takes for a table it cannot read off the drawing either.
+All three differ in what the lags are, and the replay answers that
+too rather than the reading assuming it. Measured on one 60-point series:
+acf(v,  lag.max = 5)   lags  0  1  2  3  4  5
+pacf(v, lag.max = 5)   lags     1  2  3  4  5
+ccf(v, w, lag.max = 3) lags -3 -2 -1  0  1  2  3
+
+acf starts at lag 0, whose correlation is 1 by construction and which
+the chart draws; pacf has no lag 0 at all; and a cross-correlation&#x27;s
+lags are signed, because &quot;x leads y&quot; and &quot;y leads x&quot; are different
+statements. Announcing any of the three as another would misname every
+spike on the chart.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRCorrelogramLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

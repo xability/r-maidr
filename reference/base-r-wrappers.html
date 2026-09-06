@@ -34,6 +34,24 @@ they pass through directly to the originals with no overhead."><meta property="o
 </script><link rel="canonical" href="https://r.maidr.ai/reference/base-r-wrappers.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/base-r-wrappers.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Graphics Function Wrappers — base-r-wrappers">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="MAIDR wraps standard Base R graphics functions to intercept plot calls
+and enable accessible, interactive visualizations. When the maidr package
+is loaded, these wrappers automatically replace the standard functions
+on the search path, recording plot data so that show() can render
+accessible versions.
+The wrappers are transparent: they call the original graphics functions
+and return the same results. When patching is disabled (via maidr_off()),
+they pass through directly to the originals with no overhead.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/base-r-wrappers.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-28">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

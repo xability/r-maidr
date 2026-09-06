@@ -42,6 +42,28 @@ the counts, the margins they imply, and the level names from dimnames()."><meta 
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRMosaicLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRMosaicLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Mosaic Plot Layer Processor — BaseRMosaicLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes Base R mosaicplot() layers – a two-way contingency table
+drawn as tiles, where a column&#x27;s width encodes that category&#x27;s share
+of all observations and a tile&#x27;s height its conditional proportion within
+the column.
+Read as a mosaic layer, which exists for exactly this shape. Read as a
+stacked_bar it would lose the width entirely, and the width is half the
+table: the conditional proportions would arrive without the group sizes
+they were computed from, so a category of six observations and one of six
+hundred would read identically.
+Nothing here is inferred from the drawing. mosaicplot() is handed the
+table itself, so the recorded call carries every number the trace wants –
+the counts, the margins they imply, and the level names from dimnames().">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRMosaicLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

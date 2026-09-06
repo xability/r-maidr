@@ -88,6 +88,51 @@ draws nothing at all."><meta property="og:image" content="https://raw.githubuser
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRPairsLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRPairsLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Scatterplot Matrix Processor — BaseRPairsLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads pairs() as the grid of scatters it draws: one panel per ordered
+pair of columns, the column across plotted against the column down.
+A grid, not a layer. Every other base R processor answers with one
+layer, or several layers in one cell. A scatterplot matrix is n x n
+panels, which is the figure&#x27;s shape rather than a layer&#x27;s, so this one
+answers with multi_panel = TRUE and places each layer at its own cell.
+That is the shape the same chart already gets elsewhere: sns.pairplot in
+py-maidr, and a plotly splom since xability/py-maidr#667.
+The grid cannot come from the recording. Measured, pairs() sets its
+own par(mfrow) internally and restores it, so nothing lands in the
+device&#x27;s layout calls – get_layout_calls() answers zero – and
+detect_panel_configuration() sees a single panel (#272). The grid is the
+reading&#x27;s own, derived from the number of columns.
+The panels are numbered column-major. Measured against a real
+grid.echo() export of a three-column matrix, gridGraphics writes nine
+graphics-plot-N groups – one per cell, diagonal included – and pairing
+them with a panel that recorded what it was handed gives
+k    cell     drawn
+1    (1,1)    text        the variable&#x27;s name
+2    (2,1)    points      x = column 1, y = column 2
+3    (3,1)    points      x = column 1, y = column 3
+4    (1,2)    points      x = column 2, y = column 1
+5    (2,2)    text
+6    (3,2)    points      x = column 2, y = column 3
+7    (1,3)    points      x = column 3, y = column 1
+8    (2,3)    points      x = column 3, y = column 2
+9    (3,3)    text
+
+– that is k = (col - 1) * n + row, and the panel at (row, col) plots
+column col horizontally against column row vertically.
+The diagonal has no layer. A diagonal cell draws the variable&#x27;s name
+and nothing else, which the orchestrator already has an answer for: a cell
+with no layers becomes a valid empty subplot. Giving it a histogram instead
+would announce a chart pairs() does not draw – its default diag.panel
+draws nothing at all.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRPairsLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

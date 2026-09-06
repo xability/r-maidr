@@ -52,6 +52,33 @@ tidyquant grobs."><meta property="og:image" content="https://raw.githubuserconte
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2CandlestickProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2CandlestickProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Candlestick Layer Processor — Ggplot2CandlestickProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes candlestick chart layers produced by tidyquant::geom_candlestick().
+tidyquant&#x27;s geom_candlestick() expands into TWO ggplot layers:
+A GeomLinerangeBC (BC = barchart) layer drawing the high-low wicks.
+A GeomRectCS (CS = candlestick) layer drawing the open-close bodies.
+
+
+The adapter tags the wick layer as &quot;skip&quot; so the orchestrator does not
+create a separate maidr layer for it. This processor handles only the
+second (body) layer, but reads back into the wick layer&#x27;s grobs to
+produce wick CSS selectors.
+Output type: &quot;candlestick&quot;. Each data point is a CandlestickPoint
+with value, open, high, low, close, optional volume,
+computed trend (Bull / Bear / Neutral) and volatility (high - low).
+Selectors are emitted as a single CandlestickSelector object whose
+body and wick fields are arrays of per-candle CSS selectors using
+:nth-of-type against the rect/line elements of the gridSVG-exported
+tidyquant grobs.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2CandlestickProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

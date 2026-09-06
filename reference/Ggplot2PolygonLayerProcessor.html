@@ -128,6 +128,71 @@ the element differs, which is why the search below matches either.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2PolygonLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2PolygonLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Polygon Layer Processor — Ggplot2PolygonLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads geom_polygon() as the closed path it draws.
+A polygon is geom_path() with its ends joined and its interior filled.
+GeomPath has been dispatched to &quot;line&quot; since before this file existed,
+so reading a polygon the same way decides nothing new about what a series
+of vertices means – it makes two spellings of one mark behave alike, the
+argument GeomSpoke was routed through GeomSegment on (#225).
+What it was costing until then is the whole chart. &quot;unknown&quot; is what
+makes has_unsupported_layers() true and drops the plot to a static
+image (#176). Measured on ggplot2 3.4.4, thirty points, save_html():
+geom_point()                     interactive SVG   52,708 bytes
+geom_point() + geom_polygon()    base64 image      30,913 bytes
+geom_polygon() alone             base64 image      18,353 bytes
+
+Skipping it instead was declined in #225 and the reason is worth keeping
+here: every geom skipped today carries no observations – geom_blank()
+draws nothing, a reference line is a constant, a text label repeats a
+value already in the payload – so skipping loses a reader nothing they
+could have navigated. A polygon&#x27;s vertices are rows the author supplied.
+Skipping one that is the data would drop it silently, which is worse than
+the honest picture, because the reader is not told anything is missing.
+The closing vertex is not emitted
+
+
+Four rows draw a quadrilateral with four corners and five edges. The
+fifth edge is the closure, and it adds no observation – which is
+ggplot2&#x27;s own reading as well: GeomPolygon$draw_panel() hands grid the
+munched rows unchanged under a linear coord, and the drawn element holds
+exactly as many points as the layer has rows. Straight off the exported
+SVG for x = c(1, 3, 3, 1), y = c(1, 1, 3, 3):
+&amp;lt;polygon points=&quot;49.84,53.12 171.93,53.12 171.93,265.22 49.84,265.22&quot;/&amp;gt;
+
+So a series and its drawn shape are the same length, in the same order,
+and a reader who navigates to the end has been told every vertex once.
+
+
+
+Addressing
+
+
+Unlike a line, a polygon layer names its grob after its geom, so it needs
+no draw-order search of anonymous GRID.polyline.N grobs. gridSVG turns
+one grob into one element per group, which is the granularity the
+multi-series trace wants:
+&amp;lt;g id=&quot;geom_polygon.polygon.57.1&quot;&amp;gt;
+  &amp;lt;polygon id=&quot;geom_polygon.polygon.57.1.1&quot;/&amp;gt;   &amp;lt;- group 1
+  &amp;lt;polygon id=&quot;geom_polygon.polygon.57.1.2&quot;/&amp;gt;   &amp;lt;- group 2
+
+aes(subgroup =) – a shape with a hole in it – is drawn as a
+pathgrob rather than a polygon, and gridSVG still emits one &amp;lt;path&amp;gt;
+per pathId, which is still the group. Measured on two groups of two
+subgroups: geom_polygon.pathgrob.42.1.1 and ...1.2, each holding both
+of its rings in one d. So both spellings address the same way and only
+the element differs, which is why the search below matches either.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2PolygonLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

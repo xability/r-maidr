@@ -82,6 +82,48 @@ pairing positionally. Nothing is sorted."><meta property="og:image" content="htt
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRQqLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRQqLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Q-Q Plot Layer Processor — BaseRQqLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads qqnorm() and qqplot() as the scatter of quantile pairs they
+draw.
+A Q-Q plot is a scatter, and BaseRPointLayerProcessor already knows how
+to emit one – the selector, the title and the grid all carry over
+unchanged, and qqnorm() exports its marks under
+graphics-plot-N-points-1, the same grob the point processor looks for.
+What does not carry over is the data.
+The base R processors read a call&#x27;s recorded arguments, not the drawn
+grob, and a Q-Q plot&#x27;s arguments are not its coordinates. qqnorm(y) is
+handed one sample and draws it against theoretical quantiles it computes;
+qqplot(x, y) is handed two samples of possibly different lengths and
+draws one interpolated pair per point of the shorter. Read as an ordinary
+scatter, both would announce numbers the chart does not draw – for
+qqnorm the raw sample on an axis of standard deviations, which is the
+one reading a Q-Q plot most needs not to have, because the whole point of
+the chart is the comparison between the two.
+So the coordinates are not re-derived here. stats computes them and
+both functions will hand them over without drawing: plot.it = FALSE
+returns exactly the pairs the plotted call would have drawn. Forwarding
+the recorded arguments rather than picking them apart is what makes the
+awkward cases free. Measured on eight values against five:
+qqnorm(x, plot.it = FALSE)$x    theoretical quantiles, in the
+                                caller&#x27;s order, not sorted
+qqnorm(x, datax = TRUE, ...)    the same pair, swapped
+qqplot(x, y, plot.it = FALSE)   both length 5; x interpolated to the
+                                shorter sample&#x27;s quantiles
+
+datax is the clearest of them: it swaps which axis holds the sample,
+and forwarding it means nothing here has to know that.
+The pairs come back in the order the call drew them, which is the order
+the points grob lays its marks down in, so the selector list keeps
+pairing positionally. Nothing is sorted.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRQqLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

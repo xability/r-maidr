@@ -30,6 +30,22 @@ this replaced was chosen to avoid."><meta property="og:image" content="https://r
 </script><link rel="canonical" href="https://r.maidr.ai/reference/escape_for_attribute.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/escape_for_attribute.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Escape a document so it can travel in an HTML attribute — escape_for_attribute">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Byte-wise, and deliberately not htmltools::htmlEscape(). That function
+works in characters, so on a system whose locale is not UTF-8 it renders
+every byte it cannot represent as &amp;lt;ed&amp;gt;, &amp;lt;95&amp;gt;, &amp;lt;9c&amp;gt; — and then
+escapes the angle brackets it just invented. A Korean title comes out as
+&amp;amp;lt;ed&amp;amp;gt;&amp;amp;lt;95&amp;amp;gt;&amp;amp;lt;9c&amp;amp;gt;, which is the garbling the base64 encoding
+this replaced was chosen to avoid.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/escape_for_attribute.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

@@ -90,6 +90,52 @@ hands over the readings instead."><meta property="og:image" content="https://raw
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRBiplotLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRBiplotLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Biplot Processor — BaseRBiplotLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads biplot() as the two things it draws: the observations in principal
+component space, and the variables&#x27; loadings on the same components.
+It is a grid, and for a reason the other grids do not have. pairs(),
+lag.plot() and termplot() are read as grids because they draw several
+panels. A biplot draws its two halves on top of each other – but on
+two different pairs of axes, which is the whole trick of the chart.
+Measured, the two plot.xy calls run over different ranges, and the
+quantities behind them are different sizes again:
+scores   PC1 range  -1.716 ..  2.199
+loadings PC1 range  -0.962 .. -0.012
+
+Announcing both against one axis pair would misstate every loading. So the
+two are given a cell each – one row, two columns – which is the only way
+the existing grammar can say &quot;these have separate scales&quot; without
+inventing a second axis on one layer.
+It draws no points at all. Both plot.xy calls are type = &quot;n&quot;;
+every mark on the page is a label or an arrow. Measured on the export
+of a ten-observation, four-variable fit:
+graphics-plot-1-text-1     10 children   the observations
+graphics-plot-2-text-1      4 children   the variables
+graphics-plot-2-arrows-1    4 children   the arrows
+
+Both text grobs are addressable per datum, in data order, which is the
+shape lag.plot()&#x27;s labelled panels already established – one g per
+label rather than one use per symbol. The arrows are not emitted
+separately: an arrow and its label name the same variable and sit at the
+same place, so the label is the mark a reader is moved to.
+The values are the caller&#x27;s, not the drawing&#x27;s. biplot() apportions
+the two halves between the axes so that both fit one page – it divides
+the scores by sdev * sqrt(n) and multiplies the loadings by it, so
+neither set is drawn at its own scale. What a reader wants is the pair
+that mean something: the scores, an observation&#x27;s coordinate in
+component space, and the loadings, a variable&#x27;s weight on each
+component. Those are announced. This is the same choice stars() makes,
+where the radii on the page are shares of a column&#x27;s range and the reading
+hands over the readings instead.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRBiplotLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

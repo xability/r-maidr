@@ -60,6 +60,37 @@ one chart the same way."><meta property="og:image" content="https://raw.githubus
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRContourLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRContourLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Contour Layer Processor — BaseRContourLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads a base R contour() call as the contour it draws.
+contour() had no processor. base_r_adapter mapped the call to the type
+&quot;contour&quot; and the factory fell through to the generic processor, so the
+layer shipped typed &quot;unknown&quot; – and the core&#x27;s trace factory ends its
+dispatch with throw new Error(&quot;Invalid trace type: …&quot;), so the figure
+bound interactively and then failed to construct. #214 stopped that by
+typing the call &quot;unknown&quot; at the adapter, which degrades to a static
+image; this replaces the picture with the reading (#218).
+The curves come from grDevices::contourLines(), which is the same
+computation contour() does and takes the same defaults, so nothing here
+is a guess about what was drawn:
+
+contour.default(x = seq(0, 1, length.out = nrow(z)),
+                y = seq(0, 1, length.out = ncol(z)),
+                z, nlevels = 10, levels = pretty(zlim, nlevels),
+                zlim = range(z, finite = TRUE))
+
+
+The payload matches ggplot2_contour_layer_processor.R exactly – a list
+of curves, each a list of {x, y, level} – so the two adapters describe
+one chart the same way.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRContourLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-24">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

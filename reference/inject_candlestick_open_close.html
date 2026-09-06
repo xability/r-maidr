@@ -30,6 +30,22 @@ upstream heuristic therefore swaps open and close on every candle."><meta proper
 </script><link rel="canonical" href="https://r.maidr.ai/reference/inject_candlestick_open_close.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/inject_candlestick_open_close.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Inject candlestick open/close virtual line elements into the SVG — inject_candlestick_open_close">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="tidyquant&#x27;s geom_candlestick() draws each candle&#x27;s body as a single
+&amp;lt;rect&amp;gt;. Upstream maidr JS auto-derives open and close highlight
+positions from the rect&#x27;s bounding-box edges, but its heuristic assumes
+a natural SVG y-axis (y increasing downward). gridSVG exports content
+inside a translate(0, h) scale(1, -1) group, so y is flipped. The
+upstream heuristic therefore swaps open and close on every candle.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/inject_candlestick_open_close.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-09">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

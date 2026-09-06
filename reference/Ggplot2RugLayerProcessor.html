@@ -84,6 +84,49 @@ data's columns rather than a parse of the sides string.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2RugLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2RugLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Rug Layer Processor — Ggplot2RugLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads geom_rug() as the observations it marks.
+A rug draws one short tick per row against the edge of the panel. What it
+states is the raw data – which is exactly what the density curve or
+histogram it usually accompanies does not. Until #222 the layer reached
+Ggplot2UnknownLayerProcessor: a rug-only chart emitted one empty layer
+and a rug beside a scatter added an empty one a reader could land on and
+find nothing in.
+Read as points, which is the reading py-maidr settled on for
+seaborn.rugplot (xability/py-maidr#250). length is one number for the
+whole layer, so a tick&#x27;s length is decoration and only its position is
+data – the same argument the event-plot reading makes about its ticks. The
+coordinate across the tick is emitted as a constant rather than as the
+tick&#x27;s own base, because that base is a fraction of the panel and would
+read as data at whatever scale the other axis happens to use.
+One layer per axis
+
+
+geom_rug() defaults to sides = &quot;bl&quot;, so on a chart with both aesthetics
+mapped it marks both – and the built data carries both columns. So this
+emits up to two layers: the x observations and the y observations.
+Not one per drawn grob. sides = &quot;trbl&quot; draws the same x observations at
+top and bottom, and emitting that twice would have a reader navigate the
+same numbers under two names. Measured on four rows:
+sides=&quot;b&quot;      GRID.segments.1  : x (n=4)
+sides=&quot;l&quot;      GRID.segments.41 : y (n=4)
+sides=&quot;bl&quot;     GRID.segments.78 : x (n=4)   GRID.segments.79 : y (n=4)
+sides=&quot;trbl&quot;   .116: x   .117: x   .118: y   .119: y
+
+A side is drawn only where the matching aesthetic exists – sides = &quot;bl&quot;
+with only aes(x = v) gives one grob – so the layers follow the built
+data&#x27;s columns rather than a parse of the sides string.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2RugLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

@@ -38,6 +38,26 @@ unaffected because their text grobs already carry a numeric justification."><met
 </script><link rel="canonical" href="https://r.maidr.ai/reference/repair_na_text_justification.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/repair_na_text_justification.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Repair NA text-grob justification so gridSVG can export the tree — repair_na_text_justification">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="gridGraphics::grid.echo() translates some base graphics text into grid
+text grobs that leave vjust (and, in principle, hjust) as NA and defer
+to the grob&#x27;s just field instead. gridSVG 1.7.7 passes the raw value to
+gridSVG:::justTovjust(), which branches on it directly and fails with
+&quot;missing value where TRUE/FALSE needed&quot;, aborting gridSVG::grid.export()
+from devGrob.text. graphics::pie() is the case that bites: it labels
+every wedge, so before this repair no base R pie chart could be exported at
+all – pie(..., labels = NA), which draws no text, exported fine, which is
+what pins the failure on these grobs. barplot() and friends are
+unaffected because their text grobs already carry a numeric justification.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/repair_na_text_justification.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-09">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

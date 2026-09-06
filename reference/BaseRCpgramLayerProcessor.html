@@ -44,6 +44,29 @@ is cpgram()'s own, and it reproduces the traced plot.xy call exactly."><meta pro
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRCpgramLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRCpgramLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Cumulative Periodogram Processor — BaseRCpgramLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads cpgram() as the staircase it draws: the cumulative periodogram
+against frequency, held across each interval and then jumping.
+It is a step, not a line. cpgram() plots with type = &quot;s&quot;, which
+draws the horizontal segment first – MAIDR&#x27;s &quot;hv&quot;. A line would imply
+the value slides between frequencies, which is not what a cumulative sum
+does, and the export agrees: the grob is step-1, not lines-1.
+It does NOT use spectrum()&#x27;s estimate. This is the trap the reading
+exists to avoid. spectrum() defaults to taper = 0.1, detrend = TRUE, demean = FALSE and smooths; cpgram() computes its own periodogram –
+taper, FFT, zero the first ordinate, then normalise the cumulative sum –
+and the two disagree. Measured, the second step of the drawn curve is
+0.0801 while spectrum()&#x27;s estimate gives 0.0817: close enough to look
+right and wrong enough to announce wrong numbers. So the computation below
+is cpgram()&#x27;s own, and it reproduces the traced plot.xy call exactly.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRCpgramLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

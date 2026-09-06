@@ -34,6 +34,24 @@ the plot and the layer index."><meta property="og:image" content="https://raw.gi
 </script><link rel="canonical" href="https://r.maidr.ai/reference/dot-jitter_cache.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/dot-jitter_cache.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="One rebuilt frame per layer, so a facet does not pay for it per panel — .jitter_cache">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="process_facet_panel() runs once per panel, so a jittered layer asked for
+its undisplaced positions once per panel too – and each of those rebuilds
+the whole plot, every panel of it. Measured by counting
+ggplot2::ggplot_build calls through a facet of P panels: 3, 5 and 9 calls
+for P of 2, 4 and 8. One build is the original; the other P are the same
+answer computed P times over, so the work is quadratic in the panel count
+while the answer never varies – undisplaced_layer_data() depends only on
+the plot and the layer index.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/dot-jitter_cache.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-16">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

@@ -38,6 +38,26 @@ against the bar layer's x field.
 </script><link rel="canonical" href="https://r.maidr.ai/reference/embed_volume_into_candle_data.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/embed_volume_into_candle_data.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Embed volume y-values from a bar layer into the candlestick layer&#x27;s data. — embed_volume_into_candle_data">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Strategy:
+If both layers have the same number of points, embed positionally.
+This is the canonical case: patchwork stacks two panels driven by
+the same date column, so the i-th candle and the i-th bar refer to
+the same trading day even if the bar layer&#x27;s x is formatted
+differently from the candle&#x27;s value.
+Otherwise, fall back to string-matching the candle&#x27;s value field
+against the bar layer&#x27;s x field.
+
+">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/embed_volume_into_candle_data.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-09">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

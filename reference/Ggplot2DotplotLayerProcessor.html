@@ -48,6 +48,31 @@ distribution with a rect per bin and highlights."><meta property="og:image" cont
 </script><link rel="canonical" href="https://r.maidr.ai/reference/Ggplot2DotplotLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/Ggplot2DotplotLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Dot Plot Layer Processor — Ggplot2DotplotLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes Wilkinson dot plots (geom_dotplot).
+The layer emits type hist, because that is the chart: a stack of
+dots is a bar, and the bin and its count are what a reader navigates. The
+y axis a dot plot draws is not one – ggplot2&#x27;s own documentation says the
+values on it are meaningless – so the count goes on it here.
+Highlighting is not offered, and that is a real limit rather than an
+oversight. GeomDotplot draws the whole chart as one
+dotstackGrob, which gridSVG exports as one &amp;lt;circle&amp;gt; per
+observation: a bin of three dots has three elements and no element of
+its own, while the frontend&#x27;s bar traces resolve exactly one element per
+announced value. So the bins are announced, sonified and brailled, and
+nothing lights up – which is the highlight-only blind spot
+xability/maidr#814 names, and strictly better than the static image this
+chart was before (#201). geom_histogram() draws the same
+distribution with a rect per bin and highlights.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/Ggplot2DotplotLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-08-20">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

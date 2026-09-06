@@ -58,6 +58,36 @@ that carries no meaning."><meta property="og:image" content="https://raw.githubu
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRSubseriesLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRSubseriesLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Seasonal Subseries Layer Processor — BaseRSubseriesLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads monthplot() as the set of lines it draws: one series per cycle
+position – month, quarter, whatever the frequency makes it – running over
+that position&#x27;s own subseries.
+stats::monthplot.default draws exactly that, one lines() call per
+position:
+for (i in 1L:f) {
+  sub &amp;lt;- phase == i
+  lines((y[sub] - min(y)) * scale - 0.45 + i, x[sub], type = type, ...)
+}
+
+The x coordinate there is a slot offset, not a reading: every subseries is
+squeezed into its own 0.9-wide band so twelve of them fit side by side on
+one axis. What the offset is computed from is times, and that is the
+reading – the cycle each observation falls in. So each series comes out as
+its own subseries over times, carrying its position&#x27;s label as z, which
+is the shape BaseRLineLayerProcessor already reads for matplot.
+Recomputed from the recorded arguments rather than read back off the
+drawing, for the reason the correlograms recompute theirs (#276): the slot
+offsets are on the page and the times are not, and the offsets are the half
+that carries no meaning.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRSubseriesLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

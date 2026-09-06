@@ -50,6 +50,32 @@ spikes are actually named after."><meta property="og:image" content="https://raw
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRSpikeLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRSpikeLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Spike Plot Layer Processor — BaseRSpikeLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Processes Base R spike layers – plot(x, y, type = &quot;h&quot;) and the
+lines() equivalent. type = &quot;h&quot; draws a vertical line from the baseline
+to each value and joins nothing to anything: the samples stand side by
+side rather than in a series.
+Read as a lollipop layer, which the core builds on BarTrace: one value
+per position, with no claim about the space between two of them. The
+marker head a lollipop conventionally carries is the only difference from
+what base R draws here, and it is not something a reader hears.
+Announced as a line before this existed, which is the reading a spike
+chart most needs not to have – a line says the samples are joined and
+that the space between them can be interpolated, and that is the one
+relationship the chart is drawn to deny (#239).
+Data extraction, axis titles and the main title are a line layer&#x27;s, so
+this inherits BaseRLineLayerProcessor; what it adds is the layer type,
+the flat point list a bar-shaped trace wants, and the grob family the
+spikes are actually named after.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRSpikeLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 

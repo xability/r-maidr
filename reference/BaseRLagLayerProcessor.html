@@ -110,6 +110,62 @@ child it reaches for."><meta property="og:image" content="https://raw.githubuser
 </script><link rel="canonical" href="https://r.maidr.ai/reference/BaseRLagLayerProcessor.html">
 <meta property="og:url" content="https://r.maidr.ai/reference/BaseRLagLayerProcessor.html">
 <meta name="robots" content="noindex">
+<meta name="DC.title" content="Base R Lag Plot Processor — BaseRLagLayerProcessor">
+<meta name="DC.creator" content="Seo, JooYoung">
+<meta name="DC.creator" content="Kalaiselvan, Niranjan">
+<meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
+<meta name="DC.description" content="Reads lag.plot() as the grid of scatters it draws: one panel per series
+and lag, the series plotted against a shifted copy of itself.
+A grid, not a layer. Like pairs(), this call lays out its own panels
+and hands nothing to the device&#x27;s layout calls, so the grid has to come
+from the reading. It answers multi_panel = TRUE and places each layer at
+its own cell.
+What a panel pairs. Measured by tracing graphics::plot.xy through a
+real call – the panel is plot(lag(X, k), X), and lag() shifts the time
+base back, so the pair at time t is
+x = X[t + k]      the later reading, across
+y = X[t]          the earlier one, up
+
+over every t where both indices land inside the series. A negative lag
+works out of the same expression and was measured too: set.lags = -1
+gives x = X[1..n-1] against y = X[2..n], and set.lags = 0 gives the
+series against itself.
+The panels are numbered in draw order. The nested loop runs series
+outermost and lag innermost, and par(mfrow) fills row by row – measured
+against a grid.echo() export, a two-column matrix at lags = 2 writes
+graphics-plot-1 through graphics-plot-4 for (a,1) (a,2) (b,1) (b,2).
+So panel k sits at row (k - 1) %/% ncols + 1, column
+(k - 1) %% ncols + 1.
+A panel&#x27;s marks are symbols or labels, and labels decides which.
+lag.plot() writes the time index at each pair rather than a symbol when
+labels is true, and labels defaults to do.lines, which defaults to
+n &amp;lt;= 150 – so the default chart is the labelled one. Measured, the
+four combinations give:
+labels  do.lines   grobs in a panel
+FALSE   FALSE      points
+FALSE   TRUE       points, lines
+TRUE    FALSE      text
+TRUE    TRUE       text, brokenline
+
+So do.lines only adds the joining line and labels alone decides the
+mark, which is why the two are read separately rather than through the
+default that ties them together.
+Both marks can be outlined, and the export is what says so. Measured on a
+real save_html() of a labelled call, the text grob comes out as one
+group per pair, in data order:
+&amp;lt;g id=&quot;graphics-plot-1-text-1.1&quot;&amp;gt;
+  &amp;lt;g id=&quot;graphics-plot-1-text-1.1.1&quot; transform=&quot;translate(254.32, …)&quot;&amp;gt;
+  &amp;lt;g id=&quot;graphics-plot-1-text-1.1.2&quot; transform=&quot;translate(221.70, …)&quot;&amp;gt;
+
+which is the same shape a points grob has, with use elements replaced
+by nested gs. So the selector differs only in the grob name and the
+child it reaches for.">
+<meta name="DC.identifier" content="https://r.maidr.ai/reference/BaseRLagLayerProcessor.html">
+<meta name="DC.type" content="Text">
+<meta name="DC.format" content="text/html">
+<meta name="DC.language" content="en">
+<meta name="DC.rights" content="GPL-3.0-or-later">
+<meta name="DC.date" content="2026-09-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
