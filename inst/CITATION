@@ -42,7 +42,7 @@ bibentry(
     person(given = "JooYoung", family = "Seo"),
     person(given = "Niranjan", family = "Kalaiselvan")
   ),
-  year = "2026",
+  year = format(Sys.Date(), "%Y"),
   note = paste("R package version", meta$Version),
   url = "https://r.maidr.ai/"
 )
