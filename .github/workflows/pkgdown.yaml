@@ -62,7 +62,11 @@ jobs:
       - name: Fail on HTML pages near the Googlebot 2 MB fetch limit
         run: |
           echo "Ten largest HTML files:"
-          find docs -type f -name '*.html' -printf '%s %p\n' | sort -rn | head -n 10
+          # awk rather than `head`: `head` closes the pipe once it has its ten
+          # lines, and `sort` then dies of SIGPIPE. Harmless under this step's
+          # default `bash -e`, but it prints an error into every build log and
+          # would fail the step outright the day someone adds `pipefail`.
+          find docs -type f -name '*.html' -printf '%s %p\n' | sort -rn | awk 'NR <= 10'
           large="$(find docs -type f -name '*.html' -size +1900000c)"
           if [ -n "$large" ]; then
             echo "::error::HTML files larger than 1,900,000 bytes (Googlebot indexes only the first 2 MB):" >&2
