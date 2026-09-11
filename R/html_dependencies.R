@@ -32,6 +32,11 @@ maidr_cdn_url <- function() {
 #' has always rendered correctly. Users who want CDN can still pass
 #' `use_cdn = TRUE` explicitly.
 #'
+#' When a DotPad SDK location is configured (see [maidr-options]), a
+#' `maidr-dotpad-config` dependency precedes the `maidr` one: its `head`
+#' declares the `window.MAIDR_DOTPAD_*` globals, and listing it first is what
+#' puts them ahead of the bundle's `<script>` in the rendered document.
+#'
 #' No stylesheet is declared. MAIDR styles its interface at runtime, and
 #' since maidr 3.75.1 the published `maidr.css` is a placeholder with no
 #' rules in it. The one stylesheet that does carry rules, `maidr-math.css`
@@ -41,7 +46,8 @@ maidr_cdn_url <- function() {
 #'
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
 #'   use bundled files.
-#' @return A list containing one htmlDependency object
+#' @return A list of htmlDependency objects: the `maidr` bundle, preceded by
+#'   `maidr-dotpad-config` when a DotPad SDK location is configured
 #' @keywords internal
 maidr_html_dependencies <- function(use_cdn = NULL) {
 
@@ -69,7 +75,9 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
     )
   }
 
-  list(maidr_dep)
+  # NULL when nothing is configured, and dropped, so the list is unchanged
+  # for everyone who has not asked for a local SDK.
+  Filter(Negate(is.null), list(maidr_dotpad_config_dependency(), maidr_dep))
 }
 
 #' Get paths to local MAIDR assets

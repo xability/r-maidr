@@ -226,6 +226,25 @@ show(p, use_cdn = FALSE)
 save_html(p, "plot.html", use_cdn = FALSE)
 ```
 
+One path still reaches the network from an offline document: connecting a
+[DotPad tactile display](https://maidr.ai/docs/TACTILE_DISPLAY.html). maidr.js
+does not bundle the DotPad SDK, whose licence does not permit redistribution,
+and imports the vendor's copy from jsDelivr the first time a DotPad is
+connected. Rendering, sonification and braille work offline regardless. To keep
+the DotPad offline too, serve the SDK yourself and point maidr at it before
+rendering, through options or the environment variables of the same names:
+
+``` r
+options(
+  maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+  maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"
+)
+# or: Sys.setenv(MAIDR_DOTPAD_SDK_URL = "...", MAIDR_DOTPAD_ASSET_BASE_URL = "...")
+```
+
+Every document maidr produces then declares `window.MAIDR_DOTPAD_SDK_URL` and
+`window.MAIDR_DOTPAD_ASSET_BASE_URL` ahead of maidr.js. See `?"maidr-options"`.
+
 ## Getting help
 
 - Report bugs or request features at [GitHub Issues](https://github.com/xability/r-maidr/issues)

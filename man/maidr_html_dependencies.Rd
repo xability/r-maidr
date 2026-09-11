@@ -11,7 +11,8 @@ maidr_html_dependencies(use_cdn = NULL)
 use bundled files.}
 }
 \value{
-A list containing one htmlDependency object
+A list of htmlDependency objects: the \code{maidr} bundle, preceded by
+\code{maidr-dotpad-config} when a DotPad SDK location is configured
 }
 \description{
 Creates the HTML dependency for the MAIDR JavaScript bundle.
@@ -30,6 +31,11 @@ nested-\verb{<html>} HTML scaffold caused base R chart SVGs to render squished
 in the upper-left of the viewport. Local assets match the ggplot path that
 has always rendered correctly. Users who want CDN can still pass
 \code{use_cdn = TRUE} explicitly.
+
+When a DotPad SDK location is configured (see \link{maidr-options}), a
+\code{maidr-dotpad-config} dependency precedes the \code{maidr} one: its \code{head}
+declares the \verb{window.MAIDR_DOTPAD_*} globals, and listing it first is what
+puts them ahead of the bundle's \verb{<script>} in the rendered document.
 
 No stylesheet is declared. MAIDR styles its interface at runtime, and
 since maidr 3.75.1 the published \code{maidr.css} is a placeholder with no
