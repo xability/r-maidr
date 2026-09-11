@@ -235,6 +235,18 @@
 
 #### Rendering and integration
 
+- An offline document (`use_cdn = FALSE`) can reach a DotPad tactile
+  display without the network. maidr.js does not bundle the DotPad SDK
+  and imports it from jsDelivr the first time a DotPad connects; the new
+  options `maidr.dotpad_sdk_url` and `maidr.dotpad_asset_base_url` (or
+  the environment variables `MAIDR_DOTPAD_SDK_URL` and
+  `MAIDR_DOTPAD_ASSET_BASE_URL`) point it at a copy you serve instead.
+  They are written ahead of `maidr.js` on every path that loads it:
+  [`show()`](https://r.maidr.ai/reference/show.md),
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md), the
+  widget, knitr and Shiny. Without them a DotPad needs network access on
+  first connect, which the offline documentation now says
+  ([\#304](https://github.com/xability/r-maidr/issues/304)).
 - A ggplot2 chart that maidr can read but cannot export gets its static
   picture. The fallback printed the chart through maidr’s own print
   method, which rebuilt it, failed again and opened a fresh

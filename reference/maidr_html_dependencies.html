@@ -48,7 +48,7 @@ If NULL: Same as FALSE - use local bundled files
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-10">
+<meta name="DC.date" content="2026-09-11">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -120,7 +120,8 @@ use bundled files.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing one htmlDependency object</p>
+    <p>A list of htmlDependency objects: the <code>maidr</code> bundle, preceded by
+<code>maidr-dotpad-config</code> when a DotPad SDK location is configured</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -131,6 +132,10 @@ nested-<code>&lt;html&gt;</code> HTML scaffold caused base R chart SVGs to rende
 in the upper-left of the viewport. Local assets match the ggplot path that
 has always rendered correctly. Users who want CDN can still pass
 <code>use_cdn = TRUE</code> explicitly.</p>
+<p>When a DotPad SDK location is configured (see <a href="maidr-options.html">maidr-options</a>), a
+<code>maidr-dotpad-config</code> dependency precedes the <code>maidr</code> one: its <code>head</code>
+declares the <code>window.MAIDR_DOTPAD_*</code> globals, and listing it first is what
+puts them ahead of the bundle's <code>&lt;script&gt;</code> in the rendered document.</p>
 <p>No stylesheet is declared. MAIDR styles its interface at runtime, and
 since maidr 3.75.1 the published <code>maidr.css</code> is a placeholder with no
 rules in it. The one stylesheet that does carry rules, <code>maidr-math.css</code>

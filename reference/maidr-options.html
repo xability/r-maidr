@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-09">
+<meta name="DC.date" content="2026-09-11">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -106,6 +106,23 @@ instead of the standard graphics device. Default: TRUE.</p></dd>
 <dd><p>Logical. Show startup message when
 package is loaded. Default: TRUE.</p></dd>
 
+<dt><code>maidr.dotpad_sdk_url</code></dt>
+<dd><p>Character. URL of a copy of the DotPad
+tactile-display SDK module (<code>DotPadSDK-3.0.2.js</code>) that you serve
+yourself. maidr.js does not bundle the SDK, whose licence does not
+permit redistribution; unless told otherwise it imports the vendor's
+copy from jsDelivr the first time a DotPad is connected, from a
+document rendered with <code>use_cdn = FALSE</code> as much as any other.
+Set this to keep that path off the network too. Falls back to the
+environment variable <code>MAIDR_DOTPAD_SDK_URL</code>. Default: unset.</p></dd>
+
+<dt><code>maidr.dotpad_asset_base_url</code></dt>
+<dd><p>Character. URL of the directory
+holding the SDK's braille engine (<code>liblouis.js</code>, <code>.wasm</code>,
+<code>.data</code>), needed only when it is not the <code>lib/</code> folder
+beside the module. Falls back to the environment variable
+<code>MAIDR_DOTPAD_ASSET_BASE_URL</code>. Default: unset.</p></dd>
+
 
 </dl></div>
     <div class="section level2">
@@ -120,8 +137,27 @@ package is loaded. Default: TRUE.</p></dd>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.auto_show <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Suppress startup message</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.startup_message <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.startup_message <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Serve the DotPad SDK from your own server instead of jsDelivr</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
+<span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://example.org/vendor/DotPadSDK-3.0.2.js"</span>,</span>
+<span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://example.org/vendor/lib/"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 
+    </div>
+    <div class="section level2">
+    <h2 id="dotpad-sdk-and-offline-documents">DotPad SDK and offline documents<a class="anchor" aria-label="anchor" href="#dotpad-sdk-and-offline-documents"></a></h2>
+
+
+<p>The two <code>maidr.dotpad_*</code> options are written into every document this
+package produces (<code><a href="show.html">show()</a></code>, <code><a href="save_html.html">save_html()</a></code>, the htmlwidget, knitr
+and Shiny) as the globals <code>window.MAIDR_DOTPAD_SDK_URL</code> and
+<code>window.MAIDR_DOTPAD_ASSET_BASE_URL</code>, ahead of <code>maidr.js</code>, which
+reads them when a DotPad is connected. Nothing is written when neither is
+set. Without them a DotPad needs network access to jsDelivr on first
+connect, even from a <code>use_cdn = FALSE</code> document; the rest of the
+document works offline either way.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

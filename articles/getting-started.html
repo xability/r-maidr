@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-06">
+<meta name="DC.date" content="2026-09-11">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -265,6 +265,32 @@ CDN when online. You can control this behavior with the
 portable HTML files for offline viewing - Sharing files with users who
 may not have internet access - Ensuring reproducibility with a specific
 MAIDR.js version</p>
+<div class="section level3">
+<h3 id="the-dotpad-sdk">The DotPad SDK<a class="anchor" aria-label="anchor" href="#the-dotpad-sdk"></a>
+</h3>
+<p>One thing an offline document still fetches: the SDK for the <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile
+display</a>. maidr.js does not bundle it (its licence does not permit
+redistribution) and imports the vendor’s copy from jsDelivr the first
+time a reader connects a DotPad. The document renders, sonifies and
+brailles without the network; only that first connect needs it.</p>
+<p>To keep the DotPad offline as well, serve the SDK yourself and tell
+maidr where it is before rendering. Options and environment variables of
+the same names both work; an option wins when both are set:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
+<span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.2.js"</span>,</span>
+<span>  <span class="co"># Only if the braille engine (liblouis) is not in lib/ beside the module</span></span>
+<span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/lib/"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot_offline.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>Every document maidr produces (<code><a href="../reference/show.html">show()</a></code>,
+<code><a href="../reference/save_html.html">save_html()</a></code>, widgets, knitr and Shiny) then declares
+<code>window.MAIDR_DOTPAD_SDK_URL</code> and
+<code>window.MAIDR_DOTPAD_ASSET_BASE_URL</code> ahead of maidr.js, and
+the CDN is never asked for the SDK. See <code><a href="../reference/maidr-options.html">?"maidr-options"</a></code>
+for the details.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="exploring-accessible-plots">Exploring Accessible Plots<a class="anchor" aria-label="anchor" href="#exploring-accessible-plots"></a>
@@ -335,12 +361,12 @@ time after reveal.js cuts one. Nothing will need to change in your deck
 when it does.</p>
 <p>Until then, <a href="https://github.com/mcanouil/quarto-revealjs-a11y" class="external-link">quarto-revealjs-a11y</a>
 does the same thing for a Quarto deck. Add it once per project:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
 <p>and enable it in the deck’s front matter:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
 <p>Use <strong>0.2.3 or newer</strong>. Earlier versions took off-slide
 elements out of the tab order by setting <code>tabindex="-1"</code> on
 them and could not find them again to put them back, which left the
@@ -423,7 +449,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="histogram">Histogram<a class="anchor" aria-label="anchor" href="#histogram"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -444,7 +470,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="scatter-plot">Scatter Plot<a class="anchor" aria-label="anchor" href="#scatter-plot"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -469,7 +495,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="line-plot">Line Plot<a class="anchor" aria-label="anchor" href="#line-plot"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>

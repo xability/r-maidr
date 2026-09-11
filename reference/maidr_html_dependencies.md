@@ -24,7 +24,8 @@ maidr_html_dependencies(use_cdn = NULL)
 
 ## Value
 
-A list containing one htmlDependency object
+A list of htmlDependency objects: the `maidr` bundle, preceded by
+`maidr-dotpad-config` when a DotPad SDK location is configured
 
 ## Details
 
@@ -36,6 +37,13 @@ with a (now-fixed) malformed nested-`<html>` HTML scaffold caused base R
 chart SVGs to render squished in the upper-left of the viewport. Local
 assets match the ggplot path that has always rendered correctly. Users
 who want CDN can still pass `use_cdn = TRUE` explicitly.
+
+When a DotPad SDK location is configured (see
+[maidr-options](https://r.maidr.ai/reference/maidr-options.md)), a
+`maidr-dotpad-config` dependency precedes the `maidr` one: its `head`
+declares the `window.MAIDR_DOTPAD_*` globals, and listing it first is
+what puts them ahead of the bundle's `<script>` in the rendered
+document.
 
 No stylesheet is declared. MAIDR styles its interface at runtime, and
 since maidr 3.75.1 the published `maidr.css` is a placeholder with no

@@ -137,6 +137,39 @@ save_html(p, "plot_offline.html", use_cdn = FALSE)
 offline viewing - Sharing files with users who may not have internet
 access - Ensuring reproducibility with a specific MAIDR.js version
 
+### The DotPad SDK
+
+One thing an offline document still fetches: the SDK for the [DotPad
+tactile display](https://maidr.ai/docs/TACTILE_DISPLAY.html). maidr.js
+does not bundle it (its licence does not permit redistribution) and
+imports the vendor’s copy from jsDelivr the first time a reader connects
+a DotPad. The document renders, sonifies and brailles without the
+network; only that first connect needs it.
+
+To keep the DotPad offline as well, serve the SDK yourself and tell
+maidr where it is before rendering. Options and environment variables of
+the same names both work; an option wins when both are set:
+
+``` r
+
+options(
+  maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+  # Only if the braille engine (liblouis) is not in lib/ beside the module
+  maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"
+)
+
+save_html(p, "plot_offline.html", use_cdn = FALSE)
+```
+
+Every document maidr produces
+([`show()`](https://r.maidr.ai/reference/show.md),
+[`save_html()`](https://r.maidr.ai/reference/save_html.md), widgets,
+knitr and Shiny) then declares `window.MAIDR_DOTPAD_SDK_URL` and
+`window.MAIDR_DOTPAD_ASSET_BASE_URL` ahead of maidr.js, and the CDN is
+never asked for the SDK. See
+[`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md) for
+the details.
+
 ## Exploring Accessible Plots
 
 When you open a MAIDR plot, you can explore it using:

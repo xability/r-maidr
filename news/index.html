@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-06">
+<meta name="DC.date" content="2026-09-11">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -143,7 +143,8 @@
 <h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
 <div class="section level4">
 <h4 id="rendering-and-integration-development-version">Rendering and integration<a class="anchor" aria-label="anchor" href="#rendering-and-integration-development-version"></a></h4>
-<ul><li>A ggplot2 chart that maidr can read but cannot export gets its static picture. The fallback printed the chart through maidr’s own print method, which rebuilt it, failed again and opened a fresh <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code> device on every round until R ran out of them.</li>
+<ul><li>An offline document (<code>use_cdn = FALSE</code>) can reach a DotPad tactile display without the network. maidr.js does not bundle the DotPad SDK and imports it from jsDelivr the first time a DotPad connects; the new options <code>maidr.dotpad_sdk_url</code> and <code>maidr.dotpad_asset_base_url</code> (or the environment variables <code>MAIDR_DOTPAD_SDK_URL</code> and <code>MAIDR_DOTPAD_ASSET_BASE_URL</code>) point it at a copy you serve instead. They are written ahead of <code>maidr.js</code> on every path that loads it: <code><a href="../reference/show.html">show()</a></code>, <code><a href="../reference/save_html.html">save_html()</a></code>, the widget, knitr and Shiny. Without them a DotPad needs network access on first connect, which the offline documentation now says (<a href="https://github.com/xability/r-maidr/issues/304" class="external-link">#304</a>).</li>
+<li>A ggplot2 chart that maidr can read but cannot export gets its static picture. The fallback printed the chart through maidr’s own print method, which rebuilt it, failed again and opened a fresh <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code> device on every round until R ran out of them.</li>
 <li>The Base R fallback picture no longer records its own replay, which left phantom layers on the next device R opened. A Base R chart that gridSVG cannot export (<code>matplot(matrix(1:12, 4))</code>, <code><a href="../reference/base-r-wrappers.html">symbols()</a></code>) falls back to the static picture with a warning instead of stopping <code><a href="../reference/save_html.html">save_html()</a></code>; <code>maidr_set_fallback(enabled = FALSE)</code> re-raises the error.</li>
 <li>
 <code>maidr_set_fallback(format = "svg")</code> is honoured, and <code><a href="../reference/maidr_set_fallback.html">maidr_set_fallback()</a></code> keeps the settings it is not given.</li>
