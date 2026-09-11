@@ -5,6 +5,10 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  # Dispatched by update-maidr-bundle.yml after it pushes a bundle refresh:
+  # that push is made with GITHUB_TOKEN, which starts no push-triggered
+  # workflow, so this is how a refreshed bundle gets checked (#303).
+  workflow_dispatch:
 
 name: test-coverage
 

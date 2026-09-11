@@ -1409,6 +1409,11 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
     use_cdn <- maidr_internet_available()
   }
 
+  # Where maidr.js should import the DotPad SDK from, when the session says.
+  # It reads the globals as it loads, so they go in the head, ahead of the
+  # bundle in either branch; "" when nothing is configured.
+  dotpad_tag <- maidr_dotpad_config_script()
+
   if (use_cdn) {
     # CDN links - smaller HTML, relies on internet at view time. No
     # stylesheet: maidr.js styles its interface at runtime and fetches
@@ -1437,6 +1442,7 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MAIDR Plot</title>
+  %s
   %s
   <style>
     html, body {
@@ -1537,7 +1543,7 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
     })();
   </script>
 </body>
-</html>', css_tag, svg_html, js_tag)
+</html>', dotpad_tag, css_tag, svg_html, js_tag)
 
   html
 }

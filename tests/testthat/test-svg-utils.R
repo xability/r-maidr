@@ -399,7 +399,19 @@ test_that("the offline branch inlines KaTeX alongside the script", {
 
   # No URL anywhere for the runtime to resolve against, so the rules have
   # to already be in the document.
-  testthat::expect_false(grepl("cdn.jsdelivr.net", html, fixed = TRUE))
+  #
+  # What this guards is the offline branch emitting the CDN loader, so it
+  # looks for the loader, not for the bare host: since maidr.js 4.7.0 the
+  # inlined bundle itself carries jsDelivr URLs (the DotPad SDK, which
+  # upstream cannot redistribute and imports from the vendor's copy on first
+  # connect), and grepping the whole document for the host matched those.
+  testthat::expect_false(grepl(maidr:::maidr_cdn_url(), html, fixed = TRUE))
+  testthat::expect_false(
+    grepl("cdn.jsdelivr.net/npm/maidr", html, fixed = TRUE)
+  )
+  # And, at the attribute level, the document requests nothing external:
+  # no src or href on any tag points at another origin.
+  testthat::expect_false(grepl('(src|href)="(https?:)?//', html))
   testthat::expect_true(grepl(".katex", html, fixed = TRUE))
   # Stripped of its web fonts, per .github/scripts/fetch-maidr-bundle.sh.
   testthat::expect_false(grepl("@font-face", html, fixed = TRUE))
