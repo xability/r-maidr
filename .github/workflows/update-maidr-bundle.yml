@@ -21,6 +21,18 @@ name: Update MAIDR Bundle
 #
 # The commit uses the ``chore:`` prefix so a bundle refresh reads as
 # maintenance, not a feature, in the history.
+#
+# The push is made with the workflow's own ``GITHUB_TOKEN``, and GitHub
+# starts no workflows for events that token causes -- ``workflow_dispatch``
+# and ``repository_dispatch`` excepted. So the ``push`` triggers on
+# R-CMD-check and the rest never see a bundle commit: the 4.7.0 refresh
+# broke ``R CMD check`` on every platform and nothing ran to say so until an
+# unrelated pull request four days later (#303). The last step therefore
+# dispatches those workflows itself, on ``main``, which is the one event the
+# token can start. ``main`` can still go red, but on the commit that caused
+# it and within the hour. Opening a pull request instead would need a token
+# that triggers workflows (a GitHub App or a fine-grained PAT), which this
+# repository does not hold.
 
 on:
   repository_dispatch:
@@ -53,6 +65,8 @@ on:
 
 permissions:
   contents: write
+  # For ``gh workflow run`` in the last step.
+  actions: write
 
 jobs:
   check-and-update:
@@ -101,6 +115,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Commit updated bundle to main
+        id: commit
         # git-auto-commit-action is a no-op when the download produced no
         # change, so an already-current bundle simply commits nothing.
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -110,3 +125,25 @@ jobs:
           commit_user_email: "187909674+xabilitylab@users.noreply.github.com"
           commit_author: "xabilitylab <187909674+xabilitylab@users.noreply.github.com>"
           file_pattern: "R/html_dependencies.R inst/htmlwidgets/"
+
+      - name: Run the checks on the refreshed bundle
+        # See the header: a push made with GITHUB_TOKEN starts no workflows,
+        # so the checks that run on every other commit to main are started
+        # here by hand. Each of these workflows declares workflow_dispatch
+        # for exactly this. They run on main as it stands after the push --
+        # the bundle commit, unless something else has landed since, and
+        # that head carries the bundle too.
+        #
+        # Only after a commit: an already-current bundle changed nothing
+        # and has nothing to check.
+        if: steps.commit.outputs.changes_detected == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUNDLE_COMMIT: ${{ steps.commit.outputs.commit_hash }}
+        run: |
+          set -euo pipefail
+          echo "Dispatching checks for bundle commit ${BUNDLE_COMMIT} on main" >&2
+          for workflow in R-CMD-check.yaml test-coverage.yaml docs-drift.yaml pkgdown.yaml; do
+            gh workflow run "$workflow" --ref main
+          done
