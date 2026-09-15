@@ -1,12 +1,14 @@
 #' Where maidr.js loads the DotPad SDK from
 #'
-#' maidr.js does not bundle the DotPad tactile-display SDK: it ships without a
-#' licence permitting redistribution, so the first time a reader connects a
-#' DotPad, maidr.js imports the SDK from the vendor's published copy on
-#' jsDelivr. That is the one path an offline document (`use_cdn = FALSE`)
-#' still takes to the network. The document renders, sonifies and brailles
-#' without it; only connecting a DotPad needs it, unless the page names its
-#' own copy of the SDK.
+#' maidr.js does not bundle the DotPad tactile-display SDK: its braille engine
+#' is a 14 MB liblouis build that every document would carry for the few
+#' readers who own the device. So the first time a reader connects a DotPad,
+#' maidr.js imports the SDK from the vendor's published copy on jsDelivr,
+#' pinned to a commit. That is the one path an offline document
+#' (`use_cdn = FALSE`) still takes to the network. The document renders,
+#' sonifies and brailles without it; only connecting a DotPad needs it, unless
+#' the page names its own copy of the SDK, or one was downloaded with
+#' [maidr_download_dotpad_sdk()] for `save_html()` to carry.
 #'
 #' maidr.js reads two globals off the page before it loads:
 #' `window.MAIDR_DOTPAD_SDK_URL`, the SDK ES module, and
@@ -133,4 +135,316 @@ maidr_dotpad_config_dependency <- function(config = maidr_dotpad_config()) {
     all_files = FALSE,
     head = script
   )
+}
+
+# ==============================================================================
+# Carrying a copy of the SDK
+# ==============================================================================
+
+#' The DotPad SDK maidr.js is pinned to
+#'
+#' maidr.js loads the SDK from the vendor's repository at one commit, and this
+#' is that commit, with the size and digests of every file a copy consists
+#' of. It mirrors `src/service/dotPadSdk.json` in the maidr repository, which
+#' is where maidr.js reads its own copy of the pin; keep the two in step.
+#'
+#' The commit matters beyond immutability. Earlier ones carry a corrupt
+#' `liblouis.data`: the repository's `.gitattributes` said `* text=auto` and
+#' the file is braille-table text with no NUL byte in it, so git rewrote its
+#' line endings on commit. It is an Emscripten package addressed by absolute
+#' byte offsets, so every table after the first dropped byte was read from
+#' the wrong place and the braille line silently fell back to grade 1. This
+#' commit marks `*.data binary` and restores the bytes.
+#'
+#' The liblouis build is LGPL-2.1-or-later. Its licence text and the sources
+#' of the WebAssembly wrapper are listed because the vendor's README asks
+#' anyone who redistributes the SDK to keep them beside the runtime files,
+#' which is the LGPL's relinking requirement.
+#'
+#' @return A list: `version`, `repository`, `commit`, `base_url`, `module`,
+#'   `asset_dir`, and `files`, a data frame with one row per file (`path`,
+#'   `bytes`, `md5`, `sha256`).
+#' @keywords internal
+maidr_dotpad_sdk_manifest <- function() {
+  commit <- "781f2308b3b80908e7ea335454c12d013101c91b"
+  version <- "3.0.2"
+  files <- data.frame(
+    path = c(
+      "DotPadSDK-3.0.2.js",
+      "lib/liblouis.js",
+      "lib/liblouis.wasm",
+      "lib/liblouis.data",
+      "lib/LICENSES/liblouis-LGPL-2.1.txt",
+      "lib/liblouis-web/build_liblouis_web.sh",
+      "lib/liblouis-web/liblouis.post.js",
+      "lib/liblouis-web/liblouis_web.c"
+    ),
+    bytes = c(46489, 117694, 171970, 13751594, 26530, 4154, 1154, 8441),
+    md5 = c(
+      "8a34fc78e9574fc7a4f45ef901cacf3b",
+      "36f517f0eed752090885e8ea098d83c4",
+      "df5cc769072369122e51f327d894d296",
+      "7a6dc8dd40c2f535ed48ca3ac75ab3cc",
+      "4fbd65380cdd255951079008b364516c",
+      "00abc774f82e17009f58dad73a770688",
+      "9f0f57a24a3cca01bf12e3ca64726470",
+      "36cb792f1b9ca1edb409d69a1faa836a"
+    ),
+    sha256 = c(
+      "074c50a1096452df6defa1c7ae99eacdf55ae02e1ff6008b9978c2b1bcc16f62",
+      "c5023cb27680f27df77db51d133718b70d837d855feb74e575a4fac6b1dd4059",
+      "c8d96fbcdd90ee3aa2fe9fa2857092ac832b7b356e23b7e33fb861a486e9b53c",
+      "8475e6eaa539639c36353c10a2c38bcd8692ae0f8b47534ee2dd2d8b6fd00192",
+      "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
+      "34ff70dda4502b8733a2614b649da3e563358598fc4edfdd5417e2c29267f902",
+      "fc969620ae5870dbfbdb6ea0fc820ef44fbd70cd0b203f9a705db469b25c7602",
+      "460dc6bf6db662d14d8ce6113233e68858a4e4a1429834231c0525d646102b26"
+    ),
+    stringsAsFactors = FALSE
+  )
+  list(
+    version = version,
+    repository = "https://github.com/dotincorp/dotpad-sdk-guide",
+    commit = commit,
+    base_url = sprintf(
+      "https://cdn.jsdelivr.net/gh/dotincorp/dotpad-sdk-guide@%s/Web/%s/",
+      commit,
+      version
+    ),
+    module = "DotPadSDK-3.0.2.js",
+    asset_dir = "lib/",
+    files = files
+  )
+}
+
+#' Where a downloaded copy of the DotPad SDK lives
+#'
+#' The option `maidr.dotpad_sdk_dir`, then the environment variable
+#' `MAIDR_DOTPAD_SDK_DIR`, then a per-user cache directory from
+#' [tools::R_user_dir()] (`~/.cache/R/maidr/dotpad-sdk/3.0.2` on Linux).
+#' Nothing is created by asking.
+#'
+#' @return A single path
+#' @keywords internal
+maidr_dotpad_sdk_dir <- function() {
+  configured <- maidr_dotpad_setting("maidr.dotpad_sdk_dir", "MAIDR_DOTPAD_SDK_DIR")
+  if (!is.null(configured)) {
+    return(path.expand(configured))
+  }
+  file.path(
+    tools::R_user_dir("maidr", "cache"),
+    "dotpad-sdk",
+    maidr_dotpad_sdk_manifest()$version
+  )
+}
+
+#' Download one file of the SDK
+#'
+#' A seam for the tests, which replace it rather than reach the network.
+#'
+#' @param url Where the file is
+#' @param destfile Where to write it
+#' @return `destfile`, invisibly
+#' @keywords internal
+maidr_dotpad_download_file <- function(url, destfile) {
+  curl::curl_download(url, destfile, mode = "wb", quiet = TRUE)
+  invisible(destfile)
+}
+
+#' Why a file is not the one the manifest describes, or `NULL`
+#'
+#' Size first, because it is the failure with a story: the corrupt
+#' `liblouis.data` that motivated the pin was 7,685 bytes short, and a size
+#' says so where a digest only says "different".
+#'
+#' @param path The file on disk
+#' @param expected One row of the manifest's `files`
+#' @return A string naming the difference, or `NULL` when there is none
+#' @keywords internal
+maidr_dotpad_file_mismatch <- function(path, expected) {
+  if (!file.exists(path)) {
+    return("missing")
+  }
+  size <- file.info(path)$size
+  if (size != expected$bytes) {
+    return(sprintf("expected %d bytes, got %d", as.integer(expected$bytes), as.integer(size)))
+  }
+  digest <- unname(tools::md5sum(path))
+  if (!identical(digest, expected$md5)) {
+    return(sprintf("expected md5 %s, got %s", expected$md5, digest))
+  }
+  NULL
+}
+
+#' Download the DotPad SDK for use offline
+#'
+#' maidr.js drives a [DotPad tactile display](https://maidr.ai/docs/TACTILE_DISPLAY.html)
+#' through the vendor's SDK, which it does not bundle: the braille engine
+#' inside it is a 14 MB liblouis build, and every document would carry it for
+#' the few readers who own the device. By default maidr.js imports the
+#' vendor's published copy from jsDelivr, pinned to a commit, the first time
+#' a DotPad is connected -- the one path an offline document
+#' (`use_cdn = FALSE`) still takes to the network.
+#'
+#' This fetches that pinned copy once -- the module, the liblouis build, and
+#' the LGPL licence text and wrapper sources the vendor asks redistributors to
+#' keep beside it -- verifying every file against its recorded size and MD5,
+#' and writes a `manifest.json` beside them naming the commit they came from.
+#' From then on [show()] and [save_html()] copy it into `lib/dotpad-sdk-3.0.2/`
+#' next to every `use_cdn = FALSE` document and tell maidr.js where it is, so
+#' a reader connects a DotPad without the network. A file already present and
+#' correct is left alone, so a second call costs nothing.
+#'
+#' A page served from somewhere else -- an intranet host, or a knitr document,
+#' whose charts live in `srcdoc` frames with no base URL for a relative path
+#' to resolve against -- names its copy by URL instead, through the options
+#' `maidr.dotpad_sdk_url` and `maidr.dotpad_asset_base_url`; see
+#' [maidr-options]. A configured URL wins over a downloaded copy.
+#'
+#' @param dir Where to write. Defaults to the option `maidr.dotpad_sdk_dir`,
+#'   the environment variable `MAIDR_DOTPAD_SDK_DIR`, or a per-user cache
+#'   directory.
+#' @param force Refetch files that are already present and correct.
+#' @param quiet Say nothing about what was fetched.
+#' @return The directory, invisibly.
+#' @examples
+#' \dontrun{
+#' maidr_download_dotpad_sdk() # about 14 MB, once
+#' save_html(p, "chart.html", use_cdn = FALSE) # carries the SDK in lib/
+#' }
+#' @seealso [maidr-options] for naming a copy by URL
+#' @export
+maidr_download_dotpad_sdk <- function(dir = maidr_dotpad_sdk_dir(), force = FALSE, quiet = FALSE) {
+  manifest <- maidr_dotpad_sdk_manifest()
+  dir <- path.expand(dir)
+  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+
+  for (i in seq_len(nrow(manifest$files))) {
+    entry <- manifest$files[i, ]
+    target <- file.path(dir, entry$path)
+    if (!force && is.null(maidr_dotpad_file_mismatch(target, entry))) {
+      next
+    }
+    url <- paste0(manifest$base_url, entry$path)
+    dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
+    # Fetched beside and renamed over, so a reader of the directory never
+    # sees a half-written file as the real one.
+    partial <- paste0(target, ".part")
+    on.exit(unlink(partial), add = TRUE)
+    maidr_dotpad_download_file(url, partial)
+    problem <- maidr_dotpad_file_mismatch(partial, entry)
+    if (!is.null(problem)) {
+      unlink(partial)
+      stop(
+        sprintf("DotPad SDK file %s from %s: %s", entry$path, url, problem),
+        call. = FALSE
+      )
+    }
+    file.rename(partial, target)
+    if (!quiet) {
+      message(sprintf("fetched %s (%s bytes)", entry$path, format(entry$bytes, big.mark = ",")))
+    }
+  }
+
+  record <- list(
+    version = manifest$version,
+    repository = manifest$repository,
+    commit = manifest$commit,
+    baseUrl = manifest$base_url,
+    module = manifest$module,
+    assetDir = manifest$asset_dir,
+    files = stats::setNames(
+      lapply(seq_len(nrow(manifest$files)), function(i) {
+        list(
+          bytes = manifest$files$bytes[i],
+          sha256 = manifest$files$sha256[i],
+          md5 = manifest$files$md5[i]
+        )
+      }),
+      manifest$files$path
+    )
+  )
+  writeLines(
+    jsonlite::toJSON(record, auto_unbox = TRUE, pretty = TRUE),
+    file.path(dir, "manifest.json")
+  )
+  if (!quiet) {
+    message(sprintf(
+      "DotPad SDK %s (%s) is in %s",
+      manifest$version,
+      substr(manifest$commit, 1, 7),
+      dir
+    ))
+  }
+  invisible(dir)
+}
+
+#' Whether a directory holds a complete copy of the SDK
+#'
+#' Complete means every file in the manifest is present at its recorded
+#' size. The digests are checked when the copy is made, not on every
+#' render, so this costs a handful of `file.info()` calls.
+#'
+#' @param dir Where to look
+#' @return `TRUE` or `FALSE`
+#' @keywords internal
+maidr_dotpad_sdk_available <- function(dir = maidr_dotpad_sdk_dir()) {
+  files <- maidr_dotpad_sdk_manifest()$files
+  paths <- file.path(dir, files$path)
+  sizes <- file.info(paths)$size
+  all(!is.na(sizes) & sizes == files$bytes)
+}
+
+#' A downloaded SDK as an htmltools dependency
+#'
+#' For the documents `show()` and `save_html()` write. htmltools copies the
+#' directory into `<libdir>/dotpad-sdk-3.0.2/` when the document is saved, and
+#' the dependency's `head` declares the two globals with that relative path,
+#' so the saved page finds its copy wherever the folder is moved to, as long
+#' as the two move together. `libdir` is what [htmltools::save_html()] is
+#' called with; its default is what this package uses.
+#'
+#' @param dir A complete copy, as [maidr_dotpad_sdk_available()] reports
+#' @param libdir The `libdir` the document is saved with
+#' @return An `htmltools::htmlDependency()`
+#' @keywords internal
+maidr_dotpad_sdk_dependency <- function(dir = maidr_dotpad_sdk_dir(), libdir = "lib") {
+  manifest <- maidr_dotpad_sdk_manifest()
+  name <- "dotpad-sdk"
+  href <- paste0(libdir, "/", name, "-", manifest$version)
+  script <- maidr_dotpad_config_script(list(
+    sdk_url = paste0(href, "/", manifest$module),
+    asset_base_url = paste0(href, "/", manifest$asset_dir)
+  ))
+  htmltools::htmlDependency(
+    name = name,
+    version = manifest$version,
+    src = c(file = dir),
+    all_files = TRUE,
+    head = script
+  )
+}
+
+#' The local SDK dependency, when a document going offline should carry one
+#'
+#' Applies only to `use_cdn = FALSE`: that is the document whose reader has no
+#' network, and the one whose `lib/` folder already travels with it. A session
+#' that names its own copy by URL keeps that -- a configured URL wins -- and
+#' one that never downloaded the SDK gets exactly what it did before.
+#'
+#' @param use_cdn The document's `use_cdn`, with `NULL` meaning `FALSE`
+#' @return An `htmltools::htmlDependency()`, or `NULL`
+#' @keywords internal
+maidr_dotpad_local_dependency <- function(use_cdn = NULL) {
+  if (isTRUE(use_cdn)) {
+    return(NULL)
+  }
+  if (!is.null(maidr_dotpad_config()$sdk_url)) {
+    return(NULL)
+  }
+  dir <- maidr_dotpad_sdk_dir()
+  if (!maidr_dotpad_sdk_available(dir)) {
+    return(NULL)
+  }
+  maidr_dotpad_sdk_dependency(dir)
 }

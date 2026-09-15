@@ -228,11 +228,20 @@ save_html(p, "plot.html", use_cdn = FALSE)
 
 One path still reaches the network from an offline document: connecting a
 [DotPad tactile display](https://maidr.ai/docs/TACTILE_DISPLAY.html). maidr.js
-does not bundle the DotPad SDK, whose licence does not permit redistribution,
+does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build,
 and imports the vendor's copy from jsDelivr the first time a DotPad is
 connected. Rendering, sonification and braille work offline regardless. To keep
-the DotPad offline too, serve the SDK yourself and point maidr at it before
-rendering, through options or the environment variables of the same names:
+the DotPad offline too, download the pinned SDK once and every `use_cdn = FALSE`
+document carries it in its `lib/` folder:
+
+``` r
+maidr_download_dotpad_sdk()          # ~14 MB, once, into a per-user cache
+save_html(p, "plot.html", use_cdn = FALSE)   # lib/dotpad-sdk-3.0.2/ beside it
+```
+
+A page served from elsewhere, or a knitr document (whose charts live in
+`srcdoc` frames with no base URL), names its copy by URL instead, through
+options or the environment variables of the same names:
 
 ``` r
 options(

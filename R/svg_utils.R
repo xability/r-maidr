@@ -1281,10 +1281,15 @@ create_html_document <- function(svg_content, use_cdn = NULL) {
     htmltools::HTML(paste(svg_content, collapse = "\n"))
   )
 
+  # A downloaded DotPad SDK rides along in `lib/` with the bundle when the
+  # document is going offline, ahead of the bundle like the URL globals are;
+  # NULL, and dropped, for everyone else. Only here and not in the widget:
+  # a self-contained knitr document keeps no `lib/` for the copy to live in.
   html_doc <- htmltools::attachDependencies(
     html_doc,
     c(
       list(maidr_responsive_dependency()),
+      Filter(Negate(is.null), list(maidr_dotpad_local_dependency(use_cdn))),
       maidr_html_dependencies(use_cdn = use_cdn)
     )
   )

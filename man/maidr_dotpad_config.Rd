@@ -11,13 +11,15 @@ A list with \code{sdk_url} and \code{asset_base_url}, each a single string
 or \code{NULL} when unset.
 }
 \description{
-maidr.js does not bundle the DotPad tactile-display SDK: it ships without a
-licence permitting redistribution, so the first time a reader connects a
-DotPad, maidr.js imports the SDK from the vendor's published copy on
-jsDelivr. That is the one path an offline document (\code{use_cdn = FALSE})
-still takes to the network. The document renders, sonifies and brailles
-without it; only connecting a DotPad needs it, unless the page names its
-own copy of the SDK.
+maidr.js does not bundle the DotPad tactile-display SDK: its braille engine
+is a 14 MB liblouis build that every document would carry for the few
+readers who own the device. So the first time a reader connects a DotPad,
+maidr.js imports the SDK from the vendor's published copy on jsDelivr,
+pinned to a commit. That is the one path an offline document
+(\code{use_cdn = FALSE}) still takes to the network. The document renders,
+sonifies and brailles without it; only connecting a DotPad needs it, unless
+the page names its own copy of the SDK, or one was downloaded with
+\code{\link[=maidr_download_dotpad_sdk]{maidr_download_dotpad_sdk()}} for \code{save_html()} to carry.
 }
 \details{
 maidr.js reads two globals off the page before it loads:

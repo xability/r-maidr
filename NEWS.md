@@ -2,6 +2,26 @@
 
 ## New Features
 
+### DotPad tactile display
+
+* A DotPad tactile display can now be reached from a fully offline document
+  without naming a server. `maidr_download_dotpad_sdk()` fetches the SDK
+  maidr.js is pinned to (about 14 MB, once, into a per-user cache, every file
+  verified against its recorded size and digest), and from then on `show()`
+  and `save_html()` copy it into `lib/dotpad-sdk-3.0.2/` beside every
+  `use_cdn = FALSE` document and declare the globals with that relative
+  path. The options `maidr.dotpad_sdk_url` and `maidr.dotpad_asset_base_url`
+  still name a copy served from elsewhere, and win over a downloaded one;
+  `maidr.dotpad_sdk_dir` (or `MAIDR_DOTPAD_SDK_DIR`) moves the cache. The
+  widget, knitr and Shiny paths keep using the URL options only: their charts
+  live in `srcdoc` frames, where a relative path has nothing to resolve
+  against.
+* The SDK's braille engine now comes from the vendor's own repository.
+  maidr.js served `liblouis.data` from a fork because the vendor's copy had
+  its line endings rewritten by git, which broke every braille table and
+  dropped the text line to grade 1; upstream has fixed that, and the next
+  maidr.js release pins the repaired commit.
+
 ### ggplot2
 
 * Added pie chart support: a `geom_col()`/`geom_bar()` layer under
