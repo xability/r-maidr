@@ -602,6 +602,42 @@ test_that("a configured URL wins over a local copy", {
   })
 })
 
+test_that("either URL option alone keeps a local copy out of the document", {
+  # Both dependencies write the same globals and the later head wins, so a
+  # document carrying both with only the engine's URL configured would load
+  # the module from lib/ and the engine from the URL.
+  testthat::local_mocked_bindings(
+    maidr_dotpad_sdk_manifest = function() fake_sdk_manifest(),
+    .package = "maidr"
+  )
+  dir <- write_fake_sdk(tempfile())
+  on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+
+  settings <- list(
+    list(maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"),
+    list(
+      maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+      maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"
+    )
+  )
+  for (setting in settings) {
+    with_dotpad_dir(dir, {
+      previous <- options(setting)
+      on.exit(options(previous), add = TRUE)
+      html_doc <- maidr:::create_html_document(svg_fixture_dotpad(), use_cdn = FALSE)
+      deps <- htmltools::htmlDependencies(html_doc)
+      names <- vapply(deps, function(dep) dep$name, character(1))
+      testthat::expect_false("dotpad-sdk" %in% names)
+      rendered <- as.character(htmltools::renderDependencies(deps))
+      testthat::expect_identical(
+        lengths(regmatches(rendered, gregexpr("MAIDR_DOTPAD_ASSET_BASE_URL", rendered))),
+        1L
+      )
+      testthat::expect_false(grepl("dotpad-sdk-3.0.2", rendered, fixed = TRUE))
+    })
+  }
+})
+
 test_that("a session that never downloaded the SDK is left alone", {
   with_dotpad_dir(tempfile(), {
     html_doc <- maidr:::create_html_document(svg_fixture_dotpad(), use_cdn = FALSE)

@@ -17,4 +17,10 @@ maidr_dotpad_download_file(url, destfile)
 \description{
 A seam for the tests, which replace it rather than reach the network.
 }
+\details{
+Bounded rather than left to hang: a connection that takes more than half
+a minute to open, or that delivers under a kilobyte a second for a full
+minute, fails like any other error. A slow link still gets the 14 MB
+engine; a stalled one does not hold the session for good.
+}
 \keyword{internal}

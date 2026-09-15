@@ -251,12 +251,22 @@ maidr_dotpad_sdk_dir <- function() {
 #'
 #' A seam for the tests, which replace it rather than reach the network.
 #'
+#' Bounded rather than left to hang: a connection that takes more than half
+#' a minute to open, or that delivers under a kilobyte a second for a full
+#' minute, fails like any other error. A slow link still gets the 14 MB
+#' engine; a stalled one does not hold the session for good.
+#'
 #' @param url Where the file is
 #' @param destfile Where to write it
 #' @return `destfile`, invisibly
 #' @keywords internal
 maidr_dotpad_download_file <- function(url, destfile) {
-  curl::curl_download(url, destfile, mode = "wb", quiet = TRUE)
+  handle <- curl::new_handle(
+    connecttimeout = 30L,
+    low_speed_limit = 1024L,
+    low_speed_time = 60L
+  )
+  curl::curl_download(url, destfile, mode = "wb", quiet = TRUE, handle = handle)
   invisible(destfile)
 }
 
@@ -456,8 +466,15 @@ maidr_dotpad_sdk_dependency <- function(dir = maidr_dotpad_sdk_dir(), libdir = "
 #'
 #' Applies only to `use_cdn = FALSE`: that is the document whose reader has no
 #' network, and the one whose `lib/` folder already travels with it. A session
-#' that names its own copy by URL keeps that -- a configured URL wins -- and
-#' one that never downloaded the SDK gets exactly what it did before.
+#' that names its own copy by URL keeps that -- either URL option, set alone
+#' or together, wins -- and one that never downloaded the SDK gets exactly
+#' what it did before.
+#'
+#' Either option, not only the module's. Both this dependency and the URL
+#' one write the same globals, and the later `head` wins in the browser, so
+#' a document carrying both with only the engine's URL configured would load
+#' the module from `lib/` and the engine from that URL: the offline copy's
+#' worst half, and the network dependency `use_cdn = FALSE` exists to remove.
 #'
 #' @param use_cdn The document's `use_cdn`, with `NULL` meaning `FALSE`
 #' @return An `htmltools::htmlDependency()`, or `NULL`
@@ -466,7 +483,8 @@ maidr_dotpad_local_dependency <- function(use_cdn = NULL) {
   if (isTRUE(use_cdn)) {
     return(NULL)
   }
-  if (!is.null(maidr_dotpad_config()$sdk_url)) {
+  config <- maidr_dotpad_config()
+  if (!is.null(config$sdk_url) || !is.null(config$asset_base_url)) {
     return(NULL)
   }
   dir <- maidr_dotpad_sdk_dir()

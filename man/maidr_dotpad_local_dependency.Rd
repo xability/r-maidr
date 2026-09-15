@@ -15,7 +15,15 @@ An \code{htmltools::htmlDependency()}, or \code{NULL}
 \description{
 Applies only to \code{use_cdn = FALSE}: that is the document whose reader has no
 network, and the one whose \verb{lib/} folder already travels with it. A session
-that names its own copy by URL keeps that -- a configured URL wins -- and
-one that never downloaded the SDK gets exactly what it did before.
+that names its own copy by URL keeps that -- either URL option, set alone
+or together, wins -- and one that never downloaded the SDK gets exactly
+what it did before.
+}
+\details{
+Either option, not only the module's. Both this dependency and the URL
+one write the same globals, and the later \code{head} wins in the browser, so
+a document carrying both with only the engine's URL configured would load
+the module from \verb{lib/} and the engine from that URL: the offline copy's
+worst half, and the network dependency \code{use_cdn = FALSE} exists to remove.
 }
 \keyword{internal}
