@@ -15,9 +15,18 @@ A list: \code{version}, \code{repository}, \code{commit}, \code{base_url}, \code
 maidr.js loads the SDK from the vendor's repository at one commit, and this
 is that commit, with the size and digests of every file a copy consists
 of. It mirrors \code{src/service/dotPadSdk.json} in the maidr repository, which
-is where maidr.js reads its own copy of the pin; keep the two in step.
+is where maidr.js reads its own copy of the pin; keep the two in step when
+either moves.
 }
 \details{
+The two are not in step at the moment, deliberately. The maidr.js this
+package bundles (see \code{MAIDR_VERSION}) predates the pin and still falls back
+to the earlier commits -- the vendor's for the module and a fork's for the
+braille engine -- when nothing on the page names a copy. That fallback is
+exactly what a downloaded copy or a configured URL replaces, so what a
+document loads is this commit either way; the bundle catches up at its
+next refresh (\code{tools/update-maidr-assets.R}).
+
 The commit matters beyond immutability. Earlier ones carry a corrupt
 \code{liblouis.data}: the repository's \code{.gitattributes} said \verb{* text=auto} and
 the file is braille-table text with no NUL byte in it, so git rewrote its

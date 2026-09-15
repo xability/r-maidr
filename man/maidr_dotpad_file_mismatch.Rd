@@ -19,4 +19,10 @@ Size first, because it is the failure with a story: the corrupt
 \code{liblouis.data} that motivated the pin was 7,685 bytes short, and a size
 says so where a digest only says "different".
 }
+\details{
+Then the digests base R can compute: MD5 always, and SHA-256 too from
+R 4.5, which added \code{tools::sha256sum()}. The manifest carries both so the
+stronger check is used wherever it is available without adding a
+dependency for the older R this package supports.
+}
 \keyword{internal}

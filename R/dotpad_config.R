@@ -146,7 +146,16 @@ maidr_dotpad_config_dependency <- function(config = maidr_dotpad_config()) {
 #' maidr.js loads the SDK from the vendor's repository at one commit, and this
 #' is that commit, with the size and digests of every file a copy consists
 #' of. It mirrors `src/service/dotPadSdk.json` in the maidr repository, which
-#' is where maidr.js reads its own copy of the pin; keep the two in step.
+#' is where maidr.js reads its own copy of the pin; keep the two in step when
+#' either moves.
+#'
+#' The two are not in step at the moment, deliberately. The maidr.js this
+#' package bundles (see `MAIDR_VERSION`) predates the pin and still falls back
+#' to the earlier commits -- the vendor's for the module and a fork's for the
+#' braille engine -- when nothing on the page names a copy. That fallback is
+#' exactly what a downloaded copy or a configured URL replaces, so what a
+#' document loads is this commit either way; the bundle catches up at its
+#' next refresh (`tools/update-maidr-assets.R`).
 #'
 #' The commit matters beyond immutability. Earlier ones carry a corrupt
 #' `liblouis.data`: the repository's `.gitattributes` said `* text=auto` and
@@ -257,6 +266,11 @@ maidr_dotpad_download_file <- function(url, destfile) {
 #' `liblouis.data` that motivated the pin was 7,685 bytes short, and a size
 #' says so where a digest only says "different".
 #'
+#' Then the digests base R can compute: MD5 always, and SHA-256 too from
+#' R 4.5, which added `tools::sha256sum()`. The manifest carries both so the
+#' stronger check is used wherever it is available without adding a
+#' dependency for the older R this package supports.
+#'
 #' @param path The file on disk
 #' @param expected One row of the manifest's `files`
 #' @return A string naming the difference, or `NULL` when there is none
@@ -273,6 +287,13 @@ maidr_dotpad_file_mismatch <- function(path, expected) {
   if (!identical(digest, expected$md5)) {
     return(sprintf("expected md5 %s, got %s", expected$md5, digest))
   }
+  sha256sum <- get0("sha256sum", envir = asNamespace("tools"), mode = "function")
+  if (!is.null(sha256sum)) {
+    digest <- unname(sha256sum(path))
+    if (!identical(digest, expected$sha256)) {
+      return(sprintf("expected sha256 %s, got %s", expected$sha256, digest))
+    }
+  }
   NULL
 }
 
@@ -288,8 +309,9 @@ maidr_dotpad_file_mismatch <- function(path, expected) {
 #'
 #' This fetches that pinned copy once -- the module, the liblouis build, and
 #' the LGPL licence text and wrapper sources the vendor asks redistributors to
-#' keep beside it -- verifying every file against its recorded size and MD5,
-#' and writes a `manifest.json` beside them naming the commit they came from.
+#' keep beside it -- verifying every file against its recorded size and
+#' digests (MD5, and SHA-256 on R 4.5 or later), and writes a `manifest.json`
+#' beside them naming the commit they came from.
 #' From then on [show()] and [save_html()] copy it into `lib/dotpad-sdk-3.0.2/`
 #' next to every `use_cdn = FALSE` document and tell maidr.js where it is, so
 #' a reader connects a DotPad without the network. A file already present and
@@ -319,6 +341,15 @@ maidr_download_dotpad_sdk <- function(dir = maidr_dotpad_sdk_dir(), force = FALS
   dir <- path.expand(dir)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
 
+  # Each file is fetched beside its target and renamed over it, so a reader
+  # of the directory never sees a half-written file as the real one. Whatever
+  # is left with that suffix when this returns -- by error or interrupt -- is
+  # a fetch that did not finish, and goes.
+  on.exit(
+    unlink(list.files(dir, pattern = "\\.part$", recursive = TRUE, full.names = TRUE)),
+    add = TRUE
+  )
+
   for (i in seq_len(nrow(manifest$files))) {
     entry <- manifest$files[i, ]
     target <- file.path(dir, entry$path)
@@ -327,14 +358,10 @@ maidr_download_dotpad_sdk <- function(dir = maidr_dotpad_sdk_dir(), force = FALS
     }
     url <- paste0(manifest$base_url, entry$path)
     dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
-    # Fetched beside and renamed over, so a reader of the directory never
-    # sees a half-written file as the real one.
     partial <- paste0(target, ".part")
-    on.exit(unlink(partial), add = TRUE)
     maidr_dotpad_download_file(url, partial)
     problem <- maidr_dotpad_file_mismatch(partial, entry)
     if (!is.null(problem)) {
-      unlink(partial)
       stop(
         sprintf("DotPad SDK file %s from %s: %s", entry$path, url, problem),
         call. = FALSE

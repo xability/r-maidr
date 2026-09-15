@@ -299,17 +299,24 @@ real_dotpad_manifest <- maidr:::maidr_dotpad_sdk_manifest()
 
 fake_sdk_manifest <- function(contents = fake_sdk_contents()) {
   real <- real_dotpad_manifest
-  digests <- vapply(contents, function(bytes) {
+  sha256sum <- get0("sha256sum", envir = asNamespace("tools"), mode = "function")
+  digest_of <- function(bytes, digest) {
     tmp <- tempfile()
     on.exit(unlink(tmp))
     writeBin(bytes, tmp)
-    unname(tools::md5sum(tmp))
-  }, character(1))
+    unname(digest(tmp))
+  }
   real$files <- data.frame(
     path = names(contents),
     bytes = vapply(contents, length, integer(1)),
-    md5 = unname(digests),
-    sha256 = strrep("0", 64),
+    md5 = vapply(contents, digest_of, character(1), digest = tools::md5sum),
+    # Real where R can compute it, so the check runs; a placeholder of the
+    # right shape where it cannot, so the manifest still validates.
+    sha256 = if (is.null(sha256sum)) {
+      strrep("0", 64)
+    } else {
+      vapply(contents, digest_of, character(1), digest = sha256sum)
+    },
     stringsAsFactors = FALSE
   )
   real
@@ -475,6 +482,32 @@ test_that("a same-size corruption is caught by its digest", {
     maidr_download_dotpad_sdk(dir, quiet = TRUE),
     "expected md5"
   )
+})
+
+test_that("a wrong sha256 in the manifest is caught where R can compute one", {
+  testthat::skip_if(
+    is.null(get0("sha256sum", envir = asNamespace("tools"), mode = "function")),
+    "tools::sha256sum() arrived in R 4.5"
+  )
+  contents <- fake_sdk_contents()
+  manifest <- fake_sdk_manifest(contents)
+  manifest$files$sha256[1] <- strrep("0", 64)
+  testthat::local_mocked_bindings(
+    maidr_dotpad_sdk_manifest = function() manifest,
+    maidr_dotpad_download_file = function(url, destfile) {
+      base <- real_dotpad_manifest$base_url
+      writeBin(contents[[substring(url, nchar(base) + 1)]], destfile)
+      invisible(destfile)
+    },
+    .package = "maidr"
+  )
+  dir <- file.path(tempfile(), "sdk")
+  on.exit(unlink(dirname(dir), recursive = TRUE), add = TRUE)
+  testthat::expect_error(
+    maidr_download_dotpad_sdk(dir, quiet = TRUE),
+    "expected sha256"
+  )
+  testthat::expect_length(list.files(dir, pattern = "\\.part$", recursive = TRUE), 0)
 })
 
 test_that("a copy is complete only when every file is at its size", {
