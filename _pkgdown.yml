@@ -110,6 +110,7 @@ reference:
     contents:
       - maidr_set_fallback
       - maidr_get_fallback
+      - maidr_download_dotpad_sdk
       - run_example
 
   - title: Internal utilities
