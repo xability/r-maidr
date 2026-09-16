@@ -25,14 +25,17 @@
 # `qqnorm()` and `qqplot()` use, and both of those are now recorded, so both
 # need it.
 #
-# **Five of the eight have since moved past the fallback.** `qqnorm` and
+# **Six of the eight have since moved past the fallback.** `qqnorm` and
 # `qqplot` gained a processor in #251 and are now read as the quantile
 # scatter they draw; `filled.contour` followed, read as the contour it draws
 # with the bands between the levels filled; `spineplot` after it, read as the
-# mosaic of a two-way table it is; and `cdplot` after that, read as the 100%
-# stacked area its bands make. None of the five degrades to a picture any
-# more -- they do not need to. The lists below are split accordingly, and the
-# five are asserted to be *read* rather than dropped from the file: what #216
+# mosaic of a two-way table it is; `cdplot` after that, read as the 100%
+# stacked area its bands make; and `fourfoldplot` last, read as a `heat` grid
+# of the 2x2 table its quadrants draw -- but only under
+# `std = "ind.max"` / `"all.max"`, so it is the one FUNCTION that appears in
+# both lists below, once per `std` (#268). None of the six degrades to a
+# picture any more where it is read. The lists are split accordingly, and the
+# six are asserted to be *read* rather than dropped from the file: what #216
 # established about them is that a recorded call never stops the save, and
 # that still has to hold on the far side of gaining a reading.
 
@@ -88,16 +91,33 @@ save_base_figure <- function(plot_fun) {
   )
 }
 
-# The three of the eight that are still recorded-but-unread, with the smallest
-# call that draws each. They are not alike, and #251's sweep separates them:
-# `persp` and `fourfoldplot` are **declined** -- a 3D surface has no 2D
-# reading that is not a different chart, and a fourfold plot's radii encode
-# an odds ratio rather than the table it came from -- while
-# `sunflowerplot` is **blocked**, on a maidr release carrying the
-# `sunflower` trace xability/maidr#1161 added after the 4.4.0
-# `MAIDR_VERSION` pins. The distinction matters here because a reading
-# arriving for the third would move it to `read_calls` below, and the other
-# two should stay put.
+# The three calls of the eight that are still unread, with the smallest call
+# that draws each. They are not alike, and #251's sweep separates them:
+#
+#   persp          **Declined.** A 3D surface has no 2D reading that is not a
+#                  different chart.
+#   sunflowerplot  **Unread.** The petals count the observations at each
+#                  position and nothing here emits that yet. The older note
+#                  called this blocked on a maidr release carrying the
+#                  `sunflower` trace of xability/maidr#1161; that reason has
+#                  lapsed -- `MAIDR_VERSION` now pins 4.8.0 and the bundle
+#                  under `inst/htmlwidgets/lib/maidr-4.8.0/` does define
+#                  `SUNFLOWER = "sunflower"`. What is missing is the
+#                  processor, not the trace, so this stays here until one
+#                  is written.
+#   fourfoldplot   **Declined for THIS call only.** The function gained a
+#                  reading in #268, but the smallest call that draws it takes
+#                  the default `std`, and under `std = "margins"` the four
+#                  radii are `sqrt(c(u, 1-u, 1-u, u))` with
+#                  `u = sqrt(or)/(1 + sqrt(or))` -- the odds ratio, one number
+#                  drawn four times, measured bit-identical for a table and
+#                  the same table times three. So the entry stays put and the
+#                  same function appears again in `read_calls` below, spelled
+#                  `std = "ind.max"`, where its quadrants ARE the four counts.
+#
+# The distinction matters here because a reading arriving for one of the
+# other two would move it to `read_calls`, and neither should shift on its
+# own.
 unrecorded_calls <- list(
   persp = function() {
     z <- outer(
@@ -114,9 +134,14 @@ unrecorded_calls <- list(
   fourfoldplot = function() fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2))
 )
 
-# The five that are now read (#251). Still here, because #216's claim about
-# them -- that a recorded call never stops the save -- has to survive their
-# gaining a reading.
+# The six that are now read (#251, and #268 for the last). Still here,
+# because #216's claim about them -- that a recorded call never stops the
+# save -- has to survive their gaining a reading.
+#
+# The names are what `classify_function()` is asked about, so a suffix is
+# stripped before that check below: `fourfoldplot` is here AND in
+# `unrecorded_calls`, under two different `std` values, and two list entries
+# cannot share one name without `[[` silently returning the first for both.
 read_calls <- list(
   qqnorm = function() qqnorm(c(1, 2, 3, 4, 5, 6, 7, 8)),
   qqplot = function() qqplot(c(1, 2, 3, 4), c(2, 3, 4, 5)),
@@ -124,6 +149,12 @@ read_calls <- list(
   spineplot = function() spineplot(factor(c("a", "a", "b")) ~ c(1, 2, 3)),
   cdplot = function() {
     cdplot(factor(c("a", "a", "b", "b")) ~ c(1, 2, 3, 4))
+  },
+  # The other half of the conditional the `unrecorded_calls` note describes.
+  # Measured, `r^2 * max(count)` recovers 10, 5, 3, 12 exactly from this
+  # drawing, so the quadrants are the table and it is read as a `heat`.
+  fourfoldplot_ind_max = function() {
+    fourfoldplot(matrix(c(10, 5, 3, 12), nrow = 2), std = "ind.max")
   }
 )
 
@@ -141,7 +172,7 @@ test_that("none of the eight stops the save any more", {
   }
 })
 
-test_that("the four still unread fall back to a picture, and say so", {
+test_that("the three still unread fall back to a picture, and say so", {
   skip_unless_jsonlite()
 
   for (name in names(unrecorded_calls)) {
@@ -151,11 +182,11 @@ test_that("the four still unread fall back to a picture, and say so", {
   }
 })
 
-test_that("the four that gained a reading are read, not pictured", {
+test_that("the six that gained a reading are read, not pictured", {
   skip_unless_jsonlite()
 
-  # The far side of #216 for `qqnorm`, `qqplot`, `filled.contour` and
-  # `spineplot`: not
+  # The far side of #216 for `qqnorm`, `qqplot`, `filled.contour`,
+  # `spineplot`, `cdplot` and `fourfoldplot(std = "ind.max")`: not
   # "does not stop the save" but "is a chart". Asserted here rather than only
   # in each type's own file so that a regression which put any of them back
   # on the fallback shows up as a contradiction between two files rather than
@@ -313,18 +344,22 @@ test_that("the charts that already read still read", {
 })
 
 test_that("all eight are classified, and classification is what changed", {
+  # `fourfoldplot_ind_max` names a spelling, not a function; the suffix comes
+  # off so the question asked is still about the eight function names.
   for (name in names(all_calls)) {
-    expect_equal(classify_function(name), "HIGH", info = name)
+    expect_equal(classify_function(sub("_.*$", "", name)), "HIGH", info = name)
   }
 
-  # Being in HIGH is not a claim that the type is read: none of the four
-  # gains a `detect_layer_type()` branch, so each falls through to "unknown".
-  # That is what #216 changed and all it changed -- the four that have since
-  # been read got there by gaining a processor, which is a separate step, so
-  # they are excluded from this half rather than from the classification
-  # above. The check is by *function* name, which is why it keeps holding as
-  # calls gain readings: `lag.plot` is read as the layer type "lag", so the
-  # function's own name is still absent from the registry.
+  # Being in HIGH is not a claim that the type is read. `persp` and
+  # `sunflowerplot` gain no `detect_layer_type()` branch at all, and
+  # `fourfoldplot` gains one that declines this call -- so each of the three
+  # falls through to "unknown". That is what #216 changed and all it changed
+  # -- the ones that have since been read got there by gaining a processor,
+  # which is a separate step, so they are excluded from this half rather than
+  # from the classification above. The check is by *function* name, which is
+  # why it keeps holding as calls gain readings: `lag.plot` is read as the
+  # layer type "lag", and `fourfoldplot` as the layer type "fourfold", so
+  # neither function's own name appears in the registry.
   factory <- BaseRProcessorFactory$new()
   for (name in names(unrecorded_calls)) {
     expect_false(name %in% factory$get_supported_types(), info = name)

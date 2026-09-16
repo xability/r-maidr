@@ -48,6 +48,117 @@ warn_chartseries_ta_unsupported <- function() {
   invisible(NULL)
 }
 
+#' fourfoldplot() Decline Advisory State
+#'
+#' Environment holding the decline reasons already explained in this session,
+#' so the advisory below is not repeated for every call.
+#'
+#' A character vector rather than the single flag
+#' `.maidr_chartseries_ta_warned` carries, because `fourfoldplot()` declines
+#' for three different reasons and a session that draws a default-`std` chart
+#' and then a 2x2xk one should hear both explanations rather than only the
+#' first.
+#'
+#' @keywords internal
+.maidr_fourfoldplot_declined <- new.env(parent = emptyenv())
+.maidr_fourfoldplot_declined$reasons <- character(0)
+
+#' Say why a fourfoldplot() call is falling back to a picture
+#'
+#' The generic "Plot contains unsupported elements" the fallback already
+#' emits is true and uninformative: it does not tell an author that the same
+#' chart with `std = "ind.max"` would have been read. This says which of the
+#' three measured refusals applied.
+#'
+#' The three reasons, all measured on R 4.3.3:
+#'
+#' * `"std"` -- the caller's `std` resolved to `"margins"`, which is
+#'   `graphics::fourfoldplot`'s own default. Under it the four radii are
+#'   `sqrt(c(u, 1 - u, 1 - u, u))` with `u = sqrt(or) / (1 + sqrt(or))`:
+#'   one number, the odds ratio, drawn four times. Measured, a table and the
+#'   same table times three give bit-identical radii, so counts announced
+#'   there would name numbers the chart did not draw.
+#' * `"strata"` -- a 2x2xk array. `fourfoldplot()` draws k panels into one
+#'   figure region with repeated `plot.window()` calls rather than
+#'   `par(mfrow)`, so measured on `UCBAdmissions` all 78 polygon grobs are
+#'   named `graphics-plot-1-*` and no helper here slices them per panel.
+#'   The MESSAGE names the third dimension rather than the k panels, because
+#'   "k panels share one region" is false for the one array shape that has
+#'   no strata to confuse: measured, `array(c(10, 40, 90, 160), c(2, 2, 1))`
+#'   under `ind.max` draws a single panel of exactly 13 polygon grobs -- the
+#'   count `wedge_names()` accepts -- and is declined anyway, because
+#'   `recorded_two_way_table()` refuses three dimensions. Telling that author
+#'   about panels they do not have would send them looking for the wrong
+#'   thing; the matrix spelling is the fix and the message says so.
+#' * `"table"` -- a two-way argument that is not a 2x2 table of finite
+#'   non-negative numbers summing above zero. Measured, the all-zero table
+#'   draws ZERO polygon grobs, and a logical matrix prints `TRUE`/`FALSE`
+#'   on the page while `as.numeric()` would announce `1`/`0`.
+#'
+#' Once per reason per session, not once per plot: `detect_layer_type()` is
+#' called up to five times for one accepted layer
+#' (`base_r_plot_orchestrator.R` lines 145, 163, 195, 499, 653) and once per
+#' declined one, so an unguarded warning would repeat. The cost is that an
+#' author who draws two default-`std` charts hears the explanation once --
+#' the same trade `warn_chartseries_ta_unsupported()` makes above.
+#'
+#' The message deliberately avoids the substring "unsupported elements":
+#' `tests/testthat/test-base-r-unrecorded-calls.R` greps for exactly that to
+#' decide whether the *fallback* warning arrived, and a second warning
+#' carrying it would make that assertion pass for the wrong reason.
+#'
+#' @param reason One of `"std"`, `"strata"` or `"table"`.
+#' @return Invisibly NULL.
+#' @keywords internal
+warn_fourfoldplot_declined <- function(reason) {
+  if (reason %in% .maidr_fourfoldplot_declined$reasons) {
+    return(invisible(NULL))
+  }
+  .maidr_fourfoldplot_declined$reasons <- c(
+    .maidr_fourfoldplot_declined$reasons, reason
+  )
+
+  detail <- switch(reason,
+    "std" = paste0(
+      "Under `std = \"margins\"` the four quadrants carry one number -- the ",
+      "odds ratio -- and not the four counts, so there is nothing for a ",
+      "reader to navigate cell by cell."
+    ),
+    "strata" = paste0(
+      "An array with a third dimension is not read: for k > 1 the k panels ",
+      "share one plot region and maidr cannot tell one panel's quadrants ",
+      "from another's, and a 2x2x1 array draws a single panel but is ",
+      "declined with them. Drop the third dimension -- pass the 2x2 matrix ",
+      "or table itself -- to have that one read."
+    ),
+    "table" = paste0(
+      "Only a 2x2 table of finite, non-negative numbers summing above zero ",
+      "is read."
+    )
+  )
+  remedy <- if (identical(reason, "std")) {
+    paste0(
+      "Pass `std = \"ind.max\"` or `std = \"all.max\"` to draw quadrants ",
+      "whose area is proportional to the count; maidr reads those."
+    )
+  } else {
+    "Falling back to a static image for this plot."
+  }
+
+  rlang::warn(
+    c(
+      paste0(
+        "fourfoldplot() is not read as an interactive chart here. ", detail
+      ),
+      i = remedy
+    ),
+    class = "maidr_fourfoldplot_declined",
+    .frequency = "once",
+    .frequency_id = paste0("maidr_fourfoldplot_declined_", reason)
+  )
+  invisible(NULL)
+}
+
 #' Does a Base R `type` argument request a stairstep?
 #'
 #' `graphics::plot()` and `graphics::lines()` draw stairsteps for
@@ -81,6 +192,159 @@ is_step_plot_type <- function(plot_type) {
 #' @keywords internal
 is_two_way_table <- function(args) {
   !is.null(recorded_two_way_table(args))
+}
+
+#' The `std` choices `graphics::fourfoldplot()` offers
+#'
+#' Written out rather than read from `formals(graphics::fourfoldplot)$std`,
+#' which is an unevaluated `call` of length 4 (measured: `class()` is
+#' `"call"`, and `formals(...)$std[[1]]` is the symbol `c`) and would have to
+#' be `eval()`ed on every dispatch. That the literal still matches upstream is
+#' asserted against the real `formals()` in
+#' `tests/testthat/test-base-r-fourfoldplot.R`, the answer the `qqplot`
+#' branch gives to the same exposure.
+#'
+#' @keywords internal
+FOURFOLD_STD_CHOICES <- c("margins", "ind.max", "all.max")
+
+#' Resolve a recorded `std` the way `fourfoldplot()` itself resolves it
+#'
+#' `graphics::fourfoldplot` runs `std <- match.arg(std)`, so partial spellings
+#' are legal calls that draw the counts. Measured on R 4.3.3, every one of
+#' these is admitted:
+#'
+#' \preformatted{
+#'   <absent> -> margins   "margins" -> margins   "m"   -> margins
+#'   "ma"     -> margins   "ind.max" -> ind.max   "ind" -> ind.max
+#'   "i"      -> ind.max   "in"      -> ind.max   "all.max" -> all.max
+#'   "all"    -> all.max   "a"       -> all.max
+#'   c("margins", "ind.max", "all.max") -> margins
+#' }
+#'
+#' So `identical(args[["std"]], "ind.max")` would silently decline five legal
+#' spellings. The one existing exact-comparison idiom in this package,
+#' `base_r_subseries_layer_processor.R`'s `spikes()`, is complete only because
+#' `monthplot`'s `type` choices are the single characters `"l"` and `"h"`,
+#' where partial matching cannot produce a non-choice string. `std`'s choices
+#' are multi-character, so the same idiom is incomplete here.
+#'
+#' Anything `match.arg()` rejects resolves to `"margins"`, which declines:
+#' measured, `"IND.MAX"`, `"x"`, `NA_character_`, `character(0)` and
+#' `c("ind.max", "margins")` all error inside `match.arg()`, and
+#' `fourfoldplot()` itself raises the identical error first, so none of them
+#' is reachable from a drawn chart. The `tryCatch` is there so that a reader
+#' never `stop()`s and takes the whole figure with it -- the reason
+#' `recorded_flag()` gives for the same shape.
+#'
+#' A non-character `std` is refused before `match.arg()` rather than coerced.
+#' Measured, `fourfoldplot(tb, std = 1L)`, `std = TRUE` and
+#' `std = factor("ind.max")` all stop with "'arg' must be NULL or a character
+#' vector"; `as.character(factor("ind.max"))` would have been accepted here
+#' and would have read a call that upstream refuses to draw.
+#'
+#' `args[["std"]]`, not `args$std`: `$` partial-matches a list, the collision
+#' recorded in `recorded_main_title()`.
+#'
+#' @param args The arguments recorded from the `fourfoldplot()` call.
+#' @return One of `"margins"`, `"ind.max"` or `"all.max"`.
+#' @keywords internal
+fourfold_std <- function(args) {
+  std <- args[["std"]]
+  if (!is.null(std) && !is.character(std)) {
+    return("margins")
+  }
+  tryCatch(
+    match.arg(std, FOURFOLD_STD_CHOICES),
+    error = function(e) "margins"
+  )
+}
+
+#' Which measured refusal a `fourfoldplot()` call runs into, if any
+#'
+#' Returns NULL when the call is read, and otherwise the reason
+#' `warn_fourfoldplot_declined()` explains. Kept beside `is_two_way_table()`
+#' and called from the processor as well as from dispatch, so the two cannot
+#' disagree about which calls are readable.
+#'
+#' The three gates, in the order they are asked:
+#'
+#' 1. **`std`.** Only `"ind.max"` and `"all.max"` are read. Measured on
+#'    `c(tab) = 10, 40, 90, 160`, `std = "ind.max"` draws radii
+#'    `0.25, 0.50, 0.75, 1.00` and `r^2 * max(count)` recovers
+#'    `10, 40, 90, 160` exactly, so the wedge AREA is the count. Under the
+#'    default `"margins"` the same table draws
+#'    `0.632456, 0.774597, 0.774597, 0.632456` -- `r1 == r4`, `r2 == r3`,
+#'    four radii carrying one number.
+#' 2. **Shape.** Exactly two dimensions, both of extent 2. Written as
+#'    `length(dims) == 2L && all(dims == 2L)` and NOT as
+#'    `identical(dims, c(2L, 2L))`, because `dim()` may carry the dimension
+#'    names and `identical()` compares them -- so the exact-comparison
+#'    spelling can decline a table for a reason that has nothing to do with
+#'    what the chart draws. Measured, `dim(as.table(ftable(tb)))` is
+#'    `c(Treatment = 2L, Outcome = 2L)` on R 4.3.3 and unnamed on R 4.6.1, so
+#'    which tables that spelling would have dropped varies by R version. The
+#'    spelling used here does not vary, which is the point of it: whether the
+#'    names survive is not a fact about the chart.
+#' 3. **Values.** `is.numeric()` rather than `as.numeric()`: measured, a
+#'    logical 2x2 prints `TRUE`/`FALSE` on the page as its count labels while
+#'    `as.numeric()` would have announced `1`/`0` under `z = "Count"`.
+#'    Finite, non-negative and summing above zero, because the all-zero table
+#'    makes `stdize()` return `NaN` four times and grid emits ZERO polygon
+#'    grobs for it -- measured, `npoly = 0`.
+#'
+#'    `all(counts >= 0)` is load-bearing, not defensive, and the obvious
+#'    reading of it is wrong. An `NA` count does stop `fourfoldplot()` under
+#'    every `std`, with "missing value where TRUE/FALSE needed", so it never
+#'    arrives. A NEGATIVE count stops only under the DEFAULT
+#'    `std = "margins"`, with that same message. Measured on
+#'    `c(-1, 2, 3, 4)`, `std = "ind.max"` and `std = "all.max"` both return
+#'    normally with a "NaNs produced" warning and `npoly = 0` -- and those
+#'    are exactly the two values that get past gate 1. So a negative count
+#'    reaches this gate whenever it is drawable at all, its counts are finite
+#'    and sum to 8, and this clause is the one that declines it.
+#'    `test-base-r-fourfoldplot.R` pins both halves.
+#'
+#' A 2x2xk array fails gate 2 twice over, and is asked about first only so
+#' the advisory can say "strata" rather than "not a 2x2 table":
+#' `recorded_two_way_table()` returns NULL for any input with three
+#' dimensions anyway. That includes `2x2x1`, which draws exactly what the
+#' matrix spelling draws -- a conservative, measured loss.
+#'
+#' @param args The arguments recorded from the `fourfoldplot()` call.
+#' @return NULL when the counts are readable, otherwise `"std"`, `"strata"`
+#'   or `"table"`.
+#' @keywords internal
+fourfold_decline_reason <- function(args) {
+  if (!(fourfold_std(args) %in% c("ind.max", "all.max"))) {
+    return("std")
+  }
+  handed <- resolve_xy_args(args)$x
+  if (!is.null(handed) && length(dim(handed)) == 3L) {
+    return("strata")
+  }
+  table <- recorded_two_way_table(args)
+  if (is.null(table)) {
+    return("table")
+  }
+  dims <- dim(table)
+  if (length(dims) != 2L || !all(dims == 2L) || !is.numeric(table)) {
+    return("table")
+  }
+  counts <- as.numeric(table)
+  readable <- all(is.finite(counts)) && all(counts >= 0) && sum(counts) > 0
+  if (!readable) "table" else NULL
+}
+
+#' Whether a `fourfoldplot()` call draws the table rather than its odds ratio
+#'
+#' The dispatch-side wrapper over `fourfold_decline_reason()`, in the shape
+#' `is_two_way_table()` has over `recorded_two_way_table()`.
+#'
+#' @param args The arguments recorded from the `fourfoldplot()` call.
+#' @return `TRUE` when the four quadrants are the four counts.
+#' @keywords internal
+fourfold_reads_counts <- function(args) {
+  is.null(fourfold_decline_reason(args))
 }
 
 #' Whether a `dotchart()` call draws more than one group
@@ -386,6 +650,47 @@ BaseRAdapter <- R6::R6Class(
         # from an expectation, which sum to nothing (#266).
         "assocplot" = {
           if (is_two_way_table(args)) "residual" else "unknown"
+        },
+        # A fourfold display: the same two-way table again, drawn as four
+        # quarter-circles. Read as a `heat` for the same reason `assocplot`
+        # is -- the drawing IS a 2x2 grid. Measured native centroids:
+        # polygon-1 (-0.16, +0.16) upper-left = tab[1, 1], polygon-2
+        # (-0.32, -0.32) lower-left = tab[2, 1], polygon-3 (+0.48, +0.48)
+        # upper-right = tab[1, 2], polygon-4 (+0.64, -0.64) lower-right =
+        # tab[2, 2] -- so row-then-column navigation walks the quadrants in
+        # the arrangement the chart drew them.
+        #
+        # Conditional on the caller's own argument, the shape the `qqplot`
+        # branch below has, but read the other way round: `qqplot` reads
+        # silence as accept, and here silence is the DECLINE.
+        # `stats::qqplot`'s default is NULL; `graphics::fourfoldplot`'s is
+        # c("margins", "ind.max", "all.max") -> "margins", and that is the
+        # one value under which the counts are not drawn. As with `qqplot`,
+        # the upstream default is asserted in `test-base-r-fourfoldplot.R`
+        # rather than consulted here, so a release that changed it fails
+        # loudly rather than silently turning every plain `fourfoldplot()`
+        # into a reading of numbers it does not draw (#268).
+        #
+        # This is the ONLY gate that can lose the reading. The geometry
+        # check the issue asks for lives in the processor's
+        # `generate_selectors()` and can only drop selectors, because
+        # `BaseRPlotOrchestrator$initialize()` runs `detect_layers()`,
+        # `resolve_fallback_scope()`, `create_layer_processors()` and
+        # `process_layers()` in that order (lines 122-125): the
+        # picture-versus-chart decision is frozen one line before any
+        # processor is built, and `create_layer_processors()` does not even
+        # instantiate one for a layer already typed "unknown". A processor
+        # that answered `type = "unknown"` would ship that string with
+        # `has_unsupported_layers()` still FALSE -- the #214 failure the
+        # factory records.
+        "fourfoldplot" = {
+          reason <- fourfold_decline_reason(args)
+          if (is.null(reason)) {
+            "fourfold"
+          } else {
+            warn_fourfoldplot_declined(reason)
+            "unknown"
+          }
         },
         # A Q-Q plot: the scatter of one sample's quantiles against another
         # distribution's. Read as `point` -- it is a scatter, and the only
