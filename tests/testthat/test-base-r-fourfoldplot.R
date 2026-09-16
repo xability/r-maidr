@@ -500,14 +500,25 @@ test_that("a logical table is declined rather than announced as 1 and 0", {
 })
 
 test_that("an ftable is read, and the 2x2 gate is the test that was meant", {
-  # `identical(dim(table), c(2L, 2L))` is names-sensitive, and
-  # `dim(as.table(ftable(tb)))` carries names -- so the exact-comparison
-  # spelling would decline an `ftable` for a reason that has nothing to do
-  # with what the chart draws.
+  # Why the gate is spelled `length(dims) == 2L && all(dims == 2L)` rather
+  # than `identical(dims, c(2L, 2L))`: `dim()` may carry the dimension names
+  # and `identical()` compares them, so the exact-comparison spelling can
+  # decline a table for a reason that has nothing to do with what the chart
+  # draws. That is a property of `identical()` rather than of any one R
+  # release, so it is asserted directly here and the gate is written not to
+  # care either way.
+  expect_false(identical(c(Treatment = 2L, Outcome = 2L), c(2L, 2L)))
+  expect_true(all(c(Treatment = 2L, Outcome = 2L) == c(2L, 2L)))
+
+  # Whether *this* constructor produces those names is an R-version detail
+  # and is deliberately not asserted: measured, `dim(as.table(ftable(tb)))`
+  # is `c(Treatment = 2L, Outcome = 2L)` on R 4.3.3 and unnamed on R 4.6.1,
+  # which is what CI runs -- pinning it failed there on both the testthat
+  # job and `R CMD check`. What the reading owes an author is the same under
+  # both, so that is what is asserted: the gate admits the table, and the
+  # call is read.
   dims <- dim(recorded_two_way_table(list(ftable(two_by_two()))))
 
-  expect_equal(names(dims), c("Treatment", "Outcome"))
-  expect_false(identical(dims, c(2L, 2L)))
   expect_true(length(dims) == 2L && all(dims == 2L))
   expect_equal(
     BaseRAdapter$new()$detect_layer_type(

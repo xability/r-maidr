@@ -31,10 +31,14 @@ default \code{"margins"} the same table draws
 four radii carrying one number.
 \item \strong{Shape.} Exactly two dimensions, both of extent 2. Written as
 \code{length(dims) == 2L && all(dims == 2L)} and NOT as
-\code{identical(dims, c(2L, 2L))}: measured, \code{dim(as.table(ftable(tb)))} is
-\code{c(Treatment = 2L, Outcome = 2L)}, and \code{identical()} compares names, so
-the exact-comparison spelling declines an \code{ftable} for a reason that has
-nothing to do with what the chart draws.
+\code{identical(dims, c(2L, 2L))}, because \code{dim()} may carry the dimension
+names and \code{identical()} compares them -- so the exact-comparison
+spelling can decline a table for a reason that has nothing to do with
+what the chart draws. Measured, \code{dim(as.table(ftable(tb)))} is
+\code{c(Treatment = 2L, Outcome = 2L)} on R 4.3.3 and unnamed on R 4.6.1, so
+which tables that spelling would have dropped varies by R version. The
+spelling used here does not vary, which is the point of it: whether the
+names survive is not a fact about the chart.
 \item \strong{Values.} \code{is.numeric()} rather than \code{as.numeric()}: measured, a
 logical 2x2 prints \code{TRUE}/\code{FALSE} on the page as its count labels while
 \code{as.numeric()} would have announced \code{1}/\code{0} under \code{z = "Count"}.

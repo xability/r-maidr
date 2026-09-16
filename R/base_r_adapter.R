@@ -277,10 +277,14 @@ fourfold_std <- function(args) {
 #'    four radii carrying one number.
 #' 2. **Shape.** Exactly two dimensions, both of extent 2. Written as
 #'    `length(dims) == 2L && all(dims == 2L)` and NOT as
-#'    `identical(dims, c(2L, 2L))`: measured, `dim(as.table(ftable(tb)))` is
-#'    `c(Treatment = 2L, Outcome = 2L)`, and `identical()` compares names, so
-#'    the exact-comparison spelling declines an `ftable` for a reason that has
-#'    nothing to do with what the chart draws.
+#'    `identical(dims, c(2L, 2L))`, because `dim()` may carry the dimension
+#'    names and `identical()` compares them -- so the exact-comparison
+#'    spelling can decline a table for a reason that has nothing to do with
+#'    what the chart draws. Measured, `dim(as.table(ftable(tb)))` is
+#'    `c(Treatment = 2L, Outcome = 2L)` on R 4.3.3 and unnamed on R 4.6.1, so
+#'    which tables that spelling would have dropped varies by R version. The
+#'    spelling used here does not vary, which is the point of it: whether the
+#'    names survive is not a fact about the chart.
 #' 3. **Values.** `is.numeric()` rather than `as.numeric()`: measured, a
 #'    logical 2x2 prints `TRUE`/`FALSE` on the page as its count labels while
 #'    `as.numeric()` would have announced `1`/`0` under `z = "Count"`.
