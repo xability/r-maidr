@@ -155,7 +155,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `stacked_normalized_bar` | `geom_bar(position = "fill")` |
 | `contour` | [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html), [`geom_density_2d()`](https://ggplot2.tidyverse.org/reference/geom_density_2d.html) |
 | `error_bar` | [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_errorbarh()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_linerange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_pointrange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_crossbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html), [`geom_ribbon()`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html) as a band |
-| `gantt` | [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html) |
+| `gantt` | [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md) |
 | `hexbin` | [`geom_hex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html), [`stat_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html) |
 | `polygon` | [`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html) |
 | `rug` | [`geom_rug()`](https://ggplot2.tidyverse.org/reference/geom_rug.html) |

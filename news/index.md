@@ -105,6 +105,20 @@
   lane with several spans keeps them all, and unused levels survive
   `drop = FALSE`. Segments that share no coordinate, and angled spokes,
   keep the static-image fallback.
+- New [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md): a
+  [`geom_rect()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+  layer whose author declares it a schedule is emitted as a `gantt`,
+  lanes named, each bar highlightable. Nothing else about the chart
+  changes – the built data and both panel ranges are identical to the
+  bare
+  [`geom_rect()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+  layer’s – and an undeclared rectangle layer keeps exactly the reading
+  it has today. A lane is named by the single explicit tick drawn inside
+  it and by its position otherwise; `lane_axis = "x"` reads the mirror
+  image. Five structural rules for telling a rect-drawn gantt from a
+  heatmap, a waterfall or a highlight were measured against eight charts
+  and every one of them claimed a chart the issue forbids, which is why
+  the author is asked instead.
 - Added
   [`geom_hex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html)
   support: each hexagon is a navigable bin announcing its centre and

@@ -42,6 +42,8 @@ An R6 class inheriting from SystemAdapter
 
 - [`Ggplot2Adapter$segments_span_lanes()`](#method-Ggplot2Adapter-segments_span_lanes)
 
+- [`Ggplot2Adapter$rect_spans_lanes()`](#method-Ggplot2Adapter-rect_spans_lanes)
+
 - [`Ggplot2Adapter$unread_layer_type()`](#method-Ggplot2Adapter-unread_layer_type)
 
 - [`Ggplot2Adapter$layer_drew_nothing()`](#method-Ggplot2Adapter-layer_drew_nothing)
@@ -358,6 +360,52 @@ chart.
 #### Returns
 
 TRUE when the layer's segments lay intervals in lanes
+
+------------------------------------------------------------------------
+
+### `Ggplot2Adapter$rect_spans_lanes()`
+
+Check whether a declared rect layer draws intervals in lanes
+
+Asked through the *same* predicate the processor will use, so the two
+cannot disagree about what a schedule is:
+[`rect_gantt_frame()`](https://r.maidr.ai/reference/rect_gantt_frame.md)
+renames the declared layer's bounds into the four columns
+[`segment_lane_axis()`](https://r.maidr.ai/reference/segment_lane_axis.md)
+already reads, and the landed test decides.
+
+The degenerate case comes free rather than needing a rule of its own.
+Measured: a declared layer whose rectangles are all zero-width
+normalises to level on both axes,
+[`segment_lane_axis()`](https://r.maidr.ai/reference/segment_lane_axis.md)
+returns NULL, and the layer is refused instead of being announced as a
+schedule of zero-length work – which is the rule this file already
+applies to
+[`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html).
+
+Nothing else is asked of the rectangles. A guard on their shape is the
+structural rule the eight-chart table above the `GeomRect` branch of
+`detect_layer_type()` falsified, and a veto on a layer the author
+explicitly declared is near-useless anyway: measured, a declared
+monotone waterfall partitions on y and would pass one.
+
+#### Usage
+
+    Ggplot2Adapter$rect_spans_lanes(layer, plot_object)
+
+#### Arguments
+
+- `layer`:
+
+  The layer being classified
+
+- `plot_object`:
+
+  The ggplot2 plot object
+
+#### Returns
+
+TRUE when the layer's rectangles lay intervals in lanes
 
 ------------------------------------------------------------------------
 

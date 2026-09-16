@@ -33,7 +33,7 @@ ggplot2 functionality to work with the new extensible architecture.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-23">
+<meta name="DC.date" content="2026-09-16">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -114,6 +114,7 @@ ggplot2 functionality to work with the new extensible architecture.</p>
 <li><p><a href="#method-Ggplot2Adapter-is_patchwork"><code>Ggplot2Adapter$is_patchwork()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-ribbon_is_area"><code>Ggplot2Adapter$ribbon_is_area()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-segments_span_lanes"><code>Ggplot2Adapter$segments_span_lanes()</code></a></p></li>
+<li><p><a href="#method-Ggplot2Adapter-rect_spans_lanes"><code>Ggplot2Adapter$rect_spans_lanes()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-unread_layer_type"><code>Ggplot2Adapter$unread_layer_type()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-layer_drew_nothing"><code>Ggplot2Adapter$layer_drew_nothing()</code></a></p></li>
 <li><p><a href="#method-Ggplot2Adapter-clone"><code>Ggplot2Adapter$clone()</code></a></p></li>
@@ -399,6 +400,43 @@ missing a quarter of its chart.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2Adapter-rect_spans_lanes"></a><div class="section">
+<h3 id="ggplot-adapter-rect-spans-lanes-"><code>Ggplot2Adapter$rect_spans_lanes()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-rect-spans-lanes-"></a></h3>
+<p>Check whether a declared rect layer draws intervals in lanes</p>
+<p>Asked through the <em>same</em> predicate the processor will use, so the two
+cannot disagree about what a schedule is: <code><a href="rect_gantt_frame.html">rect_gantt_frame()</a></code>
+renames the declared layer's bounds into the four columns
+<code><a href="segment_lane_axis.html">segment_lane_axis()</a></code> already reads, and the landed test decides.</p>
+<p>The degenerate case comes free rather than needing a rule of its own.
+Measured: a declared layer whose rectangles are all zero-width
+normalises to level on both axes, <code><a href="segment_lane_axis.html">segment_lane_axis()</a></code> returns
+NULL, and the layer is refused instead of being announced as a schedule
+of zero-length work – which is the rule this file already applies to
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_segment()</a></code>.</p>
+<p>Nothing else is asked of the rectangles. A guard on their shape is the
+structural rule the eight-chart table above the <code>GeomRect</code> branch
+of <code>detect_layer_type()</code> falsified, and a veto on a layer the
+author explicitly declared is near-useless anyway: measured, a declared
+monotone waterfall partitions on y and would pass one.</p><div class="section">
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">rect_spans_lanes</span><span class="op">(</span><span class="va">layer</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer</code></dt>
+<dd><p>The layer being classified</p></dd>
+
+      <dt><code>plot_object</code></dt>
+<dd><p>The ggplot2 plot object</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>TRUE when the layer's rectangles lay intervals in lanes</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2Adapter-unread_layer_type"></a><div class="section">
 <h3 id="ggplot-adapter-unread-layer-type-"><code>Ggplot2Adapter$unread_layer_type()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-unread-layer-type-"></a></h3>
 <p>The answer for a layer no branch above claimed</p>
@@ -434,10 +472,10 @@ to mean "nothing at all".</p>
 <p>Nothing here decides which geoms are readable. A <code><a href="https://ggplot2.tidyverse.org/reference/geom_polygon.html" class="external-link">geom_polygon()</a></code>
 with data in it is still <code>"unknown"</code> and still costs its chart
 exactly what it costs today.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">unread_layer_type</span><span class="op">(</span><span class="va">layer</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer</code></dt>
 <dd><p>The layer being classified</p></dd>
 
@@ -447,7 +485,7 @@ exactly what it costs today.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p><code>"skip"</code> when the layer drew no rows, <code>"unknown"</code>
 otherwise</p>
 </div>
@@ -472,10 +510,10 @@ second caller: a rule two branches ask is a rule, not a fall-through.</p>
 layer no frame. Absent is not empty: a build that said nothing about
 what a layer drew must not have that read as "it drew nothing", which
 would wave a mark through as harmless.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">layer_drew_nothing</span><span class="op">(</span><span class="va">layer</span>, <span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer</code></dt>
 <dd><p>The layer being asked about</p></dd>
 
@@ -485,7 +523,7 @@ would wave a mark through as harmless.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>TRUE when the layer built no rows</p>
 </div>
 
@@ -494,10 +532,10 @@ would wave a mark through as harmless.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2Adapter-clone"></a><div class="section">
 <h3 id="ggplot-adapter-clone-"><code>Ggplot2Adapter$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-adapter-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
+<h4 id="usage-16">Usage<a class="anchor" aria-label="anchor" href="#usage-16"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2Adapter</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

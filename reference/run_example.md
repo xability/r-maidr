@@ -56,6 +56,7 @@ run_example()
 #>   - candlestick_with_ma_volume
 #>   - dodged_bar
 #>   - faceted
+#>   - gantt
 #>   - heatmap
 #>   - histogram
 #>   - line

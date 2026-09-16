@@ -9,6 +9,14 @@ Primary user-facing functions for creating accessible plots
 - [`save_html()`](https://r.maidr.ai/reference/save_html.md) : Save
   Interactive Plot as HTML File
 
+## Declaring what a layer means
+
+Functions an author adds to a plot to say what a layer is, where the
+picture alone cannot say it
+
+- [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md) :
+  Declare that a rectangle layer draws a schedule
+
 ## RMarkdown integration
 
 Functions for enabling accessible plots in RMarkdown documents
