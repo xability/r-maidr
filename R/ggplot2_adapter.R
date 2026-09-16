@@ -270,10 +270,10 @@ Ggplot2Adapter <- R6::R6Class(
       # `GeomTile`, `GeomBar` and `GeomCol`, so an `inherits()` test would
       # take the heatmap, the bar chart and the column chart. (`GeomRaster`
       # does not inherit it at all.) `GeomRectCS`, the candlestick body,
-      # inherits it too -- read off tidyquant 1.0.12's
-      # `R/ggplot-geom_chart.R:229` rather than measured, because tidyquant
-      # is a Suggests this environment and CI do not install, so the cell
-      # cannot be re-run here the way the other four can.
+      # inherits it too -- measured against tidyquant 1.0.12:
+      # `inherits(GeomRectCS, "GeomRect")` is TRUE while
+      # `class(GeomRectCS)[1]` is `"GeomRectCS"`, which is why the first
+      # class is what keeps a candlestick out of this branch.
       #
       # The `stat_class` guard exists because this branch sits *above* the
       # two candlestick branches below, which answer on either the geom or
@@ -283,11 +283,22 @@ Ggplot2Adapter <- R6::R6Class(
       # and `skip -> unknown` -- and `skip -> unknown` is the damaging
       # direction, because `unknown` is what makes
       # `has_unsupported_layers()` true and drops the whole plot to a static
-      # image. No real chart reaches it: per the same tidyquant source,
-      # `geom_candlestick()` and `geom_barchart()` always pair those stats
-      # with `GeomRectCS`/`GeomLinerangeBC`, never with plain `GeomRect`
-      # (lines 83, 187, 194). The guard is here so that nothing this branch
-      # can be handed changes answer, not because the case is reachable.
+      # image. No real chart reaches it, measured on tidyquant 1.0.12 rather
+      # than read off its source -- every layer either function builds pairs
+      # those stats with a geom of its own, never with plain `GeomRect`:
+      #
+      #     geom_candlestick()  GeomLinerangeBC / StatLinerangeBC
+      #                         GeomRectCS      / StatRectCS
+      #     geom_barchart()     GeomLinerangeBC / StatLinerangeBC
+      #                         GeomSegmentBC   / StatSegmentLeftBC
+      #                         GeomSegmentBC   / StatSegmentRightBC
+      #
+      # (so `StatRectCS` is `geom_candlestick()`'s alone; `geom_barchart()`
+      # draws its bodies as segments.) The guard is here so that nothing
+      # this branch can be handed changes answer, not because the case is
+      # reachable -- and with tidyquant installed, the existing
+      # `test-ggplot2-candlestick-layer-processor.R` asks `detect_layer_type()`
+      # of both real layers and still gets `candlestick` and `skip`.
       if (geom_class == "GeomRect" &&
         !stat_class %in% c("StatRectCS", "StatLinerangeBC")) {
         if (layer_is_declared_gantt(layer) &&

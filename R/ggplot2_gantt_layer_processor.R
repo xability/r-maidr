@@ -800,9 +800,9 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
     #'   \code{GeomCol} all inherit \code{GeomRect}; \code{GeomRaster} does
     #'   not, and draws \code{GRID.rastergrob.*} rather than a rect, so the
     #'   two populations agree on it as well. \code{GeomRectCS}, the
-    #'   candlestick body, inherits it too -- read off tidyquant 1.0.12's
-    #'   \code{R/ggplot-geom_chart.R:229} rather than measured, because
-    #'   tidyquant is a Suggests this environment and CI do not install.
+    #'   candlestick body, inherits it too -- measured against tidyquant
+    #'   1.0.12, where \code{inherits(GeomRectCS, "GeomRect")} is TRUE and
+    #'   \code{class(GeomRectCS)[1]} is \code{"GeomRectCS"}.
     #'
     #'   Scoped to this lookup. The same miscount reaches any bar, heat or
     #'   candlestick layer sharing a panel with another rect-drawn geom
