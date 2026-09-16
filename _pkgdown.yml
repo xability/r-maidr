@@ -93,6 +93,13 @@ reference:
       - show
       - save_html
 
+  - title: Declaring what a layer means
+    desc: >
+      Functions an author adds to a plot to say what a layer is, where the
+      picture alone cannot say it
+    contents:
+      - maidr_gantt
+
   - title: RMarkdown integration
     desc: Functions for enabling accessible plots in RMarkdown documents
     contents:

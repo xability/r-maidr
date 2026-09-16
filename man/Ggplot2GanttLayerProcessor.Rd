@@ -4,7 +4,8 @@
 \alias{Ggplot2GanttLayerProcessor}
 \title{Gantt Layer Processor}
 \description{
-Processes \code{geom_segment()} layers that draw intervals in lanes.
+Processes \code{geom_segment()} layers that draw intervals in lanes, and
+\code{maidr_gantt()} layers whose author declared that their rectangles do.
 
 A segment with the two ends of a span on one axis and a lane on the other
 is how ggplot2 draws a schedule, a range plot and a high-low chart.
@@ -16,6 +17,17 @@ inverted from a pixel: the four columns \code{x}, \code{xend}, \code{y} and
 way, but is not claimed -- \code{gridSVG} cannot export the \code{curve}
 grob it draws, so reading it would turn a curve chart from a static image
 into a \code{save_html()} that raises. See the adapter's own note.
+
+A declared rectangle layer has none of those four columns -- it builds
+\code{xmin}, \code{xmax}, \code{ymin} and \code{ymax} -- so
+\code{rect_gantt_frame()} renames its bounds into them before anything
+here runs. That is the whole of the rect path: the lanes, the ordering,
+the orientation and the axes are then this class answering one question
+rather than two implementations of it, and the processed layer comes back
+\code{identical()} to the \code{geom_segment()} spelling of the same
+schedule in everything but the grob its selectors name. Only the lane
+\emph{names} need their own route, because a rectangle layer's lane axis is
+continuous and \code{lane_names()} reads levels off a discrete one.
 }
 \keyword{internal}
 \section{Super class}{
@@ -26,11 +38,15 @@ into a \code{save_html()} that raises. See the adapter's own note.
   \itemize{
     \item \href{#method-Ggplot2GanttLayerProcessor-process}{\code{Ggplot2GanttLayerProcessor$process()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-lane_names}{\code{Ggplot2GanttLayerProcessor$lane_names()}}
+    \item \href{#method-Ggplot2GanttLayerProcessor-declared_lane_axis}{\code{Ggplot2GanttLayerProcessor$declared_lane_axis()}}
+    \item \href{#method-Ggplot2GanttLayerProcessor-name_rect_lanes}{\code{Ggplot2GanttLayerProcessor$name_rect_lanes()}}
+    \item \href{#method-Ggplot2GanttLayerProcessor-lane_ticks}{\code{Ggplot2GanttLayerProcessor$lane_ticks()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-extract_axes}{\code{Ggplot2GanttLayerProcessor$extract_axes()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-generate_selectors}{\code{Ggplot2GanttLayerProcessor$generate_selectors()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-target_geom_class}{\code{Ggplot2GanttLayerProcessor$target_geom_class()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-segments_grob_class}{\code{Ggplot2GanttLayerProcessor$segments_grob_class()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-find_segments_name}{\code{Ggplot2GanttLayerProcessor$find_segments_name()}}
+    \item \href{#method-Ggplot2GanttLayerProcessor-find_rect_name}{\code{Ggplot2GanttLayerProcessor$find_rect_name()}}
     \item \href{#method-Ggplot2GanttLayerProcessor-clone}{\code{Ggplot2GanttLayerProcessor$clone()}}
   }
 }
@@ -126,6 +142,144 @@ NULL for a continuous lane axis, which has no names to give.
   }
   \subsection{Returns}{
     Character vector of lane names, or NULL
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2GanttLayerProcessor-declared_lane_axis"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2GanttLayerProcessor-declared_lane_axis}{}}}
+\subsection{\code{Ggplot2GanttLayerProcessor$declared_lane_axis()}}{
+  Which axis this layer's author said the lanes run up
+
+Read off the layer rather than inferred, because inference is not
+available: measured, both axes partition for the target schedule and
+for one whose tasks all take the same time, so structure can neither
+confirm nor contradict what the author meant. \code{"y"} when nothing
+was declared, which is what a \code{geom_segment()} gantt drawn the
+ordinary way also reads as.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2GanttLayerProcessor$declared_lane_axis(plot)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{"y"} or \code{"x"}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2GanttLayerProcessor-name_rect_lanes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2GanttLayerProcessor-name_rect_lanes}{}}}
+\subsection{\code{Ggplot2GanttLayerProcessor$name_rect_lanes()}}{
+  Name a rectangle gantt's lanes from the ticks inside them
+
+\code{lane_names()} above cannot serve, and the reason is measured:
+it requires \code{view$is_discrete()}, and a rectangle layer written
+with the author's own numeric \code{ymin}/\code{ymax} trains a
+continuous scale -- measured, \code{is_discrete()} is FALSE and
+\code{limits} is the range \code{0.6, 3.4} rather than a list of
+levels. The lanes are there; the scale just has no names to lend them.
+
+So a lane is named by the single explicit tick drawn inside it, and
+by its position otherwise -- the rule xability/py-maidr#533 settled.
+Two guards come with it and both are that issue's: a band holding
+more than one tick is named by none of them, and a band holding none
+is named by its position.
+
+Read off \code{built$layout$panel_params}, never
+\code{layer_scales()}: measured on the default scale the panel's
+view gives breaks \code{NA, 1, 2, 3, NA} while \code{layer_scales()}
+gives \code{NA, 1, 1.5, 2, 2.5, 3, NA} -- two ticks per band, which
+defeats the one-tick rule in exactly the case the rule exists for.
+The \code{NA} padding is dropped.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2GanttLayerProcessor$name_rect_lanes(
+  grouped,
+  built,
+  built_data,
+  lane_axis,
+  panel_id = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{grouped}}{The lanes as \code{segment_lanes()} grouped them}
+      \item{\code{built}}{Built plot data}
+      \item{\code{built_data}}{The normalised frame, carrying the bounds and the lane}
+      \item{\code{lane_axis}}{"y", "x", or NULL}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    \code{grouped} with its named lanes renamed
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2GanttLayerProcessor-lane_ticks"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2GanttLayerProcessor-lane_ticks}{}}}
+\subsection{\code{Ggplot2GanttLayerProcessor$lane_ticks()}}{
+  The lane axis's drawn ticks, with the padding dropped
+
+\code{panel_params} is keyed by the axis the chart \emph{draws}, not the
+axis the data lives on, and \code{coord_flip()} swaps the two. So the
+panel is asked for the drawn counterpart of \code{lane_axis} rather
+than for \code{lane_axis} itself.
+
+Indexing by \code{lane_axis} reads the span axis under a flip, and
+the wrong answer is worth writing down because it is two different
+wrong answers. Measured on ggplot2 3.4.4, the example schedule with
+\code{coord_flip()} added: with the time axis given its own named
+breaks the lanes came back \code{Jan, Feb, Mar} -- names the chart
+draws along the other axis -- and with the ordinary numeric time
+breaks \code{0, 5, 10, 15} every label failed
+\code{label_names_its_lane()} and the lanes silently lost their names
+altogether, on a chart drawing \code{design, build, test}. Both are
+pinned in \code{tests/testthat/test-gantt-rect.R}.
+
+The breaks travel with the labels, so they stay comparable with the
+bands: measured under the flip, \code{panel_params[[1]]$x} gives
+breaks \code{1, 2, 3} against bands \code{0.6-1.4}, \code{1.6-2.4}
+and \code{2.6-3.4}, which are data-space \code{ymin}/\code{ymax}.
+
+\code{class()[1]} is \code{"CoordFlip"} here -- measured -- but the
+test is \code{inherits()}, because it is asking whether the coord
+flips rather than which coord it is.
+
+\code{lane_names()} above indexes by \code{lane_axis} too and is
+deliberately left alone: it requires \code{view$is_discrete()}, a
+rectangle layer's numeric bounds always train a continuous lane axis,
+and so it cannot reach a rect gantt at all. Measured, the
+\code{geom_segment()} spelling of the same flipped chart comes back
+with no \code{lanes} rather than with borrowed ones, which is the
+reading it has today and not this issue's to change.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2GanttLayerProcessor$lane_ticks(built, lane_axis, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{built}}{Built plot data}
+      \item{\code{lane_axis}}{"y", "x", or NULL}
+      \item{\code{panel_id}}{Panel ID for faceted plots (optional)}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A list of \code{breaks} and \code{labels}, or NULL
   }
 }
 
@@ -286,6 +440,88 @@ gtable being exported rather than reconstructed.
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{gt}}{Gtable object}
       \item{\code{panel_ctx}}{Panel context for patchwork leaves and facets}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    The grob name, or NULL when it cannot be resolved
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2GanttLayerProcessor-find_rect_name"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2GanttLayerProcessor-find_rect_name}{}}}
+\subsection{\code{Ggplot2GanttLayerProcessor$find_rect_name()}}{
+  Find the name of the grob holding a rect layer's bars
+
+The opposite way round from \code{find_segments_name()}, and for a
+measured reason: a rectangle layer \emph{is} given a geom-prefixed grob
+name, and the grob class is useless because the theme draws rects
+too. Collecting every \code{rect}-class grob of a lone rect chart
+gave, in tree order,
+
+\preformatted{
+  plot.background..rect.33  panel.background..rect.6  geom_rect.rect.2
+  }
+
+so position 1 is the plot background and the reader would have the
+whole page highlighted for their first task. The name prefix
+\code{^geom_rect\\.} matches the drawn bars and none of the theme's
+rects.
+
+Every number in a grob name here is grid's global counter, which
+\code{find_segments_name()} above already records as not stable
+between sessions -- the same chart measured second in a session
+numbers higher. What was measured is the tree order and the rect
+counts; each listing below is from its own fresh session.
+
+The counter is the other half. ggplot2 names a drawn grob after the
+geom whose \code{draw_panel()} made it, and \code{GeomRect$
+  draw_panel()} hard-codes \code{geom_rect}, so \code{geom_tile()},
+\code{geom_bar()} and \code{geom_col()} all emit
+\code{geom_rect.rect.*} grobs while \code{geom_grob_prefix()} calls
+them \code{geom_tile}/\code{geom_bar}/\code{geom_col}. Measured,
+\code{geom_col(5 bars) + geom_rect(4 rects)} draws two of them --
+\code{geom_rect.rect.2} holding the 5 bars and
+\code{geom_rect.rect.4} holding the 4 bands -- and the base class's
+\code{find_layer_grob_tree()} hands the rect layer the first, the
+column chart's bars. Counting the target among
+\code{inherits(geom, "GeomRect")} layers makes the counted
+population the drawn population and resolves it to the second;
+measured the same for \code{geom_tile(9) + geom_rect(4)}, which
+draws 9 then 4 under the same two names.
+
+\code{inherits()} rather than a written-out list of class names, so
+that a rect subclass this package has never heard of is counted as
+what it draws. Measured, \code{GeomTile}, \code{GeomBar} and
+\code{GeomCol} all inherit \code{GeomRect}; \code{GeomRaster} does
+not, and draws \code{GRID.rastergrob.*} rather than a rect, so the
+two populations agree on it as well. \code{GeomRectCS}, the
+candlestick body, inherits it too -- read off tidyquant 1.0.12's
+\code{R/ggplot-geom_chart.R:229} rather than measured, because
+tidyquant is a Suggests this environment and CI do not install.
+
+Scoped to this lookup. The same miscount reaches any bar, heat or
+candlestick layer sharing a panel with another rect-drawn geom
+through \code{find_layer_grob_tree()}; that is a defect this change
+did not introduce and does not widen.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2GanttLayerProcessor$find_rect_name(
+  plot,
+  gt,
+  panel_ctx = NULL,
+  target = NULL
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{gt}}{Gtable object}
+      \item{\code{panel_ctx}}{Panel context for patchwork leaves and facets}
+      \item{\code{target}}{This layer's index among the plot's layers}
     }
     \if{html}{\out{</div>}}
   }

@@ -30,6 +30,7 @@ ggplot2 functionality to work with the new extensible architecture.
     \item \href{#method-Ggplot2Adapter-is_patchwork}{\code{Ggplot2Adapter$is_patchwork()}}
     \item \href{#method-Ggplot2Adapter-ribbon_is_area}{\code{Ggplot2Adapter$ribbon_is_area()}}
     \item \href{#method-Ggplot2Adapter-segments_span_lanes}{\code{Ggplot2Adapter$segments_span_lanes()}}
+    \item \href{#method-Ggplot2Adapter-rect_spans_lanes}{\code{Ggplot2Adapter$rect_spans_lanes()}}
     \item \href{#method-Ggplot2Adapter-unread_layer_type}{\code{Ggplot2Adapter$unread_layer_type()}}
     \item \href{#method-Ggplot2Adapter-layer_drew_nothing}{\code{Ggplot2Adapter$layer_drew_nothing()}}
     \item \href{#method-Ggplot2Adapter-clone}{\code{Ggplot2Adapter$clone()}}
@@ -349,6 +350,47 @@ missing a quarter of its chart.
   }
   \subsection{Returns}{
     TRUE when the layer's segments lay intervals in lanes
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2Adapter-rect_spans_lanes"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2Adapter-rect_spans_lanes}{}}}
+\subsection{\code{Ggplot2Adapter$rect_spans_lanes()}}{
+  Check whether a declared rect layer draws intervals in lanes
+
+Asked through the \emph{same} predicate the processor will use, so the two
+cannot disagree about what a schedule is: \code{rect_gantt_frame()}
+renames the declared layer's bounds into the four columns
+\code{segment_lane_axis()} already reads, and the landed test decides.
+
+The degenerate case comes free rather than needing a rule of its own.
+Measured: a declared layer whose rectangles are all zero-width
+normalises to level on both axes, \code{segment_lane_axis()} returns
+NULL, and the layer is refused instead of being announced as a schedule
+of zero-length work -- which is the rule this file already applies to
+\code{geom_segment()}.
+
+Nothing else is asked of the rectangles. A guard on their shape is the
+structural rule the eight-chart table above the \code{GeomRect} branch
+of \code{detect_layer_type()} falsified, and a veto on a layer the
+author explicitly declared is near-useless anyway: measured, a declared
+monotone waterfall partitions on y and would pass one.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2Adapter$rect_spans_lanes(layer, plot_object)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer}}{The layer being classified}
+      \item{\code{plot_object}}{The ggplot2 plot object}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the layer's rectangles lay intervals in lanes
   }
 }
 

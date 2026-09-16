@@ -207,6 +207,96 @@ Ggplot2Adapter <- R6::R6Class(
         return(self$unread_layer_type(layer, plot_object))
       }
 
+      # #197's other half. `geom_rect()` draws gantt charts, and nothing in
+      # the rectangles says when it did. Five structural candidates were
+      # measured against the issue's eight charts, reading real
+      # `ggplot_build(p)$data[[i]]` frames on ggplot2 3.4.4 -- `parts` is
+      # "the bands on y are pairwise identical or disjoint", `nb` the number
+      # of distinct bands, `nsx` the number of distinct x intervals:
+      #
+      #   chart                            n  nb nsx lattice parts | R1 R2 R3 R6 R7 | wanted
+      #   gantt (the target)               4  3   4   FALSE  TRUE  |  T  T  T  T  T | gantt
+      #   gantt, tasks overlapping in x    3  3   3   FALSE  TRUE  |  T  T  T  T  T | gantt
+      #   gantt, varying bar heights       3  3   3   FALSE  TRUE  |  T  T  F  T  F | gantt
+      #   single annotate('rect')          1  1   1   TRUE   TRUE  |  T  F  F  F  F | NOT
+      #   two-region highlight (1 layer)   2  2   2   FALSE  TRUE  |  T  T  T  T  T | NOT
+      #   waterfall (lanes on x)           4  4   4   FALSE  FALSE |  F  F  F  F  F | NOT
+      #   heatmap via geom_rect            9  3   3   TRUE   TRUE  |  T  T  T  F  F | NOT
+      #   heatmap with one cell missing    8  3   3   FALSE  TRUE  |  T  T  T  T  T | NOT
+      #   ------------------------------------------------------------------------
+      #   correct                                                 |  4  5  4  6  5 | / 8
+      #
+      # R1, R2 and R3 each claim the `geom_rect()` heatmap, which the issue
+      # lists as a must-not-claim. R6 refuses that one and claims the gappy
+      # heatmap instead, and every candidate claims the two-region highlight
+      # -- decoration announced as data, the one outcome the issue would not
+      # accept. And two further charts, measured the same way, close the gap
+      # for good:
+      #
+      #   waterfall, equal increments      3  3   3   FALSE  TRUE  |  T  T  T  T  T | NOT
+      #   gantt, all tasks equal duration  3  3   3   FALSE  TRUE  |  T  T  T  T  T | gantt
+      #
+      # A waterfall whose steps are all the same size and a schedule whose
+      # tasks all take the same time agree in every column, so all five rules
+      # claim both, and one of them is a chart the issue forbids. They are
+      # the *same rectangles*: the information is not in the geometry at all,
+      # so no predicate over `(xmin, xmax, ymin, ymax)` can be right.
+      #
+      # So the reading is asked of the author, which is the same question
+      # `layer_is_annotation()` asks put the other way up: `annotate()` is
+      # ggplot2's word for "this is decoration" and `maidr_gantt()` is
+      # maidr's word for "this is a schedule".
+      #
+      # The cost of that is a hole, and it is deliberate: `maidr_gantt(aes(
+      # xmin = i - .5, xmax = i + .5, ymin = j - .5, ymax = j + .5))` over
+      # heatmap data is announced as a schedule, because the author said so
+      # and the package believes them. Any guard strong enough to catch it is
+      # one of the rules the table above falsifies. The wrong answer is
+      # pinned in `tests/testthat/test-gantt-rect.R`.
+      #
+      # An undeclared rect layer gets exactly what the fall-through at the
+      # end of this function gives it, so no reading that exists today moves:
+      # measured `before=unknown after=unknown` for a bare `geom_rect()`
+      # gantt, a waterfall, a `geom_rect()` heatmap and a two-region
+      # highlight, and `before=skip after=skip` for `annotate("rect")`, which
+      # returned above. Not `"skip"` for the rest, for the reason the
+      # `GeomPolygon` branch already gives: a band's four coordinate columns
+      # are rows the author supplied, and skipping one that is the data drops
+      # it silently -- worse than the picture, because the reader is not told
+      # anything is missing.
+      #
+      # `class(...)[1]` as everywhere else in this dispatch, and here it is
+      # load-bearing: measured, `inherits(geom, "GeomRect")` is TRUE for
+      # `GeomTile`, `GeomBar` and `GeomCol`, so an `inherits()` test would
+      # take the heatmap, the bar chart and the column chart. (`GeomRaster`
+      # does not inherit it at all.) `GeomRectCS`, the candlestick body,
+      # inherits it too -- read off tidyquant 1.0.12's
+      # `R/ggplot-geom_chart.R:229` rather than measured, because tidyquant
+      # is a Suggests this environment and CI do not install, so the cell
+      # cannot be re-run here the way the other four can.
+      #
+      # The `stat_class` guard exists because this branch sits *above* the
+      # two candlestick branches below, which answer on either the geom or
+      # the stat. Without it a layer pairing plain `GeomRect` with
+      # `StatRectCS` or `StatLinerangeBC` would be answered here instead,
+      # and measured on synthetic layers that is `candlestick -> unknown`
+      # and `skip -> unknown` -- and `skip -> unknown` is the damaging
+      # direction, because `unknown` is what makes
+      # `has_unsupported_layers()` true and drops the whole plot to a static
+      # image. No real chart reaches it: per the same tidyquant source,
+      # `geom_candlestick()` and `geom_barchart()` always pair those stats
+      # with `GeomRectCS`/`GeomLinerangeBC`, never with plain `GeomRect`
+      # (lines 83, 187, 194). The guard is here so that nothing this branch
+      # can be handed changes answer, not because the case is reachable.
+      if (geom_class == "GeomRect" &&
+        !stat_class %in% c("StatRectCS", "StatLinerangeBC")) {
+        if (layer_is_declared_gantt(layer) &&
+          self$rect_spans_lanes(layer, plot_object)) {
+          return("gantt")
+        }
+        return(self$unread_layer_type(layer, plot_object))
+      }
+
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
         return("line")
       }
@@ -692,6 +782,49 @@ Ggplot2Adapter <- R6::R6Class(
       !is.null(segment_lane_axis(built$data[[index]]))
     },
 
+    #' @description Check whether a declared rect layer draws intervals in lanes
+    #'
+    #' Asked through the *same* predicate the processor will use, so the two
+    #' cannot disagree about what a schedule is: \code{rect_gantt_frame()}
+    #' renames the declared layer's bounds into the four columns
+    #' \code{segment_lane_axis()} already reads, and the landed test decides.
+    #'
+    #' The degenerate case comes free rather than needing a rule of its own.
+    #' Measured: a declared layer whose rectangles are all zero-width
+    #' normalises to level on both axes, \code{segment_lane_axis()} returns
+    #' NULL, and the layer is refused instead of being announced as a schedule
+    #' of zero-length work -- which is the rule this file already applies to
+    #' \code{geom_segment()}.
+    #'
+    #' Nothing else is asked of the rectangles. A guard on their shape is the
+    #' structural rule the eight-chart table above the \code{GeomRect} branch
+    #' of \code{detect_layer_type()} falsified, and a veto on a layer the
+    #' author explicitly declared is near-useless anyway: measured, a declared
+    #' monotone waterfall partitions on y and would pass one.
+    #'
+    #' @param layer The layer being classified
+    #' @param plot_object The ggplot2 plot object
+    #' @return TRUE when the layer's rectangles lay intervals in lanes
+    rect_spans_lanes = function(layer, plot_object) {
+      built <- tryCatch(
+        ggplot2::ggplot_build(plot_object),
+        error = function(e) NULL
+      )
+      if (is.null(built)) {
+        return(FALSE)
+      }
+
+      index <- self$find_layer_index(plot_object, layer)
+      if (is.null(index) || index < 1L || index > length(built$data)) {
+        return(FALSE)
+      }
+
+      frame <- rect_gantt_frame(
+        built$data[[index]], layer_declared_lane_axis(layer)
+      )
+      !is.null(segment_lane_axis(frame))
+    },
+
     #' @description The answer for a layer no branch above claimed
     #'
     #' \code{"unknown"} is what makes \code{has_unsupported_layers()} true and
@@ -832,4 +965,83 @@ layer_is_annotation <- function(layer) {
   # `ggplot2::annotate(...)` heads as c("::", "ggplot2", "annotate"), so the
   # test is on membership rather than on the whole vector being one name.
   isTRUE("annotate" %in% head)
+}
+
+
+#' Whether a layer's author declared it a schedule
+#'
+#' \code{maidr_gantt()} is maidr's word for "these rectangles are intervals in
+#' lanes", the way \code{annotate()} is ggplot2's word for "this is
+#' decoration". A rectangle layer carries no evidence of which it is -- the
+#' eight-chart table above the \code{GeomRect} branch in
+#' \code{detect_layer_type()} is the measurement that closed every structural
+#' rule -- so the function the author called is the answer rather than
+#' evidence towards it.
+#'
+#' Two carriers are read, field first, because they fail in opposite
+#' directions. Measured on ggplot2 3.4.4:
+#'
+#' \preformatted{
+#' maidr_gantt(m)                  head=maidr_gantt         field=gantt
+#' maidr::maidr_gantt(m)           head=::/maidr/maidr_gantt field=gantt
+#' one-deep user wrapper           head=maidr_gantt         field=gantt
+#' two-deep user wrapper           head=maidr_gantt         field=gantt
+#' do.call(maidr_gantt, list(m))   head=<coerce error>      field=gantt
+#' geom_rect(m)                    head=geom_rect           field=NULL
+#' annotate("rect", ...)           head=annotate            field=NULL
+#' }
+#'
+#' \code{do.call()} leaves the closure itself at \code{constructor[[1]]},
+#' where \code{as.character()} raises "cannot coerce type 'closure' to vector
+#' of type 'character'" -- the identical hole \code{layer_is_annotation()}
+#' has for \code{do.call(annotate, ...)} -- and the field answers there. The
+#' constructor answers for a ggplot2 that re-instantiated the layer through
+#' \code{ggproto()} and dropped a field it did not know. Both are wrapped, so
+#' a layer that answers neither is refused rather than raising.
+#'
+#' Membership rather than equality on the head, for the reason
+#' \code{layer_is_annotation()} gives: \code{maidr::maidr_gantt(...)} heads
+#' as \code{c("::", "maidr", "maidr_gantt")}.
+#'
+#' @param layer A ggplot2 layer object
+#' @return TRUE when \code{maidr_gantt()} built the layer
+#' @keywords internal
+layer_is_declared_gantt <- function(layer) {
+  if (is.null(layer)) {
+    return(FALSE)
+  }
+
+  declared <- tryCatch(layer$maidr_type, error = function(e) NULL)
+  if (identical(declared, "gantt")) {
+    return(TRUE)
+  }
+
+  constructor <- tryCatch(layer$constructor, error = function(e) NULL)
+  if (is.null(constructor) || !is.call(constructor)) {
+    return(FALSE)
+  }
+  head <- tryCatch(as.character(constructor[[1]]), error = function(e) character(0))
+  isTRUE("maidr_gantt" %in% head)
+}
+
+
+#' Which axis a declared schedule runs its lanes up
+#'
+#' \code{maidr_gantt(lane_axis = )} is an argument rather than an inference,
+#' and this reads it back. \code{"y"} when the author said nothing, which is
+#' the ordinary horizontal schedule: lanes stacked up y, spans running along
+#' x. Also \code{"y"} when only the constructor survived -- the lane axis
+#' cannot be recovered from a call whose argument may be a variable -- which
+#' matches the default the author most likely took.
+#'
+#' @param layer A ggplot2 layer object
+#' @return \code{"y"} or \code{"x"}
+#' @keywords internal
+layer_declared_lane_axis <- function(layer) {
+  axis <- tryCatch(layer$maidr_lane_axis, error = function(e) NULL)
+  if (is.character(axis) && length(axis) == 1L && axis %in% c("x", "y")) {
+    axis
+  } else {
+    "y"
+  }
 }

@@ -70,6 +70,16 @@
   orientations work, a lane with several spans keeps them all, and unused
   levels survive `drop = FALSE`. Segments that share no coordinate, and
   angled spokes, keep the static-image fallback.
+* New `maidr_gantt()`: a `geom_rect()` layer whose author declares it a
+  schedule is emitted as a `gantt`, lanes named, each bar highlightable.
+  Nothing else about the chart changes -- the built data and both panel
+  ranges are identical to the bare `geom_rect()` layer's -- and an undeclared
+  rectangle layer keeps exactly the reading it has today. A lane is named by
+  the single explicit tick drawn inside it and by its position otherwise;
+  `lane_axis = "x"` reads the mirror image. Five structural rules for telling
+  a rect-drawn gantt from a heatmap, a waterfall or a highlight were measured
+  against eight charts and every one of them claimed a chart the issue
+  forbids, which is why the author is asked instead.
 * Added `geom_hex()` support: each hexagon is a navigable bin announcing its
   centre and count. 'hexbin' is now in Suggests.
 * `geom_raster()` is read as the same `heat` layer as `geom_tile()`; a

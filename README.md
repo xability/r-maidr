@@ -142,7 +142,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `stacked_normalized_bar` | `geom_bar(position = "fill")` |
 | `contour` | `geom_contour()`, `geom_density_2d()` |
 | `error_bar` | `geom_errorbar()`, `geom_errorbarh()`, `geom_linerange()`, `geom_pointrange()`, `geom_crossbar()`, `geom_ribbon()` as a band |
-| `gantt` | `geom_segment()`, `geom_curve()` |
+| `gantt` | `geom_segment()`, `geom_curve()`, `maidr_gantt()` |
 | `hexbin` | `geom_hex()`, `stat_bin_2d()` |
 | `polygon` | `geom_polygon()` |
 | `rug` | `geom_rug()` |
