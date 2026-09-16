@@ -171,6 +171,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `cumulative_periodogram` | [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `dot` | [`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) (ungrouped) |
 | `filled_contour` | [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| `fourfold` | [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) (2x2 tables, `std = "ind.max"` / `"all.max"`) |
 | `interaction` | [`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `lag` | [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | `lollipop` | `plot(type = "h")` |

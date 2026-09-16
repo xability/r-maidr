@@ -199,6 +199,20 @@
   [`dimnames()`](https://rdrr.io/r/base/dimnames.html) and `z` labelled
   “Pearson residual”. Tile widths are not announced.
 - Added Base R
+  [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  support, conditional on the caller’s own `std`: under
+  `std = "ind.max"` or `"all.max"` the four quadrants are the four
+  counts – measured, `radius^2 * max(count)` recovers each cell exactly
+  – so a 2x2 table is read as a `heat` grid of one count per cell, one
+  selector per quadrant, with the levels and axis names taken from the
+  labels
+  [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  itself draws (including its `Row`/`Col` and `A`/`B` defaults). Partial
+  spellings such as `std = "ind"` are read. Under the default
+  `std = "margins"` the four radii carry one number, the odds ratio, so
+  that call still falls back to a static image and now says why; a 2x2xk
+  array falls back too. The confidence arcs are not announced.
+- Added Base R
   [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   support, read as one `point` layer per group with the group name
   carried as the point label; `group.names`, `at`, `vertical = TRUE` and

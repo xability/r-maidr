@@ -164,6 +164,40 @@ size of each departure are read out per cell.
 assocplot(HairEyeColor[, , "Male"], main = "Hair and eye colour: residuals")
 ```
 
+## Fourfold Plot
+
+[`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+draws one quarter-circle per cell of a 2x2 table. maidr reads it as a
+**heat**: the same named grid of one count per cell, navigated row then
+column, with the count on z and one selector per quadrant.
+
+> **Note:** The reading depends on `std`, because the drawing does.
+> Under `std = "ind.max"` or `"all.max"` each wedge’s area is
+> proportional to its cell’s count, so the grid states what the chart
+> draws. Under the default `std = "margins"` the table is standardised
+> until both margins are equal and the four radii collapse to two — one
+> number, the odds ratio, drawn four times — so a bare
+> [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+> still renders as a static image and warns why. A 2x2xk array does too:
+> its k panels share one plot region, and maidr cannot tell one panel’s
+> quadrants from another’s.
+
+``` r
+
+fourfoldplot(
+  matrix(
+    c(10, 40, 90, 160),
+    nrow = 2,
+    dimnames = list(
+      Treatment = c("Drug", "Placebo"),
+      Outcome = c("Cured", "Not")
+    )
+  ),
+  std = "ind.max",
+  main = "Treatment and outcome"
+)
+```
+
 ## Filled Contour
 
 [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)

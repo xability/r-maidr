@@ -75,5 +75,5 @@ family so each page stays small enough to crawl and load quickly.
 
   Accessible readings of experimental Base R charts with maidr:
   biplot(), stars() radar charts, mosaicplot(), cdplot(),
-  filled.contour() and more, each mapped onto a navigable, sonified
-  layer type.
+  fourfoldplot(), filled.contour() and more, each mapped onto a
+  navigable, sonified layer type.
