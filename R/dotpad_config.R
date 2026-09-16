@@ -224,20 +224,44 @@ maidr_dotpad_read_manifest <- function(path = NULL) {
     }
     value
   }
+  slashed <- function(name) {
+    value <- text_field(name)
+    if (!endsWith(value, "/")) {
+      # Both are pasted straight onto a file's path. Without the slash the
+      # URLs come out joined, and the only sign is a 404 per file.
+      stop(
+        sprintf("dotpad-sdk.json gives %s no trailing slash", name),
+        call. = FALSE
+      )
+    }
+    value
+  }
   version <- text_field("version")
   repository <- text_field("repository")
   commit <- text_field("commit")
-  base_url <- text_field("baseUrl")
+  base_url <- slashed("baseUrl")
   module <- text_field("module")
-  asset_dir <- text_field("assetDir")
+  asset_dir <- slashed("assetDir")
+  # Keyed by path, not a bare array. An array parses to a list with no
+  # names, which would leave a manifest of no files rather than an error --
+  # and no files is what every "is the copy complete" check reads as
+  # complete, since all() of nothing is TRUE.
   if (!is.list(pins$files) || length(pins$files) == 0L) {
     stop("dotpad-sdk.json names no files", call. = FALSE)
   }
-  entry <- function(path, name, check) {
-    value <- pins$files[[path]][[name]]
+  paths <- names(pins$files)
+  if (is.null(paths) || !all(nzchar(paths)) || anyDuplicated(paths) != 0L) {
+    stop(
+      "dotpad-sdk.json does not name its files: 'files' is not an object keyed by path",
+      call. = FALSE
+    )
+  }
+  entry <- function(file_path, name, check) {
+    file <- pins$files[[file_path]]
+    value <- if (is.list(file)) file[[name]] else NULL
     if (is.null(value) || !check(value)) {
       stop(
-        sprintf("dotpad-sdk.json gives %s no usable %s", path, name),
+        sprintf("dotpad-sdk.json gives %s no usable %s", file_path, name),
         call. = FALSE
       )
     }
@@ -252,7 +276,6 @@ maidr_dotpad_read_manifest <- function(path = NULL) {
         grepl(sprintf("^[0-9a-f]{%d}$", width), value)
     }
   }
-  paths <- names(pins$files)
   files <- data.frame(
     path = paths,
     bytes = vapply(paths, entry, numeric(1),
@@ -479,6 +502,11 @@ maidr_download_dotpad_sdk <- function(dir = maidr_dotpad_sdk_dir(), force = FALS
 #' @keywords internal
 maidr_dotpad_sdk_available <- function(dir = maidr_dotpad_sdk_dir()) {
   files <- maidr_dotpad_sdk_manifest()$files
+  # With nothing to check against, no directory is a complete copy. all()
+  # of nothing is TRUE, which would make every directory one.
+  if (nrow(files) == 0L) {
+    return(FALSE)
+  }
   paths <- file.path(dir, files$path)
   sizes <- file.info(paths)$size
   all(!is.na(sizes) & sizes == files$bytes)

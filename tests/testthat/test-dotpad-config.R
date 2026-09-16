@@ -777,3 +777,57 @@ test_that("the manifest is read once and kept", {
   testthat::expect_false(is.null(maidr:::.maidr_dotpad_cache$manifest))
   testthat::expect_identical(maidr:::maidr_dotpad_sdk_manifest(), first)
 })
+
+test_that("a files array, rather than an object, is refused", {
+  # The drift that reads as success rather than failure: a JSON array parses
+  # to a list with no names, which would leave a manifest of no files -- and
+  # every "is the copy complete" check reads no files as complete, since
+  # all() of nothing is TRUE.
+  path <- manifest_file(function(pins) {
+    pins$files <- unname(pins$files)
+    pins
+  })
+  testthat::expect_error(
+    maidr:::maidr_dotpad_read_manifest(path),
+    "not an object keyed by path"
+  )
+})
+
+test_that("a file entry that is not an object names the file", {
+  path <- manifest_file(function(pins) {
+    pins$files[["lib/liblouis.wasm"]] <- "oops"
+    pins
+  })
+  testthat::expect_error(
+    maidr:::maidr_dotpad_read_manifest(path),
+    "lib/liblouis.wasm",
+    fixed = TRUE
+  )
+})
+
+test_that("a base URL or asset directory without a trailing slash is refused", {
+  # Both are pasted straight onto a file's path, so a missing slash joins
+  # the URL and the only sign is a 404 per file.
+  for (field in c("baseUrl", "assetDir")) {
+    path <- manifest_file(function(pins) {
+      pins[[field]] <- sub("/$", "", pins[[field]])
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      "trailing slash"
+    )
+  }
+})
+
+test_that("with no files, no directory holds a complete copy", {
+  # Belt and braces for the same all()-of-nothing trap, in the check that
+  # decides whether a document carries its own SDK.
+  cache <- maidr:::.maidr_dotpad_cache
+  empty <- maidr:::maidr_dotpad_sdk_manifest()
+  empty$files <- empty$files[0L, ]
+  previous <- cache$manifest
+  cache$manifest <- empty
+  on.exit(assign("manifest", previous, envir = cache), add = TRUE)
+  testthat::expect_false(maidr:::maidr_dotpad_sdk_available(tempfile()))
+})

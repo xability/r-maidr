@@ -149,7 +149,8 @@ if grep -qx 'package/dist/dotpad-sdk.json' <<<"$TARBALL_FILES"; then
   if ! jq -e '
       def text: type == "string" and length > 0;
       (.version | text) and (.repository | text) and (.commit | text)
-      and (.baseUrl | text) and (.module | text) and (.assetDir | text)
+      and (.baseUrl | text and endswith("/")) and (.module | text)
+      and (.assetDir | text and endswith("/"))
       and (.files | type == "object") and ((.files | length) > 0)
       and (.files | all(.bytes | type == "number" and . > 0))
       and (.files | all(.sha256 | test("^[0-9a-f]{64}$")))
