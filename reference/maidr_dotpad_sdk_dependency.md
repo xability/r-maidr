@@ -2,8 +2,8 @@
 
 For the documents [`show()`](https://r.maidr.ai/reference/show.md) and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) write.
-htmltools copies the directory into `<libdir>/dotpad-sdk-3.0.2/` when
-the document is saved, and the dependency's `head` declares the two
+htmltools copies the directory into `<libdir>/dotpad-sdk-<version>/`
+when the document is saved, and the dependency's `head` declares the two
 globals with that relative path, so the saved page finds its copy
 wherever the folder is moved to, as long as the two move together.
 `libdir` is what

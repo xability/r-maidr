@@ -259,7 +259,7 @@ folder:
 ``` r
 
 maidr_download_dotpad_sdk()          # ~14 MB, once, into a per-user cache
-save_html(p, "plot.html", use_cdn = FALSE)   # lib/dotpad-sdk-3.0.2/ beside it
+save_html(p, "plot.html", use_cdn = FALSE)   # lib/dotpad-sdk-<version>/ beside it
 ```
 
 A page served from elsewhere, or a knitr document (whose charts live in
@@ -269,7 +269,7 @@ through options or the environment variables of the same names:
 ``` r
 
 options(
-  maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+  maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.3.js",
   maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"
 )
 # or: Sys.setenv(MAIDR_DOTPAD_SDK_URL = "...", MAIDR_DOTPAD_ASSET_BASE_URL = "...")

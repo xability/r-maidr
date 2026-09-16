@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-15">
+<meta name="DC.date" content="2026-09-16">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -108,7 +108,7 @@ package is loaded. Default: TRUE.</p></dd>
 
 <dt><code>maidr.dotpad_sdk_url</code></dt>
 <dd><p>Character. URL of a copy of the DotPad
-tactile-display SDK module (<code>DotPadSDK-3.0.2.js</code>) that you serve
+tactile-display SDK module (<code>DotPadSDK-3.0.3.js</code>) that you serve
 yourself. maidr.js does not bundle the SDK, whose braille engine is a
 14 MB liblouis build; unless told otherwise it imports the vendor's
 copy from jsDelivr the first time a DotPad is connected, from a
@@ -149,7 +149,7 @@ directory. Default: unset.</p></dd>
 <span></span>
 <span><span class="co"># Serve the DotPad SDK from your own server instead of jsDelivr</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
-<span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://example.org/vendor/DotPadSDK-3.0.2.js"</span>,</span>
+<span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://example.org/vendor/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://example.org/vendor/lib/"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 
@@ -168,7 +168,7 @@ connect, even from a <code>use_cdn = FALSE</code> document; the rest of the
 document works offline either way.</p>
 <p>The other way to keep a DotPad off the network is to download the SDK
 once with <code><a href="maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk()</a></code>: <code><a href="show.html">show()</a></code> and
-<code><a href="save_html.html">save_html()</a></code> then copy it into <code>lib/dotpad-sdk-3.0.2/</code> beside
+<code><a href="save_html.html">save_html()</a></code> then copy it into <code>lib/dotpad-sdk-&lt;version&gt;/</code> beside
 every <code>use_cdn = FALSE</code> document and declare the globals with that
 relative path. A configured URL wins over a downloaded copy. The widget,
 knitr and Shiny paths render their charts in <code>srcdoc</code> frames, where a

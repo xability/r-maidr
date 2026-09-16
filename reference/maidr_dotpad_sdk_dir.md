@@ -3,8 +3,8 @@
 The option `maidr.dotpad_sdk_dir`, then the environment variable
 `MAIDR_DOTPAD_SDK_DIR`, then a per-user cache directory from
 [`tools::R_user_dir()`](https://rdrr.io/r/tools/userdir.html)
-(`~/.cache/R/maidr/dotpad-sdk/3.0.2` on Linux). Nothing is created by
-asking.
+(`~/.cache/R/maidr/dotpad-sdk/<version>` on Linux, where the version is
+the manifest's, `3.0.3` today). Nothing is created by asking.
 
 ## Usage
 

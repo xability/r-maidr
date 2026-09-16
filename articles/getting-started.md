@@ -153,7 +153,7 @@ the same names both work; an option wins when both are set:
 ``` r
 
 options(
-  maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+  maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.3.js",
   # Only if the braille engine (liblouis) is not in lib/ beside the module
   maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"
 )

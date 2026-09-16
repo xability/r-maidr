@@ -28,7 +28,7 @@ system.
 - `maidr.dotpad_sdk_url`:
 
   Character. URL of a copy of the DotPad tactile-display SDK module
-  (`DotPadSDK-3.0.2.js`) that you serve yourself. maidr.js does not
+  (`DotPadSDK-3.0.3.js`) that you serve yourself. maidr.js does not
   bundle the SDK, whose braille engine is a 14 MB liblouis build; unless
   told otherwise it imports the vendor's copy from jsDelivr the first
   time a DotPad is connected, from a document rendered with
@@ -70,7 +70,7 @@ Options can be set in your `.Rprofile` to persist across sessions:
 
     # Serve the DotPad SDK from your own server instead of jsDelivr
     options(
-      maidr.dotpad_sdk_url = "https://example.org/vendor/DotPadSDK-3.0.2.js",
+      maidr.dotpad_sdk_url = "https://example.org/vendor/DotPadSDK-3.0.3.js",
       maidr.dotpad_asset_base_url = "https://example.org/vendor/lib/"
     )
 
@@ -92,8 +92,8 @@ once with
 [`maidr_download_dotpad_sdk()`](https://r.maidr.ai/reference/maidr_download_dotpad_sdk.md):
 [`show()`](https://r.maidr.ai/reference/show.md) and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) then copy it
-into `lib/dotpad-sdk-3.0.2/` beside every `use_cdn = FALSE` document and
-declare the globals with that relative path. A configured URL wins over
-a downloaded copy. The widget, knitr and Shiny paths render their charts
-in `srcdoc` frames, where a relative path has nothing to resolve
+into `lib/dotpad-sdk-<version>/` beside every `use_cdn = FALSE` document
+and declare the globals with that relative path. A configured URL wins
+over a downloaded copy. The widget, knitr and Shiny paths render their
+charts in `srcdoc` frames, where a relative path has nothing to resolve
 against, so they use only the URL options.

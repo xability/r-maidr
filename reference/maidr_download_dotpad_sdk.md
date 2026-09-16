@@ -48,7 +48,7 @@ digests (MD5, and SHA-256 on R 4.5 or later), and writes a
 `manifest.json` beside them naming the commit they came from. From then
 on [`show()`](https://r.maidr.ai/reference/show.md) and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) copy it into
-`lib/dotpad-sdk-3.0.2/` next to every `use_cdn = FALSE` document and
+`lib/dotpad-sdk-<version>/` next to every `use_cdn = FALSE` document and
 tell maidr.js where it is, so a reader connects a DotPad without the
 network. A file already present and correct is left alone, so a second
 call costs nothing.
