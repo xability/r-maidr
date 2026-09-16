@@ -12,32 +12,41 @@ A list: \code{version}, \code{repository}, \code{commit}, \code{base_url}, \code
 \code{bytes}, \code{md5}, \code{sha256}).
 }
 \description{
-maidr.js loads the SDK from the vendor's repository at one commit, and this
-is that commit, with the size and digests of every file a copy consists
-of. It mirrors \code{src/service/dotPadSdk.json} in the maidr repository, which
-is where maidr.js reads its own copy of the pin; keep the two in step when
-either moves.
+maidr.js loads the SDK from one commit of a repository on jsDelivr, and
+this is that pin, with the size and digests of every file a copy consists
+of. It is read from \code{inst/dotpad-sdk.json}, a copy of the
+\code{dist/dotpad-sdk.json} the maidr npm package ships as the single source of
+truth for its own pin. \code{.github/scripts/fetch-maidr-bundle.sh} refreshes
+the file with the bundle, so the two cannot drift once the bundled
+maidr.js is one that ships it. The maidr.js this package bundles (see
+\code{MAIDR_VERSION}) predates the file and still falls back to earlier commits
+of the vendor's repository when nothing on the page names a copy. That
+fallback is exactly what a downloaded copy or a configured URL replaces,
+so what a document loads is this pin either way; the bundle catches up at
+its next refresh (\code{tools/update-maidr-assets.R}).
 }
 \details{
-The two are not in step at the moment, deliberately. The maidr.js this
-package bundles (see \code{MAIDR_VERSION}) predates the pin and still falls back
-to the earlier commits -- the vendor's for the module and a fork's for the
-braille engine -- when nothing on the page names a copy. That fallback is
-exactly what a downloaded copy or a configured URL replaces, so what a
-document loads is this commit either way; the bundle catches up at its
-next refresh (\code{tools/update-maidr-assets.R}).
+The files are served from \code{xability/dotpad-sdk-guide}, a mirror of the
+vendor's \code{dotincorp/dotpad-sdk-guide}. The vendor publishes SDK 3.0.3
+only as a zip archive, which jsDelivr cannot serve a file out of, so the
+mirror carries the extracted files, byte-verified against the archive;
+the manifest's \code{upstream} entry records the vendor commit, the archive
+path and its SHA-256.
 
-The commit matters beyond immutability. Earlier ones carry a corrupt
-\code{liblouis.data}: the repository's \code{.gitattributes} said \verb{* text=auto} and
-the file is braille-table text with no NUL byte in it, so git rewrote its
-line endings on commit. It is an Emscripten package addressed by absolute
-byte offsets, so every table after the first dropped byte was read from
-the wrong place and the braille line silently fell back to grade 1. This
-commit marks \verb{*.data binary} and restores the bytes.
+The pin matters beyond immutability. Earlier commits of the vendor's
+repository carry a corrupt \code{liblouis.data}: its \code{.gitattributes} said
+\verb{* text=auto} and the file is braille-table text with no NUL byte in it,
+so git rewrote its line endings on commit. It is an Emscripten package
+addressed by absolute byte offsets, so every table after the first dropped
+byte was read from the wrong place and the braille line silently fell back
+to grade 1. The pinned files carry the intact bytes.
 
 The liblouis build is LGPL-2.1-or-later. Its licence text and the sources
 of the WebAssembly wrapper are listed because the vendor's README asks
 anyone who redistributes the SDK to keep them beside the runtime files,
 which is the LGPL's relinking requirement.
+
+Read once per session: every render path asks for the manifest several
+times over, and the answer cannot change while the package is loaded.
 }
 \keyword{internal}

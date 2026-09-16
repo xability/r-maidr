@@ -110,7 +110,8 @@ jobs:
           # install the bundle via the shared script (also used by
           # tools/update-maidr-assets.R for local refreshes). The script
           # updates R/html_dependencies.R and inst/htmlwidgets/maidr.yaml
-          # to match the installed version.
+          # to match the installed version, and inst/dotpad-sdk.json when
+          # the package ships the DotPad SDK pin.
           VERSION=$(.github/scripts/fetch-maidr-bundle.sh "$MAIDR_VERSION")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -124,7 +125,7 @@ jobs:
           commit_user_name: "xabilitylab"
           commit_user_email: "187909674+xabilitylab@users.noreply.github.com"
           commit_author: "xabilitylab <187909674+xabilitylab@users.noreply.github.com>"
-          file_pattern: "R/html_dependencies.R inst/htmlwidgets/"
+          file_pattern: "R/html_dependencies.R inst/htmlwidgets/ inst/dotpad-sdk.json"
 
       - name: Run the checks on the refreshed bundle
         # See the header: a push made with GITHUB_TOKEN starts no workflows,

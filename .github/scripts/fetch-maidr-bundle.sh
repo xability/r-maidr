@@ -17,7 +17,10 @@
 # ``inst/htmlwidgets/lib/maidr-<VERSION>/``, removes any stale
 # ``maidr-*`` lib directories, and rewrites the version references in
 # ``R/html_dependencies.R`` and ``inst/htmlwidgets/maidr.yaml`` so the
-# package always points at the freshly installed bundle.
+# package always points at the freshly installed bundle. When the package
+# ships ``dist/dotpad-sdk.json`` -- the DotPad SDK pin maidr.js reads its
+# own copy from -- that is installed as ``inst/dotpad-sdk.json`` too, which
+# is where ``R/dotpad_config.R`` reads every pin of its own.
 #
 # Usage (from the package root):
 #   .github/scripts/fetch-maidr-bundle.sh [VERSION]
@@ -36,6 +39,7 @@ REGISTRY="https://registry.npmjs.org/maidr"
 LIB_ROOT="inst/htmlwidgets/lib"
 R_VERSION_FILE="R/html_dependencies.R"
 YAML_FILE="inst/htmlwidgets/maidr.yaml"
+DOTPAD_MANIFEST="inst/dotpad-sdk.json"
 
 # Fail fast with a clear message when not run from the package root, rather
 # than half-updating whatever directory we happen to be in.
@@ -131,6 +135,38 @@ fi
 
 tar -xzf "$TGZ" -C "$WORK" package/dist/maidr.js package/dist/maidr-math.css
 
+# The DotPad SDK pin. Older packages do not ship it, and the R side keeps
+# the copy it has until one that does comes along; a package that ships a
+# manifest without the fields the R side reads is refused rather than
+# installed, since a bad pin would fail every ``maidr_download_dotpad_sdk()``.
+HAS_DOTPAD_MANIFEST=0
+if grep -qx 'package/dist/dotpad-sdk.json' <<<"$TARBALL_FILES"; then
+  HAS_DOTPAD_MANIFEST=1
+  tar -xzf "$TGZ" -C "$WORK" package/dist/dotpad-sdk.json
+  # Down to the shape of each file entry: a top-level check passes a
+  # manifest whose entries changed shape upstream, and R would then fail
+  # much later, inside vapply, saying far less about why.
+  if ! jq -e '
+      def text: type == "string" and length > 0;
+      (.version | text) and (.repository | text) and (.commit | text)
+      and (.baseUrl | text and endswith("/")) and (.module | text)
+      and (.assetDir | text and endswith("/"))
+      and (.files | type == "object") and ((.files | length) > 0)
+      and (.files | all(.bytes | type == "number" and . > 0))
+      and (.files | all(.sha256 | test("^[0-9a-f]{64}$")))
+      and (.files | all(.md5 | test("^[0-9a-f]{32}$")))
+      and (.module as $m | .files | has($m))
+      and (.files | keys | all(
+            (test("\\\\") | not)
+            and (test("^([/~]|[A-Za-z]:)") | not)
+            and (split("/") | all(. != "" and . != "." and . != ".."))
+          ))
+      ' "$WORK/package/dist/dotpad-sdk.json" >/dev/null; then
+    echo "maidr@$VERSION ships a dist/dotpad-sdk.json this package cannot read" >&2
+    exit 1
+  fi
+fi
+
 # Defense-in-depth sanity checks on the extracted payloads before touching
 # the package tree: non-empty, and not an HTML error page masquerading as
 # JS / CSS. The check is a positive match: fail when the payload *starts*
@@ -183,6 +219,13 @@ cp "$WORK/maidr-math.css" "$DEST_DIR/maidr-math.css"
 # drop the stylesheet this package stopped installing rather than letting a
 # stale copy sit in the lib directory.
 rm -f "$DEST_DIR/maidr.css"
+if [ "$HAS_DOTPAD_MANIFEST" = 1 ]; then
+  cp "$WORK/package/dist/dotpad-sdk.json" "$DOTPAD_MANIFEST"
+  DOTPAD_VERSION=$(jq -r '.version' "$DOTPAD_MANIFEST")
+  echo "Installed DotPad SDK ${DOTPAD_VERSION} pin from maidr@$VERSION into ${DOTPAD_MANIFEST}" >&2
+else
+  echo "maidr@$VERSION does not ship dist/dotpad-sdk.json; keeping ${DOTPAD_MANIFEST} as is" >&2
+fi
 for dir in "$LIB_ROOT"/maidr-*/; do
   [ -d "$dir" ] || continue
   if [ "${dir%/}" != "$DEST_DIR" ]; then

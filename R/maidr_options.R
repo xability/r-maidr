@@ -15,7 +15,7 @@
 #'   \item{\code{maidr.startup_message}}{Logical. Show startup message when
 #'     package is loaded. Default: TRUE.}
 #'   \item{\code{maidr.dotpad_sdk_url}}{Character. URL of a copy of the DotPad
-#'     tactile-display SDK module (\code{DotPadSDK-3.0.2.js}) that you serve
+#'     tactile-display SDK module (\code{DotPadSDK-3.0.3.js}) that you serve
 #'     yourself. maidr.js does not bundle the SDK, whose braille engine is a
 #'     14 MB liblouis build; unless told otherwise it imports the vendor's
 #'     copy from jsDelivr the first time a DotPad is connected, from a
@@ -49,7 +49,7 @@
 #'
 #' # Serve the DotPad SDK from your own server instead of jsDelivr
 #' options(
-#'   maidr.dotpad_sdk_url = "https://example.org/vendor/DotPadSDK-3.0.2.js",
+#'   maidr.dotpad_sdk_url = "https://example.org/vendor/DotPadSDK-3.0.3.js",
 #'   maidr.dotpad_asset_base_url = "https://example.org/vendor/lib/"
 #' )
 #' }
@@ -66,7 +66,7 @@
 #'
 #' The other way to keep a DotPad off the network is to download the SDK
 #' once with \code{\link{maidr_download_dotpad_sdk}()}: \code{show()} and
-#' \code{save_html()} then copy it into \code{lib/dotpad-sdk-3.0.2/} beside
+#' \code{save_html()} then copy it into \code{lib/dotpad-sdk-<version>/} beside
 #' every \code{use_cdn = FALSE} document and declare the globals with that
 #' relative path. A configured URL wins over a downloaded copy. The widget,
 #' knitr and Shiny paths render their charts in \code{srcdoc} frames, where a

@@ -12,7 +12,8 @@ A single path
 \description{
 The option \code{maidr.dotpad_sdk_dir}, then the environment variable
 \code{MAIDR_DOTPAD_SDK_DIR}, then a per-user cache directory from
-\code{\link[tools:R_user_dir]{tools::R_user_dir()}} (\verb{~/.cache/R/maidr/dotpad-sdk/3.0.2} on Linux).
+\code{\link[tools:R_user_dir]{tools::R_user_dir()}} (\verb{~/.cache/R/maidr/dotpad-sdk/<version>} on Linux,
+where the version is the manifest's, \verb{3.0.3} today).
 Nothing is created by asking.
 }
 \keyword{internal}

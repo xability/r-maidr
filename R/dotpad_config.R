@@ -1,3 +1,7 @@
+# The shipped DotPad SDK manifest, parsed once. Every render path asks for
+# it several times over and it cannot change while the package is loaded.
+.maidr_dotpad_cache <- new.env(parent = emptyenv())
+
 #' Where maidr.js loads the DotPad SDK from
 #'
 #' maidr.js does not bundle the DotPad tactile-display SDK: its braille engine
@@ -143,85 +147,199 @@ maidr_dotpad_config_dependency <- function(config = maidr_dotpad_config()) {
 
 #' The DotPad SDK maidr.js is pinned to
 #'
-#' maidr.js loads the SDK from the vendor's repository at one commit, and this
-#' is that commit, with the size and digests of every file a copy consists
-#' of. It mirrors `src/service/dotPadSdk.json` in the maidr repository, which
-#' is where maidr.js reads its own copy of the pin; keep the two in step when
-#' either moves.
+#' maidr.js loads the SDK from one commit of a repository on jsDelivr, and
+#' this is that pin, with the size and digests of every file a copy consists
+#' of. It is read from `inst/dotpad-sdk.json`, a copy of the
+#' `dist/dotpad-sdk.json` the maidr npm package ships as the single source of
+#' truth for its own pin. `.github/scripts/fetch-maidr-bundle.sh` refreshes
+#' the file with the bundle, so the two cannot drift once the bundled
+#' maidr.js is one that ships it. The maidr.js this package bundles (see
+#' `MAIDR_VERSION`) predates the file and still falls back to earlier commits
+#' of the vendor's repository when nothing on the page names a copy. That
+#' fallback is exactly what a downloaded copy or a configured URL replaces,
+#' so what a document loads is this pin either way; the bundle catches up at
+#' its next refresh (`tools/update-maidr-assets.R`).
 #'
-#' The two are not in step at the moment, deliberately. The maidr.js this
-#' package bundles (see `MAIDR_VERSION`) predates the pin and still falls back
-#' to the earlier commits -- the vendor's for the module and a fork's for the
-#' braille engine -- when nothing on the page names a copy. That fallback is
-#' exactly what a downloaded copy or a configured URL replaces, so what a
-#' document loads is this commit either way; the bundle catches up at its
-#' next refresh (`tools/update-maidr-assets.R`).
+#' The files are served from `xability/dotpad-sdk-guide`, a mirror of the
+#' vendor's `dotincorp/dotpad-sdk-guide`. The vendor publishes SDK 3.0.3
+#' only as a zip archive, which jsDelivr cannot serve a file out of, so the
+#' mirror carries the extracted files, byte-verified against the archive;
+#' the manifest's `upstream` entry records the vendor commit, the archive
+#' path and its SHA-256.
 #'
-#' The commit matters beyond immutability. Earlier ones carry a corrupt
-#' `liblouis.data`: the repository's `.gitattributes` said `* text=auto` and
-#' the file is braille-table text with no NUL byte in it, so git rewrote its
-#' line endings on commit. It is an Emscripten package addressed by absolute
-#' byte offsets, so every table after the first dropped byte was read from
-#' the wrong place and the braille line silently fell back to grade 1. This
-#' commit marks `*.data binary` and restores the bytes.
+#' The pin matters beyond immutability. Earlier commits of the vendor's
+#' repository carry a corrupt `liblouis.data`: its `.gitattributes` said
+#' `* text=auto` and the file is braille-table text with no NUL byte in it,
+#' so git rewrote its line endings on commit. It is an Emscripten package
+#' addressed by absolute byte offsets, so every table after the first dropped
+#' byte was read from the wrong place and the braille line silently fell back
+#' to grade 1. The pinned files carry the intact bytes.
 #'
 #' The liblouis build is LGPL-2.1-or-later. Its licence text and the sources
 #' of the WebAssembly wrapper are listed because the vendor's README asks
 #' anyone who redistributes the SDK to keep them beside the runtime files,
 #' which is the LGPL's relinking requirement.
 #'
+#' Read once per session: every render path asks for the manifest several
+#' times over, and the answer cannot change while the package is loaded.
+#'
 #' @return A list: `version`, `repository`, `commit`, `base_url`, `module`,
 #'   `asset_dir`, and `files`, a data frame with one row per file (`path`,
 #'   `bytes`, `md5`, `sha256`).
 #' @keywords internal
 maidr_dotpad_sdk_manifest <- function() {
-  commit <- "781f2308b3b80908e7ea335454c12d013101c91b"
-  version <- "3.0.2"
+  cached <- .maidr_dotpad_cache$manifest
+  if (!is.null(cached)) {
+    return(cached)
+  }
+  manifest <- maidr_dotpad_read_manifest()
+  .maidr_dotpad_cache$manifest <- manifest
+  manifest
+}
+
+#' Is a manifest's file path one that stays put?
+#'
+#' Each path is joined onto the download directory to decide where a fetched
+#' file is written, so a manifest could otherwise name `../../..` and write
+#' wherever it liked. Nothing user-authored reaches this today -- the
+#' manifest is committed and only a maintainer regenerates it -- but the
+#' download is the one place this package writes files it did not name, and
+#' a check costs nothing.
+#'
+#' @param path One key of the manifest's `files`.
+#' @return `TRUE` when the path is relative and stays inside its directory.
+#' @keywords internal
+maidr_dotpad_path_is_safe <- function(path) {
+  if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
+    return(FALSE)
+  }
+  # A backslash is a separator on Windows, and a drive letter or a leading
+  # separator leaves the directory outright.
+  if (grepl("\\\\", path) || grepl("^([/~]|[A-Za-z]:)", path)) {
+    return(FALSE)
+  }
+  segments <- strsplit(path, "/", fixed = TRUE)[[1L]]
+  length(segments) > 0L && !any(segments %in% c("", ".", ".."))
+}
+
+#' Parse the shipped DotPad SDK manifest
+#'
+#' Split from [maidr_dotpad_sdk_manifest()] so the read happens once and the
+#' parsing is testable on its own. Every field is checked, because the file
+#' is not authored here: `fetch-maidr-bundle.sh` copies whatever
+#' `dist/dotpad-sdk.json` the pinned `maidr.js` release ships. A field that
+#' changed shape upstream is named as a bad manifest rather than surfacing
+#' later as a `vapply` type error.
+#'
+#' @param path Where to read from. Defaults to the installed `inst/` copy.
+#' @return The manifest, in the shape [maidr_dotpad_sdk_manifest()] returns.
+#' @keywords internal
+maidr_dotpad_read_manifest <- function(path = NULL) {
+  if (is.null(path)) {
+    path <- system.file("dotpad-sdk.json", package = "maidr", mustWork = TRUE)
+  }
+  pins <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  text_field <- function(name) {
+    value <- pins[[name]]
+    if (!is.character(value) || length(value) != 1L || !nzchar(value)) {
+      stop(
+        sprintf("dotpad-sdk.json names no %s: the manifest is not one", name),
+        call. = FALSE
+      )
+    }
+    value
+  }
+  slashed <- function(name) {
+    value <- text_field(name)
+    if (!endsWith(value, "/")) {
+      # Both are pasted straight onto a file's path. Without the slash the
+      # URLs come out joined, and the only sign is a 404 per file.
+      stop(
+        sprintf("dotpad-sdk.json gives %s no trailing slash", name),
+        call. = FALSE
+      )
+    }
+    value
+  }
+  version <- text_field("version")
+  repository <- text_field("repository")
+  commit <- text_field("commit")
+  base_url <- slashed("baseUrl")
+  module <- text_field("module")
+  asset_dir <- slashed("assetDir")
+  # Keyed by path, not a bare array. An array parses to a list with no
+  # names, which would leave a manifest of no files rather than an error --
+  # and no files is what every "is the copy complete" check reads as
+  # complete, since all() of nothing is TRUE.
+  if (!is.list(pins$files) || length(pins$files) == 0L) {
+    stop("dotpad-sdk.json names no files", call. = FALSE)
+  }
+  paths <- names(pins$files)
+  if (is.null(paths) || !all(nzchar(paths)) || anyDuplicated(paths) != 0L) {
+    stop(
+      "dotpad-sdk.json does not name its files: 'files' is not an object keyed by path",
+      call. = FALSE
+    )
+  }
+  unsafe <- Filter(function(file_path) !maidr_dotpad_path_is_safe(file_path), paths)
+  if (length(unsafe) > 0L) {
+    stop(
+      sprintf(
+        "dotpad-sdk.json names a file outside the directory it is fetched into: %s",
+        unsafe[[1L]]
+      ),
+      call. = FALSE
+    )
+  }
+  entry <- function(file_path, name, check) {
+    file <- pins$files[[file_path]]
+    value <- if (is.list(file)) file[[name]] else NULL
+    if (is.null(value) || !check(value)) {
+      stop(
+        sprintf("dotpad-sdk.json gives %s no usable %s", file_path, name),
+        call. = FALSE
+      )
+    }
+    value
+  }
+  is_size <- function(value) {
+    is.numeric(value) && length(value) == 1L && value > 0
+  }
+  is_digest <- function(width) {
+    function(value) {
+      is.character(value) && length(value) == 1L &&
+        grepl(sprintf("^[0-9a-f]{%d}$", width), value)
+    }
+  }
+  if (!(module %in% paths)) {
+    # The page is pointed at the module by name but only the listed files
+    # are ever fetched, so a module outside the list downloads clean and
+    # leaves the document naming a file that is not there.
+    stop(
+      sprintf("dotpad-sdk.json lists no %s, the module it names", module),
+      call. = FALSE
+    )
+  }
   files <- data.frame(
-    path = c(
-      "DotPadSDK-3.0.2.js",
-      "lib/liblouis.js",
-      "lib/liblouis.wasm",
-      "lib/liblouis.data",
-      "lib/LICENSES/liblouis-LGPL-2.1.txt",
-      "lib/liblouis-web/build_liblouis_web.sh",
-      "lib/liblouis-web/liblouis.post.js",
-      "lib/liblouis-web/liblouis_web.c"
+    path = paths,
+    bytes = vapply(paths, entry, numeric(1),
+      name = "bytes", check = is_size, USE.NAMES = FALSE
     ),
-    bytes = c(46489, 117694, 171970, 13751594, 26530, 4154, 1154, 8441),
-    md5 = c(
-      "8a34fc78e9574fc7a4f45ef901cacf3b",
-      "36f517f0eed752090885e8ea098d83c4",
-      "df5cc769072369122e51f327d894d296",
-      "7a6dc8dd40c2f535ed48ca3ac75ab3cc",
-      "4fbd65380cdd255951079008b364516c",
-      "00abc774f82e17009f58dad73a770688",
-      "9f0f57a24a3cca01bf12e3ca64726470",
-      "36cb792f1b9ca1edb409d69a1faa836a"
+    md5 = vapply(paths, entry, character(1),
+      name = "md5", check = is_digest(32), USE.NAMES = FALSE
     ),
-    sha256 = c(
-      "074c50a1096452df6defa1c7ae99eacdf55ae02e1ff6008b9978c2b1bcc16f62",
-      "c5023cb27680f27df77db51d133718b70d837d855feb74e575a4fac6b1dd4059",
-      "c8d96fbcdd90ee3aa2fe9fa2857092ac832b7b356e23b7e33fb861a486e9b53c",
-      "8475e6eaa539639c36353c10a2c38bcd8692ae0f8b47534ee2dd2d8b6fd00192",
-      "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551",
-      "34ff70dda4502b8733a2614b649da3e563358598fc4edfdd5417e2c29267f902",
-      "fc969620ae5870dbfbdb6ea0fc820ef44fbd70cd0b203f9a705db469b25c7602",
-      "460dc6bf6db662d14d8ce6113233e68858a4e4a1429834231c0525d646102b26"
+    sha256 = vapply(paths, entry, character(1),
+      name = "sha256", check = is_digest(64), USE.NAMES = FALSE
     ),
     stringsAsFactors = FALSE
   )
   list(
     version = version,
-    repository = "https://github.com/dotincorp/dotpad-sdk-guide",
+    repository = repository,
     commit = commit,
-    base_url = sprintf(
-      "https://cdn.jsdelivr.net/gh/dotincorp/dotpad-sdk-guide@%s/Web/%s/",
-      commit,
-      version
-    ),
-    module = "DotPadSDK-3.0.2.js",
-    asset_dir = "lib/",
+    base_url = base_url,
+    module = module,
+    asset_dir = asset_dir,
     files = files
   )
 }
@@ -230,7 +348,8 @@ maidr_dotpad_sdk_manifest <- function() {
 #'
 #' The option `maidr.dotpad_sdk_dir`, then the environment variable
 #' `MAIDR_DOTPAD_SDK_DIR`, then a per-user cache directory from
-#' [tools::R_user_dir()] (`~/.cache/R/maidr/dotpad-sdk/3.0.2` on Linux).
+#' [tools::R_user_dir()] (`~/.cache/R/maidr/dotpad-sdk/<version>` on Linux,
+#' where the version is the manifest's, `3.0.3` today).
 #' Nothing is created by asking.
 #'
 #' @return A single path
@@ -322,7 +441,7 @@ maidr_dotpad_file_mismatch <- function(path, expected) {
 #' keep beside it -- verifying every file against its recorded size and
 #' digests (MD5, and SHA-256 on R 4.5 or later), and writes a `manifest.json`
 #' beside them naming the commit they came from.
-#' From then on [show()] and [save_html()] copy it into `lib/dotpad-sdk-3.0.2/`
+#' From then on [show()] and [save_html()] copy it into `lib/dotpad-sdk-<version>/`
 #' next to every `use_cdn = FALSE` document and tell maidr.js where it is, so
 #' a reader connects a DotPad without the network. A file already present and
 #' correct is left alone, so a second call costs nothing.
@@ -427,6 +546,11 @@ maidr_download_dotpad_sdk <- function(dir = maidr_dotpad_sdk_dir(), force = FALS
 #' @keywords internal
 maidr_dotpad_sdk_available <- function(dir = maidr_dotpad_sdk_dir()) {
   files <- maidr_dotpad_sdk_manifest()$files
+  # With nothing to check against, no directory is a complete copy. all()
+  # of nothing is TRUE, which would make every directory one.
+  if (nrow(files) == 0L) {
+    return(FALSE)
+  }
   paths <- file.path(dir, files$path)
   sizes <- file.info(paths)$size
   all(!is.na(sizes) & sizes == files$bytes)
@@ -435,7 +559,7 @@ maidr_dotpad_sdk_available <- function(dir = maidr_dotpad_sdk_dir()) {
 #' A downloaded SDK as an htmltools dependency
 #'
 #' For the documents `show()` and `save_html()` write. htmltools copies the
-#' directory into `<libdir>/dotpad-sdk-3.0.2/` when the document is saved, and
+#' directory into `<libdir>/dotpad-sdk-<version>/` when the document is saved, and
 #' the dependency's `head` declares the two globals with that relative path,
 #' so the saved page finds its copy wherever the folder is moved to, as long
 #' as the two move together. `libdir` is what [htmltools::save_html()] is

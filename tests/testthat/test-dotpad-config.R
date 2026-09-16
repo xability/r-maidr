@@ -59,11 +59,11 @@ test_that("nothing is configured by default", {
 
 test_that("the options name the SDK and the braille engine", {
   with_dotpad_settings(
-    sdk = "/vendor/DotPadSDK-3.0.2.js",
+    sdk = "/vendor/DotPadSDK-3.0.3.js",
     asset = "/vendor/lib/",
     {
       config <- maidr:::maidr_dotpad_config()
-      testthat::expect_identical(config$sdk_url, "/vendor/DotPadSDK-3.0.2.js")
+      testthat::expect_identical(config$sdk_url, "/vendor/DotPadSDK-3.0.3.js")
       testthat::expect_identical(config$asset_base_url, "/vendor/lib/")
     }
   )
@@ -71,13 +71,13 @@ test_that("the options name the SDK and the braille engine", {
 
 test_that("the environment variables carry the same names as the globals", {
   with_dotpad_settings(
-    env_sdk = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+    env_sdk = "https://intranet.example/dotpad/DotPadSDK-3.0.3.js",
     env_asset = "https://intranet.example/dotpad/lib/",
     {
       config <- maidr:::maidr_dotpad_config()
       testthat::expect_identical(
         config$sdk_url,
-        "https://intranet.example/dotpad/DotPadSDK-3.0.2.js"
+        "https://intranet.example/dotpad/DotPadSDK-3.0.3.js"
       )
       testthat::expect_identical(
         config$asset_base_url,
@@ -130,11 +130,11 @@ test_that("an option that is not a single string is refused", {
 
 test_that("the script sets only the globals that are configured", {
   script <- maidr:::maidr_dotpad_config_script(
-    list(sdk_url = "/vendor/DotPadSDK-3.0.2.js", asset_base_url = NULL)
+    list(sdk_url = "/vendor/DotPadSDK-3.0.3.js", asset_base_url = NULL)
   )
 
   testthat::expect_true(grepl(
-    'window.MAIDR_DOTPAD_SDK_URL = "/vendor/DotPadSDK-3.0.2.js";',
+    'window.MAIDR_DOTPAD_SDK_URL = "/vendor/DotPadSDK-3.0.3.js";',
     script,
     fixed = TRUE
   ))
@@ -178,7 +178,7 @@ test_that("a URL cannot break out of the script element", {
 
 test_that("the standalone document declares the globals in its head, offline and on the CDN", {
   with_dotpad_settings(
-    sdk = "/vendor/DotPadSDK-3.0.2.js",
+    sdk = "/vendor/DotPadSDK-3.0.3.js",
     asset = "/vendor/lib/",
     for (use_cdn in c(FALSE, TRUE)) {
       html <- maidr:::create_standalone_html(
@@ -207,7 +207,7 @@ test_that("the standalone document says nothing about a DotPad when unconfigured
 })
 
 test_that("the dependency list puts the globals ahead of maidr.js", {
-  with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.2.js", {
+  with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.3.js", {
     for (use_cdn in list(TRUE, FALSE, NULL)) {
       deps <- maidr:::maidr_html_dependencies(use_cdn = use_cdn)
 
@@ -240,7 +240,7 @@ test_that("the dependency list is unchanged when nothing is configured", {
 test_that("save_html() writes the globals ahead of the bundle", {
   testthat::skip_if_not_installed("ggplot2")
 
-  with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.2.js", {
+  with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.3.js", {
     p <- create_test_ggplot_bar()
     tmp_file <- tempfile(fileext = ".html")
     on.exit(unlink(tmp_file), add = TRUE)
@@ -258,12 +258,12 @@ test_that("save_html() writes the globals ahead of the bundle", {
 test_that("the widget's frame carries the globals", {
   testthat::skip_if_not_installed("ggplot2")
 
-  with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.2.js", {
+  with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.3.js", {
     widget <- maidr_widget(create_test_ggplot_bar(), use_cdn = FALSE)
     # The frame's document travels escaped in `srcdoc`; the assignment
     # survives escaping, only its quotes change.
     testthat::expect_true(grepl(
-      "window.MAIDR_DOTPAD_SDK_URL = &quot;/vendor/DotPadSDK-3.0.2.js&quot;;",
+      "window.MAIDR_DOTPAD_SDK_URL = &quot;/vendor/DotPadSDK-3.0.3.js&quot;;",
       widget$x$iframe_content,
       fixed = TRUE
     ))
@@ -284,18 +284,23 @@ with_dotpad_dir <- function(dir, code) {
   })
 }
 
-# A three-file stand-in for the real manifest, with its bytes.
-fake_sdk_contents <- function() {
-  list(
-    "DotPadSDK-3.0.2.js" = charToRaw("export class DotPadSDK {}\n"),
-    "lib/liblouis.js" = charToRaw("// liblouis\n"),
-    "lib/liblouis.data" = charToRaw(strrep("tables", 100))
-  )
-}
-
 # Read once, here, because the tests below replace the function that
 # returns it, and a helper that asked again would be asking itself.
 real_dotpad_manifest <- maidr:::maidr_dotpad_sdk_manifest()
+
+# Where a document carries its copy: `lib/dotpad-sdk-<version>/`.
+dotpad_lib_dir <- paste0("dotpad-sdk-", real_dotpad_manifest$version)
+
+# A three-file stand-in for the real manifest, with its bytes.
+fake_sdk_contents <- function() {
+  contents <- list(
+    charToRaw("export class DotPadSDK {}\n"),
+    "lib/liblouis.js" = charToRaw("// liblouis\n"),
+    "lib/liblouis.data" = charToRaw(strrep("tables", 100))
+  )
+  names(contents)[1] <- real_dotpad_manifest$module
+  contents
+}
 
 fake_sdk_manifest <- function(contents = fake_sdk_contents()) {
   real <- real_dotpad_manifest
@@ -332,13 +337,17 @@ write_fake_sdk <- function(dir, contents = fake_sdk_contents()) {
   dir
 }
 
-test_that("the pins describe one commit of the vendor repository", {
+test_that("the pins describe one commit of the repository the files are served from", {
   manifest <- maidr:::maidr_dotpad_sdk_manifest()
   testthat::expect_true(grepl("^[0-9a-f]{40}$", manifest$commit))
+  testthat::expect_true(grepl("^https://github\\.com/[^/]+/[^/]+$", manifest$repository))
+  # jsDelivr serves a GitHub repository at a commit as gh/<owner>/<repo>@<commit>.
+  owner_repo <- sub("^https://github\\.com/", "", manifest$repository)
   testthat::expect_identical(
     manifest$base_url,
     sprintf(
-      "https://cdn.jsdelivr.net/gh/dotincorp/dotpad-sdk-guide@%s/Web/%s/",
+      "https://cdn.jsdelivr.net/gh/%s@%s/Web/%s/",
+      owner_repo,
       manifest$commit,
       manifest$version
     )
@@ -350,6 +359,33 @@ test_that("the pins describe one commit of the vendor repository", {
   testthat::expect_true(all(manifest$files$bytes > 0))
   testthat::expect_true(all(grepl("^[0-9a-f]{32}$", manifest$files$md5)))
   testthat::expect_true(all(grepl("^[0-9a-f]{64}$", manifest$files$sha256)))
+})
+
+test_that("the pins are the shipped manifest, read as is", {
+  # inst/dotpad-sdk.json is maidr.js's own copy of the pin; the accessor
+  # must report exactly what is in it, so a refresh of the file is a refresh
+  # of every pin.
+  raw <- jsonlite::fromJSON(
+    system.file("dotpad-sdk.json", package = "maidr", mustWork = TRUE),
+    simplifyVector = FALSE
+  )
+  manifest <- maidr:::maidr_dotpad_sdk_manifest()
+  testthat::expect_identical(manifest$version, raw$version)
+  testthat::expect_identical(manifest$repository, raw$repository)
+  testthat::expect_identical(manifest$commit, raw$commit)
+  testthat::expect_identical(manifest$base_url, raw$baseUrl)
+  testthat::expect_identical(manifest$module, raw$module)
+  testthat::expect_identical(manifest$asset_dir, raw$assetDir)
+
+  testthat::expect_identical(names(manifest$files), c("path", "bytes", "md5", "sha256"))
+  testthat::expect_identical(manifest$files$path, names(raw$files))
+  testthat::expect_type(manifest$files$bytes, "double")
+  for (path in names(raw$files)) {
+    row <- manifest$files[manifest$files$path == path, ]
+    testthat::expect_identical(row$bytes, as.numeric(raw$files[[path]]$bytes))
+    testthat::expect_identical(row$md5, raw$files[[path]]$md5)
+    testthat::expect_identical(row$sha256, raw$files[[path]]$sha256)
+  }
 })
 
 test_that("the pinned liblouis.data is the intact one", {
@@ -369,7 +405,7 @@ test_that("the LGPL notice and wrapper sources travel with the engine", {
 test_that("the SDK directory is the option, then the variable, then a per-user cache", {
   with_dotpad_settings({
     default <- maidr:::maidr_dotpad_sdk_dir()
-    testthat::expect_identical(basename(default), "3.0.2")
+    testthat::expect_identical(basename(default), real_dotpad_manifest$version)
     testthat::expect_identical(basename(dirname(default)), "dotpad-sdk")
     testthat::expect_true(startsWith(default, tools::R_user_dir("maidr", "cache")))
 
@@ -410,7 +446,8 @@ test_that("download writes every file verified, and a manifest, once", {
 
   testthat::expect_message(
     result <- maidr_download_dotpad_sdk(dir),
-    "DotPad SDK 3.0.2"
+    paste("DotPad SDK", real_dotpad_manifest$version),
+    fixed = TRUE
   )
   testthat::expect_identical(result, dir)
   for (path in names(contents)) {
@@ -424,7 +461,7 @@ test_that("download writes every file verified, and a manifest, once", {
 
   manifest <- jsonlite::fromJSON(file.path(dir, "manifest.json"))
   testthat::expect_identical(manifest$commit, real_dotpad_manifest$commit)
-  testthat::expect_identical(manifest$module, "DotPadSDK-3.0.2.js")
+  testthat::expect_identical(manifest$module, real_dotpad_manifest$module)
   testthat::expect_setequal(names(manifest$files), names(contents))
   testthat::expect_true(maidr:::maidr_dotpad_sdk_available(dir))
 
@@ -548,18 +585,22 @@ test_that("an offline document carries the copy and points at it", {
     out_file <- file.path(out_dir, "chart.html")
     maidr:::save_html_document(html_doc, out_file)
 
-    copied <- file.path(out_dir, "lib", "dotpad-sdk-3.0.2")
-    testthat::expect_true(file.exists(file.path(copied, "DotPadSDK-3.0.2.js")))
+    copied <- file.path(out_dir, "lib", dotpad_lib_dir)
+    testthat::expect_true(file.exists(file.path(copied, real_dotpad_manifest$module)))
     testthat::expect_true(file.exists(file.path(copied, "lib", "liblouis.data")))
 
     html <- paste(readLines(out_file, warn = FALSE), collapse = "\n")
     testthat::expect_true(grepl(
-      'window.MAIDR_DOTPAD_SDK_URL = "lib/dotpad-sdk-3.0.2/DotPadSDK-3.0.2.js";',
+      sprintf(
+        'window.MAIDR_DOTPAD_SDK_URL = "lib/%s/%s";',
+        dotpad_lib_dir,
+        real_dotpad_manifest$module
+      ),
       html,
       fixed = TRUE
     ))
     testthat::expect_true(grepl(
-      'window.MAIDR_DOTPAD_ASSET_BASE_URL = "lib/dotpad-sdk-3.0.2/lib/";',
+      sprintf('window.MAIDR_DOTPAD_ASSET_BASE_URL = "lib/%s/lib/";', dotpad_lib_dir),
       html,
       fixed = TRUE
     ))
@@ -593,7 +634,7 @@ test_that("a configured URL wins over a local copy", {
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
 
   with_dotpad_dir(dir, {
-    previous <- options(maidr.dotpad_sdk_url = "/vendor/DotPadSDK-3.0.2.js")
+    previous <- options(maidr.dotpad_sdk_url = "/vendor/DotPadSDK-3.0.3.js")
     on.exit(options(previous), add = TRUE)
     html_doc <- maidr:::create_html_document(svg_fixture_dotpad(), use_cdn = FALSE)
     names <- vapply(htmltools::htmlDependencies(html_doc), function(dep) dep$name, character(1))
@@ -616,7 +657,7 @@ test_that("either URL option alone keeps a local copy out of the document", {
   settings <- list(
     list(maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"),
     list(
-      maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.2.js",
+      maidr.dotpad_sdk_url = "https://intranet.example/dotpad/DotPadSDK-3.0.3.js",
       maidr.dotpad_asset_base_url = "https://intranet.example/dotpad/lib/"
     )
   )
@@ -633,7 +674,7 @@ test_that("either URL option alone keeps a local copy out of the document", {
         lengths(regmatches(rendered, gregexpr("MAIDR_DOTPAD_ASSET_BASE_URL", rendered))),
         1L
       )
-      testthat::expect_false(grepl("dotpad-sdk-3.0.2", rendered, fixed = TRUE))
+      testthat::expect_false(grepl(dotpad_lib_dir, rendered, fixed = TRUE))
     })
   }
 })
@@ -644,4 +685,198 @@ test_that("a session that never downloaded the SDK is left alone", {
     names <- vapply(htmltools::htmlDependencies(html_doc), function(dep) dep$name, character(1))
     testthat::expect_identical(names, c("maidr-responsive", "maidr"))
   })
+})
+
+# ---------------------------------------------------------------------------
+# A manifest that is not one
+# ---------------------------------------------------------------------------
+#
+# inst/dotpad-sdk.json is not authored here: the bundle refresh copies
+# whatever dist/dotpad-sdk.json the pinned maidr.js release ships. A field
+# that changed shape upstream is named as a bad manifest, rather than
+# surfacing further down as a vapply type error that says nothing about the
+# file it came from.
+
+# The shipped manifest, with `edit` applied, written where a test can read it.
+manifest_file <- function(edit = identity) {
+  pins <- jsonlite::fromJSON(
+    system.file("dotpad-sdk.json", package = "maidr", mustWork = TRUE),
+    simplifyVector = FALSE
+  )
+  path <- tempfile(fileext = ".json")
+  writeLines(jsonlite::toJSON(edit(pins), auto_unbox = TRUE), path)
+  path
+}
+
+test_that("the shipped manifest reads", {
+  manifest <- maidr:::maidr_dotpad_read_manifest(manifest_file())
+  testthat::expect_identical(manifest$version, maidr:::maidr_dotpad_sdk_manifest()$version)
+  testthat::expect_identical(nrow(manifest$files), 8L)
+})
+
+test_that("a manifest missing a field is named as such", {
+  for (field in c("version", "repository", "commit", "baseUrl", "module", "assetDir")) {
+    path <- manifest_file(function(pins) {
+      pins[[field]] <- NULL
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      field,
+      fixed = TRUE
+    )
+  }
+})
+
+test_that("a manifest naming no files is named as such", {
+  path <- manifest_file(function(pins) {
+    pins$files <- list()
+    pins
+  })
+  testthat::expect_error(maidr:::maidr_dotpad_read_manifest(path), "no files")
+})
+
+test_that("a file entry of the wrong shape names the file", {
+  # The drift that motivates the check: a per-file field renamed upstream,
+  # which a top-level check would pass.
+  edits <- list(
+    function(entry) {
+      entry$sha256 <- NULL
+      entry
+    },
+    function(entry) {
+      entry$sha256 <- "abc123"
+      entry
+    },
+    function(entry) {
+      entry$md5 <- "not a digest"
+      entry
+    },
+    function(entry) {
+      entry$bytes <- "171970"
+      entry
+    }
+  )
+  for (edit in edits) {
+    path <- manifest_file(function(pins) {
+      pins$files[["lib/liblouis.wasm"]] <- edit(pins$files[["lib/liblouis.wasm"]])
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      "lib/liblouis.wasm",
+      fixed = TRUE
+    )
+  }
+})
+
+test_that("the manifest is read once and kept", {
+  # Every render path asks for it several times over; re-parsing the file
+  # each time is work nothing asked for.
+  first <- maidr:::maidr_dotpad_sdk_manifest()
+  testthat::expect_false(is.null(maidr:::.maidr_dotpad_cache$manifest))
+  testthat::expect_identical(maidr:::maidr_dotpad_sdk_manifest(), first)
+})
+
+test_that("a files array, rather than an object, is refused", {
+  # The drift that reads as success rather than failure: a JSON array parses
+  # to a list with no names, which would leave a manifest of no files -- and
+  # every "is the copy complete" check reads no files as complete, since
+  # all() of nothing is TRUE.
+  path <- manifest_file(function(pins) {
+    pins$files <- unname(pins$files)
+    pins
+  })
+  testthat::expect_error(
+    maidr:::maidr_dotpad_read_manifest(path),
+    "not an object keyed by path"
+  )
+})
+
+test_that("a file entry that is not an object names the file", {
+  path <- manifest_file(function(pins) {
+    pins$files[["lib/liblouis.wasm"]] <- "oops"
+    pins
+  })
+  testthat::expect_error(
+    maidr:::maidr_dotpad_read_manifest(path),
+    "lib/liblouis.wasm",
+    fixed = TRUE
+  )
+})
+
+test_that("a base URL or asset directory without a trailing slash is refused", {
+  # Both are pasted straight onto a file's path, so a missing slash joins
+  # the URL and the only sign is a 404 per file.
+  for (field in c("baseUrl", "assetDir")) {
+    path <- manifest_file(function(pins) {
+      pins[[field]] <- sub("/$", "", pins[[field]])
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      "trailing slash"
+    )
+  }
+})
+
+test_that("with no files, no directory holds a complete copy", {
+  # Belt and braces for the same all()-of-nothing trap, in the check that
+  # decides whether a document carries its own SDK.
+  cache <- maidr:::.maidr_dotpad_cache
+  empty <- maidr:::maidr_dotpad_sdk_manifest()
+  empty$files <- empty$files[0L, ]
+  previous <- cache$manifest
+  cache$manifest <- empty
+  on.exit(assign("manifest", previous, envir = cache), add = TRUE)
+  testthat::expect_false(maidr:::maidr_dotpad_sdk_available(tempfile()))
+})
+
+test_that("a module that is not one of the files is refused", {
+  # Only the listed files are fetched, but the document is pointed at the
+  # module by name: a module outside the list downloads clean and leaves the
+  # page naming a file that was never there.
+  path <- manifest_file(function(pins) {
+    pins$module <- "DotPadSDK-9.9.9.js"
+    pins
+  })
+  testthat::expect_error(
+    maidr:::maidr_dotpad_read_manifest(path),
+    "DotPadSDK-9.9.9.js",
+    fixed = TRUE
+  )
+})
+
+test_that("a file path that leaves its directory is refused", {
+  # Each path is joined onto the download directory to decide where the
+  # fetched bytes are written, so a manifest could otherwise name any file
+  # on the machine. Nothing user-authored reaches this today, but the
+  # download is the one place this package writes files it did not name.
+  escapes <- c(
+    "../../../.ssh/authorized_keys",
+    "lib/../../outside.js",
+    "/etc/passwd",
+    "~/.bashrc",
+    "C:/Windows/System32/drivers/etc/hosts",
+    "lib\\..\\..\\outside.js",
+    "lib//liblouis.js",
+    "./liblouis.js"
+  )
+  for (escape in escapes) {
+    testthat::expect_false(maidr:::maidr_dotpad_path_is_safe(escape), info = escape)
+    path <- manifest_file(function(pins) {
+      pins$files[[escape]] <- pins$files[["lib/liblouis.wasm"]]
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      "outside the directory"
+    )
+  }
+})
+
+test_that("the paths the manifest does name are allowed", {
+  for (path in maidr:::maidr_dotpad_sdk_manifest()$files$path) {
+    testthat::expect_true(maidr:::maidr_dotpad_path_is_safe(path), info = path)
+  }
 })

@@ -37,7 +37,7 @@ the LGPL licence text and wrapper sources the vendor asks redistributors to
 keep beside it -- verifying every file against its recorded size and
 digests (MD5, and SHA-256 on R 4.5 or later), and writes a \code{manifest.json}
 beside them naming the commit they came from.
-From then on \code{\link[=show]{show()}} and \code{\link[=save_html]{save_html()}} copy it into \verb{lib/dotpad-sdk-3.0.2/}
+From then on \code{\link[=show]{show()}} and \code{\link[=save_html]{save_html()}} copy it into \verb{lib/dotpad-sdk-<version>/}
 next to every \code{use_cdn = FALSE} document and tell maidr.js where it is, so
 a reader connects a DotPad without the network. A file already present and
 correct is left alone, so a second call costs nothing.
