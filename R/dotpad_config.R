@@ -276,6 +276,15 @@ maidr_dotpad_read_manifest <- function(path = NULL) {
         grepl(sprintf("^[0-9a-f]{%d}$", width), value)
     }
   }
+  if (!(module %in% paths)) {
+    # The page is pointed at the module by name but only the listed files
+    # are ever fetched, so a module outside the list downloads clean and
+    # leaves the document naming a file that is not there.
+    stop(
+      sprintf("dotpad-sdk.json lists no %s, the module it names", module),
+      call. = FALSE
+    )
+  }
   files <- data.frame(
     path = paths,
     bytes = vapply(paths, entry, numeric(1),

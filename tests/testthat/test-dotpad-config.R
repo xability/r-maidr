@@ -831,3 +831,18 @@ test_that("with no files, no directory holds a complete copy", {
   on.exit(assign("manifest", previous, envir = cache), add = TRUE)
   testthat::expect_false(maidr:::maidr_dotpad_sdk_available(tempfile()))
 })
+
+test_that("a module that is not one of the files is refused", {
+  # Only the listed files are fetched, but the document is pointed at the
+  # module by name: a module outside the list downloads clean and leaves the
+  # page naming a file that was never there.
+  path <- manifest_file(function(pins) {
+    pins$module <- "DotPadSDK-9.9.9.js"
+    pins
+  })
+  testthat::expect_error(
+    maidr:::maidr_dotpad_read_manifest(path),
+    "DotPadSDK-9.9.9.js",
+    fixed = TRUE
+  )
+})

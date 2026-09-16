@@ -155,6 +155,7 @@ if grep -qx 'package/dist/dotpad-sdk.json' <<<"$TARBALL_FILES"; then
       and (.files | all(.bytes | type == "number" and . > 0))
       and (.files | all(.sha256 | test("^[0-9a-f]{64}$")))
       and (.files | all(.md5 | test("^[0-9a-f]{32}$")))
+      and (.module as $m | .files | has($m))
       ' "$WORK/package/dist/dotpad-sdk.json" >/dev/null; then
     echo "maidr@$VERSION ships a dist/dotpad-sdk.json this package cannot read" >&2
     exit 1
