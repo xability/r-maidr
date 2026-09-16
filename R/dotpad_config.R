@@ -1,3 +1,7 @@
+# The shipped DotPad SDK manifest, parsed once. Every render path asks for
+# it several times over and it cannot change while the package is loaded.
+.maidr_dotpad_cache <- new.env(parent = emptyenv())
+
 #' Where maidr.js loads the DotPad SDK from
 #'
 #' maidr.js does not bundle the DotPad tactile-display SDK: its braille engine
@@ -176,32 +180,99 @@ maidr_dotpad_config_dependency <- function(config = maidr_dotpad_config()) {
 #' anyone who redistributes the SDK to keep them beside the runtime files,
 #' which is the LGPL's relinking requirement.
 #'
+#' Read once per session: every render path asks for the manifest several
+#' times over, and the answer cannot change while the package is loaded.
+#'
 #' @return A list: `version`, `repository`, `commit`, `base_url`, `module`,
 #'   `asset_dir`, and `files`, a data frame with one row per file (`path`,
 #'   `bytes`, `md5`, `sha256`).
 #' @keywords internal
 maidr_dotpad_sdk_manifest <- function() {
-  pins <- jsonlite::fromJSON(
-    system.file("dotpad-sdk.json", package = "maidr", mustWork = TRUE),
-    simplifyVector = FALSE
-  )
-  column <- function(name, template) {
-    vapply(pins$files, function(file) file[[name]], template, USE.NAMES = FALSE)
+  cached <- .maidr_dotpad_cache$manifest
+  if (!is.null(cached)) {
+    return(cached)
   }
+  manifest <- maidr_dotpad_read_manifest()
+  .maidr_dotpad_cache$manifest <- manifest
+  manifest
+}
+
+#' Parse the shipped DotPad SDK manifest
+#'
+#' Split from [maidr_dotpad_sdk_manifest()] so the read happens once and the
+#' parsing is testable on its own. Every field is checked, because the file
+#' is not authored here: `fetch-maidr-bundle.sh` copies whatever
+#' `dist/dotpad-sdk.json` the pinned `maidr.js` release ships. A field that
+#' changed shape upstream is named as a bad manifest rather than surfacing
+#' later as a `vapply` type error.
+#'
+#' @param path Where to read from. Defaults to the installed `inst/` copy.
+#' @return The manifest, in the shape [maidr_dotpad_sdk_manifest()] returns.
+#' @keywords internal
+maidr_dotpad_read_manifest <- function(path = NULL) {
+  if (is.null(path)) {
+    path <- system.file("dotpad-sdk.json", package = "maidr", mustWork = TRUE)
+  }
+  pins <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  text_field <- function(name) {
+    value <- pins[[name]]
+    if (!is.character(value) || length(value) != 1L || !nzchar(value)) {
+      stop(
+        sprintf("dotpad-sdk.json names no %s: the manifest is not one", name),
+        call. = FALSE
+      )
+    }
+    value
+  }
+  version <- text_field("version")
+  repository <- text_field("repository")
+  commit <- text_field("commit")
+  base_url <- text_field("baseUrl")
+  module <- text_field("module")
+  asset_dir <- text_field("assetDir")
+  if (!is.list(pins$files) || length(pins$files) == 0L) {
+    stop("dotpad-sdk.json names no files", call. = FALSE)
+  }
+  entry <- function(path, name, check) {
+    value <- pins$files[[path]][[name]]
+    if (is.null(value) || !check(value)) {
+      stop(
+        sprintf("dotpad-sdk.json gives %s no usable %s", path, name),
+        call. = FALSE
+      )
+    }
+    value
+  }
+  is_size <- function(value) {
+    is.numeric(value) && length(value) == 1L && value > 0
+  }
+  is_digest <- function(width) {
+    function(value) {
+      is.character(value) && length(value) == 1L &&
+        grepl(sprintf("^[0-9a-f]{%d}$", width), value)
+    }
+  }
+  paths <- names(pins$files)
   files <- data.frame(
-    path = names(pins$files),
-    bytes = as.numeric(column("bytes", integer(1))),
-    md5 = column("md5", character(1)),
-    sha256 = column("sha256", character(1)),
+    path = paths,
+    bytes = vapply(paths, entry, numeric(1),
+      name = "bytes", check = is_size, USE.NAMES = FALSE
+    ),
+    md5 = vapply(paths, entry, character(1),
+      name = "md5", check = is_digest(32), USE.NAMES = FALSE
+    ),
+    sha256 = vapply(paths, entry, character(1),
+      name = "sha256", check = is_digest(64), USE.NAMES = FALSE
+    ),
     stringsAsFactors = FALSE
   )
   list(
-    version = pins$version,
-    repository = pins$repository,
-    commit = pins$commit,
-    base_url = pins$baseUrl,
-    module = pins$module,
-    asset_dir = pins$assetDir,
+    version = version,
+    repository = repository,
+    commit = commit,
+    base_url = base_url,
+    module = module,
+    asset_dir = asset_dir,
     files = files
   )
 }

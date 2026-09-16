@@ -686,3 +686,94 @@ test_that("a session that never downloaded the SDK is left alone", {
     testthat::expect_identical(names, c("maidr-responsive", "maidr"))
   })
 })
+
+# ---------------------------------------------------------------------------
+# A manifest that is not one
+# ---------------------------------------------------------------------------
+#
+# inst/dotpad-sdk.json is not authored here: the bundle refresh copies
+# whatever dist/dotpad-sdk.json the pinned maidr.js release ships. A field
+# that changed shape upstream is named as a bad manifest, rather than
+# surfacing further down as a vapply type error that says nothing about the
+# file it came from.
+
+# The shipped manifest, with `edit` applied, written where a test can read it.
+manifest_file <- function(edit = identity) {
+  pins <- jsonlite::fromJSON(
+    system.file("dotpad-sdk.json", package = "maidr", mustWork = TRUE),
+    simplifyVector = FALSE
+  )
+  path <- tempfile(fileext = ".json")
+  writeLines(jsonlite::toJSON(edit(pins), auto_unbox = TRUE), path)
+  path
+}
+
+test_that("the shipped manifest reads", {
+  manifest <- maidr:::maidr_dotpad_read_manifest(manifest_file())
+  testthat::expect_identical(manifest$version, maidr:::maidr_dotpad_sdk_manifest()$version)
+  testthat::expect_identical(nrow(manifest$files), 8L)
+})
+
+test_that("a manifest missing a field is named as such", {
+  for (field in c("version", "repository", "commit", "baseUrl", "module", "assetDir")) {
+    path <- manifest_file(function(pins) {
+      pins[[field]] <- NULL
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      field,
+      fixed = TRUE
+    )
+  }
+})
+
+test_that("a manifest naming no files is named as such", {
+  path <- manifest_file(function(pins) {
+    pins$files <- list()
+    pins
+  })
+  testthat::expect_error(maidr:::maidr_dotpad_read_manifest(path), "no files")
+})
+
+test_that("a file entry of the wrong shape names the file", {
+  # The drift that motivates the check: a per-file field renamed upstream,
+  # which a top-level check would pass.
+  edits <- list(
+    function(entry) {
+      entry$sha256 <- NULL
+      entry
+    },
+    function(entry) {
+      entry$sha256 <- "abc123"
+      entry
+    },
+    function(entry) {
+      entry$md5 <- "not a digest"
+      entry
+    },
+    function(entry) {
+      entry$bytes <- "171970"
+      entry
+    }
+  )
+  for (edit in edits) {
+    path <- manifest_file(function(pins) {
+      pins$files[["lib/liblouis.wasm"]] <- edit(pins$files[["lib/liblouis.wasm"]])
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      "lib/liblouis.wasm",
+      fixed = TRUE
+    )
+  }
+})
+
+test_that("the manifest is read once and kept", {
+  # Every render path asks for it several times over; re-parsing the file
+  # each time is work nothing asked for.
+  first <- maidr:::maidr_dotpad_sdk_manifest()
+  testthat::expect_false(is.null(maidr:::.maidr_dotpad_cache$manifest))
+  testthat::expect_identical(maidr:::maidr_dotpad_sdk_manifest(), first)
+})

@@ -143,10 +143,18 @@ HAS_DOTPAD_MANIFEST=0
 if grep -qx 'package/dist/dotpad-sdk.json' <<<"$TARBALL_FILES"; then
   HAS_DOTPAD_MANIFEST=1
   tar -xzf "$TGZ" -C "$WORK" package/dist/dotpad-sdk.json
-  if ! jq -e '(.version | type == "string") and (.commit | type == "string")
-      and (.baseUrl | type == "string") and (.module | type == "string")
-      and (.assetDir | type == "string") and (.files | type == "object")
-      and (.files | length > 0)' "$WORK/package/dist/dotpad-sdk.json" >/dev/null; then
+  # Down to the shape of each file entry: a top-level check passes a
+  # manifest whose entries changed shape upstream, and R would then fail
+  # much later, inside vapply, saying far less about why.
+  if ! jq -e '
+      def text: type == "string" and length > 0;
+      (.version | text) and (.repository | text) and (.commit | text)
+      and (.baseUrl | text) and (.module | text) and (.assetDir | text)
+      and (.files | type == "object") and ((.files | length) > 0)
+      and (.files | all(.bytes | type == "number" and . > 0))
+      and (.files | all(.sha256 | test("^[0-9a-f]{64}$")))
+      and (.files | all(.md5 | test("^[0-9a-f]{32}$")))
+      ' "$WORK/package/dist/dotpad-sdk.json" >/dev/null; then
     echo "maidr@$VERSION ships a dist/dotpad-sdk.json this package cannot read" >&2
     exit 1
   fi

@@ -45,5 +45,8 @@ The liblouis build is LGPL-2.1-or-later. Its licence text and the sources
 of the WebAssembly wrapper are listed because the vendor's README asks
 anyone who redistributes the SDK to keep them beside the runtime files,
 which is the LGPL's relinking requirement.
+
+Read once per session: every render path asks for the manifest several
+times over, and the answer cannot change while the package is loaded.
 }
 \keyword{internal}
