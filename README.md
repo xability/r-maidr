@@ -158,6 +158,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `cumulative_periodogram` | `cpgram()` |
 | `dot` | `dotchart()` (ungrouped) |
 | `filled_contour` | `filled.contour()` |
+| `fourfold` | `fourfoldplot()` (2x2 tables, `std = "ind.max"` / `"all.max"`) |
 | `interaction` | `interaction.plot()` |
 | `lag` | `lag.plot()` |
 | `lollipop` | `plot(type = "h")` |

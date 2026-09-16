@@ -96,6 +96,13 @@ BaseRProcessorFactory <- R6::R6Class(
         # separate name because the numbers, the axes and the trace all
         # differ; only the argument they come from is shared.
         "residual" = BaseRAssocplotLayerProcessor$new(layer_info),
+        # The same two-way table a third time, read as the counts its
+        # quadrants draw rather than as proportions (`mosaic`) or residuals
+        # (`residual`). A separate name because the numbers and the
+        # extraction differ, and it cannot simply be called `"heat"`: that
+        # key is already `BaseRHeatmapLayerProcessor`'s below, even though
+        # `heat` is the trace this emits.
+        "fourfold" = BaseRFourfoldLayerProcessor$new(layer_info),
         "hist" = BaseRHistogramLayerProcessor$new(layer_info),
         "box" = BaseRBoxplotLayerProcessor$new(layer_info),
         # A box plot handed its summaries rather than its observations. The
@@ -144,6 +151,7 @@ BaseRProcessorFactory <- R6::R6Class(
         "dot",
         "mosaic",
         "residual",
+        "fourfold",
         "hist",
         "box",
         "box_stats",

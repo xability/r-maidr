@@ -70,21 +70,55 @@ NULL
     # promise of a reading. Adding a reading later means adding a processor
     # and a `detect_layer_type()` branch; it does not mean touching this
     # list, because each of these is already recorded.
-    # Five of these eight have since gained readings, without this list
+    # Six of these eight have since gained readings, without this list
     # changing -- `spineplot` as a `mosaic` (#258), `cdplot` as a normalized
-    # stacked area (#259), `qqnorm`/`qqplot` as `point`, and
-    # `filled.contour` as a `contour`. What is left is three, and the sweep
-    # #251 records has now measured each, so they are separated here rather
-    # than left to be re-derived:
+    # stacked area (#259), `qqnorm`/`qqplot` as `point`, `filled.contour` as
+    # a `contour`, and `fourfoldplot` -- conditionally -- as a `heat` (#268).
+    # What is left is two, and the sweep #251 records has now measured each,
+    # so they are separated here rather than left to be re-derived:
     #
     #   persp          Declined. A 3D surface has no 2D reading that is not
     #                  a different chart.
-    #   fourfoldplot   Declined. Quarter-circles whose radii encode a 2xk
-    #                  odds ratio: the numbers drawn are the ratio, not the
-    #                  table, so a `mosaic` would announce something the
-    #                  plot does not draw. #268 measures a second obstacle
-    #                  on top of that -- the counts reach the drawing only
-    #                  when the caller asks for no standardisation.
+    #   fourfoldplot   Read, conditionally on the caller's own `std` (#268).
+    #                  Under `std = "ind.max"` or `"all.max"` the four
+    #                  quarter-circles ARE the four counts: measured on
+    #                  c(tab) = 10, 40, 90, 160 the radii are
+    #                  0.25, 0.50, 0.75, 1.00 and r^2 * max(count) recovers
+    #                  every count exactly, so the wedge AREA is the cell and
+    #                  it is read as a `fourfold` -> `heat`, a 2x2 named grid.
+    #                  Under the DEFAULT std = "margins" the same table draws
+    #                  0.632456, 0.774597, 0.774597, 0.632456 --
+    #                  sqrt(c(u, 1-u, 1-u, u)) with u = sqrt(or)/(1 + sqrt(or)),
+    #                  r1 == r4 and r2 == r3 exactly, one number drawn four
+    #                  times. Measured, `tab` and `tab * 3` give bit-identical
+    #                  radii, so that half is still declined and still falls
+    #                  back to a picture. `margin = 1` / `margin = 2` are a
+    #                  third and fourth behaviour, drawing conditional
+    #                  proportions (measured r/sqrt(count) relative spread
+    #                  1.716e-01 and 3.820e-01) -- table-dependent, still not
+    #                  the counts, and declined with `margins` for free
+    #                  because `std` is still "margins" there. A 2x2xk array
+    #                  is declined too: all k panels are named
+    #                  graphics-plot-1-*, so nothing here slices one panel's
+    #                  quadrants out of another's.
+    #
+    #                  That enumeration covers the calls that REACH the
+    #                  dispatch. A qualified `graphics::fourfoldplot(tb)`
+    #                  does not: like `stats::acf(v)` below, it bypasses the
+    #                  search-path patch entirely, so nothing is recorded and
+    #                  `save_html()` answers "No Base R plots detected.
+    #                  Please create a plot first" -- measured, under every
+    #                  `std`. That is the older defect the paragraph below
+    #                  records and #268 does not fix it.
+    #
+    #                  Two corrections to what this note used to say. There
+    #                  is no "no standardisation" option: every `std`
+    #                  standardises, and what distinguishes `ind.max` and
+    #                  `all.max` is that the divisor is a single scalar, which
+    #                  is why the wedges stay proportional. And the counts are
+    #                  printed on the page under EVERY `std`, as one text grob
+    #                  holding all four -- so the decline is about what the
+    #                  wedges encode, not about whether the numbers appear.
     #   sunflowerplot  Not declined -- **blocked**. The petals count the
     #                  observations at each position, which had no field
     #                  until xability/maidr#1161 added a `sunflower` trace.
