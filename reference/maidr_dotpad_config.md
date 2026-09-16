@@ -1,12 +1,16 @@
 # Where maidr.js loads the DotPad SDK from
 
-maidr.js does not bundle the DotPad tactile-display SDK: it ships
-without a licence permitting redistribution, so the first time a reader
-connects a DotPad, maidr.js imports the SDK from the vendor's published
-copy on jsDelivr. That is the one path an offline document
+maidr.js does not bundle the DotPad tactile-display SDK: its braille
+engine is a 14 MB liblouis build that every document would carry for the
+few readers who own the device. So the first time a reader connects a
+DotPad, maidr.js imports the SDK from the vendor's published copy on
+jsDelivr, pinned to a commit. That is the one path an offline document
 (`use_cdn = FALSE`) still takes to the network. The document renders,
 sonifies and brailles without it; only connecting a DotPad needs it,
-unless the page names its own copy of the SDK.
+unless the page names its own copy of the SDK, or one was downloaded
+with
+[`maidr_download_dotpad_sdk()`](https://r.maidr.ai/reference/maidr_download_dotpad_sdk.md)
+for [`save_html()`](https://r.maidr.ai/reference/save_html.md) to carry.
 
 ## Usage
 

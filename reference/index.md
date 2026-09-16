@@ -35,6 +35,8 @@ Functions for configuring MAIDR behavior and running examples
   : Configure MAIDR Fallback Behavior
 - [`maidr_get_fallback()`](https://r.maidr.ai/reference/maidr_get_fallback.md)
   : Get Current MAIDR Fallback Settings
+- [`maidr_download_dotpad_sdk()`](https://r.maidr.ai/reference/maidr_download_dotpad_sdk.md)
+  : Download the DotPad SDK for use offline
 - [`run_example()`](https://r.maidr.ai/reference/run_example.md) : Run
   MAIDR Example Plots
 
