@@ -16,7 +16,7 @@ An \code{htmltools::htmlDependency()}
 }
 \description{
 For the documents \code{show()} and \code{save_html()} write. htmltools copies the
-directory into \verb{<libdir>/dotpad-sdk-3.0.2/} when the document is saved, and
+directory into \verb{<libdir>/dotpad-sdk-<version>/} when the document is saved, and
 the dependency's \code{head} declares the two globals with that relative path,
 so the saved page finds its copy wherever the folder is moved to, as long
 as the two move together. \code{libdir} is what \code{\link[htmltools:save_html]{htmltools::save_html()}} is

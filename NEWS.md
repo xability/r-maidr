@@ -8,7 +8,7 @@
   without naming a server. `maidr_download_dotpad_sdk()` fetches the SDK
   maidr.js is pinned to (about 14 MB, once, into a per-user cache, every file
   verified against its recorded size and digest), and from then on `show()`
-  and `save_html()` copy it into `lib/dotpad-sdk-3.0.2/` beside every
+  and `save_html()` copy it into `lib/dotpad-sdk-<version>/` beside every
   `use_cdn = FALSE` document and declare the globals with that relative
   path. The options `maidr.dotpad_sdk_url` and `maidr.dotpad_asset_base_url`
   still name a copy served from elsewhere, and win over a downloaded one;
@@ -21,6 +21,14 @@
   its line endings rewritten by git, which broke every braille table and
   dropped the text line to grade 1; upstream has fixed that, and the next
   maidr.js release pins the repaired commit.
+* The SDK pin now moves with the maidr.js bundle instead of living in R
+  code. `inst/dotpad-sdk.json` is the `dist/dotpad-sdk.json` the maidr npm
+  package ships as the single source of truth for its own pin, and
+  `.github/scripts/fetch-maidr-bundle.sh` copies it in with every bundle
+  refresh. The pin is SDK 3.0.3, served from `xability/dotpad-sdk-guide`:
+  the vendor publishes 3.0.3 only as a zip archive, so that mirror carries
+  the extracted files, byte-verified against the archive. The download cache
+  moves to `dotpad-sdk/3.0.3` and documents carry `lib/dotpad-sdk-3.0.3/`.
 
 ### ggplot2
 
