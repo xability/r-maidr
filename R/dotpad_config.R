@@ -197,6 +197,31 @@ maidr_dotpad_sdk_manifest <- function() {
   manifest
 }
 
+#' Is a manifest's file path one that stays put?
+#'
+#' Each path is joined onto the download directory to decide where a fetched
+#' file is written, so a manifest could otherwise name `../../..` and write
+#' wherever it liked. Nothing user-authored reaches this today -- the
+#' manifest is committed and only a maintainer regenerates it -- but the
+#' download is the one place this package writes files it did not name, and
+#' a check costs nothing.
+#'
+#' @param path One key of the manifest's `files`.
+#' @return `TRUE` when the path is relative and stays inside its directory.
+#' @keywords internal
+maidr_dotpad_path_is_safe <- function(path) {
+  if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
+    return(FALSE)
+  }
+  # A backslash is a separator on Windows, and a drive letter or a leading
+  # separator leaves the directory outright.
+  if (grepl("\\\\", path) || grepl("^([/~]|[A-Za-z]:)", path)) {
+    return(FALSE)
+  }
+  segments <- strsplit(path, "/", fixed = TRUE)[[1L]]
+  length(segments) > 0L && !any(segments %in% c("", ".", ".."))
+}
+
 #' Parse the shipped DotPad SDK manifest
 #'
 #' Split from [maidr_dotpad_sdk_manifest()] so the read happens once and the
@@ -253,6 +278,16 @@ maidr_dotpad_read_manifest <- function(path = NULL) {
   if (is.null(paths) || !all(nzchar(paths)) || anyDuplicated(paths) != 0L) {
     stop(
       "dotpad-sdk.json does not name its files: 'files' is not an object keyed by path",
+      call. = FALSE
+    )
+  }
+  unsafe <- Filter(function(file_path) !maidr_dotpad_path_is_safe(file_path), paths)
+  if (length(unsafe) > 0L) {
+    stop(
+      sprintf(
+        "dotpad-sdk.json names a file outside the directory it is fetched into: %s",
+        unsafe[[1L]]
+      ),
       call. = FALSE
     )
   }

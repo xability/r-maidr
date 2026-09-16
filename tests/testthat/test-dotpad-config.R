@@ -846,3 +846,37 @@ test_that("a module that is not one of the files is refused", {
     fixed = TRUE
   )
 })
+
+test_that("a file path that leaves its directory is refused", {
+  # Each path is joined onto the download directory to decide where the
+  # fetched bytes are written, so a manifest could otherwise name any file
+  # on the machine. Nothing user-authored reaches this today, but the
+  # download is the one place this package writes files it did not name.
+  escapes <- c(
+    "../../../.ssh/authorized_keys",
+    "lib/../../outside.js",
+    "/etc/passwd",
+    "~/.bashrc",
+    "C:/Windows/System32/drivers/etc/hosts",
+    "lib\\..\\..\\outside.js",
+    "lib//liblouis.js",
+    "./liblouis.js"
+  )
+  for (escape in escapes) {
+    testthat::expect_false(maidr:::maidr_dotpad_path_is_safe(escape), info = escape)
+    path <- manifest_file(function(pins) {
+      pins$files[[escape]] <- pins$files[["lib/liblouis.wasm"]]
+      pins
+    })
+    testthat::expect_error(
+      maidr:::maidr_dotpad_read_manifest(path),
+      "outside the directory"
+    )
+  }
+})
+
+test_that("the paths the manifest does name are allowed", {
+  for (path in maidr:::maidr_dotpad_sdk_manifest()$files$path) {
+    testthat::expect_true(maidr:::maidr_dotpad_path_is_safe(path), info = path)
+  }
+})
