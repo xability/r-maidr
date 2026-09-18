@@ -73,7 +73,7 @@ BaseRPieLayerProcessor <- R6::R6Class(
       }
 
       args <- layer_info$plot_call$args
-      clockwise <- isTRUE(args$clockwise)
+      clockwise <- recorded_flag(args, "clockwise")
       init_angle <- args$init.angle
       usable <- is.numeric(init_angle) && length(init_angle) == 1L && is.finite(init_angle)
       if (!usable) {

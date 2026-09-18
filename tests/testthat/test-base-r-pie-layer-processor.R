@@ -133,6 +133,22 @@ test_that("BaseRPieLayerProcessor converts init.angle whichever way the pie runs
   testthat::expect_length(processor$extract_dial(NULL), 0L)
 })
 
+test_that("BaseRPieLayerProcessor reads clockwise the way pie() does", {
+  # pie() asks `if (clockwise)`, which takes any truthy scalar, so a pie drawn
+  # with clockwise = 1 runs clockwise and must not be declared the other way
+  # round (#256's mismatch, through recorded_flag()).
+  processor <- maidr:::BaseRPieLayerProcessor$new(list(index = 1))
+
+  numeric <- processor$extract_dial(pie_layer_info(c(a = 1, b = 1), clockwise = 1))
+  testthat::expect_false("startAngle" %in% names(numeric))
+  testthat::expect_false("direction" %in% names(numeric))
+
+  # A flag pie() would reject as NA falls back to its default, counterclockwise.
+  missing <- processor$extract_dial(pie_layer_info(c(a = 1, b = 1), clockwise = NA))
+  testthat::expect_equal(missing$startAngle, 90)
+  testthat::expect_equal(missing$direction, "counterclockwise")
+})
+
 # ==============================================================================
 # Tier 2: Edge Cases
 # ==============================================================================
