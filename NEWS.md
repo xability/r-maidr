@@ -38,8 +38,8 @@
   charts keep their bar reading.
 * A pie layer now says where its ring begins and which way its wedges run
   (`startAngle`, degrees clockwise from 12 o'clock, and `direction`), read
-  off the coord's `start` and `direction` and off the way the stack was
-  built. maidr.js walks every pie clockwise from that start, pans each slice
+  off `coord_polar()`'s `start` and `direction`, or `coord_radial()`'s `arc`
+  and `reverse`, and off the way the stack was built. maidr.js walks every pie clockwise from that start, pans each slice
   to where it sits and names its clock position on `p`; a default ggplot2
   pie, whose wedges are built from the top of the stack down, is declared
   counterclockwise so the walk is turned round to match the drawing. A

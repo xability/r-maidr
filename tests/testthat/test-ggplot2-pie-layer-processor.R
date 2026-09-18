@@ -133,6 +133,102 @@ test_that("Ggplot2PieLayerProcessor follows a stack built the other way up", {
   testthat::expect_false("direction" %in% names(dial))
 })
 
+test_that("Ggplot2PieLayerProcessor reads coord_radial()'s arc and reverse", {
+  skip_if_no_ggplot2()
+  testthat::skip_if_not(
+    "coord_radial" %in% getNamespaceExports("ggplot2"),
+    "ggplot2 has no coord_radial()"
+  )
+  # `reverse` replaced coord_radial()'s numeric `direction` in ggplot2 4.0.
+  testthat::skip_if_not(
+    "reverse" %in% names(formals(ggplot2::coord_radial)),
+    "ggplot2's coord_radial() has no reverse argument"
+  )
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+  dial <- function(coord) {
+    p <- fruit_col() + coord
+    processor$extract_dial(p, ggplot2::ggplot_build(p))
+  }
+
+  # coord_radial() stores neither `start` nor `direction`: its `arc` holds
+  # the start, and `reverse = "theta"` turns the arc round. Measured on
+  # ggplot2 4.0.3: the default draws its ring clockwise from 12, so the
+  # wedges emitted down the stack run counterclockwise, as under
+  # coord_polar().
+  plain <- dial(ggplot2::coord_radial(theta = "y"))
+  testthat::expect_false("startAngle" %in% names(plain))
+  testthat::expect_equal(plain$direction, "counterclockwise")
+
+  # start = pi/2 is 3 o'clock, clockwise from 12, whichever way the arc runs.
+  rotated <- dial(ggplot2::coord_radial(theta = "y", start = pi / 2))
+  testthat::expect_equal(rotated$startAngle, 90)
+  testthat::expect_equal(rotated$direction, "counterclockwise")
+
+  # A reversed theta runs the ring anticlockwise from that same edge, and
+  # the emitted order, running back against it, is clockwise: only the edge
+  # is left to declare. This is the case that used to come out as a
+  # counterclockwise ring from 12 o'clock.
+  reversed <- dial(ggplot2::coord_radial(theta = "y", start = pi / 2, reverse = "theta"))
+  testthat::expect_equal(reversed$startAngle, 90)
+  testthat::expect_false("direction" %in% names(reversed))
+
+  # "thetar" reverses theta too; "r" reverses only the radius.
+  both <- dial(ggplot2::coord_radial(theta = "y", start = pi / 2, reverse = "thetar"))
+  testthat::expect_equal(both, reversed)
+  radius <- dial(ggplot2::coord_radial(theta = "y", start = pi / 2, reverse = "r"))
+  testthat::expect_equal(radius, rotated)
+
+  # A reversed arc from the top is the frontend's own default walk.
+  turned <- dial(ggplot2::coord_radial(theta = "y", reverse = "theta"))
+  testthat::expect_equal(turned, list())
+
+  # A negative start wraps round.
+  back <- dial(ggplot2::coord_radial(theta = "y", start = -pi / 2))
+  testthat::expect_equal(back$startAngle, 270)
+})
+
+test_that("pie_coord_ring() reads each coord's own fields", {
+  skip_if_no_ggplot2()
+
+  ring <- maidr:::pie_coord_ring
+
+  # coord_polar(): `start` applied in `direction`.
+  testthat::expect_equal(
+    ring(ggplot2::coord_polar("y", start = pi / 2, direction = -1)),
+    list(start = -pi / 2, direction = -1)
+  )
+
+  # The shapes coord_radial() has stored: ggplot2 >= 4.0 keeps an `arc`
+  # already turned round by a character `reverse`, 3.5.x an `arc` with a
+  # numeric `direction` still to apply. Stand-ins, so the reading is pinned
+  # whichever ggplot2 is installed.
+  radial <- function(...) structure(list(...), class = c("CoordRadial", "Coord"))
+  testthat::expect_equal(
+    ring(radial(arc = c(pi / 2, pi / 2 + 2 * pi), reverse = "none")),
+    list(start = pi / 2, direction = 1)
+  )
+  testthat::expect_equal(
+    ring(radial(arc = c(pi / 2 + 2 * pi, pi / 2), reverse = "theta")),
+    list(start = pi / 2 + 2 * pi, direction = -1)
+  )
+  testthat::expect_equal(
+    ring(radial(arc = c(pi / 2, pi / 2 + 2 * pi), direction = -1)),
+    list(start = -pi / 2, direction = -1)
+  )
+
+  # Anything unusable falls back to the coord's default.
+  testthat::expect_equal(ring(radial()), list(start = 0, direction = 1))
+  testthat::expect_equal(
+    ring(radial(arc = c(NA_real_, 1), reverse = "theta")),
+    list(start = 0, direction = -1)
+  )
+  testthat::expect_equal(
+    ring(structure(list(start = "top", direction = 0), class = c("CoordPolar", "Coord"))),
+    list(start = 0, direction = 1)
+  )
+})
+
 test_that("Ggplot2PieLayerProcessor builds the plot when built is NULL", {
   skip_if_no_ggplot2()
 

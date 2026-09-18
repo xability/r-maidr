@@ -117,23 +117,25 @@ slice begins, in degrees clockwise from 12 o'clock. The layer says two
 things about the wedges it emits: where the ring begins and which way
 round the dial the \emph{emitted order} runs.
 
-Where the ring begins is the coord's \code{start}, an offset from 12
-o'clock in radians applied in the coord's \code{direction} (1 for
-clockwise, -1 for anticlockwise). \code{coord_polar()} maps the whole
-theta scale onto the full circle, so the ring ends where it began and
-the same edge serves whichever way the wedges are walked.
+Where the ring begins, and which way the coord runs round it, are read
+off the coord by \code{pie_coord_ring()}: \code{coord_polar()} keeps a
+\code{start} applied in its \code{direction}, \code{coord_radial()} an
+\code{arc} already turned round by its \code{reverse}. Either maps the
+whole theta scale onto the arc, so a full ring ends where it began and
+the same edge serves whichever way the wedges are walked. A partial
+\code{coord_radial()} arc, or its default theta expansion, draws less
+than the full circle; the frontend's pie has no key for that, so the
+ring's nominal edge is declared and the wedges are read as filling it.
 
 Which way the emitted order runs is NOT simply the coord's direction.
 \code{position_stack()} stacks the first group on top by default, so
 the built rows -- and the wedges, and the selectors index-aligned to
 them -- run from the top of the stack down: the first emitted wedge is
 the one that ENDS the ring, and the order goes back against the coord's
-direction. Measured on ggplot2 3.4.4 with \code{units = c(30, 50,
-20)}: group 1 is built as \code{ymin = 70, ymax = 100}, group 3 as
-\code{ymin = 0, ymax = 20}. \code{position_stack(reverse = TRUE)}
-builds them the other way up. So the direction is read off the built
-rows themselves: emitted order running down the stack is the coord's
-direction reversed, running up it is the coord's direction.
+direction, and \code{position_stack(reverse = TRUE)} builds them the
+other way up. So the direction is read off the built rows themselves:
+emitted order running down the stack is the coord's direction
+reversed, running up it is the coord's direction.
 
 Both keys are left out at the frontend's own defaults -- a clockwise
 ring from the top -- which is also what every layer declared before
