@@ -17,6 +17,7 @@ magnitudes, so none are emitted here.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-BaseRPieLayerProcessor-process}{\code{BaseRPieLayerProcessor$process()}}
+    \item \href{#method-BaseRPieLayerProcessor-extract_dial}{\code{BaseRPieLayerProcessor$extract_dial()}}
     \item \href{#method-BaseRPieLayerProcessor-needs_reordering}{\code{BaseRPieLayerProcessor$needs_reordering()}}
     \item \href{#method-BaseRPieLayerProcessor-extract_data}{\code{BaseRPieLayerProcessor$extract_data()}}
     \item \href{#method-BaseRPieLayerProcessor-resolve_slice_labels}{\code{BaseRPieLayerProcessor$resolve_slice_labels()}}
@@ -85,6 +86,44 @@ magnitudes, so none are emitted here.
   }
   \subsection{Returns}{
     List with data, selectors, type, title and axes
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPieLayerProcessor-extract_dial"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPieLayerProcessor-extract_dial}{}}}
+\subsection{\code{BaseRPieLayerProcessor$extract_dial()}}{
+  Where the ring begins and which way it runs
+
+The frontend walks a pie clockwise -- Right steps to the next slice the
+way a clock hand goes, the audio pans each slice to where it sits and
+\code{p} names its clock position -- all from where the layer says the first
+slice begins, measured in degrees clockwise from 12 o'clock. \code{pie()}
+draws the other way round by default: \code{clockwise = FALSE}, from
+\code{init.angle} degrees \emph{counterclockwise} from \emph{3 o'clock}, so its
+default of 0 is the frontend's 90 and a \code{clockwise = TRUE} pie's
+default of 90 is the frontend's 0. The direction is declared so the
+frontend can turn the walk round; the wedges stay in recorded-call
+order, which is what the selectors are index-aligned to.
+
+Both keys are left out at the frontend's own defaults -- a clockwise
+ring from the top -- which is also what every layer declared before
+the keys existed.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPieLayerProcessor$extract_dial(layer_info)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{layer_info}}{Layer information}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Named list holding \code{startAngle} and/or \code{direction}, possibly
+empty
   }
 }
 

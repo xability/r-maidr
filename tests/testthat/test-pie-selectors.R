@@ -87,6 +87,20 @@ test_that("a pie's selector finds one element per wedge", {
   testthat::expect_length(pie_resolve(payload, layer$selectors[[1]]), nrow(FRUIT))
 })
 
+test_that("a pie's dial reaches the payload", {
+  skip_if_no_export()
+
+  # The processor's `startAngle` / `direction` have to survive the
+  # orchestrator's assembly of the layer: a default ggplot2 pie is built from
+  # the top of the stack down, so its emitted wedges run counterclockwise
+  # from 12 o'clock, and maidr.js is told so.
+  payload <- pie_render(pie_plot(), "fruit")
+  layer <- payload$data$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_equal(layer$direction, "counterclockwise")
+  testthat::expect_false("startAngle" %in% names(layer))
+})
+
 test_that("the wedges arrive in the order the data was emitted", {
   skip_if_no_export()
 

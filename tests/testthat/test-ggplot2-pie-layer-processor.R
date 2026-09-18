@@ -79,6 +79,60 @@ test_that("Ggplot2PieLayerProcessor process() returns correct structure", {
   testthat::expect_length(result$data, 3L)
 })
 
+test_that("Ggplot2PieLayerProcessor declares the dial of a default ggplot2 pie", {
+  skip_if_no_ggplot2()
+
+  # coord_polar("y") runs clockwise from 12 o'clock, but position_stack()
+  # puts the first group on top, so the emitted wedges run back down the
+  # stack: counterclockwise from the top, which the frontend turns round.
+  p <- fruit_pie()
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+
+  result <- processor$process(p, list(title = "", axes = list(x = "", y = "")))
+
+  testthat::expect_false("startAngle" %in% names(result))
+  testthat::expect_equal(result$direction, "counterclockwise")
+})
+
+test_that("Ggplot2PieLayerProcessor reads the coord's start and direction", {
+  skip_if_no_ggplot2()
+
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+  dial <- function(p) {
+    processor$extract_dial(p, ggplot2::ggplot_build(p))
+  }
+
+  # start = pi/2 clockwise is 3 o'clock; the emitted order still runs back
+  # against the coord.
+  rotated <- dial(fruit_col() + ggplot2::coord_polar("y", start = pi / 2))
+  testthat::expect_equal(rotated$startAngle, 90)
+  testthat::expect_equal(rotated$direction, "counterclockwise")
+
+  # An anticlockwise coord applies its start the other way round, and the
+  # emitted order, running back against it, is clockwise: nothing to declare
+  # beyond where it starts.
+  reversed <- dial(fruit_col() + ggplot2::coord_polar("y", start = pi / 2, direction = -1))
+  testthat::expect_equal(reversed$startAngle, 270)
+  testthat::expect_false("direction" %in% names(reversed))
+})
+
+test_that("Ggplot2PieLayerProcessor follows a stack built the other way up", {
+  skip_if_no_ggplot2()
+
+  # position_stack(reverse = TRUE) builds the first group at the bottom, so
+  # the emitted wedges run up the stack: the coord's own direction.
+  df <- data.frame(fruit = c("Apples", "Bananas", "Cherries"), units = c(30, 50, 20))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = "", y = units, fill = fruit)) +
+    ggplot2::geom_col(position = ggplot2::position_stack(reverse = TRUE)) +
+    ggplot2::coord_polar("y")
+  processor <- maidr:::Ggplot2PieLayerProcessor$new(list(index = 1))
+
+  dial <- processor$extract_dial(p, ggplot2::ggplot_build(p))
+
+  testthat::expect_false("startAngle" %in% names(dial))
+  testthat::expect_false("direction" %in% names(dial))
+})
+
 test_that("Ggplot2PieLayerProcessor builds the plot when built is NULL", {
   skip_if_no_ggplot2()
 

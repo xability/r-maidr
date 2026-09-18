@@ -39,13 +39,90 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
         built <- ggplot2::ggplot_build(plot)
       }
 
-      list(
-        data = self$extract_data(plot, built, panel_id = panel_id),
-        selectors = self$generate_selectors(plot, gt, panel_ctx = panel_ctx),
-        title = if (!is.null(layout$title)) layout$title else "",
-        axes = self$extract_pie_axes(plot, layout, built, panel_id),
-        type = "pie"
+      c(
+        list(
+          data = self$extract_data(plot, built, panel_id = panel_id),
+          selectors = self$generate_selectors(plot, gt, panel_ctx = panel_ctx),
+          title = if (!is.null(layout$title)) layout$title else "",
+          axes = self$extract_pie_axes(plot, layout, built, panel_id),
+          type = "pie"
+        ),
+        self$extract_dial(plot, built, panel_id)
       )
+    },
+
+    #' @description Where the ring begins and which way the emitted wedges run
+    #'
+    #' The frontend walks a pie clockwise -- Right steps to the next slice the
+    #' way a clock hand goes, the audio pans each slice to where it sits and
+    #' `p` names its clock position -- all from where the layer says the first
+    #' slice begins, in degrees clockwise from 12 o'clock. The layer says two
+    #' things about the wedges it emits: where the ring begins and which way
+    #' round the dial the *emitted order* runs.
+    #'
+    #' Where the ring begins is the coord's \code{start}, an offset from 12
+    #' o'clock in radians applied in the coord's \code{direction} (1 for
+    #' clockwise, -1 for anticlockwise). \code{coord_polar()} maps the whole
+    #' theta scale onto the full circle, so the ring ends where it began and
+    #' the same edge serves whichever way the wedges are walked.
+    #'
+    #' Which way the emitted order runs is NOT simply the coord's direction.
+    #' \code{position_stack()} stacks the first group on top by default, so
+    #' the built rows -- and the wedges, and the selectors index-aligned to
+    #' them -- run from the top of the stack down: the first emitted wedge is
+    #' the one that ENDS the ring, and the order goes back against the coord's
+    #' direction. Measured on ggplot2 3.4.4 with \code{units = c(30, 50,
+    #' 20)}: group 1 is built as \code{ymin = 70, ymax = 100}, group 3 as
+    #' \code{ymin = 0, ymax = 20}. \code{position_stack(reverse = TRUE)}
+    #' builds them the other way up. So the direction is read off the built
+    #' rows themselves: emitted order running down the stack is the coord's
+    #' direction reversed, running up it is the coord's direction.
+    #'
+    #' Both keys are left out at the frontend's own defaults -- a clockwise
+    #' ring from the top -- which is also what every layer declared before
+    #' the keys existed.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @param panel_id Optional facet panel to restrict extraction to
+    #' @return Named list holding `startAngle` and/or `direction`, possibly
+    #'   empty
+    extract_dial = function(plot, built, panel_id = NULL) {
+      coord <- plot$coordinates
+      coord_direction <- coord$direction
+      usable_direction <- is.numeric(coord_direction) &&
+        length(coord_direction) == 1L &&
+        is.finite(coord_direction) &&
+        coord_direction != 0
+      if (!usable_direction) {
+        coord_direction <- 1
+      }
+      coord_direction <- sign(coord_direction)
+      start <- coord$start
+      usable_start <- is.numeric(start) && length(start) == 1L && is.finite(start)
+      if (!usable_start) {
+        start <- 0
+      }
+
+      built_data <- self$panel_built_data(built, panel_id)
+      down_the_stack <- FALSE
+      if (nrow(built_data) > 1L && !is.null(built_data$ymin)) {
+        ymin <- built_data$ymin
+        first <- ymin[[1L]]
+        last <- ymin[[nrow(built_data)]]
+        down_the_stack <- is.finite(first) && is.finite(last) && first > last
+      }
+      emitted_direction <- if (down_the_stack) -coord_direction else coord_direction
+
+      start_angle <- (coord_direction * start * 180 / pi) %% 360
+      dial <- list()
+      if (start_angle != 0) {
+        dial$startAngle <- start_angle
+      }
+      if (emitted_direction < 0) {
+        dial$direction <- "counterclockwise"
+      }
+      dial
     },
 
     #' @description Extract one point per wedge

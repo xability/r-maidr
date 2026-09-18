@@ -35,13 +35,61 @@ BaseRPieLayerProcessor <- R6::R6Class(
 
       # No orientation field: a pie has none, and the frontend navigates
       # every pie as a single row of slices.
-      list(
-        data = data,
-        selectors = selectors,
-        type = "pie",
-        title = title,
-        axes = axes
+      c(
+        list(
+          data = data,
+          selectors = selectors,
+          type = "pie",
+          title = title,
+          axes = axes
+        ),
+        self$extract_dial(layer_info)
       )
+    },
+
+    #' @description Where the ring begins and which way it runs
+    #'
+    #' The frontend walks a pie clockwise -- Right steps to the next slice the
+    #' way a clock hand goes, the audio pans each slice to where it sits and
+    #' `p` names its clock position -- all from where the layer says the first
+    #' slice begins, measured in degrees clockwise from 12 o'clock. `pie()`
+    #' draws the other way round by default: `clockwise = FALSE`, from
+    #' `init.angle` degrees *counterclockwise* from *3 o'clock*, so its
+    #' default of 0 is the frontend's 90 and a `clockwise = TRUE` pie's
+    #' default of 90 is the frontend's 0. The direction is declared so the
+    #' frontend can turn the walk round; the wedges stay in recorded-call
+    #' order, which is what the selectors are index-aligned to.
+    #'
+    #' Both keys are left out at the frontend's own defaults -- a clockwise
+    #' ring from the top -- which is also what every layer declared before
+    #' the keys existed.
+    #'
+    #' @param layer_info Layer information
+    #' @return Named list holding `startAngle` and/or `direction`, possibly
+    #'   empty
+    extract_dial = function(layer_info) {
+      if (is.null(layer_info)) {
+        return(list())
+      }
+
+      args <- layer_info$plot_call$args
+      clockwise <- isTRUE(args$clockwise)
+      init_angle <- args$init.angle
+      usable <- is.numeric(init_angle) && length(init_angle) == 1L && is.finite(init_angle)
+      if (!usable) {
+        # pie()'s own default, which depends on the direction.
+        init_angle <- if (clockwise) 90 else 0
+      }
+
+      start_angle <- (90 - init_angle) %% 360
+      dial <- list()
+      if (start_angle != 0) {
+        dial$startAngle <- start_angle
+      }
+      if (!clockwise) {
+        dial$direction <- "counterclockwise"
+      }
+      dial
     },
 
     #' @description Pie slices are emitted in drawing order (see extract_data)

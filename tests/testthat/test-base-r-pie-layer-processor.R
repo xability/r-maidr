@@ -81,6 +81,58 @@ test_that("BaseRPieLayerProcessor keeps slices in recorded-call order", {
   )
 })
 
+test_that("BaseRPieLayerProcessor declares pie()'s default dial", {
+  # pie() draws counterclockwise from init.angle = 0, which is 3 o'clock --
+  # the frontend counts clockwise from 12, so that is 90 there -- and the
+  # frontend walks clockwise, so the direction is declared for it to turn the
+  # walk round.
+  info <- pie_layer_info(c(Apples = 30, Bananas = 50, Cherries = 20))
+  processor <- maidr:::BaseRPieLayerProcessor$new(info)
+
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, info)
+
+  testthat::expect_equal(result$startAngle, 90)
+  testthat::expect_equal(result$direction, "counterclockwise")
+})
+
+test_that("BaseRPieLayerProcessor declares nothing for a clockwise pie from the top", {
+  # clockwise = TRUE moves init.angle's default to 90, the top: the frontend's
+  # own defaults, so neither key is written.
+  info <- pie_layer_info(c(Apples = 30, Bananas = 50, Cherries = 20), clockwise = TRUE)
+  processor <- maidr:::BaseRPieLayerProcessor$new(info)
+
+  result <- processor$process(NULL, NULL, NULL, NULL, NULL, NULL, NULL, info)
+
+  testthat::expect_false("startAngle" %in% names(result))
+  testthat::expect_false("direction" %in% names(result))
+})
+
+test_that("BaseRPieLayerProcessor converts init.angle whichever way the pie runs", {
+  processor <- maidr:::BaseRPieLayerProcessor$new(list(index = 1))
+
+  # 180 degrees counterclockwise from 3 o'clock is 9 o'clock: 270 on the dial.
+  ccw <- processor$extract_dial(pie_layer_info(c(a = 1, b = 1), init.angle = 180))
+  testthat::expect_equal(ccw$startAngle, 270)
+  testthat::expect_equal(ccw$direction, "counterclockwise")
+
+  cw <- processor$extract_dial(pie_layer_info(c(a = 1, b = 1), clockwise = TRUE, init.angle = 180))
+  testthat::expect_equal(cw$startAngle, 270)
+  testthat::expect_false("direction" %in% names(cw))
+
+  # A full turn round is the same edge.
+  testthat::expect_false(
+    "startAngle" %in% names(processor$extract_dial(
+      pie_layer_info(c(a = 1), clockwise = TRUE, init.angle = 450)
+    ))
+  )
+  # An unusable angle falls back to pie()'s own default for the direction.
+  testthat::expect_equal(
+    processor$extract_dial(pie_layer_info(c(a = 1), init.angle = "sideways"))$startAngle,
+    90
+  )
+  testthat::expect_length(processor$extract_dial(NULL), 0L)
+})
+
 # ==============================================================================
 # Tier 2: Edge Cases
 # ==============================================================================
