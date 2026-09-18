@@ -63,6 +63,7 @@ run_example()
 #>   - multiline
 #>   - patchwork
 #>   - pie
+#>   - roc
 #>   - scatter
 #>   - smooth
 #>   - stacked_bar

@@ -39,6 +39,23 @@
 
 #### ggplot2
 
+- Added ROC curve support: a receiver operating characteristic curve is
+  emitted as a `roc` layer, one curve per classifier, so a reader hears
+  the true positive rate on the unit interval, each point’s threshold
+  and height above the chance diagonal, and the area under each curve
+  and the best operating point in the description.
+  [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md) declares
+  one – it is
+  [`geom_path()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  with a `threshold` aesthetic and an `auc` argument – and
+  [`pROC::ggroc()`](https://rdrr.io/pkg/pROC/man/ggroc.html) and
+  [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
+  of a
+  [`yardstick::roc_curve()`](https://yardstick.tidymodels.org/reference/roc_curve.html)
+  are read as they stand, by the `sensitivity` and `specificity` they
+  map. The trace needs maidr.js 4.9.0; until the bundled copy reaches
+  it, both keep the line reading they had, and switch with the next
+  bundle update.
 - Added pie chart support: a
   [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)/[`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
   layer under `coord_polar("y")` or `coord_radial(theta = "y")` is

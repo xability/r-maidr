@@ -16,6 +16,8 @@ picture alone cannot say it
 
 - [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md) :
   Declare that a rectangle layer draws a schedule
+- [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md) : Declare
+  that a path layer draws a ROC curve
 
 ## RMarkdown integration
 

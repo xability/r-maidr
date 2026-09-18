@@ -158,6 +158,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `gantt` | [`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html), [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md) |
 | `hexbin` | [`geom_hex()`](https://ggplot2.tidyverse.org/reference/geom_hex.html), [`stat_bin_2d()`](https://ggplot2.tidyverse.org/reference/geom_bin_2d.html) |
 | `polygon` | [`geom_polygon()`](https://ggplot2.tidyverse.org/reference/geom_polygon.html) |
+| `roc` | [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md), [`pROC::ggroc()`](https://rdrr.io/pkg/pROC/man/ggroc.html), [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html) of a [`yardstick::roc_curve()`](https://yardstick.tidymodels.org/reference/roc_curve.html) |
 | `rug` | [`geom_rug()`](https://ggplot2.tidyverse.org/reference/geom_rug.html) |
 
 #### Base R
