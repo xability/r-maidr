@@ -41,6 +41,10 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         # from different columns and has no per-bin element to highlight.
         "dotplot" = Ggplot2DotplotLayerProcessor$new(layer_info),
         "line" = Ggplot2LineLayerProcessor$new(layer_info),
+        # A ROC curve is a multi-series line whose x is a rate: the line
+        # processor reads it, and this one hands the rates back as numbers
+        # with the thresholds and the areas the line has no field for.
+        "roc" = Ggplot2RocLayerProcessor$new(layer_info),
         "area" = Ggplot2AreaLayerProcessor$new(layer_info),
         # The three area variants differ in how their bands relate, not in
         # where the numbers are read from, so one processor emits all three
@@ -90,6 +94,7 @@ Ggplot2ProcessorFactory <- R6::R6Class(
         "pie",
         "hist",
         "line",
+        "roc",
         "area",
         "stacked_area",
         "stacked_normalized_area",

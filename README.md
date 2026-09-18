@@ -145,6 +145,7 @@ Feedback is exactly what would move one of these into the tables above.
 | `gantt` | `geom_segment()`, `geom_curve()`, `maidr_gantt()` |
 | `hexbin` | `geom_hex()`, `stat_bin_2d()` |
 | `polygon` | `geom_polygon()` |
+| `roc` | `maidr_roc()`, `pROC::ggroc()`, `autoplot()` of a `yardstick::roc_curve()` |
 | `rug` | `geom_rug()` |
 
 #### Base R

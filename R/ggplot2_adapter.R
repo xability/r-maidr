@@ -308,6 +308,27 @@ Ggplot2Adapter <- R6::R6Class(
         return(self$unread_layer_type(layer, plot_object))
       }
 
+      # A ROC curve is a path of rates, and a path carries no evidence of
+      # what it means except its column names. `maidr_roc()` draws with a
+      # geom of its own, which is the declaration; and two producers name
+      # their columns after the rates themselves -- `pROC::ggroc()` and
+      # `autoplot()` of a `yardstick::roc_curve()` -- which is the claim
+      # `layer_maps_roc_rates()` reads. Before the line branch, because both
+      # are paths and the line branch would claim them first.
+      #
+      # Both fall back to `line` while the bundled maidr.js predates the
+      # trace: emitted to a bundle without it the chart renders nothing at
+      # all, and the two idioms are detected without any change on the
+      # author's side, so a chart that rendered as a line yesterday must not
+      # go blank today. See `roc_trace_available()`.
+      if (geom_class == "GeomRoc") {
+        return(if (roc_trace_available()) "roc" else "line")
+      }
+      if (geom_class %in% c("GeomLine", "GeomPath") &&
+        layer_maps_roc_rates(layer, plot_object)) {
+        return(if (roc_trace_available()) "roc" else "line")
+      }
+
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {
         return("line")
       }
