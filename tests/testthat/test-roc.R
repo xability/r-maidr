@@ -51,7 +51,13 @@ one_curve <- function() {
 
 roc_aes <- ggplot2::aes(x = fpr, y = tpr, threshold = cutoff)
 
+#' Read a layer's type with the `roc` trace available, whatever the bundle
+#'
+#' The bundled maidr.js decides whether `roc` is emitted at all (see
+#' `roc_trace_available()`); the reading is tested as it will be once the
+#' bundle carries the trace, and the fallback is pinned on its own below.
 detected <- function(plot, index = 1) {
+  testthat::local_mocked_bindings(roc_trace_available = function() TRUE)
   maidr:::Ggplot2Adapter$new()$detect_layer_type(plot$layers[[index]], plot)
 }
 
@@ -112,6 +118,37 @@ test_that("a plain path with a threshold mapped is still a line", {
   )
   plot <- ggplot2::ggplot(one_curve(), ggplot2::aes(fpr, tpr)) + layer
   testthat::expect_identical(detected(plot), "line")
+})
+
+
+test_that("a bundle without the trace keeps the line reading, declared or detected", {
+  skip_unless_ggplot2()
+
+  declared <- ggplot2::ggplot(one_curve()) + maidr_roc(roc_aes)
+  idiom <- ggplot2::ggplot(
+    data.frame(specificity = c(1, 0.8, 0), sensitivity = c(0, 0.7, 1)),
+    ggplot2::aes(specificity, sensitivity)
+  ) + ggplot2::geom_line()
+  adapter <- maidr:::Ggplot2Adapter$new()
+
+  # Emitted to a bundle that cannot build it, `roc` renders nothing at all
+  # (#214), and the idiom is detected with no change on the author's side.
+  testthat::local_mocked_bindings(roc_trace_available = function() FALSE)
+  testthat::expect_identical(adapter$detect_layer_type(declared$layers[[1]], declared), "line")
+  testthat::expect_identical(adapter$detect_layer_type(idiom$layers[[1]], idiom), "line")
+
+  testthat::local_mocked_bindings(roc_trace_available = function() TRUE)
+  testthat::expect_identical(adapter$detect_layer_type(declared$layers[[1]], declared), "roc")
+  testthat::expect_identical(adapter$detect_layer_type(idiom$layers[[1]], idiom), "roc")
+})
+
+test_that("the gate reads the pinned bundle version", {
+  testthat::local_mocked_bindings(MAIDR_VERSION = "4.8.0")
+  testthat::expect_false(roc_trace_available())
+  testthat::local_mocked_bindings(MAIDR_VERSION = "4.9.0")
+  testthat::expect_true(roc_trace_available())
+  testthat::local_mocked_bindings(MAIDR_VERSION = "5.0.0")
+  testthat::expect_true(roc_trace_available())
 })
 
 
@@ -339,8 +376,23 @@ test_that("autoplot() of a yardstick roc_curve() is read, and its diagonal skipp
 # What a reader receives
 # ---------------------------------------------------------------------------
 
+test_that("a declared chart renders as a line while the bundle lacks the trace", {
+  skip_if_no_render()
+  testthat::local_mocked_bindings(roc_trace_available = function() FALSE)
+
+  plot <- ggplot2::ggplot(two_curves()) +
+    maidr_roc(ggplot2::aes(x = fpr, y = tpr, colour = model, threshold = cutoff))
+
+  html <- rendered(plot)
+  testthat::expect_false(fell_back(html))
+  layer <- layers_from(html)[[1]]
+  testthat::expect_identical(layer$type, "line")
+  testthat::expect_length(layer$data, 2L)
+})
+
 test_that("a declared chart keeps its interactivity and carries the trace", {
   skip_if_no_render()
+  testthat::local_mocked_bindings(roc_trace_available = function() TRUE)
 
   plot <- ggplot2::ggplot(two_curves()) +
     maidr_roc(
@@ -375,6 +427,7 @@ test_that("a declared chart keeps its interactivity and carries the trace", {
 
 test_that("a ggroc chart renders as a ROC layer", {
   skip_if_no_render()
+  testthat::local_mocked_bindings(roc_trace_available = function() TRUE)
   testthat::skip_if_not_installed("pROC")
 
   data("aSAH", package = "pROC")

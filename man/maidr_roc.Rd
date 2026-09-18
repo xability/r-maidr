@@ -89,6 +89,14 @@ so the area is measured from the points and no threshold is announced;
 \code{maidr_roc()} is how an author supplies both.
 }
 
+\section{Until the bundled maidr.js carries the trace}{
+The \code{roc} trace shipped in maidr.js 4.9.0. While the copy this package
+bundles is older (see \code{maidr:::MAIDR_VERSION}), a declared or detected
+curve is read as a line, so that every chart keeps rendering; the
+reading switches to \code{roc} with the next bundle update and no change to
+the chart.
+}
+
 \section{What it costs not to declare}{
 A \code{geom_line()} of rates under any other column names keeps the line
 reading it has today, deliberately: every chart already written keeps

@@ -315,12 +315,18 @@ Ggplot2Adapter <- R6::R6Class(
       # `autoplot()` of a `yardstick::roc_curve()` -- which is the claim
       # `layer_maps_roc_rates()` reads. Before the line branch, because both
       # are paths and the line branch would claim them first.
+      #
+      # Both fall back to `line` while the bundled maidr.js predates the
+      # trace: emitted to a bundle without it the chart renders nothing at
+      # all, and the two idioms are detected without any change on the
+      # author's side, so a chart that rendered as a line yesterday must not
+      # go blank today. See `roc_trace_available()`.
       if (geom_class == "GeomRoc") {
-        return("roc")
+        return(if (roc_trace_available()) "roc" else "line")
       }
       if (geom_class %in% c("GeomLine", "GeomPath") &&
         layer_maps_roc_rates(layer, plot_object)) {
-        return("roc")
+        return(if (roc_trace_available()) "roc" else "line")
       }
 
       if (geom_class %in% c("GeomLine", "GeomPath", "GeomMA")) {

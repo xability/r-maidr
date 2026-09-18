@@ -39,8 +39,9 @@
   operating point in the description. `maidr_roc()` declares one -- it is
   `geom_path()` with a `threshold` aesthetic and an `auc` argument -- and
   `pROC::ggroc()` and `autoplot()` of a `yardstick::roc_curve()` are read as
-  they stand, by the `sensitivity` and `specificity` they map. Requires
-  maidr.js 4.9.0 or later; the bundled copy is updated with the next release.
+  they stand, by the `sensitivity` and `specificity` they map. The trace
+  needs maidr.js 4.9.0; until the bundled copy reaches it, both keep the
+  line reading they had, and switch with the next bundle update.
 * Added pie chart support: a `geom_col()`/`geom_bar()` layer under
   `coord_polar("y")` or `coord_radial(theta = "y")` is emitted as a `pie`
   layer, one navigable slice per wedge. `coord_polar("x")` and multi-ring

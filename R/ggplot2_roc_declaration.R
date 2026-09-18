@@ -27,6 +27,23 @@ GeomRoc <- ggplot2::ggproto(
   optional_aes = c("threshold")
 )
 
+#' Whether the bundled maidr.js can build a `roc` trace
+#'
+#' The `roc` trace first shipped in maidr.js 4.9.0. Emitted to an older
+#' bundle it is not declined but *fatal*: the core's factory throws on a
+#' trace type it does not know, so the page renders nothing (#214). Until
+#' `MAIDR_VERSION` reaches 4.9.0 a ROC curve therefore keeps the line
+#' reading it had -- `pROC::ggroc()` and yardstick's `autoplot()` in
+#' particular, which are detected without any change on the author's side
+#' and must not lose a chart they rendered yesterday. The moment the bundle
+#' moves, the reading switches with no other change.
+#'
+#' @return TRUE when the pinned bundle carries the trace
+#' @keywords internal
+roc_trace_available <- function() {
+  utils::compareVersion(MAIDR_VERSION, "4.9.0") >= 0
+}
+
 #' Declare that a path layer draws a ROC curve
 #'
 #' @description
@@ -68,6 +85,14 @@ GeomRoc <- ggplot2::ggproto(
 #' the diagonal. Neither idiom carries thresholds or the area into the plot,
 #' so the area is measured from the points and no threshold is announced;
 #' `maidr_roc()` is how an author supplies both.
+#'
+#' # Until the bundled maidr.js carries the trace
+#'
+#' The `roc` trace shipped in maidr.js 4.9.0. While the copy this package
+#' bundles is older (see `maidr:::MAIDR_VERSION`), a declared or detected
+#' curve is read as a line, so that every chart keeps rendering; the
+#' reading switches to `roc` with the next bundle update and no change to
+#' the chart.
 #'
 #' # What it costs not to declare
 #'
