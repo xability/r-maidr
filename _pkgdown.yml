@@ -99,6 +99,7 @@ reference:
       picture alone cannot say it
     contents:
       - maidr_gantt
+      - maidr_roc
 
   - title: RMarkdown integration
     desc: Functions for enabling accessible plots in RMarkdown documents
