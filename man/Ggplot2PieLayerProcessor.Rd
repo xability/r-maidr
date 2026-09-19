@@ -26,6 +26,7 @@ declines them, and they stay bar / stacked / dodged as before.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2PieLayerProcessor-process}{\code{Ggplot2PieLayerProcessor$process()}}
+    \item \href{#method-Ggplot2PieLayerProcessor-extract_dial}{\code{Ggplot2PieLayerProcessor$extract_dial()}}
     \item \href{#method-Ggplot2PieLayerProcessor-extract_data}{\code{Ggplot2PieLayerProcessor$extract_data()}}
     \item \href{#method-Ggplot2PieLayerProcessor-panel_built_data}{\code{Ggplot2PieLayerProcessor$panel_built_data()}}
     \item \href{#method-Ggplot2PieLayerProcessor-resolve_slice_mapping}{\code{Ggplot2PieLayerProcessor$resolve_slice_mapping()}}
@@ -100,6 +101,62 @@ declines them, and they stay bar / stacked / dodged as before.
   }
   \subsection{Returns}{
     List with data, selectors, title, axes and type
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PieLayerProcessor-extract_dial"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PieLayerProcessor-extract_dial}{}}}
+\subsection{\code{Ggplot2PieLayerProcessor$extract_dial()}}{
+  Where the ring begins and which way the emitted wedges run
+
+The frontend walks a pie clockwise -- Right steps to the next slice the
+way a clock hand goes, the audio pans each slice to where it sits and
+\code{p} names its clock position -- all from where the layer says the first
+slice begins, in degrees clockwise from 12 o'clock. The layer says two
+things about the wedges it emits: where the ring begins and which way
+round the dial the \emph{emitted order} runs.
+
+Where the ring begins, and which way the coord runs round it, are read
+off the coord by \code{pie_coord_ring()}: \code{coord_polar()} keeps a
+\code{start} applied in its \code{direction}, \code{coord_radial()} an
+\code{arc} already turned round by its \code{reverse}. Either maps the
+whole theta scale onto the arc, so a full ring ends where it began and
+the same edge serves whichever way the wedges are walked. A partial
+\code{coord_radial()} arc, or its default theta expansion, draws less
+than the full circle; the frontend's pie has no key for that, so the
+ring's nominal edge is declared and the wedges are read as filling it.
+
+Which way the emitted order runs is NOT simply the coord's direction.
+\code{position_stack()} stacks the first group on top by default, so
+the built rows -- and the wedges, and the selectors index-aligned to
+them -- run from the top of the stack down: the first emitted wedge is
+the one that ENDS the ring, and the order goes back against the coord's
+direction, and \code{position_stack(reverse = TRUE)} builds them the
+other way up. So the direction is read off the built rows themselves:
+emitted order running down the stack is the coord's direction
+reversed, running up it is the coord's direction.
+
+Both keys are left out at the frontend's own defaults -- a clockwise
+ring from the top -- which is also what every layer declared before
+the keys existed.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PieLayerProcessor$extract_dial(plot, built, panel_id = NULL)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The ggplot2 object}
+      \item{\code{built}}{Built plot data}
+      \item{\code{panel_id}}{Optional facet panel to restrict extraction to}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Named list holding \code{startAngle} and/or \code{direction}, possibly
+empty
   }
 }
 

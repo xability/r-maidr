@@ -39,13 +39,78 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
         built <- ggplot2::ggplot_build(plot)
       }
 
-      list(
-        data = self$extract_data(plot, built, panel_id = panel_id),
-        selectors = self$generate_selectors(plot, gt, panel_ctx = panel_ctx),
-        title = if (!is.null(layout$title)) layout$title else "",
-        axes = self$extract_pie_axes(plot, layout, built, panel_id),
-        type = "pie"
+      c(
+        list(
+          data = self$extract_data(plot, built, panel_id = panel_id),
+          selectors = self$generate_selectors(plot, gt, panel_ctx = panel_ctx),
+          title = if (!is.null(layout$title)) layout$title else "",
+          axes = self$extract_pie_axes(plot, layout, built, panel_id),
+          type = "pie"
+        ),
+        self$extract_dial(plot, built, panel_id)
       )
+    },
+
+    #' @description Where the ring begins and which way the emitted wedges run
+    #'
+    #' The frontend walks a pie clockwise -- Right steps to the next slice the
+    #' way a clock hand goes, the audio pans each slice to where it sits and
+    #' `p` names its clock position -- all from where the layer says the first
+    #' slice begins, in degrees clockwise from 12 o'clock. The layer says two
+    #' things about the wedges it emits: where the ring begins and which way
+    #' round the dial the *emitted order* runs.
+    #'
+    #' Where the ring begins, and which way the coord runs round it, are read
+    #' off the coord by \code{pie_coord_ring()}: \code{coord_polar()} keeps a
+    #' \code{start} applied in its \code{direction}, \code{coord_radial()} an
+    #' \code{arc} already turned round by its \code{reverse}. Either maps the
+    #' whole theta scale onto the arc, so a full ring ends where it began and
+    #' the same edge serves whichever way the wedges are walked. A partial
+    #' \code{coord_radial()} arc, or its default theta expansion, draws less
+    #' than the full circle; the frontend's pie has no key for that, so the
+    #' ring's nominal edge is declared and the wedges are read as filling it.
+    #'
+    #' Which way the emitted order runs is NOT simply the coord's direction.
+    #' \code{position_stack()} stacks the first group on top by default, so
+    #' the built rows -- and the wedges, and the selectors index-aligned to
+    #' them -- run from the top of the stack down: the first emitted wedge is
+    #' the one that ENDS the ring, and the order goes back against the coord's
+    #' direction, and \code{position_stack(reverse = TRUE)} builds them the
+    #' other way up. So the direction is read off the built rows themselves:
+    #' emitted order running down the stack is the coord's direction
+    #' reversed, running up it is the coord's direction.
+    #'
+    #' Both keys are left out at the frontend's own defaults -- a clockwise
+    #' ring from the top -- which is also what every layer declared before
+    #' the keys existed.
+    #'
+    #' @param plot The ggplot2 object
+    #' @param built Built plot data
+    #' @param panel_id Optional facet panel to restrict extraction to
+    #' @return Named list holding `startAngle` and/or `direction`, possibly
+    #'   empty
+    extract_dial = function(plot, built, panel_id = NULL) {
+      ring <- pie_coord_ring(plot$coordinates)
+
+      built_data <- self$panel_built_data(built, panel_id)
+      down_the_stack <- FALSE
+      if (nrow(built_data) > 1L && !is.null(built_data$ymin)) {
+        ymin <- built_data$ymin
+        first <- ymin[[1L]]
+        last <- ymin[[nrow(built_data)]]
+        down_the_stack <- is.finite(first) && is.finite(last) && first > last
+      }
+      emitted_direction <- if (down_the_stack) -ring$direction else ring$direction
+
+      start_angle <- (ring$start * 180 / pi) %% 360
+      dial <- list()
+      if (start_angle != 0) {
+        dial$startAngle <- start_angle
+      }
+      if (emitted_direction < 0) {
+        dial$direction <- "counterclockwise"
+      }
+      dial
     },
 
     #' @description Extract one point per wedge
@@ -473,3 +538,54 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+#' Where a Polar Coord's Ring Begins and Which Way It Runs
+#'
+#' In radians clockwise from 12 o'clock, and 1 for clockwise, -1 for
+#' anticlockwise.
+#'
+#' The two polar coords store the same two facts differently. `coord_polar()`
+#' keeps `start`, an offset applied in its `direction`, so its edge sits at
+#' `direction * start`. `coord_radial()` keeps `arc = c(start, end)`: on
+#' ggplot2 >= 4.0 a `reverse` of "theta" or "thetar" turns the arc round before
+#' it is stored, so the first element is the edge and no sign applies, while
+#' 3.5.x kept a numeric `direction` applied to the arc the way `coord_polar()`
+#' applies it to `start`. Measured on ggplot2 4.0.3: `coord_radial("y", start
+#' = pi / 2, reverse = "theta")` draws its ring anticlockwise from 3 o'clock.
+#' Anything unusable falls back to that coord's own default.
+#'
+#' @param coord A CoordPolar or CoordRadial ggproto object
+#' @return List with `start` (radians) and `direction` (1 or -1)
+#' @keywords internal
+#' @noRd
+pie_coord_ring <- function(coord) {
+  radial <- inherits(coord, "CoordRadial")
+  start <- pie_coord_number(if (radial) coord$arc[1L] else coord$start, 0)
+
+  reverse <- coord$reverse
+  if (radial && is.character(reverse)) {
+    direction <- if (any(reverse %in% c("theta", "thetar"))) -1 else 1
+    return(list(start = start, direction = direction))
+  }
+
+  direction <- sign(pie_coord_number(coord$direction, 1))
+  if (direction == 0) {
+    direction <- 1
+  }
+  list(start = direction * start, direction = direction)
+}
+
+#' One Finite Number Out of a Coord Field
+#'
+#' The default stands in when the field is anything else: absent, a vector,
+#' NA or infinite.
+#'
+#' @param value The field as stored
+#' @param default What to use instead
+#' @return A length-one finite numeric
+#' @keywords internal
+#' @noRd
+pie_coord_number <- function(value, default) {
+  usable <- is.numeric(value) && length(value) == 1L && is.finite(value)
+  if (usable) value else default
+}
