@@ -39,7 +39,7 @@ magnitudes, so none are emitted here.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-23">
+<meta name="DC.date" content="2026-09-18">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -106,6 +106,7 @@ magnitudes, so none are emitted here.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-BaseRPieLayerProcessor-process"><code>BaseRPieLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-BaseRPieLayerProcessor-extract_dial"><code>BaseRPieLayerProcessor$extract_dial()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-needs_reordering"><code>BaseRPieLayerProcessor$needs_reordering()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-extract_data"><code>BaseRPieLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-BaseRPieLayerProcessor-resolve_slice_labels"><code>BaseRPieLayerProcessor$resolve_slice_labels()</code></a></p></li>
@@ -182,23 +183,24 @@ magnitudes, so none are emitted here.</p>
 
 </div>
 
-<p></p><hr><a id="method-BaseRPieLayerProcessor-needs_reordering"></a><div class="section">
-<h3 id="baserpielayerprocessor-needs-reordering-"><code>BaseRPieLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-needs-reordering-"></a></h3>
-<p>Pie slices are emitted in drawing order (see extract_data)</p><div class="section">
+<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_dial"></a><div class="section">
+<h3 id="baserpielayerprocessor-extract-dial-"><code>BaseRPieLayerProcessor$extract_dial()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-dial-"></a></h3>
+<p>Where the ring begins and which way it runs</p>
+<p>The frontend walks a pie clockwise – Right steps to the next slice the
+way a clock hand goes, the audio pans each slice to where it sits and
+<code>p</code> names its clock position – all from where the layer says the first
+slice begins, measured in degrees clockwise from 12 o'clock. <code><a href="base-r-wrappers.html">pie()</a></code>
+draws the other way round by default: <code>clockwise = FALSE</code>, from
+<code>init.angle</code> degrees <em>counterclockwise</em> from <em>3 o'clock</em>, so its
+default of 0 is the frontend's 90 and a <code>clockwise = TRUE</code> pie's
+default of 90 is the frontend's 0. The direction is declared so the
+frontend can turn the walk round; the wedges stay in recorded-call
+order, which is what the selectors are index-aligned to.</p>
+<p>Both keys are left out at the frontend's own defaults – a clockwise
+ring from the top – which is also what every layer declared before
+the keys existed.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>FALSE</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_data"></a><div class="section">
-<h3 id="baserpielayerprocessor-extract-data-"><code>BaseRPieLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-data-"></a></h3>
-<p>Extract one point per slice from the recorded call</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_dial</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
@@ -207,7 +209,39 @@ magnitudes, so none are emitted here.</p>
 
 </dl><p></p></div>
 </div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Named list holding <code>startAngle</code> and/or <code>direction</code>, possibly
+empty</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPieLayerProcessor-needs_reordering"></a><div class="section">
+<h3 id="baserpielayerprocessor-needs-reordering-"><code>BaseRPieLayerProcessor$needs_reordering()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-needs-reordering-"></a></h3>
+<p>Pie slices are emitted in drawing order (see extract_data)</p><div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">needs_reordering</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
 <h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<p>FALSE</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_data"></a><div class="section">
+<h3 id="baserpielayerprocessor-extract-data-"><code>BaseRPieLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-data-"></a></h3>
+<p>Extract one point per slice from the recorded call</p><div class="section">
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>Flat list of <code>list(x = &lt;label&gt;, y = &lt;value&gt;)</code> points</p>
 </div>
 
@@ -220,10 +254,10 @@ magnitudes, so none are emitted here.</p>
 when the input is unnamed. <code>pie(labels = NA)</code> draws neither label nor
 leader line, but the wedges are still there and still navigable, so
 those slices are announced by position rather than as "NA".</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">resolve_slice_labels</span><span class="op">(</span><span class="va">values</span>, <span class="va">args</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>values</code></dt>
 <dd><p>The recorded <code>x</code> argument (names still attached)</p></dd>
 
@@ -233,7 +267,7 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>Character vector with one label per slice</p>
 </div>
 
@@ -242,14 +276,14 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 <p></p><hr><a id="method-BaseRPieLayerProcessor-generate_selectors"></a><div class="section">
 <h3 id="baserpielayerprocessor-generate-selectors-"><code>BaseRPieLayerProcessor$generate_selectors()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-generate-selectors-"></a></h3>
 <p>Generate one selector per wedge, index-aligned to the data</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span></span>
 <span>  <span class="va">layer_info</span>,</span>
 <span>  gt <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  extracted_data <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
 <dd><p>Layer information</p></dd>
 
@@ -262,7 +296,7 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>List of CSS selector strings, one per slice</p>
 </div>
 
@@ -275,27 +309,8 @@ those slices are announced by position rather than as "NA".</p><div class="secti
 <code><a href="base-r-wrappers.html">pie()</a></code> records neither unless the author wrote one, and a pie always
 holds labelled categories against their magnitudes, so the defaults
 say that much rather than leaving the axes nameless.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
-</div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
-<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
-<dd><p>Layer information</p></dd>
-
-
-</dl><p></p></div>
-</div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
-<p>Canonical axes list</p>
-</div>
-
-</div>
-
-<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_main_title"></a><div class="section">
-<h3 id="baserpielayerprocessor-extract-main-title-"><code>BaseRPieLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-main-title-"></a></h3>
-<p>Extract the main title for this layer</p><div class="section">
 <h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
@@ -305,6 +320,25 @@ say that much rather than leaving the axes nameless.</p><div class="section">
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<p>Canonical axes list</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPieLayerProcessor-extract_main_title"></a><div class="section">
+<h3 id="baserpielayerprocessor-extract-main-title-"><code>BaseRPieLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-extract-main-title-"></a></h3>
+<p>Extract the main title for this layer</p><div class="section">
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>layer_info</code></dt>
+<dd><p>Layer information</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>Character scalar</p>
 </div>
 
@@ -313,10 +347,10 @@ say that much rather than leaving the axes nameless.</p><div class="section">
 <p></p><hr><a id="method-BaseRPieLayerProcessor-clone"></a><div class="section">
 <h3 id="baserpielayerprocessor-clone-"><code>BaseRPieLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#baserpielayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPieLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

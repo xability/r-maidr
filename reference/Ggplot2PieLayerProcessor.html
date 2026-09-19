@@ -63,7 +63,7 @@ declines them, and they stay bar / stacked / dodged as before.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-20">
+<meta name="DC.date" content="2026-09-18">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -138,6 +138,7 @@ declines them, and they stay bar / stacked / dodged as before.</p>
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 <p></p><ul><li><p><a href="#method-Ggplot2PieLayerProcessor-process"><code>Ggplot2PieLayerProcessor$process()</code></a></p></li>
+<li><p><a href="#method-Ggplot2PieLayerProcessor-extract_dial"><code>Ggplot2PieLayerProcessor$extract_dial()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PieLayerProcessor-extract_data"><code>Ggplot2PieLayerProcessor$extract_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PieLayerProcessor-panel_built_data"><code>Ggplot2PieLayerProcessor$panel_built_data()</code></a></p></li>
 <li><p><a href="#method-Ggplot2PieLayerProcessor-resolve_slice_mapping"><code>Ggplot2PieLayerProcessor$resolve_slice_mapping()</code></a></p></li>
@@ -218,6 +219,59 @@ declines them, and they stay bar / stacked / dodged as before.</p>
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2PieLayerProcessor-extract_dial"></a><div class="section">
+<h3 id="ggplot-pielayerprocessor-extract-dial-"><code>Ggplot2PieLayerProcessor$extract_dial()</code><a class="anchor" aria-label="anchor" href="#ggplot-pielayerprocessor-extract-dial-"></a></h3>
+<p>Where the ring begins and which way the emitted wedges run</p>
+<p>The frontend walks a pie clockwise – Right steps to the next slice the
+way a clock hand goes, the audio pans each slice to where it sits and
+<code>p</code> names its clock position – all from where the layer says the first
+slice begins, in degrees clockwise from 12 o'clock. The layer says two
+things about the wedges it emits: where the ring begins and which way
+round the dial the <em>emitted order</em> runs.</p>
+<p>Where the ring begins, and which way the coord runs round it, are read
+off the coord by <code>pie_coord_ring()</code>: <code><a href="https://ggplot2.tidyverse.org/reference/coord_radial.html" class="external-link">coord_polar()</a></code> keeps a
+<code>start</code> applied in its <code>direction</code>, <code><a href="https://ggplot2.tidyverse.org/reference/coord_radial.html" class="external-link">coord_radial()</a></code> an
+<code>arc</code> already turned round by its <code>reverse</code>. Either maps the
+whole theta scale onto the arc, so a full ring ends where it began and
+the same edge serves whichever way the wedges are walked. A partial
+<code><a href="https://ggplot2.tidyverse.org/reference/coord_radial.html" class="external-link">coord_radial()</a></code> arc, or its default theta expansion, draws less
+than the full circle; the frontend's pie has no key for that, so the
+ring's nominal edge is declared and the wedges are read as filling it.</p>
+<p>Which way the emitted order runs is NOT simply the coord's direction.
+<code><a href="https://ggplot2.tidyverse.org/reference/position_stack.html" class="external-link">position_stack()</a></code> stacks the first group on top by default, so
+the built rows – and the wedges, and the selectors index-aligned to
+them – run from the top of the stack down: the first emitted wedge is
+the one that ENDS the ring, and the order goes back against the coord's
+direction, and <code>position_stack(reverse = TRUE)</code> builds them the
+other way up. So the direction is read off the built rows themselves:
+emitted order running down the stack is the coord's direction
+reversed, running up it is the coord's direction.</p>
+<p>Both keys are left out at the frontend's own defaults – a clockwise
+ring from the top – which is also what every layer declared before
+the keys existed.</p><div class="section">
+<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">extract_dial</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plot</code></dt>
+<dd><p>The ggplot2 object</p></dd>
+
+      <dt><code>built</code></dt>
+<dd><p>Built plot data</p></dd>
+
+      <dt><code>panel_id</code></dt>
+<dd><p>Optional facet panel to restrict extraction to</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>Named list holding <code>startAngle</code> and/or <code>direction</code>, possibly
+empty</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2PieLayerProcessor-extract_data"></a><div class="section">
 <h3 id="ggplot-pielayerprocessor-extract-data-"><code>Ggplot2PieLayerProcessor$extract_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-pielayerprocessor-extract-data-"></a></h3>
 <p>Extract one point per wedge</p>
@@ -238,10 +292,10 @@ percentage; laundering it here would leave that defence nothing to
 catch. Whether a producer should reject such a value outright is a
 separate question – see xability/maidr#771 – but no answer to it is
 served by destroying the sign first.</p><div class="section">
-<h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">extract_data</span><span class="op">(</span><span class="va">plot</span>, built <span class="op">=</span> <span class="cn">NULL</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -254,7 +308,7 @@ served by destroying the sign first.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>List of <code>list(x, y)</code> points, one per wedge</p>
 </div>
 
@@ -263,10 +317,10 @@ served by destroying the sign first.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2PieLayerProcessor-panel_built_data"></a><div class="section">
 <h3 id="ggplot-pielayerprocessor-panel-built-data-"><code>Ggplot2PieLayerProcessor$panel_built_data()</code><a class="anchor" aria-label="anchor" href="#ggplot-pielayerprocessor-panel-built-data-"></a></h3>
 <p>Rows of this layer's built data, optionally one panel's</p><div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">panel_built_data</span><span class="op">(</span><span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -276,7 +330,7 @@ served by destroying the sign first.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>data.frame of built rows for this layer</p>
 </div>
 
@@ -289,10 +343,10 @@ served by destroying the sign first.</p><div class="section">
 <code>""</code> and carries the categories on fill. A layer whose built rows
 do not each sit in their own group is not split by any aesthetic (every
 row shares group -1 or 1), so no aesthetic names its wedges.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">resolve_slice_mapping</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -302,7 +356,7 @@ row shares group -1 or 1), so no aesthetic names its wedges.</p><div class="sect
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
 <p>list with <code>aes</code> (aesthetic name, or NULL) and
 <code>column</code> (the mapped column name)</p>
 </div>
@@ -319,10 +373,10 @@ labels BY the id, rather than by position among the ids present, is
 what stops a facet panel that is missing a category from shifting every
 remaining wedge's label by one. Wedges the scale cannot name fall back
 to their position.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">resolve_slice_labels</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, <span class="va">built_data</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -335,7 +389,7 @@ to their position.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
 <p>Character vector, one label per wedge</p>
 </div>
 
@@ -350,10 +404,10 @@ POSITION scale keeps its labels in <code>panel_params</code> instead, and
 <code><a href="https://ggplot2.tidyverse.org/reference/coord_radial.html" class="external-link">coord_polar()</a></code> publishes none of those under x, so the mapped
 column is the fallback. Both list the categories in the same sorted
 order the group ids were assigned in.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">slice_categories</span><span class="op">(</span><span class="va">plot</span>, <span class="va">built</span>, <span class="va">slice</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -366,7 +420,7 @@ order the group ids were assigned in.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>Character vector of categories, or NULL when neither source has any</p>
 </div>
 
@@ -375,10 +429,10 @@ order the group ids were assigned in.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2PieLayerProcessor-scale_labels"></a><div class="section">
 <h3 id="ggplot-pielayerprocessor-scale-labels-"><code>Ggplot2PieLayerProcessor$scale_labels()</code><a class="anchor" aria-label="anchor" href="#ggplot-pielayerprocessor-scale-labels-"></a></h3>
 <p>Break labels of the scale backing an aesthetic</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">scale_labels</span><span class="op">(</span><span class="va">built</span>, <span class="va">aes_name</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>built</code></dt>
 <dd><p>Built plot data</p></dd>
 
@@ -388,7 +442,7 @@ order the group ids were assigned in.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>Character vector of labels, or NULL when the scale has none</p>
 </div>
 
@@ -403,10 +457,10 @@ legend title is the x label – resolved the same way the stacked bar
 layer resolves its z label. The y label is taken from the layout, which
 reads the BUILT plot's labels and so already carries a stat-derived
 name such as "count".</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">extract_pie_axes</span><span class="op">(</span><span class="va">plot</span>, <span class="va">layout</span>, <span class="va">built</span>, panel_id <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -422,7 +476,7 @@ name such as "count".</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>Canonical axes list with x and y</p>
 </div>
 
@@ -438,10 +492,10 @@ draws. gridSVG exports it as <code>&lt;g id="geom_rect.polygon.&lt;N&gt;.1"&gt;<
 with one <code>&lt;polygon&gt;</code> child per wedge, emitted in built-row order,
 so a single descendant selector resolves to the N elements in slice
 order.</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">generate_selectors</span><span class="op">(</span><span class="va">plot</span>, gt <span class="op">=</span> <span class="cn">NULL</span>, panel_ctx <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The ggplot2 object</p></dd>
 
@@ -454,7 +508,7 @@ order.</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>List holding one selector, or an empty list</p>
 </div>
 
@@ -481,17 +535,17 @@ it matches on the geom's own class, and a <code><a href="https://ggplot2.tidyver
 either – a <code><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text()</a></code> label layer occupies a slot and draws no
 container, so the counts stop lining up and both rings of an annotated
 pie lose their selectors.</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">layer_slot_grob</span><span class="op">(</span><span class="va">panel</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>panel</code></dt>
 <dd><p>The panel grob, or NULL</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>This layer's grob, or NULL when the slot cannot be established</p>
 </div>
 
@@ -505,17 +559,17 @@ with no leading blank, or a caller handing over a gtable rather than a
 panel. Correct whenever the search finds a single container, which is
 every chart that is only a pie; ambiguous otherwise, and ambiguous
 means no selector for the reason <code>generate_selectors()</code> gives.</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">sole_wedge_container</span><span class="op">(</span><span class="va">roots</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>roots</code></dt>
 <dd><p>Grobs to search</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>Grob name, or NULL</p>
 </div>
 
@@ -527,17 +581,17 @@ means no selector for the reason <code>generate_selectors()</code> gives.</p><di
 <p>One entry per layer that drew wedges. A match is not descended into:
 the container is the whole layer's wedges, and its children are the
 individual ones.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">collect_polygon_grobs</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
+<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>Grob to search</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Character vector of grob names, possibly empty</p>
 </div>
 
@@ -565,17 +619,17 @@ resolves against both without knowing which it got.</p>
 carries a name that matches it. The gTree branch also requires a
 polygon to be there: a <code>geom_rect</code> layer that drew none has
 nothing to point at.</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">find_own_polygon_grob</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-12">Arguments<a class="anchor" aria-label="anchor" href="#arguments-12"></a></h4>
+<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>Grob to test</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
 <p>Grob name, or NULL</p>
 </div>
 
@@ -584,17 +638,17 @@ nothing to point at.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2PieLayerProcessor-holds_polygon"></a><div class="section">
 <h3 id="ggplot-pielayerprocessor-holds-polygon-"><code>Ggplot2PieLayerProcessor$holds_polygon()</code><a class="anchor" aria-label="anchor" href="#ggplot-pielayerprocessor-holds-polygon-"></a></h3>
 <p>Whether a grob tree draws at least one polygon.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">holds_polygon</span><span class="op">(</span><span class="va">grob</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-13">Arguments<a class="anchor" aria-label="anchor" href="#arguments-13"></a></h4>
+<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>grob</code></dt>
 <dd><p>Grob to search</p></dd>
 
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>TRUE when the tree holds a polygon grob</p>
 </div>
 
@@ -603,10 +657,10 @@ nothing to point at.</p><div class="section">
 <p></p><hr><a id="method-Ggplot2PieLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-pielayerprocessor-clone-"><code>Ggplot2PieLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-pielayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
+<h4 id="usage-15">Usage<a class="anchor" aria-label="anchor" href="#usage-15"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2PieLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-14">Arguments<a class="anchor" aria-label="anchor" href="#arguments-14"></a></h4>
+<h4 id="arguments-15">Arguments<a class="anchor" aria-label="anchor" href="#arguments-15"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

@@ -61,6 +61,18 @@
   layer under `coord_polar("y")` or `coord_radial(theta = "y")` is
   emitted as a `pie` layer, one navigable slice per wedge.
   `coord_polar("x")` and multi-ring charts keep their bar reading.
+- A pie layer now says where its ring begins and which way its wedges
+  run (`startAngle`, degrees clockwise from 12 o’clock, and
+  `direction`), read off
+  [`coord_polar()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)’s
+  `start` and `direction`, or
+  [`coord_radial()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)’s
+  `arc` and `reverse`, and off the way the stack was built. maidr.js
+  walks every pie clockwise from that start, pans each slice to where it
+  sits and names its clock position on `p`; a default ggplot2 pie, whose
+  wedges are built from the top of the stack down, is declared
+  counterclockwise so the walk is turned round to match the drawing. A
+  bundle older than the one that reads the keys ignores them.
 - Added step plot support:
   [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
   is emitted as a `step` layer, one point per sample, with
@@ -165,6 +177,14 @@
   are repaired so
   [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) exports
   through gridSVG.
+- A [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) layer now
+  says where its ring begins and which way it runs: `init.angle` is
+  converted from degrees counterclockwise from 3 o’clock to the
+  `startAngle` maidr.js reads (degrees clockwise from 12), and
+  `clockwise = FALSE`, the default, is declared as
+  `direction = "counterclockwise"` so the walk, the audio pan and the
+  `p` clock position follow the wedges as drawn rather than the other
+  way round.
 - Added Base R step plot support:
   [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
   [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) with

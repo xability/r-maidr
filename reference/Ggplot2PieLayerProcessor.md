@@ -29,6 +29,8 @@ stacked / dodged as before.
 
 - [`Ggplot2PieLayerProcessor$process()`](#method-Ggplot2PieLayerProcessor-process)
 
+- [`Ggplot2PieLayerProcessor$extract_dial()`](#method-Ggplot2PieLayerProcessor-extract_dial)
+
 - [`Ggplot2PieLayerProcessor$extract_data()`](#method-Ggplot2PieLayerProcessor-extract_data)
 
 - [`Ggplot2PieLayerProcessor$panel_built_data()`](#method-Ggplot2PieLayerProcessor-panel_built_data)
@@ -132,6 +134,69 @@ Process the pie layer
 #### Returns
 
 List with data, selectors, title, axes and type
+
+------------------------------------------------------------------------
+
+### `Ggplot2PieLayerProcessor$extract_dial()`
+
+Where the ring begins and which way the emitted wedges run
+
+The frontend walks a pie clockwise – Right steps to the next slice the
+way a clock hand goes, the audio pans each slice to where it sits and
+`p` names its clock position – all from where the layer says the first
+slice begins, in degrees clockwise from 12 o'clock. The layer says two
+things about the wedges it emits: where the ring begins and which way
+round the dial the *emitted order* runs.
+
+Where the ring begins, and which way the coord runs round it, are read
+off the coord by `pie_coord_ring()`:
+[`coord_polar()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)
+keeps a `start` applied in its `direction`,
+[`coord_radial()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)
+an `arc` already turned round by its `reverse`. Either maps the whole
+theta scale onto the arc, so a full ring ends where it began and the
+same edge serves whichever way the wedges are walked. A partial
+[`coord_radial()`](https://ggplot2.tidyverse.org/reference/coord_radial.html)
+arc, or its default theta expansion, draws less than the full circle;
+the frontend's pie has no key for that, so the ring's nominal edge is
+declared and the wedges are read as filling it.
+
+Which way the emitted order runs is NOT simply the coord's direction.
+[`position_stack()`](https://ggplot2.tidyverse.org/reference/position_stack.html)
+stacks the first group on top by default, so the built rows – and the
+wedges, and the selectors index-aligned to them – run from the top of
+the stack down: the first emitted wedge is the one that ENDS the ring,
+and the order goes back against the coord's direction, and
+`position_stack(reverse = TRUE)` builds them the other way up. So the
+direction is read off the built rows themselves: emitted order running
+down the stack is the coord's direction reversed, running up it is the
+coord's direction.
+
+Both keys are left out at the frontend's own defaults – a clockwise ring
+from the top – which is also what every layer declared before the keys
+existed.
+
+#### Usage
+
+    Ggplot2PieLayerProcessor$extract_dial(plot, built, panel_id = NULL)
+
+#### Arguments
+
+- `plot`:
+
+  The ggplot2 object
+
+- `built`:
+
+  Built plot data
+
+- `panel_id`:
+
+  Optional facet panel to restrict extraction to
+
+#### Returns
+
+Named list holding `startAngle` and/or `direction`, possibly empty
 
 ------------------------------------------------------------------------
 
