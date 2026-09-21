@@ -9,7 +9,7 @@ NULL
 #' Find grob by element type pattern
 #'
 #' Searches recursively through a grob tree to find a grob whose name matches
-#' the pattern: graphics-plot-<number>-<element_type>-<number>
+#' the pattern: `graphics-plot-<number>-<element_type>-<number>`
 #'
 #' @param grob The grob tree to search (typically from ggplotify::as.grob())
 #' @param element_type The element type to search for (e.g., "rect", "lines", "points")

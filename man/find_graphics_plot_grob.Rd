@@ -18,5 +18,5 @@ The name of the first matching grob, or NULL if not found
 }
 \description{
 Searches recursively through a grob tree to find a grob whose name matches
-the pattern: graphics-plot-\if{html}{\out{<number>}}-<element_type>-\if{html}{\out{<number>}}
+the pattern: \verb{graphics-plot-<number>-<element_type>-<number>}
 }

@@ -73,7 +73,7 @@ data_has_series_groups <- function(data) {
 #' \code{ggplot_build()} replaces the grouping column with integer group ids,
 #' so the user-facing name has to be recovered from the plot's own data. The
 #' ids are assigned in the sorted order of the grouping column's values, which
-#' is the order this function relies on. Falls back to "Series <id>" when the
+#' is the order this function relies on. Falls back to `"Series <id>"` when the
 #' mapped column is not present on the plot data (for example an expression
 #' such as \code{aes(colour = paste(a, b))}).
 #'
@@ -103,7 +103,7 @@ resolve_series_group_names <- function(plot, group_ids, column = "group") {
 #' Add the legend title as the z axis label for a grouped layer
 #'
 #' A grouped layer emits a per-series \code{z} value (the group's name), and
-#' MAIDR announces it as "<z label> is <z value>". Without a z label the
+#' MAIDR announces it as `"<z label> is <z value>"`. Without a z label the
 #' frontend falls back to the generic word "Group", losing the legend title the
 #' plot actually shows. Single-series layers emit no z value at all, so they
 #' get no z label either.

@@ -282,7 +282,7 @@ find_gtable_panel_grob <- function(gt, panel_ctx = NULL) {
   NULL
 }
 
-#' Discover panels via gtable layout rows named '^panel-<num>' or '^panel-<row>-<col>'
+#' Discover panels via gtable layout rows named `^panel-<num>` or `^panel-<row>-<col>`
 #' Returns a data.frame with panel_index, name, t, l, row, col
 #' @param gtable Gtable object
 #' @return Data frame with panel information

@@ -1,4 +1,4 @@
-# maidr (development version)
+# maidr 0.5.0
 
 ## New Features
 
@@ -40,8 +40,8 @@
   `geom_path()` with a `threshold` aesthetic and an `auc` argument -- and
   `pROC::ggroc()` and `autoplot()` of a `yardstick::roc_curve()` are read as
   they stand, by the `sensitivity` and `specificity` they map. The trace
-  needs maidr.js 4.9.0; until the bundled copy reaches it, both keep the
-  line reading they had, and switch with the next bundle update.
+  needs maidr.js 4.9.0, the version bundled with this release; an older
+  bundle keeps the line reading these charts had.
 * Added pie chart support: a `geom_col()`/`geom_bar()` layer under
   `coord_polar("y")` or `coord_radial(theta = "y")` is emitted as a `pie`
   layer, one navigable slice per wedge. `coord_polar("x")` and multi-ring
@@ -269,7 +269,7 @@
   attribute says, so a tactile display such as a Dot Pad can be reached from
   an R chart; the frame carries `allow="bluetooth; serial"` for a chart
   inside a cross-origin frame. Reading by touch also needs a maidr build
-  that supports the display, which is later than the bundled 4.6.0.
+  that supports the display; the bundled 4.9.0 does.
 * `save_html()` and `show()` no longer warn "number of items to replace is
   not a multiple of replacement length" on a chart with a rect of negative
   height or width, such as `barplot()` with a bar below the baseline.
@@ -445,7 +445,7 @@
 
 ## Enhancements
 
-* Bundled MAIDR.js updated from 3.72.1 to 4.6.0, and CDN assets are pinned
+* Bundled MAIDR.js updated from 3.72.1 to 4.9.0, and CDN assets are pinned
   to the bundled version instead of `@latest`.
 * maidr now requires R >= 4.0.0.
 * Iframe height auto-resize works in RMarkdown documents, not only in the
