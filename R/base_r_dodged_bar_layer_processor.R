@@ -36,7 +36,10 @@ BaseRDodgedBarLayerProcessor <- R6::R6Class(
         type = "dodged_bar",
         title = title,
         axes = axes,
-        domMapping = list(groupDirection = "forward")
+        # `barplot()` draws category by category, first series first, and
+        # the bundled maidr.js pairs a flat rect list with the grid series
+        # by series unless the layer says `order = "column"`.
+        domMapping = list(order = "column", groupDirection = "forward")
       )
     },
     #' @description One series per row of the recorded height matrix

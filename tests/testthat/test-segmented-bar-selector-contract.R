@@ -4,18 +4,28 @@
 # Flattened side by side the two look mismatched, because SVG document order is
 # x-major. They are not: the bundled maidr.js builds stacked, dodged and
 # normalized traces from a single class whose `mapToSvgElements` re-groups the
-# flat `querySelectorAll` node list one column at a time, walking each column's
-# series in REVERSE when the layer carries no `domMapping`:
+# flat `querySelectorAll` node list itself. Since 4.0 the column-major walk
+# has to be asked for -- a layer that says nothing is paired series by
+# series -- and within a column the series run in REVERSE unless the layer
+# says otherwise:
 #
-#   for (let col = 0, k = 0; col < barValues[0].length; col++)
-#     if (domMapping?.groupDirection === "forward")
-#       for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
-#     else
-#       for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
+#   if (domMapping?.order !== "column")
+#     for (let s = 0; s < barValues.length; s++)
+#       for (let col = 0; col < barValues[s].length; col++) out[s][col] = nodes[k++];
+#   else
+#     for (let col = 0; col < barValues[0].length; col++)
+#       if (domMapping?.groupDirection === "forward")
+#         for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
+#       else
+#         for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
 #
 # These tests re-run that regrouping in R against the rects actually exported,
-# so a change to either the emitted series order or the rect draw order fails
-# here instead of silently announcing the wrong bars.
+# so a change to the emitted series order, the rect draw order or the
+# `domMapping` the layer declares fails here instead of silently announcing
+# the wrong bars. Every ggplot2 segmented layer draws category by category
+# and so must declare `order = "column"` (#316): measured in headless
+# Chromium against the bundled 4.9.0, a dodged layer without it announced
+# "a, 10, u" while outlining the 55 bar.
 
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
@@ -83,7 +93,7 @@ render_segmented_bar <- function(position, key) {
   out
 }
 
-# The `mapToSvgElements` rect branch of the bundled maidr.js, in R.
+# The `mapToSvgElements` string branch of the bundled maidr.js, in R.
 regroup_like_maidr_js <- function(layer, dom_values) {
   bar_values <- lapply(layer$data, function(series) {
     vapply(series, function(point) as.numeric(point$y), numeric(1))
@@ -92,6 +102,13 @@ regroup_like_maidr_js <- function(layer, dom_values) {
 
   grouped <- vector("list", length(bar_values))
   k <- 1L
+  if (!identical(layer$domMapping$order, "column")) {
+    for (s in seq_along(bar_values)) {
+      grouped[[s]] <- dom_values[seq(k, length.out = length(bar_values[[s]]))]
+      k <- k + length(bar_values[[s]])
+    }
+    return(grouped)
+  }
   for (col in seq_along(bar_values[[1]])) {
     series_order <- if (forward) {
       seq_along(bar_values)
@@ -120,7 +137,7 @@ test_that("a stacked bar layer emits one flat selector for every rect", {
 
   testthat::expect_length(rendered$layer$selectors, 1)
   testthat::expect_match(rendered$selector, "^#geom_rect\\\\\\..* rect$")
-  testthat::expect_null(rendered$layer$domMapping)
+  testthat::expect_equal(rendered$layer$domMapping, list(order = "column"))
   testthat::expect_equal(rendered$layer$type, "stacked_bar")
 })
 
@@ -167,7 +184,7 @@ test_that("a dodged bar layer emits one flat selector for every rect", {
 
   testthat::expect_length(rendered$layer$selectors, 1)
   testthat::expect_match(rendered$selector, "^#geom_rect\\\\\\..* rect$")
-  testthat::expect_null(rendered$layer$domMapping)
+  testthat::expect_equal(rendered$layer$domMapping, list(order = "column"))
   testthat::expect_equal(rendered$layer$type, "dodged_bar")
 })
 
@@ -202,6 +219,24 @@ test_that("maidr.js regrouping reunites dodged series with their own rects", {
                          tolerance = 1e-3)
   testthat::expect_equal(grouped[[2]], series_values(rendered$layer, 2),
                          tolerance = 1e-3)
+})
+
+test_that("without `order = \"column\"` the frontend would pair the wrong bars", {
+  skip_if_no_render()
+
+  # What the bundled 4.x does for a layer that declares no order: series by
+  # series over a document that is drawn column by column. It is the
+  # highlight #316 measured on the wrong bar, and the guard that the key
+  # stays declared.
+  for (key in c("stack", "dodge")) {
+    rendered <- render_segmented_bar(key, key)
+    undeclared <- rendered$layer
+    undeclared$domMapping <- NULL
+    grouped <- regroup_like_maidr_js(undeclared, rendered$dom_values)
+    testthat::expect_false(isTRUE(all.equal(
+      grouped[[1]], series_values(rendered$layer, 1), tolerance = 1e-3
+    )))
+  }
 })
 
 test_that("a naive flatten-and-zip would disagree with the regrouping", {

@@ -94,9 +94,28 @@ regroup_with_zero_skip <- function(bar_values, nodes, dom_mapping = NULL) {
   slots <- sum(vapply(bar_values, length, integer(1)))
   sparse <- length(nodes) < slots
   forward <- identical(dom_mapping$groupDirection, "forward")
+  # Since maidr.js 4.0 the column-major walk is declared, not inferred: a
+  # layer that says nothing is paired series by series (#316).
+  column_major <- identical(dom_mapping$order, "column")
 
   grouped <- replicate(length(bar_values), integer(0), simplify = FALSE)
   k <- 1L
+  claim <- function(s, col) {
+    if ((sparse && bar_values[[s]][col] == 0) || k > length(nodes)) {
+      grouped[[s]] <<- c(grouped[[s]], NA_integer_)
+    } else {
+      grouped[[s]] <<- c(grouped[[s]], nodes[k])
+      k <<- k + 1L
+    }
+  }
+  if (!column_major) {
+    for (s in seq_along(bar_values)) {
+      for (col in seq_along(bar_values[[s]])) {
+        claim(s, col)
+      }
+    }
+    return(grouped)
+  }
   for (col in seq_along(bar_values[[1]])) {
     series_order <- if (forward) {
       seq_along(bar_values)
@@ -104,12 +123,7 @@ regroup_with_zero_skip <- function(bar_values, nodes, dom_mapping = NULL) {
       rev(seq_along(bar_values))
     }
     for (s in series_order) {
-      if ((sparse && bar_values[[s]][col] == 0) || k > length(nodes)) {
-        grouped[[s]] <- c(grouped[[s]], NA_integer_)
-      } else {
-        grouped[[s]] <- c(grouped[[s]], nodes[k])
-        k <- k + 1L
-      }
+      claim(s, col)
     }
   }
   grouped
@@ -191,7 +205,7 @@ test_that("geom_col dodging keeps the default reverse walk", {
     ) + ggplot2::geom_col(position = "dodge")
   )
 
-  testthat::expect_null(rendered$layer$domMapping)
+  testthat::expect_equal(rendered$layer$domMapping, list(order = "column"))
 })
 
 # The end-to-end check: replay the frontend regrouping over the real rects and

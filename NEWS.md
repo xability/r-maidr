@@ -226,10 +226,18 @@
   carries a plain string for every layer type whose frontend model reads
   one selector for all of its marks, joined with `", "` when a processor
   names several containers, and a bar layer in a panel that holds a second
-  bar layer now addresses its own rects rather than both layers'. A
-  headless-browser smoke test in CI presses Right Arrow on each of these
-  charts and fails when nothing on the chart changes colour, which is the
-  check the 4.0.0 bundle refresh did not have (#316).
+  bar layer now addresses its own rects rather than both layers'.
+* Dodged, stacked and normalized bars, ggplot2 and Base R, highlight the
+  bar being announced. maidr.js 4.0 also stopped inferring that a layer's
+  rects are drawn category by category: a layer that does not say
+  `domMapping.order = "column"` is paired with its rects series by series,
+  so once the highlight came back it landed on the wrong bar -- "a, 10, u"
+  announced while the 55 bar was outlined. Every segmented layer now
+  declares the order it is drawn in. A headless-browser smoke test in CI
+  presses the arrow keys on each of these charts and fails when nothing
+  changes colour or when the outlined bars do not rank the way the
+  announced values do, which is the check the 4.0.0 bundle refresh did not
+  have (#316).
 * An offline document (`use_cdn = FALSE`) can reach a DotPad tactile display
   without the network. maidr.js does not bundle the DotPad SDK and imports it
   from jsDelivr the first time a DotPad connects; the new options

@@ -16,6 +16,13 @@
 // A page error fails the chart too: a selector that does not parse throws
 // inside the trace constructor, which is a chart with no navigation at all.
 //
+// For the charts whose mark is a bar, a visible clone is not enough: a
+// segmented layer that declares the wrong `domMapping` outlines a bar, just
+// not the one being announced (#316 again, on its second round). So on those
+// charts every step is recorded as (announced value, height of the outlined
+// mark), and the heights have to rank the same way the values do -- a taller
+// bar is a larger number, on every chart here.
+//
 //     node .github/scripts/highlight-smoke.mjs <dir-of-html>
 //
 // Needs the `playwright` package and its Chromium (`npx playwright install
@@ -72,26 +79,78 @@ for (const file of files) {
     await page.keyboard.press('Enter');
     await page.waitForTimeout(settle);
   }
-  await page.keyboard.press('ArrowRight');
-  await page.waitForTimeout(settle);
-  await page.keyboard.press('ArrowRight');
-  await page.waitForTimeout(settle);
-
-  const seen = await page.evaluate(() => {
+  // What the DOM shows after a step: how many clones the frontend owns, how
+  // many are visible, and the height of the first visible one alongside the
+  // value the announcement ends with.
+  const observe = () => page.evaluate(() => {
     const owned = Array.from(document.querySelectorAll('svg [data-maidr-owned]'));
     const visible = owned.filter(element =>
       getComputedStyle(element).visibility !== 'hidden'
       && element.getAttribute('visibility') !== 'hidden',
     );
-    return { subplots: document.querySelectorAll('svg[maidr-data]').length, owned: owned.length, visible: visible.length };
+    const live = document.querySelector('#maidr-text-container, [aria-live]');
+    const text = live ? live.textContent.trim() : '';
+    const numbers = text.match(/-?\d+(?:\.\d+)?/g);
+    const first = visible[0];
+    return {
+      subplots: document.querySelectorAll('svg[maidr-data]').length,
+      owned: owned.length,
+      visible: visible.length,
+      text,
+      value: numbers && !/No more data/.test(text) ? Number(numbers[numbers.length - 1]) : null,
+      height: first ? first.getBBox().height : null,
+      mark: first ? first.previousElementSibling?.id ?? null : null,
+    };
   });
 
-  const ok = errors.length === 0 && seen.subplots > 0 && seen.visible > 0;
+  // Right along the first row, then up a row and back along it: on a grid
+  // that reads both series, on a single row the second half repeats it.
+  const steps = [];
+  for (const key of ['ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'ArrowLeft']) {
+    await page.keyboard.press(key);
+    await page.waitForTimeout(settle);
+    steps.push(await observe());
+  }
+  const seen = steps[1];
+  const anyVisible = steps.some(step => step.visible > 0);
+
+  // The bar-shaped charts: the outlined mark's height has to rank the way
+  // the announced values do. Two distinct values outlined with the same
+  // mark, or a larger value on a shorter bar, is the wrong bar.
+  const ranked = /^(ggplot2-(bar|hist|dodged|stacked|normalized)|base-(barplot|hist|dodged|stacked|lollipop))\.html$/.test(file);
+  let misranked = null;
+  if (ranked) {
+    const byMark = new Map();
+    for (const step of steps) {
+      if (step.value === null || step.height === null || step.mark === null) {
+        continue;
+      }
+      byMark.set(step.mark, { value: step.value, height: step.height });
+    }
+    const readings = Array.from(byMark.values()).sort((a, b) => a.value - b.value);
+    for (let i = 1; i < readings.length; i++) {
+      const lower = readings[i - 1];
+      const upper = readings[i];
+      const wrong = upper.value > lower.value
+        ? upper.height <= lower.height + 0.5
+        : Math.abs(upper.height - lower.height) > 0.5;
+      if (wrong) {
+        misranked = `${lower.value} on a ${lower.height.toFixed(1)}px bar but ${upper.value} on a ${upper.height.toFixed(1)}px bar`;
+        break;
+      }
+    }
+    if (readings.length < 2) {
+      misranked = 'fewer than two announced values could be paired with a mark';
+    }
+  }
+
+  const ok = errors.length === 0 && seen.subplots > 0 && anyVisible && misranked === null;
   if (!ok) {
     failed += 1;
   }
   console.log(
     `${ok ? 'ok  ' : 'FAIL'} ${file}: ${seen.owned} owned clone(s), ${seen.visible} visible`
+    + (ranked ? (misranked ? `, wrong bar: ${misranked}` : ', heights rank with values') : '')
     + (errors.length ? `, page errors: ${errors.join(' | ')}` : ''),
   );
   await page.close();
@@ -100,7 +159,7 @@ for (const file of files) {
 await browser.close();
 
 if (failed > 0) {
-  console.error(`${failed} of ${files.length} chart(s) drew no highlight`);
+  console.error(`${failed} of ${files.length} chart(s) drew no highlight, or outlined the wrong bar`);
   process.exit(1);
 }
-console.log(`${files.length} chart(s) highlighted`);
+console.log(`${files.length} chart(s) highlighted, the bar-shaped ones on the announced bar`);

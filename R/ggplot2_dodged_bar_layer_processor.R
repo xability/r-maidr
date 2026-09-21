@@ -63,9 +63,15 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         title = if (!is.null(layout$title)) layout$title else "",
         axes = axes
       )
-      if (!is.null(dom_mapping)) {
-        result$domMapping <- dom_mapping
-      }
+      # ggplot2 draws a dodged layer category by category, and the bundled
+      # maidr.js pairs a flat rect list with the grid series by series
+      # unless the layer declares `order = "column"` (see the note above
+      # `generate_selectors()`). Every branch of `extract_data()` draws
+      # column-major; only the walk within a column differs between them.
+      result$domMapping <- c(
+        list(order = "column"),
+        if (!is.null(dom_mapping)) dom_mapping[setdiff(names(dom_mapping), "order")]
+      )
       result
     },
     #' @description Whether the plot data must be reordered before drawing, so the emitted order
@@ -291,7 +297,9 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
         # inside each column, which is the order the series above are emitted
         # in. That is the frontend's "forward" walk, not its default reverse
         # one, so this branch has to say so.
-        attr(series, "dom_mapping") <- list(groupDirection = "forward")
+        attr(series, "dom_mapping") <- list(
+          order = "column", groupDirection = "forward"
+        )
         return(series)
       }
 
@@ -408,17 +416,21 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     # layer.selectors)`, and `selectAllElements` is just
     # `Array.from(document.querySelectorAll(sel))` - one flat node list in SVG
     # document order. The class then RE-GROUPS that list itself instead of
-    # zipping it against the flattened payload (de-minified, rect branch):
+    # zipping it against the flattened payload (de-minified, string branch,
+    # maidr.js 4.x):
     #
     #   const slots  = barValues.reduce((n, row) => n + row.length, 0);
     #   const sparse = nodes.length < slots;
-    #   for (let col = 0, k = 0; col < barValues[0].length; col++) {
-    #     // series runs 0..n-1 when domMapping.groupDirection is "forward",
-    #     // and n-1..0 otherwise
-    #     for (const s of series)
-    #       (sparse && barValues[s][col] === 0) || k >= nodes.length
-    #         ? out[s].push(emptyElement())
-    #         : out[s].push(nodes[k++]);
+    #   const claim  = (s, col) =>
+    #     (sparse && barValues[s][col] === 0) || k >= nodes.length
+    #       ? emptyElement() : nodes[k++];
+    #   if (domMapping?.order !== "column") {
+    #     for (const s of series) for (const col of columns) out[s][col] = claim(s, col);
+    #   } else {
+    #     for (const col of columns)
+    #       // series runs 0..n-1 when domMapping.groupDirection is "forward",
+    #       // and n-1..0 otherwise
+    #       for (const s of series) out[s][col] = claim(s, col);
     #   }
     #
     # Three things follow, and this layer depends on all of them.
@@ -426,6 +438,11 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     # 1. The DOM walk is X-MAJOR (one whole column at a time) while `data`
     #    stays SERIES-MAJOR. Flattening `data` and lining it up against
     #    document order therefore looks wrong; the frontend never does that.
+    #    Since maidr.js 4.0 that walk has to be ASKED FOR with
+    #    `domMapping.order = "column"`: a layer that says nothing is paired
+    #    series by series, which hands every bar after the first to the
+    #    wrong cell (#316). 3.x walked every `<rect>` layer column-major by
+    #    default, which is why nothing here declared it.
     #
     # 2. `barValues` must be RECTANGULAR. The walk is bounded by
     #    `barValues[0].length` columns times `barValues.length` series, so a
@@ -440,8 +457,8 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     # The per-column direction differs by stat, so the two branches of
     # `extract_data()` disagree about `domMapping`:
     #
-    # * stat = "identity" emits none, taking the default REVERSE walk - the
-    #   first rect of a column goes to the LAST series.
+    # * stat = "identity" emits `order = "column"` alone, taking the default
+    #   REVERSE walk within a column - the first rect goes to the LAST series.
     #   `reorder_layer_data()` above is what makes that hold: it sorts the
     #   plot data by x ascending and fill DESCENDING, so ggplot2 draws each
     #   column's rects right-to-left. For x = a,b,c and fills u = 10,20,30 /
@@ -449,7 +466,7 @@ Ggplot2DodgedBarLayerProcessor <- R6::R6Class(
     #   rects come out 55,10,65,20,75,30; the regrouping reunites
     #   data[0] = u with the u rects.
     #
-    # * stat = "count" emits `groupDirection = "forward"`. `stat_count()`
+    # * stat = "count" adds `groupDirection = "forward"`. `stat_count()`
     #   builds its own rows, so the reordering above cannot reach it and
     #   ggplot2 draws each column's fills left-to-right, ASCENDING.
     #
