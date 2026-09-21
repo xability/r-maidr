@@ -75,9 +75,9 @@ Internal functions for package developers
 - [`find_patchwork_panels()`](https://r.maidr.ai/reference/find_patchwork_panels.md)
   :
 
-  Discover panels via gtable layout rows named '^panel-' or '^panel--
-
-  ' Returns a data.frame with panel_index, name, t, l, row, col
+  Discover panels via gtable layout rows named `^panel-<num>` or
+  `^panel-<row>-<col>` Returns a data.frame with panel_index, name, t,
+  l, row, col
 
 - [`generate_robust_css_selector()`](https://r.maidr.ai/reference/generate_robust_css_selector.md)
   : Generate robust CSS selector from grob name

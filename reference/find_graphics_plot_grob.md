@@ -1,7 +1,7 @@
 # Find grob by element type pattern
 
 Searches recursively through a grob tree to find a grob whose name
-matches the pattern: graphics-plot--\<element_type\>-
+matches the pattern: `graphics-plot-<number>-<element_type>-<number>`
 
 ## Usage
 

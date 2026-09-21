@@ -45,13 +45,12 @@ ISBN 978-3-03868-257-8.
     }
 
 Seo J, Kalaiselvan N (2026). *maidr: Multimodal Access and Interactive
-Data Representation*. R package version 0.4.0.9000,
-<https://r.maidr.ai/>.
+Data Representation*. R package version 0.5.0, <https://r.maidr.ai/>.
 
     @Manual{,
       title = {maidr: Multimodal Access and Interactive Data Representation},
       author = {JooYoung Seo and Niranjan Kalaiselvan},
       year = {2026},
-      note = {R package version 0.4.0.9000},
+      note = {R package version 0.5.0},
       url = {https://r.maidr.ai/},
     }
