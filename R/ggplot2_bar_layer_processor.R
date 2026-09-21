@@ -518,24 +518,26 @@ Ggplot2BarLayerProcessor <- R6::R6Class(
       }
     },
 
-    #' @description The rect grob this layer drew, or every rect grob in the panel
+    #' @description The rect grob names under this layer's own slot, or under the whole panel
     #'
     #' A panel holds one \code{geom_rect.rect} grob per bar layer, so a plot
     #' that overlays two \code{geom_col()}s -- a total behind a highlighted
     #' part is the usual reason -- has two, and a search over the panel
     #' returns both to each layer. Its selectors then address every bar in
     #' the panel: the frontend finds twice the marks it has points for and
-    #' highlights nothing, on both layers. The layer's own grob is the one in
-    #' its slot (see \code{find_layer_slot_grob()}); the panel-wide search is
-    #' kept for a panel whose layout the slot cannot be read from.
+    #' highlights nothing, on both layers. So the search is scoped to the
+    #' layer's own slot (see \code{find_layer_slot_grob()}): whatever the
+    #' geom drew there, a bare rect grob or a tree wrapping one, and nothing
+    #' when it drew no rects here at all. The panel-wide search remains only
+    #' for a panel whose layout the slot cannot be read from.
     #'
     #' @param panel_grob The panel grob
     #' @param find_rect_names Function collecting every rect grob name under a grob
     #' @return Character vector of rect grob names
     own_rect_names = function(panel_grob, find_rect_names) {
       slot <- find_layer_slot_grob(panel_grob, self$get_layer_index())
-      if (!is.null(slot$name) && grepl("geom_rect\\.rect", slot$name)) {
-        return(slot$name)
+      if (!is.null(slot)) {
+        return(find_rect_names(slot))
       }
       find_rect_names(panel_grob)
     }
