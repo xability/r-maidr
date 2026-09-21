@@ -1224,6 +1224,112 @@ drop_empty_selectors <- function(node) {
   node
 }
 
+#' Layer types whose frontend model reads `selectors` as ONE selector for
+#' every mark
+#'
+#' In maidr.js 4.x the shape of `selectors` is a contract, not a
+#' convenience. A plain string is handed to `document.querySelectorAll()`
+#' and the matches are aligned to the layer's points in document order. An
+#' ARRAY means something else for these types: one selector per data point
+#' for `bar` and `hist` (`src/model/bar.ts`), a per-series grid for the
+#' segmented bars and `mosaic` (`src/model/segmented.ts`), and nothing at all
+#' for `point` and `pie`, whose models read `layer.selectors as string`
+#' (`src/model/scatter.ts`, `src/model/pie.ts`). `dot` and `lollipop` are
+#' built by the `bar` model; `heat` reads a string or a per-cell grid
+#' (`src/model/heatmap.ts`). maidr.js 3.x read a one-element array as the
+#' string it held, which is why every processor here that returns
+#' `list(selector)` was fine until the bundle moved to 4.0 (#316).
+#'
+#' Types NOT listed keep whatever shape their processor built, because their
+#' models want the array: one selector per series for `line`, `smooth`,
+#' `step`, `area`, `roc` and `violin_kde`, one per level for `contour`, one
+#' per box for `box` and `violin_box`, one per tick for a rug, and `error_bar`,
+#' `gantt`, `word_cloud` and `candlestick` accept either.
+#'
+#' @keywords internal
+SINGLE_SELECTOR_LAYER_TYPES <- c(
+  "bar", "hist", "dot", "lollipop",
+  "point",
+  "pie",
+  "dodged_bar", "stacked_bar", "stacked_normalized_bar", "mosaic",
+  "heat"
+)
+
+#' Collapse a layer's selector list into the one string its type is read as
+#'
+#' Every processor builds `selectors` with `list()` or `lapply()`, so even a
+#' single CSS selector reaches `jsonlite::toJSON()` as a list of one, and
+#' `auto_unbox = TRUE` cannot unbox a list: the payload says
+#' `"selectors": ["#geom_rect\\.rect\\.2\\.1 rect"]`. maidr.js 4.x reads that
+#' array as one selector per data point, resolves it to one element for
+#' seven bars, and declines the whole layer -- navigation and speech keep
+#' working while nothing on the chart ever changes colour (#316). Measured
+#' in headless Chromium against the bundled 4.9.0: ggplot2 bar, point,
+#' histogram, dodged, stacked and pie, and Base R `barplot()`, `hist()`,
+#' `plot()` and `pie()`, all announced their values and drew no highlight;
+#' rewriting only the JSON to a string restored every one of them.
+#'
+#' For a layer whose type is in [SINGLE_SELECTOR_LAYER_TYPES], a flat
+#' character vector or list of strings becomes one string. Several entries
+#' are joined with `", "`: a selector list, which `querySelectorAll()`
+#' resolves in document order -- the same order the layer's points are in,
+#' since a processor that names several containers (Base R `pie()` draws
+#' one polygon grob per wedge) walks them in drawing order. Nested lists (a
+#' per-cell grid), named objects (`BoxSelector`) and anything not made of
+#' strings are left exactly as they are, and so is every other layer type.
+#'
+#' Applied where [drop_empty_selectors()] is, and for the same reason:
+#' every payload passes through this one point, the processors are honest
+#' about what they found, and the shape the frontend reads is decided once,
+#' against the bundle actually shipped, where a future bundle bump has one
+#' place to look.
+#'
+#' @param node A maidr-data node (list, or a leaf)
+#' @return The node with single-selector layers carrying a string
+#' @keywords internal
+flatten_single_selectors <- function(node) {
+  if (!is.list(node)) {
+    return(node)
+  }
+  is_layer <- !is.null(names(node)) &&
+    all(c("type", "selectors") %in% names(node)) &&
+    is.character(node$type) && length(node$type) == 1L
+  if (is_layer && node$type %in% SINGLE_SELECTOR_LAYER_TYPES) {
+    node$selectors <- join_selector_list(node$selectors)
+  }
+  if (length(node) == 0) {
+    return(node)
+  }
+  node[] <- lapply(node, flatten_single_selectors)
+  node
+}
+
+#' One string from a flat list of selectors, or the input untouched
+#'
+#' @param selectors A layer's `selectors` entry
+#' @return A single string when `selectors` is a flat, unnamed collection of
+#'   non-empty strings; otherwise `selectors` as given
+#' @keywords internal
+join_selector_list <- function(selectors) {
+  entries <- if (is.character(selectors)) {
+    as.list(selectors)
+  } else if (is.list(selectors) && is.null(names(selectors))) {
+    selectors
+  } else {
+    list()
+  }
+  if (length(entries) == 0) {
+    return(selectors)
+  }
+  is_selector <- function(entry) {
+    is.character(entry) && length(entry) == 1L && !is.na(entry) && nzchar(entry)
+  }
+  if (!all(vapply(entries, is_selector, logical(1)))) {
+    return(selectors)
+  }
+  paste(unlist(entries, use.names = FALSE), collapse = ", ")
+}
+
 #' Serialize maidr_data and set it as the SVG root's maidr-data attribute
 #'
 #' Mutates `svg_doc` in place.
@@ -1234,6 +1340,7 @@ drop_empty_selectors <- function(node) {
 #' @keywords internal
 set_maidr_data_attr <- function(svg_doc, maidr_data) {
   maidr_data <- drop_empty_selectors(maidr_data)
+  maidr_data <- flatten_single_selectors(maidr_data)
 
   # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
   # moving-average line) serialize to JSON `null` rather than the string

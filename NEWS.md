@@ -215,6 +215,21 @@
 
 ### Rendering and integration
 
+* Bar, histogram, scatter, dodged, stacked and normalized bar, pie, dot and
+  lollipop layers highlight again with the bundled maidr.js 4.x, on ggplot2
+  and Base R alike. Every processor built `selectors` with `list()`, so a
+  single CSS selector reached the payload as a one-element JSON array;
+  maidr.js 3.x read that as the string it held, and 4.0 changed the
+  contract so an array names one selector per data point (or a per-series
+  grid), resolved one element for seven bars, and dropped the layer's
+  highlight while navigation and speech kept working. The payload now
+  carries a plain string for every layer type whose frontend model reads
+  one selector for all of its marks, joined with `", "` when a processor
+  names several containers, and a bar layer in a panel that holds a second
+  bar layer now addresses its own rects rather than both layers'. A
+  headless-browser smoke test in CI presses Right Arrow on each of these
+  charts and fails when nothing on the chart changes colour, which is the
+  check the 4.0.0 bundle refresh did not have (#316).
 * An offline document (`use_cdn = FALSE`) can reach a DotPad tactile display
   without the network. maidr.js does not bundle the DotPad SDK and imports it
   from jsDelivr the first time a DotPad connects; the new options

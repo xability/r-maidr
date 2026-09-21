@@ -410,24 +410,7 @@ Ggplot2PieLayerProcessor <- R6::R6Class(
     #' @param panel The panel grob, or NULL
     #' @return This layer's grob, or NULL when the slot cannot be established
     layer_slot_grob = function(panel) {
-      index <- self$get_layer_index()
-      if (is.null(panel) || !inherits(panel, "gTree") || is.null(index)) {
-        return(NULL)
-      }
-
-      children <- panel$children
-      blanks <- which(vapply(
-        children, function(g) inherits(g, "zeroGrob"), logical(1)
-      ))
-      if (length(blanks) == 0L) {
-        return(NULL)
-      }
-
-      at <- blanks[1] + as.integer(index)
-      if (at < 1L || at > length(children)) {
-        return(NULL)
-      }
-      children[[at]]
+      find_layer_slot_grob(panel, self$get_layer_index())
     },
 
     #' @description The one wedge container in a tree, when there is exactly one

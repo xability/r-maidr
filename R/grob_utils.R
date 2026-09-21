@@ -84,3 +84,43 @@ find_children_by_type <- function(parent_grob, pattern) {
   matching <- grepl(pattern, child_names)
   child_names[matching]
 }
+
+#' The grob a ggplot2 layer drew, found by its slot in the panel
+#'
+#' ggplot2 lays a panel out as \code{grill}, a \code{zeroGrob}, then one grob
+#' per layer in layer order, then the panel's border -- so this layer's grob
+#' is the one \code{index} places after that first blank. A search by grob
+#' name cannot tell two layers of the same geom apart: two \code{geom_col()}s
+#' in a panel are both \code{geom_rect.rect.N}, and a search that collects
+#' every match hands each layer the other's bars as well as its own.
+#'
+#' \code{LayerProcessor$find_layer_grob_tree()} matches on the geom's own
+#' class, and a \code{geom_col()} layer is \code{GeomCol} while the grob it
+#' draws is named after \code{geom_rect}, so it does not serve here. Counting
+#' containers instead of slots does not either -- a \code{geom_text()} layer
+#' occupies a slot and draws no container, so the counts stop lining up.
+#'
+#' @param panel The panel grob, or NULL
+#' @param index The layer's index in the plot, or NULL
+#' @return The grob in the layer's slot, or NULL when the slot cannot be
+#'   established
+#' @keywords internal
+find_layer_slot_grob <- function(panel, index) {
+  if (is.null(panel) || !inherits(panel, "gTree") || is.null(index)) {
+    return(NULL)
+  }
+
+  children <- panel$children
+  blanks <- which(vapply(
+    children, function(g) inherits(g, "zeroGrob"), logical(1)
+  ))
+  if (length(blanks) == 0L) {
+    return(NULL)
+  }
+
+  at <- blanks[1] + as.integer(index)
+  if (at < 1L || at > length(children)) {
+    return(NULL)
+  }
+  children[[at]]
+}

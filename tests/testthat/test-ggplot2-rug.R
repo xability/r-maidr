@@ -81,6 +81,16 @@ positions <- function(layer) {
   lapply(layer$data, function(point) c(point$x, point$y))
 }
 
+# The ids a layer's ticks are addressed by. The layer is read as `point`, and
+# the payload carries a point layer's selectors as ONE string (#316): the
+# per-tick selectors joined with ", ", which `querySelectorAll()` resolves in
+# document order.
+tick_ids <- function(layer) {
+  testthat::expect_true(is.character(layer$selectors) && length(layer$selectors) == 1L)
+  selectors <- strsplit(layer$selectors, ", ", fixed = TRUE)[[1]]
+  sub("^\\*\\[id='", "", sub("'\\]$", "", selectors))
+}
+
 test_that("a rug is no longer an empty unknown layer", {
   skip_if_no_render()
 
@@ -183,10 +193,9 @@ test_that("each tick is addressed by its own drawn element", {
 
   html <- rendered(ggplot2::ggplot(frame(), ggplot2::aes(x = v)) +
     ggplot2::geom_rug())
-  selectors <- unlist(layers_from(html)[[1]]$selectors)
+  ids <- tick_ids(layers_from(html)[[1]])
 
-  testthat::expect_equal(length(selectors), length(VALUES))
-  ids <- sub("^\\*\\[id='", "", sub("'\\]$", "", selectors))
+  testthat::expect_equal(length(ids), length(VALUES))
   testthat::expect_equal(sub("^.*\\.", "", ids), c("1", "2", "3", "4"))
   testthat::expect_equal(length(unique(ids)), length(VALUES))
 
@@ -207,9 +216,7 @@ test_that("the two axes of one rug address different elements", {
   html <- rendered(ggplot2::ggplot(frame(), ggplot2::aes(v, w)) +
     ggplot2::geom_rug())
   layers <- layers_from(html)
-  ids <- unlist(lapply(layers, function(l) {
-    sub("^\\*\\[id='", "", sub("'\\]$", "", unlist(l$selectors)))
-  }))
+  ids <- unlist(lapply(layers, tick_ids))
 
   # Eight ticks, eight distinct elements. Sharing a grob between the two would
   # highlight an x observation while announcing a y one.
@@ -235,9 +242,7 @@ test_that("a second rug layer addresses its own ticks", {
   layers <- layers_from(html)
 
   testthat::expect_length(layers, 2L)
-  ids <- unlist(lapply(layers, function(l) {
-    sub("^\\*\\[id='", "", sub("'\\]$", "", unlist(l$selectors)))
-  }))
+  ids <- unlist(lapply(layers, tick_ids))
   testthat::expect_equal(length(unique(ids)), 8L)
   for (id in ids) {
     testthat::expect_true(
@@ -268,7 +273,7 @@ test_that("a segment layer's grob is not mistaken for a rug's", {
   rug <- Filter(function(l) identical(l$axes$y$label, "Rug"), layers_from(html))
   testthat::expect_length(rug, 1L)
 
-  ids <- sub("^\\*\\[id='", "", sub("'\\]$", "", unlist(rug[[1]]$selectors)))
+  ids <- tick_ids(rug[[1]])
   testthat::expect_equal(length(ids), length(VALUES))
   for (id in ids) {
     testthat::expect_true(
@@ -523,7 +528,7 @@ test_that("the bounds change nothing the layer already said", {
 
   testthat::expect_identical(layer$type, "point")
   testthat::expect_equal(positions(layer), lapply(VALUES, function(v) c(v, 0)))
-  testthat::expect_length(unlist(layer$selectors), length(VALUES))
+  testthat::expect_length(tick_ids(layer), length(VALUES))
 })
 
 test_that("each facet panel gets its own bounds", {
