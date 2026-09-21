@@ -342,6 +342,27 @@ test_that("two bar layers in one panel each address only their own rects", {
   testthat::expect_false(identical(layers[[1]]$selectors, layers[[2]]$selectors))
 })
 
+test_that("a pie inside a patchwork composition names its wedges", {
+  skip_if_no_contract()
+  testthat::skip_if_not_installed("patchwork")
+
+  # `coord_polar()` fixes the aspect ratio, and patchwork then places the
+  # leaf as a nested gtable named "panel; panel, ..." holding a bare "panel"
+  # -- which the panel walk dropped, so the pie had no selectors at all.
+  pie <- ggplot2::ggplot(three_bars, ggplot2::aes(x = "", y = y, fill = x)) +
+    ggplot2::geom_col() +
+    ggplot2::coord_polar("y")
+  hist <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg)) + ggplot2::geom_histogram(bins = 8)
+  plot <- patchwork::wrap_plots(pie, hist)
+  r <- payload_and_doc(rendered(plot))
+  layers <- all_layers(r$schema)
+  types <- vapply(layers, function(layer) layer$type, "")
+  testthat::expect_setequal(types, c("pie", "hist"))
+  for (layer in layers) {
+    expect_single_selector(layer, r$doc, point_count(layer), paste("patchwork", layer$type))
+  }
+})
+
 test_that("line and smooth layers keep one selector per series", {
   skip_if_no_contract()
   df <- data.frame(x = rep(1:5, 2), y = c(1:5, 5:1), g = rep(c("u", "v"), each = 5))

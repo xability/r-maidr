@@ -238,6 +238,38 @@
   changes colour or when the outlined bars do not rank the way the
   announced values do, which is the check the 4.0.0 bundle refresh did not
   have (#316).
+* Every layer type was then driven through the bundled maidr.js in headless
+  Chromium, and the charts that still drew no highlight, or drew it on the
+  wrong mark, are fixed for the same reason: the shape the frontend reads
+  changed with 4.0 and the emitters had not followed (#316).
+  - A ggplot2 gantt (`geom_segment()` schedules, `maidr_gantt()`) threw
+    inside the frontend and took the whole figure with it -- no
+    announcement at all. The frontend reads `data.points` and `data.lanes`;
+    the layer emitted the lanes as `data` and the names beside it. Base R
+    `spectrum()`, `cpgram()` and `termplot()` threw the same way: their
+    `data` was a flat list of points where the line model reads one series
+    per array.
+  - Base R `spectrum()`, `cpgram()` and `termplot()` also addressed the
+    `<g>` holding their curve rather than the polyline, so no marker could
+    be placed; `assocplot()` addressed a container id without the `.1`
+    gridSVG appends; a `spineplot()` listed its tiles in drawing order in a
+    flat list that `querySelectorAll()` resolved in document order, so every
+    tile after the first was outlined for another cell; a `mosaicplot()`
+    with an empty cell declined to address any tile at all. Each now emits
+    the per-cell grid the segmented and heat models read, `null` where
+    nothing was drawn, and `geom_bin_2d()` does the same for its empty
+    bins.
+  - A dodged or stacked bar inside a patchwork composition was drawn from
+    its rows as given, while every other path reorders them first, so its
+    declared drawing order matched the drawing only by luck. A pie inside a
+    composition had no selectors at all: `coord_polar()` fixes the aspect
+    ratio, and patchwork then places the leaf under a name the panel walk
+    dropped. A bar layer in a composition, whose panel carries no
+    placeholder before its layers, could not find its own slot.
+  - `geom_rug()` is emitted as the frontend's own `rug` trace (with the
+    axis it marks as `orientation`), which pairs each tick with its own
+    element and announces the observation; read as points, a `<line>` tick
+    could never be outlined.
 * An offline document (`use_cdn = FALSE`) can reach a DotPad tactile display
   without the network. maidr.js does not bundle the DotPad SDK and imports it
   from jsDelivr the first time a DotPad connects; the new options

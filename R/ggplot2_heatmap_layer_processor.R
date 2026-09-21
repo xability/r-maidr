@@ -28,7 +28,20 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
       selectors <- self$generate_selectors(plot, gt, panel_ctx = panel_ctx)
 
       fill_label <- extracted_data$fill_label
-      data <- extracted_data[names(extracted_data) != "fill_label"]
+      cells <- extracted_data$cells
+      data <- extracted_data[!names(extracted_data) %in% c("fill_label", "cells")]
+
+      # A binned grid with empty bins has fewer rects than cells, and one
+      # selector over all of them gives the frontend nothing to pair: its
+      # heatmap model wants exactly one element per cell from a string, so
+      # the layer had no highlight at all (#316). Named cell by cell instead,
+      # with `null` where no bin was drawn, which the model reads as a hole.
+      if (
+        !is.null(cells) && is.character(selectors) && length(selectors) == 1L &&
+          anyNA(unlist(cells))
+      ) {
+        selectors <- self$binned_selector_grid(selectors, cells)
+      }
 
       # The names ggplot2 prints, not the letters. These were two string
       # literals, so a heatmap announced "x: y, y: a, score: 3" -- where the
@@ -55,6 +68,27 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     #' @return TRUE
     needs_reordering = function() {
       TRUE
+    },
+    #' @description One selector per drawn bin of a binned grid, `NA` for an empty one
+    #'
+    #' ggplot2 draws the bins in the order the built data lists them, so the
+    #' k-th rect under the layer's group is the k-th built row; `cells` holds
+    #' that row number per cell, in the emitted row order.
+    #'
+    #' @param selector The layer's `<group> > rect` selector
+    #' @param cells Per-row lists of built row numbers, `NA` where no bin was drawn
+    #' @return A per-cell selector grid
+    binned_selector_grid = function(selector, cells) {
+      group <- sub(" > rect$", "", selector)
+      lapply(cells, function(row) {
+        lapply(row, function(k) {
+          if (is.na(k)) {
+            NA_character_
+          } else {
+            paste0(group, " > rect:nth-of-type(", k, ")")
+          }
+        })
+      })
     },
     #' @description Reorder the plot data row-wise so the emitted cells match the drawn tiles
     #' @param data The data frame ggplot2 will draw from
@@ -181,21 +215,35 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         nrow = length(y_positions),
         ncol = length(x_positions)
       )
+      # Which built row -- and so which drawn rect -- each cell is.
+      rows_of <- matrix(
+        NA_integer_,
+        nrow = length(y_positions),
+        ncol = length(x_positions)
+      )
       for (i in seq_len(nrow(built_data))) {
         row <- match(built_data$y[i], y_positions)
         col <- match(built_data$x[i], x_positions)
         scores[row, col] <- as.numeric(built_data[[value_col]][i])
+        rows_of[row, col] <- i
       }
 
       # Bottom row first, matching the DOM order the tidy path also emits.
       y_labels <- rev(self$bin_labels(built_data, y_positions, "y"))
       points <- rev(lapply(seq_len(nrow(scores)), function(i) as.numeric(scores[i, ])))
+      # NOT reversed: the frontend's heatmap model reverses `points` and `y`
+      # as it reads them, and indexes a selector grid by its own row -- so
+      # the grid runs the other way round from the rows above. Measured in
+      # headless Chromium: reversed like `points`, the bottom row's cells were
+      # outlined on the top row (#316).
+      cells <- lapply(seq_len(nrow(rows_of)), function(i) as.integer(rows_of[i, ]))
 
       list(
         points = points,
         x = self$bin_labels(built_data, x_positions, "x"),
         y = y_labels,
-        fill_label = "count"
+        fill_label = "count",
+        cells = cells
       )
     },
     #' @description Render one bin edge as a short, readable number.

@@ -179,7 +179,7 @@ count_leaf_panels <- function(leaf_plot) {
 #' @return List of panel entries (name, grob, t, l, t_key, l_key, vp_path)
 #' @keywords internal
 collect_gtable_panels <- function(gt, t_path = integer(0), l_path = integer(0),
-                                  vp_prefix = character(0)) {
+                                  vp_prefix = character(0), wrapper = NULL) {
   out <- list()
   if (is.null(gt)) {
     return(out)
@@ -195,11 +195,32 @@ collect_gtable_panels <- function(gt, t_path = integer(0), l_path = integer(0),
       "%s.%d-%d-%d-%d",
       nm, layout$t[i], layout$r[i], layout$b[i], layout$l[i]
     )
+    # A leaf with a fixed aspect ratio -- `coord_polar()`, `coord_fixed()` --
+    # is placed by patchwork as one nested gtable named after the cells it
+    # spans, "panel; panel, left-l, right-r, top-t, bottom-b-N", holding a
+    # bare "panel" inside. Reported as that leaf's "panel-N", the name every
+    # other leaf's panel carries, so the composition's walk pairs it with
+    # its plot; left as "panel" it was dropped, and a pie in a composition
+    # had no wedges to name (#316).
+    wrapped <- regmatches(nm, regexec("^panel; panel, .*-(\\d+)$", nm))[[1]]
+    if (length(wrapped) == 2L && inherits(gt$grobs[[i]], "gtable")) {
+      out <- c(
+        out,
+        collect_gtable_panels(
+          gt$grobs[[i]],
+          c(t_path, layout$t[i]),
+          c(l_path, layout$l[i]),
+          c(vp_prefix, cell_vp, "layout"),
+          wrapper = paste0("panel-", wrapped[2])
+        )
+      )
+      next
+    }
     # Also matches the bare "panel" of a plain ggplotGrob(); must not match
     # "panel-area" or the "panel-nested-patchwork-N" placeholder.
     if (grepl("^panel(-\\d+(-\\d+)?)?$", nm)) {
       out[[length(out) + 1]] <- list(
-        name = nm,
+        name = if (identical(nm, "panel") && !is.null(wrapper)) wrapper else nm,
         grob = gt$grobs[[i]],
         t = layout$t[i],
         l = layout$l[i],
@@ -476,6 +497,99 @@ augment_patchwork_leaves <- function(node) {
     return(augment_leaf_plot(node))
   }
   node
+}
+
+#' Put every leaf's data in the order its processors will read the drawing in
+#'
+#' The single-plot and facet paths both reorder the plot data before drawing
+#' (\code{Ggplot2PlotOrchestrator$process_layers()}), because a segmented
+#' bar's DOM order is whatever order its rows arrive in and the processor
+#' declares one order -- category by category, fills descending -- to the
+#' frontend. A patchwork leaf was drawn from its rows as given, so its
+#' declared order matched the drawing only when the rows happened to be
+#' sorted that way, and a dodged leaf in a composition outlined another
+#' cell's bar for the value announced (#316). Walks the composition the way
+#' \code{augment_patchwork_leaves()} does.
+#'
+#' @param node A patchwork, a ggplot, or anything else (returned as is)
+#' @return The node with each leaf's data reordered
+#' @keywords internal
+reorder_patchwork_leaves <- function(node) {
+  if (inherits(node, "patchwork")) {
+    plots <- try(node$patches$plots, silent = TRUE)
+    if (!inherits(plots, "try-error") && !is.null(plots)) {
+      node$patches$plots <- lapply(plots, reorder_patchwork_leaves)
+    }
+
+    # A patchwork object IS its most recently added plot, so the self-carried
+    # plot's data is reordered in place as well.
+    self_plot <- tryCatch(
+      {
+        stripped <- node
+        class(stripped) <- setdiff(class(stripped), "patchwork")
+        stripped$patches <- NULL
+        stripped
+      },
+      error = function(e) NULL
+    )
+    if (
+      !is.null(self_plot) &&
+        inherits(self_plot, "ggplot") &&
+        length(self_plot$layers) > 0
+    ) {
+      node$data <- reorder_leaf_plot(self_plot)$data
+    }
+
+    return(node)
+  }
+  if (inherits(node, "ggplot")) {
+    return(reorder_leaf_plot(node))
+  }
+  node
+}
+
+#' Reorder one leaf's data by every layer processor that asks for it
+#'
+#' @param leaf_plot A ggplot object
+#' @return The plot, its data reordered
+#' @keywords internal
+reorder_leaf_plot <- function(leaf_plot) {
+  if (!inherits(leaf_plot, "ggplot") || length(leaf_plot$layers) == 0) {
+    return(leaf_plot)
+  }
+  if (is_wrapped_leaf(leaf_plot)) {
+    return(leaf_plot)
+  }
+
+  registry <- get_global_registry()
+  factory <- registry$get_processor_factory("ggplot2")
+  adapter <- registry$get_adapter("ggplot2")
+
+  for (i in seq_along(leaf_plot$layers)) {
+    layer_type <- adapter$detect_layer_type(leaf_plot$layers[[i]], leaf_plot)
+    if (identical(layer_type, "skip")) {
+      next
+    }
+    processor <- factory$create_processor(
+      layer_type,
+      list(index = i, type = layer_type)
+    )
+    if (is.null(processor) || !isTRUE(processor$needs_reordering())) {
+      next
+    }
+    if (
+      !is.data.frame(leaf_plot$data) ||
+        nrow(leaf_plot$data) == 0 ||
+        ncol(leaf_plot$data) == 0
+    ) {
+      next
+    }
+    reordered <- processor$reorder_layer_data(leaf_plot$data, leaf_plot)
+    if (is.data.frame(reordered) && nrow(reordered) > 0 && ncol(reordered) > 0) {
+      leaf_plot$data <- reordered
+    }
+  }
+  leaf_plot
 }
 
 #' Extract layout from a single leaf ggplot

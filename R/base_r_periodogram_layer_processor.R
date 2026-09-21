@@ -76,7 +76,10 @@ BaseRSpectrumLayerProcessor <- R6::R6Class(
       }
 
       list(
-        data = periodogram_points(curve$x, curve$y),
+        # One series, nested: the frontend's line model reads `data` as an
+        # array of series and maps over each, so a flat list of points threw
+        # in its constructor and took the figure down (#316).
+        data = list(periodogram_points(curve$x, curve$y)),
         # `lines-1` is the density; `lines-2` and `lines-3` are the
         # confidence crosshair, which is not a reading.
         selectors = list(periodogram_selector(info, "lines")),
@@ -154,7 +157,8 @@ BaseRCpgramLayerProcessor <- R6::R6Class(
       }
 
       list(
-        data = periodogram_points(curve$x, curve$y),
+        # One series, nested, for the reason the density above gives.
+        data = list(periodogram_points(curve$x, curve$y)),
         # `step-1` is the curve; `lines-1` and `lines-2` are the KS bounds.
         selectors = list(periodogram_selector(info, "step")),
         type = "step",
@@ -266,5 +270,9 @@ periodogram_points <- function(x, y) {
 #' @keywords internal
 periodogram_selector <- function(layer_info, grob) {
   index <- layer_info$group_index %||% layer_info$index %||% 1L
-  paste0("g#graphics-plot-", index, "-", grob, "-1\\.1")
+  # The polyline itself, not the group holding it: the frontend's line
+  # model reads the vertices off the element the selector resolves to, and
+  # a `<g>` has none, so the curve announced every point and outlined no
+  # marker at all (#316). The same shape the line processor emits.
+  paste0("#graphics-plot-", index, "-", grob, "-1\\.1 polyline")
 }

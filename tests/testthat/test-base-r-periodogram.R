@@ -27,8 +27,9 @@
 periodogram_layers <- base_r_layers
 
 #' The values of a layer, keyed by nothing -- position is the whole of it
-xs_of <- function(layer) vapply(layer$data, function(p) p$x, numeric(1))
-ys_of <- function(layer) vapply(layer$data, function(p) p$y, numeric(1))
+#' -- one nested series, the shape the frontend's line model reads
+xs_of <- function(layer) vapply(layer$data[[1]], function(p) p$x, numeric(1))
+ys_of <- function(layer) vapply(layer$data[[1]], function(p) p$y, numeric(1))
 
 #' The series both fixtures are built from
 SERIES <- local({
@@ -186,11 +187,11 @@ test_that("each curve is outlined by the grob it was drawn as", {
   # reference marks after them under different names.
   testthat::expect_equal(
     periodogram_layers(function() spectrum(SERIES))[[1]]$selectors,
-    list("g#graphics-plot-1-lines-1\\.1")
+    list("#graphics-plot-1-lines-1\\.1 polyline")
   )
   testthat::expect_equal(
     periodogram_layers(function() cpgram(SERIES))[[1]]$selectors,
-    list("g#graphics-plot-1-step-1\\.1")
+    list("#graphics-plot-1-step-1\\.1 polyline")
   )
 })
 

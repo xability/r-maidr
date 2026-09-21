@@ -187,7 +187,14 @@ Ggplot2RugLayerProcessor <- R6::R6Class(
       })
 
       list(
-        type = "point",
+        # The frontend has a `rug` trace of its own since 4.x: it reads the
+        # positions off one axis, pairs each tick with its own element and
+        # announces the observation. Read as `point` the ticks were never
+        # outlined -- the scatter model pairs marks by their `x`/`y`
+        # attributes, which a `<line>` tick does not carry (#316).
+        type = "rug",
+        # Which axis the observations sit on: "vert" reads `x`, "horz" `y`.
+        orientation = if (identical(axis, "x")) "vert" else "horz",
         data = data,
         axes = self$axis_labels(layout, axis, built, panel_id),
         selectors = self$generate_selectors(plot, gt, axis, sum(keep), panel_ctx)

@@ -101,7 +101,7 @@ gantt_layer <- function(plot, html = NULL) {
 
 #' Every lane's intervals as "name start-end" strings, lane by lane
 as_intervals <- function(layer) {
-  lapply(layer$data, function(lane) {
+  lapply(layer$data$points, function(lane) {
     vapply(
       lane,
       function(one) sprintf("%s %g-%g", one$x, one$start, one$end),
@@ -168,7 +168,7 @@ test_that("lanes are named from the scale, in the order it lays them out", {
   layer <- gantt_layer(segment_plot())
 
   testthat::expect_equal(
-    unlist(layer$lanes), c("design", "build", "test")
+    unlist(layer$data$lanes), c("design", "build", "test")
   )
 })
 
@@ -181,9 +181,9 @@ test_that("a lane nothing was booked on is kept as an empty row", {
     )
   layer <- gantt_layer(plot)
 
-  testthat::expect_equal(length(layer$data), 4L)
-  testthat::expect_equal(length(layer$data[[4]]), 0L)
-  testthat::expect_equal(unlist(layer$lanes), c("design", "build", "test", "idle"))
+  testthat::expect_equal(length(layer$data$points), 4L)
+  testthat::expect_equal(length(layer$data$points[[4]]), 0L)
+  testthat::expect_equal(unlist(layer$data$lanes), c("design", "build", "test", "idle"))
 })
 
 test_that("lanes on y are announced as the horizontal chart they are", {
@@ -276,7 +276,7 @@ test_that("a continuous lane axis announces the position it has instead", {
     as_intervals(layer),
     list("1 0-3", c("2 3-8", "2 12-15"), "3 8-11")
   )
-  testthat::expect_null(layer$lanes)
+  testthat::expect_null(layer$data$lanes)
 })
 
 test_that("every interval is addressed by its own drawn element", {

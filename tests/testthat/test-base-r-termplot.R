@@ -128,13 +128,15 @@ test_that("a curve carries the model's contribution, not the drawing's", {
   expected_x <- sort(frame$a)
   expected_y <- stats::predict(fit, type = "terms")[, "a"][order(frame$a)]
 
-  testthat::expect_length(layer$data, length(expected_x))
+  # One nested series, the shape the frontend's line model reads.
+  testthat::expect_length(layer$data, 1)
+  testthat::expect_length(layer$data[[1]], length(expected_x))
   testthat::expect_equal(
-    vapply(layer$data, function(point) point$x, numeric(1)),
+    vapply(layer$data[[1]], function(point) point$x, numeric(1)),
     unname(expected_x)
   )
   testthat::expect_equal(
-    vapply(layer$data, function(point) point$y, numeric(1)),
+    vapply(layer$data[[1]], function(point) point$y, numeric(1)),
     unname(expected_y)
   )
 })
@@ -211,11 +213,11 @@ test_that("each panel is outlined by the curve it drew", {
 
   testthat::expect_equal(
     cell(grid, 1, 1)$selectors,
-    list("g#graphics-plot-1-lines-1\\.1")
+    list("#graphics-plot-1-lines-1\\.1 polyline")
   )
   testthat::expect_equal(
     cell(grid, 1, 2)$selectors,
-    list("g#graphics-plot-2-lines-1\\.1")
+    list("#graphics-plot-2-lines-1\\.1 polyline")
   )
 })
 

@@ -339,8 +339,15 @@ Ggplot2GanttLayerProcessor <- R6::R6Class(
       }
 
       list(
-        data = grouped$data,
-        lanes = grouped$lanes,
+        # The frontend's `GanttData`: the lanes under `points`, and the lane
+        # names beside them rather than at the layer's top level. maidr.js
+        # 4.x reads `layer.data.points` and nothing else -- a bare array of
+        # lanes left `points` undefined, and the trace threw in its
+        # constructor, which took the whole figure down with it (#316).
+        data = c(
+          list(points = grouped$data),
+          if (!is.null(grouped$lanes)) list(lanes = grouped$lanes)
+        ),
         # A gantt drawn the ordinary way runs its bars left to right, which
         # puts the axis on x and the lanes on y. The frontend calls that
         # orientation "horz" and swaps the two axis labels itself, so the

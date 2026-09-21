@@ -81,13 +81,11 @@ positions <- function(layer) {
   lapply(layer$data, function(point) c(point$x, point$y))
 }
 
-# The ids a layer's ticks are addressed by. The layer is read as `point`, and
-# the payload carries a point layer's selectors as ONE string (#316): the
-# per-tick selectors joined with ", ", which `querySelectorAll()` resolves in
-# document order.
+# The ids a layer's ticks are addressed by: one selector per tick, which the
+# frontend's rug model pairs with the observations one to one.
 tick_ids <- function(layer) {
-  testthat::expect_true(is.character(layer$selectors) && length(layer$selectors) == 1L)
-  selectors <- strsplit(layer$selectors, ", ", fixed = TRUE)[[1]]
+  selectors <- unlist(layer$selectors, use.names = FALSE)
+  testthat::expect_true(is.character(selectors))
   sub("^\\*\\[id='", "", sub("'\\]$", "", selectors))
 }
 
@@ -98,7 +96,7 @@ test_that("a rug is no longer an empty unknown layer", {
     ggplot2::geom_rug())
 
   testthat::expect_length(layers, 1L)
-  testthat::expect_identical(layers[[1]]$type, "point")
+  testthat::expect_identical(layers[[1]]$type, "rug")
   testthat::expect_length(layers[[1]]$data, length(VALUES))
 })
 
@@ -526,7 +524,7 @@ test_that("the bounds change nothing the layer already said", {
   layer <- layers_of(ggplot2::ggplot(frame(), ggplot2::aes(x = v)) +
     ggplot2::geom_rug())[[1]]
 
-  testthat::expect_identical(layer$type, "point")
+  testthat::expect_identical(layer$type, "rug")
   testthat::expect_equal(positions(layer), lapply(VALUES, function(v) c(v, 0)))
   testthat::expect_length(tick_ids(layer), length(VALUES))
 })

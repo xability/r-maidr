@@ -114,11 +114,26 @@ find_layer_slot_grob <- function(panel, index) {
   blanks <- which(vapply(
     children, function(g) inherits(g, "zeroGrob"), logical(1)
   ))
-  if (length(blanks) == 0L) {
+  grill <- which(vapply(
+    children,
+    function(g) !is.null(g$name) && grepl("^grill", g$name),
+    logical(1)
+  ))
+
+  # The layers start after the grill and the blank ggplot2 puts behind it.
+  # A patchwork panel has no such blank -- its first layer follows the
+  # grill directly -- so the blank is optional, and its absence must not
+  # send the search to the panel border's blank at the far end, which is
+  # what left a pie inside a composition with no wedges to name (#316).
+  first <- if (length(grill) > 0L) {
+    grill[1] + as.integer((grill[1] + 1L) %in% blanks)
+  } else if (length(blanks) > 0L) {
+    blanks[1]
+  } else {
     return(NULL)
   }
 
-  at <- blanks[1] + as.integer(index)
+  at <- first + as.integer(index)
   if (at < 1L || at > length(children)) {
     return(NULL)
   }
