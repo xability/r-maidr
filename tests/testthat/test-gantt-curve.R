@@ -70,7 +70,7 @@ curve_layer <- function(html) {
 }
 
 curve_intervals <- function(layer) {
-  lapply(layer$data, function(lane) {
+  lapply(layer$data$points, function(lane) {
     vapply(
       lane,
       function(one) sprintf("%s %g-%g", one$x, one$start, one$end),

@@ -15,6 +15,7 @@ Processes heatmap layers (geom_tile) with generic data and grob reordering
   \itemize{
     \item \href{#method-Ggplot2HeatmapLayerProcessor-process}{\code{Ggplot2HeatmapLayerProcessor$process()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-needs_reordering}{\code{Ggplot2HeatmapLayerProcessor$needs_reordering()}}
+    \item \href{#method-Ggplot2HeatmapLayerProcessor-binned_selector_grid}{\code{Ggplot2HeatmapLayerProcessor$binned_selector_grid()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data}{\code{Ggplot2HeatmapLayerProcessor$reorder_layer_data()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-is_binned_layer}{\code{Ggplot2HeatmapLayerProcessor$is_binned_layer()}}
     \item \href{#method-Ggplot2HeatmapLayerProcessor-extract_binned_data}{\code{Ggplot2HeatmapLayerProcessor$extract_binned_data()}}
@@ -97,6 +98,33 @@ matches the drawn tiles
   }
   \subsection{Returns}{
     TRUE
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2HeatmapLayerProcessor-binned_selector_grid"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2HeatmapLayerProcessor-binned_selector_grid}{}}}
+\subsection{\code{Ggplot2HeatmapLayerProcessor$binned_selector_grid()}}{
+  One selector per drawn bin of a binned grid, \code{NA} for an empty one
+
+ggplot2 draws the bins in the order the built data lists them, so the
+k-th rect under the layer's group is the k-th built row; \code{cells} holds
+that row number per cell, in the emitted row order.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2HeatmapLayerProcessor$binned_selector_grid(selector, cells)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{selector}}{The layer's \verb{<group> > rect} selector}
+      \item{\code{cells}}{Per-row lists of built row numbers, \code{NA} where no bin was drawn}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A per-cell selector grid
   }
 }
 

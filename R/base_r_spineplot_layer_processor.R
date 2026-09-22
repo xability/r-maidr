@@ -142,15 +142,19 @@ BaseRSpineplotLayerProcessor <- R6::R6Class(
 
       categories <- nrow(table)
       fills <- ncol(table)
-      selectors <- list()
-      for (fill_index in seq_len(fills)) {
-        for (category_index in seq_len(categories)) {
+      # A grid, `selectors[[fill]][[category]]`, which the frontend's
+      # segmented model resolves cell by cell. A flat list of the same
+      # selectors is joined into one `querySelectorAll()` string on the way
+      # out, and that resolves in DOCUMENT order whatever order the list was
+      # written in -- so the drawing-order walk below was thrown away and
+      # every tile after the first was outlined for another cell's value
+      # (#316).
+      lapply(seq_len(fills), function(fill_index) {
+        lapply(seq_len(categories), function(category_index) {
           drawn_at <- (category_index - 1) * fills + (fills - fill_index + 1)
-          selectors[[length(selectors) + 1]] <-
-            rect_cell_selector(panel, drawn_at)
-        }
-      }
-      selectors
+          rect_cell_selector(panel, drawn_at)
+        })
+      })
     }
   ),
   private = list(

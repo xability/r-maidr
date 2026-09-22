@@ -105,12 +105,17 @@ BaseRTermplotLayerProcessor <- R6::R6Class(
     # One panel's points, axis labels and selector.
     panel_layer = function(curve, panel, title) {
       list(
-        data = lapply(
+        # One series, nested: the frontend's line model reads `data` as an
+        # array of series, and a flat list of points threw in its
+        # constructor and took the figure down (#316).
+        data = list(lapply(
           seq_along(curve$x),
           function(i) list(x = curve$x[[i]], y = curve$y[[i]])
-        ),
+        )),
+        # The polyline itself, not its group: the frontend's line model reads
+        # the vertices off the element (#316).
         selectors = list(
-          paste0("g#graphics-plot-", panel, "-lines-1\\.1")
+          paste0("#graphics-plot-", panel, "-lines-1\\.1 polyline")
         ),
         type = "line",
         title = title,

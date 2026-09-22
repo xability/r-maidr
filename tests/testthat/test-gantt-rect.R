@@ -88,7 +88,7 @@ detected <- function(plot, index = 1) {
 
 #' The lanes of a processed layer as "name start-end" strings, lane by lane
 as_intervals <- function(result) {
-  lapply(result$data, function(lane) {
+  lapply(result$data$points, function(lane) {
     vapply(lane, function(one) sprintf("%s %g-%g", one$x, one$start, one$end), "")
   })
 }
@@ -215,7 +215,7 @@ test_that("declaring a layer does not redraw the author's chart", {
     ggplot2::ggplot(schedule_bands()) + ggplot2::geom_rect(band_aes)
   )
 
-  testthat::expect_identical(declared$data[[1]], bare$data[[1]])
+  testthat::expect_identical(declared$data$points[[1]], bare$data$points[[1]])
   testthat::expect_identical(
     declared$layout$panel_params[[1]]$x.range,
     bare$layout$panel_params[[1]]$x.range
@@ -396,7 +396,7 @@ test_that("a declared schedule is read as the schedule it draws", {
     as_intervals(result),
     list("design 0-3", c("build 3-8", "build 12-15"), "test 8-11")
   )
-  testthat::expect_equal(unlist(result$lanes), c("design", "build", "test"))
+  testthat::expect_equal(unlist(result$data$lanes), c("design", "build", "test"))
   testthat::expect_equal(result$orientation, "horz")
   testthat::expect_equal(result$axes$x$label, "week")
   testthat::expect_equal(result$axes$y$label, "task")
@@ -424,8 +424,8 @@ test_that("a declared schedule reads exactly as the segment spelling does", {
   from_segments <- processed(segments)
   from_rects <- processed(declared_plot())
 
-  testthat::expect_identical(from_rects$data, from_segments$data)
-  testthat::expect_identical(from_rects$lanes, from_segments$lanes)
+  testthat::expect_identical(from_rects$data$points, from_segments$data$points)
+  testthat::expect_identical(from_rects$data$lanes, from_segments$data$lanes)
   testthat::expect_identical(from_rects$orientation, from_segments$orientation)
   testthat::expect_identical(from_rects$axes, from_segments$axes)
 
@@ -513,7 +513,7 @@ test_that("a lane is named by the one explicit tick inside it", {
   skip_unless_ggplot2()
 
   testthat::expect_equal(
-    unlist(processed(declared_plot())$lanes), c("design", "build", "test")
+    unlist(processed(declared_plot())$data$lanes), c("design", "build", "test")
   )
 })
 
@@ -535,7 +535,7 @@ test_that("an axis writing its own coordinates out names nothing", {
       plot <- plot + scale
     }
     result <- processed(plot)
-    testthat::expect_null(result$lanes)
+    testthat::expect_null(result$data$lanes)
     testthat::expect_equal(
       as_intervals(result),
       list("1 0-3", c("2 3-8", "2 12-15"), "3 8-11")
@@ -554,7 +554,7 @@ test_that("a band holding no tick, or two, is named by its position", {
       ggplot2::scale_y_continuous(breaks = c(1, 3), labels = c("design", "test"))
   )
   testthat::expect_equal(
-    vapply(no_tick$lanes, as.character, ""), c("design", "2", "test")
+    vapply(no_tick$data$lanes, as.character, ""), c("design", "2", "test")
   )
   testthat::expect_equal(
     as_intervals(no_tick),
@@ -568,7 +568,7 @@ test_that("a band holding no tick, or two, is named by its position", {
       )
   )
   testthat::expect_equal(
-    vapply(two_ticks$lanes, as.character, ""), c("1", "build", "test")
+    vapply(two_ticks$data$lanes, as.character, ""), c("1", "build", "test")
   )
 })
 
@@ -594,7 +594,7 @@ test_that("coord_flip lanes are named by the ticks the chart draws on them", {
     ggplot2::scale_x_continuous(breaks = 1:3, labels = c("Jan", "Feb", "Mar"))
   )
   testthat::expect_equal(
-    unlist(named_span$lanes), c("design", "build", "test")
+    unlist(named_span$data$lanes), c("design", "build", "test")
   )
   testthat::expect_equal(
     as_intervals(named_span),
@@ -606,7 +606,7 @@ test_that("coord_flip lanes are named by the ticks the chart draws on them", {
   #    swap `label_names_its_lane()` refused all of them and the lanes lost
   #    their names entirely on a chart drawing design/build/test.
   testthat::expect_equal(
-    unlist(flipped()$lanes), c("design", "build", "test")
+    unlist(flipped()$data$lanes), c("design", "build", "test")
   )
 
   # The mirror spelling flips the same way.
@@ -619,7 +619,7 @@ test_that("coord_flip lanes are named by the ticks the chart draws on them", {
     ggplot2::scale_y_continuous(breaks = 1:3, labels = c("Jan", "Feb", "Mar")) +
     ggplot2::coord_flip()
   testthat::expect_equal(
-    unlist(processed(mirror)$lanes), c("design", "build", "test")
+    unlist(processed(mirror)$data$lanes), c("design", "build", "test")
   )
 
   # The negative case, which is not this issue's to change: the
@@ -634,7 +634,7 @@ test_that("coord_flip lanes are named by the ticks the chart draws on them", {
       ggplot2::geom_segment(ggplot2::aes(x = x, xend = xend, y = y, yend = y)) +
       task_labels() + ggplot2::coord_flip()
   )
-  testthat::expect_null(segments$lanes)
+  testthat::expect_null(segments$data$lanes)
   testthat::expect_equal(
     as_intervals(segments),
     list("1 0-3", c("2 3-8", "2 12-15"), "3 8-11")
@@ -735,7 +735,7 @@ test_that("a declared schedule keeps its interactivity and its lane names", {
   layer <- layers_from(html)[[1]]
   testthat::expect_equal(layer$type, "gantt")
   testthat::expect_equal(layer$orientation, "horz")
-  testthat::expect_equal(unlist(layer$lanes), c("design", "build", "test"))
+  testthat::expect_equal(unlist(layer$data$lanes), c("design", "build", "test"))
   testthat::expect_equal(
     as_intervals(layer),
     list("design 0-3", c("build 3-8", "build 12-15"), "test 8-11")
@@ -784,6 +784,6 @@ test_that("a declared heatmap is announced as a schedule, and that is the hole",
 
   testthat::expect_equal(detected(plot), "gantt")
   result <- processed(plot)
-  testthat::expect_equal(lengths(result$data), c(3L, 3L, 3L))
-  testthat::expect_equal(result$data[[1]][[1]]$start, 0.5)
+  testthat::expect_equal(lengths(result$data$points), c(3L, 3L, 3L))
+  testthat::expect_equal(result$data$points[[1]][[1]]$start, 0.5)
 })

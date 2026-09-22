@@ -118,7 +118,14 @@ test_that("a column drawn with no tiles is announced but not addressed", {
 
   layer <- mosaic_layers(function() mosaicplot(empty))[[1]]
 
-  testthat::expect_length(layer$selectors, 0)
+  # The grid keeps its shape and leaves the undrawn cells empty: `NA` here,
+  # `null` in the payload, which the frontend reads as "no tile" while every
+  # drawn tile keeps its own cell.
+  testthat::expect_equal(lengths(layer$selectors), c(2L, 2L))
+  testthat::expect_true(is.na(layer$selectors[[1]][[2]]))
+  testthat::expect_true(is.na(layer$selectors[[2]][[2]]))
+  testthat::expect_false(is.na(layer$selectors[[1]][[1]]))
+  testthat::expect_false(is.na(layer$selectors[[2]][[1]]))
   testthat::expect_length(layer$data, 2)
   testthat::expect_length(layer$data[[1]], 2)
 })
@@ -184,7 +191,10 @@ test_that("a mosaic addresses the tile it is standing on", {
   # `-5`..`-8` the next (237.8 to 671.4), and within a column the grob number
   # runs down the fill levels in the table's own order. The emitted data is
   # fill-major, so cell (fill f, column c) is grob (c - 1) * fills + f.
-  selectors <- unlist(mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]$selectors)
+  grid <- mosaic_layers(function() mosaicplot(HAIR_EYE))[[1]]$selectors
+  # One row per fill, one cell per category: the grid the frontend reads.
+  testthat::expect_equal(lengths(grid), rep(nrow(HAIR_EYE), ncol(HAIR_EYE)))
+  selectors <- unlist(grid)
 
   testthat::expect_length(selectors, nrow(HAIR_EYE) * ncol(HAIR_EYE))
   testthat::expect_equal(

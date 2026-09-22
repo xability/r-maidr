@@ -615,6 +615,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       # processed: grob names come from a global counter, so selectors
       # computed against one build do not resolve against another.
       plot_for_render <- augment_patchwork_leaves(private$.plot)
+      # And in the row order the processors declare to the frontend, which
+      # the single-plot and facet paths already draw in (see
+      # `reorder_patchwork_leaves()`).
+      plot_for_render <- reorder_patchwork_leaves(plot_for_render)
 
       # Suppress native R graphics window by using a null PDF device
       current_dev <- grDevices::dev.cur()

@@ -88,7 +88,7 @@ layers_from <- function(html) {
 
 #' Every lane's intervals as "name start-end" strings, lane by lane
 as_intervals <- function(layer) {
-  lapply(layer$data, function(lane) {
+  lapply(layer$data$points, function(lane) {
     vapply(
       lane,
       function(one) sprintf("%s %g-%g", one$x, one$start, one$end),
@@ -222,7 +222,7 @@ test_that("every interval a spoke announces can be highlighted", {
   html <- rendered(spoke_plot())
   layer <- layers_from(html)[[1]]
 
-  testthat::expect_length(layer$selectors, length(layer$data))
+  testthat::expect_length(layer$selectors, length(layer$data$points))
   for (selector in layer$selectors) {
     id <- sub(".*id='([^']+)'.*", "\\1", selector)
     testthat::expect_true(grepl(id, html, fixed = TRUE))

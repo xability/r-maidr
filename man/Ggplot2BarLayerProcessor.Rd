@@ -24,6 +24,7 @@ Processes bar plot layers with complete logic included
     \item \href{#method-Ggplot2BarLayerProcessor-map_discrete_x}{\code{Ggplot2BarLayerProcessor$map_discrete_x()}}
     \item \href{#method-Ggplot2BarLayerProcessor-map_continuous_x}{\code{Ggplot2BarLayerProcessor$map_continuous_x()}}
     \item \href{#method-Ggplot2BarLayerProcessor-generate_selectors}{\code{Ggplot2BarLayerProcessor$generate_selectors()}}
+    \item \href{#method-Ggplot2BarLayerProcessor-own_rect_names}{\code{Ggplot2BarLayerProcessor$own_rect_names()}}
     \item \href{#method-Ggplot2BarLayerProcessor-clone}{\code{Ggplot2BarLayerProcessor$clone()}}
   }
 }
@@ -361,6 +362,40 @@ in \code{Ggplot2LineLayerProcessor}.
   }
   \subsection{Returns}{
     List of selectors
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2BarLayerProcessor-own_rect_names"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2BarLayerProcessor-own_rect_names}{}}}
+\subsection{\code{Ggplot2BarLayerProcessor$own_rect_names()}}{
+  The rect grob names under this layer's own slot, or under the whole panel
+
+A panel holds one \code{geom_rect.rect} grob per bar layer, so a plot
+that overlays two \code{geom_col()}s -- a total behind a highlighted
+part is the usual reason -- has two, and a search over the panel
+returns both to each layer. Its selectors then address every bar in
+the panel: the frontend finds twice the marks it has points for and
+highlights nothing, on both layers. So the search is scoped to the
+layer's own slot (see \code{find_layer_slot_grob()}): whatever the
+geom drew there, a bare rect grob or a tree wrapping one, and nothing
+when it drew no rects here at all. The panel-wide search remains only
+for a panel whose layout the slot cannot be read from.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2BarLayerProcessor$own_rect_names(panel_grob, find_rect_names)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel_grob}}{The panel grob}
+      \item{\code{find_rect_names}}{Function collecting every rect grob name under a grob}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    Character vector of rect grob names
   }
 }
 

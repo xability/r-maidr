@@ -58,7 +58,10 @@ BaseRStackedBarLayerProcessor <- R6::R6Class(
         },
         title = title,
         axes = axes,
-        domMapping = list(groupDirection = "forward")
+        # `barplot()` draws category by category, first series first, and
+        # the bundled maidr.js pairs a flat rect list with the grid series
+        # by series unless the layer says `order = "column"`.
+        domMapping = list(order = "column", groupDirection = "forward")
       )
     },
     #' @description Whether the plot data must be reordered before drawing; a Base R layer is read

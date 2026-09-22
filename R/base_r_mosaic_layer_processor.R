@@ -206,18 +206,36 @@ BaseRMosaicLayerProcessor <- R6::R6Class(
       categories <- nrow(table)
       fills <- ncol(table)
       tiles <- find_graphics_plot_grobs(gt, "polygon", index)
-      if (length(tiles) < categories * fills) {
+
+      # `mosaicplot()` draws no tile for an empty cell, so the grobs run
+      # category-major over the cells that have a count. A grid,
+      # `selectors[[fill]][[category]]`, says which cell each tile is and
+      # leaves `NA` -- JSON `null` -- where nothing was drawn: the
+      # frontend's segmented model stands a placeholder in for a null cell
+      # and outlines every other tile for its own cell. Declining the whole
+      # layer for one empty cell, as this did, left every mosaic with a
+      # zero in it unhighlighted (#316). A tile count that still disagrees
+      # is another drawing's, and is declined.
+      drawn <- t(table != 0)
+      if (length(tiles) != sum(drawn)) {
         return(list())
       }
-
-      selectors <- list()
-      for (fill_index in seq_len(fills)) {
-        for (category_index in seq_len(categories)) {
-          name <- tiles[[(category_index - 1) * fills + fill_index]]
-          selectors[[length(selectors) + 1]] <- polygon_cell_selector(name)
+      tile_of <- matrix(NA_character_, nrow = categories, ncol = fills)
+      next_tile <- 1L
+      for (category_index in seq_len(categories)) {
+        for (fill_index in seq_len(fills)) {
+          if (table[category_index, fill_index] != 0) {
+            tile_of[category_index, fill_index] <-
+              polygon_cell_selector(tiles[[next_tile]])
+            next_tile <- next_tile + 1L
+          }
         }
       }
-      selectors
+      lapply(seq_len(fills), function(fill_index) {
+        lapply(seq_len(categories), function(category_index) {
+          tile_of[category_index, fill_index]
+        })
+      })
     }
   )
 )

@@ -52,7 +52,13 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
         selectors = selectors,
         orientation = if (horizontal) "horz" else "vert",
         title = if (!is.null(layout$title)) layout$title else "",
-        axes = axes
+        axes = axes,
+        # ggplot2 draws each column's segments top first, and the bundled
+        # maidr.js pairs a flat rect list with the grid series by series
+        # unless the layer says `order = "column"`; its default walk within
+        # a column is then the reverse one this layer needs (see the note
+        # above `generate_selectors()`).
+        domMapping = list(order = "column")
       )
     },
     #' @description Whether the plot data must be reordered before drawing, so the emitted order
@@ -467,16 +473,24 @@ Ggplot2StackedBarProcessor <- R6::R6Class(
     # document order. The class then RE-GROUPS that list itself instead of
     # zipping it against the flattened payload (de-minified, rect branch):
     #
-    #   for (let col = 0, k = 0; col < barValues[0].length; col++)
-    #     if (domMapping?.groupDirection === "forward")
-    #       for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
-    #     else
-    #       for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
+    #   if (domMapping?.order !== "column")
+    #     for (let s = 0; s < barValues.length; s++)
+    #       for (let col = 0; col < barValues[s].length; col++) out[s][col] = nodes[k++];
+    #   else
+    #     for (let col = 0; col < barValues[0].length; col++)
+    #       if (domMapping?.groupDirection === "forward")
+    #         for (let s = 0; s < barValues.length; s++)      out[s][col] = nodes[k++];
+    #       else
+    #         for (let s = barValues.length - 1; s >= 0; s--) out[s][col] = nodes[k++];
     #
     # So the DOM walk is X-MAJOR (one whole column at a time) while `data`
-    # stays SERIES-MAJOR, and because this layer emits no `domMapping` the
-    # per-column direction defaults to "reverse": the first rect of a column
-    # is handed to the LAST data series, the last rect to the first series.
+    # stays SERIES-MAJOR -- once the layer says `order = "column"`, which
+    # this one does. maidr.js 3.x walked every `<rect>` layer that way by
+    # default; 4.0 pairs a layer that says nothing series by series, which
+    # handed every segment after the first to the wrong cell (#316). The
+    # per-column direction is left at its default, "reverse": the first rect
+    # of a column is handed to the LAST data series, the last rect to the
+    # first series.
     #
     # That is why flattening `data` and lining it up against document order
     # looks wrong - the frontend never does that. Concretely, for x = a,b,c

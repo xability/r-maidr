@@ -79,8 +79,9 @@ na_bar_render <- function(plot) {
 #' The bundled maidr.js Segmented rect walk, in R
 #'
 #' `Number(null)` is 0, which is what lets an absent cell claim no rect. The
-#' walk is x-major over a series-major payload, and reverse within a column
-#' unless the layer says `groupDirection: "forward"`.
+#' walk is x-major over a series-major payload once the layer says
+#' `order: "column"` -- series-major otherwise, since maidr.js 4.0 (#316) --
+#' and reverse within a column unless the layer says `groupDirection: "forward"`.
 #'
 #' @return One row per non-null cell: its point, and the index of the rect it
 #'   was handed
@@ -102,19 +103,29 @@ na_bar_walk <- function(rendered) {
     rev(seq_along(bar_values))
   }
 
+  cells <- if (identical(rendered$layer$domMapping$order, "column")) {
+    unlist(lapply(seq_along(bar_values[[1]]), function(col) {
+      lapply(series_order, function(s) c(s, col))
+    }), recursive = FALSE)
+  } else {
+    unlist(lapply(seq_along(bar_values), function(s) {
+      lapply(seq_along(bar_values[[s]]), function(col) c(s, col))
+    }), recursive = FALSE)
+  }
+
   claimed <- list()
   k <- 0L
-  for (col in seq_along(bar_values[[1]])) {
-    for (s in series_order) {
-      if ((sparse && bar_values[[s]][col] == 0) || k >= length(rendered$rect_x)) {
-        next
-      }
-      k <- k + 1L
-      claimed[[length(claimed) + 1L]] <- list(
-        point = rendered$layer$data[[s]][[col]],
-        rect = k
-      )
+  for (cell in cells) {
+    s <- cell[1]
+    col <- cell[2]
+    if ((sparse && bar_values[[s]][col] == 0) || k >= length(rendered$rect_x)) {
+      next
     }
+    k <- k + 1L
+    claimed[[length(claimed) + 1L]] <- list(
+      point = rendered$layer$data[[s]][[col]],
+      rect = k
+    )
   }
 
   list(claimed = claimed, rect_count = length(rendered$rect_x))

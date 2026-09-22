@@ -447,10 +447,15 @@ test_that("a rendered Base R pie carries the flat wire format", {
   testthat::expect_equal(slice_labels(layer$data), c("Apples", "Bananas", "Cherries"))
   testthat::expect_equal(slice_values(layer$data), c(30, 50, 20))
 
-  # Every selector must resolve to exactly one wedge in the exported SVG.
-  testthat::expect_length(layer$selectors, 3L)
+  # One selector string for the layer -- the pie model reads
+  # `layer.selectors as string` (#316) -- naming the three wedge grobs in
+  # drawing order, and every one must resolve to exactly one wedge in the
+  # exported SVG.
+  testthat::expect_true(is.character(layer$selectors) && length(layer$selectors) == 1L)
+  selectors <- strsplit(layer$selectors, ", ", fixed = TRUE)[[1]]
+  testthat::expect_length(selectors, 3L)
   doc <- xml2::read_html(file)
-  for (selector in layer$selectors) {
+  for (selector in selectors) {
     id <- gsub("\\\\", "", sub(" polygon$", "", sub("^#", "", selector)))
     nodes <- xml2::xml_find_all(
       doc,

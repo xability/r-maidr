@@ -220,8 +220,9 @@ test_that("a cell of zero is drawn, so no later tile shifts", {
     cells(layer),
     c("a/no=5", "b/no=3", "c/no=2", "a/yes=0", "b/yes=7", "c/yes=4")
   )
-  expect_equal(length(layer$selectors), 6)
-  expect_equal(layer$selectors[[4]], "#graphics-plot-1-rect-1\\.1\\.1")
+  # One row per fill, one cell per category: the grid the frontend reads.
+  expect_equal(lengths(layer$selectors), c(3L, 3L))
+  expect_equal(layer$selectors[[2]][[1]], "#graphics-plot-1-rect-1\\.1\\.1")
 })
 
 test_that("a panel holding more than one rect grob is declined", {
@@ -243,7 +244,7 @@ test_that("a panel holding exactly one rect grob is addressed", {
   # sub-elements rather than grobs of their own.
   one <- grid::grobTree(grid::rectGrob(name = "graphics-plot-1-rect-1"))
 
-  expect_equal(length(processed(list(table(LEVELS, ANSWERS)), one)$selectors), 6)
+  expect_equal(lengths(processed(list(table(LEVELS, ANSWERS)), one)$selectors), c(3L, 3L))
 })
 
 test_that("no selector is emitted without a drawing to check against", {

@@ -103,11 +103,11 @@ test_that("a periodogram in a second panel is outlined by that panel's grob", {
   expect_false(figure$fallback)
   expect_identical(
     first_layer(figure, 1L)$selectors,
-    list("g#graphics-plot-1-lines-1\\.1")
+    list("#graphics-plot-1-lines-1\\.1 polyline")
   )
   expect_identical(
     first_layer(figure, 2L)$selectors,
-    list("g#graphics-plot-2-step-1\\.1")
+    list("#graphics-plot-2-step-1\\.1 polyline")
   )
 })
 

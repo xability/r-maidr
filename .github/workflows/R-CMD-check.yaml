@@ -86,3 +86,50 @@ jobs:
       - name: Run the tests from the source tree
         run: testthat::test_local(stop_on_failure = TRUE)
         shell: Rscript {0}
+
+  # The payload can be valid and every value announced while the chart draws
+  # no highlight at all: that is what the 4.0 bundle refresh did to bar,
+  # point, histogram, dodged, stacked and pie layers, and nothing here could
+  # see it, because every test reads the payload and none of them runs the
+  # frontend (#316). This renders each of those charts with the bundle the
+  # tree ships, presses Right Arrow on it in headless Chromium, and fails
+  # when no mark changes colour. It runs on the pull request that changes a
+  # processor and on the dispatch a bundle refresh sends.
+  highlight-smoke:
+    runs-on: ubuntu-latest
+    name: highlight in a browser
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          needs: check
+          cache-version: 2
+
+      - name: Install the package
+        run: R CMD INSTALL --no-docs --no-multiarch .
+
+      - name: Render the charts
+        run: Rscript .github/scripts/highlight-smoke.R smoke
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Pinned so the browser the check runs in changes only when someone
+      # changes it here. `--no-save` keeps the tree free of a package.json.
+      - name: Install Playwright and its Chromium
+        run: |
+          npm install --no-save playwright@1.57.0
+          npx playwright install --with-deps chromium
+
+      - name: Press Right Arrow on every chart
+        run: node .github/scripts/highlight-smoke.mjs smoke

@@ -128,9 +128,28 @@ regroup_with_zero_skip <- function(bar_values, nodes, dom_mapping = NULL) {
   slots <- sum(vapply(bar_values, length, integer(1)))
   sparse <- length(nodes) < slots
   forward <- identical(dom_mapping$groupDirection, "forward")
+  # Since maidr.js 4.0 the column-major walk is declared, not inferred: a
+  # layer that says nothing is paired series by series (#316).
+  column_major <- identical(dom_mapping$order, "column")
 
   grouped <- replicate(length(bar_values), integer(0), simplify = FALSE)
   k <- 1L
+  claim <- function(s, col) {
+    if ((sparse && bar_values[[s]][col] == 0) || k > length(nodes)) {
+      grouped[[s]] <<- c(grouped[[s]], NA_integer_)
+    } else {
+      grouped[[s]] <<- c(grouped[[s]], nodes[k])
+      k <<- k + 1L
+    }
+  }
+  if (!column_major) {
+    for (s in seq_along(bar_values)) {
+      for (col in seq_along(bar_values[[s]])) {
+        claim(s, col)
+      }
+    }
+    return(grouped)
+  }
   for (col in seq_along(bar_values[[1]])) {
     series_order <- if (forward) {
       seq_along(bar_values)
@@ -138,12 +157,7 @@ regroup_with_zero_skip <- function(bar_values, nodes, dom_mapping = NULL) {
       rev(seq_along(bar_values))
     }
     for (s in series_order) {
-      if ((sparse && bar_values[[s]][col] == 0) || k > length(nodes)) {
-        grouped[[s]] <- c(grouped[[s]], NA_integer_)
-      } else {
-        grouped[[s]] <- c(grouped[[s]], nodes[k])
-        k <- k + 1L
-      }
+      claim(s, col)
     }
   }
   grouped
@@ -265,7 +279,9 @@ test_that("a dodged geom_col still asks for the default reverse walk", {
   # the frontend's default reverse per-column walk expects. Zero-/NA-filling
   # the grid must not quietly turn this into the "forward" walk that the
   # stat = "count" branch needs.
-  testthat::expect_null(col_layer("middle", "dodged")$layer$domMapping)
+  testthat::expect_equal(
+    col_layer("middle", "dodged")$layer$domMapping, list(order = "column")
+  )
 })
 
 # A real NA in the x or fill aesthetic is NOT an absent cell. ggplot2 draws it

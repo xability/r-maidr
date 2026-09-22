@@ -115,11 +115,11 @@ test_that("each cell is addressed on its own, bottom band last", {
   expect_length(selectors, 4)
   expect_equal(
     unlist(selectors[[1]]),
-    paste0("g#graphics-plot-1-rect-1 > rect:nth-of-type(", 13:16, ")")
+    paste0("#graphics-plot-1-rect-1\\.1 > rect:nth-of-type(", 13:16, ")")
   )
   expect_equal(
     unlist(selectors[[4]]),
-    paste0("g#graphics-plot-1-rect-1 > rect:nth-of-type(", 1:4, ")")
+    paste0("#graphics-plot-1-rect-1\\.1 > rect:nth-of-type(", 1:4, ")")
   )
 })
 

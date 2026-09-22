@@ -214,7 +214,10 @@ BaseRAssocplotLayerProcessor <- R6::R6Class(
       } else {
         layer_info$index
       }
-      container <- paste0("g#graphics-plot-", group_index, "-rect-1")
+      # gridSVG appends `.1` to the grob's name on export, so the container
+      # is `graphics-plot-N-rect-1.1`; without it the grid resolved to
+      # nothing and the layer had no highlight at all (#316).
+      container <- paste0("#graphics-plot-", group_index, "-rect-1\\.1")
 
       n_rows <- length(extracted_data$points)
       if (n_rows == 0) {
