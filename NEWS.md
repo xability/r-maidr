@@ -557,6 +557,14 @@
   needed, and the reference index files `maidr_on()`, `maidr_off()` and
   `?"maidr-options"` under "Turning interception on and off" rather than
   under R Markdown alone (#318).
+* The README, the getting-started vignette and the examples hub carry one
+  keyboard table, identical on all three and matched to the MAIDR core's
+  controls reference: Up/Down, layer switching with Page Up/Page Down, label
+  mode, high contrast and the shortcut help are listed, Space is "repeat the
+  current sound", and the Enter/Space and Escape rows the vignette had, which
+  the core does not bind, are gone. Each copy sits between markers and
+  `tests/testthat/test-docs-key-table.R` fails when the three drift apart
+  (#312).
 
 ## Performance
 

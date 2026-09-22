@@ -218,16 +218,26 @@ worked example of each plot type.
 - **Sonification** - hear data patterns through sound
 - **Text descriptions** - automatic statistical summaries
 
-Press **Tab** (or click) to focus a rendered plot, move between data points with the **arrow keys**, and toggle **B** braille, **T** text, **S** sonification, and **R** review mode. Four global shortcuts open maidr's own interfaces:
+The keys a reader needs first, the same on every page of this documentation:
 
-| Action | Windows / Linux | macOS |
-|---|---|---|
-| Show or hide the keyboard shortcut help | Ctrl + / | Command + / |
-| Open the command palette listing every available command | Ctrl + Shift + P | Command + Shift + P |
-| Open the AI chat (requires your own API key, entered in Settings, or a local Ollama server) | Shift + / (that is, **?**) | Shift + / (**?**) |
-| Open Settings | Ctrl + , | Command + , |
+<!-- maidr-keys:start -->
+| Key | Action |
+|---|---|
+| **Tab** | Focus the chart; **Shift + Tab** leaves it |
+| **Left / Right** | Move between data points |
+| **Up / Down** | Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them |
+| **Page Up / Page Down** | Switch between the layers of a chart that has several |
+| **B** | Toggle braille mode |
+| **T** | Toggle text mode |
+| **S** | Toggle sonification |
+| **R** | Toggle review mode |
+| **C** | Toggle high contrast mode |
+| **L**, then **X**, **Y** or **T** | Announce the x axis label, the y axis label or the title |
+| **Space** | Repeat the current sound |
+| **Ctrl + /** (**Cmd + /** on macOS) | Show or hide the full keyboard shortcut help |
 
-The full list, including autoplay, label announcements, and layer switching, is in the [maidr controls documentation](https://maidr.ai/docs/CONTROLS.html).
+Every other shortcut, including autoplay, jumping to the ends, the command palette, settings and the AI chat, is on the [MAIDR controls reference](https://maidr.ai/docs/CONTROLS.html).
+<!-- maidr-keys:end -->
 
 ## Offline support
 

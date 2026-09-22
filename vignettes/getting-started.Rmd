@@ -194,10 +194,24 @@ When you open a MAIDR plot, you can explore it using:
 
 ### Keyboard Navigation
 
-- **Arrow keys** - Navigate between data points
-- **Tab** - Move between interactive elements
-- **Enter/Space** - Activate controls
-- **Escape** - Exit modes
+<!-- maidr-keys:start -->
+| Key | Action |
+|---|---|
+| **Tab** | Focus the chart; **Shift + Tab** leaves it |
+| **Left / Right** | Move between data points |
+| **Up / Down** | Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them |
+| **Page Up / Page Down** | Switch between the layers of a chart that has several |
+| **B** | Toggle braille mode |
+| **T** | Toggle text mode |
+| **S** | Toggle sonification |
+| **R** | Toggle review mode |
+| **C** | Toggle high contrast mode |
+| **L**, then **X**, **Y** or **T** | Announce the x axis label, the y axis label or the title |
+| **Space** | Repeat the current sound |
+| **Ctrl + /** (**Cmd + /** on macOS) | Show or hide the full keyboard shortcut help |
+
+Every other shortcut, including autoplay, jumping to the ends, the command palette, settings and the AI chat, is on the [MAIDR controls reference](https://maidr.ai/docs/CONTROLS.html).
+<!-- maidr-keys:end -->
 
 ### Screen Reader Announcements
 
