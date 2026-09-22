@@ -180,6 +180,10 @@ layout(...)
 }
 \arguments{
 \item{...}{Arguments passed to the original graphics function.}
+
+\item{side, at, labels}{\code{axis()}'s own arguments, which its wrapper names so
+that the tick labels a chart is given can be recorded; passed on to
+\code{graphics::axis()} unchanged.}
 }
 \value{
 Same as the original Base R function (invisibly when applicable).
