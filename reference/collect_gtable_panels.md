@@ -13,7 +13,8 @@ collect_gtable_panels(
   gt,
   t_path = integer(0),
   l_path = integer(0),
-  vp_prefix = character(0)
+  vp_prefix = character(0),
+  wrapper = NULL
 )
 ```
 

@@ -16,6 +16,8 @@ reordering
 
 - [`Ggplot2HeatmapLayerProcessor$needs_reordering()`](#method-Ggplot2HeatmapLayerProcessor-needs_reordering)
 
+- [`Ggplot2HeatmapLayerProcessor$binned_selector_grid()`](#method-Ggplot2HeatmapLayerProcessor-binned_selector_grid)
+
 - [`Ggplot2HeatmapLayerProcessor$reorder_layer_data()`](#method-Ggplot2HeatmapLayerProcessor-reorder_layer_data)
 
 - [`Ggplot2HeatmapLayerProcessor$is_binned_layer()`](#method-Ggplot2HeatmapLayerProcessor-is_binned_layer)
@@ -121,6 +123,34 @@ order matches the drawn tiles
 #### Returns
 
 TRUE
+
+------------------------------------------------------------------------
+
+### `Ggplot2HeatmapLayerProcessor$binned_selector_grid()`
+
+One selector per drawn bin of a binned grid, `NA` for an empty one
+
+ggplot2 draws the bins in the order the built data lists them, so the
+k-th rect under the layer's group is the k-th built row; `cells` holds
+that row number per cell, in the emitted row order.
+
+#### Usage
+
+    Ggplot2HeatmapLayerProcessor$binned_selector_grid(selector, cells)
+
+#### Arguments
+
+- `selector`:
+
+  The layer's `<group> > rect` selector
+
+- `cells`:
+
+  Per-row lists of built row numbers, `NA` where no bin was drawn
+
+#### Returns
+
+A per-cell selector grid
 
 ------------------------------------------------------------------------
 

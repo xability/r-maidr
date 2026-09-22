@@ -33,6 +33,8 @@ Processes bar plot layers with complete logic included
 
 - [`Ggplot2BarLayerProcessor$generate_selectors()`](#method-Ggplot2BarLayerProcessor-generate_selectors)
 
+- [`Ggplot2BarLayerProcessor$own_rect_names()`](#method-Ggplot2BarLayerProcessor-own_rect_names)
+
 - [`Ggplot2BarLayerProcessor$clone()`](#method-Ggplot2BarLayerProcessor-clone)
 
 Inherited methods
@@ -412,6 +414,44 @@ Selectors for the layer's rects
 #### Returns
 
 List of selectors
+
+------------------------------------------------------------------------
+
+### `Ggplot2BarLayerProcessor$own_rect_names()`
+
+The rect grob names under this layer's own slot, or under the whole
+panel
+
+A panel holds one `geom_rect.rect` grob per bar layer, so a plot that
+overlays two
+[`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)s –
+a total behind a highlighted part is the usual reason – has two, and a
+search over the panel returns both to each layer. Its selectors then
+address every bar in the panel: the frontend finds twice the marks it
+has points for and highlights nothing, on both layers. So the search is
+scoped to the layer's own slot (see
+[`find_layer_slot_grob()`](https://r.maidr.ai/reference/find_layer_slot_grob.md)):
+whatever the geom drew there, a bare rect grob or a tree wrapping one,
+and nothing when it drew no rects here at all. The panel-wide search
+remains only for a panel whose layout the slot cannot be read from.
+
+#### Usage
+
+    Ggplot2BarLayerProcessor$own_rect_names(panel_grob, find_rect_names)
+
+#### Arguments
+
+- `panel_grob`:
+
+  The panel grob
+
+- `find_rect_names`:
+
+  Function collecting every rect grob name under a grob
+
+#### Returns
+
+Character vector of rect grob names
 
 ------------------------------------------------------------------------
 

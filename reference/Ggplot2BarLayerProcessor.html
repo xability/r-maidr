@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-09-21">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -104,6 +104,7 @@
 <li><p><a href="#method-Ggplot2BarLayerProcessor-map_discrete_x"><code>Ggplot2BarLayerProcessor$map_discrete_x()</code></a></p></li>
 <li><p><a href="#method-Ggplot2BarLayerProcessor-map_continuous_x"><code>Ggplot2BarLayerProcessor$map_continuous_x()</code></a></p></li>
 <li><p><a href="#method-Ggplot2BarLayerProcessor-generate_selectors"><code>Ggplot2BarLayerProcessor$generate_selectors()</code></a></p></li>
+<li><p><a href="#method-Ggplot2BarLayerProcessor-own_rect_names"><code>Ggplot2BarLayerProcessor$own_rect_names()</code></a></p></li>
 <li><p><a href="#method-Ggplot2BarLayerProcessor-clone"><code>Ggplot2BarLayerProcessor$clone()</code></a></p></li>
 </ul></div><p><details><summary>Inherited methods</summary><ul><li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="augment_plot"><a href="LayerProcessor.html#method-augment_plot"><code>LayerProcessor$augment_plot()</code></a></span></li>
   <li><span class="pkg-link" data-pkg="maidr" data-topic="LayerProcessor" data-id="extract_layer_axes"><a href="LayerProcessor.html#method-extract_layer_axes"><code>LayerProcessor$extract_layer_axes()</code></a></span></li>
@@ -433,13 +434,45 @@ in <code>Ggplot2LineLayerProcessor</code>.</p><div class="section">
 
 </div>
 
+<p></p><hr><a id="method-Ggplot2BarLayerProcessor-own_rect_names"></a><div class="section">
+<h3 id="ggplot-barlayerprocessor-own-rect-names-"><code>Ggplot2BarLayerProcessor$own_rect_names()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-own-rect-names-"></a></h3>
+<p>The rect grob names under this layer's own slot, or under the whole panel</p>
+<p>A panel holds one <code>geom_rect.rect</code> grob per bar layer, so a plot
+that overlays two <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col()</a></code>s – a total behind a highlighted
+part is the usual reason – has two, and a search over the panel
+returns both to each layer. Its selectors then address every bar in
+the panel: the frontend finds twice the marks it has points for and
+highlights nothing, on both layers. So the search is scoped to the
+layer's own slot (see <code><a href="find_layer_slot_grob.html">find_layer_slot_grob()</a></code>): whatever the
+geom drew there, a bare rect grob or a tree wrapping one, and nothing
+when it drew no rects here at all. The panel-wide search remains only
+for a panel whose layout the slot cannot be read from.</p><div class="section">
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">own_rect_names</span><span class="op">(</span><span class="va">panel_grob</span>, <span class="va">find_rect_names</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>panel_grob</code></dt>
+<dd><p>The panel grob</p></dd>
+
+      <dt><code>find_rect_names</code></dt>
+<dd><p>Function collecting every rect grob name under a grob</p></dd>
+
+
+</dl><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<p>Character vector of rect grob names</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-Ggplot2BarLayerProcessor-clone"></a><div class="section">
 <h3 id="ggplot-barlayerprocessor-clone-"><code>Ggplot2BarLayerProcessor$clone()</code><a class="anchor" aria-label="anchor" href="#ggplot-barlayerprocessor-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2BarLayerProcessor</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
