@@ -547,6 +547,16 @@
   its own loads no MAIDR.js and shows a plain chart. The description line,
   the README and the getting-started vignette now say so, and "standalone"
   is reserved for `use_cdn = TRUE` (#319).
+* The README and the getting-started vignette carry one section, "How maidr
+  hooks into your session", saying what happens at the console (printing a
+  ggplot2 object opens the viewer; Base R calls are recorded until `show()`),
+  in R Markdown and Quarto (`maidr_on()` in a setup chunk, which installs
+  the knitr hooks that `library(maidr)` alone does not), in Shiny, and how
+  to turn it off. The examples hub no longer implies that interception is
+  off until `maidr_on()` is called, `?maidr_on` says when the call is
+  needed, and the reference index files `maidr_on()`, `maidr_off()` and
+  `?"maidr-options"` under "Turning interception on and off" rather than
+  under R Markdown alone (#318).
 
 ## Performance
 

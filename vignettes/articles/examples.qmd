@@ -8,10 +8,12 @@ straightforward. If you already have data visualization code using
 **ggplot2** or **Base R**, you can make your plots accessible with maidr
 in just a few lines of code.
 
-Simply load the maidr package and call `maidr_on()`. When plots are
-printed in a document, maidr will automatically generate accessible
-versions. You can then interact with the accessible versions using
-keyboard shortcuts (refer to the table below).
+In an R Markdown or Quarto document, load the maidr package and call
+`maidr_on()` once in a setup chunk, as every page here does; from then on
+each plot the document prints comes out as an accessible chart. At the
+console `library(maidr)` alone is enough (see "How maidr hooks into your
+session" in the [getting-started vignette](getting-started.html)).
+You can then explore each chart with the keyboard shortcuts below.
 
 | Key | Action |
 |:---:|--------|

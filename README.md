@@ -70,6 +70,24 @@ barplot(
 show()
 ```
 
+## How maidr hooks into your session
+
+- **Console.** `library(maidr)` is all it takes. Printing a ggplot2 object,
+  by typing `p` or `print(p)`, opens it in the maidr viewer; `show(p)` is the
+  explicit form. Base R plotting calls are recorded, and `show()` with no
+  argument opens the recorded chart. `save_html()` writes either kind to a
+  file.
+- **R Markdown and Quarto.** Call `maidr_on()` once in a setup chunk. It
+  installs the knitr hooks that turn every plot the document draws into an
+  accessible chart; `library(maidr)` alone does not install them.
+- **Shiny.** Put `maidr_output()` in the UI and `render_maidr()` in the
+  server; see `vignette("shiny-integration", package = "maidr")`.
+- **Turning it off.** `maidr_off()` stops interception for the session and
+  `maidr_on()` starts it again. `options(maidr.ggplot2 = FALSE)` leaves
+  ggplot2 printing alone, `options(maidr.base_r = FALSE)` stops recording
+  Base R calls, and `options(maidr.auto_show = FALSE)`, in `.Rprofile` to
+  make it permanent, turns everything off. See `?"maidr-options"`.
+
 ## Supported plot types
 
 maidr supports a wide range of visualization types in both ggplot2 and Base R:
