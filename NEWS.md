@@ -500,6 +500,12 @@
   `par("mar")` and `hist(x, plot = FALSE)` print their value again.
 * The native-device fallback replays `par()` and `layout()` calls in their
   original order and strips maidr's internal arguments.
+* `library(vioplot)` or `library(wordcloud)` after `library(maidr)` says,
+  as quantmod already did, that the package now masks maidr's wrapper on
+  the search path and that a bare `vioplot()` or `wordcloud()` call goes
+  unrecorded; the "No Base R plots detected" error names it too, and the
+  advice is to attach the package first or call `maidr::vioplot()`
+  explicitly (#320).
 
 ## Enhancements
 

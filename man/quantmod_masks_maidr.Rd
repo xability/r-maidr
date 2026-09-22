@@ -10,15 +10,7 @@ quantmod_masks_maidr()
 \code{TRUE} when both packages are attached and quantmod comes first.
 }
 \description{
-\code{library(quantmod)} after \code{library(maidr)} puts \code{package:quantmod} in
-front of \code{package:maidr}, so an unqualified \code{chartSeries()} binds to
-quantmod's own function and maidr's recording wrapper is never entered.
-}
-\details{
-maidr deliberately does not reach into quantmod's namespace to win this
-race: overwriting a foreign package's binding would also redirect
-quantmod's \emph{internal} \code{chartSeries()} calls through maidr's \code{...}-
-forwarding wrapper, which corrupts the \code{match.call(expand.dots = TRUE)}
-that quantmod relies on. maidr reports the condition instead.
+\code{\link[=package_masks_maidr]{package_masks_maidr()}} for quantmod, the first package this was noticed
+with (#97).
 }
 \keyword{internal}
