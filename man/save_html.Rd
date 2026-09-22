@@ -26,8 +26,16 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 The file path where the HTML was saved (invisibly)
 }
 \description{
-Save a ggplot2 or Base R plot as a standalone HTML file with interactive
-MAIDR accessibility features.
+Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
+accessibility features.
+}
+\details{
+By default the MAIDR.js library is written to a \code{lib/} folder beside
+\code{file}, and the two have to be shared together: zip the folder that
+holds both, or copy both. An \code{.html} sent on its own loads no
+MAIDR.js and shows a plain, inaccessible chart. \code{use_cdn = TRUE}
+writes one self-contained file instead, which needs internet access
+whenever it is viewed.
 }
 \examples{
 # ggplot2 bar chart

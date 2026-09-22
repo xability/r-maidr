@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 - **Keyboard navigation** - Explore data using arrow keys
 - **Screen reader support** - Full ARIA labels and descriptions
 - **Sonification** - Hear data patterns through sound
-- **HTML/SVG output** - Standalone accessible visualizations
+- **HTML/SVG output** - Accessible charts that open in any browser
 
 MAIDR helps data scientists and researchers create inclusive visualizations that everyone can explore, regardless of visual ability.
 
@@ -46,7 +46,7 @@ devtools::install_github("xability/r-maidr")
 MAIDR works with two main functions:
 
 1. **`show()`** - Display an interactive plot in RStudio Viewer or browser
-2. **`save_html()`** - Save a plot as a standalone HTML file
+2. **`save_html()`** - Save a plot as an HTML file, with the MAIDR.js library in a `lib/` folder beside it
 
 ### Quick Example: ggplot2 Bar Chart
 
@@ -104,7 +104,7 @@ show()
 
 ## Offline vs CDN Usage
 
-By default, `show()` and `save_html()` use the bundled MAIDR.js library, so the result works offline; widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. You can control this behavior with the `use_cdn` parameter:
+By default, `show()` and `save_html()` use the bundled MAIDR.js library, so the result works offline. `save_html()` writes the library to a `lib/` folder beside the file, and the two have to be shared together (zip the folder that holds both): an `.html` sent on its own loads no MAIDR.js and shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. You can control this behavior with the `use_cdn` parameter:
 
 ```{r use-cdn-example}
 library(maidr)
@@ -126,17 +126,21 @@ show(p, use_cdn = FALSE)
 The same parameter works with `save_html()`:
 
 ```{r save-html-cdn}
-# Save with CDN links (smaller file, needs internet to view)
+# One self-contained file; needs internet whenever it is viewed
 save_html(p, "plot_cdn.html", use_cdn = TRUE)
 
-# Save with bundled files (larger file, works offline)
+# The file plus a lib/ folder beside it; works offline
 save_html(p, "plot_offline.html", use_cdn = FALSE)
 ```
 
 **When to use `use_cdn = FALSE`:**
-- Creating portable HTML files for offline viewing
-- Sharing files with users who may not have internet access
+- Viewing offline, or sharing with readers who may not have internet access:
+  send the file together with its `lib/` folder (zip the two), never the
+  `.html` alone
 - Ensuring reproducibility with a specific MAIDR.js version
+
+**When to use `use_cdn = TRUE`:**
+- Attaching or uploading a single file, for readers who will be online
 
 ### The DotPad SDK
 

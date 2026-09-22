@@ -14,7 +14,7 @@ maidr (Multimodal Access and Interactive Data Representation) makes data visuali
 The package provides two main functions:
 
 - `show()` displays an interactive accessible plot in RStudio Viewer or browser
-- `save_html()` exports a plot as a standalone HTML file
+- `save_html()` writes a plot to an HTML file, with the MAIDR.js library in a `lib/` folder beside it
 
 ## Installation
 
@@ -214,16 +214,19 @@ The full list, including autoplay, label announcements, and layer switching, is 
 ## Offline support
 
 By default, `show()` and `save_html()` use the bundled maidr.js library, so
-the result works offline (`save_html()` writes it to a `lib/` folder beside
-the file). Widgets, knitr documents and Shiny apps auto-detect internet
-availability and use the CDN when online. Use the `use_cdn` parameter for
-explicit control:
+the result works offline. `save_html()` writes the library to a `lib/` folder
+beside the file, and the two have to be shared together: zip the folder that
+holds both, or copy both. An `.html` sent on its own loads no maidr.js and
+shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps
+auto-detect internet availability and use the CDN when online. Use the
+`use_cdn` parameter for explicit control:
 
 ``` r
-# Force CDN (requires internet)
+# Force CDN: one self-contained file, needs internet whenever it is viewed
 show(p, use_cdn = TRUE)
+save_html(p, "plot.html", use_cdn = TRUE)
 
-# Force bundled files (works offline)
+# Force bundled files: works offline, lib/ folder beside the saved file
 show(p, use_cdn = FALSE)
 save_html(p, "plot.html", use_cdn = FALSE)
 ```

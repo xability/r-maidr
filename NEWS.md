@@ -541,6 +541,12 @@
   JavaScript core's, with link text that names the repository, and the
   README's help section points at the function reference instead of back at
   the site it is on (#311).
+* `save_html()` is no longer described as writing a "standalone" or
+  "portable" file. By default the MAIDR.js library goes into a `lib/` folder
+  beside the file and the two have to be shared together; an `.html` sent on
+  its own loads no MAIDR.js and shows a plain chart. The description line,
+  the README and the getting-started vignette now say so, and "standalone"
+  is reserved for `use_cdn = TRUE` (#319).
 
 ## Performance
 

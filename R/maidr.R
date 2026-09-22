@@ -259,8 +259,15 @@ warn_panel_fallback <- function(orchestrator) {
 
 #' Save Interactive Plot as HTML File
 #'
-#' Save a ggplot2 or Base R plot as a standalone HTML file with interactive
-#' MAIDR accessibility features.
+#' Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
+#' accessibility features.
+#'
+#' By default the MAIDR.js library is written to a \code{lib/} folder beside
+#' \code{file}, and the two have to be shared together: zip the folder that
+#' holds both, or copy both. An \code{.html} sent on its own loads no
+#' MAIDR.js and shows a plain, inaccessible chart. \code{use_cdn = TRUE}
+#' writes one self-contained file instead, which needs internet access
+#' whenever it is viewed.
 #'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
