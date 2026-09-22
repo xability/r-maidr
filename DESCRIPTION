@@ -33,6 +33,7 @@ Imports:
     htmltools,
     htmlwidgets,
     jsonlite,
+    methods,
     shiny,
     stats,
     xml2,

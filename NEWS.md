@@ -335,6 +335,9 @@
   and names the masking when 'quantmod' is attached after 'maidr'.
 * `cancel_auto_show()` removes its task callback by name, so it can no
   longer remove another package's callback.
+* `show()` hands an object that is not a plot -- an S4 object, a vector --
+  to `methods::show()`, which attaching maidr masks, so it prints as it did
+  before. It failed with "argument is of length zero" (#320).
 
 ### ggplot2
 
