@@ -87,6 +87,14 @@ show()
   ggplot2 printing alone, `options(maidr.base_r = FALSE)` stops recording
   Base R calls, and `options(maidr.auto_show = FALSE)`, in `.Rprofile` to
   make it permanent, turns everything off. See `?"maidr-options"`.
+- **What gets masked.** Attaching maidr puts its own copies of the Base R
+  plotting functions, and of `methods::show()`, ahead of the originals; R
+  lists them at `library(maidr)`. Each records the call and passes through
+  to the original, and `show()` hands anything that is not a plot back to
+  `methods::show()`. In a script or a package call `maidr::show()` by name,
+  and attach vioplot, wordcloud or quantmod *before* maidr, or their own
+  functions mask the wrappers and their charts go unrecorded. See
+  [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
 ## Supported plot types
 

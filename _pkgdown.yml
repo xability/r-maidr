@@ -112,6 +112,14 @@ reference:
       - maidr_off
       - maidr-options
 
+  - title: What attaching maidr masks
+    desc: >
+      The Base R plotting functions and methods::show(), each replaced on
+      the search path by a wrapper that records the call and passes through
+      to the original
+    contents:
+      - base-r-wrappers
+
   - title: Shiny integration
     desc: Functions for using maidr in Shiny applications
     contents:

@@ -574,6 +574,16 @@
   the core does not bind, are gone. Each copy sits between markers and
   `tests/testthat/test-docs-key-table.R` fails when the three drift apart
   (#312).
+* What attaching maidr masks is documented for users. `?"base-r-wrappers"`,
+  which every Base R autolink on the website already pointed at but which
+  was hidden from the reference index and the search engines, is now a
+  user-facing page listing the graphics, stats, base and methods functions
+  maidr replaces, saying that each passes through to the original, that
+  `show()` hands a non-plot object to `methods::show()` and that scripts
+  and packages should call `maidr::show()` by name, and giving the attach
+  order for vioplot, wordcloud and quantmod in one place. It is indexed
+  under "What attaching maidr masks", and the README and the getting-started
+  vignette summarise it in their session section (#320).
 
 ## Performance
 

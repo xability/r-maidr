@@ -60,7 +60,7 @@
 \alias{par}
 \alias{layout}
 \alias{split.screen}
-\title{Base R Graphics Function Wrappers}
+\title{Functions maidr masks on attach}
 \usage{
 barplot(...)
 
@@ -185,24 +185,76 @@ layout(...)
 Same as the original Base R function (invisibly when applicable).
 }
 \description{
-MAIDR wraps standard Base R graphics functions to intercept plot calls
-and enable accessible, interactive visualizations. When the maidr package
-is loaded, these wrappers automatically replace the standard functions
-on the search path, recording plot data so that \code{\link[=show]{show()}} can render
-accessible versions.
-
-The wrappers are transparent: they call the original graphics functions
-and return the same results. When patching is disabled (via \code{\link[=maidr_off]{maidr_off()}}),
-they pass through directly to the originals with no overhead.
+\code{library(maidr)} puts maidr's own copies of the Base R plotting functions
+ahead of the originals on the search path, and R says so with its "The
+following objects are masked" notice. Each copy is a wrapper: it records
+the call so that \code{\link[=show]{show()}} and \code{\link[=save_html]{save_html()}} can render an accessible
+chart, then calls the original and returns what the original returns.
+With interception off (\code{\link[=maidr_off]{maidr_off()}}, or \code{options(maidr.base_r = FALSE)})
+the wrappers pass straight through.
 }
 \details{
-These stub definitions are overwritten during package loading by the
-actual wrapper implementations created in \code{\link[=initialize_base_r_patching]{initialize_base_r_patching()}}.
-They exist here solely to generate the necessary NAMESPACE exports
-via roxygen2.
+\subsection{What is masked}{
+
+From graphics: the high-level plotting functions \code{barplot()}, \code{plot()},
+\code{hist()}, \code{boxplot()}, \code{image()}, \code{contour()}, \code{matplot()}, \code{curve()},
+\code{dotchart()}, \code{stripchart()}, \code{stem()}, \code{pie()}, \code{mosaicplot()},
+\code{assocplot()}, \code{pairs()}, \code{coplot()}, \code{persp()}, \code{sunflowerplot()},
+\code{fourfoldplot()}, \code{spineplot()}, \code{cdplot()}, \code{filled.contour()}, \code{bxp()}
+and \code{stars()}; the low-level additions \code{lines()}, \code{points()}, \code{text()},
+\code{mtext()}, \code{abline()}, \code{segments()}, \code{arrows()}, \code{polygon()}, \code{rect()},
+\code{symbols()}, \code{legend()}, \code{axis()}, \code{title()} and \code{grid()}; and the layout
+functions \code{par()}, \code{layout()} and \code{split.screen()}.
+
+From stats: \code{heatmap()}, \code{qqnorm()}, \code{qqplot()}, \code{qqline()}, \code{acf()},
+\code{pacf()}, \code{ccf()}, \code{cpgram()}, \code{spectrum()}, \code{monthplot()}, \code{termplot()},
+\code{lag.plot()}, \code{biplot()} and \code{interaction.plot()}.
+
+\code{plot()} is also masked from base, where its generic has lived since
+R 4.0, and \code{show()} from methods: the S4 display generic, which maidr's
+\code{\link[=show]{show()}} hands back any object that is not a plot.
+
+\code{vioplot::vioplot()}, \code{wordcloud::wordcloud()} and
+\code{quantmod::chartSeries()} are wrapped as well, once their package is
+loaded.
+}
+
+\subsection{\code{show()} and \code{methods::show()}}{
+
+maidr's \code{\link[=show]{show()}} takes a ggplot2 object or, with no argument, the last
+recorded Base R chart. Anything else it is given goes to
+\code{methods::show()}, so \code{show(x)} on an S4 object prints as it did before
+maidr was attached. In a script or a package, where what is masked
+depends on what else is attached, call \code{maidr::show()} and
+\code{methods::show()} by name.
+}
+
+\subsection{Attach order for vioplot, wordcloud and quantmod}{
+
+These three are wrapped into maidr's namespace when their package loads,
+so a bare call reaches the wrapper only while \code{package:maidr} sits ahead
+of the package on the search path. Attach them \emph{before} maidr:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{library(vioplot)
+library(maidr)
+}\if{html}{\out{</div>}}
+
+Attached after it, the package masks the wrapper, a bare \code{vioplot()},
+\code{wordcloud()} or \code{chartSeries()} draws without being recorded, and
+\code{\link[=show]{show()}} reports that no Base R plot was detected. maidr says so at the
+moment the package is attached and again in that error. The other way
+round it is \code{maidr::vioplot()}, \code{maidr::wordcloud()} or
+\code{maidr::chartSeries()}, called explicitly.
+}
+
+\subsection{Calling an original directly}{
+
+The wrappers add nothing to the drawing and return what the original
+returns, so there is rarely a reason to go around them. \code{graphics::barplot()}
+does, and draws a chart maidr does not record.
+}
 }
 \seealso{
-\code{\link[=show]{show()}} for displaying accessible plots, \code{\link[=maidr_on]{maidr_on()}},
-\code{\link[=maidr_off]{maidr_off()}} for controlling patching
+\code{\link[=show]{show()}} and \code{\link[=save_html]{save_html()}}; \code{\link[=maidr_on]{maidr_on()}} and \code{\link[=maidr_off]{maidr_off()}} for
+turning interception on and off; \code{?"maidr-options"}.
 }
-\keyword{internal}
