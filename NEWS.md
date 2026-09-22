@@ -536,6 +536,11 @@
 * `citation("maidr")` returns the CHI 2024 and EuroVis 2024 MAIDR papers
   alongside the package entry (new `inst/CITATION`), and the README cites
   them.
+* The "Getting Help" sections of the getting-started and Shiny vignettes
+  send bug reports to this package's issue tracker rather than the
+  JavaScript core's, with link text that names the repository, and the
+  README's help section points at the function reference instead of back at
+  the site it is on (#311).
 
 ## Performance
 

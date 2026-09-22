@@ -259,7 +259,7 @@ Every document maidr produces then declares `window.MAIDR_DOTPAD_SDK_URL` and
 ## Getting help
 
 - Report bugs or request features at [GitHub Issues](https://github.com/xability/r-maidr/issues)
-- Read the documentation at the [package website](https://r.maidr.ai/)
+- Browse the [function reference](https://r.maidr.ai/reference/index.html), or run `help(package = "maidr")` offline
 
 ## Learning more
 - `vignette("getting-started", package = "maidr")` for an introduction

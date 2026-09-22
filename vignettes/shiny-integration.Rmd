@@ -434,6 +434,6 @@ When deploying Shiny apps with MAIDR:
 
 ## Getting Help
 
-- GitHub issues: [maidr/issues](https://github.com/xability/maidr/issues)
+- Report a bug or ask for a feature at [xability/r-maidr/issues](https://github.com/xability/r-maidr/issues)
 - Package documentation: `?maidr::maidr_output`
 - Posit Community: [forum.posit.co](https://forum.posit.co/)
