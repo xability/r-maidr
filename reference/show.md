@@ -46,6 +46,18 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 Invisible NULL. The plot is displayed in RStudio Viewer or browser as a
 side effect.
 
+## Details
+
+Attaching maidr masks
+[`methods::show()`](https://rdrr.io/r/methods/show.html). An object that
+is not a plot maidr renders – an S4 object, a vector, a data frame – is
+handed to [`methods::show()`](https://rdrr.io/r/methods/show.html), so
+it prints as it did before maidr was attached. In a script or a package,
+call `maidr::show()` and
+[`methods::show()`](https://rdrr.io/r/methods/show.html) by name;
+[`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.md)
+lists everything else attaching maidr masks.
+
 ## Examples
 
 ``` r

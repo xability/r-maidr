@@ -14,6 +14,7 @@
 <url><loc>https://r.maidr.ai/authors.html</loc></url>
 <url><loc>https://r.maidr.ai/</loc></url>
 <url><loc>https://r.maidr.ai/news/index.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/base-r-wrappers.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_data.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/combine_facet_layer_selectors.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/extract_leaf_plot_layout.html</loc></url>
@@ -25,6 +26,7 @@
 <url><loc>https://r.maidr.ai/reference/generate_robust_selector.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/get_facet_groups.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/index.html</loc></url>
+<url><loc>https://r.maidr.ai/reference/maidr-options.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr_download_dotpad_sdk.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr_gantt.html</loc></url>
 <url><loc>https://r.maidr.ai/reference/maidr_get_fallback.html</loc></url>

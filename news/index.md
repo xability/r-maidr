@@ -499,6 +499,12 @@
 - [`cancel_auto_show()`](https://r.maidr.ai/reference/cancel_auto_show.md)
   removes its task callback by name, so it can no longer remove another
   package’s callback.
+- [`show()`](https://r.maidr.ai/reference/show.md) hands an object that
+  is not a plot – an S4 object, a vector – to
+  [`methods::show()`](https://rdrr.io/r/methods/show.html), which
+  attaching maidr masks, so it prints as it did before. It failed with
+  “argument is of length zero”
+  ([\#320](https://github.com/xability/r-maidr/issues/320)).
 
 #### ggplot2
 
@@ -763,6 +769,17 @@
   [`par()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
   [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) calls in
   their original order and strips maidr’s internal arguments.
+- [`library(vioplot)`](https://github.com/TomKellyGenetics/vioplot) or
+  [`library(wordcloud)`](http://blog.fellstat.com/?cat=11) after
+  [`library(maidr)`](https://github.com/xability/r-maidr) says, as
+  quantmod already did, that the package now masks maidr’s wrapper on
+  the search path and that a bare
+  [`vioplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) or
+  [`wordcloud()`](https://r.maidr.ai/reference/base-r-wrappers.md) call
+  goes unrecorded; the “No Base R plots detected” error names it too,
+  and the advice is to attach the package first or call
+  [`maidr::vioplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  explicitly ([\#320](https://github.com/xability/r-maidr/issues/320)).
 
 ### Enhancements
 
@@ -805,6 +822,61 @@
 - `citation("maidr")` returns the CHI 2024 and EuroVis 2024 MAIDR papers
   alongside the package entry (new `inst/CITATION`), and the README
   cites them.
+- The “Getting Help” sections of the getting-started and Shiny vignettes
+  send bug reports to this package’s issue tracker rather than the
+  JavaScript core’s, with link text that names the repository, and the
+  README’s help section points at the function reference instead of back
+  at the site it is on
+  ([\#311](https://github.com/xability/r-maidr/issues/311)).
+- [`save_html()`](https://r.maidr.ai/reference/save_html.md) is no
+  longer described as writing a “standalone” or “portable” file. By
+  default the MAIDR.js library goes into a `lib/` folder beside the file
+  and the two have to be shared together; an `.html` sent on its own
+  loads no MAIDR.js and shows a plain chart. The description line, the
+  README and the getting-started vignette now say so, and “standalone”
+  is reserved for `use_cdn = TRUE`
+  ([\#319](https://github.com/xability/r-maidr/issues/319)).
+- The README and the getting-started vignette carry one section, “How
+  maidr hooks into your session”, saying what happens at the console
+  (printing a ggplot2 object opens the viewer; Base R calls are recorded
+  until [`show()`](https://r.maidr.ai/reference/show.md)), in R Markdown
+  and Quarto ([`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md)
+  in a setup chunk, which installs the knitr hooks that
+  [`library(maidr)`](https://github.com/xability/r-maidr) alone does
+  not), in Shiny, and how to turn it off. The examples hub no longer
+  implies that interception is off until
+  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) is called,
+  [`?maidr_on`](https://r.maidr.ai/reference/maidr_on.md) says when the
+  call is needed, and the reference index files
+  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md),
+  [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) and
+  [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md)
+  under “Turning interception on and off” rather than under R Markdown
+  alone ([\#318](https://github.com/xability/r-maidr/issues/318)).
+- The README, the getting-started vignette and the examples hub carry
+  one keyboard table, identical on all three and matched to the MAIDR
+  core’s controls reference: Up/Down, layer switching with Page Up/Page
+  Down, label mode, high contrast and the shortcut help are listed,
+  Space is “repeat the current sound”, and the Enter/Space and Escape
+  rows the vignette had, which the core does not bind, are gone. Each
+  copy sits between markers and `tests/testthat/test-docs-key-table.R`
+  fails when the three drift apart
+  ([\#312](https://github.com/xability/r-maidr/issues/312)).
+- What attaching maidr masks is documented for users.
+  [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  which every Base R autolink on the website already pointed at but
+  which was hidden from the reference index and the search engines, is
+  now a user-facing page listing the graphics, stats, base and methods
+  functions maidr replaces, saying that each passes through to the
+  original, that [`show()`](https://r.maidr.ai/reference/show.md) hands
+  a non-plot object to
+  [`methods::show()`](https://rdrr.io/r/methods/show.html) and that
+  scripts and packages should call
+  [`maidr::show()`](https://r.maidr.ai/reference/show.md) by name, and
+  giving the attach order for vioplot, wordcloud and quantmod in one
+  place. It is indexed under “What attaching maidr masks”, and the
+  README and the getting-started vignette summarise it in their session
+  section ([\#320](https://github.com/xability/r-maidr/issues/320)).
 
 ### Performance
 

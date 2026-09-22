@@ -293,7 +293,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-18">
+<meta name="DC.date" content="2026-09-22">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -360,7 +360,7 @@
 <li>
 <code><a href="reference/show.html">show()</a></code> displays an interactive accessible plot in RStudio Viewer or browser</li>
 <li>
-<code><a href="reference/save_html.html">save_html()</a></code> exports a plot as a standalone HTML file</li>
+<code><a href="reference/save_html.html">save_html()</a></code> writes a plot to an HTML file, with the MAIDR.js library in a <code>lib/</code> folder beside it</li>
 </ul>
 </div>
 <div class="section level2">
@@ -414,6 +414,22 @@
 <span><span class="co"># Then call show() without arguments</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
+</div>
+<div class="section level2">
+<h2 id="how-maidr-hooks-into-your-session">How maidr hooks into your session<a class="anchor" aria-label="anchor" href="#how-maidr-hooks-into-your-session"></a>
+</h2>
+<ul>
+<li>
+<strong>Console.</strong> <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> is all it takes. Printing a ggplot2 object, by typing <code>p</code> or <code>print(p)</code>, opens it in the maidr viewer; <code>show(p)</code> is the explicit form. Base R plotting calls are recorded, and <code><a href="reference/show.html">show()</a></code> with no argument opens the recorded chart. <code><a href="reference/save_html.html">save_html()</a></code> writes either kind to a file.</li>
+<li>
+<strong>R Markdown and Quarto.</strong> Call <code><a href="reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk. It installs the knitr hooks that turn every plot the document draws into an accessible chart; <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone does not install them.</li>
+<li>
+<strong>Shiny.</strong> Put <code><a href="reference/maidr_output.html">maidr_output()</a></code> in the UI and <code><a href="reference/render_maidr.html">render_maidr()</a></code> in the server; see <code><a href="articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code>.</li>
+<li>
+<strong>Turning it off.</strong> <code><a href="reference/maidr_off.html">maidr_off()</a></code> stops interception for the session and <code><a href="reference/maidr_on.html">maidr_on()</a></code> starts it again. <code>options(maidr.ggplot2 = FALSE)</code> leaves ggplot2 printing alone, <code>options(maidr.base_r = FALSE)</code> stops recording Base R calls, and <code>options(maidr.auto_show = FALSE)</code>, in <code>.Rprofile</code> to make it permanent, turns everything off. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</li>
+<li>
+<strong>What gets masked.</strong> Attaching maidr puts its own copies of the Base R plotting functions, and of <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>, ahead of the originals; R lists them at <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>. Each records the call and passes through to the original, and <code><a href="reference/show.html">show()</a></code> hands anything that is not a plot back to <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>. In a script or a package call <code><a href="reference/show.html">maidr::show()</a></code> by name, and attach vioplot, wordcloud or quantmod <em>before</em> maidr, or their own functions mask the wrappers and their charts go unrecorded. See <a href="https://r.maidr.ai/reference/base-r-wrappers.html"><code>?"base-r-wrappers"</code></a>.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="supported-plot-types">Supported plot types<a class="anchor" aria-label="anchor" href="#supported-plot-types"></a>
@@ -781,52 +797,83 @@
 <li>
 <strong>Text descriptions</strong> - automatic statistical summaries</li>
 </ul>
-<p>Press <strong>Tab</strong> (or click) to focus a rendered plot, move between data points with the <strong>arrow keys</strong>, and toggle <strong>B</strong> braille, <strong>T</strong> text, <strong>S</strong> sonification, and <strong>R</strong> review mode. Four global shortcuts open maidr’s own interfaces:</p>
+<p>The keys a reader needs first, the same on every page of this documentation:</p>
+<!-- maidr-keys:start -->
 <table class="table">
 <colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr>
+<th>Key</th>
 <th>Action</th>
-<th>Windows / Linux</th>
-<th>macOS</th>
 </tr></thead>
 <tbody>
 <tr>
-<td>Show or hide the keyboard shortcut help</td>
-<td>Ctrl + /</td>
-<td>Command + /</td>
+<td><strong>Tab</strong></td>
+<td>Focus the chart; <strong>Shift + Tab</strong> leaves it</td>
 </tr>
 <tr>
-<td>Open the command palette listing every available command</td>
-<td>Ctrl + Shift + P</td>
-<td>Command + Shift + P</td>
+<td><strong>Left / Right</strong></td>
+<td>Move between data points</td>
 </tr>
 <tr>
-<td>Open the AI chat (requires your own API key, entered in Settings, or a local Ollama server)</td>
-<td>Shift + / (that is, <strong>?</strong>)</td>
-<td>Shift + / (<strong>?</strong>)</td>
+<td><strong>Up / Down</strong></td>
+<td>Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them</td>
 </tr>
 <tr>
-<td>Open Settings</td>
-<td>Ctrl + ,</td>
-<td>Command + ,</td>
+<td><strong>Page Up / Page Down</strong></td>
+<td>Switch between the layers of a chart that has several</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>Toggle braille mode</td>
+</tr>
+<tr>
+<td><strong>T</strong></td>
+<td>Toggle text mode</td>
+</tr>
+<tr>
+<td><strong>S</strong></td>
+<td>Toggle sonification</td>
+</tr>
+<tr>
+<td><strong>R</strong></td>
+<td>Toggle review mode</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Toggle high contrast mode</td>
+</tr>
+<tr>
+<td>
+<strong>L</strong>, then <strong>X</strong>, <strong>Y</strong> or <strong>T</strong>
+</td>
+<td>Announce the x axis label, the y axis label or the title</td>
+</tr>
+<tr>
+<td><strong>Space</strong></td>
+<td>Repeat the current sound</td>
+</tr>
+<tr>
+<td>
+<strong>Ctrl + /</strong> (<strong>Cmd + /</strong> on macOS)</td>
+<td>Show or hide the full keyboard shortcut help</td>
 </tr>
 </tbody>
 </table>
-<p>The full list, including autoplay, label announcements, and layer switching, is in the <a href="https://maidr.ai/docs/CONTROLS.html" class="external-link">maidr controls documentation</a>.</p>
+<p>Every other shortcut, including autoplay, jumping to the ends, the command palette, settings and the AI chat, is on the <a href="https://maidr.ai/docs/CONTROLS.html" class="external-link">MAIDR controls reference</a>. <!-- maidr-keys:end --></p>
 </div>
 <div class="section level2">
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
-<p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline (<code><a href="reference/save_html.html">save_html()</a></code> writes it to a <code>lib/</code> folder beside the file). Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. Use the <code>use_cdn</code> parameter for explicit control:</p>
+<p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. Use the <code>use_cdn</code> parameter for explicit control:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Force CDN (requires internet)</span></span>
+<code class="sourceCode R"><span><span class="co"># Force CDN: one self-contained file, needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Force bundled files (works offline)</span></span>
+<span><span class="co"># Force bundled files: works offline, lib/ folder beside the saved file</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>One path still reaches the network from an offline document: connecting a <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile display</a>. maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build, and imports the vendor’s copy from jsDelivr the first time a DotPad is connected. Rendering, sonification and braille work offline regardless. To keep the DotPad offline too, download the pinned SDK once and every <code>use_cdn = FALSE</code> document carries it in its <code>lib/</code> folder:</p>
@@ -848,8 +895,7 @@
 <ul>
 <li>Report bugs or request features at <a href="https://github.com/xability/r-maidr/issues" class="external-link">GitHub Issues</a>
 </li>
-<li>Read the documentation at the <a href="https://r.maidr.ai/">package website</a>
-</li>
+<li>Browse the <a href="https://r.maidr.ai/reference/index.html">function reference</a>, or run <code><a href="https://r.maidr.ai/reference">help(package = "maidr")</a></code> offline</li>
 </ul>
 </div>
 <div class="section level2">

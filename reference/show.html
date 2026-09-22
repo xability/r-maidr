@@ -32,7 +32,7 @@ using the MAIDR (Multimodal Access and Interactive Data Representation) system."
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-01">
+<meta name="DC.date" content="2026-09-22">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -124,6 +124,15 @@ as the knitr and Shiny paths do.</p></li>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Attaching maidr masks <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>. An object that is not a
+plot maidr renders – an S4 object, a vector, a data frame – is handed to
+<code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>, so it prints as it did before maidr was attached.
+In a script or a package, call <code>maidr::show()</code> and
+<code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code> by name; <code><a href="base-r-wrappers.html">?"base-r-wrappers"</a></code> lists
+everything else attaching maidr masks.</p>
     </div>
 
     <div class="section level2">

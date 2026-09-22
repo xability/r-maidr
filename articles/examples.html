@@ -63,7 +63,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-06">
+<meta name="DC.date" content="2026-09-22">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -130,35 +130,72 @@
 
 
     <p>Making accessible data representation with <strong>maidr</strong> is easy and straightforward. If you already have data visualization code using <strong>ggplot2</strong> or <strong>Base R</strong>, you can make your plots accessible with maidr in just a few lines of code.</p>
-<p>Simply load the maidr package and call <code><a href="../reference/maidr_on.html">maidr_on()</a></code>. When plots are printed in a document, maidr will automatically generate accessible versions. You can then interact with the accessible versions using keyboard shortcuts (refer to the table below).</p>
+<p>In an R Markdown or Quarto document, load the maidr package and call <code><a href="../reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk, as every page here does; from then on each plot the document prints comes out as an accessible chart. At the console <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone is enough (see “How maidr hooks into your session” in the <a href="getting-started.html">getting-started vignette</a>). You can then explore each chart with the keyboard shortcuts below.</p>
+<!-- maidr-keys:start -->
 <table class="table caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
 <thead><tr class="header">
-<th style="text-align: center;">Key</th>
+<th>Key</th>
 <th>Action</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: center;"><strong>Left / Right</strong></td>
-<td>Navigate between data points</td>
+<td><strong>Tab</strong></td>
+<td>Focus the chart; <strong>Shift + Tab</strong> leaves it</td>
 </tr>
 <tr class="even">
-<td style="text-align: center;"><strong>B</strong></td>
+<td><strong>Left / Right</strong></td>
+<td>Move between data points</td>
+</tr>
+<tr class="odd">
+<td><strong>Up / Down</strong></td>
+<td>Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them</td>
+</tr>
+<tr class="even">
+<td><strong>Page Up / Page Down</strong></td>
+<td>Switch between the layers of a chart that has several</td>
+</tr>
+<tr class="odd">
+<td><strong>B</strong></td>
 <td>Toggle braille mode</td>
 </tr>
-<tr class="odd">
-<td style="text-align: center;"><strong>T</strong></td>
+<tr class="even">
+<td><strong>T</strong></td>
 <td>Toggle text mode</td>
 </tr>
+<tr class="odd">
+<td><strong>S</strong></td>
+<td>Toggle sonification</td>
+</tr>
 <tr class="even">
-<td style="text-align: center;"><strong>S</strong></td>
-<td>Toggle sonification (hear the data)</td>
+<td><strong>R</strong></td>
+<td>Toggle review mode</td>
 </tr>
 <tr class="odd">
-<td style="text-align: center;"><strong>R</strong></td>
-<td>Toggle review mode</td>
+<td><strong>C</strong></td>
+<td>Toggle high contrast mode</td>
+</tr>
+<tr class="even">
+<td>
+<strong>L</strong>, then <strong>X</strong>, <strong>Y</strong> or <strong>T</strong>
+</td>
+<td>Announce the x axis label, the y axis label or the title</td>
+</tr>
+<tr class="odd">
+<td><strong>Space</strong></td>
+<td>Repeat the current sound</td>
+</tr>
+<tr class="even">
+<td>
+<strong>Ctrl + /</strong> (<strong>Cmd + /</strong> on macOS)</td>
+<td>Show or hide the full keyboard shortcut help</td>
 </tr>
 </tbody>
 </table>
+<p>Every other shortcut, including autoplay, jumping to the ends, the command palette, settings and the AI chat, is on the <a href="https://maidr.ai/docs/CONTROLS.html" class="external-link">MAIDR controls reference</a>. <!-- maidr-keys:end --></p>
 <section class="level2"><h2 id="when-to-use-each-plot-type">When to Use Each Plot Type<a class="anchor" aria-label="anchor" href="#when-to-use-each-plot-type"></a>
 </h2>
 <table class="table caption-top">

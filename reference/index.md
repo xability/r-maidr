@@ -19,14 +19,85 @@ picture alone cannot say it
 - [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md) : Declare
   that a path layer draws a ROC curve
 
-## RMarkdown integration
+## Turning interception on and off
 
-Functions for enabling accessible plots in RMarkdown documents
+Interception is on after library(maidr): printing a ggplot2 object opens
+the viewer and Base R calls are recorded until show(). An R Markdown or
+Quarto document calls maidr_on() in a setup chunk for the knitr hooks;
+the options turn parts of it off.
 
 - [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) : Enable
   MAIDR Plot Interception
 - [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) : Disable
   MAIDR Plot Interception
+- [`maidr-options`](https://r.maidr.ai/reference/maidr-options.md) :
+  MAIDR Package Options
+
+## What attaching maidr masks
+
+The Base R plotting functions and methods::show(), each replaced on the
+search path by a wrapper that records the call and passes through to the
+original
+
+- [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`heatmap()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`matplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`curve()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`stem()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`mosaicplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`pairs()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`coplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`persp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`sunflowerplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`spineplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`qqline()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`ccf()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`vioplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`wordcloud()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`points()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`text()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`mtext()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`segments()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`arrows()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`polygon()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`rect()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`symbols()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`legend()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`title()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`grid()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`par()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  [`split(`*`<screen>`*`)`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  : Functions maidr masks on attach
 
 ## Shiny integration
 

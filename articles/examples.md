@@ -5,19 +5,33 @@ straightforward. If you already have data visualization code using
 **ggplot2** or **Base R**, you can make your plots accessible with maidr
 in just a few lines of code.
 
-Simply load the maidr package and call
-[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md). When plots are
-printed in a document, maidr will automatically generate accessible
-versions. You can then interact with the accessible versions using
-keyboard shortcuts (refer to the table below).
+In an R Markdown or Quarto document, load the maidr package and call
+[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a setup
+chunk, as every page here does; from then on each plot the document
+prints comes out as an accessible chart. At the console
+[`library(maidr)`](https://github.com/xability/r-maidr) alone is enough
+(see “How maidr hooks into your session” in the [getting-started
+vignette](https://r.maidr.ai/articles/getting-started.md)). You can then
+explore each chart with the keyboard shortcuts below.
 
-|       Key        | Action                              |
-|:----------------:|-------------------------------------|
-| **Left / Right** | Navigate between data points        |
-|      **B**       | Toggle braille mode                 |
-|      **T**       | Toggle text mode                    |
-|      **S**       | Toggle sonification (hear the data) |
-|      **R**       | Toggle review mode                  |
+| Key | Action |
+|----|----|
+| **Tab** | Focus the chart; **Shift + Tab** leaves it |
+| **Left / Right** | Move between data points |
+| **Up / Down** | Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them |
+| **Page Up / Page Down** | Switch between the layers of a chart that has several |
+| **B** | Toggle braille mode |
+| **T** | Toggle text mode |
+| **S** | Toggle sonification |
+| **R** | Toggle review mode |
+| **C** | Toggle high contrast mode |
+| **L**, then **X**, **Y** or **T** | Announce the x axis label, the y axis label or the title |
+| **Space** | Repeat the current sound |
+| **Ctrl + /** (**Cmd + /** on macOS) | Show or hide the full keyboard shortcut help |
+
+Every other shortcut, including autoplay, jumping to the ends, the
+command palette, settings and the AI chat, is on the [MAIDR controls
+reference](https://maidr.ai/docs/CONTROLS.html).
 
 ## When to Use Each Plot Type
 

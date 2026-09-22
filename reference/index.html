@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-21">
+<meta name="DC.date" content="2026-09-22">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -125,9 +125,9 @@
         </dt>
         <dd>Declare that a path layer draws a ROC curve</dd>
       </dl></div><div class="section level2">
-      <h2 id="rmarkdown-integration">RMarkdown integration<a class="anchor" aria-label="anchor" href="#rmarkdown-integration"></a></h2>
+      <h2 id="turning-interception-on-and-off">Turning interception on and off<a class="anchor" aria-label="anchor" href="#turning-interception-on-and-off"></a></h2>
 
-      <div class="section-desc"><p>Functions for enabling accessible plots in RMarkdown documents</p></div>
+      <div class="section-desc"><p>Interception is on after library(maidr): printing a ggplot2 object opens the viewer and Base R calls are recorded until show(). An R Markdown or Quarto document calls maidr_on() in a setup chunk for the knitr hooks; the options turn parts of it off.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -147,6 +147,29 @@
 
         </dt>
         <dd>Disable MAIDR Plot Interception</dd>
+
+        <dt>
+
+          <code><a href="maidr-options.html">maidr-options</a></code>
+
+        </dt>
+        <dd>MAIDR Package Options</dd>
+      </dl></div><div class="section level2">
+      <h2 id="what-attaching-maidr-masks">What attaching maidr masks<a class="anchor" aria-label="anchor" href="#what-attaching-maidr-masks"></a></h2>
+
+      <div class="section-desc"><p>The Base R plotting functions and methods::show(), each replaced on the search path by a wrapper that records the call and passes through to the original</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="base-r-wrappers.html">barplot()</a></code> <code><a href="base-r-wrappers.html">plot()</a></code> <code><a href="base-r-wrappers.html">hist()</a></code> <code><a href="base-r-wrappers.html">boxplot()</a></code> <code><a href="base-r-wrappers.html">image()</a></code> <code><a href="base-r-wrappers.html">heatmap()</a></code> <code><a href="base-r-wrappers.html">contour()</a></code> <code><a href="base-r-wrappers.html">matplot()</a></code> <code><a href="base-r-wrappers.html">curve()</a></code> <code><a href="base-r-wrappers.html">dotchart()</a></code> <code><a href="base-r-wrappers.html">stripchart()</a></code> <code><a href="base-r-wrappers.html">stem()</a></code> <code><a href="base-r-wrappers.html">pie()</a></code> <code><a href="base-r-wrappers.html">mosaicplot()</a></code> <code><a href="base-r-wrappers.html">assocplot()</a></code> <code><a href="base-r-wrappers.html">pairs()</a></code> <code><a href="base-r-wrappers.html">coplot()</a></code> <code><a href="base-r-wrappers.html">persp()</a></code> <code><a href="base-r-wrappers.html">sunflowerplot()</a></code> <code><a href="base-r-wrappers.html">fourfoldplot()</a></code> <code><a href="base-r-wrappers.html">spineplot()</a></code> <code><a href="base-r-wrappers.html">cdplot()</a></code> <code><a href="base-r-wrappers.html">qqnorm()</a></code> <code><a href="base-r-wrappers.html">qqplot()</a></code> <code><a href="base-r-wrappers.html">qqline()</a></code> <code><a href="base-r-wrappers.html">filled.contour()</a></code> <code><a href="base-r-wrappers.html">acf()</a></code> <code><a href="base-r-wrappers.html">pacf()</a></code> <code><a href="base-r-wrappers.html">ccf()</a></code> <code><a href="base-r-wrappers.html">cpgram()</a></code> <code><a href="base-r-wrappers.html">spectrum()</a></code> <code><a href="base-r-wrappers.html">monthplot()</a></code> <code><a href="base-r-wrappers.html">termplot()</a></code> <code><a href="base-r-wrappers.html">lag.plot()</a></code> <code><a href="base-r-wrappers.html">biplot()</a></code> <code><a href="base-r-wrappers.html">interaction.plot()</a></code> <code><a href="base-r-wrappers.html">bxp()</a></code> <code><a href="base-r-wrappers.html">stars()</a></code> <code><a href="base-r-wrappers.html">vioplot()</a></code> <code><a href="base-r-wrappers.html">wordcloud()</a></code> <code><a href="base-r-wrappers.html">chartSeries()</a></code> <code><a href="base-r-wrappers.html">lines()</a></code> <code><a href="base-r-wrappers.html">points()</a></code> <code><a href="base-r-wrappers.html">text()</a></code> <code><a href="base-r-wrappers.html">mtext()</a></code> <code><a href="base-r-wrappers.html">abline()</a></code> <code><a href="base-r-wrappers.html">segments()</a></code> <code><a href="base-r-wrappers.html">arrows()</a></code> <code><a href="base-r-wrappers.html">polygon()</a></code> <code><a href="base-r-wrappers.html">rect()</a></code> <code><a href="base-r-wrappers.html">symbols()</a></code> <code><a href="base-r-wrappers.html">legend()</a></code> <code><a href="base-r-wrappers.html">axis()</a></code> <code><a href="base-r-wrappers.html">title()</a></code> <code><a href="base-r-wrappers.html">grid()</a></code> <code><a href="base-r-wrappers.html">par()</a></code> <code><a href="base-r-wrappers.html">layout()</a></code> <code><a href="base-r-wrappers.html">split(<i>&lt;screen&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Functions maidr masks on attach</dd>
       </dl></div><div class="section level2">
       <h2 id="shiny-integration">Shiny integration<a class="anchor" aria-label="anchor" href="#shiny-integration"></a></h2>
 

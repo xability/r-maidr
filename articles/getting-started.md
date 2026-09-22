@@ -10,7 +10,7 @@ accessible formats with:
 - **Keyboard navigation** - Explore data using arrow keys
 - **Screen reader support** - Full ARIA labels and descriptions
 - **Sonification** - Hear data patterns through sound
-- **HTML/SVG output** - Standalone accessible visualizations
+- **HTML/SVG output** - Accessible charts that open in any browser
 
 MAIDR helps data scientists and researchers create inclusive
 visualizations that everyone can explore, regardless of visual ability.
@@ -36,7 +36,8 @@ MAIDR works with two main functions:
 1.  **[`show()`](https://r.maidr.ai/reference/show.md)** - Display an
     interactive plot in RStudio Viewer or browser
 2.  **[`save_html()`](https://r.maidr.ai/reference/save_html.md)** -
-    Save a plot as a standalone HTML file
+    Save a plot as an HTML file, with the MAIDR.js library in a `lib/`
+    folder beside it
 
 ### Quick Example: ggplot2 Bar Chart
 
@@ -94,13 +95,63 @@ barplot(
 show()
 ```
 
+## How maidr hooks into your session
+
+- **Console.** [`library(maidr)`](https://github.com/xability/r-maidr)
+  is all it takes. Printing a ggplot2 object, by typing `p` or
+  `print(p)`, opens it in the maidr viewer; `show(p)` is the explicit
+  form. Base R plotting calls are recorded, and
+  [`show()`](https://r.maidr.ai/reference/show.md) with no argument
+  opens the recorded chart.
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) writes
+  either kind to a file.
+- **R Markdown and Quarto.** Call
+  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a
+  setup chunk. It installs the knitr hooks that turn every plot the
+  document draws into an accessible chart;
+  [`library(maidr)`](https://github.com/xability/r-maidr) alone does not
+  install them.
+- **Shiny.** Put
+  [`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md) in
+  the UI and
+  [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) in
+  the server; see
+  [`vignette("shiny-integration", package = "maidr")`](https://r.maidr.ai/articles/shiny-integration.md).
+- **Turning it off.**
+  [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) stops
+  interception for the session and
+  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) starts it
+  again. `options(maidr.ggplot2 = FALSE)` leaves ggplot2 printing alone,
+  `options(maidr.base_r = FALSE)` stops recording Base R calls, and
+  `options(maidr.auto_show = FALSE)`, in `.Rprofile` to make it
+  permanent, turns everything off. See
+  [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
+- **What gets masked.** Attaching maidr puts its own copies of the Base
+  R plotting functions, and of
+  [`methods::show()`](https://rdrr.io/r/methods/show.html), ahead of the
+  originals; R lists them at
+  [`library(maidr)`](https://github.com/xability/r-maidr). Each records
+  the call and passes through to the original, and
+  [`show()`](https://r.maidr.ai/reference/show.md) hands anything that
+  is not a plot back to
+  [`methods::show()`](https://rdrr.io/r/methods/show.html). In a script
+  or a package call
+  [`maidr::show()`](https://r.maidr.ai/reference/show.md) by name, and
+  attach vioplot, wordcloud or quantmod *before* maidr, or their own
+  functions mask the wrappers and their charts go unrecorded. See
+  [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
+
 ## Offline vs CDN Usage
 
 By default, [`show()`](https://r.maidr.ai/reference/show.md) and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) use the
-bundled MAIDR.js library, so the result works offline; widgets, knitr
-documents and Shiny apps auto-detect internet availability and use the
-CDN when online. You can control this behavior with the `use_cdn`
+bundled MAIDR.js library, so the result works offline.
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) writes the
+library to a `lib/` folder beside the file, and the two have to be
+shared together (zip the folder that holds both): an `.html` sent on its
+own loads no MAIDR.js and shows a plain, inaccessible chart. Widgets,
+knitr documents and Shiny apps auto-detect internet availability and use
+the CDN when online. You can control this behavior with the `use_cdn`
 parameter:
 
 ``` r
@@ -126,16 +177,20 @@ The same parameter works with
 
 ``` r
 
-# Save with CDN links (smaller file, needs internet to view)
+# One self-contained file; needs internet whenever it is viewed
 save_html(p, "plot_cdn.html", use_cdn = TRUE)
 
-# Save with bundled files (larger file, works offline)
+# The file plus a lib/ folder beside it; works offline
 save_html(p, "plot_offline.html", use_cdn = FALSE)
 ```
 
-**When to use `use_cdn = FALSE`:** - Creating portable HTML files for
-offline viewing - Sharing files with users who may not have internet
-access - Ensuring reproducibility with a specific MAIDR.js version
+**When to use `use_cdn = FALSE`:** - Viewing offline, or sharing with
+readers who may not have internet access: send the file together with
+its `lib/` folder (zip the two), never the `.html` alone - Ensuring
+reproducibility with a specific MAIDR.js version
+
+**When to use `use_cdn = TRUE`:** - Attaching or uploading a single
+file, for readers who will be online
 
 ### The DotPad SDK
 
@@ -176,10 +231,24 @@ When you open a MAIDR plot, you can explore it using:
 
 ### Keyboard Navigation
 
-- **Arrow keys** - Navigate between data points
-- **Tab** - Move between interactive elements
-- **Enter/Space** - Activate controls
-- **Escape** - Exit modes
+| Key | Action |
+|----|----|
+| **Tab** | Focus the chart; **Shift + Tab** leaves it |
+| **Left / Right** | Move between data points |
+| **Up / Down** | Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them |
+| **Page Up / Page Down** | Switch between the layers of a chart that has several |
+| **B** | Toggle braille mode |
+| **T** | Toggle text mode |
+| **S** | Toggle sonification |
+| **R** | Toggle review mode |
+| **C** | Toggle high contrast mode |
+| **L**, then **X**, **Y** or **T** | Announce the x axis label, the y axis label or the title |
+| **Space** | Repeat the current sound |
+| **Ctrl + /** (**Cmd + /** on macOS) | Show or hide the full keyboard shortcut help |
+
+Every other shortcut, including autoplay, jumping to the ends, the
+command palette, settings and the AI chat, is on the [MAIDR controls
+reference](https://maidr.ai/docs/CONTROLS.html).
 
 ### Screen Reader Announcements
 
@@ -402,8 +471,8 @@ show(p)
 
 - Run [`?maidr::show`](https://r.maidr.ai/reference/show.md) for
   function documentation
-- Visit GitHub issues:
-  [maidr/issues](https://github.com/xability/maidr/issues)
+- Report a bug or ask for a feature at
+  [xability/r-maidr/issues](https://github.com/xability/r-maidr/issues)
 - Read the full documentation:
   [`help(package = "maidr")`](https://r.maidr.ai/reference)
 

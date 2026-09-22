@@ -1,7 +1,7 @@
 # Save Interactive Plot as HTML File
 
-Save a ggplot2 or Base R plot as a standalone HTML file with interactive
-MAIDR accessibility features.
+Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
+accessibility features.
 
 ## Usage
 
@@ -37,6 +37,15 @@ save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 ## Value
 
 The file path where the HTML was saved (invisibly)
+
+## Details
+
+By default the MAIDR.js library is written to a `lib/` folder beside
+`file`, and the two have to be shared together: zip the folder that
+holds both, or copy both. An `.html` sent on its own loads no MAIDR.js
+and shows a plain, inaccessible chart. `use_cdn = TRUE` writes one
+self-contained file instead, which needs internet access whenever it is
+viewed.
 
 ## Examples
 

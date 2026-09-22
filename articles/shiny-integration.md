@@ -434,8 +434,8 @@ ARIA labels are present
 
 ## Getting Help
 
-- GitHub issues:
-  [maidr/issues](https://github.com/xability/maidr/issues)
+- Report a bug or ask for a feature at
+  [xability/r-maidr/issues](https://github.com/xability/r-maidr/issues)
 - Package documentation:
   [`?maidr::maidr_output`](https://r.maidr.ai/reference/maidr_output.md)
 - Posit Community: [forum.posit.co](https://forum.posit.co/)
