@@ -83,4 +83,3 @@ relative path has nothing to resolve against, so they use only the URL
 options.
 }
 
-\keyword{internal}

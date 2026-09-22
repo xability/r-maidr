@@ -1,30 +1,86 @@
 #' @name base-r-wrappers
-#' @title Base R Graphics Function Wrappers
+#' @title Functions maidr masks on attach
 #'
 #' @description
-#' MAIDR wraps standard Base R graphics functions to intercept plot calls
-#' and enable accessible, interactive visualizations. When the maidr package
-#' is loaded, these wrappers automatically replace the standard functions
-#' on the search path, recording plot data so that [show()] can render
-#' accessible versions.
-#'
-#' The wrappers are transparent: they call the original graphics functions
-#' and return the same results. When patching is disabled (via [maidr_off()]),
-#' they pass through directly to the originals with no overhead.
-#'
-#' @param ... Arguments passed to the original graphics function.
-#' @return Same as the original Base R function (invisibly when applicable).
+#' `library(maidr)` puts maidr's own copies of the Base R plotting functions
+#' ahead of the originals on the search path, and R says so with its "The
+#' following objects are masked" notice. Each copy is a wrapper: it records
+#' the call so that [show()] and [save_html()] can render an accessible
+#' chart, then calls the original and returns what the original returns.
+#' With interception off ([maidr_off()], or `options(maidr.base_r = FALSE)`)
+#' the wrappers pass straight through.
 #'
 #' @details
-#' These stub definitions are overwritten during package loading by the
-#' actual wrapper implementations created in [initialize_base_r_patching()].
-#' They exist here solely to generate the necessary NAMESPACE exports
-#' via roxygen2.
+#' ## What is masked
 #'
-#' @seealso [show()] for displaying accessible plots, [maidr_on()],
-#'   [maidr_off()] for controlling patching
-#' @keywords internal
+#' From graphics: the high-level plotting functions `barplot()`, `plot()`,
+#' `hist()`, `boxplot()`, `image()`, `contour()`, `matplot()`, `curve()`,
+#' `dotchart()`, `stripchart()`, `stem()`, `pie()`, `mosaicplot()`,
+#' `assocplot()`, `pairs()`, `coplot()`, `persp()`, `sunflowerplot()`,
+#' `fourfoldplot()`, `spineplot()`, `cdplot()`, `filled.contour()`, `bxp()`
+#' and `stars()`; the low-level additions `lines()`, `points()`, `text()`,
+#' `mtext()`, `abline()`, `segments()`, `arrows()`, `polygon()`, `rect()`,
+#' `symbols()`, `legend()`, `axis()`, `title()` and `grid()`; and the layout
+#' functions `par()`, `layout()` and `split.screen()`.
+#'
+#' From stats: `heatmap()`, `qqnorm()`, `qqplot()`, `qqline()`, `acf()`,
+#' `pacf()`, `ccf()`, `cpgram()`, `spectrum()`, `monthplot()`, `termplot()`,
+#' `lag.plot()`, `biplot()` and `interaction.plot()`.
+#'
+#' `plot()` is also masked from base, where its generic has lived since
+#' R 4.0, and `show()` from methods: the S4 display generic, which maidr's
+#' [show()] hands back any object that is not a plot.
+#'
+#' `vioplot::vioplot()`, `wordcloud::wordcloud()` and
+#' `quantmod::chartSeries()` are wrapped as well, once their package is
+#' loaded.
+#'
+#' ## `show()` and `methods::show()`
+#'
+#' maidr's [show()] takes a ggplot2 object or, with no argument, the last
+#' recorded Base R chart. Anything else it is given goes to
+#' `methods::show()`, so `show(x)` on an S4 object prints as it did before
+#' maidr was attached. In a script or a package, where what is masked
+#' depends on what else is attached, call `maidr::show()` and
+#' `methods::show()` by name.
+#'
+#' ## Attach order for vioplot, wordcloud and quantmod
+#'
+#' These three are wrapped into maidr's namespace when their package loads,
+#' so a bare call reaches the wrapper only while `package:maidr` sits ahead
+#' of the package on the search path. Attach them *before* maidr:
+#'
+#' ```r
+#' library(vioplot)
+#' library(maidr)
+#' ```
+#'
+#' Attached after it, the package masks the wrapper, a bare `vioplot()`,
+#' `wordcloud()` or `chartSeries()` draws without being recorded, and
+#' [show()] reports that no Base R plot was detected. maidr says so at the
+#' moment the package is attached and again in that error. The other way
+#' round it is `maidr::vioplot()`, `maidr::wordcloud()` or
+#' `maidr::chartSeries()`, called explicitly.
+#'
+#' ## Calling an original directly
+#'
+#' The wrappers add nothing to the drawing and return what the original
+#' returns, so there is rarely a reason to go around them. `graphics::barplot()`
+#' does, and draws a chart maidr does not record.
+#'
+#' @param ... Arguments passed to the original graphics function.
+#' @param side,at,labels `axis()`'s own arguments, which its wrapper names so
+#'   that the tick labels a chart is given can be recorded; passed on to
+#'   `graphics::axis()` unchanged.
+#' @return Same as the original Base R function (invisibly when applicable).
+#'
+#' @seealso [show()] and [save_html()]; [maidr_on()] and [maidr_off()] for
+#'   turning interception on and off; `?"maidr-options"`.
 NULL
+
+# The stub definitions below are overwritten during package loading by the
+# actual wrapper implementations created in `initialize_base_r_patching()`.
+# They exist solely to generate the NAMESPACE exports via roxygen2.
 
 # --- HIGH-level plot creation functions ---
 

@@ -3,6 +3,13 @@
 #' Display a ggplot2 or Base R plot as an interactive, accessible visualization
 #' using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 #'
+#' Attaching maidr masks \code{methods::show()}. An object that is not a
+#' plot maidr renders -- an S4 object, a vector, a data frame -- is handed to
+#' \code{methods::show()}, so it prints as it did before maidr was attached.
+#' In a script or a package, call \code{maidr::show()} and
+#' \code{methods::show()} by name; \code{?"base-r-wrappers"} lists
+#' everything else attaching maidr masks.
+#'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
@@ -43,6 +50,16 @@
 #' @importFrom ggplotify as.grob
 #' @export
 show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...) {
+  # Attaching maidr masks methods::show(). An object that is not a ggplot2
+  # plot -- an S4 object, a vector -- is that generic's to print, so it is
+  # handed over rather than failed on (#320). Decided on the object rather
+  # than through the registry: the Base R adapter claims by device state,
+  # not by what it was given, so with a recorded chart on the device an S4
+  # object would otherwise be "handled" as Base R and never printed.
+  if (!is.null(plot) && !inherits(plot, "ggplot")) {
+    return(methods::show(plot))
+  }
+
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
 
@@ -259,8 +276,15 @@ warn_panel_fallback <- function(orchestrator) {
 
 #' Save Interactive Plot as HTML File
 #'
-#' Save a ggplot2 or Base R plot as a standalone HTML file with interactive
-#' MAIDR accessibility features.
+#' Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
+#' accessibility features.
+#'
+#' By default the MAIDR.js library is written to a \code{lib/} folder beside
+#' \code{file}, and the two have to be shared together: zip the folder that
+#' holds both, or copy both. An \code{.html} sent on its own loads no
+#' MAIDR.js and shows a plain, inaccessible chart. \code{use_cdn = TRUE}
+#' writes one self-contained file instead, which needs internet access
+#' whenever it is viewed.
 #'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")

@@ -1,9 +1,15 @@
 #' Enable MAIDR Plot Interception
 #'
-#' Enables automatic accessible rendering of ggplot2 and Base R plots.
-#' In interactive sessions, plots are displayed in the MAIDR interactive viewer.
-#' In RMarkdown documents, plots are converted to accessible MAIDR widgets
-#' with keyboard navigation and screen reader support.
+#' Turns on the accessible rendering of ggplot2 and Base R plots, and
+#' installs the knitr hooks that an R Markdown or Quarto document needs.
+#'
+#' Interception is on by default after `library(maidr)`: printing a ggplot2
+#' object opens it in the MAIDR viewer, and Base R plotting calls are
+#' recorded until [show()] is called. Calling `maidr_on()` yourself is needed
+#' in two places: after [maidr_off()], to start again, and once in the setup
+#' chunk of an R Markdown or Quarto document, where it registers the
+#' `knit_print` methods and the plot hook that turn every plot the document
+#' draws into an accessible chart. `library(maidr)` alone installs neither.
 #'
 #' @return Invisible TRUE on success
 #' @examples

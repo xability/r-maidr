@@ -32,6 +32,14 @@ Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side eff
 Display a ggplot2 or Base R plot as an interactive, accessible visualization
 using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 }
+\details{
+Attaching maidr masks \code{methods::show()}. An object that is not a
+plot maidr renders -- an S4 object, a vector, a data frame -- is handed to
+\code{methods::show()}, so it prints as it did before maidr was attached.
+In a script or a package, call \code{maidr::show()} and
+\code{methods::show()} by name; \code{?"base-r-wrappers"} lists
+everything else attaching maidr masks.
+}
 \examples{
 # ggplot2 bar chart
 library(ggplot2)

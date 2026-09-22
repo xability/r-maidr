@@ -74,7 +74,6 @@
 #' options.
 #'
 #' @name maidr-options
-#' @keywords internal
 NULL
 
 #' Initialize MAIDR default options

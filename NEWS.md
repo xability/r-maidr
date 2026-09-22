@@ -335,6 +335,9 @@
   and names the masking when 'quantmod' is attached after 'maidr'.
 * `cancel_auto_show()` removes its task callback by name, so it can no
   longer remove another package's callback.
+* `show()` hands an object that is not a plot -- an S4 object, a vector --
+  to `methods::show()`, which attaching maidr masks, so it prints as it did
+  before. It failed with "argument is of length zero" (#320).
 
 ### ggplot2
 
@@ -497,6 +500,12 @@
   `par("mar")` and `hist(x, plot = FALSE)` print their value again.
 * The native-device fallback replays `par()` and `layout()` calls in their
   original order and strips maidr's internal arguments.
+* `library(vioplot)` or `library(wordcloud)` after `library(maidr)` says,
+  as quantmod already did, that the package now masks maidr's wrapper on
+  the search path and that a bare `vioplot()` or `wordcloud()` call goes
+  unrecorded; the "No Base R plots detected" error names it too, and the
+  advice is to attach the package first or call `maidr::vioplot()`
+  explicitly (#320).
 
 ## Enhancements
 
@@ -536,6 +545,45 @@
 * `citation("maidr")` returns the CHI 2024 and EuroVis 2024 MAIDR papers
   alongside the package entry (new `inst/CITATION`), and the README cites
   them.
+* The "Getting Help" sections of the getting-started and Shiny vignettes
+  send bug reports to this package's issue tracker rather than the
+  JavaScript core's, with link text that names the repository, and the
+  README's help section points at the function reference instead of back at
+  the site it is on (#311).
+* `save_html()` is no longer described as writing a "standalone" or
+  "portable" file. By default the MAIDR.js library goes into a `lib/` folder
+  beside the file and the two have to be shared together; an `.html` sent on
+  its own loads no MAIDR.js and shows a plain chart. The description line,
+  the README and the getting-started vignette now say so, and "standalone"
+  is reserved for `use_cdn = TRUE` (#319).
+* The README and the getting-started vignette carry one section, "How maidr
+  hooks into your session", saying what happens at the console (printing a
+  ggplot2 object opens the viewer; Base R calls are recorded until `show()`),
+  in R Markdown and Quarto (`maidr_on()` in a setup chunk, which installs
+  the knitr hooks that `library(maidr)` alone does not), in Shiny, and how
+  to turn it off. The examples hub no longer implies that interception is
+  off until `maidr_on()` is called, `?maidr_on` says when the call is
+  needed, and the reference index files `maidr_on()`, `maidr_off()` and
+  `?"maidr-options"` under "Turning interception on and off" rather than
+  under R Markdown alone (#318).
+* The README, the getting-started vignette and the examples hub carry one
+  keyboard table, identical on all three and matched to the MAIDR core's
+  controls reference: Up/Down, layer switching with Page Up/Page Down, label
+  mode, high contrast and the shortcut help are listed, Space is "repeat the
+  current sound", and the Enter/Space and Escape rows the vignette had, which
+  the core does not bind, are gone. Each copy sits between markers and
+  `tests/testthat/test-docs-key-table.R` fails when the three drift apart
+  (#312).
+* What attaching maidr masks is documented for users. `?"base-r-wrappers"`,
+  which every Base R autolink on the website already pointed at but which
+  was hidden from the reference index and the search engines, is now a
+  user-facing page listing the graphics, stats, base and methods functions
+  maidr replaces, saying that each passes through to the original, that
+  `show()` hands a non-plot object to `methods::show()` and that scripts
+  and packages should call `maidr::show()` by name, and giving the attach
+  order for vioplot, wordcloud and quantmod in one place. It is indexed
+  under "What attaching maidr masks", and the README and the getting-started
+  vignette summarise it in their session section (#320).
 
 ## Performance
 

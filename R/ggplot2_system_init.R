@@ -30,48 +30,99 @@ initialize_ggplot2_system <- function() {
   tryCatch(wrap_function("chartSeries"), error = function(e) NULL)
 }
 
-#' Is quantmod attached ahead of maidr on the search path?
+#' The Suggests packages whose plotting entry point maidr wraps
+#'
+#' Named by package, valued by the function. Each is wrapped into maidr's
+#' own namespace when the package loads (the `onLoad` hooks below), so a
+#' bare call reaches the wrapper only while `package:maidr` sits ahead of
+#' the package on the search path. Attached after maidr, the package masks
+#' the wrapper and its calls go unrecorded; see [package_masks_maidr()].
+#'
+#' @keywords internal
+WRAPPED_SUGGESTS <- c(
+  quantmod = "chartSeries",
+  vioplot = "vioplot",
+  wordcloud = "wordcloud"
+)
+
+#' Is a package attached ahead of maidr on the search path?
 #'
 #' `library(quantmod)` after `library(maidr)` puts `package:quantmod` in
 #' front of `package:maidr`, so an unqualified `chartSeries()` binds to
 #' quantmod's own function and maidr's recording wrapper is never entered.
+#' `library(vioplot)` and `library(wordcloud)` after maidr do the same to
+#' `vioplot()` and `wordcloud()`: the "No Base R plots detected" error that
+#' follows a bare call to either was measured with maidr 0.5.0 (#320).
 #'
-#' maidr deliberately does not reach into quantmod's namespace to win this
-#' race: overwriting a foreign package's binding would also redirect
-#' quantmod's *internal* `chartSeries()` calls through maidr's `...`-
-#' forwarding wrapper, which corrupts the `match.call(expand.dots = TRUE)`
-#' that quantmod relies on. maidr reports the condition instead.
+#' maidr deliberately does not reach into another package's namespace to
+#' win this race: overwriting a foreign package's binding would also
+#' redirect the package's *internal* calls through maidr's `...`-forwarding
+#' wrapper, which for quantmod corrupts the `match.call(expand.dots = TRUE)`
+#' it relies on. maidr reports the condition instead.
+#'
+#' @param package Name of the package, as in [WRAPPED_SUGGESTS].
+#' @return `TRUE` when both packages are attached and `package` comes first.
+#' @keywords internal
+package_masks_maidr <- function(package) {
+  path <- search()
+  package_pos <- match(paste0("package:", package), path, nomatch = 0L)
+  maidr_pos <- match("package:maidr", path, nomatch = 0L)
+  package_pos > 0L && maidr_pos > 0L && package_pos < maidr_pos
+}
+
+#' Is quantmod attached ahead of maidr on the search path?
+#'
+#' [package_masks_maidr()] for quantmod, the first package this was noticed
+#' with (#97).
 #'
 #' @return `TRUE` when both packages are attached and quantmod comes first.
 #' @keywords internal
 quantmod_masks_maidr <- function() {
-  path <- search()
-  quantmod_pos <- match("package:quantmod", path, nomatch = 0L)
-  maidr_pos <- match("package:maidr", path, nomatch = 0L)
-  quantmod_pos > 0L && maidr_pos > 0L && quantmod_pos < maidr_pos
+  package_masks_maidr("quantmod")
+}
+
+#' The wrapped Suggests packages attached ahead of maidr right now
+#'
+#' @return Package names, in [WRAPPED_SUGGESTS] order; empty when none masks.
+#' @keywords internal
+packages_masking_maidr <- function() {
+  packages <- names(WRAPPED_SUGGESTS)
+  packages[vapply(packages, package_masks_maidr, logical(1))]
+}
+
+#' Advice shown when an attached package masks one of maidr's wrappers
+#'
+#' Shared by `.onAttach`, the attach hooks and the "No Base R plots
+#' detected" errors so the wording stays in one place.
+#'
+#' @param package Name of the package, as in [WRAPPED_SUGGESTS].
+#' @return A single advice string.
+#' @keywords internal
+mask_advice <- function(package) {
+  fn <- WRAPPED_SUGGESTS[[package]]
+  paste0(
+    "'", package, "' is attached ahead of 'maidr' on the search path, so a ",
+    "bare ", fn, "() call goes straight to ", package, " and is not ",
+    "recorded. Attach '", package, "' before 'maidr', or call maidr::", fn,
+    "() explicitly."
+  )
 }
 
 #' Advice shown when quantmod masks maidr's chartSeries() wrapper
 #'
-#' Shared by `.onAttach`, the quantmod attach hook and the
-#' "No Base R plots detected" errors so the wording stays in one place.
+#' [mask_advice()] for quantmod.
 #'
 #' @return A single advice string.
 #' @keywords internal
 quantmod_mask_advice <- function() {
-  paste0(
-    "'quantmod' is attached ahead of 'maidr' on the search path, so a bare ",
-    "chartSeries() call goes straight to quantmod and is not recorded. ",
-    "Attach 'quantmod' before 'maidr', or call maidr::chartSeries() ",
-    "explicitly."
-  )
+  mask_advice("quantmod")
 }
 
 #' Message for show()/save_html()/maidr_widget() with nothing recorded
 #'
-#' Names the quantmod masking case when it applies: the bare
-#' "create a plot first" wording is actively misleading there, because the
-#' user *did* draw a chart - it just went to quantmod unrecorded.
+#' Names every masking case that applies: the bare "create a plot first"
+#' wording is actively misleading there, because the user *did* draw a
+#' chart - it just went to the other package unrecorded.
 #'
 #' @return The error message string.
 #' @keywords internal
@@ -81,17 +132,50 @@ no_base_r_plots_message <- function() {
     "(e.g., barplot(), plot())."
   )
 
-  if (quantmod_masks_maidr()) {
-    message_text <- paste0(message_text, "\n", quantmod_mask_advice())
+  for (package in packages_masking_maidr()) {
+    message_text <- paste0(message_text, "\n", mask_advice(package))
   }
 
   message_text
 }
 
-# Hook run when quantmod is *attached* (not merely loaded). By then quantmod
-# sits ahead of maidr on the search path, so this is the moment to tell the
-# user that bare chartSeries() calls will no longer be recorded. Named (not
-# anonymous) so .onUnload can remove exactly this hook on unload.
+#' Say, as a package is attached, that it now masks a maidr wrapper
+#'
+#' Run from the attach hooks below. By then the package sits ahead of maidr
+#' on the search path, so this is the moment to tell the user that bare
+#' calls to its entry point will no longer be recorded. Silent when the
+#' package does not mask, and under `maidr.startup_message = FALSE`.
+#'
+#' @param package Name of the package, as in [WRAPPED_SUGGESTS].
+#' @keywords internal
+announce_masking <- function(package) {
+  tryCatch(
+    {
+      announce <- package_masks_maidr(package) &&
+        isTRUE(getOption("maidr.startup_message", TRUE))
+      if (announce) {
+        packageStartupMessage("maidr: ", mask_advice(package))
+      }
+    },
+    error = function(e) NULL
+  )
+  invisible(NULL)
+}
+
+# The attach hooks, one per wrapped package. Named (not anonymous) so
+# .onUnload can remove exactly these hooks on unload.
+.maidr_quantmod_attach_hook <- function(...) {
+  announce_masking("quantmod")
+}
+
+.maidr_vioplot_attach_hook <- function(...) {
+  announce_masking("vioplot")
+}
+
+.maidr_wordcloud_attach_hook <- function(...) {
+  announce_masking("wordcloud")
+}
+
 #' Wrap vioplot's entry point once its namespace is available
 #'
 #' vioplot is in Suggests, so if it loads after maidr its `vioplot()` has not
@@ -112,19 +196,6 @@ no_base_r_plots_message <- function() {
 #' @keywords internal
 .maidr_wordcloud_onload_hook <- function(...) {
   tryCatch(wrap_function("wordcloud"), error = function(e) NULL)
-}
-
-.maidr_quantmod_attach_hook <- function(...) {
-  tryCatch(
-    {
-      announce <- quantmod_masks_maidr() &&
-        isTRUE(getOption("maidr.startup_message", TRUE))
-      if (announce) {
-        packageStartupMessage("maidr: ", quantmod_mask_advice())
-      }
-    },
-    error = function(e) NULL
-  )
 }
 
 # Auto-initialize systems when package is loaded
@@ -195,26 +266,26 @@ no_base_r_plots_message <- function() {
     error = function(e) NULL
   )
 
-  # vioplot is in Suggests for the same reason and needs the same late
-  # binding. No attach hook: unlike chartSeries, `vioplot()` is only ever
-  # called by the user, so maidr wrapping its namespace binding does not
-  # redirect any internal call of the package's own.
-  tryCatch(
-    setHook(
-      packageEvent("vioplot", "onLoad"),
-      .maidr_vioplot_onload_hook
-    ),
-    error = function(e) NULL
-  )
-
-  # wordcloud, for the same reason and with the same shape.
-  tryCatch(
-    setHook(
-      packageEvent("wordcloud", "onLoad"),
-      .maidr_wordcloud_onload_hook
-    ),
-    error = function(e) NULL
-  )
+  # vioplot and wordcloud are in Suggests for the same reason and need the
+  # same late binding, and attaching either after maidr masks its wrapper
+  # on the search path exactly as quantmod does (#320), so each gets the
+  # same attach hook.
+  for (package in c("vioplot", "wordcloud")) {
+    tryCatch(
+      setHook(
+        packageEvent(package, "onLoad"),
+        get(paste0(".maidr_", package, "_onload_hook"), envir = asNamespace("maidr"))
+      ),
+      error = function(e) NULL
+    )
+    tryCatch(
+      setHook(
+        packageEvent(package, "attach"),
+        get(paste0(".maidr_", package, "_attach_hook"), envir = asNamespace("maidr"))
+      ),
+      error = function(e) NULL
+    )
+  }
 }
 
 # Remove the quantmod onLoad hook installed in .onLoad so the package unloads
@@ -237,7 +308,9 @@ no_base_r_plots_message <- function() {
   drop_hook("onLoad", .maidr_quantmod_onload_hook)
   drop_hook("attach", .maidr_quantmod_attach_hook)
   drop_hook("onLoad", .maidr_vioplot_onload_hook, package = "vioplot")
+  drop_hook("attach", .maidr_vioplot_attach_hook, package = "vioplot")
   drop_hook("onLoad", .maidr_wordcloud_onload_hook, package = "wordcloud")
+  drop_hook("attach", .maidr_wordcloud_attach_hook, package = "wordcloud")
 }
 
 # Show startup message when package is attached via library()
@@ -257,9 +330,9 @@ no_base_r_plots_message <- function() {
 
   # maidr is normally attached at position 2, ahead of anything loaded
   # earlier, so this only fires for an explicit library(maidr, pos = ...).
-  # The common ordering problem - quantmod attached *after* maidr - is
-  # caught by .maidr_quantmod_attach_hook instead.
-  if (quantmod_masks_maidr()) {
-    packageStartupMessage("maidr: ", quantmod_mask_advice())
+  # The common ordering problem - quantmod, vioplot or wordcloud attached
+  # *after* maidr - is caught by their attach hooks instead.
+  for (package in packages_masking_maidr()) {
+    packageStartupMessage("maidr: ", mask_advice(package))
   }
 }

@@ -101,11 +101,24 @@ reference:
       - maidr_gantt
       - maidr_roc
 
-  - title: RMarkdown integration
-    desc: Functions for enabling accessible plots in RMarkdown documents
+  - title: Turning interception on and off
+    desc: >
+      Interception is on after library(maidr): printing a ggplot2 object
+      opens the viewer and Base R calls are recorded until show(). An
+      R Markdown or Quarto document calls maidr_on() in a setup chunk for
+      the knitr hooks; the options turn parts of it off.
     contents:
       - maidr_on
       - maidr_off
+      - maidr-options
+
+  - title: What attaching maidr masks
+    desc: >
+      The Base R plotting functions and methods::show(), each replaced on
+      the search path by a wrapper that records the call and passes through
+      to the original
+    contents:
+      - base-r-wrappers
 
   - title: Shiny integration
     desc: Functions for using maidr in Shiny applications

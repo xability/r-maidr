@@ -14,7 +14,7 @@ maidr (Multimodal Access and Interactive Data Representation) makes data visuali
 The package provides two main functions:
 
 - `show()` displays an interactive accessible plot in RStudio Viewer or browser
-- `save_html()` exports a plot as a standalone HTML file
+- `save_html()` writes a plot to an HTML file, with the MAIDR.js library in a `lib/` folder beside it
 
 ## Installation
 
@@ -69,6 +69,32 @@ barplot(
 # Then call show() without arguments
 show()
 ```
+
+## How maidr hooks into your session
+
+- **Console.** `library(maidr)` is all it takes. Printing a ggplot2 object,
+  by typing `p` or `print(p)`, opens it in the maidr viewer; `show(p)` is the
+  explicit form. Base R plotting calls are recorded, and `show()` with no
+  argument opens the recorded chart. `save_html()` writes either kind to a
+  file.
+- **R Markdown and Quarto.** Call `maidr_on()` once in a setup chunk. It
+  installs the knitr hooks that turn every plot the document draws into an
+  accessible chart; `library(maidr)` alone does not install them.
+- **Shiny.** Put `maidr_output()` in the UI and `render_maidr()` in the
+  server; see `vignette("shiny-integration", package = "maidr")`.
+- **Turning it off.** `maidr_off()` stops interception for the session and
+  `maidr_on()` starts it again. `options(maidr.ggplot2 = FALSE)` leaves
+  ggplot2 printing alone, `options(maidr.base_r = FALSE)` stops recording
+  Base R calls, and `options(maidr.auto_show = FALSE)`, in `.Rprofile` to
+  make it permanent, turns everything off. See `?"maidr-options"`.
+- **What gets masked.** Attaching maidr puts its own copies of the Base R
+  plotting functions, and of `methods::show()`, ahead of the originals; R
+  lists them at `library(maidr)`. Each records the call and passes through
+  to the original, and `show()` hands anything that is not a plot back to
+  `methods::show()`. In a script or a package call `maidr::show()` by name,
+  and attach vioplot, wordcloud or quantmod *before* maidr, or their own
+  functions mask the wrappers and their charts go unrecorded. See
+  [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
 ## Supported plot types
 
@@ -200,30 +226,43 @@ worked example of each plot type.
 - **Sonification** - hear data patterns through sound
 - **Text descriptions** - automatic statistical summaries
 
-Press **Tab** (or click) to focus a rendered plot, move between data points with the **arrow keys**, and toggle **B** braille, **T** text, **S** sonification, and **R** review mode. Four global shortcuts open maidr's own interfaces:
+The keys a reader needs first, the same on every page of this documentation:
 
-| Action | Windows / Linux | macOS |
-|---|---|---|
-| Show or hide the keyboard shortcut help | Ctrl + / | Command + / |
-| Open the command palette listing every available command | Ctrl + Shift + P | Command + Shift + P |
-| Open the AI chat (requires your own API key, entered in Settings, or a local Ollama server) | Shift + / (that is, **?**) | Shift + / (**?**) |
-| Open Settings | Ctrl + , | Command + , |
+<!-- maidr-keys:start -->
+| Key | Action |
+|---|---|
+| **Tab** | Focus the chart; **Shift + Tab** leaves it |
+| **Left / Right** | Move between data points |
+| **Up / Down** | Move between series, stacked segments, heat map rows or box plot sections, on a chart that has them |
+| **Page Up / Page Down** | Switch between the layers of a chart that has several |
+| **B** | Toggle braille mode |
+| **T** | Toggle text mode |
+| **S** | Toggle sonification |
+| **R** | Toggle review mode |
+| **C** | Toggle high contrast mode |
+| **L**, then **X**, **Y** or **T** | Announce the x axis label, the y axis label or the title |
+| **Space** | Repeat the current sound |
+| **Ctrl + /** (**Cmd + /** on macOS) | Show or hide the full keyboard shortcut help |
 
-The full list, including autoplay, label announcements, and layer switching, is in the [maidr controls documentation](https://maidr.ai/docs/CONTROLS.html).
+Every other shortcut, including autoplay, jumping to the ends, the command palette, settings and the AI chat, is on the [MAIDR controls reference](https://maidr.ai/docs/CONTROLS.html).
+<!-- maidr-keys:end -->
 
 ## Offline support
 
 By default, `show()` and `save_html()` use the bundled maidr.js library, so
-the result works offline (`save_html()` writes it to a `lib/` folder beside
-the file). Widgets, knitr documents and Shiny apps auto-detect internet
-availability and use the CDN when online. Use the `use_cdn` parameter for
-explicit control:
+the result works offline. `save_html()` writes the library to a `lib/` folder
+beside the file, and the two have to be shared together: zip the folder that
+holds both, or copy both. An `.html` sent on its own loads no maidr.js and
+shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps
+auto-detect internet availability and use the CDN when online. Use the
+`use_cdn` parameter for explicit control:
 
 ``` r
-# Force CDN (requires internet)
+# Force CDN: one self-contained file, needs internet whenever it is viewed
 show(p, use_cdn = TRUE)
+save_html(p, "plot.html", use_cdn = TRUE)
 
-# Force bundled files (works offline)
+# Force bundled files: works offline, lib/ folder beside the saved file
 show(p, use_cdn = FALSE)
 save_html(p, "plot.html", use_cdn = FALSE)
 ```
@@ -259,7 +298,7 @@ Every document maidr produces then declares `window.MAIDR_DOTPAD_SDK_URL` and
 ## Getting help
 
 - Report bugs or request features at [GitHub Issues](https://github.com/xability/r-maidr/issues)
-- Read the documentation at the [package website](https://r.maidr.ai/)
+- Browse the [function reference](https://r.maidr.ai/reference/index.html), or run `help(package = "maidr")` offline
 
 ## Learning more
 - `vignette("getting-started", package = "maidr")` for an introduction

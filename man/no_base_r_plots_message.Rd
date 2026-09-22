@@ -10,8 +10,8 @@ no_base_r_plots_message()
 The error message string.
 }
 \description{
-Names the quantmod masking case when it applies: the bare
-"create a plot first" wording is actively misleading there, because the
-user \emph{did} draw a chart - it just went to quantmod unrecorded.
+Names every masking case that applies: the bare "create a plot first"
+wording is actively misleading there, because the user \emph{did} draw a
+chart - it just went to the other package unrecorded.
 }
 \keyword{internal}
