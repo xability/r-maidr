@@ -15,8 +15,8 @@ If \code{NULL} (default), auto-detect based on internet availability.}
 \item{page_fallback}{Logical. When the CDN is used, fall back to the copy of
 the bundle the embedding page carries if the CDN load fails. Set by the
 knitr paths, which add that copy to the document with
-\code{\link[=maidr_page_bundle_dependency]{maidr_page_bundle_dependency()}}, and by \code{\link[=maidr_widget]{maidr_widget()}}, whose page
-gets the same dependency from \code{inst/htmlwidgets/maidr.yaml}.}
+\code{\link[=maidr_page_bundle_dependency]{maidr_page_bundle_dependency()}}, and by \code{\link[=maidr_widget]{maidr_widget()}}, which declares
+the same dependency on the widget.}
 }
 \value{
 Character string of complete HTML document

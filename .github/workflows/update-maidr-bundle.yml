@@ -109,9 +109,9 @@ jobs:
           # Resolve (or use the requested version), download, verify, and
           # install the bundle via the shared script (also used by
           # tools/update-maidr-assets.R for local refreshes). The script
-          # updates R/html_dependencies.R and inst/htmlwidgets/maidr.yaml
-          # to match the installed version, and inst/dotpad-sdk.json when
-          # the package ships the DotPad SDK pin.
+          # updates MAIDR_VERSION in R/html_dependencies.R to match the
+          # installed version, and inst/dotpad-sdk.json when the package
+          # ships the DotPad SDK pin.
           VERSION=$(.github/scripts/fetch-maidr-bundle.sh "$MAIDR_VERSION")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 

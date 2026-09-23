@@ -15,9 +15,9 @@
 #
 # On success the script installs the assets into
 # ``inst/htmlwidgets/lib/maidr-<VERSION>/``, removes any stale
-# ``maidr-*`` lib directories, and rewrites the version references in
-# ``R/html_dependencies.R`` and ``inst/htmlwidgets/maidr.yaml`` so the
-# package always points at the freshly installed bundle. When the package
+# ``maidr-*`` lib directories, and rewrites ``MAIDR_VERSION`` in
+# ``R/html_dependencies.R`` so the package always points at the freshly
+# installed bundle; every dependency on it is built from that constant. When the package
 # ships ``dist/dotpad-sdk.json`` -- the DotPad SDK pin maidr.js reads its
 # own copy from -- that is installed as ``inst/dotpad-sdk.json`` too, which
 # is where ``R/dotpad_config.R`` reads every pin of its own.
@@ -54,7 +54,6 @@ MAX_ATTEMPTS="${MAIDR_FETCH_MAX_ATTEMPTS:-30}"
 RETRY_DELAY="${MAIDR_FETCH_RETRY_DELAY:-30}"
 LIB_ROOT="inst/htmlwidgets/lib"
 R_VERSION_FILE="R/html_dependencies.R"
-YAML_FILE="inst/htmlwidgets/maidr.yaml"
 DOTPAD_MANIFEST="inst/dotpad-sdk.json"
 
 # Fail fast with a clear message when not run from the package root, rather
@@ -264,17 +263,13 @@ for dir in "$LIB_ROOT"/maidr-*/; do
   fi
 done
 
-# Point the package at the installed bundle: MAIDR_VERSION in the R source
-# and the version/src entries in the htmlwidgets dependency manifest.
+# Point the package at the installed bundle: MAIDR_VERSION in the R source,
+# from which every dependency on the bundle is built.
 sed -i.bak -E "s/MAIDR_VERSION <- \"[^\"]*\"/MAIDR_VERSION <- \"$VERSION\"/" "$R_VERSION_FILE"
-sed -i.bak -E "s/^([[:space:]]*version:).*/\1 $VERSION/" "$YAML_FILE"
-sed -i.bak -E "s|^([[:space:]]*src:) htmlwidgets/lib/maidr-.*|\1 htmlwidgets/lib/maidr-$VERSION|" "$YAML_FILE"
-rm -f "$R_VERSION_FILE.bak" "$YAML_FILE.bak"
+rm -f "$R_VERSION_FILE.bak"
 
-# The rewrites above are pattern-based; verify they actually landed so a
+# The rewrite above is pattern-based; verify it actually landed so a
 # drifted source file fails loudly instead of shipping a version mismatch.
 grep -qF "MAIDR_VERSION <- \"$VERSION\"" "$R_VERSION_FILE"
-grep -qF "version: $VERSION" "$YAML_FILE"
-grep -qF "src: htmlwidgets/lib/maidr-$VERSION" "$YAML_FILE"
 
 echo "$VERSION"

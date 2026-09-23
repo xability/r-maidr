@@ -253,8 +253,12 @@
   offline too, and so does a Shiny app whose readers cannot reach the CDN.
   The page already carried that copy, as a script it ran for nothing: each
   chart runs in its own frame, where the page's copy could not reach it. It
-  is now an inert script, shared with the knitted charts' copy, so documents
-  and apps are no larger.
+  is now an inert script, shared with the knitted charts' copy, and only a
+  widget whose frame loads from the CDN adds it: a widget drawn with
+  `use_cdn = FALSE`, or offline, carries the bundle in its frame and puts no
+  copy on the page, where every widget used to add 1.7 MB it never read.
+  The widget no longer has an `htmlwidgets` yaml, so the bundle refresh
+  rewrites `MAIDR_VERSION` alone.
 
 * Bar, histogram, scatter, dodged, stacked and normalized bar, pie, dot and
   lollipop layers highlight again with the bundled maidr.js 4.x, on ggplot2

@@ -48,28 +48,39 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
   # discovers the SVG with maidr-data attribute
   # Use explicit pixel height since percentage height requires parent height
 
-  # A frame that loads from the CDN falls back to the copy of the bundle the
-  # widget's page carries (inst/htmlwidgets/maidr.yaml). That copy is what
-  # R Markdown's `self_contained` and Quarto's `embed-resources` embed; the
-  # frame's own `<script src>`, inside `srcdoc`, is out of their reach.
+  # Resolved here rather than left to `create_standalone_html()`, because it
+  # decides the widget's dependencies as well as the frame's script.
+  if (is.null(use_cdn)) {
+    use_cdn <- maidr_internet_available()
+  }
+
+  # A frame that loads from the CDN falls back to a copy of the bundle on the
+  # widget's page. That copy is what R Markdown's `self_contained` and
+  # Quarto's `embed-resources` embed; the frame's own `<script src>`, inside
+  # `srcdoc`, is out of their reach.
   iframe_html <- create_maidr_iframe(
     svg_content = svg_content,
     width = "100%",
     height = "400px",
     plot_id = element_id,
     use_cdn = use_cdn,
-    page_fallback = TRUE
+    page_fallback = use_cdn
   )
 
-  # Create widget with iframe content. The bundle the frame runs is its own;
-  # the page's copy comes from the widget's yaml, for the frame to fall back
-  # on.
+  # The page's copy, only for a frame that can fall back to it. A frame that
+  # does not load from the CDN carries the bundle inline and never reads the
+  # page, so a copy there would be 1.7 MB nothing uses. Declared per widget
+  # rather than in an htmlwidgets yaml, which would put it on every page.
+  # Named like the knitr paths' copy, so one serves both.
+  page_bundle <- if (use_cdn) list(maidr_page_bundle_dependency())
+
   htmlwidgets::createWidget(
     name = "maidr",
     x = list(iframe_content = iframe_html),
     width = width,
     height = height,
     elementId = element_id,
+    dependencies = page_bundle,
     sizingPolicy = htmlwidgets::sizingPolicy(
       browser.fill = TRUE,
       browser.padding = 0,
