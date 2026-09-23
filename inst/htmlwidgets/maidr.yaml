@@ -1,5 +1,16 @@
+# The widget's page carries maidr.js for its chart frames to fall back on, not
+# to run: each chart runs in its own srcdoc iframe, and the page around it has
+# nothing for maidr.js to find. The scripts are of types no browser runs, the
+# same dependency as `maidr_page_bundle_dependency()` in R/html_dependencies.R,
+# and under the same name, so a document holding both widgets and knitted
+# charts carries one copy.
 dependencies:
-  - name: maidr
+  - name: maidr-page-bundle
     version: 4.10.0
     src: htmlwidgets/lib/maidr-4.10.0
-    script: maidr.js
+    script:
+      - src: maidr.js
+        type: text/x-maidr-js
+      - src: maidr-math.css
+        type: text/x-maidr-math-css
+    all_files: false

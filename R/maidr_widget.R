@@ -48,16 +48,22 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
   # discovers the SVG with maidr-data attribute
   # Use explicit pixel height since percentage height requires parent height
 
+  # A frame that loads from the CDN falls back to the copy of the bundle the
+  # widget's page carries (inst/htmlwidgets/maidr.yaml). That copy is what
+  # R Markdown's `self_contained` and Quarto's `embed-resources` embed; the
+  # frame's own `<script src>`, inside `srcdoc`, is out of their reach.
   iframe_html <- create_maidr_iframe(
     svg_content = svg_content,
     width = "100%",
     height = "400px",
     plot_id = element_id,
-    use_cdn = use_cdn
+    use_cdn = use_cdn,
+    page_fallback = TRUE
   )
 
-  # Create widget with iframe content (no MAIDR dependencies needed -
-  # they are embedded in the iframe)
+  # Create widget with iframe content. The bundle the frame runs is its own;
+  # the page's copy comes from the widget's yaml, for the frame to fall back
+  # on.
   htmlwidgets::createWidget(
     name = "maidr",
     x = list(iframe_content = iframe_html),

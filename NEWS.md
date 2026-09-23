@@ -247,6 +247,15 @@
   dependency, in a script no browser runs; a chart whose CDN load fails reads
   that copy from the page instead. The CDN is still tried first.
 
+* The widget (`show(..., as_widget = TRUE)`, and `render_maidr()` in Shiny)
+  does the same. Its chart frame now falls back to a copy of the bundle on
+  the widget's page, so a self-contained document holding widgets works
+  offline too, and so does a Shiny app whose readers cannot reach the CDN.
+  The page already carried that copy, as a script it ran for nothing: each
+  chart runs in its own frame, where the page's copy could not reach it. It
+  is now an inert script, shared with the knitted charts' copy, so documents
+  and apps are no larger.
+
 * Bar, histogram, scatter, dodged, stacked and normalized bar, pie, dot and
   lollipop layers highlight again with the bundled maidr.js 4.x, on ggplot2
   and Base R alike. Every processor built `selectors` with `list()`, so a
