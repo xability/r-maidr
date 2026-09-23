@@ -390,12 +390,16 @@ test_that("a non-ASCII title reaches the frame intact", {
 
   iframe <- maidr:::create_maidr_iframe(svg, use_cdn = TRUE, plot_id = "enc")
 
-  # The bytes themselves, not a rendering of them: `grepl` would compare a
-  # marked needle against unmarked hay and convert one of them on the way.
-  testthat::expect_true(
-    length(grepRaw(charToRaw(title), charToRaw(iframe), fixed = TRUE)) > 0
-  )
+  # It travels as character references, so the page holds only ASCII and no
+  # locale downstream can rewrite it; the parser hands the frame the title.
+  testthat::expect_true(grepl("&#xE9;&#xFC; &#xD55C;&#xAE00;", iframe, fixed = TRUE))
   testthat::expect_false(grepl("&lt;ed&gt;", iframe, fixed = TRUE))
+
+  srcdoc <- xml2::xml_attr(
+    xml2::xml_find_first(xml2::read_html(iframe, encoding = "UTF-8"), "//iframe"),
+    "srcdoc"
+  )
+  testthat::expect_true(grepl(enc2utf8(title), srcdoc, fixed = TRUE))
 })
 
 test_that("attribute-significant characters in a label are escaped, not dropped", {
