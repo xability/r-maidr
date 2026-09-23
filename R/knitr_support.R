@@ -194,11 +194,7 @@ knit_print.ggplot <- function(x, options = list(), ...) {
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
 
   # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
-  iframe_html <- create_maidr_iframe(
-    svg_content = content,
-    width = "100%",
-    height = "450px"
-  )
+  iframe_html <- create_knitr_iframe(content)
 
   # Return as raw HTML
   knitr::asis_output(iframe_html)
@@ -348,11 +344,7 @@ maidr_plot_hook <- function(x, options) {
     clear_device_storage(device_id)
 
     # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
-    iframe_html <- create_maidr_iframe(
-      svg_content = content,
-      width = "100%",
-      height = "450px"
-    )
+    iframe_html <- create_knitr_iframe(content)
 
     # Return as raw HTML
     return(iframe_html)
@@ -360,6 +352,35 @@ maidr_plot_hook <- function(x, options) {
 
   # Fall back to original plot hook if no Base R calls captured
   call_original_plot_hook(x, options)
+}
+
+#' Wrap a chart in its iframe for a knitted document
+#'
+#' Online, the frame loads maidr.js from the CDN, and the document is given
+#' its own copy of the bundle ([maidr_page_bundle_dependency()]) for the frame
+#' to fall back on. The frame's document sits in a `srcdoc` attribute, where
+#' R Markdown's `self_contained` and Quarto's `embed-resources` cannot reach
+#' its `<script src>`; the copy is what they embed instead, once per document
+#' however many charts it has, so a self-contained document's charts work
+#' offline. Offline at render time, each frame carries the bundle inline, as
+#' before.
+#'
+#' @param content The chart's SVG content, from [create_maidr_html()]
+#' @return Character string of iframe HTML
+#' @keywords internal
+create_knitr_iframe <- function(content) {
+  use_cdn <- maidr_internet_available()
+  if (use_cdn) {
+    knitr::knit_meta_add(list(maidr_page_bundle_dependency()))
+  }
+
+  create_maidr_iframe(
+    svg_content = content,
+    width = "100%",
+    height = "450px",
+    use_cdn = use_cdn,
+    page_fallback = use_cdn
+  )
 }
 
 #' Delegate to the stored original knitr plot hook

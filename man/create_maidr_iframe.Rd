@@ -9,7 +9,8 @@ create_maidr_iframe(
   width = "100\%",
   height = "450px",
   plot_id = NULL,
-  use_cdn = NULL
+  use_cdn = NULL,
+  page_fallback = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ create_maidr_iframe(
 
 \item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE}, use bundled files.
 If \code{NULL} (default), auto-detect based on internet availability.}
+
+\item{page_fallback}{Logical. Passed to \code{\link[=create_standalone_html]{create_standalone_html()}}.}
 }
 \value{
 Character string of iframe HTML

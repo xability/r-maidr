@@ -4,13 +4,18 @@
 \alias{create_standalone_html}
 \title{Create self-contained HTML for iframe embedding}
 \usage{
-create_standalone_html(svg_content, use_cdn = NULL)
+create_standalone_html(svg_content, use_cdn = NULL, page_fallback = FALSE)
 }
 \arguments{
 \item{svg_content}{Character vector of SVG content with maidr-data attribute}
 
 \item{use_cdn}{Logical. If \code{TRUE}, use CDN. If \code{FALSE}, use bundled files.
 If \code{NULL} (default), auto-detect based on internet availability.}
+
+\item{page_fallback}{Logical. When the CDN is used, fall back to the copy of
+the bundle the embedding page carries if the CDN load fails. Only the
+knitr paths set it, and they add that copy to the document with
+\code{\link[=maidr_page_bundle_dependency]{maidr_page_bundle_dependency()}}.}
 }
 \value{
 Character string of complete HTML document

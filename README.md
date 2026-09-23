@@ -254,7 +254,10 @@ the result works offline. `save_html()` writes the library to a `lib/` folder
 beside the file, and the two have to be shared together: zip the folder that
 holds both, or copy both. An `.html` sent on its own loads no maidr.js and
 shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps
-auto-detect internet availability and use the CDN when online. Use the
+auto-detect internet availability and use the CDN when online. A knitted R
+Markdown or Quarto document rendered online also carries its own copy of
+maidr.js, which its charts fall back on when the CDN cannot be reached, so a
+`self_contained` / `embed-resources` document works offline too. Use the
 `use_cdn` parameter for explicit control:
 
 ``` r

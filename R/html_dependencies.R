@@ -175,3 +175,109 @@ maidr_inline_asset_tags <- function() {
   .maidr_asset_cache$tags <- tags
   tags
 }
+
+# `type`s of the two inert `<script>` elements that carry a document's own copy
+# of the bundle. A browser neither fetches nor runs a script of a type it does
+# not know, and pandoc keeps the `type` of every script it embeds -- the one
+# attribute it keeps when it inlines one -- so the chart frames find the copy
+# by it, whether the document embeds its resources or links them.
+MAIDR_PAGE_JS_TYPE <- "text/x-maidr-js"
+MAIDR_PAGE_MATH_CSS_TYPE <- "text/x-maidr-math-css"
+
+#' The bundle a knitted document carries for its charts
+#'
+#' The knitr paths put each chart in a `srcdoc` iframe whose `<script>` loads
+#' maidr.js from the CDN. That document lives in an attribute, where neither
+#' pandoc's `--embed-resources` (R Markdown's `self_contained`, Quarto's
+#' `embed-resources`) nor anything else that rewrites a page's resources can
+#' see it, so a self-contained document still needed the network to make its
+#' charts accessible, and offline they were plain pictures.
+#'
+#' This dependency gives the document one copy of the bundle that the tooling
+#' does see: linked from the `_files` folder, or embedded into the page when
+#' the document is self-contained. Its scripts are of a type no browser runs,
+#' so the page itself is left alone; a chart frame whose CDN load fails reads
+#' the copy from its parent instead (see [maidr_cdn_loader_script()]).
+#'
+#' @return A single htmltools::htmlDependency()
+#' @keywords internal
+maidr_page_bundle_dependency <- function() {
+  htmltools::htmlDependency(
+    name = "maidr-page-bundle",
+    version = MAIDR_VERSION,
+    package = "maidr",
+    src = sprintf("htmlwidgets/lib/maidr-%s", MAIDR_VERSION),
+    script = list(
+      list(src = "maidr.js", type = MAIDR_PAGE_JS_TYPE),
+      list(src = "maidr-math.css", type = MAIDR_PAGE_MATH_CSS_TYPE)
+    ),
+    all_files = FALSE
+  )
+}
+
+#' Script that loads maidr.js from the CDN, falling back to the page's copy
+#'
+#' Goes into a chart frame's `srcdoc` in place of a plain CDN `<script>`. When
+#' the CDN load fails -- offline, blocked -- it looks in the parent document
+#' for the copy [maidr_page_bundle_dependency()] put there. A `srcdoc` frame
+#' shares its parent's origin, so it can read it.
+#'
+#' The copy arrives in one of two shapes, and both are handled: a `src` (the
+#' `_files` folder, or a `data:` URL) or inline text, which is what pandoc
+#' turns a script into when it embeds it. maidr.js initialises itself when it
+#' runs, so nothing is called once it has loaded. KaTeX, which it fetches only
+#' when an AI response carries maths, is pointed at the page's copy through
+#' `window.maidrMathStylesheetUrl`, or added as a `<style>` when inline.
+#'
+#' @param cdn_js_url URL of maidr.js on the CDN
+#' @return Character string holding a `<script>` element
+#' @keywords internal
+maidr_cdn_loader_script <- function(cdn_js_url) {
+  sprintf('<script>
+    (function () {
+      function report(reason) {
+        if (window.console) {
+          console.warn("maidr: maidr.js could not be loaded from the CDN, and " +
+            reason + "; this chart is not interactive.");
+        }
+      }
+      function fromPage() {
+        var page;
+        try {
+          page = window.parent.document;
+        } catch (e) {
+          report("the page around this chart could not be read");
+          return;
+        }
+        var js = page.querySelector(\'script[type="%s"]\');
+        if (!js) {
+          report("the page carries no copy of it");
+          return;
+        }
+        var css = page.querySelector(\'script[type="%s"]\');
+        if (css && css.src) {
+          window.maidrMathStylesheetUrl = css.src;
+        } else if (css) {
+          var style = document.createElement("style");
+          style.textContent = css.text;
+          document.head.appendChild(style);
+          var mark = document.createElement("link");
+          mark.setAttribute("data-maidr-math", "");
+          document.head.appendChild(mark);
+        }
+        var s = document.createElement("script");
+        if (js.src) {
+          s.src = js.src;
+          s.onerror = function () { report("the page\'s copy did not load"); };
+        } else {
+          s.text = js.text;
+        }
+        document.head.appendChild(s);
+      }
+      var s = document.createElement("script");
+      s.src = "%s";
+      s.onerror = fromPage;
+      document.head.appendChild(s);
+    })();
+  </script>', MAIDR_PAGE_JS_TYPE, MAIDR_PAGE_MATH_CSS_TYPE, cdn_js_url)
+}
