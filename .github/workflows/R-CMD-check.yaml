@@ -93,8 +93,10 @@ jobs:
   # see it, because every test reads the payload and none of them runs the
   # frontend (#316). This renders each of those charts with the bundle the
   # tree ships, presses Right Arrow on it in headless Chromium, and fails
-  # when no mark changes colour. It runs on the pull request that changes a
-  # processor and on the dispatch a bundle refresh sends.
+  # when no mark changes colour. The area family (`<polygon>` marks, read
+  # since maidr.js 4.10.0, xability/maidr#1273) is driven the same way. It
+  # runs on the pull request that changes a processor and on the dispatch a
+  # bundle refresh sends.
   highlight-smoke:
     runs-on: ubuntu-latest
     name: highlight in a browser
