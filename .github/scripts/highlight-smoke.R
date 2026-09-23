@@ -9,6 +9,12 @@
 # (#316) -- plus line, smooth and heat, which kept working through it and
 # show that the browser side of the test is alive.
 #
+# The area family is here too: `geom_area()` (single, stacked, filled),
+# `geom_ribbon()`, `geom_polygon()` and Base R `cdplot()`. gridSVG exports
+# every one of them as a `<polygon>`, which the frontend's line model did
+# not read before maidr.js 4.10.0 (xability/maidr#1273), so up to 4.9.0
+# they announced every point and outlined none.
+#
 # Every fixture is drawn so that the first cell Right Arrow lands on has a
 # mark: a stacked bar with an empty first cell would highlight nothing and
 # say nothing about the contract.
@@ -74,6 +80,31 @@ write_ggplot(
 )
 write_ggplot("ggplot2-heat", ggplot(heat, aes(x, y, fill = v)) + geom_tile())
 
+wave <- data.frame(x = 1:8, y = c(2, 5, 3, 8, 6, 9, 4, 7))
+bands <- data.frame(
+  x = rep(1:6, 2),
+  y = c(2, 4, 3, 6, 5, 7, 1, 2, 4, 3, 2, 3),
+  g = rep(c("u", "v"), each = 6)
+)
+write_ggplot("ggplot2-area", ggplot(wave, aes(x, y)) + geom_area())
+write_ggplot(
+  "ggplot2-stacked-area",
+  ggplot(bands, aes(x, y, fill = g)) + geom_area()
+)
+write_ggplot(
+  "ggplot2-normalized-area",
+  ggplot(bands, aes(x, y, fill = g)) + geom_area(position = "fill")
+)
+write_ggplot(
+  "ggplot2-ribbon",
+  ggplot(wave, aes(x, ymin = 0, ymax = y)) + geom_ribbon()
+)
+write_ggplot(
+  "ggplot2-polygon",
+  ggplot(data.frame(x = c(0, 4, 6, 2), y = c(0, 1, 5, 4)), aes(x, y)) +
+    geom_polygon()
+)
+
 maidr_on()
 write_base_r <- function(name, draw) {
   grDevices::pdf(NULL)
@@ -92,5 +123,6 @@ write_base_r("base-lollipop", function() plot(1:5, c(2, 4, 1, 5, 3), type = "h")
 write_base_r("base-dodged", function() barplot(counts, beside = TRUE))
 write_base_r("base-stacked", function() barplot(counts))
 write_base_r("base-line", function() plot(1:10, (1:10)^2, type = "l"))
+write_base_r("base-cdplot", function() cdplot(factor(mtcars$am) ~ mtcars$mpg))
 
 cat(length(list.files(out, pattern = "\\.html$")), "documents written to", out, "\n")

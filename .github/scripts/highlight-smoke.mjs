@@ -23,6 +23,11 @@
 // mark), and the heights have to rank the same way the values do -- a taller
 // bar is a larger number, on every chart here.
 //
+// For the area charts, a visible clone is not enough either: the frontend
+// draws their outline at a point it samples along the band's edge, so a
+// sampling bug leaves one outline standing still while the reader moves.
+// The outline has to be in more than one place across the steps.
+//
 //     node .github/scripts/highlight-smoke.mjs <dir-of-html>
 //
 // Needs the `playwright` package and its Chromium (`npx playwright install
@@ -92,6 +97,7 @@ for (const file of files) {
     const text = live ? live.textContent.trim() : '';
     const numbers = text.match(/-?\d+(?:\.\d+)?/g);
     const first = visible[0];
+    const box = first ? first.getBoundingClientRect() : null;
     return {
       subplots: document.querySelectorAll('svg[maidr-data]').length,
       owned: owned.length,
@@ -100,6 +106,7 @@ for (const file of files) {
       value: numbers && !/No more data/.test(text) ? Number(numbers[numbers.length - 1]) : null,
       height: first ? first.getBBox().height : null,
       mark: first ? first.previousElementSibling?.id ?? null : null,
+      at: box ? `${Math.round(box.x + box.width / 2)},${Math.round(box.y + box.height / 2)}` : null,
     };
   });
 
@@ -144,13 +151,19 @@ for (const file of files) {
     }
   }
 
-  const ok = errors.length === 0 && seen.subplots > 0 && anyVisible && misranked === null;
+  // The area charts: the outline has to follow the reader.
+  const moving = /^(ggplot2-(area|stacked-area|normalized-area|ribbon|polygon)|base-cdplot)\.html$/.test(file);
+  const places = new Set(steps.map(step => step.at).filter(at => at !== null));
+  const stuck = moving && places.size < 2;
+
+  const ok = errors.length === 0 && seen.subplots > 0 && anyVisible && misranked === null && !stuck;
   if (!ok) {
     failed += 1;
   }
   console.log(
     `${ok ? 'ok  ' : 'FAIL'} ${file}: ${seen.owned} owned clone(s), ${seen.visible} visible`
     + (ranked ? (misranked ? `, wrong bar: ${misranked}` : ', heights rank with values') : '')
+    + (moving ? (stuck ? ', outline stayed put while the reader moved' : ', outline follows the reader') : '')
     + (errors.length ? `, page errors: ${errors.join(' | ')}` : ''),
   );
   await page.close();
@@ -159,7 +172,7 @@ for (const file of files) {
 await browser.close();
 
 if (failed > 0) {
-  console.error(`${failed} of ${files.length} chart(s) drew no highlight, or outlined the wrong bar`);
+  console.error(`${failed} of ${files.length} chart(s) drew no highlight, outlined the wrong bar, or left the outline behind`);
   process.exit(1);
 }
-console.log(`${files.length} chart(s) highlighted, the bar-shaped ones on the announced bar`);
+console.log(`${files.length} chart(s) highlighted, the bar-shaped ones on the announced bar, the area ones following the reader`);
