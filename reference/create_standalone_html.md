@@ -24,9 +24,13 @@ create_standalone_html(svg_content, use_cdn = NULL, page_fallback = FALSE)
 - page_fallback:
 
   Logical. When the CDN is used, fall back to the copy of the bundle the
-  embedding page carries if the CDN load fails. Only the knitr paths set
-  it, and they add that copy to the document with
-  [`maidr_page_bundle_dependency()`](https://r.maidr.ai/reference/maidr_page_bundle_dependency.md).
+  embedding page carries if the CDN load fails. Set by the knitr paths,
+  which add that copy to the document with
+  [`maidr_page_bundle_dependency()`](https://r.maidr.ai/reference/maidr_page_bundle_dependency.md),
+  and by
+  [`maidr_widget()`](https://r.maidr.ai/reference/maidr_widget.md),
+  whose page gets the same dependency from
+  `inst/htmlwidgets/maidr.yaml`.
 
 ## Value
 

@@ -111,9 +111,10 @@ If <code>NULL</code> (default), auto-detect based on internet availability.</p><
 
 <dt id="arg-page-fallback">page_fallback<a class="anchor" aria-label="anchor" href="#arg-page-fallback"></a></dt>
 <dd><p>Logical. When the CDN is used, fall back to the copy of
-the bundle the embedding page carries if the CDN load fails. Only the
-knitr paths set it, and they add that copy to the document with
-<code><a href="maidr_page_bundle_dependency.html">maidr_page_bundle_dependency()</a></code>.</p></dd>
+the bundle the embedding page carries if the CDN load fails. Set by the
+knitr paths, which add that copy to the document with
+<code><a href="maidr_page_bundle_dependency.html">maidr_page_bundle_dependency()</a></code>, and by <code><a href="maidr_widget.html">maidr_widget()</a></code>, whose page
+gets the same dependency from <code>inst/htmlwidgets/maidr.yaml</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
