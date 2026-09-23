@@ -13,9 +13,10 @@ create_standalone_html(svg_content, use_cdn = NULL, page_fallback = FALSE)
 If \code{NULL} (default), auto-detect based on internet availability.}
 
 \item{page_fallback}{Logical. When the CDN is used, fall back to the copy of
-the bundle the embedding page carries if the CDN load fails. Only the
-knitr paths set it, and they add that copy to the document with
-\code{\link[=maidr_page_bundle_dependency]{maidr_page_bundle_dependency()}}.}
+the bundle the embedding page carries if the CDN load fails. Set by the
+knitr paths, which add that copy to the document with
+\code{\link[=maidr_page_bundle_dependency]{maidr_page_bundle_dependency()}}, and by \code{\link[=maidr_widget]{maidr_widget()}}, whose page
+gets the same dependency from \code{inst/htmlwidgets/maidr.yaml}.}
 }
 \value{
 Character string of complete HTML document

@@ -411,3 +411,56 @@ test_that("attribute-significant characters in a label are escaped, not dropped"
   testthat::expect_match(iframe, "&quot;", fixed = TRUE)
   testthat::expect_match(iframe, "&lt;rect/&gt;", fixed = TRUE)
 })
+
+test_that("an online widget frame falls back to the page's copy of the bundle", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  # The frame's `<script src>` sits inside `srcdoc`, out of reach of R
+  # Markdown's `self_contained` and Quarto's `embed-resources`; the page's
+  # copy, declared in the widget's yaml, is what they embed.
+  online <- maidr_widget(create_test_ggplot_bar(), use_cdn = TRUE)$x$iframe_content
+  testthat::expect_true(grepl("s.onerror = fromPage;", online, fixed = TRUE))
+  testthat::expect_true(grepl(maidr:::MAIDR_PAGE_JS_TYPE, online, fixed = TRUE))
+
+  # Offline the bundle travels in the frame, with nothing to fall back to.
+  offline <- maidr_widget(create_test_ggplot_bar(), use_cdn = FALSE)$x$iframe_content
+  testthat::expect_false(grepl("fromPage", offline, fixed = TRUE))
+})
+
+test_that("a self-contained R Markdown document carries a widget's bundle once", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("ggplot2")
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+
+  dir <- tempfile("maidr-widget-rmd-")
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+  rmd <- file.path(dir, "widgets.Rmd")
+  writeLines(c(
+    "---",
+    "title: widgets",
+    "output:",
+    "  html_document:",
+    "    self_contained: true",
+    "---",
+    "```{r, echo = FALSE}",
+    "library(ggplot2)",
+    "p <- ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "maidr::show(p, as_widget = TRUE, use_cdn = TRUE)",
+    "maidr::show(p, as_widget = TRUE, use_cdn = TRUE)",
+    "```"
+  ), rmd)
+
+  out <- rmarkdown::render(rmd, quiet = TRUE, envir = new.env())
+  html <- paste(readLines(out, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+
+  testthat::expect_false(dir.exists(file.path(dir, "widgets_files")))
+  pattern <- sprintf('<script[^>]*type="%s"', maidr:::MAIDR_PAGE_JS_TYPE)
+  testthat::expect_identical(lengths(regmatches(html, gregexpr(pattern, html))), 1L)
+
+  # The page's copy is the only one, and it is inert: no script the browser
+  # runs carries the bundle.
+  bundle <- substr(readLines(maidr:::maidr_local_assets()$js, n = 1L, warn = FALSE), 1L, 200L)
+  testthat::expect_identical(lengths(regmatches(html, gregexpr(bundle, html, fixed = TRUE))), 1L)
+})
