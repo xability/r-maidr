@@ -1498,9 +1498,13 @@ display_html_file <- function(file) {
 #' @param svg_content Character vector of SVG content with maidr-data attribute
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
 #'   If `NULL` (default), auto-detect based on internet availability.
+#' @param page_fallback Logical. When the CDN is used, fall back to the copy of
+#'   the bundle the embedding page carries if the CDN load fails. Only the
+#'   knitr paths set it, and they add that copy to the document with
+#'   [maidr_page_bundle_dependency()].
 #' @return Character string of complete HTML document
 #' @keywords internal
-create_standalone_html <- function(svg_content, use_cdn = NULL) {
+create_standalone_html <- function(svg_content, use_cdn = NULL, page_fallback = FALSE) {
   # Spliced in as raw markup, and the document this builds is now same-origin
   # with the page: `create_maidr_iframe()` carries it in `srcdoc`, so script
   # reaching the frame reaches the host too, where the `data:` URL that
@@ -1536,10 +1540,12 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
     # on an offline machine never gets here: the probe above sends it to
     # the inlined bundle below, and no version lookup is made.
     css_tag <- ""
-    js_tag <- sprintf(
-      '<script src="%s/maidr.js"></script>',
-      maidr_cdn_url()
-    )
+    cdn_js_url <- paste0(maidr_cdn_url(), "/maidr.js")
+    js_tag <- if (page_fallback) {
+      maidr_cdn_loader_script(cdn_js_url)
+    } else {
+      sprintf('<script src="%s"></script>', cdn_js_url)
+    }
   } else {
     # Inline local content - works offline, larger HTML. The script is
     # inline here, so it has no URL to resolve KaTeX against and the
@@ -1729,14 +1735,20 @@ escape_for_attribute <- function(html) {
 #' @param plot_id Unique identifier for the plot
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
 #'   If `NULL` (default), auto-detect based on internet availability.
+#' @param page_fallback Logical. Passed to [create_standalone_html()].
 #' @return Character string of iframe HTML
 #' @keywords internal
-create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", plot_id = NULL, use_cdn = NULL) {
+create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", plot_id = NULL, use_cdn = NULL,
+                                page_fallback = FALSE) {
   if (is.null(plot_id)) {
     plot_id <- generate_unique_id()
   }
 
-  standalone_html <- create_standalone_html(svg_content, use_cdn = use_cdn)
+  standalone_html <- create_standalone_html(
+    svg_content,
+    use_cdn = use_cdn,
+    page_fallback = page_fallback
+  )
 
   # `srcdoc`, not a `data:` URL, and the difference is the tactile display.
   # A `data:` document has an opaque origin, and Web Bluetooth and Web Serial

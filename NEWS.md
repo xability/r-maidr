@@ -237,6 +237,16 @@
 
 ### Rendering and integration
 
+* A self-contained R Markdown or Quarto document (`self_contained: true`,
+  R Markdown's default, or `embed-resources: true`) rendered online now works
+  offline. Each chart's frame loaded maidr.js from the CDN through a
+  `<script src>` inside its `srcdoc` attribute, where pandoc's resource
+  embedding cannot see it, so the document still needed the network and
+  offline its charts were plain pictures. The knitted document now carries
+  one copy of the bundle, embedded or in its `_files` folder like any other
+  dependency, in a script no browser runs; a chart whose CDN load fails reads
+  that copy from the page instead. The CDN is still tried first.
+
 * Bar, histogram, scatter, dodged, stacked and normalized bar, pie, dot and
   lollipop layers highlight again with the bundled maidr.js 4.x, on ggplot2
   and Base R alike. Every processor built `selectors` with `list()`, so a
