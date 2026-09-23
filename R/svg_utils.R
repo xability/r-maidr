@@ -1499,9 +1499,10 @@ display_html_file <- function(file) {
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files.
 #'   If `NULL` (default), auto-detect based on internet availability.
 #' @param page_fallback Logical. When the CDN is used, fall back to the copy of
-#'   the bundle the embedding page carries if the CDN load fails. Only the
-#'   knitr paths set it, and they add that copy to the document with
-#'   [maidr_page_bundle_dependency()].
+#'   the bundle the embedding page carries if the CDN load fails. Set by the
+#'   knitr paths, which add that copy to the document with
+#'   [maidr_page_bundle_dependency()], and by [maidr_widget()], whose page
+#'   gets the same dependency from `inst/htmlwidgets/maidr.yaml`.
 #' @return Character string of complete HTML document
 #' @keywords internal
 create_standalone_html <- function(svg_content, use_cdn = NULL, page_fallback = FALSE) {
