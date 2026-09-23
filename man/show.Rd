@@ -11,8 +11,13 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:
 \itemize{
-\item \code{TRUE}: Use CDN (requires internet)
-\item \code{FALSE}: Use local bundled files (works offline)
+\item \code{TRUE}: Use the jsDelivr CDN (requires internet), which
+loads the latest published MAIDR.js rather than the bundled copy.
+The version is looked up once per R session; pin one with
+\code{options(maidr.cdn_version = ...)}, see
+\code{?"maidr-options"}.
+\item \code{FALSE}: Use local bundled files (works offline, and makes
+no network request)
 \item \code{NULL} (default): Use the bundled files, so the viewer
 works offline. With \code{as_widget = TRUE} the widget instead
 auto-detects internet availability and uses the CDN when online,

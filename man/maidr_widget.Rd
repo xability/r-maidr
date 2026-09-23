@@ -19,7 +19,8 @@ maidr_widget(
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from, matching
 \code{show()} and \code{save_html()}:
 \itemize{
-\item \code{TRUE}: Use CDN (requires internet)
+\item \code{TRUE}: Use CDN (requires internet), loading the latest
+published MAIDR.js unless \code{maidr.cdn_version} pins one
 \item \code{FALSE}: Use local bundled files (works offline)
 \item \code{NULL} (default): Auto-detect based on internet availability
 }

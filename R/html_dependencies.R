@@ -3,25 +3,14 @@
 #' @keywords internal
 MAIDR_VERSION <- "4.10.0"
 
-#' Get the MAIDR CDN base URL
-#'
-#' Pinned to the same version as the bundled assets: the maidr-data JSON
-#' emitted by this package is written against that frontend version, so an
-#' unpinned `@latest` CDN could silently break rendering when upstream
-#' releases a breaking change.
-#'
-#' @return CDN URL string
-#' @keywords internal
-maidr_cdn_url <- function() {
-  sprintf("https://cdn.jsdelivr.net/npm/maidr@%s/dist", MAIDR_VERSION)
-}
-
 #' Register JS dependencies for maidr
 #'
 #' Creates the HTML dependency for the MAIDR JavaScript bundle.
 #' Behavior is controlled by the `use_cdn` parameter:
-#' - If `TRUE`: Use CDN (requires internet)
-#' - If `FALSE` (default): Use local bundled files (works offline)
+#' - If `TRUE`: Use CDN (requires internet): the latest published maidr.js,
+#'   as [maidr_cdn_url()] resolves it, unless `maidr.cdn_version` pins one
+#' - If `FALSE` (default): Use local bundled files (works offline, and makes
+#'   no network request)
 #' - If `NULL`: Same as `FALSE` - use local bundled files
 #'
 #' We default to local bundled assets for deterministic rendering. Previously
@@ -57,7 +46,11 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
   }
 
   if (use_cdn) {
-    # CDN dependency - smaller HTML, relies on internet
+    # CDN dependency - smaller HTML, relies on internet. The URL names the
+    # version actually loaded; `version` stays the bundled one because
+    # htmltools parses it with numeric_version() to deduplicate, which
+    # rejects "latest" and pre-release versions. It only ranks duplicates
+    # of this dependency; nothing reads it into the page.
     maidr_dep <- htmltools::htmlDependency(
       name = "maidr",
       version = MAIDR_VERSION,

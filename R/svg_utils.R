@@ -1510,13 +1510,13 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
   # with the page behind it, not just the frame.
   svg_html <- paste(svg_content, collapse = "\n")
 
-  # Auto-detect with a time-boxed cached probe. CDN (pinned to the bundled
-  # version) keeps documents small: inlining the multi-megabyte bundle
-  # into every iframe balloons multi-plot RMarkdown documents by tens of
-  # megabytes. The cache avoids the previous per-plot has_internet()
-  # probe, which could block for seconds per plot on offline machines,
-  # while its TTL keeps a stale answer from outliving the connectivity
-  # it described.
+  # Auto-detect with a time-boxed cached probe. CDN (the latest published
+  # maidr.js, see `maidr_cdn_url()`) keeps documents small: inlining the
+  # multi-megabyte bundle into every iframe balloons multi-plot RMarkdown
+  # documents by tens of megabytes. The cache avoids the previous per-plot
+  # has_internet() probe, which could block for seconds per plot on offline
+  # machines, while its TTL keeps a stale answer from outliving the
+  # connectivity it described.
   if (is.null(use_cdn)) {
     use_cdn <- maidr_internet_available()
   }
@@ -1530,7 +1530,11 @@ create_standalone_html <- function(svg_content, use_cdn = NULL) {
     # CDN links - smaller HTML, relies on internet at view time. No
     # stylesheet: maidr.js styles its interface at runtime and fetches
     # maidr-math.css (KaTeX) from the directory this script tag names,
-    # so a <link> would be a request that changes nothing.
+    # so a <link> would be a request that changes nothing. No `integrity`
+    # attribute either: the version is the latest published one, whose
+    # hash cannot be known here (see `maidr_cdn_url()`). An unset `use_cdn`
+    # on an offline machine never gets here: the probe above sends it to
+    # the inlined bundle below, and no version lookup is made.
     css_tag <- ""
     js_tag <- sprintf(
       '<script src="%s/maidr.js"></script>',
