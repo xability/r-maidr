@@ -10,11 +10,10 @@
 #' The shell script verifies the npm tarball against the integrity hash
 #' published in the npm registry metadata, installs the assets into
 #' `inst/htmlwidgets/lib/maidr-<version>/`, removes stale bundle
-#' directories, and updates the version references in
-#' `R/html_dependencies.R` and `inst/htmlwidgets/maidr.yaml`. When the npm
-#' package ships `dist/dotpad-sdk.json`, the DotPad SDK pin maidr.js reads
-#' its own copy from, that lands in `inst/dotpad-sdk.json` as well, which is
-#' where `R/dotpad_config.R` reads every pin of its own.
+#' directories, and updates `MAIDR_VERSION` in `R/html_dependencies.R`.
+#' When the npm package ships `dist/dotpad-sdk.json`, the DotPad SDK pin
+#' maidr.js reads its own copy from, that lands in `inst/dotpad-sdk.json` as
+#' well, which is where `R/dotpad_config.R` reads every pin of its own.
 #'
 #' It also strips KaTeX's embedded base64 web fonts from `maidr-math.css`,
 #' which is what keeps the installed package under CRAN's 5 MB soft limit.

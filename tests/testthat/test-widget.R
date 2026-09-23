@@ -412,22 +412,55 @@ test_that("attribute-significant characters in a label are escaped, not dropped"
   testthat::expect_match(iframe, "&lt;rect/&gt;", fixed = TRUE)
 })
 
-test_that("an online widget frame falls back to the page's copy of the bundle", {
+test_that("only a widget whose frame loads from the CDN carries the page's copy", {
   testthat::skip_if_not_installed("ggplot2")
+  page_bundles <- function(widget) {
+    Filter(function(d) identical(d$name, "maidr-page-bundle"), widget$dependencies)
+  }
 
   # The frame's `<script src>` sits inside `srcdoc`, out of reach of R
   # Markdown's `self_contained` and Quarto's `embed-resources`; the page's
-  # copy, declared in the widget's yaml, is what they embed.
-  online <- maidr_widget(create_test_ggplot_bar(), use_cdn = TRUE)$x$iframe_content
-  testthat::expect_true(grepl("s.onerror = fromPage;", online, fixed = TRUE))
-  testthat::expect_true(grepl(maidr:::MAIDR_PAGE_JS_TYPE, online, fixed = TRUE))
+  # copy, declared on the widget, is what they embed.
+  online <- maidr_widget(create_test_ggplot_bar(), use_cdn = TRUE)
+  testthat::expect_true(grepl("s.onerror = fromPage;", online$x$iframe_content, fixed = TRUE))
+  testthat::expect_length(page_bundles(online), 1)
+  testthat::expect_identical(
+    page_bundles(online)[[1]]$script,
+    maidr:::maidr_page_bundle_dependency()$script
+  )
 
-  # Offline the bundle travels in the frame, with nothing to fall back to.
-  offline <- maidr_widget(create_test_ggplot_bar(), use_cdn = FALSE)$x$iframe_content
-  testthat::expect_false(grepl("fromPage", offline, fixed = TRUE))
+  # Offline the bundle travels in the frame, which never reads the page, so
+  # the page carries no copy of it.
+  offline <- maidr_widget(create_test_ggplot_bar(), use_cdn = FALSE)
+  testthat::expect_false(grepl("fromPage", offline$x$iframe_content, fixed = TRUE))
+  testthat::expect_length(page_bundles(offline), 0)
 })
 
-test_that("a self-contained R Markdown document carries a widget's bundle once", {
+test_that("an unset use_cdn decides the frame and the page's copy together", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  for (online in c(TRUE, FALSE)) {
+    testthat::local_mocked_bindings(
+      maidr_internet_available = function() online,
+      .package = "maidr"
+    )
+    widget <- maidr_widget(create_test_ggplot_bar())
+    carries_copy <- any(vapply(
+      widget$dependencies,
+      function(d) identical(d$name, "maidr-page-bundle"),
+      logical(1)
+    ))
+    testthat::expect_identical(carries_copy, online)
+    testthat::expect_identical(
+      grepl("fromPage", widget$x$iframe_content, fixed = TRUE),
+      online
+    )
+  }
+})
+
+# Renders a self-contained R Markdown document holding two widgets, drawn with
+# `use_cdn` as given, and answers the HTML it wrote.
+render_widget_document <- function(use_cdn) {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("rmarkdown")
@@ -437,6 +470,7 @@ test_that("a self-contained R Markdown document carries a widget's bundle once",
   dir.create(dir)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
   rmd <- file.path(dir, "widgets.Rmd")
+  show_call <- sprintf("maidr::show(p, as_widget = TRUE, use_cdn = %s)", use_cdn)
   writeLines(c(
     "---",
     "title: widgets",
@@ -447,20 +481,43 @@ test_that("a self-contained R Markdown document carries a widget's bundle once",
     "```{r, echo = FALSE}",
     "library(ggplot2)",
     "p <- ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
-    "maidr::show(p, as_widget = TRUE, use_cdn = TRUE)",
-    "maidr::show(p, as_widget = TRUE, use_cdn = TRUE)",
+    show_call,
+    show_call,
     "```"
   ), rmd)
 
   out <- rmarkdown::render(rmd, quiet = TRUE, envir = new.env())
-  html <- paste(readLines(out, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
-
   testthat::expect_false(dir.exists(file.path(dir, "widgets_files")))
-  pattern <- sprintf('<script[^>]*type="%s"', maidr:::MAIDR_PAGE_JS_TYPE)
-  testthat::expect_identical(lengths(regmatches(html, gregexpr(pattern, html))), 1L)
+  paste(readLines(out, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+}
 
+count_matches <- function(pattern, html, fixed = FALSE) {
+  lengths(regmatches(html, gregexpr(pattern, html, fixed = fixed)))
+}
+
+page_copy_pattern <- function() {
+  sprintf('<script[^>]*type="%s"', maidr:::MAIDR_PAGE_JS_TYPE)
+}
+
+bundle_head <- function() {
+  substr(readLines(maidr:::maidr_local_assets()$js, n = 1L, warn = FALSE), 1L, 200L)
+}
+
+test_that("a self-contained document of CDN widgets carries the bundle once", {
+  html <- render_widget_document(use_cdn = TRUE)
+
+  testthat::expect_identical(count_matches(page_copy_pattern(), html), 1L)
   # The page's copy is the only one, and it is inert: no script the browser
   # runs carries the bundle.
-  bundle <- substr(readLines(maidr:::maidr_local_assets()$js, n = 1L, warn = FALSE), 1L, 200L)
-  testthat::expect_identical(lengths(regmatches(html, gregexpr(bundle, html, fixed = TRUE))), 1L)
+  testthat::expect_identical(count_matches(bundle_head(), html, fixed = TRUE), 1L)
+})
+
+test_that("a self-contained document of offline widgets carries no page copy", {
+  html <- render_widget_document(use_cdn = FALSE)
+
+  # Each frame carries the bundle inline (escaped inside its `srcdoc`) and
+  # never reads the page, so the page holds no copy of its own -- neither the
+  # inert one nor, as before, one it runs.
+  testthat::expect_identical(count_matches(page_copy_pattern(), html), 0L)
+  testthat::expect_identical(count_matches(bundle_head(), html, fixed = TRUE), 0L)
 })

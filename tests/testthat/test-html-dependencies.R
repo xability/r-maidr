@@ -224,35 +224,20 @@ test_that("no dependency declares a stylesheet", {
   }
 })
 
-test_that("the htmlwidgets manifest declares the page bundle and nothing that runs", {
-  # The widget's page carries the bundle for its chart frames to fall back on;
-  # each chart runs in its own frame, so the page must not run it. Compared
-  # through htmlwidgets' own reader of the manifest, which is what builds the
-  # page. The bundle refresh rewrites the manifest's `version:` and `src:`
-  # lines, so those are pinned here too.
-  deps <- htmlwidgets:::getDependency("maidr", "maidr")
-  widget_deps <- Filter(function(d) identical(d$package, "maidr"), deps)
-  bundle <- Filter(function(d) identical(d$name, "maidr-page-bundle"), widget_deps)
-
-  testthat::expect_length(bundle, 1)
-  expected <- maidr:::maidr_page_bundle_dependency()
-  testthat::expect_identical(bundle[[1]]$version, expected$version)
-  testthat::expect_identical(bundle[[1]]$src, expected$src)
-  testthat::expect_identical(bundle[[1]]$script, expected$script)
-  testthat::expect_null(bundle[[1]]$stylesheet)
-
-  # Nothing else maidr declares: the binding, and the page bundle.
-  testthat::expect_setequal(
-    vapply(widget_deps, function(d) d$name, character(1)),
-    c("maidr-page-bundle", "maidr-binding")
-  )
-
-  manifest <- trimws(readLines(
+test_that("the widget declares nothing on every page but its binding", {
+  # A copy of the bundle on every widget's page is 1.7 MB that a widget whose
+  # frame carries the bundle inline never reads, so maidr_widget() declares
+  # it per widget, only when its frame falls back to it. An htmlwidgets yaml
+  # would put it on every page again.
+  testthat::expect_identical(
     system.file("htmlwidgets/maidr.yaml", package = "maidr"),
-    warn = FALSE
-  ))
-  testthat::expect_true(any(manifest == sprintf("version: %s", maidr:::MAIDR_VERSION)))
-  testthat::expect_true(any(manifest == sprintf(
-    "src: htmlwidgets/lib/maidr-%s", maidr:::MAIDR_VERSION
-  )))
+    ""
+  )
+  deps <- htmlwidgets:::getDependency("maidr", "maidr")
+  names <- vapply(
+    Filter(function(d) identical(d$package, "maidr"), deps),
+    function(d) d$name,
+    character(1)
+  )
+  testthat::expect_identical(names, "maidr-binding")
 })
