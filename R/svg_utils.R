@@ -1738,7 +1738,8 @@ escape_for_attribute <- function(html) {
 #' @param page_fallback Logical. Passed to [create_standalone_html()].
 #' @return Character string of iframe HTML
 #' @keywords internal
-create_maidr_iframe <- function(svg_content, width = "100%", height = "450px", plot_id = NULL, use_cdn = NULL,
+create_maidr_iframe <- function(svg_content, width = "100%", height = "450px",
+                                plot_id = NULL, use_cdn = NULL,
                                 page_fallback = FALSE) {
   if (is.null(plot_id)) {
     plot_id <- generate_unique_id()
