@@ -237,6 +237,16 @@
 
 ### Rendering and integration
 
+* A chart rendered with `use_cdn = FALSE`, or offline, works again when R
+  runs under a C locale (a container, a CI runner, many servers). The
+  chart's frame carries maidr.js inline in its `srcdoc` attribute, and the
+  bundle's non-ASCII characters travelled as raw bytes, which knitr's output
+  and an htmlwidget's JSON rewrote under a C locale as `<e2><80><a6>`; the
+  script no longer parsed, and the chart was a plain picture. Every
+  non-ASCII character in the frame's document is now a numeric character
+  reference (`&#x2026;`), which the browser decodes, so what goes into the
+  page is ASCII whatever the locale.
+
 * A self-contained R Markdown or Quarto document (`self_contained: true`,
   R Markdown's default, or `embed-resources: true`) rendered online now works
   offline. Each chart's frame loaded maidr.js from the CDN through a
