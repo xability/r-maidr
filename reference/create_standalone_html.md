@@ -29,8 +29,7 @@ create_standalone_html(svg_content, use_cdn = NULL, page_fallback = FALSE)
   [`maidr_page_bundle_dependency()`](https://r.maidr.ai/reference/maidr_page_bundle_dependency.md),
   and by
   [`maidr_widget()`](https://r.maidr.ai/reference/maidr_widget.md),
-  whose page gets the same dependency from
-  `inst/htmlwidgets/maidr.yaml`.
+  which declares the same dependency on the widget.
 
 ## Value
 
