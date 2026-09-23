@@ -36,7 +36,7 @@ Use maidr_output() and render_maidr() for Shiny integration instead.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-09">
+<meta name="DC.date" content="2026-09-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -113,7 +113,8 @@ Use maidr_output() and render_maidr() for Shiny integration instead.</p>
 
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
 <dd><p>Logical. Controls where MAIDR.js is loaded from, matching
-<code><a href="show.html">show()</a></code> and <code><a href="save_html.html">save_html()</a></code>:</p><ul><li><p><code>TRUE</code>: Use CDN (requires internet)</p></li>
+<code><a href="show.html">show()</a></code> and <code><a href="save_html.html">save_html()</a></code>:</p><ul><li><p><code>TRUE</code>: Use CDN (requires internet), loading the latest
+published MAIDR.js unless <code>maidr.cdn_version</code> pins one</p></li>
 <li><p><code>FALSE</code>: Use local bundled files (works offline)</p></li>
 <li><p><code>NULL</code> (default): Auto-detect based on internet availability</p></li>
 </ul><p>This differs from <code><a href="maidr_html_dependencies.html">maidr_html_dependencies()</a></code>, where <code>NULL</code>

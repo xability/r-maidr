@@ -4,6 +4,31 @@
 
 ### New Features
 
+#### maidr.js from the CDN
+
+- The CDN paths now load the latest published maidr.js, as the Python
+  binding does, rather than the version bundled with the package. That
+  is [`show()`](https://r.maidr.ai/reference/show.md) and
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) with
+  `use_cdn = TRUE`, and the widget, knitr and Shiny paths, which use the
+  CDN when they find the machine online. The first CDN document in an R
+  session asks jsDelivr’s data API, then the npm registry, which version
+  is the latest, within 3 seconds for both (`maidr.cdn_timeout` or
+  `MAIDR_CDN_TIMEOUT`, clamped to 0.1 to 30), and every document in the
+  session names that exact version, so what a reader loads does not
+  shift under jsDelivr’s week-long cache of the `@latest` tag. The
+  answer is kept for the session, and so is a failure: offline or
+  blocked, the lookup costs no error and is not retried on every render,
+  and documents name the bundled version, as py-maidr’s do. An answer
+  older than the bundled version is refused the same way.
+  `options(maidr.cdn_version = ...)` or `MAIDR_CDN_VERSION` pins it
+  instead: a version (`"4.9.0"`, or `"v4.9.0"`), `"bundled"` for the
+  bundled version or `"latest"` for the `@latest` tag, the two tags
+  without a lookup; the option wins over the variable, and anything else
+  warns once and is ignored. `use_cdn = FALSE` still loads the bundled
+  copy and makes no network request. See
+  [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
+
 #### DotPad tactile display
 
 - A DotPad tactile display can now be reached from a fully offline

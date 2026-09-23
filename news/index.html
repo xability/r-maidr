@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-22">
+<meta name="DC.date" content="2026-09-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -83,6 +83,10 @@
 <h2 class="pkg-version" data-toc-text="0.5.0" id="maidr-050">maidr 0.5.0<a class="anchor" aria-label="anchor" href="#maidr-050"></a></h2>
 <div class="section level3">
 <h3 id="new-features-0-5-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-0"></a></h3>
+<div class="section level4">
+<h4 id="maidrjs-from-the-cdn-0-5-0">maidr.js from the CDN<a class="anchor" aria-label="anchor" href="#maidrjs-from-the-cdn-0-5-0"></a></h4>
+<ul><li>The CDN paths now load the latest published maidr.js, as the Python binding does, rather than the version bundled with the package. That is <code><a href="../reference/show.html">show()</a></code> and <code><a href="../reference/save_html.html">save_html()</a></code> with <code>use_cdn = TRUE</code>, and the widget, knitr and Shiny paths, which use the CDN when they find the machine online. The first CDN document in an R session asks jsDelivr’s data API, then the npm registry, which version is the latest, within 3 seconds for both (<code>maidr.cdn_timeout</code> or <code>MAIDR_CDN_TIMEOUT</code>, clamped to 0.1 to 30), and every document in the session names that exact version, so what a reader loads does not shift under jsDelivr’s week-long cache of the <code>@latest</code> tag. The answer is kept for the session, and so is a failure: offline or blocked, the lookup costs no error and is not retried on every render, and documents name the bundled version, as py-maidr’s do. An answer older than the bundled version is refused the same way. <code>options(maidr.cdn_version = ...)</code> or <code>MAIDR_CDN_VERSION</code> pins it instead: a version (<code>"4.9.0"</code>, or <code>"v4.9.0"</code>), <code>"bundled"</code> for the bundled version or <code>"latest"</code> for the <code>@latest</code> tag, the two tags without a lookup; the option wins over the variable, and anything else warns once and is ignored. <code>use_cdn = FALSE</code> still loads the bundled copy and makes no network request. See <code><a href="../reference/maidr-options.html">?"maidr-options"</a></code>.</li>
+</ul></div>
 <div class="section level4">
 <h4 id="dotpad-tactile-display-0-5-0">DotPad tactile display<a class="anchor" aria-label="anchor" href="#dotpad-tactile-display-0-5-0"></a></h4>
 <ul><li>A DotPad tactile display can now be reached from a fully offline document without naming a server. <code><a href="../reference/maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk()</a></code> fetches the SDK maidr.js is pinned to (about 14 MB, once, into a per-user cache, every file verified against its recorded size and digest), and from then on <code><a href="../reference/show.html">show()</a></code> and <code><a href="../reference/save_html.html">save_html()</a></code> copy it into <code>lib/dotpad-sdk-&lt;version&gt;/</code> beside every <code>use_cdn = FALSE</code> document and declare the globals with that relative path. The options <code>maidr.dotpad_sdk_url</code> and <code>maidr.dotpad_asset_base_url</code> still name a copy served from elsewhere, and win over a downloaded one; <code>maidr.dotpad_sdk_dir</code> (or <code>MAIDR_DOTPAD_SDK_DIR</code>) moves the cache. The widget, knitr and Shiny paths keep using the URL options only: their charts live in <code>srcdoc</code> frames, where a relative path has nothing to resolve against.</li>

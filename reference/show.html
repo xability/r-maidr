@@ -32,7 +32,7 @@ using the MAIDR (Multimodal Access and Interactive Data Representation) system."
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-22">
+<meta name="DC.date" content="2026-09-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -100,8 +100,13 @@ using the MAIDR (Multimodal Access and Interactive Data Representation) system.<
 
 
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
-<dd><p>Logical. Controls where MAIDR.js is loaded from:</p><ul><li><p><code>TRUE</code>: Use CDN (requires internet)</p></li>
-<li><p><code>FALSE</code>: Use local bundled files (works offline)</p></li>
+<dd><p>Logical. Controls where MAIDR.js is loaded from:</p><ul><li><p><code>TRUE</code>: Use the jsDelivr CDN (requires internet), which
+loads the latest published MAIDR.js rather than the bundled copy.
+The version is looked up once per R session; pin one with
+<code>options(maidr.cdn_version = ...)</code>, see
+<code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></li>
+<li><p><code>FALSE</code>: Use local bundled files (works offline, and makes
+no network request)</p></li>
 <li><p><code>NULL</code> (default): Use the bundled files, so the viewer
 works offline. With <code>as_widget = TRUE</code> the widget instead
 auto-detects internet availability and uses the CDN when online,

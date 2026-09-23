@@ -29,7 +29,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-22">
+<meta name="DC.date" content="2026-09-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -130,6 +130,21 @@ rendered with <code>use_cdn = FALSE</code>. Falls back to the environment
 variable <code>MAIDR_DOTPAD_SDK_DIR</code>, then to a per-user cache
 directory. Default: unset.</p></dd>
 
+<dt><code>maidr.cdn_version</code></dt>
+<dd><p>Character. Which MAIDR.js the CDN paths
+load: a version such as <code>"4.9.0"</code> (a leading <code>v</code> is
+accepted), <code>"bundled"</code> for the version bundled with this package
+(<code>maidr:::MAIDR_VERSION</code>), or <code>"latest"</code> for jsDelivr's
+<code>@latest</code> tag. Either tag skips the version lookup described
+below. Anything else warns once and is ignored. Falls back to the
+environment variable <code>MAIDR_CDN_VERSION</code>. Default: unset, which
+loads the latest published version.</p></dd>
+
+<dt><code>maidr.cdn_timeout</code></dt>
+<dd><p>Numeric. Seconds allowed for the whole
+CDN version lookup, clamped to between 0.1 and 30. Falls back to the
+environment variable <code>MAIDR_CDN_TIMEOUT</code>. Default: 3.</p></dd>
+
 
 </dl></div>
     <div class="section level2">
@@ -173,6 +188,42 @@ relative path. A configured URL wins over a downloaded copy. The widget,
 knitr and Shiny paths render their charts in <code>srcdoc</code> frames, where a
 relative path has nothing to resolve against, so they use only the URL
 options.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="which-maidr-js-the-cdn-serves">Which MAIDR.js the CDN serves<a class="anchor" aria-label="anchor" href="#which-maidr-js-the-cdn-serves"></a></h2>
+
+
+<p>Documents that load MAIDR.js from the jsDelivr CDN – <code><a href="show.html">show()</a></code> and
+<code><a href="save_html.html">save_html()</a></code> with <code>use_cdn = TRUE</code>, and the widget, knitr and
+Shiny paths when they find the machine online – load the latest
+published MAIDR.js, as the Python binding does. Documents rendered with
+<code>use_cdn = FALSE</code> load the copy bundled with this package and make
+no network request.</p>
+<p>The first CDN document in an R session asks which version is the latest:
+jsDelivr's data API
+(<a href="https://data.jsdelivr.com/v1/packages/npm/maidr/resolved?specifier=latest" class="external-link">https://data.jsdelivr.com/v1/packages/npm/maidr/resolved?specifier=latest</a>),
+then the npm registry
+(<a href="https://registry.npmjs.org/-/package/maidr/dist-tags" class="external-link">https://registry.npmjs.org/-/package/maidr/dist-tags</a>) if that
+fails, within <code>maidr.cdn_timeout</code> seconds for the two together. The
+answer is kept for the rest of the session, and the document names that
+version, which never changes under the reader. When neither answers –
+offline, blocked, timed out – that too is kept, no error is raised, and
+the document names the version bundled with this package, the copy
+<code>use_cdn = FALSE</code> would serve, as the Python binding does. So does
+an answer older than the bundled version. The mutable <code>maidr@latest</code>
+tag, which jsDelivr caches for up to a week, is used only when
+<code>maidr.cdn_version = "latest"</code> asks for it.</p>
+<p>Pin a version when a document has to load the same MAIDR.js wherever and
+whenever it is opened, or to keep the one this package was tested with:</p><div class="sourceCode"><pre><code><span></span>
+<span><span class="co"># The version bundled with this package, no lookup</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># A particular release</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or from the shell, for every session</span></span>
+<span><span class="co"># MAIDR_CDN_VERSION=bundled Rscript render.R</span></span></code></pre></div>
+
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

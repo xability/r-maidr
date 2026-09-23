@@ -32,7 +32,7 @@ accessibility features.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-22">
+<meta name="DC.date" content="2026-09-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -105,7 +105,11 @@ accessibility features.</p>
 
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
 <dd><p>Logical. Controls where MAIDR.js is loaded from:</p><ul><li><p><code>TRUE</code>: Use CDN. The file is self-contained but needs
-internet access when it is viewed.</p></li>
+internet access when it is viewed. It names the latest published
+MAIDR.js by version (looked up once per R session, or the bundled
+version when the lookup cannot be made); pin a version with
+<code>options(maidr.cdn_version = ...)</code>, see
+<code><a href="maidr-options.html">?"maidr-options"</a></code>.</p></li>
 <li><p><code>FALSE</code> or <code>NULL</code> (default): Use the bundled files.
 The MAIDR.js library is written to a <code>lib/</code> folder beside
 <code>file</code>, which has to travel with it.</p></li>
@@ -127,7 +131,8 @@ The MAIDR.js library is written to a <code>lib/</code> folder beside
 holds both, or copy both. An <code>.html</code> sent on its own loads no
 MAIDR.js and shows a plain, inaccessible chart. <code>use_cdn = TRUE</code>
 writes one self-contained file instead, which needs internet access
-whenever it is viewed.</p>
+whenever it is viewed and loads the latest published MAIDR.js from
+jsDelivr rather than the copy bundled with this package.</p>
     </div>
 
     <div class="section level2">

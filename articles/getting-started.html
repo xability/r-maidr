@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-22">
+<meta name="DC.date" content="2026-09-23">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -295,7 +295,7 @@ parameter:</p>
 <span><span class="co"># Default - bundled files, works offline</span></span>
 <span><span class="fu"><a href="../reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Force CDN (requires internet when viewing)</span></span>
+<span><span class="co"># Force CDN (requires internet when viewing; loads the latest MAIDR.js)</span></span>
 <span><span class="fu"><a href="../reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Force bundled/local files (works offline)</span></span>
@@ -307,13 +307,39 @@ parameter:</p>
 <span></span>
 <span><span class="co"># The file plus a lib/ folder beside it; works offline</span></span>
 <span><span class="fu"><a href="../reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot_offline.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>The CDN paths load the <strong>latest published MAIDR.js</strong>,
+not the copy bundled with the package, the same as the Python binding.
+The first CDN document in an R session asks jsDelivr (falling back to
+the npm registry) which version that is, allowing 3 seconds, and every
+document in the session names that exact version. When the lookup cannot
+be made – offline, or blocked – nothing fails: the document names the
+bundled version, the copy <code>use_cdn = FALSE</code> would serve.
+Documents rendered with <code>use_cdn = FALSE</code> make no network
+request at all.</p>
+<p>To load a fixed version from the CDN instead, pin it with an option
+or the <code>MAIDR_CDN_VERSION</code> environment variable (the option
+wins). A pinned document makes no lookup:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># The version bundled with this package</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># A particular release</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Back to the latest</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p><code>maidr.cdn_timeout</code> (or <code>MAIDR_CDN_TIMEOUT</code>)
+changes the time allowed for the lookup. See
+<code><a href="../reference/maidr-options.html">?"maidr-options"</a></code> for the details.</p>
 <p><strong>When to use <code>use_cdn = FALSE</code>:</strong> - Viewing
 offline, or sharing with readers who may not have internet access: send
 the file together with its <code>lib/</code> folder (zip the two), never
 the <code>.html</code> alone - Ensuring reproducibility with a specific
-MAIDR.js version</p>
+MAIDR.js version (or pin one on the CDN with
+<code>maidr.cdn_version</code>)</p>
 <p><strong>When to use <code>use_cdn = TRUE</code>:</strong> - Attaching
-or uploading a single file, for readers who will be online</p>
+or uploading a single file, for readers who will be online - Loading the
+newest MAIDR.js without updating the R package</p>
 <div class="section level3">
 <h3 id="the-dotpad-sdk">The DotPad SDK<a class="anchor" aria-label="anchor" href="#the-dotpad-sdk"></a>
 </h3>
@@ -325,7 +351,7 @@ brailles without the network; only that first connect needs it.</p>
 <p>To keep the DotPad offline as well, serve the SDK yourself and tell
 maidr where it is before rendering. Options and environment variables of
 the same names both work; an option wins when both are set:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  <span class="co"># Only if the braille engine (liblouis) is not in lib/ beside the module</span></span>
@@ -469,12 +495,12 @@ time after reveal.js cuts one. Nothing will need to change in your deck
 when it does.</p>
 <p>Until then, <a href="https://github.com/mcanouil/quarto-revealjs-a11y" class="external-link">quarto-revealjs-a11y</a>
 does the same thing for a Quarto deck. Add it once per project:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
 <p>and enable it in the deck’s front matter:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
 <p>Use <strong>0.2.3 or newer</strong>. Earlier versions took off-slide
 elements out of the tab order by setting <code>tabindex="-1"</code> on
 them and could not find them again to put them back, which left the
@@ -557,7 +583,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="histogram">Histogram<a class="anchor" aria-label="anchor" href="#histogram"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -578,7 +604,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="scatter-plot">Scatter Plot<a class="anchor" aria-label="anchor" href="#scatter-plot"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -603,7 +629,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="line-plot">Line Plot<a class="anchor" aria-label="anchor" href="#line-plot"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>

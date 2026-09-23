@@ -24,7 +24,11 @@ save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
   Logical. Controls where MAIDR.js is loaded from:
 
   - `TRUE`: Use CDN. The file is self-contained but needs internet
-    access when it is viewed.
+    access when it is viewed. It names the latest published MAIDR.js by
+    version (looked up once per R session, or the bundled version when
+    the lookup cannot be made); pin a version with
+    `options(maidr.cdn_version = ...)`, see
+    [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
 
   - `FALSE` or `NULL` (default): Use the bundled files. The MAIDR.js
     library is written to a `lib/` folder beside `file`, which has to
@@ -45,7 +49,8 @@ By default the MAIDR.js library is written to a `lib/` folder beside
 holds both, or copy both. An `.html` sent on its own loads no MAIDR.js
 and shows a plain, inaccessible chart. `use_cdn = TRUE` writes one
 self-contained file instead, which needs internet access whenever it is
-viewed.
+viewed and loads the latest published MAIDR.js from jsDelivr rather than
+the copy bundled with this package.
 
 ## Examples
 

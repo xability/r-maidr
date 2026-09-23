@@ -30,7 +30,8 @@ maidr_widget(
   [`show()`](https://r.maidr.ai/reference/show.md) and
   [`save_html()`](https://r.maidr.ai/reference/save_html.md):
 
-  - `TRUE`: Use CDN (requires internet)
+  - `TRUE`: Use CDN (requires internet), loading the latest published
+    MAIDR.js unless `maidr.cdn_version` pins one
 
   - `FALSE`: Use local bundled files (works offline)
 

@@ -20,9 +20,14 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 
   Logical. Controls where MAIDR.js is loaded from:
 
-  - `TRUE`: Use CDN (requires internet)
+  - `TRUE`: Use the jsDelivr CDN (requires internet), which loads the
+    latest published MAIDR.js rather than the bundled copy. The version
+    is looked up once per R session; pin one with
+    `options(maidr.cdn_version = ...)`, see
+    [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
 
-  - `FALSE`: Use local bundled files (works offline)
+  - `FALSE`: Use local bundled files (works offline, and makes no
+    network request)
 
   - `NULL` (default): Use the bundled files, so the viewer works
     offline. With `as_widget = TRUE` the widget instead auto-detects

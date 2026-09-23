@@ -3,9 +3,12 @@
 Creates the HTML dependency for the MAIDR JavaScript bundle. Behavior is
 controlled by the `use_cdn` parameter:
 
-- If `TRUE`: Use CDN (requires internet)
+- If `TRUE`: Use CDN (requires internet): the latest published maidr.js,
+  as [`maidr_cdn_url()`](https://r.maidr.ai/reference/maidr_cdn_url.md)
+  resolves it, unless `maidr.cdn_version` pins one
 
-- If `FALSE` (default): Use local bundled files (works offline)
+- If `FALSE` (default): Use local bundled files (works offline, and
+  makes no network request)
 
 - If `NULL`: Same as `FALSE` - use local bundled files
 
