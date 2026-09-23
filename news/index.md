@@ -357,6 +357,17 @@
 
 #### Rendering and integration
 
+- A self-contained R Markdown or Quarto document
+  (`self_contained: true`, R Markdown’s default, or
+  `embed-resources: true`) rendered online now works offline. Each
+  chart’s frame loaded maidr.js from the CDN through a `<script src>`
+  inside its `srcdoc` attribute, where pandoc’s resource embedding
+  cannot see it, so the document still needed the network and offline
+  its charts were plain pictures. The knitted document now carries one
+  copy of the bundle, embedded or in its `_files` folder like any other
+  dependency, in a script no browser runs; a chart whose CDN load fails
+  reads that copy from the page instead. The CDN is still tried first.
+
 - Bar, histogram, scatter, dodged, stacked and normalized bar, pie, dot
   and lollipop layers highlight again with the bundled maidr.js 4.x, on
   ggplot2 and Base R alike. Every processor built `selectors` with
@@ -370,6 +381,7 @@
   for all of its marks, joined with `", "` when a processor names
   several containers, and a bar layer in a panel that holds a second bar
   layer now addresses its own rects rather than both layers’.
+
 - Dodged, stacked and normalized bars, ggplot2 and Base R, highlight the
   bar being announced. maidr.js 4.0 also stopped inferring that a
   layer’s rects are drawn category by category: a layer that does not
@@ -382,11 +394,13 @@
   way the announced values do, which is the check the 4.0.0 bundle
   refresh did not have
   ([\#316](https://github.com/xability/r-maidr/issues/316)).
+
 - Every layer type was then driven through the bundled maidr.js in
   headless Chromium, and the charts that still drew no highlight, or
   drew it on the wrong mark, are fixed for the same reason: the shape
   the frontend reads changed with 4.0 and the emitters had not followed
   ([\#316](https://github.com/xability/r-maidr/issues/316)).
+
   - A ggplot2 gantt
     ([`geom_segment()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
     schedules,
@@ -432,6 +446,7 @@
     as `orientation`), which pairs each tick with its own element and
     announces the observation; read as points, a `<line>` tick could
     never be outlined.
+
 - An offline document (`use_cdn = FALSE`) can reach a DotPad tactile
   display without the network. maidr.js does not bundle the DotPad SDK
   and imports it from jsDelivr the first time a DotPad connects; the new
@@ -444,11 +459,13 @@
   widget, knitr and Shiny. Without them a DotPad needs network access on
   first connect, which the offline documentation now says
   ([\#304](https://github.com/xability/r-maidr/issues/304)).
+
 - A ggplot2 chart that maidr can read but cannot export gets its static
   picture. The fallback printed the chart through maidr’s own print
   method, which rebuilt it, failed again and opened a fresh
   [`png()`](https://rdrr.io/r/grDevices/png.html) device on every round
   until R ran out of them.
+
 - The Base R fallback picture no longer records its own replay, which
   left phantom layers on the next device R opened. A Base R chart that
   gridSVG cannot export (`matplot(matrix(1:12, 4))`,
@@ -456,9 +473,11 @@
   back to the static picture with a warning instead of stopping
   [`save_html()`](https://r.maidr.ai/reference/save_html.md);
   `maidr_set_fallback(enabled = FALSE)` re-raises the error.
+
 - `maidr_set_fallback(format = "svg")` is honoured, and
   [`maidr_set_fallback()`](https://r.maidr.ai/reference/maidr_set_fallback.md)
   keeps the settings it is not given.
+
 - `show(as_widget = TRUE)` and
   [`maidr_widget()`](https://r.maidr.ai/reference/maidr_widget.md)
   accept Base R plots. Shiny’s
@@ -469,6 +488,7 @@
   [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md)) and
   renders nothing for a reactive that draws nothing. Recorded calls are
   cleared on the widget and Shiny paths.
+
 - knitr: [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md)
   disables RMarkdown interception and clears the recorded Base R calls,
   so a later [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) no
@@ -476,6 +496,7 @@
   ggplot2’s own print method and knitr’s original plot hook; a second
   [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) cannot
   capture maidr’s hook as the original.
+
 - Tabbing out of a chart hands focus back to the page. The page checks
   that an element actually took focus (Shiny’s `display: contents`
   wrappers refuse silently) and walks up to one that does, and in a
@@ -484,46 +505,56 @@
   [`save_html()`](https://r.maidr.ai/reference/save_html.md) and
   [`maidr_widget()`](https://r.maidr.ai/reference/maidr_widget.md)
   paths.
+
 - LaTeX in MAIDR’s AI chat responses is styled again: the bundle ships
   `maidr-math.css` beside `maidr.js`, with the embedded KaTeX fonts
   stripped to stay under CRAN’s size limit. `inst/COPYRIGHTS` lists the
   components that bundle embeds (D3 and Tone.js were listed and are not
   in it).
+
 - CDN-versus-bundled auto-detection re-probes internet access every five
   minutes instead of once per session.
+
 - maidr-data JSON keeps full numeric precision (values were rounded to
   four decimals), iframe content is UTF-8 encoded on every locale, and
   plot ids no longer advance the RNG, so
   [`set.seed()`](https://rdrr.io/r/base/Random.html) scripts stay
   reproducible.
+
 - A non-ASCII label – a Korean or accented title, axis label or category
   name – reached the reader as `<ed><95><9c>` under a C locale (a
   container, a CI runner, many servers): the chart’s document was passed
   through [`enc2utf8()`](https://rdrr.io/r/base/Encoding.html) while
   carrying no encoding mark. It is now converted only when it says what
   it is, and escaped byte-wise.
+
 - Charts are embedded with `srcdoc` rather than a `data:` URL, whose
   opaque origin has neither Web Bluetooth nor Web Serial whatever the
   `allow` attribute says, so a tactile display such as a Dot Pad can be
   reached from an R chart; the frame carries `allow="bluetooth; serial"`
   for a chart inside a cross-origin frame. Reading by touch also needs a
   maidr build that supports the display; the bundled 4.9.0 does.
+
 - [`save_html()`](https://r.maidr.ai/reference/save_html.md) and
   [`show()`](https://r.maidr.ai/reference/show.md) no longer warn
   “number of items to replace is not a multiple of replacement length”
   on a chart with a rect of negative height or width, such as
   [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) with a
   bar below the baseline.
+
 - A currency prefix other than `$` resolves in every locale;
   `label_dollar(prefix = "€")` was announced as USD outside a UTF-8
   session.
+
 - The startup message says that ggplot2 plots open in the viewer
   automatically while Base R plots are recorded until
   [`show()`](https://r.maidr.ai/reference/show.md) is called, and names
   the masking when ‘quantmod’ is attached after ‘maidr’.
+
 - [`cancel_auto_show()`](https://r.maidr.ai/reference/cancel_auto_show.md)
   removes its task callback by name, so it can no longer remove another
   package’s callback.
+
 - [`show()`](https://r.maidr.ai/reference/show.md) hands an object that
   is not a plot – an S4 object, a vector – to
   [`methods::show()`](https://rdrr.io/r/methods/show.html), which

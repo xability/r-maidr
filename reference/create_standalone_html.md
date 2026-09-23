@@ -7,7 +7,7 @@ context, avoiding MAIDR.js singleton pattern issues with multiple plots.
 ## Usage
 
 ``` r
-create_standalone_html(svg_content, use_cdn = NULL)
+create_standalone_html(svg_content, use_cdn = NULL, page_fallback = FALSE)
 ```
 
 ## Arguments
@@ -20,6 +20,13 @@ create_standalone_html(svg_content, use_cdn = NULL)
 
   Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files. If `NULL`
   (default), auto-detect based on internet availability.
+
+- page_fallback:
+
+  Logical. When the CDN is used, fall back to the copy of the bundle the
+  embedding page carries if the CDN load fails. Only the knitr paths set
+  it, and they add that copy to the document with
+  [`maidr_page_bundle_dependency()`](https://r.maidr.ai/reference/maidr_page_bundle_dependency.md).
 
 ## Value
 

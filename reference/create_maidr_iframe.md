@@ -13,7 +13,8 @@ create_maidr_iframe(
   width = "100%",
   height = "450px",
   plot_id = NULL,
-  use_cdn = NULL
+  use_cdn = NULL,
+  page_fallback = FALSE
 )
 ```
 
@@ -39,6 +40,11 @@ create_maidr_iframe(
 
   Logical. If `TRUE`, use CDN. If `FALSE`, use bundled files. If `NULL`
   (default), auto-detect based on internet availability.
+
+- page_fallback:
+
+  Logical. Passed to
+  [`create_standalone_html()`](https://r.maidr.ai/reference/create_standalone_html.md).
 
 ## Value
 

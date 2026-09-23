@@ -36,7 +36,7 @@ context, avoiding MAIDR.js singleton pattern issues with multiple plots.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-09">
+<meta name="DC.date" content="2026-09-23">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -93,7 +93,7 @@ context, avoiding MAIDR.js singleton pattern issues with multiple plots.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_standalone_html</span><span class="op">(</span><span class="va">svg_content</span>, use_cdn <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_standalone_html</span><span class="op">(</span><span class="va">svg_content</span>, use_cdn <span class="op">=</span> <span class="cn">NULL</span>, page_fallback <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -107,6 +107,13 @@ context, avoiding MAIDR.js singleton pattern issues with multiple plots.</p>
 <dt id="arg-use-cdn">use_cdn<a class="anchor" aria-label="anchor" href="#arg-use-cdn"></a></dt>
 <dd><p>Logical. If <code>TRUE</code>, use CDN. If <code>FALSE</code>, use bundled files.
 If <code>NULL</code> (default), auto-detect based on internet availability.</p></dd>
+
+
+<dt id="arg-page-fallback">page_fallback<a class="anchor" aria-label="anchor" href="#arg-page-fallback"></a></dt>
+<dd><p>Logical. When the CDN is used, fall back to the copy of
+the bundle the embedding page carries if the CDN load fails. Only the
+knitr paths set it, and they add that copy to the document with
+<code><a href="maidr_page_bundle_dependency.html">maidr_page_bundle_dependency()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
