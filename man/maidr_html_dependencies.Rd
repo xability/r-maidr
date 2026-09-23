@@ -18,8 +18,10 @@ A list of htmlDependency objects: the \code{maidr} bundle, preceded by
 Creates the HTML dependency for the MAIDR JavaScript bundle.
 Behavior is controlled by the \code{use_cdn} parameter:
 \itemize{
-\item If \code{TRUE}: Use CDN (requires internet)
-\item If \code{FALSE} (default): Use local bundled files (works offline)
+\item If \code{TRUE}: Use CDN (requires internet): the latest published maidr.js,
+as \code{\link[=maidr_cdn_url]{maidr_cdn_url()}} resolves it, unless \code{maidr.cdn_version} pins one
+\item If \code{FALSE} (default): Use local bundled files (works offline, and makes
+no network request)
 \item If \code{NULL}: Same as \code{FALSE} - use local bundled files
 }
 }

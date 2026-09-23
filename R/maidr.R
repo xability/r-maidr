@@ -13,8 +13,13 @@
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
-#'     \item \code{TRUE}: Use CDN (requires internet)
-#'     \item \code{FALSE}: Use local bundled files (works offline)
+#'     \item \code{TRUE}: Use the jsDelivr CDN (requires internet), which
+#'       loads the latest published MAIDR.js rather than the bundled copy.
+#'       The version is looked up once per R session; pin one with
+#'       \code{options(maidr.cdn_version = ...)}, see
+#'       \code{?"maidr-options"}.
+#'     \item \code{FALSE}: Use local bundled files (works offline, and makes
+#'       no network request)
 #'     \item \code{NULL} (default): Use the bundled files, so the viewer
 #'       works offline. With \code{as_widget = TRUE} the widget instead
 #'       auto-detects internet availability and uses the CDN when online,
@@ -284,14 +289,19 @@ warn_panel_fallback <- function(orchestrator) {
 #' holds both, or copy both. An \code{.html} sent on its own loads no
 #' MAIDR.js and shows a plain, inaccessible chart. \code{use_cdn = TRUE}
 #' writes one self-contained file instead, which needs internet access
-#' whenever it is viewed.
+#' whenever it is viewed and loads the latest published MAIDR.js from
+#' jsDelivr rather than the copy bundled with this package.
 #'
 #' @param plot A ggplot2 object or NULL for Base R auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
 #'     \item \code{TRUE}: Use CDN. The file is self-contained but needs
-#'       internet access when it is viewed.
+#'       internet access when it is viewed. It names the latest published
+#'       MAIDR.js by version (looked up once per R session, or the bundled
+#'       version when the lookup cannot be made); pin a version with
+#'       \code{options(maidr.cdn_version = ...)}, see
+#'       \code{?"maidr-options"}.
 #'     \item \code{FALSE} or \code{NULL} (default): Use the bundled files.
 #'       The MAIDR.js library is written to a \code{lib/} folder beside
 #'       \code{file}, which has to travel with it.

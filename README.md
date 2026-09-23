@@ -267,6 +267,22 @@ show(p, use_cdn = FALSE)
 save_html(p, "plot.html", use_cdn = FALSE)
 ```
 
+The CDN paths load the **latest published maidr.js**, not the copy bundled
+with this package, as the Python binding does. The first CDN document in an R
+session asks jsDelivr (then the npm registry) which version that is, within 3
+seconds, and every document in the session names that version. If the lookup
+cannot be made it costs no error: the document names the bundled version
+instead, the copy `use_cdn = FALSE` would serve. Pin a version when a document
+has to load the same maidr.js whenever it is opened:
+
+``` r
+options(maidr.cdn_version = "bundled")  # the bundled version, no lookup
+options(maidr.cdn_version = "4.9.0")    # a particular release
+```
+
+or set `MAIDR_CDN_VERSION` in the environment. `use_cdn = FALSE` never makes
+a network request. See `?"maidr-options"`.
+
 One path still reaches the network from an offline document: connecting a
 [DotPad tactile display](https://maidr.ai/docs/TACTILE_DISPLAY.html). maidr.js
 does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build,
