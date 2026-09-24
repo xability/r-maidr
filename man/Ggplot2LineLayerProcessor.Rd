@@ -511,14 +511,16 @@ or NULL}
 \if{html}{\out{<a id="method-Ggplot2LineLayerProcessor-format_x_value"></a>}}
 \if{latex}{\out{\hypertarget{method-Ggplot2LineLayerProcessor-format_x_value}{}}}
 \subsection{\code{Ggplot2LineLayerProcessor$format_x_value()}}{
-  Format an x-axis value as character.
+  Format an x-axis value for the payload.
 
-Date / POSIXct / POSIXlt values are formatted via \code{format()} so that a
-\code{Date} column emits ISO date strings (e.g. "2024-01-02") rather than
-the underlying numeric days-since-epoch representation produced by
-\code{ggplot_build()}. All other types use \code{as.character()}. Mirrors
-\code{Ggplot2BarLayerProcessor$format_x_value()} so bar and line layers
-from the same Date column align string-wise.
+A plain number stays a number, so a line over a numeric column carries
+the same x a \code{geom_point()} over it does. Date / POSIXct / POSIXlt
+values are formatted via \code{format()} so that a \code{Date} column emits ISO
+date strings (e.g. "2024-01-02") rather than the underlying numeric
+days-since-epoch representation produced by \code{ggplot_build()}, which
+keeps them aligned string-wise with
+\code{Ggplot2BarLayerProcessor$format_x_value()}. Anything else -- a
+category label -- is a string. See \code{line_x_value()}.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{Ggplot2LineLayerProcessor$format_x_value(x)}
@@ -532,7 +534,7 @@ from the same Date column align string-wise.
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    Character vector
+    A number, or a string
   }
 }
 
