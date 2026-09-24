@@ -177,7 +177,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
       use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
       for (i in seq_len(n)) {
-        x_value <- if (use_labels) x_labels[i] else as.character(x[i])
+        x_value <- if (use_labels) x_labels[i] else line_x_value(x[i])
         data_points[[i]] <- list(
           x = x_value,
           y = as.numeric(y[i])
@@ -213,7 +213,7 @@ BaseRLineLayerProcessor <- R6::R6Class(
         use_labels <- !is.null(x_labels) && length(x_labels) >= n
 
         for (i in seq_len(n)) {
-          x_value <- if (use_labels) x_labels[i] else as.character(x[i])
+          x_value <- if (use_labels) x_labels[i] else line_x_value(x[i])
           series_points[[i]] <- list(
             x = x_value,
             y = as.numeric(series_y[i]),

@@ -487,6 +487,10 @@
 
 ### Base R
 
+* A line or step layer (`plot(type = "l")`, `lines()`, `matplot()`,
+  `plot(type = "s")`) over a numeric x now emits x as a number rather than
+  a string, as the point layer beside it does. `axis()` labels and a `Date`
+  x are still emitted as strings.
 * A positional argument reaches the description under the name R matched it
   to (`hist(x, 20)`, `plot(x, y, "l")`), a recorded flag is read as the
   drawing function reads it (`barplot(horiz = 1)`, `hist(freq = 0)`), and a

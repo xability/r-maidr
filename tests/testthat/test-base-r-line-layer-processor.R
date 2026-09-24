@@ -33,7 +33,7 @@ test_that("BaseRLineLayerProcessor extract_data() works with single line", {
   testthat::expect_equal(length(data), 1) # Single series
   testthat::expect_equal(length(data[[1]]), 5) # 5 points
 
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 2)
 })
 
@@ -155,7 +155,7 @@ test_that("BaseRLineLayerProcessor handles single point line", {
   data <- processor$extract_data(layer_info)
 
   testthat::expect_equal(length(data[[1]]), 1)
-  testthat::expect_equal(data[[1]][[1]]$x, "5")
+  testthat::expect_equal(data[[1]][[1]]$x, 5)
   testthat::expect_equal(data[[1]][[1]]$y, 10)
 })
 
@@ -515,4 +515,51 @@ test_that("plot() of a time series is read as the line it draws", {
   testthat::expect_identical(layer$type, "line")
   testthat::expect_length(layer$data[[1]], length(AirPassengers))
   testthat::expect_true(all(grepl("lines-", unlist(layer$selectors), fixed = TRUE)))
+})
+
+# ==============================================================================
+# A numeric x stays a number, as the point layer beside it emits it
+# ==============================================================================
+
+base_line_layer_info <- function(x, y, function_name = "plot") {
+  list(
+    index = 1,
+    function_name = function_name,
+    plot_call = list(function_name = function_name, args = list(x, y))
+  )
+}
+
+test_that("BaseRLineLayerProcessor emits a numeric x as a number in the JSON", {
+  layer_info <- base_line_layer_info(0:2, c(1, 3, 2))
+  processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
+
+  json <- as.character(jsonlite::toJSON(
+    processor$extract_data(layer_info),
+    auto_unbox = TRUE
+  ))
+
+  testthat::expect_equal(json, '[[{"x":0,"y":1},{"x":1,"y":3},{"x":2,"y":2}]]')
+})
+
+test_that("BaseRLineLayerProcessor keeps a numeric x numeric in every series", {
+  layer_info <- base_line_layer_info(0:2, cbind(a = 1:3, b = 4:6), "matplot")
+  processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
+
+  data <- processor$extract_data(layer_info)
+  testthat::expect_length(data, 2)
+  for (series in data) {
+    testthat::expect_identical(
+      vapply(series, function(pt) pt$x, numeric(1)), c(0, 1, 2)
+    )
+  }
+})
+
+test_that("BaseRLineLayerProcessor still emits a Date x as an ISO string", {
+  layer_info <- base_line_layer_info(as.Date("2024-01-01") + 0:1, 1:2)
+  processor <- maidr:::BaseRLineLayerProcessor$new(layer_info)
+
+  data <- processor$extract_data(layer_info)
+
+  testthat::expect_identical(data[[1]][[1]]$x, "2024-01-01")
+  testthat::expect_identical(data[[1]][[2]]$x, "2024-01-02")
 })

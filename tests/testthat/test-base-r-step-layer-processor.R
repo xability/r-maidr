@@ -48,12 +48,12 @@ test_that("BaseRStepLayerProcessor extract_data() emits one point per sample", {
   testthat::expect_equal(length(data), 1)
   testthat::expect_equal(length(data[[1]]), 5)
 
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 1)
   testthat::expect_equal(data[[1]][[4]]$y, 5)
 })
 
-test_that("BaseRStepLayerProcessor extract_data() keeps y numeric", {
+test_that("BaseRStepLayerProcessor extract_data() keeps x and y numeric", {
   layer_info <- step_layer_info()
   processor <- maidr:::BaseRStepLayerProcessor$new(layer_info)
 
@@ -61,7 +61,7 @@ test_that("BaseRStepLayerProcessor extract_data() keeps y numeric", {
 
   for (point in data[[1]]) {
     testthat::expect_type(point$y, "double")
-    testthat::expect_type(point$x, "character")
+    testthat::expect_type(point$x, "double")
   }
 })
 
@@ -305,7 +305,7 @@ test_that("BaseRStepLayerProcessor handles a single-sample step", {
 
   testthat::expect_equal(length(data), 1)
   testthat::expect_equal(length(data[[1]]), 1)
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 5)
 })
 
