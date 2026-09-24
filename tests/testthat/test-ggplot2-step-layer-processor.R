@@ -31,7 +31,7 @@ test_that("Ggplot2StepLayerProcessor extract_data() emits one point per sample",
   testthat::expect_equal(length(data), 1) # One series
   testthat::expect_equal(length(data[[1]]), 6) # 6 samples, not 11 vertices
 
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 1)
   testthat::expect_equal(data[[1]][[4]]$y, 5)
 })
@@ -374,7 +374,7 @@ test_that("Ggplot2StepLayerProcessor handles a single-sample step", {
 
   testthat::expect_equal(length(data), 1)
   testthat::expect_equal(length(data[[1]]), 1)
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 5)
 })
 
@@ -603,4 +603,19 @@ test_that("A faceted step plot keeps its stepDirection", {
       testthat::expect_equal(layer$data[[1]][[1]]$label, "Awake")
     }
   }
+})
+
+test_that("Ggplot2StepLayerProcessor emits a numeric x as a number", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(x = 0:2, y = c(1, 3, 2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) + ggplot2::geom_step()
+
+  processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
+  json <- as.character(jsonlite::toJSON(
+    processor$extract_data(p),
+    auto_unbox = TRUE
+  ))
+
+  testthat::expect_equal(json, '[[{"x":0,"y":1},{"x":1,"y":3},{"x":2,"y":2}]]')
 })

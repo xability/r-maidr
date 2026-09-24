@@ -161,6 +161,10 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
         NULL
       }
 
+      # Set when the faceted recovery below has already turned x into the
+      # plain numbers it stood for.
+      x_resolved <- FALSE
+
       # For faceted plots, get x values from original data or scale mapping
       if (!is.null(panel_id)) {
         # For faceted plots, we need to get the actual x values from the original data
@@ -196,7 +200,8 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
         # Whatever is not resolved here stays numeric: the break/label
         # mapping further down needs a numeric vector, and
-        # extract_*_line_data() stringifies anything that survives it.
+        # extract_*_line_data() emits anything that survives it through
+        # `format_x_value()`.
         if (looks_like_positions) {
           # Discrete scale: positions index the (sorted) categories
           layer_data$x <- as.character(original_values[round(x_pos)])
@@ -221,14 +226,17 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
           match_idx <- match(round(as.numeric(x_pos), 6), numeric_repr)
           hit <- !is.na(match_idx)
           if (any(hit)) {
-            mapped <- as.character(x_pos)
             matched_vals <- original_values[match_idx[hit]]
-            mapped[hit] <- if (
-              inherits(original_values, c("Date", "POSIXct", "POSIXlt"))
-            ) {
-              format(matched_vals)
+            if (inherits(original_values, c("Date", "POSIXct", "POSIXlt"))) {
+              mapped <- as.character(x_pos)
+              mapped[hit] <- format(matched_vals)
             } else {
-              as.character(matched_vals)
+              # A plain number stays a number (see `line_x_value()`), and it
+              # is already the datum: the break/label mapping below must not
+              # read it as a scale position again.
+              mapped <- as.numeric(x_pos)
+              mapped[hit] <- as.numeric(matched_vals)
+              x_resolved <- TRUE
             }
             layer_data$x <- mapped
           }
@@ -237,7 +245,7 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
 
       # Map numeric x positions to axis labels for categorical x-axis
       panel_params <- built$layout$panel_params[[panel_index]]
-      if (!is.null(panel_params$x)) {
+      if (!x_resolved && !is.null(panel_params$x)) {
         x_labels <- NULL
         x_breaks <- NULL
 
@@ -558,21 +566,20 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       transformed
     },
 
-    #' @description Format an x-axis value as character.
+    #' @description Format an x-axis value for the payload.
     #'
-    #' Date / POSIXct / POSIXlt values are formatted via `format()` so that a
-    #' `Date` column emits ISO date strings (e.g. "2024-01-02") rather than
-    #' the underlying numeric days-since-epoch representation produced by
-    #' `ggplot_build()`. All other types use `as.character()`. Mirrors
-    #' `Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers
-    #' from the same Date column align string-wise.
+    #' A plain number stays a number, so a line over a numeric column carries
+    #' the same x a `geom_point()` over it does. Date / POSIXct / POSIXlt
+    #' values are formatted via `format()` so that a `Date` column emits ISO
+    #' date strings (e.g. "2024-01-02") rather than the underlying numeric
+    #' days-since-epoch representation produced by `ggplot_build()`, which
+    #' keeps them aligned string-wise with
+    #' `Ggplot2BarLayerProcessor$format_x_value()`. Anything else -- a
+    #' category label -- is a string. See `line_x_value()`.
     #' @param x The value to format
-    #' @return Character vector
+    #' @return A number, or a string
     format_x_value = function(x) {
-      if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
-        return(format(x))
-      }
-      as.character(x)
+      line_x_value(x)
     },
 
 
