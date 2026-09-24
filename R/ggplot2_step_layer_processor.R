@@ -101,10 +101,10 @@ Ggplot2StepLayerProcessor <- R6::R6Class(
     #'
     #' The filter asks about \strong{x} alone, and deliberately. A row with a
     #' real x and a missing y is a different thing -- it has a position and no
-    #' reading -- and the line processor this class inherits already drops
-    #' those, for its own unrelated reason: the rendered polyline carries
-    #' coordinates only for non-NA points, so keeping them would shift the
-    #' highlight-to-point index mapping. Repeating that here would be a second
+    #' reading -- and the line processor this class inherits already decides
+    #' those, for its own reason: it keeps the rows ggplot2 draws through,
+    #' dropping leading and trailing NA-y rows and announcing an interior one
+    #' as missing (`line_drawn_span()`). Repeating that here would be a second
     #' filter with a second rationale over the same rows. Raised in review on
     #' #169; the Python binding draws the same x-only line, and for the same
     #' reason (xability/py-maidr#430).

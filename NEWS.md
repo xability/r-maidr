@@ -396,6 +396,12 @@
 
 ### ggplot2
 
+* A `geom_line()` or `geom_step()` with a missing y inside the series now
+  announces that position as missing (`y: null`), where it dropped it, so
+  `x = 0:3, y = c(1, NA, 4, 5)` reads four positions rather than three and
+  the gap is heard. The Python binding and the base R line path already
+  emit the null. Leading and trailing missing values, which ggplot2 does not
+  draw (a moving average's warm-up), are still left out.
 * Horizontal bar charts are read correctly: `geom_col()`/`geom_bar()` with
   `aes(y = category, x = value)`, alone or with `position = "dodge"`,
   `"stack"` or `"fill"`, and `geom_histogram(aes(y = ))` emit

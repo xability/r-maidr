@@ -484,12 +484,12 @@ test_that("Ggplot2LineLayerProcessor emits ISO date strings for POSIXct x-axis",
   testthat::expect_match(data[[1]][[1]]$x, "^2024-01-02")
 })
 
-test_that("Ggplot2LineLayerProcessor drops NA y-rows (single line)", {
-  # NA y rows are dropped so that emitted data length matches the rendered
-  # gridSVG polyline's `points` attribute length. Otherwise the MAIDR JS
-  # frontend's polyline-path-parsing path maps row[i] to coord[i] and is
-  # shifted by the count of leading NAs.
-  df <- data.frame(x = 1:5, y = c(NA, 2, 3, NA, 5))
+test_that("Ggplot2LineLayerProcessor keeps an interior NA y as a missing point (single line)", {
+  # GeomPath$handle_na() drops only leading and trailing incomplete rows; an
+  # interior NA breaks the drawn line. The payload follows the same rule:
+  # the ends go, the interior gap stays as y = NA (serialised as null), the
+  # shape the base R line path and py-maidr emit for the same data.
+  df <- data.frame(x = 1:6, y = c(NA, 2, 3, NA, 5, NA))
   p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
     ggplot2::geom_line()
 
@@ -497,16 +497,18 @@ test_that("Ggplot2LineLayerProcessor drops NA y-rows (single line)", {
   processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
   data <- processor$extract_data(p)
 
-  testthat::expect_equal(length(data[[1]]), 3L)
+  testthat::expect_equal(length(data[[1]]), 4L)
+  testthat::expect_equal(
+    vapply(data[[1]], function(pt) pt$x, character(1)),
+    c("2", "3", "4", "5")
+  )
   testthat::expect_equal(data[[1]][[1]]$y, 2)
   testthat::expect_equal(data[[1]][[2]]$y, 3)
-  testthat::expect_equal(data[[1]][[3]]$y, 5)
-  for (pt in data[[1]]) {
-    testthat::expect_false(is.na(pt$y))
-  }
+  testthat::expect_true(is.na(data[[1]][[3]]$y))
+  testthat::expect_equal(data[[1]][[4]]$y, 5)
 })
 
-test_that("Ggplot2LineLayerProcessor drops NA y-rows in multiline series", {
+test_that("Ggplot2LineLayerProcessor keeps interior NA y per series in multiline", {
   df <- data.frame(
     x = rep(1:4, 2),
     y = c(NA, 2, NA, 4, 1, NA, 3, NA),
@@ -520,17 +522,47 @@ test_that("Ggplot2LineLayerProcessor drops NA y-rows in multiline series", {
   data <- processor$extract_data(p)
 
   testthat::expect_equal(length(data), 2L)
-  # Series A had NAs at positions 1 and 3 -> only 2 surviving points.
-  testthat::expect_equal(length(data[[1]]), 2L)
+  # Series A: leading NA dropped, interior NA at x = 3 kept.
+  testthat::expect_equal(length(data[[1]]), 3L)
   testthat::expect_equal(data[[1]][[1]]$y, 2)
-  testthat::expect_equal(data[[1]][[2]]$y, 4)
-  # Series B had NAs at positions 2 and 4 -> only 2 surviving points.
-  testthat::expect_equal(length(data[[2]]), 2L)
+  testthat::expect_true(is.na(data[[1]][[2]]$y))
+  testthat::expect_equal(data[[1]][[2]]$x, "3")
+  testthat::expect_equal(data[[1]][[3]]$y, 4)
+  # Series B: trailing NA dropped, interior NA at x = 2 kept.
+  testthat::expect_equal(length(data[[2]]), 3L)
   testthat::expect_equal(data[[2]][[1]]$y, 1)
-  testthat::expect_equal(data[[2]][[2]]$y, 3)
-  for (series in data) for (pt in series) {
-    testthat::expect_false(is.na(pt$y))
-  }
+  testthat::expect_true(is.na(data[[2]][[2]]$y))
+  testthat::expect_equal(data[[2]][[3]]$y, 3)
+})
+
+test_that("Ggplot2LineLayerProcessor serialises an interior NA y as null", {
+  # The case the audit measured: x = 0:3, y = c(1, NA, 4, 5) used to reach
+  # the payload as three points; it is four, with null at x = 1.
+  df <- data.frame(x = 0:3, y = c(1, NA, 4, 5))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line()
+
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  json <- as.character(jsonlite::toJSON(
+    processor$extract_data(p),
+    auto_unbox = TRUE, na = "null"
+  ))
+
+  testthat::expect_equal(
+    json,
+    '[[{"x":"0","y":1},{"x":"1","y":null},{"x":"2","y":4},{"x":"3","y":5}]]'
+  )
+})
+
+test_that("line_drawn_span() keeps the span from the first to the last reading", {
+  span <- maidr:::line_drawn_span
+  testthat::expect_equal(span(c(1, 2, 3)), c(TRUE, TRUE, TRUE))
+  testthat::expect_equal(
+    span(c(NA, NA, 1, NA, 2, NA)),
+    c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE)
+  )
+  testthat::expect_equal(span(c(NA_real_, NA_real_)), c(FALSE, FALSE))
+  testthat::expect_equal(span(numeric(0)), logical(0))
 })
 
 test_that("Ggplot2LineLayerProcessor data length matches polyline points (SMA case)", {

@@ -603,14 +603,13 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       for (group_num in names(series_groups)) {
         series_points <- series_groups[[group_num]]
 
-        # Drop rows whose y is NA. The corresponding gridSVG polyline only
-        # contains coordinates for non-NA points (e.g. the warm-up period of
-        # a moving-average overlay is omitted from the rendered polyline),
-        # so emitting placeholder null rows here would make
-        # `data.length > polyline.points.length` and shift the MAIDR JS
-        # highlight-to-point index mapping by the number of leading NAs.
+        # Keep only the rows ggplot2 draws through: see `line_drawn_span()`.
+        # Leading and trailing NA-y rows go (the warm-up of a moving-average
+        # overlay is never drawn); an interior NA stays as a missing reading.
         if ("y" %in% names(series_points)) {
-          series_points <- series_points[!is.na(series_points$y), , drop = FALSE]
+          series_points <- series_points[
+            line_drawn_span(series_points$y), , drop = FALSE
+          ]
         }
         if (nrow(series_points) == 0) {
           next
@@ -663,12 +662,18 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
       # rows by construction rather than by the caller's row order.
       orig_x <- recovered_x
 
-      # Determine which rows have a non-NA y. The rendered polyline only
-      # contains coordinates for non-NA y points; emitting NA-y rows would
-      # break the MAIDR JS index alignment between polyline.points and
-      # data[] (see `extract_multiline_data()` for the same rationale).
+      # Keep only the rows ggplot2 draws through, per group: see
+      # `line_drawn_span()`. An interior NA stays as a missing reading.
       if ("y" %in% names(layer_data)) {
-        keep <- !is.na(layer_data$y)
+        groups <- if ("group" %in% names(layer_data)) {
+          layer_data$group
+        } else {
+          rep(1L, nrow(layer_data))
+        }
+        keep <- logical(nrow(layer_data))
+        for (rows in split(seq_len(nrow(layer_data)), groups)) {
+          keep[rows] <- line_drawn_span(layer_data$y[rows])
+        }
       } else {
         keep <- rep(TRUE, nrow(layer_data))
       }
@@ -1001,3 +1006,28 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     last_result = NULL
   )
 )
+
+#' Rows of One Line Series That ggplot2 Draws Through
+#'
+#' `GeomPath$handle_na()` removes only the leading and trailing incomplete
+#' rows of each group; an interior `NA` is kept and breaks the drawn line in
+#' two. The payload follows the same rule: the rows before the first and
+#' after the last reading are not part of the line (a moving average's
+#' warm-up period, say) and are dropped, while an interior `NA` stays as a
+#' position with no reading. It is serialised as `y: null`, which maidr core
+#' announces as missing rather than as zero, and which is what the base R
+#' line path and py-maidr already emit for the same data.
+#'
+#' @param y The series' y values, in drawn order
+#' @return Logical vector, `TRUE` for the rows from the first non-`NA` y to
+#'   the last one inclusive
+#' @keywords internal
+#' @noRd
+line_drawn_span <- function(y) {
+  ok <- which(!is.na(y))
+  if (length(ok) == 0L) {
+    return(rep(FALSE, length(y)))
+  }
+  i <- seq_along(y)
+  i >= min(ok) & i <= max(ok)
+}
