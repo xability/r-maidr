@@ -554,6 +554,19 @@ test_that("Ggplot2LineLayerProcessor serialises an interior NA y as null", {
   )
 })
 
+test_that("Ggplot2LineLayerProcessor emits no series for an all-NA line", {
+  # Nothing is drawn, so nothing is read: the payload keeps an empty layer
+  # rather than a series of nulls.
+  df <- data.frame(x = 0:3, y = rep(NA_real_, 4))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line()
+
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  data <- suppressWarnings(processor$extract_data(p))
+
+  testthat::expect_length(data, 0L)
+})
+
 test_that("line_drawn_span() keeps the span from the first to the last reading", {
   span <- maidr:::line_drawn_span
   testthat::expect_equal(span(c(1, 2, 3)), c(TRUE, TRUE, TRUE))
