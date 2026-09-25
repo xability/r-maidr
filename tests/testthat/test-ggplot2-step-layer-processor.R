@@ -31,7 +31,7 @@ test_that("Ggplot2StepLayerProcessor extract_data() emits one point per sample",
   testthat::expect_equal(length(data), 1) # One series
   testthat::expect_equal(length(data[[1]]), 6) # 6 samples, not 11 vertices
 
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 1)
   testthat::expect_equal(data[[1]][[4]]$y, 5)
 })
@@ -374,7 +374,7 @@ test_that("Ggplot2StepLayerProcessor handles a single-sample step", {
 
   testthat::expect_equal(length(data), 1)
   testthat::expect_equal(length(data[[1]]), 1)
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 5)
 })
 
@@ -393,10 +393,10 @@ test_that("Ggplot2StepLayerProcessor handles an empty data frame", {
   testthat::expect_length(data, 0)
 })
 
-test_that("Ggplot2StepLayerProcessor drops NA-y rows", {
-  # Inherited from the line processor: the rendered polyline only contains
-  # coordinates for non-NA points, so emitting placeholder rows would shift
-  # the frontend's vertex-to-sample mapping.
+test_that("Ggplot2StepLayerProcessor drops end NA-y rows and keeps an interior one", {
+  # Inherited from the line processor: the leading NA row is not drawn and
+  # goes, while the interior NA breaks the staircase and is announced as a
+  # missing reading (`line_drawn_span()`).
   testthat::skip_if_not_installed("ggplot2")
 
   df <- data.frame(x = 1:5, y = c(NA, 2, 2, NA, 5))
@@ -405,10 +405,11 @@ test_that("Ggplot2StepLayerProcessor drops NA-y rows", {
   processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
   data <- suppressWarnings(processor$extract_data(p))
 
-  testthat::expect_equal(length(data[[1]]), 3)
-  for (point in data[[1]]) {
-    testthat::expect_false(is.na(point$y))
-  }
+  testthat::expect_equal(length(data[[1]]), 4)
+  testthat::expect_equal(
+    vapply(data[[1]], function(point) is.na(point$y), logical(1)),
+    c(FALSE, FALSE, TRUE, FALSE)
+  )
 })
 
 test_that("Ggplot2StepLayerProcessor emits ISO date strings for a Date x-axis", {
@@ -602,4 +603,19 @@ test_that("A faceted step plot keeps its stepDirection", {
       testthat::expect_equal(layer$data[[1]][[1]]$label, "Awake")
     }
   }
+})
+
+test_that("Ggplot2StepLayerProcessor emits a numeric x as a number", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  df <- data.frame(x = 0:2, y = c(1, 3, 2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) + ggplot2::geom_step()
+
+  processor <- maidr:::Ggplot2StepLayerProcessor$new(list(index = 1))
+  json <- as.character(jsonlite::toJSON(
+    processor$extract_data(p),
+    auto_unbox = TRUE
+  ))
+
+  testthat::expect_equal(json, '[[{"x":0,"y":1},{"x":1,"y":3},{"x":2,"y":2}]]')
 })

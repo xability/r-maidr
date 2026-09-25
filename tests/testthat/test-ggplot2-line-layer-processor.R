@@ -30,7 +30,7 @@ test_that("Ggplot2LineLayerProcessor extract_data() works with single line", {
   testthat::expect_equal(length(data[[1]]), 5) # 5 points
 
   # Check first point structure
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 2)
 })
 
@@ -118,7 +118,7 @@ test_that("Ggplot2LineLayerProcessor handles single point line", {
   testthat::expect_equal(length(data[[1]]), 1)
   # Reads x directly from the original plot$data column (integer 1)
   # rather than ggplot2's scale-formatted decimal label.
-  testthat::expect_equal(data[[1]][[1]]$x, "1")
+  testthat::expect_equal(data[[1]][[1]]$x, 1)
   testthat::expect_equal(data[[1]][[1]]$y, 5)
 })
 
@@ -372,7 +372,7 @@ test_that("Ggplot2LineLayerProcessor handles faceted plot with grob_id", {
   testthat::expect_match(selectors[[1]], "#GRID\\\\.polyline\\\\.100\\\\.1\\\\.1")
 })
 
-test_that("Ggplot2LineLayerProcessor x values converted to character", {
+test_that("Ggplot2LineLayerProcessor keeps a numeric x numeric", {
   df <- data.frame(x = c(10, 20, 30), y = c(1, 2, 3))
   p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
     ggplot2::geom_line()
@@ -382,10 +382,10 @@ test_that("Ggplot2LineLayerProcessor x values converted to character", {
 
   data <- processor$extract_data(p)
 
-  # x values should be character strings
-  testthat::expect_type(data[[1]][[1]]$x, "character")
-  testthat::expect_equal(data[[1]][[1]]$x, "10")
-  testthat::expect_equal(data[[1]][[2]]$x, "20")
+  # A numeric column stays numeric, as a point layer over it does
+  testthat::expect_type(data[[1]][[1]]$x, "double")
+  testthat::expect_equal(data[[1]][[1]]$x, 10)
+  testthat::expect_equal(data[[1]][[2]]$x, 20)
 })
 
 test_that("Ggplot2LineLayerProcessor multiline detection works correctly", {
@@ -484,12 +484,12 @@ test_that("Ggplot2LineLayerProcessor emits ISO date strings for POSIXct x-axis",
   testthat::expect_match(data[[1]][[1]]$x, "^2024-01-02")
 })
 
-test_that("Ggplot2LineLayerProcessor drops NA y-rows (single line)", {
-  # NA y rows are dropped so that emitted data length matches the rendered
-  # gridSVG polyline's `points` attribute length. Otherwise the MAIDR JS
-  # frontend's polyline-path-parsing path maps row[i] to coord[i] and is
-  # shifted by the count of leading NAs.
-  df <- data.frame(x = 1:5, y = c(NA, 2, 3, NA, 5))
+test_that("Ggplot2LineLayerProcessor keeps an interior NA y as a missing point (single line)", {
+  # GeomPath$handle_na() drops only leading and trailing incomplete rows; an
+  # interior NA breaks the drawn line. The payload follows the same rule:
+  # the ends go, the interior gap stays as y = NA (serialised as null), the
+  # shape the base R line path and py-maidr emit for the same data.
+  df <- data.frame(x = 1:6, y = c(NA, 2, 3, NA, 5, NA))
   p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
     ggplot2::geom_line()
 
@@ -497,16 +497,18 @@ test_that("Ggplot2LineLayerProcessor drops NA y-rows (single line)", {
   processor <- maidr:::Ggplot2LineLayerProcessor$new(layer_info)
   data <- processor$extract_data(p)
 
-  testthat::expect_equal(length(data[[1]]), 3L)
+  testthat::expect_equal(length(data[[1]]), 4L)
+  testthat::expect_equal(
+    vapply(data[[1]], function(pt) pt$x, numeric(1)),
+    c(2, 3, 4, 5)
+  )
   testthat::expect_equal(data[[1]][[1]]$y, 2)
   testthat::expect_equal(data[[1]][[2]]$y, 3)
-  testthat::expect_equal(data[[1]][[3]]$y, 5)
-  for (pt in data[[1]]) {
-    testthat::expect_false(is.na(pt$y))
-  }
+  testthat::expect_true(is.na(data[[1]][[3]]$y))
+  testthat::expect_equal(data[[1]][[4]]$y, 5)
 })
 
-test_that("Ggplot2LineLayerProcessor drops NA y-rows in multiline series", {
+test_that("Ggplot2LineLayerProcessor keeps interior NA y per series in multiline", {
   df <- data.frame(
     x = rep(1:4, 2),
     y = c(NA, 2, NA, 4, 1, NA, 3, NA),
@@ -520,17 +522,60 @@ test_that("Ggplot2LineLayerProcessor drops NA y-rows in multiline series", {
   data <- processor$extract_data(p)
 
   testthat::expect_equal(length(data), 2L)
-  # Series A had NAs at positions 1 and 3 -> only 2 surviving points.
-  testthat::expect_equal(length(data[[1]]), 2L)
+  # Series A: leading NA dropped, interior NA at x = 3 kept.
+  testthat::expect_equal(length(data[[1]]), 3L)
   testthat::expect_equal(data[[1]][[1]]$y, 2)
-  testthat::expect_equal(data[[1]][[2]]$y, 4)
-  # Series B had NAs at positions 2 and 4 -> only 2 surviving points.
-  testthat::expect_equal(length(data[[2]]), 2L)
+  testthat::expect_true(is.na(data[[1]][[2]]$y))
+  testthat::expect_equal(data[[1]][[2]]$x, 3)
+  testthat::expect_equal(data[[1]][[3]]$y, 4)
+  # Series B: trailing NA dropped, interior NA at x = 2 kept.
+  testthat::expect_equal(length(data[[2]]), 3L)
   testthat::expect_equal(data[[2]][[1]]$y, 1)
-  testthat::expect_equal(data[[2]][[2]]$y, 3)
-  for (series in data) for (pt in series) {
-    testthat::expect_false(is.na(pt$y))
-  }
+  testthat::expect_true(is.na(data[[2]][[2]]$y))
+  testthat::expect_equal(data[[2]][[3]]$y, 3)
+})
+
+test_that("Ggplot2LineLayerProcessor serialises an interior NA y as null", {
+  # The case the audit measured: x = 0:3, y = c(1, NA, 4, 5) used to reach
+  # the payload as three points; it is four, with null at x = 1.
+  df <- data.frame(x = 0:3, y = c(1, NA, 4, 5))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line()
+
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  json <- as.character(jsonlite::toJSON(
+    processor$extract_data(p),
+    auto_unbox = TRUE, na = "null"
+  ))
+
+  testthat::expect_equal(
+    json,
+    '[[{"x":0,"y":1},{"x":1,"y":null},{"x":2,"y":4},{"x":3,"y":5}]]'
+  )
+})
+
+test_that("Ggplot2LineLayerProcessor emits no series for an all-NA line", {
+  # Nothing is drawn, so nothing is read: the payload keeps an empty layer
+  # rather than a series of nulls.
+  df <- data.frame(x = 0:3, y = rep(NA_real_, 4))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_line()
+
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  data <- suppressWarnings(processor$extract_data(p))
+
+  testthat::expect_length(data, 0L)
+})
+
+test_that("line_drawn_span() keeps the span from the first to the last reading", {
+  span <- maidr:::line_drawn_span
+  testthat::expect_equal(span(c(1, 2, 3)), c(TRUE, TRUE, TRUE))
+  testthat::expect_equal(
+    span(c(NA, NA, 1, NA, 2, NA)),
+    c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE)
+  )
+  testthat::expect_equal(span(c(NA_real_, NA_real_)), c(FALSE, FALSE))
+  testthat::expect_equal(span(numeric(0)), logical(0))
 })
 
 test_that("Ggplot2LineLayerProcessor data length matches polyline points (SMA case)", {
@@ -933,7 +978,9 @@ facet_line_x <- function(plot, panel_id) {
   built <- ggplot2::ggplot_build(plot)
   series <- processor$extract_data(plot, built, panel_id = panel_id)
   lapply(series, function(points) {
-    vapply(points, function(point) point$x, character(1))
+    # unlist() keeps the emitted type: numbers for a numeric x, strings
+    # for a date or a label.
+    unlist(lapply(points, function(point) point$x))
   })
 }
 
@@ -959,7 +1006,7 @@ test_that("faceted panels announce data x values under scale_x_log10()", {
   for (panel in c(1, 2)) {
     series <- facet_line_x(p, panel)
     testthat::expect_length(series, 1)
-    testthat::expect_equal(series[[1]], c("1", "10", "100", "1000"))
+    testthat::expect_equal(series[[1]], c(1, 10, 100, 1000))
   }
 })
 
@@ -968,7 +1015,7 @@ test_that("faceted panels announce data x values under scale_x_sqrt()", {
 
   for (panel in c(1, 2)) {
     testthat::expect_equal(
-      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+      facet_line_x(p, panel)[[1]], c(1, 10, 100, 1000)
     )
   }
 })
@@ -980,7 +1027,7 @@ test_that("faceted panels announce data x values under scale_x_reverse()", {
   # way it draws them, so the announced order follows the drawn line.
   for (panel in c(1, 2)) {
     testthat::expect_equal(
-      facet_line_x(p, panel)[[1]], c("1000", "100", "10", "1")
+      facet_line_x(p, panel)[[1]], c(1000, 100, 10, 1)
     )
   }
 })
@@ -990,7 +1037,7 @@ test_that("faceted panels announce data x values under a named transform", {
 
   for (panel in c(1, 2)) {
     testthat::expect_equal(
-      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+      facet_line_x(p, panel)[[1]], c(1, 10, 100, 1000)
     )
   }
 })
@@ -1000,7 +1047,7 @@ test_that("faceted panels keep working on an untransformed x scale", {
 
   for (panel in c(1, 2)) {
     testthat::expect_equal(
-      facet_line_x(p, panel)[[1]], c("1", "10", "100", "1000")
+      facet_line_x(p, panel)[[1]], c(1, 10, 100, 1000)
     )
   }
 })
@@ -1037,7 +1084,7 @@ test_that("every series of a faceted multiline panel is untransformed", {
     series <- facet_line_x(p, panel)
     testthat::expect_length(series, 2)
     for (points in series) {
-      testthat::expect_equal(points, c("1", "10", "100", "1000"))
+      testthat::expect_equal(points, c(1, 10, 100, 1000))
     }
   }
 })
@@ -1339,4 +1386,109 @@ test_that("an unsorted faceted geom_line() is left to the faceted recovery", {
 
   testthat::expect_equal(line_x(p, 1)[[1]], c("1", "2", "3"))
   testthat::expect_equal(line_x(p, 2)[[1]], c("1", "2", "3"))
+})
+
+# ==============================================================================
+# A numeric x stays a number, as the point layer beside it emits it
+# ==============================================================================
+
+# maidr.js reads a line point's x as `number | string`: a string is a category
+# announced verbatim, a number takes the axis format and the numeric extent.
+# The line layer used to stringify every x, so `geom_point() + geom_line()`
+# over the same x = 0:2 carried 0, 1, 2 in one layer and "0", "1", "2" in the
+# other.
+
+line_payload_json <- function(plot, layer = 1) {
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = layer))
+  as.character(jsonlite::toJSON(
+    processor$extract_data(plot),
+    auto_unbox = TRUE, na = "null"
+  ))
+}
+
+test_that("geom_line() over a numeric x emits numeric x in the JSON", {
+  df <- data.frame(x = 0:2, y = c(1, 3, 2))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) + ggplot2::geom_line()
+
+  testthat::expect_equal(
+    line_payload_json(p),
+    '[[{"x":0,"y":1},{"x":1,"y":3},{"x":2,"y":2}]]'
+  )
+})
+
+test_that("a line layer's x matches the point layer drawn over the same x", {
+  df <- data.frame(x = 0:2, y = c(1, 3, 2), trend = c(1, 2, 3))
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_line(ggplot2::aes(y = trend))
+
+  line <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 2))$extract_data(p)
+  point <- maidr:::Ggplot2PointLayerProcessor$new(list(index = 1))$extract_data(p)
+
+  line_x <- vapply(line[[1]], function(pt) pt$x, numeric(1))
+  point_x <- vapply(point, function(pt) pt$x, numeric(1))
+  testthat::expect_identical(line_x, c(0, 1, 2))
+  testthat::expect_identical(sort(point_x), line_x)
+})
+
+test_that("every series of a multiline layer keeps a numeric x numeric", {
+  df <- data.frame(
+    x = rep(0:2, 2), y = 1:6, g = rep(c("a", "b"), each = 3)
+  )
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y, colour = g)) +
+    ggplot2::geom_line()
+
+  processor <- maidr:::Ggplot2LineLayerProcessor$new(list(index = 1))
+  for (series in processor$extract_data(p)) {
+    testthat::expect_identical(
+      vapply(series, function(pt) pt$x, numeric(1)), c(0, 1, 2)
+    )
+  }
+})
+
+test_that("a log-scaled x is emitted as the numeric datum", {
+  df <- data.frame(x = c(1, 10, 100), y = 1:3)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_x_log10()
+
+  testthat::expect_equal(
+    line_payload_json(p),
+    '[[{"x":1,"y":1},{"x":10,"y":2},{"x":100,"y":3}]]'
+  )
+})
+
+test_that("a discrete x is still emitted as its category label", {
+  df <- data.frame(x = factor(c("a", "b", "c")), y = 1:3)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y, group = 1)) +
+    ggplot2::geom_line()
+
+  testthat::expect_equal(
+    line_payload_json(p),
+    '[[{"x":"a","y":1},{"x":"b","y":2},{"x":"c","y":3}]]'
+  )
+})
+
+test_that("a Date x is still emitted as an ISO date string", {
+  df <- data.frame(x = as.Date("2024-01-01") + 0:1, y = 1:2)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x, y)) + ggplot2::geom_line()
+
+  testthat::expect_equal(
+    line_payload_json(p),
+    '[[{"x":"2024-01-01","y":1},{"x":"2024-01-02","y":2}]]'
+  )
+})
+
+test_that("line_x_value() keeps numbers numeric and categories as strings", {
+  testthat::expect_identical(maidr:::line_x_value(2L), 2)
+  testthat::expect_identical(maidr:::line_x_value(2.5), 2.5)
+  testthat::expect_identical(maidr:::line_x_value(factor("b")), "b")
+  testthat::expect_identical(maidr:::line_x_value("b"), "b")
+  testthat::expect_identical(
+    maidr:::line_x_value(as.Date("2024-01-02")), "2024-01-02"
+  )
+  testthat::expect_identical(
+    maidr:::line_x_value(structure(2, class = c("mapped_discrete", "numeric"))),
+    "2"
+  )
 })

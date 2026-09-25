@@ -138,10 +138,7 @@ test_that("plot(v, type = 'l') does not mistake `type` for the y data", {
   # a single series of five points, y from the vector, x from its index
   testthat::expect_length(layer$data, 1)
   testthat::expect_equal(field_of(layer$data[[1]], "y"), c(3, 1, 4, 1, 5))
-  testthat::expect_equal(
-    vapply(layer$data[[1]], function(point) point$x, character(1)),
-    as.character(1:5)
-  )
+  testthat::expect_equal(field_of(layer$data[[1]], "x"), 1:5)
 
   reset_devices()
 })
@@ -153,10 +150,7 @@ test_that("plot(x, y, type = 'l') still reads both positional vectors", {
   layer <- payload_layer(render_maidr_data())
 
   testthat::expect_equal(field_of(layer$data[[1]], "y"), c(9, 8, 7, 6))
-  testthat::expect_equal(
-    vapply(layer$data[[1]], function(point) point$x, character(1)),
-    as.character(c(2, 4, 6, 8))
-  )
+  testthat::expect_equal(field_of(layer$data[[1]], "x"), c(2, 4, 6, 8))
 
   reset_devices()
 })

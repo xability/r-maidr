@@ -443,3 +443,34 @@ r_date_format_to_js_function <- function(format, tz = "UTC") {
 `%||%` <- function(x, y) {
   if (is.null(x)) y else x
 }
+
+#' The x of one line point, as the payload carries it
+#'
+#' maidr.js reads a line point's `x` as `number | string` and treats the two
+#' differently: a numeric x takes part in the numeric extent and the axis
+#' format, and it is what a point or bar layer drawn over the same numeric
+#' column carries, so a cross-layer move lands on the same value. A string x
+#' is a category, announced verbatim. Stringifying a plain number here made
+#' `geom_line()` over `x = 0:2` emit `"0"`, `"1"`, `"2"` beside a
+#' `geom_point()` that emitted `0`, `1`, `2`.
+#'
+#' So a plain number stays a number, and everything else keeps the string
+#' form the line layers have always emitted for it: dates and date-times as
+#' ISO strings via `format()`, a `difftime`/`hms` as its clock form, and a
+#' discrete level (`mapped_discrete`, factor, character) as its label.
+#'
+#' @param x A single x value
+#' @return A number, or a string
+#' @keywords internal
+#' @noRd
+line_x_value <- function(x) {
+  if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) {
+    return(format(x))
+  }
+  # `is.numeric()` is FALSE for difftime, and a factor or a discrete level
+  # code is a category even though it is stored as a number.
+  if (is.numeric(x) && !is.factor(x) && !inherits(x, "mapped_discrete")) {
+    return(as.numeric(x))
+  }
+  as.character(x)
+}
