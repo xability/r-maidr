@@ -589,6 +589,28 @@
 
 #### ggplot2
 
+- A
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  or
+  [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  over a numeric x now emits x as a number (`"x": 0`) rather than a
+  string (`"x": "0"`), matching the
+  [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+  beside it, so `geom_point() + geom_line(aes(y = trend))` carries the
+  same x in both layers and the line’s x takes the axis format. A
+  discrete x is still its category label and a `Date` or `POSIXct` x
+  still an ISO string.
+- A
+  [`geom_line()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  or
+  [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html)
+  with a missing y inside the series now announces that position as
+  missing (`y: null`), where it dropped it, so
+  `x = 0:3, y = c(1, NA, 4, 5)` reads four positions rather than three
+  and the gap is heard. The Python binding and the base R line path
+  already emit the null. Leading and trailing missing values, which
+  ggplot2 does not draw (a moving average’s warm-up), are still left
+  out.
 - Horizontal bar charts are read correctly:
   [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)/[`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
   with `aes(y = category, x = value)`, alone or with
@@ -718,6 +740,13 @@
 
 #### Base R
 
+- A line or step layer (`plot(type = "l")`,
+  [`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  [`matplot()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+  `plot(type = "s")`) over a numeric x now emits x as a number rather
+  than a string, as the point layer beside it does.
+  [`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) labels and
+  a `Date` x are still emitted as strings.
 - A positional argument reaches the description under the name R matched
   it to (`hist(x, 20)`, `plot(x, y, "l")`), a recorded flag is read as
   the drawing function reads it (`barplot(horiz = 1)`,

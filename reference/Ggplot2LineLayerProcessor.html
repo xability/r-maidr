@@ -42,7 +42,7 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-09-25">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -577,13 +577,15 @@ or NULL</p></dd>
 
 <p></p><hr><a id="method-Ggplot2LineLayerProcessor-format_x_value"></a><div class="section">
 <h3 id="ggplot-linelayerprocessor-format-x-value-"><code>Ggplot2LineLayerProcessor$format_x_value()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-format-x-value-"></a></h3>
-<p>Format an x-axis value as character.</p>
-<p>Date / POSIXct / POSIXlt values are formatted via <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> so that a
-<code>Date</code> column emits ISO date strings (e.g. "2024-01-02") rather than
-the underlying numeric days-since-epoch representation produced by
-<code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code>. All other types use <code><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character()</a></code>. Mirrors
-<code>Ggplot2BarLayerProcessor$format_x_value()</code> so bar and line layers
-from the same Date column align string-wise.</p><div class="section">
+<p>Format an x-axis value for the payload.</p>
+<p>A plain number stays a number, so a line over a numeric column carries
+the same x a <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> over it does. Date / POSIXct / POSIXlt
+values are formatted via <code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> so that a <code>Date</code> column emits ISO
+date strings (e.g. "2024-01-02") rather than the underlying numeric
+days-since-epoch representation produced by <code><a href="https://ggplot2.tidyverse.org/reference/ggplot_build.html" class="external-link">ggplot_build()</a></code>, which
+keeps them aligned string-wise with
+<code>Ggplot2BarLayerProcessor$format_x_value()</code>. Anything else – a
+category label – is a string. See <code>line_x_value()</code>.</p><div class="section">
 <h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Ggplot2LineLayerProcessor</span><span class="op">$</span><span class="fu">format_x_value</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -595,7 +597,7 @@ from the same Date column align string-wise.</p><div class="section">
 </dl><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
-<p>Character vector</p>
+<p>A number, or a string</p>
 </div>
 
 </div>

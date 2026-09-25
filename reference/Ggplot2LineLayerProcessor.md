@@ -583,17 +583,19 @@ Numeric vector the same length as `values`
 
 ### `Ggplot2LineLayerProcessor$format_x_value()`
 
-Format an x-axis value as character.
+Format an x-axis value for the payload.
 
-Date / POSIXct / POSIXlt values are formatted via
+A plain number stays a number, so a line over a numeric column carries
+the same x a
+[`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+over it does. Date / POSIXct / POSIXlt values are formatted via
 [`format()`](https://rdrr.io/r/base/format.html) so that a `Date` column
 emits ISO date strings (e.g. "2024-01-02") rather than the underlying
 numeric days-since-epoch representation produced by
-[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html).
-All other types use
-[`as.character()`](https://rdrr.io/r/base/character.html). Mirrors
-`Ggplot2BarLayerProcessor$format_x_value()` so bar and line layers from
-the same Date column align string-wise.
+[`ggplot_build()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html),
+which keeps them aligned string-wise with
+`Ggplot2BarLayerProcessor$format_x_value()`. Anything else – a category
+label – is a string. See `line_x_value()`.
 
 #### Usage
 
@@ -607,7 +609,7 @@ the same Date column align string-wise.
 
 #### Returns
 
-Character vector
+A number, or a string
 
 ------------------------------------------------------------------------
 
