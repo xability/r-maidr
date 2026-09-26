@@ -249,3 +249,51 @@ test_that("drawing rects one at a time gives the same document", {
 
   testthat::expect_identical(walk_doc(FALSE), walk_doc(TRUE))
 })
+
+# svglite's output as the walk read it, for tampering with below.
+walk_and_svg <- function(draw) {
+  svg_string <- maidr:::open_svg_device(3, 2)
+  dev <- grDevices::dev.cur()
+  grid::grid.newpage()
+  draw()
+  grid::grid.force()
+  grid::upViewport(0, recording = FALSE)
+  scene <- grid::grid.grab(name = "gridSVG", wrap = TRUE, gp = grid::get.gpar())
+  walk <- maidr:::walk_svg_scene(scene)
+  grDevices::dev.off(dev)
+  list(walk = walk, lines = strsplit(utils::tail(svg_string(), 1L), "\n")[[1]])
+}
+
+rebuild <- function(w, lines) {
+  maidr:::build_svg_document(w$walk, paste(lines, collapse = "\n"), 216, 144)
+}
+
+test_that("svglite output the rewrite does not know stops the export", {
+  # A later svglite writing differently must fail loudly (the chart then
+  # falls back to a picture) rather than number shapes onto the wrong grobs.
+  w <- walk_and_svg(function() grid::grid.rect(name = "r"))
+  at <- grep("^<rect x=", w$lines)[1]
+
+  testthat::expect_no_error(rebuild(w, w$lines))
+  testthat::expect_error(
+    rebuild(w, append(w$lines, "<ellipse cx='1' cy='1'/>", after = at)),
+    "could not read the SVG"
+  )
+  marks <- grep("@@maidr-svg-mark@@", w$lines)
+  testthat::expect_error(
+    rebuild(w, w$lines[-marks[1]]),
+    "markers read back"
+  )
+})
+
+test_that("more shapes than a grob can draw stops the export", {
+  w <- walk_and_svg(function() {
+    grid::grid.path(c(0.1, 0.9, 0.5), c(0.1, 0.1, 0.9), name = "tri")
+  })
+  at <- grep("^<(path|polygon) ", w$lines)[1]
+
+  testthat::expect_error(
+    rebuild(w, append(w$lines, w$lines[at], after = at)),
+    "at most 1"
+  )
+})

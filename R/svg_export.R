@@ -113,6 +113,7 @@ walk_svg_scene <- function(scene, one_at_a_time = FALSE) {
   st$one_at_a_time <- one_at_a_time
   st$batches <- vector("list", 256L)
   st$nbatch <- 0L
+  st$ndrawn <- 0L
   st$pending <- list()
   st$usage <- new.env(parent = emptyenv(), hash = TRUE)
   st$gps <- list()
@@ -146,6 +147,7 @@ svg_flush <- function(st, draw = TRUE) {
   st$nbatch <- k
   st$pending <- list()
   if (draw) {
+    st$ndrawn <- k
     grid::grid.draw(
       grid::textGrob(
         paste0(svg_marker_prefix, k),
@@ -386,10 +388,10 @@ svg_open_grob <- function(x, st) {
 
 # Draw one shape of a grob; everything svglite emits until the next marker
 # belongs to it.
-svg_element <- function(g, id, kind, st, pieces = NULL) {
+svg_element <- function(g, id, kind, st, pieces = NULL, max = 1L) {
   svg_event(st, list(
     t = "el", id = id, kind = kind, pieces = pieces, own = names(g$gp),
-    blank = svg_blank_lty(g$gp, st)
+    blank = svg_blank_lty(g$gp, st), max = max
   ))
   svg_flush(st)
   svg_draw(g, st)
@@ -457,7 +459,8 @@ svg_draw_lines <- function(lg, id, st) {
     lg$gp$col <- NA
     lg$gp$lwd <- 0
   }
-  svg_element(lg, id, "line", st, pieces)
+  # At most one piece per two points, and two heads per piece.
+  svg_element(lg, id, "line", st, pieces, max = 3L * length(lg$x))
 }
 
 # Whether a grob draws with a blank line type, its own gpar over its
@@ -537,7 +540,7 @@ svg_prim <- function(x, st) {
         x = xs[[i]], y = ys[[i]], gp = gp[i],
         default.units = x$default.units
       )
-      svg_element(pg, paste0(id, ".", i), "shape", st)
+      svg_element(pg, paste0(id, ".", i), "shape", st, max = length(xs[[i]]))
     }
   } else if ("pathgrob" %in% cls &&
     !(is.null(x$pathId) && is.null(x$pathId.lengths))) {
@@ -600,7 +603,7 @@ svg_prim <- function(x, st) {
   } else {
     # Anything else (a roundrect, a grob class of some extension) is one
     # shape as far as selectors go.
-    svg_element(x, paste0(id, ".1"), "shape", st)
+    svg_element(x, paste0(id, ".1"), "shape", st, max = Inf)
   }
   svg_event(st, list(t = "gc"))
   invisible()
@@ -681,7 +684,7 @@ svg_prim_text <- function(x, st) {
       g$rot <- rot[i]
       g$label <- labels[i]
       g$gp <- gp[i]
-      svg_element(g, paste0(id, ".", i), "text", st)
+      svg_element(g, paste0(id, ".", i), "text", st, max = Inf)
     }
   }
   svg_event(st, list(t = "gc"))
@@ -1293,6 +1296,13 @@ svg_parse_svglite <- function(svg) {
   mark <- shape & startsWith(lines, "<text") &
     grepl(svg_marker_prefix, lines, fixed = TRUE)
   kind <- ifelse(mark, "mark", ifelse(shape, "shape", "skip"))
+  known <- in_defs | shape | opens | closes | grepl(
+    "^(<\\?xml |<svg |<g class='svglite'>|</svg>|<rect width='100%'|\\s*$)",
+    lines
+  )
+  if (!all(known)) {
+    svg_unreadable(paste("an unexpected line:", lines[!known][1]))
+  }
   clip[kind == "skip"] <- NA_character_
 
   # Clip definitions, and any other definitions (gradients, patterns) kept
@@ -1335,6 +1345,26 @@ svg_clip_name <- function(frame, x, y, w, h) {
   )
 }
 
+#' Stop on svglite output the rewrite cannot vouch for
+#'
+#' The rewrite reads svglite's text output, one element per line, and
+#' attributes each shape to the grob drawn before it. A later svglite that
+#' wrote otherwise would not fail on its own: its shapes would be numbered
+#' onto the wrong grobs, and a reader would be announced one mark while
+#' another is outlined. So anything the rewrite does not recognise stops the
+#' export, and the chart falls back to a static image with a warning naming
+#' this, instead of shipping selectors that point at the wrong marks.
+#'
+#' @param what What was found.
+#' @keywords internal
+svg_unreadable <- function(what) {
+  stop(
+    "maidr could not read the SVG svglite ", as.character(utils::packageVersion("svglite")),
+    " wrote (", what, "). Please report this with your svglite version.",
+    call. = FALSE
+  )
+}
+
 svg_alpha_suffix <- function(n) {
   if (n <= 1) {
     return("")
@@ -1355,6 +1385,14 @@ svg_alpha_suffix <- function(n) {
 #' @keywords internal
 build_svg_document <- function(walk, svg, w, h) {
   p <- svg_parse_svglite(svg)
+  # Every marker the walk drew must come back, once and in order; a shape
+  # between two markers is otherwise attributed to the wrong grob.
+  if (!identical(p$mark_id, seq_len(walk$ndrawn))) {
+    svg_unreadable(sprintf(
+      "%d of %d markers read back, or out of order",
+      length(p$mark_id), walk$ndrawn
+    ))
+  }
   # svglite clips everything to at least the page; gridSVG wrote no clip
   # there, and clipping to the page clips nothing.
   page <- names(Filter(function(r) {
@@ -1423,6 +1461,12 @@ build_svg_document <- function(walk, svg, w, h) {
     if (is.null(sink)) {
       put(idx)
       return(invisible())
+    }
+    if (!is.null(sink$max) && length(idx) > sink$max) {
+      svg_unreadable(sprintf(
+        "%d shapes for %s, which draws at most %s", length(idx), sink$id,
+        sink$max
+      ))
     }
     shape_own[idx] <<- own_key(sink)
     shape_blank[idx] <<- isTRUE(sink$blank)
