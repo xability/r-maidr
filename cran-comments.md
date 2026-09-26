@@ -32,6 +32,8 @@ acknowledged it the same day.
   it downloads 14 MB and writes into the user's cache directory; every other
   example runs, or uses \donttest as agreed in the 0.1.1 review. The tests
   mock the download, so no check touches the network or the user's home.
+* SVG export moves from 'gridSVG' to 'svglite': 'gridSVG' leaves Imports
+  and 'svglite' (>= 2.1.1) joins it.
 * The package now requires R >= 4.0.0 (previously 3.5.0). New Suggests:
   'hexbin', 'vioplot', 'wordcloud', 'sm', 'gridGraphics', 'pROC',
   'yardstick', 'scales', 'tibble', 'pkgload'.
