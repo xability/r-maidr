@@ -77,6 +77,37 @@ barplot(
 show()
 ```
 
+### plotly, highcharter and echarts4r widgets
+
+[`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+makes an interactive chart from [plotly](https://plotly-r.com/)
+([`plot_ly()`](https://rdrr.io/pkg/plotly/man/plot_ly.html),
+[`ggplotly()`](https://rdrr.io/pkg/plotly/man/ggplotly.html)),
+[highcharter](https://jkunst.com/highcharter/) or
+[echarts4r](https://echarts4r.john-coene.com/) accessible. The chart is
+read in the browser by the MAIDR adapter for the library that draws it,
+so it works wherever the widget does: the viewer,
+[`htmlwidgets::saveWidget()`](https://rdrr.io/pkg/htmlwidgets/man/saveWidget.html),
+R Markdown, Quarto and Shiny.
+
+``` r
+
+library(maidr)
+library(plotly)
+
+plot_ly(mtcars, x = ~wt, y = ~mpg, type = "scatter", mode = "markers") |>
+  maidr_htmlwidget()
+
+# ggplotly() keeps your ggplot2 code
+ggplotly(ggplot(mtcars, aes(wt, mpg)) + geom_point()) |>
+  maidr_htmlwidget()
+```
+
+An echarts4r chart is switched to ECharts’ SVG renderer, which MAIDR
+needs to highlight the mark being read. While an echarts4r chart shows
+its legend, the visual highlight is off; audio, text and braille are not
+affected.
+
 ## How maidr hooks into your session
 
 - **Console.** [`library(maidr)`](https://github.com/xability/r-maidr)

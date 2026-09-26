@@ -141,6 +141,43 @@ show()
   functions mask the wrappers and their charts go unrecorded. See
   [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
+## Interactive htmlwidgets: plotly, highcharter and echarts4r
+
+[`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+takes an interactive chart drawn by plotly, highcharter or echarts4r and
+returns it with MAIDR attached. MAIDR reads the chart in the browser,
+through the adapter for the library that draws it, so the widget keeps
+working everywhere an htmlwidget does: the viewer,
+[`htmlwidgets::saveWidget()`](https://rdrr.io/pkg/htmlwidgets/man/saveWidget.html),
+this document, and Shiny, where a re-rendered chart is read again.
+
+``` r
+
+library(maidr)
+
+# plotly, including ggplotly()
+plotly::plot_ly(mtcars, x = ~wt, y = ~mpg, type = "scatter", mode = "markers") |>
+  maidr_htmlwidget()
+
+# highcharter
+highcharter::hchart(mtcars, "scatter", highcharter::hcaes(wt, mpg)) |>
+  maidr_htmlwidget()
+
+# echarts4r
+mtcars |>
+  echarts4r::e_charts(wt) |>
+  echarts4r::e_scatter(mpg) |>
+  maidr_htmlwidget()
+
+# In Shiny, wrap the widget inside its own render function
+# output$chart <- plotly::renderPlotly(maidr_htmlwidget(plotly::plot_ly(...)))
+```
+
+An echarts4r chart is switched to ECharts’ SVG renderer, which MAIDR
+needs to highlight the mark being read. While an echarts4r chart shows
+its legend, the visual highlight is off; audio, text and braille are not
+affected.
+
 ## Offline vs CDN Usage
 
 By default, [`show()`](https://r.maidr.ai/reference/show.md) and

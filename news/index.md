@@ -4,6 +4,25 @@
 
 ### New Features
 
+#### plotly, highcharter and echarts4r widgets
+
+- [`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+  makes an interactive chart drawn by plotly
+  ([`plot_ly()`](https://rdrr.io/pkg/plotly/man/plot_ly.html),
+  [`ggplotly()`](https://rdrr.io/pkg/plotly/man/ggplotly.html)),
+  highcharter or echarts4r accessible, by attaching the MAIDR JavaScript
+  adapter for the library that draws it
+  ([\#332](https://github.com/xability/r-maidr/issues/332)). The chart
+  is read in the browser once it has been drawn, so it works wherever
+  the widget does: the viewer,
+  [`htmlwidgets::saveWidget()`](https://rdrr.io/pkg/htmlwidgets/man/saveWidget.html),
+  R Markdown, Quarto and Shiny, where a re-rendered chart is read again.
+  It is pipe-friendly (`w |> maidr_htmlwidget()`) and loads the bundled
+  scripts unless `use_cdn = TRUE`. An echarts4r chart is switched to
+  ECharts’ SVG renderer, which MAIDR needs to highlight the mark being
+  read. The Highcharts and ECharts adapters are bundled beside
+  `maidr.js`, from the same verified npm release.
+
 #### maidr.js from the CDN
 
 - The CDN paths now load the latest published maidr.js, as the Python

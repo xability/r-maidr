@@ -414,6 +414,22 @@
 <span><span class="co"># Then call show() without arguments</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
+<div class="section level3">
+<h3 id="plotly-highcharter-and-echarts4r-widgets">plotly, highcharter and echarts4r widgets<a class="anchor" aria-label="anchor" href="#plotly-highcharter-and-echarts4r-widgets"></a>
+</h3>
+<p><code><a href="reference/maidr_htmlwidget.html">maidr_htmlwidget()</a></code> makes an interactive chart from <a href="https://plotly-r.com/" class="external-link">plotly</a> (<code><a href="https://rdrr.io/pkg/plotly/man/plot_ly.html" class="external-link">plot_ly()</a></code>, <code><a href="https://rdrr.io/pkg/plotly/man/ggplotly.html" class="external-link">ggplotly()</a></code>), <a href="https://jkunst.com/highcharter/" class="external-link">highcharter</a> or <a href="https://echarts4r.john-coene.com/" class="external-link">echarts4r</a> accessible. The chart is read in the browser by the MAIDR adapter for the library that draws it, so it works wherever the widget does: the viewer, <code><a href="https://rdrr.io/pkg/htmlwidgets/man/saveWidget.html" class="external-link">htmlwidgets::saveWidget()</a></code>, R Markdown, Quarto and Shiny.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://plotly-r.com" class="external-link">plotly</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/plotly/man/plot_ly.html" class="external-link">plot_ly</a></span><span class="op">(</span><span class="va">mtcars</span>, x <span class="op">=</span> <span class="op">~</span><span class="va">wt</span>, y <span class="op">=</span> <span class="op">~</span><span class="va">mpg</span>, type <span class="op">=</span> <span class="st">"scatter"</span>, mode <span class="op">=</span> <span class="st">"markers"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/maidr_htmlwidget.html">maidr_htmlwidget</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># ggplotly() keeps your ggplot2 code</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/plotly/man/ggplotly.html" class="external-link">ggplotly</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">mtcars</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">wt</span>, <span class="va">mpg</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/maidr_htmlwidget.html">maidr_htmlwidget</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>An echarts4r chart is switched to ECharts’ SVG renderer, which MAIDR needs to highlight the mark being read. While an echarts4r chart shows its legend, the visual highlight is off; audio, text and braille are not affected.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="how-maidr-hooks-into-your-session">How maidr hooks into your session<a class="anchor" aria-label="anchor" href="#how-maidr-hooks-into-your-session"></a>
@@ -869,7 +885,7 @@
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
 <p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. A knitted R Markdown or Quarto document rendered online, and any page holding a widget, also carries its own copy of maidr.js, which its charts fall back on when the CDN cannot be reached, so a <code>self_contained</code> / <code>embed-resources</code> document works offline too. Use the <code>use_cdn</code> parameter for explicit control:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force CDN: one self-contained file, needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -878,16 +894,16 @@
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The CDN paths load the <strong>latest published maidr.js</strong>, not the copy bundled with this package, as the Python binding does. The first CDN document in an R session asks jsDelivr (then the npm registry) which version that is, within 3 seconds, and every document in the session names that version. If the lookup cannot be made it costs no error: the document names the bundled version instead, the copy <code>use_cdn = FALSE</code> would serve. Pin a version when a document has to load the same maidr.js whenever it is opened:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span>  <span class="co"># the bundled version, no lookup</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span>    <span class="co"># a particular release</span></span></code></pre></div>
 <p>or set <code>MAIDR_CDN_VERSION</code> in the environment. <code>use_cdn = FALSE</code> never makes a network request. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</p>
 <p>One path still reaches the network from an offline document: connecting a <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile display</a>. maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build, and imports the vendor’s copy from jsDelivr the first time a DotPad is connected. Rendering, sonification and braille work offline regardless. To keep the DotPad offline too, download the pinned SDK once and every <code>use_cdn = FALSE</code> document carries it in its <code>lib/</code> folder:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># ~14 MB, once, into a per-user cache</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># lib/dotpad-sdk-&lt;version&gt;/ beside it</span></span></code></pre></div>
 <p>A page served from elsewhere, or a knitr document (whose charts live in <code>srcdoc</code> frames with no base URL), names its copy by URL instead, through options or the environment variables of the same names:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/lib/"</span></span>

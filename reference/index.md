@@ -9,6 +9,14 @@ Primary user-facing functions for creating accessible plots
 - [`save_html()`](https://r.maidr.ai/reference/save_html.md) : Save
   Interactive Plot as HTML File
 
+## Interactive htmlwidgets
+
+Charts drawn by plotly, highcharter and echarts4r, read by the MAIDR
+JavaScript adapter for the library that draws them
+
+- [`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+  : Make a plotly, highcharter or echarts4r htmlwidget accessible
+
 ## Declaring what a layer means
 
 Functions an author adds to a plot to say what a layer is, where the
