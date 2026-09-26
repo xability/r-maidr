@@ -467,3 +467,16 @@ test_that("lines drawn in one call are numbered as one at a time numbers them", 
       'id="gappy.1.3"')
   )
 })
+
+test_that("points in clipped panels get their clip exactly once", {
+  # A viewport or gTree group around a points grob spans the same clip log;
+  # only the grob's own group may settle it, or an attribute is written twice
+  # and the document does not parse.
+  p <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +
+    ggplot2::geom_point() +
+    ggplot2::facet_wrap(~cyl)
+  svg <- maidr:::create_enhanced_svg(ggplot2::ggplotGrob(p), list(id = "f"))
+
+  testthat::expect_false(any(grepl("clip-path=.*clip-path=", svg)))
+  testthat::expect_no_error(xml2::read_xml(paste(svg, collapse = "\n")))
+})

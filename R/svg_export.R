@@ -1804,10 +1804,16 @@ build_svg_document <- function(walk, svg, w, h) {
         gc = {
           sink <<- NULL
           put("</g>")
-          if (length(gstack)) {
-            g <- gstack[[length(gstack)]]
-            depth <- length(gstack)
+          g <- NULL
+          depth <- length(gstack)
+          if (depth) {
+            g <- gstack[[depth]]
             gstack[[depth]] <<- NULL
+          }
+          # Only a grob's own group settles its clip: a viewport or gTree
+          # group around it spans the same log entries and must not apply
+          # them again.
+          if (isTRUE(g$grob)) {
             sr <- if (is.na(lg$s0[depth])) integer(0) else lg$s0[depth]:lg$s1[depth]
             pr <- seq.int(g$p0, length.out = max(0L, lg$np - g$p0 + 1L))
             g$shapes <- sr
