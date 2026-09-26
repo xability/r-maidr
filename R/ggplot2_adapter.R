@@ -110,11 +110,11 @@ Ggplot2Adapter <- R6::R6Class(
       # the curvature is a drawing instruction that never becomes a position,
       # the conclusion xability/maidr#1094 reached for `Plot.link`'s `curve`
       # option. It was refused until #195, not on its reading but on its
-      # export -- `gridSVG` rejects the vectorised `gp` a `curve` grob
-      # carries, so claiming the layer turned a chart that rendered as a
-      # picture into a `save_html()` that raised. `split_vectorised_curve_grobs()`
-      # gives gridSVG one curve per row, which both fixes the export and is
-      # what the per-interval selectors address.
+      # export -- `gridSVG`, maidr's exporter then, rejected the vectorised
+      # `gp` a `curve` grob carries, so claiming the layer turned a chart that
+      # rendered as a picture into a `save_html()` that raised.
+      # `split_vectorised_curve_grobs()` gives the export one curve per row,
+      # which fixed it and is what the per-interval selectors address.
       #
       # A layer whose segments share nothing is an edge in a node-link
       # diagram, and goes back to "unknown" -- which is what it returns today,

@@ -10,13 +10,11 @@
 #' Emit a one-time warning when quantmod::chartSeries() is called with a
 #' non-NULL `TA` argument (e.g. `TA = "addVo()"`).
 #'
-#' The gridSVG export pipeline used to convert chartSeries' multi-panel
-#' base graphics output into an accessible HTML SVG mis-handles the volume
-#' sub-panel, producing rects with negative y coordinates that overlap the
-#' date-label band. Because gridSVG is unmaintained, maidr falls back to
-#' native (non-accessible) rendering for these calls and surfaces a
-#' one-time advisory pointing users to the ggplot2 + tidyquant + patchwork
-#' alternative which renders correctly via maidr's ggplot2 path.
+#' maidr does not read chartSeries' technical-analysis sub-panels, such as
+#' the volume panel `addVo()` adds, so it falls back to native
+#' (non-accessible) rendering for these calls and surfaces a one-time
+#' advisory pointing users to the ggplot2 + tidyquant + patchwork
+#' alternative, which maidr's ggplot2 path reads in full.
 #'
 #' @return Invisibly NULL.
 #' @keywords internal
@@ -30,8 +28,8 @@ warn_chartseries_ta_unsupported <- function() {
       paste0(
         "quantmod::chartSeries() with a `TA` argument (e.g. ",
         "`TA = \"addVo()\"`) is not supported by maidr's accessible ",
-        "HTML pipeline; the volume sub-panel does not export reliably ",
-        "from the underlying gridSVG bridge."
+        "HTML pipeline; maidr does not read the volume or other ",
+        "technical-analysis sub-panels."
       ),
       i = paste0(
         "Falling back to native (non-accessible) graphics for this plot."
@@ -839,17 +837,15 @@ BaseRAdapter <- R6::R6Class(
         # the user explicitly requests it (matching the MVP scope).
         # Other types (bars / line / matchsticks) are deferred.
         # Technical analysis overlays via the `TA` argument (e.g.
-        # `addVo()`) are also unsupported: the gridSVG export pipeline
-        # (chartSeries -> ggplotify::as.grob -> gridGraphics::grid.echo
-        # -> gridSVG::grid.export) mis-handles the multi-panel volume
-        # sub-plot, producing volume <rect>s with negative y coordinates
-        # that spill into the date-label band. gridSVG is unmaintained
-        # (last CRAN release 2017); a proper fix would require either
-        # patching gridSVG or rewriting the export pipeline. We return
-        # "unknown" (which triggers maidr's standard fallback to native
-        # graphics) and emit a one-time warning steering users to the
-        # working ggplot2 + tidyquant + patchwork path for accessible
-        # price+volume charts.
+        # `addVo()`) are also unsupported: no processor reads the
+        # sub-panels. They were refused first because gridSVG mis-exported
+        # the volume panel (rects with negative y spilling into the
+        # date-label band); the svglite export draws it correctly, so
+        # supporting them now only needs a processor. We return "unknown"
+        # (which triggers maidr's standard fallback to native graphics)
+        # and emit a one-time warning steering users to the working
+        # ggplot2 + tidyquant + patchwork path for accessible price+volume
+        # charts.
         "chartSeries" = {
           ct <- args$type
           ta <- args$TA

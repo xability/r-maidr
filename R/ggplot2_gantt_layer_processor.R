@@ -275,10 +275,10 @@ label_names_its_lane <- function(label, break_value) {
 #' inverted from a pixel: the four columns \code{x}, \code{xend}, \code{y} and
 #' \code{yend} are the interval and the lane the caller wrote.
 #'
-#' \code{geom_curve()} computes the same four columns and would read the same
-#' way, but is not claimed -- \code{gridSVG} cannot export the \code{curve}
-#' grob it draws, so reading it would turn a curve chart from a static image
-#' into a \code{save_html()} that raises. See the adapter's own note.
+#' \code{geom_curve()} computes the same four columns and reads the same way.
+#' Its vectorised \code{curve} grob is split into one curve per row by
+#' \code{split_vectorised_curve_grobs()} before export (#195), which is what
+#' the per-interval selectors address. See the adapter's own note.
 #'
 #' A declared rectangle layer has none of those four columns -- it builds
 #' \code{xmin}, \code{xmax}, \code{ymin} and \code{ymax} -- so

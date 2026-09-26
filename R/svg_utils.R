@@ -1010,8 +1010,8 @@ adjust_chartseries_bracket_doc <- function(svg_doc) {
 #' Strip the bottom axis line and tick marks from chartSeries candlestick SVG
 #'
 #' quantmod::chartSeries() emits a bottom date axis (axis line, tick
-#' marks, and "Jan 12 2024" labels) via gridSVG. The axis line and
-#' tick marks are drawn slightly off-center from the candles (gridSVG
+#' marks, and "Jan 12 2024" labels). The axis line and
+#' tick marks are drawn slightly off-center from the candles (chartSeries
 #' places ticks at evenly-spaced positions that do not always coincide
 #' with the candle centers), which reads as a visual misalignment.
 #' This helper removes the axis line and tick marks but preserves the
@@ -1468,7 +1468,7 @@ create_html_document <- function(svg_content, use_cdn = NULL) {
   # The wrapping <div class="maidr-page"> together with the
   # `maidr_responsive_dependency()` injection below provides a viewport
   # meta tag and CSS that center the SVG and let it scale fluidly with
-  # the browser window. Without this, gridSVG's fixed-px width/height
+  # the browser window. Without this, the exported SVG's fixed-px width/height
   # on the <svg> leaves the chart pinned at its intrinsic 720x360
   # rendering size, producing the "tiny chart in the upper-left of a
   # huge empty page" appearance reported for base R candlestick output.
@@ -1523,8 +1523,8 @@ maidr_responsive_dependency <- function() {
     '  .maidr-page svg {',
     '    max-width: 100%; max-height: calc(100vh - 32px);',
     '    width: auto; height: auto;',
-    # IMPORTANT: do NOT set `overflow: visible` here. gridSVG export of
-    # quantmod::chartSeries emits volume <rect> elements with negative-y
+    # IMPORTANT: do NOT set `overflow: visible` here. gridSVG's export of
+    # quantmod::chartSeries emitted volume <rect> elements with negative-y
     # coordinates (e.g. y="-43.3", height up to ~165) that depend on the
     # SVG root's default `overflow: hidden` to clip the un-rendered
     # portion. `overflow: visible` un-clips those rectangles and causes

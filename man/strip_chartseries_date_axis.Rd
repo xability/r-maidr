@@ -18,8 +18,8 @@ fails, returns \code{svg_content} unchanged.
 }
 \description{
 quantmod::chartSeries() emits a bottom date axis (axis line, tick
-marks, and "Jan 12 2024" labels) via gridSVG. The axis line and
-tick marks are drawn slightly off-center from the candles (gridSVG
+marks, and "Jan 12 2024" labels). The axis line and
+tick marks are drawn slightly off-center from the candles (chartSeries
 places ticks at evenly-spaced positions that do not always coincide
 with the candle centers), which reads as a visual misalignment.
 This helper removes the axis line and tick marks but preserves the
