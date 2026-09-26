@@ -1330,6 +1330,97 @@ join_selector_list <- function(selectors) {
   paste(unlist(entries, use.names = FALSE), collapse = ", ")
 }
 
+#' Hand `jsonlite` each run of flat records as a data frame
+#'
+#' A layer's `data` is usually one small named list per point, and
+#' `jsonlite::toJSON()` serializes a list element by element through S4
+#' dispatch: 10,000 points took 2 s of a 5 s ggplot2 render, more than the
+#' SVG export. A data frame with the same columns is serialized row-wise in
+#' one vectorised pass and yields byte-identical JSON under the options
+#' [set_maidr_data_attr()] uses (`auto_unbox`, `na = "null"`, `digits = NA`),
+#' in about a hundredth of the time.
+#'
+#' Only a run that is certain to serialize identically is converted: an
+#' unnamed list of named lists that all have the same field names in the
+#' same order, each field one attribute-free logical, integer, double or
+#' character value of the same type in every record. Anything else -- a
+#' nested value, a ragged or mixed-type field, a factor or date, a
+#' zero-length value (which serializes as `[]`, not `null`) -- is left as a
+#' list and recursed into, so the output never changes, only its cost.
+#'
+#' @param node A maidr-data node (list, or a leaf)
+#' @return The node with record runs replaced by data frames
+#' @keywords internal
+records_as_frames <- function(node) {
+  if (!is.list(node) || is.data.frame(node) || length(node) == 0) {
+    return(node)
+  }
+  if (is_record_run(node)) {
+    fields <- names(node[[1]])
+    columns <- lapply(fields, function(field) {
+      unlist(lapply(node, .subset2, field), use.names = FALSE)
+    })
+    names(columns) <- fields
+    return(structure(
+      columns,
+      class = "data.frame",
+      row.names = .set_row_names(length(node))
+    ))
+  }
+  node[] <- lapply(node, records_as_frames)
+  node
+}
+
+#' Whether a list is a run of flat, uniformly typed records
+#'
+#' The first record sets the field names and types every other record must
+#' match exactly.
+#'
+#' @param node A non-empty list
+#' @return `TRUE` when [records_as_frames()] may convert `node`
+#' @keywords internal
+is_record_run <- function(node) {
+  first <- node[[1]]
+  if (!is.null(names(node)) || !is.list(first)) {
+    return(FALSE)
+  }
+  fields <- names(first)
+  types <- vapply(first, typeof, character(1), USE.NAMES = FALSE)
+  if (!is_record_schema(fields, types)) {
+    return(FALSE)
+  }
+  all(vapply(node, is_flat_record, logical(1), fields = fields, types = types))
+}
+
+#' Whether field names and types can head a data frame column for column
+#'
+#' @param fields The first record's names
+#' @param types The first record's field types
+#' @return `TRUE` for unique, non-empty names over scalar-capable types
+#' @keywords internal
+is_record_schema <- function(fields, types) {
+  length(fields) > 0 &&
+    !anyNA(fields) &&
+    all(nzchar(fields)) &&
+    !anyDuplicated(fields) &&
+    all(types %in% c("logical", "integer", "double", "character"))
+}
+
+#' Whether one record matches the run's fields and types exactly
+#'
+#' @param record A candidate record
+#' @param fields The run's field names, in order
+#' @param types The run's field types, in order
+#' @return `TRUE` when every field is one attribute-free value of its type
+#' @keywords internal
+is_flat_record <- function(record, fields, types) {
+  is.list(record) &&
+    identical(attributes(record), list(names = fields)) &&
+    all(lengths(record, use.names = FALSE) == 1L) &&
+    identical(vapply(record, typeof, character(1), USE.NAMES = FALSE), types) &&
+    all(vapply(record, function(value) is.null(attributes(value)), logical(1)))
+}
+
 #' Serialize maidr_data and set it as the SVG root's maidr-data attribute
 #'
 #' Mutates `svg_doc` in place.
@@ -1350,7 +1441,7 @@ set_maidr_data_attr <- function(svg_doc, maidr_data) {
   # decimal digits silently rounds data values (0.123456 -> 0.1235) in
   # the announced output.
   maidr_json <- jsonlite::toJSON(
-    maidr_data,
+    records_as_frames(maidr_data),
     auto_unbox = TRUE,
     na = "null",
     digits = NA
