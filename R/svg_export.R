@@ -684,7 +684,14 @@ svg_prim_text <- function(x, st) {
       g$rot <- rot[i]
       g$label <- labels[i]
       g$gp <- gp[i]
-      svg_element(g, paste0(id, ".", i), "text", st, max = Inf)
+      # One <text> per line of a plain label; a plotmath expression is set
+      # in as many pieces as it has parts, so it has no fixed bound.
+      lines_max <- if (is.language(g$label)) {
+        Inf
+      } else {
+        lengths(regmatches(as.character(g$label), gregexpr("\n", as.character(g$label)))) + 1L
+      }
+      svg_element(g, paste0(id, ".", i), "text", st, max = lines_max)
     }
   }
   svg_event(st, list(t = "gc"))

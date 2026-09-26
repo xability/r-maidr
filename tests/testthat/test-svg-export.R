@@ -371,3 +371,17 @@ test_that("a zero-size point keeps its element with a valid stroke width", {
   testthat::expect_equal(xml2::xml_attr(uses, "id"), c("dots.1.1", "dots.1.2"))
   testthat::expect_false(any(grepl("Inf|NaN", as.character(doc))))
 })
+
+test_that("more texts than a label has lines stops the export", {
+  w <- walk_and_svg(function() grid::grid.text("one line", name = "t1"))
+  at <- grep("^<text .*>one line</text>$", w$lines)[1]
+
+  testthat::expect_no_error(rebuild(w, w$lines))
+  testthat::expect_error(
+    rebuild(w, append(w$lines, w$lines[at], after = at)),
+    "at most 1"
+  )
+  # A label of two lines draws two texts, and that is fine.
+  w2 <- walk_and_svg(function() grid::grid.text("a\nb", name = "t2"))
+  testthat::expect_no_error(rebuild(w2, w2$lines))
+})
