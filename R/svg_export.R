@@ -761,6 +761,9 @@ svg_prim_points <- function(x, st) {
   if (!is.numeric(pch)) {
     chars <- as.character(pch)
     num <- suppressWarnings(as.numeric(chars))
+    # As gridSVG read it: a digit string ("3") is taken as the plotting
+    # symbol of that number, not the digit glyph R itself would draw. Kept,
+    # since the symbol a point references is part of what was exported.
     is_code <- !is.na(num) & chars %in% as.character(c(0:25, 32:127))
     pch <- ifelse(
       is_code, num,
@@ -825,6 +828,9 @@ svg_prim_points <- function(x, st) {
     transform <- paste0(" ", transform)
   }
   scale_sw <- round(sw / (size / 10), 2)
+  # A zero-size point draws nothing; gridSVG wrote its stroke as Inf, which
+  # is no valid attribute value.
+  scale_sw[!is.finite(scale_sw)] <- 0
   extra <- rep("", n)
   is_char <- which(pch > 25 & pch != 46)
   scale_sw[is_char] <- "0.1"
@@ -955,11 +961,18 @@ svg_font_aliases <- local({
     prev <- grDevices::dev.cur()
     get_svg <- open_svg_device(1, 1)
     dev <- grDevices::dev.cur()
+    closed <- FALSE
+    # Whatever happens drawing, the probe's device is closed and the
+    # caller's made current again.
+    on.exit({
+      if (!closed && dev %in% grDevices::dev.list()) grDevices::dev.off(dev)
+      if (prev > 1 && prev %in% grDevices::dev.list()) grDevices::dev.set(prev)
+    })
     for (fam in c("sans", "serif", "mono")) {
       grid::grid.text("x", gp = grid::gpar(fontfamily = fam))
     }
     grDevices::dev.off(dev)
-    if (prev > 1 && prev %in% grDevices::dev.list()) grDevices::dev.set(prev)
+    closed <- TRUE
     svg <- utils::tail(get_svg(), 1L)
     fams <- regmatches(svg, gregexpr("font-family: \"[^\"]*\"", svg))[[1]]
     fams <- sub("font-family: \"([^\"]*)\"", "\\1", fams)

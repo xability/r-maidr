@@ -358,3 +358,16 @@ test_that("a clip covering the whole page is left off", {
   testthat::expect_true(is.na(xml2::xml_attr(by_id(doc, "whole.1"), "clip-path")))
   testthat::expect_length(xml2::xml_find_all(doc, "//s:clipPath", svg_ns), 0L)
 })
+
+test_that("a zero-size point keeps its element with a valid stroke width", {
+  doc <- export_scene(function() {
+    grid::grid.points(
+      x = grid::unit(c(0.3, 0.6), "npc"), y = grid::unit(c(0.5, 0.5), "npc"),
+      size = grid::unit(c(0, 2), "mm"), pch = 19, name = "dots"
+    )
+  })
+  uses <- xml2::xml_children(by_id(doc, "dots.1"))
+
+  testthat::expect_equal(xml2::xml_attr(uses, "id"), c("dots.1.1", "dots.1.2"))
+  testthat::expect_false(any(grepl("Inf|NaN", as.character(doc))))
+})
