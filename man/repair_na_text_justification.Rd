@@ -30,8 +30,9 @@ a usable justification passes through untouched. 0.5 is exactly what grid
 resolves NA to for the \code{just = "centre"} these grobs declare, so the drawn
 output is byte-identical.
 
-This is an upstream gridSVG/gridGraphics incompatibility rather than
-anything maidr introduced; drop this repair if gridSVG ever handles NA
-justification itself.
+This was an upstream gridSVG/gridGraphics incompatibility rather than
+anything maidr introduced. The svglite export leaves justification to grid
+and does not need it; it is kept because it changes nothing grid draws and
+costs one pass over the tree.
 }
 \keyword{internal}

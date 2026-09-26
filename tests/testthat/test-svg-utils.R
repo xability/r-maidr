@@ -158,7 +158,6 @@ test_that("create_enhanced_svg function exists", {
 })
 
 test_that("create_enhanced_svg works with simple grob", {
-  testthat::skip_if_not_installed("gridSVG")
   testthat::skip_if_not_installed("ggplot2")
 
   # Create a simple ggplot and get its grob
@@ -266,14 +265,15 @@ test_that("repair_na_text_justification is a no-op on a ggplot2 gtable", {
   testthat::expect_equal(count_na_justified_text(gt), 0)
 })
 
-test_that("a base R pie grob is exportable only after the repair", {
-  testthat::skip_if_not_installed("gridSVG")
+test_that("a base R pie grob exports with or without the repair", {
   testthat::skip_if_not_installed("ggplotify")
 
   grob <- echo_base_r_grob(function() graphics::pie(c(A = 1, B = 2, C = 3)))
 
-  # One NA-justified text grob per wedge label; barplot() has none, which is
-  # what pins the failure on these grobs rather than on the export as a whole.
+  # One NA-justified text grob per wedge label; barplot() has none. gridSVG
+  # 1.7.7 aborted the whole export on these ("missing value where TRUE/FALSE
+  # needed"); the svglite export leaves justification to grid, which draws
+  # them either way, and the repair must not change what is exported.
   testthat::expect_equal(count_na_justified_text(grob), 3)
   testthat::expect_equal(
     count_na_justified_text(
@@ -283,24 +283,17 @@ test_that("a base R pie grob is exportable only after the repair", {
   )
 
   export <- function(g) {
-    file <- tempfile(fileext = ".svg")
-    on.exit(unlink(file), add = TRUE)
-    grDevices::pdf(NULL)
-    on.exit(grDevices::dev.off(), add = TRUE)
-    grid::grid.newpage()
-    grid::grid.draw(g)
-    tryCatch(
-      {
-        gridSVG::grid.export(file, res = 100)
-        NA_character_
-      },
-      error = function(e) conditionMessage(e)
-    )
+    svg <- maidr:::create_enhanced_svg(g, list(id = "pie"))
+    ids <- regmatches(svg, gregexpr('id="[^"]*"', svg))
+    unlist(ids)
   }
 
-  testthat::expect_match(export(grob), "missing value where TRUE/FALSE needed")
-  testthat::expect_true(
-    is.na(export(maidr:::repair_na_text_justification(grob)))
+  raw <- export(grob)
+  repaired <- export(maidr:::repair_na_text_justification(grob))
+  testthat::expect_true(any(grepl("graphics-plot-1-text-", raw)))
+  testthat::expect_identical(
+    raw[!grepl("maidr-clip-", raw)],
+    repaired[!grepl("maidr-clip-", repaired)]
   )
 })
 

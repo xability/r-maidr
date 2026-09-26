@@ -311,7 +311,6 @@ test_that("vioplot is classified as a plot-creating call", {
 
 test_that("a vioplot call renders to HTML carrying both layers", {
   skip_if_no_vioplot()
-  skip_if_not_installed("gridSVG")
   s <- violin_samples()
 
   out <- tempfile(fileext = ".html")

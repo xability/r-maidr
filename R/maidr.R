@@ -199,11 +199,13 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 #'
 #' `should_fallback()` answers whether the recorded layers are ones maidr can
 #' read. It cannot answer whether the plot can be *exported*, because that is
-#' gridSVG's question and gridSVG is not consulted until the export runs. Two
-#' base R charts fail there on plots that pass the gate -- `matplot()` with
-#' "non-numeric argument to binary operator" and `symbols()` with gridSVG's
-#' own "We shouldn't be here!" assertion, both raised inside `grid.export()`
-#' rather than by anything this package computes.
+#' the exporter's question and the exporter is not consulted until the export
+#' runs. When maidr exported through gridSVG, two base R charts failed there
+#' on plots that pass the gate -- `matplot()` with "non-numeric argument to
+#' binary operator" and `symbols()` with gridSVG's own "We shouldn't be here!"
+#' assertion, both raised inside `grid.export()` rather than by anything this
+#' package computes. The svglite export draws both, but an export can still
+#' throw.
 #'
 #' Left to propagate, those kill the save outright: the caller gets neither
 #' the interactive chart nor the static image, and an error naming a package
