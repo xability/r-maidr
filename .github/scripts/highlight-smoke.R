@@ -10,7 +10,7 @@
 # show that the browser side of the test is alive.
 #
 # The area family is here too: `geom_area()` (single, stacked, filled),
-# `geom_ribbon()`, `geom_polygon()` and Base R `cdplot()`. gridSVG exports
+# `geom_ribbon()`, `geom_polygon()` and Base R `cdplot()`. maidr exports
 # every one of them as a `<polygon>`, which the frontend's line model did
 # not read before maidr.js 4.10.0 (xability/maidr#1273), so up to 4.9.0
 # they announced every point and outlined none.

@@ -107,7 +107,7 @@ open_maidr_temp_device <- function() {
   }
 
   temp_file <- tempfile(fileext = ".pdf")
-  # Match the gridSVG export device size (R/svg_utils.R) so that grobs
+  # Match the SVG export device size (R/svg_utils.R) so that grobs
   # drawn here are not resampled into a different aspect ratio. A
   # mismatch causes chartSeries title/date bracket to be clipped and
   # x-axis tick labels (month/year) to overlap on export.

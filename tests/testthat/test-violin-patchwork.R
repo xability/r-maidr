@@ -27,7 +27,7 @@ point_plot <- function() {
 # the exported SVG, so selectors can be checked against the document they are
 # meant to address.
 #
-# A full render is ~4 s (ggplot_build + patchworkGrob + grid.draw + gridSVG),
+# A full render is ~4 s (ggplot_build + patchworkGrob + grid.draw + SVG export),
 # and several tests assert different things about the same composition, so
 # results are cached per named composition for the duration of the file.
 payload_cache <- new.env(parent = emptyenv())

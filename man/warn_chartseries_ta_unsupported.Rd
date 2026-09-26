@@ -11,12 +11,10 @@ warn_chartseries_ta_unsupported()
 Invisibly NULL.
 }
 \description{
-The gridSVG export pipeline used to convert chartSeries' multi-panel
-base graphics output into an accessible HTML SVG mis-handles the volume
-sub-panel, producing rects with negative y coordinates that overlap the
-date-label band. Because gridSVG is unmaintained, maidr falls back to
-native (non-accessible) rendering for these calls and surfaces a
-one-time advisory pointing users to the ggplot2 + tidyquant + patchwork
-alternative which renders correctly via maidr's ggplot2 path.
+maidr does not read chartSeries' technical-analysis sub-panels, such as
+the volume panel \code{addVo()} adds, so it falls back to native
+(non-accessible) rendering for these calls and surfaces a one-time
+advisory pointing users to the ggplot2 + tidyquant + patchwork
+alternative, which maidr's ggplot2 path reads in full.
 }
 \keyword{internal}
