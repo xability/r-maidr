@@ -6,10 +6,10 @@ is how ggplot2 draws a schedule, a range plot and a high-low chart.
 ggplot_build computes both ends and the lane exactly, so nothing is
 inverted from a pixel: the four columns x, xend, y and
 yend are the interval and the lane the caller wrote.
-geom_curve() computes the same four columns and would read the same
-way, but is not claimed – gridSVG cannot export the curve
-grob it draws, so reading it would turn a curve chart from a static image
-into a save_html() that raises. See the adapter's own note.
+geom_curve() computes the same four columns and reads the same way.
+Its vectorised curve grob is split into one curve per row by
+split_vectorised_curve_grobs() before export (#195), which is what
+the per-interval selectors address. See the adapter's own note.
 A declared rectangle layer has none of those four columns – it builds
 xmin, xmax, ymin and ymax – so
 rect_gantt_frame() renames its bounds into them before anything
@@ -26,10 +26,10 @@ is how ggplot2 draws a schedule, a range plot and a high-low chart.
 ggplot_build computes both ends and the lane exactly, so nothing is
 inverted from a pixel: the four columns x, xend, y and
 yend are the interval and the lane the caller wrote.
-geom_curve() computes the same four columns and would read the same
-way, but is not claimed – gridSVG cannot export the curve
-grob it draws, so reading it would turn a curve chart from a static image
-into a save_html() that raises. See the adapter's own note.
+geom_curve() computes the same four columns and reads the same way.
+Its vectorised curve grob is split into one curve per row by
+split_vectorised_curve_grobs() before export (#195), which is what
+the per-interval selectors address. See the adapter's own note.
 A declared rectangle layer has none of those four columns – it builds
 xmin, xmax, ymin and ymax – so
 rect_gantt_frame() renames its bounds into them before anything
@@ -71,10 +71,10 @@ is how ggplot2 draws a schedule, a range plot and a high-low chart.
 ggplot_build computes both ends and the lane exactly, so nothing is
 inverted from a pixel: the four columns x, xend, y and
 yend are the interval and the lane the caller wrote.
-geom_curve() computes the same four columns and would read the same
-way, but is not claimed – gridSVG cannot export the curve
-grob it draws, so reading it would turn a curve chart from a static image
-into a save_html() that raises. See the adapter&#x27;s own note.
+geom_curve() computes the same four columns and reads the same way.
+Its vectorised curve grob is split into one curve per row by
+split_vectorised_curve_grobs() before export (#195), which is what
+the per-interval selectors address. See the adapter&#x27;s own note.
 A declared rectangle layer has none of those four columns – it builds
 xmin, xmax, ymin and ymax – so
 rect_gantt_frame() renames its bounds into them before anything
@@ -90,7 +90,7 @@ continuous and lane_names() reads levels off a discrete one.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-16">
+<meta name="DC.date" content="2026-09-26">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -147,10 +147,10 @@ is how ggplot2 draws a schedule, a range plot and a high-low chart.
 <code>ggplot_build</code> computes both ends and the lane exactly, so nothing is
 inverted from a pixel: the four columns <code>x</code>, <code>xend</code>, <code>y</code> and
 <code>yend</code> are the interval and the lane the caller wrote.</p>
-<p><code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_curve()</a></code> computes the same four columns and would read the same
-way, but is not claimed – <code>gridSVG</code> cannot export the <code>curve</code>
-grob it draws, so reading it would turn a curve chart from a static image
-into a <code><a href="save_html.html">save_html()</a></code> that raises. See the adapter's own note.</p>
+<p><code><a href="https://ggplot2.tidyverse.org/reference/geom_segment.html" class="external-link">geom_curve()</a></code> computes the same four columns and reads the same way.
+Its vectorised <code>curve</code> grob is split into one curve per row by
+<code><a href="split_vectorised_curve_grobs.html">split_vectorised_curve_grobs()</a></code> before export (#195), which is what
+the per-interval selectors address. See the adapter's own note.</p>
 <p>A declared rectangle layer has none of those four columns – it builds
 <code>xmin</code>, <code>xmax</code>, <code>ymin</code> and <code>ymax</code> – so
 <code><a href="rect_gantt_frame.html">rect_gantt_frame()</a></code> renames its bounds into them before anything

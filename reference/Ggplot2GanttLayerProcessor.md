@@ -13,10 +13,10 @@ nothing is inverted from a pixel: the four columns `x`, `xend`, `y` and
 `yend` are the interval and the lane the caller wrote.
 
 [`geom_curve()`](https://ggplot2.tidyverse.org/reference/geom_segment.html)
-computes the same four columns and would read the same way, but is not
-claimed – `gridSVG` cannot export the `curve` grob it draws, so reading
-it would turn a curve chart from a static image into a
-[`save_html()`](https://r.maidr.ai/reference/save_html.md) that raises.
+computes the same four columns and reads the same way. Its vectorised
+`curve` grob is split into one curve per row by
+[`split_vectorised_curve_grobs()`](https://r.maidr.ai/reference/split_vectorised_curve_grobs.md)
+before export (#195), which is what the per-interval selectors address.
 See the adapter's own note.
 
 A declared rectangle layer has none of those four columns – it builds

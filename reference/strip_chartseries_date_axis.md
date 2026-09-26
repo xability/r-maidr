@@ -1,8 +1,8 @@
 # Strip the bottom axis line and tick marks from chartSeries candlestick SVG
 
 quantmod::chartSeries() emits a bottom date axis (axis line, tick marks,
-and "Jan 12 2024" labels) via gridSVG. The axis line and tick marks are
-drawn slightly off-center from the candles (gridSVG places ticks at
+and "Jan 12 2024" labels). The axis line and tick marks are drawn
+slightly off-center from the candles (chartSeries places ticks at
 evenly-spaced positions that do not always coincide with the candle
 centers), which reads as a visual misalignment. This helper removes the
 axis line and tick marks but preserves the date labels themselves so the
