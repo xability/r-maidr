@@ -18,7 +18,6 @@
 
 test_that("a ggplot that fails to build is drawn once, not recursively", {
   skip_if_not_installed("ggplot2")
-  skip_if_not_installed("gridSVG")
 
   p <- ggplot2::ggplot(
     data.frame(x = c("a", "b"), y = c(1, 2)),

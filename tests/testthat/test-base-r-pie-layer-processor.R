@@ -397,7 +397,6 @@ test_that("the Base R processor factory serves a pie processor", {
 test_that("a rendered Base R pie carries the flat wire format", {
   testthat::skip_if_not_installed("jsonlite")
   testthat::skip_if_not_installed("xml2")
-  testthat::skip_if_not_installed("gridSVG")
 
   maidr:::clear_all_device_storage()
   grDevices::pdf(NULL)

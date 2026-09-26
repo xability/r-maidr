@@ -30,6 +30,7 @@ A rect at \verb{(y, h)} with \code{h < 0} covers the same pixels as one at
 \verb{(y + h, |h|)}, so the drawing is unchanged -- only the arithmetic gridSVG
 does with it. The same holds for \code{x} and a negative width.
 
-Drop this repair if gridSVG ever handles negative dimensions itself.
+The svglite export draws negative extents correctly; the repair is kept
+because it changes nothing drawn.
 }
 \keyword{internal}
