@@ -111,7 +111,7 @@ export_svg_scene <- function(svg_string, width, height) {
 walk_svg_scene <- function(scene, one_at_a_time = FALSE) {
   st <- new.env(parent = emptyenv())
   st$one_at_a_time <- one_at_a_time
-  st$batches <- vector("list", 256L)
+  st$bat <- new.env(parent = emptyenv(), hash = TRUE)
   st$nbatch <- 0L
   st$ndrawn <- 0L
   st$pending <- list()
@@ -123,7 +123,10 @@ walk_svg_scene <- function(scene, one_at_a_time = FALSE) {
   svg_walk_grob(scene, st)
   # Events after the last shape need no marker; they close the document.
   svg_flush(st, draw = FALSE)
-  st$batches <- st$batches[seq_len(st$nbatch)]
+  st$batches <- unname(mget(
+    as.character(seq_len(st$nbatch)), envir = st$bat, inherits = FALSE
+  ))
+  st$bat <- NULL
   st
 }
 
@@ -140,26 +143,28 @@ svg_flush <- function(st, draw = TRUE) {
     return(invisible())
   }
   k <- st$nbatch + 1L
-  if (k > length(st$batches)) {
-    length(st$batches) <- 2L * length(st$batches)
-  }
-  st$batches[[k]] <- st$pending
+  # Kept in an environment: assigning into a list held by `st` copies the
+  # whole list each time, which made a grob of many elements quadratic.
+  assign(as.character(k), st$pending, envir = st$bat)
   st$nbatch <- k
   st$pending <- list()
   if (draw) {
     st$ndrawn <- k
-    grid::grid.draw(
-      grid::textGrob(
-        paste0(svg_marker_prefix, k),
-        x = 0, y = 0, just = c("left", "bottom"),
+    # One template, relabelled: building and validating a fresh grob for
+    # each of thousands of markers was a fifth of a large export.
+    if (is.null(st$marker)) {
+      st$marker <- grid::textGrob(
+        "", x = 0, y = 0, just = c("left", "bottom"),
         gp = grid::gpar(
           col = NA, fontsize = 1, cex = 1, alpha = 1,
           fontfamily = "", fontface = 1, lineheight = 1
         ),
         name = "maidr.svg.marker"
-      ),
-      recording = FALSE
-    )
+      )
+    }
+    marker <- st$marker
+    marker$label <- paste0(svg_marker_prefix, k)
+    grid::grid.draw(marker, recording = FALSE)
   }
   invisible()
 }
@@ -423,6 +428,57 @@ svg_expand_gp <- function(gp, n) {
   gp
 }
 
+# Element `i` of an expanded gpar. grid's `[.gpar` recycles every setting to
+# full length on each call, which made taking every element quadratic.
+svg_gp_at <- function(gp, i) {
+  structure(lapply(unclass(gp), function(v) v[[i]]), class = "gpar")
+}
+
+# How many pieces each id of a polyline draws: runs of at least two finite
+# points. NULL when the grob is better walked one id at a time (ids out of
+# order, or every id already one piece is still fine here).
+svg_polyline_pieces <- function(x) {
+  ids <- svg_split_ids(x)
+  if (anyNA(ids) || is.unsorted(ids)) {
+    return(NULL)
+  }
+  xs <- suppressWarnings(grid::convertX(x$x, "inches", valueOnly = TRUE))
+  ys <- suppressWarnings(grid::convertY(x$y, "inches", valueOnly = TRUE))
+  if (length(xs) != length(ids) || length(ys) != length(ids)) {
+    return(NULL)
+  }
+  ok <- is.finite(xs) & is.finite(ys)
+  n <- length(ids)
+  start <- c(TRUE, ids[-1] != ids[-n] | ok[-1] != ok[-n])
+  run <- cumsum(start)
+  len <- tabulate(run)
+  first <- which(start)
+  piece <- ok[first] & len >= 2L
+  levels <- sort(unique(ids))
+  as.integer(tabulate(match(ids[first][piece], levels), length(levels)))
+}
+
+# Whether any element of a grob draws with a blank line type.
+svg_any_blank <- function(gp, st) {
+  lty <- grid::get.gpar("lty")[[1]]
+  for (g in c(st$gps, list(gp))) {
+    if (!is.null(g) && !is.null(g$lty)) lty <- g$lty
+  }
+  any(as.character(lty) %in% c("blank", "0"))
+}
+
+# A grob drawn in one call, its shapes numbered in order: for a lines grob
+# of many elements (segments, a polyline per id) the per-element walk draws
+# a marker and the element for each, which dominated large exports.
+svg_run <- function(x, id, n, st, per = NULL) {
+  svg_event(st, list(
+    t = "run", id = id, n = n, own = names(x$gp),
+    blank = svg_blank_lty(x$gp, st), per = per
+  ))
+  svg_flush(st)
+  svg_draw(x, st)
+}
+
 svg_expand_arrow <- function(arrow, n) {
   if (!is.null(arrow)) {
     for (i in seq_along(arrow)) arrow[[i]] <- rep(arrow[[i]], length.out = n)
@@ -456,6 +512,12 @@ svg_line_pieces <- function(x, y) {
     x0 = loc$x[starts[keep]] * 72,
     y0 = page_h - loc$y[starts[keep]] * 72
   )
+}
+
+# A lines grob to fill in per element. Building each with linesGrob() ran
+# its validation every time; the units and gpar filled in are already valid.
+svg_lines_template <- function() {
+  grid::linesGrob(x = grid::unit(0:1, "npc"), y = grid::unit(0:1, "npc"))
 }
 
 svg_draw_lines <- function(lg, id, st) {
@@ -505,36 +567,51 @@ svg_prim <- function(x, st) {
   }
 
   id <- svg_open_grob(x, st)
-  if ("polyline" %in% cls) {
+  fast <- !isTRUE(st$one_at_a_time) && is.null(x$arrow) &&
+    !svg_any_blank(x$gp, st)
+  per <- if ("polyline" %in% cls && fast) svg_polyline_pieces(x) else NULL
+  if (!is.null(per)) {
+    # One call draws every id's pieces, in id order; the pieces each id
+    # breaks into are known, so they are numbered as one at a time would.
+    svg_run(x, id, sum(per), st, per = per)
+  } else if ("segments" %in% cls && fast &&
+    svg_all_finite(x$x0, x$y0, x$x1, x$y1)) {
+    svg_run(
+      x, id, max(length(x$x0), length(x$x1), length(x$y0), length(x$y1)), st
+    )
+  } else if ("polyline" %in% cls) {
     ids <- svg_split_ids(x)
     xs <- split(x$x, ids)
     ys <- split(x$y, ids)
     n <- length(xs)
     gp <- svg_expand_gp(x$gp, n)
     arrows <- svg_expand_arrow(x$arrow, n)
+    tmpl <- svg_lines_template()
     for (i in seq_len(n)) {
-      lg <- grid::linesGrob(
-        x = xs[[i]], y = ys[[i]], gp = gp[i], arrow = arrows[i],
-        default.units = x$default.units
-      )
+      lg <- tmpl
+      lg$x <- xs[[i]]
+      lg$y <- ys[[i]]
+      lg$gp <- svg_gp_at(gp, i)
+      lg$arrow <- arrows[i]
       svg_draw_lines(lg, paste0(id, ".", i), st)
     }
   } else if ("segments" %in% cls) {
     n <- max(length(x$x0), length(x$x1), length(x$y0), length(x$y1))
     gp <- svg_expand_gp(x$gp, n)
     arrows <- svg_expand_arrow(x$arrow, n)
+    tmpl <- svg_lines_template()
     for (i in seq_len(n)) {
-      lg <- grid::linesGrob(
-        grid::unit.c(
-          x$x0[(i - 1) %% length(x$x0) + 1],
-          x$x1[(i - 1) %% length(x$x1) + 1]
-        ),
-        grid::unit.c(
-          x$y0[(i - 1) %% length(x$y0) + 1],
-          x$y1[(i - 1) %% length(x$y1) + 1]
-        ),
-        arrow = arrows[i], default.units = x$default.units, gp = gp[i]
+      lg <- tmpl
+      lg$x <- grid::unit.c(
+        x$x0[(i - 1) %% length(x$x0) + 1],
+        x$x1[(i - 1) %% length(x$x1) + 1]
       )
+      lg$y <- grid::unit.c(
+        x$y0[(i - 1) %% length(x$y0) + 1],
+        x$y1[(i - 1) %% length(x$y1) + 1]
+      )
+      lg$gp <- svg_gp_at(gp, i)
+      lg$arrow <- arrows[i]
       svg_draw_lines(lg, paste0(id, ".", i), st)
     }
   } else if ("lines" %in% cls || "line.to" %in% cls) {
@@ -547,7 +624,7 @@ svg_prim <- function(x, st) {
     gp <- svg_expand_gp(x$gp, n)
     for (i in seq_len(n)) {
       pg <- grid::polygonGrob(
-        x = xs[[i]], y = ys[[i]], gp = gp[i],
+        x = xs[[i]], y = ys[[i]], gp = svg_gp_at(gp, i),
         default.units = x$default.units
       )
       svg_element(pg, paste0(id, ".", i), "shape", st, max = length(xs[[i]]))
@@ -573,7 +650,7 @@ svg_prim <- function(x, st) {
     gp <- svg_expand_gp(x$gp, n)
     for (i in seq_len(n)) {
       pg <- grid::pathGrob(
-        x = xs[[i]], y = ys[[i]], id = is[[i]], rule = x$rule, gp = gp[i],
+        x = xs[[i]], y = ys[[i]], id = is[[i]], rule = x$rule, gp = svg_gp_at(gp, i),
         default.units = x$default.units
       )
       svg_element(pg, paste0(id, ".", i), "path", st)
@@ -604,7 +681,7 @@ svg_prim <- function(x, st) {
       xg <- grid::xsplineGrob(
         x = xs[[i]], y = ys[[i]], shape = shapes[[i]], open = x$open,
         repEnds = rep(x$repEnds, length.out = n)[i], arrow = arrows[i],
-        gp = gp[i], default.units = x$default.units
+        gp = svg_gp_at(gp, i), default.units = x$default.units
       )
       svg_element(xg, paste0(id, ".", i), "shape", st)
     }
@@ -645,19 +722,25 @@ svg_prim_vectorised <- function(x, st) {
     svg_draw(x, st)
   } else {
     gp <- svg_expand_gp(x$gp, n)
+    xs <- rep(x$x, length.out = n)
+    ys <- rep(x$y, length.out = n)
+    if (is_rect) {
+      ws <- rep(x$width, length.out = n)
+      hs <- rep(x$height, length.out = n)
+    } else {
+      rs <- rep(x$r, length.out = n)
+    }
     for (i in seq_len(n)) {
       g <- x
+      g$x <- xs[i]
+      g$y <- ys[i]
       if (is_rect) {
-        g$x <- rep(x$x, length.out = n)[i]
-        g$y <- rep(x$y, length.out = n)[i]
-        g$width <- rep(x$width, length.out = n)[i]
-        g$height <- rep(x$height, length.out = n)[i]
+        g$width <- ws[i]
+        g$height <- hs[i]
       } else {
-        g$x <- rep(x$x, length.out = n)[i]
-        g$y <- rep(x$y, length.out = n)[i]
-        g$r <- rep(x$r, length.out = n)[i]
+        g$r <- rs[i]
       }
-      g$gp <- gp[i]
+      g$gp <- svg_gp_at(gp, i)
       svg_element(g, paste0(id, ".", i), "shape", st)
     }
   }
@@ -693,7 +776,7 @@ svg_prim_text <- function(x, st) {
       g$y <- ys[i]
       g$rot <- rot[i]
       g$label <- labels[i]
-      g$gp <- gp[i]
+      g$gp <- svg_gp_at(gp, i)
       # One <text> per line of a plain label; a plotmath expression is set
       # in as many pieces as it has parts, so it has no fixed bound.
       lines_max <- if (is.language(g$label)) {
@@ -1451,11 +1534,8 @@ svg_alpha_suffix <- function(n) {
   if (n <= 1) {
     return("")
   }
-  m <- suppressWarnings(matrix(rep(letters, length.out = n), nrow = 26))
-  alpha <- apply(m, 1, function(x) {
-    unlist(lapply(mapply(rep, x, seq_along(x)), paste, collapse = ""))
-  })
-  t(alpha)[seq_len(n)]
+  i <- seq_len(n) - 1L
+  strrep(letters[i %% 26L + 1L], i %/% 26L + 1L)
 }
 
 #' Assemble the exported document
@@ -1508,18 +1588,39 @@ build_svg_document <- function(walk, svg, w, h) {
   # once, on the grob's group, as gridSVG wrote it once per viewport.
   shape_noclip <- logical(n_shapes)
   gstack <- list()
+  # What each grob's shapes and points were clipped to, logged in order.
+  # Grob groups do not nest, so a grob's entries are the run logged between
+  # its opening and its closing; appending to one growing log keeps a grob
+  # of many elements linear, where growing a vector per grob was quadratic.
+  lg <- new.env(parent = emptyenv())
+  lg$s0 <- integer(0)
+  lg$s1 <- integer(0)
+  lg$pt <- integer(64L)
+  lg$pt_clip <- character(64L)
+  lg$pt_text <- vector("list", 64L)
+  lg$np <- 0L
   note_clip <- function(idx = integer(0), clip = clip_of[idx], at = integer(0),
                         text = NULL) {
     k <- length(gstack)
     if (!k || !isTRUE(gstack[[k]]$grob)) {
       return(FALSE)
     }
-    gstack[[k]]$clips <<- c(gstack[[k]]$clips, clip)
-    gstack[[k]]$shapes <<- c(gstack[[k]]$shapes, idx)
     if (length(at)) {
-      gstack[[k]]$pts <<- c(gstack[[k]]$pts, at)
-      gstack[[k]]$pts_clip <<- c(gstack[[k]]$pts_clip, clip)
-      gstack[[k]]$pts_text <<- c(gstack[[k]]$pts_text, list(text))
+      j <- lg$np + 1L
+      if (j > length(lg$pt)) {
+        length(lg$pt) <- 2L * j
+        length(lg$pt_clip) <- 2L * j
+        length(lg$pt_text) <- 2L * j
+      }
+      lg$pt[j] <- at
+      lg$pt_clip[j] <- clip
+      if (!is.null(text)) lg$pt_text[[j]] <- text
+      lg$np <- j
+    } else if (length(idx)) {
+      # A grob's shapes are consecutive in the document, so its first and
+      # last are all there is to keep.
+      if (is.na(lg$s0[k])) lg$s0[k] <- min(idx)
+      lg$s1[k] <- max(idx)
     }
     TRUE
   }
@@ -1555,7 +1656,19 @@ build_svg_document <- function(walk, svg, w, h) {
     if (!identical(sink$kind, "text")) note_clip(idx)
     if (sink$t == "run") {
       if (length(idx) != sink$n) run_mismatch <<- TRUE
-      shape_id[idx] <<- paste0(sink$id, ".", seq_along(idx))
+      if (!is.null(sink$per)) {
+        # Element i's pieces, lettered when it breaks into more than one.
+        per <- sink$per
+        el <- rep(seq_along(per), per)
+        j <- sequence(per) - 1L
+        suffix <- ifelse(
+          rep(per, per) > 1L, strrep(letters[j %% 26L + 1L], j %/% 26L + 1L), ""
+        )
+        ids <- paste0(sink$id, ".", el, suffix)
+        shape_id[idx] <<- ids[seq_along(idx)]
+      } else {
+        shape_id[idx] <<- paste0(sink$id, ".", seq_along(idx))
+      }
       put(idx)
     } else if (sink$kind == "text") {
       label <- svg_text_element(
@@ -1683,17 +1796,25 @@ build_svg_document <- function(walk, svg, w, h) {
             put(paste0('<g id="', ev$id, '"', attrs, ">"))
           }
           gstack[[length(gstack) + 1L]] <<- list(
-            at = n_out, grob = isTRUE(ev$grob), clips = character(0),
-            shapes = integer(0), pts = integer(0), pts_clip = character(0),
-            pts_text = list()
+            at = n_out, grob = isTRUE(ev$grob), p0 = lg$np + 1L
           )
+          lg$s0[length(gstack)] <- NA_integer_
+          lg$s1[length(gstack)] <- NA_integer_
         },
         gc = {
           sink <<- NULL
           put("</g>")
           if (length(gstack)) {
             g <- gstack[[length(gstack)]]
-            gstack[[length(gstack)]] <<- NULL
+            depth <- length(gstack)
+            gstack[[depth]] <<- NULL
+            sr <- if (is.na(lg$s0[depth])) integer(0) else lg$s0[depth]:lg$s1[depth]
+            pr <- seq.int(g$p0, length.out = max(0L, lg$np - g$p0 + 1L))
+            g$shapes <- sr
+            g$pts <- lg$pt[pr]
+            g$pts_clip <- lg$pt_clip[pr]
+            g$pts_text <- if (length(pr)) lg$pt_text[pr] else list()
+            g$clips <- c(clip_of[sr], g$pts_clip)
             one <- unique(g$clips)
             if (length(one) == 1L && !is.na(one)) {
               out[[g$at]] <<- sub(

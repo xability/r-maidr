@@ -429,3 +429,41 @@ test_that("points take the alpha and lex of the viewport they are drawn in", {
     tolerance = 0.02
   )
 })
+
+test_that("lines drawn in one call are numbered as one at a time numbers them", {
+  # Polylines (broken by missing values) and segments take the one-call path
+  # unless the walk falls back; both must give the same document.
+  walk_doc <- function(one_at_a_time) {
+    svg_string <- maidr:::open_svg_device(3, 2)
+    dev <- grDevices::dev.cur()
+    grid::grid.newpage()
+    grid::grid.polyline(
+      x = c(0.1, 0.2, NA, 0.3, 0.35, 0.4, 0.5, 0.6, NA, 0.8, 0.9, NA),
+      y = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7),
+      id = c(1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3),
+      gp = grid::gpar(col = c("red", "green", "blue")), name = "gappy"
+    )
+    grid::grid.segments(
+      x0 = c(0.1, 0.2, 0.3), y0 = 0.8, x1 = 0.9, y1 = 0.9, name = "segs"
+    )
+    grid::grid.force()
+    grid::upViewport(0, recording = FALSE)
+    scene <- grid::grid.grab(name = "gridSVG", wrap = TRUE, gp = grid::get.gpar())
+    walk <- maidr:::walk_svg_scene(scene, one_at_a_time = one_at_a_time)
+    grDevices::dev.off(dev)
+    doc <- maidr:::build_svg_document(
+      walk, utils::tail(svg_string(), 1L), 216, 144
+    )
+    testthat::expect_false(isTRUE(attr(doc, "run_mismatch")))
+    as.character(doc)
+  }
+
+  fast <- walk_doc(FALSE)
+  testthat::expect_identical(fast, walk_doc(TRUE))
+  ids <- regmatches(fast, regexpr('id="gappy\\.1\\.[^"]*"', fast))
+  testthat::expect_equal(
+    ids,
+    c('id="gappy.1.1a"', 'id="gappy.1.1b"', 'id="gappy.1.2"',
+      'id="gappy.1.3"')
+  )
+})
