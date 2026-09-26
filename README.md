@@ -113,8 +113,8 @@ maidr supports a wide range of visualization types in both ggplot2 and Base R:
 | Step plots | `geom_step()` | `plot(type = "s")`, `plot(type = "S")` |
 | Box plots | `geom_boxplot()` | `boxplot()` |
 | Heatmaps | `geom_tile()` | `image()` |
-| Contour plots | — (see below) | `contour()` |
-| Violin plots | `geom_violin()` | — |
+| Contour plots | — (`geom_contour()` is [experimental], see below) | `contour()` |
+| Violin plots | `geom_violin()` | — (`vioplot::vioplot()` is [experimental], see below) |
 | Candlestick (OHLC) | `tidyquant::geom_candlestick()` (+ `geom_ma()`, + patchwork volume) | `quantmod::chartSeries()` (OHLC-only; no TA / no volume) |
 | Density/Smooth | `geom_smooth()`, `geom_density()` | `lines(density())` |
 
@@ -157,6 +157,10 @@ navigating a `termplot()` panel by panel, is the right way to read one. Until
 that happens these are proposals about how a chart could be read, not answers.
 
 Feedback is exactly what would move one of these into the tables above.
+
+Elsewhere in these docs — the example articles, the getting-started vignette
+and the package help — an experimental type is marked **[experimental]** after
+its name; a type with no mark is stable.
 
 #### ggplot2
 
@@ -214,7 +218,9 @@ forgotten.
 
 The [JavaScript core](https://maidr.ai/) and the [Python binding](https://py.maidr.ai/)
 make the same distinction over their own type lists, with the same boundary and
-for the same reason.
+for the same reason, and mark their docs the same way: see the JavaScript
+core's [trace type stability](https://maidr.ai/docs/SCHEMA.html#trace-type-stability)
+and the Python binding's [stability page](https://py.maidr.ai/stability.html).
 
 See the [examples gallery](https://r.maidr.ai/articles/examples.html) for a
 worked example of each plot type.

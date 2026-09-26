@@ -31,6 +31,10 @@
 #' `geom_rect()` layer's and the panel's `x.range` and `y.range` are identical
 #' too. Swapping `geom_rect(` for `maidr_gantt(` moves nothing on the page.
 #'
+#' The `gantt` layer type \[experimental\] is one of the experimental plot
+#' types: it has not been through a user study, and its reading may change
+#' without a deprecation period. See "Experimental Plot Types" in the README.
+#'
 #' @details
 #' # Why the author is asked
 #'

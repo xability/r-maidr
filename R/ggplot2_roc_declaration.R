@@ -60,6 +60,10 @@ roc_trace_available <- function() {
 #' Nothing about the picture changes: the geom draws exactly what
 #' `geom_path()` draws, and `threshold` reaches no mark.
 #'
+#' The `roc` layer type \[experimental\] is one of the experimental plot
+#' types: it has not been through a user study, and its reading may change
+#' without a deprecation period. See "Experimental Plot Types" in the README.
+#'
 #' @details
 #' # What is asked of the data
 #'
