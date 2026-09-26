@@ -368,7 +368,7 @@ Among them:
   `vioplot::vioplot()` [experimental] and word clouds [experimental]
 
 The full list is under "Experimental Plot Types" in the
-[README](https://r.maidr.ai/#supported-plot-types).
+[README](https://r.maidr.ai/#experimental-plot-types).
 
 ## Next Steps
 
