@@ -389,7 +389,8 @@ maidr_fetch_latest_cdn_version <- function(budget) {
   deadline <- proc.time()[["elapsed"]] + budget
 
   for (resolver in MAIDR_CDN_RESOLVERS) {
-    remaining <- deadline - proc.time()[["elapsed"]]
+    # Capped, because `(t + budget) - t` can round a hair above `budget`.
+    remaining <- min(budget, deadline - proc.time()[["elapsed"]])
     if (remaining <= 0) {
       break
     }
