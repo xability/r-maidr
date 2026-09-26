@@ -1392,7 +1392,10 @@ is_record_run <- function(node) {
   all(vapply(node, is_flat_record, logical(1), fields = fields, types = types))
 }
 
-#' Whether field names and types can head a data frame column for column
+#' Whether the first record's fields can become data frame columns
+#'
+#' Each field becomes one column, so the names must be unique and non-empty
+#' and every type one that a column can hold a scalar of.
 #'
 #' @param fields The first record's names
 #' @param types The first record's field types

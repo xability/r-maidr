@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{is_record_schema}
 \alias{is_record_schema}
-\title{Whether field names and types can head a data frame column for column}
+\title{Whether the first record's fields can become data frame columns}
 \usage{
 is_record_schema(fields, types)
 }
@@ -15,6 +15,7 @@ is_record_schema(fields, types)
 \code{TRUE} for unique, non-empty names over scalar-capable types
 }
 \description{
-Whether field names and types can head a data frame column for column
+Each field becomes one column, so the names must be unique and non-empty
+and every type one that a column can hold a scalar of.
 }
 \keyword{internal}
