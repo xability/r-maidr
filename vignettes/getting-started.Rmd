@@ -128,6 +128,40 @@ show()
   functions mask the wrappers and their charts go unrecorded. See
   [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.html).
 
+## Interactive htmlwidgets: plotly, highcharter and echarts4r
+
+`maidr_htmlwidget()` takes an interactive chart drawn by plotly, highcharter
+or echarts4r and returns it with MAIDR attached. MAIDR reads the chart in the
+browser, through the adapter for the library that draws it, so the widget
+keeps working everywhere an htmlwidget does: the viewer,
+`htmlwidgets::saveWidget()`, this document, and Shiny, where a re-rendered
+chart is read again.
+
+```{r htmlwidget-examples}
+library(maidr)
+
+# plotly, including ggplotly()
+plotly::plot_ly(mtcars, x = ~wt, y = ~mpg, type = "scatter", mode = "markers") |>
+  maidr_htmlwidget()
+
+# highcharter
+highcharter::hchart(mtcars, "scatter", highcharter::hcaes(wt, mpg)) |>
+  maidr_htmlwidget()
+
+# echarts4r
+mtcars |>
+  echarts4r::e_charts(wt) |>
+  echarts4r::e_scatter(mpg) |>
+  maidr_htmlwidget()
+
+# In Shiny, wrap the widget inside its own render function
+# output$chart <- plotly::renderPlotly(maidr_htmlwidget(plotly::plot_ly(...)))
+```
+
+An echarts4r chart is switched to ECharts' SVG renderer, which MAIDR needs to
+highlight the mark being read. While an echarts4r chart shows its legend, the
+visual highlight is off; audio, text and braille are not affected.
+
 ## Offline vs CDN Usage
 
 By default, `show()` and `save_html()` use the bundled MAIDR.js library, so the result works offline. `save_html()` writes the library to a `lib/` folder beside the file, and the two have to be shared together (zip the folder that holds both): an `.html` sent on its own loads no MAIDR.js and shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. You can control this behavior with the `use_cdn` parameter:

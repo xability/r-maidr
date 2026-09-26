@@ -1,7 +1,8 @@
-The bundled MAIDR web assets in inst/htmlwidgets/lib/maidr-*/ (maidr.js and
-maidr-math.css) are the compiled distribution of the MAIDR project
-(https://maidr.ai, MIT License) and embed the following third-party
-open-source components:
+The bundled MAIDR web assets in inst/htmlwidgets/lib/maidr-*/ (maidr.js,
+maidr-math.css, and the Highcharts and ECharts adapters highcharts.js and
+echarts.js, which contain MAIDR code only) are the compiled distribution of
+the MAIDR project (https://maidr.ai, MIT License) and embed the following
+third-party open-source components:
 
 - React and React DOM (https://react.dev)
   Copyright (c) Meta Platforms, Inc. and affiliates. MIT License.

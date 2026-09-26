@@ -164,6 +164,21 @@ fi
 
 tar -xzf "$TGZ" -C "$WORK" package/dist/maidr.js package/dist/maidr-math.css
 
+# The Highcharts and ECharts adapters, which ``maidr_htmlwidget()`` loads
+# beside the core to read a highcharter or echarts4r widget (#332). They are
+# UMD bundles of a few dozen kilobytes that define ``window.maidrHighcharts``
+# and ``window.maidrECharts``, and are taken from the same verified tarball so
+# they are always the release the core they run against is. Plotly needs no
+# adapter file: the core detects a Plotly chart by itself.
+ADAPTERS="highcharts.js echarts.js"
+for adapter in $ADAPTERS; do
+  if ! grep -qx "package/dist/$adapter" <<<"$TARBALL_FILES"; then
+    echo "maidr@$VERSION does not ship dist/$adapter; refusing to bundle $VERSION." >&2
+    exit 1
+  fi
+  tar -xzf "$TGZ" -C "$WORK" "package/dist/$adapter"
+done
+
 # The DotPad SDK pin. Older packages do not ship it, and the R side keeps
 # the copy it has until one that does comes along; a package that ships a
 # manifest without the fields the R side reads is refused rather than
@@ -200,7 +215,7 @@ fi
 # the package tree: non-empty, and not an HTML error page masquerading as
 # JS / CSS. The check is a positive match: fail when the payload *starts*
 # with an HTML marker.
-for asset in maidr.js maidr-math.css; do
+for asset in maidr.js maidr-math.css $ADAPTERS; do
   test -s "$WORK/package/dist/${asset}"
   if head -c 128 "$WORK/package/dist/${asset}" | grep -qiE "^[[:space:]]*<!DOCTYPE|^[[:space:]]*<html"; then
     echo "${asset} looks like an HTML error page" >&2
@@ -244,6 +259,9 @@ fi
 mkdir -p "$DEST_DIR"
 cp "$WORK/package/dist/maidr.js" "$DEST_DIR/maidr.js"
 cp "$WORK/maidr-math.css" "$DEST_DIR/maidr-math.css"
+for adapter in $ADAPTERS; do
+  cp "$WORK/package/dist/$adapter" "$DEST_DIR/$adapter"
+done
 # A refresh onto the same version leaves the previous layout in place, so
 # drop the stylesheet this package stopped installing rather than letting a
 # stale copy sit in the lib directory.

@@ -15,7 +15,9 @@ Description: Provides accessible, interactive visualizations through the 'MAIDR'
     bar charts (simple, grouped, stacked), pie charts, histograms, line plots,
     step plots, scatter plots, box plots, violin plots, candlestick (OHLC)
     charts, heat maps, density/smooth curves, faceted plots,
-    multi-panel layouts (including patchwork), and multi-layered plot combinations. Enables
+    multi-panel layouts (including patchwork), and multi-layered plot combinations.
+    Also makes 'plotly', 'highcharter' and 'echarts4r' 'htmlwidgets' accessible
+    by attaching the matching 'MAIDR' JavaScript adapter. Enables
     data exploration for users with visual impairments through multiple sensory
     modalities. For more details see the 'MAIDR' project
     <https://maidr.ai/>.
@@ -63,7 +65,10 @@ Suggests:
     sm,
     gridGraphics,
     pROC,
-    yardstick
+    yardstick,
+    plotly,
+    highcharter,
+    echarts4r
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

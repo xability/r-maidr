@@ -93,6 +93,13 @@ reference:
       - show
       - save_html
 
+  - title: Interactive htmlwidgets
+    desc: >
+      Charts drawn by plotly, highcharter and echarts4r, read by the MAIDR
+      JavaScript adapter for the library that draws them
+    contents:
+      - maidr_htmlwidget
+
   - title: Declaring what a layer means
     desc: >
       Functions an author adds to a plot to say what a layer is, where the
