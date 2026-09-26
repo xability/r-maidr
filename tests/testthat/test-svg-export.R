@@ -385,3 +385,47 @@ test_that("more texts than a label has lines stops the export", {
   w2 <- walk_and_svg(function() grid::grid.text("a\nb", name = "t2"))
   testthat::expect_no_error(rebuild(w2, w2$lines))
 })
+
+test_that("an arrowed line broken by a missing value keeps its pieces apart from its heads", {
+  # The device writes a piece, then that piece's head, then the next piece:
+  # heads interleave with pieces and must not take a piece's id.
+  doc <- export_scene(function() {
+    grid::grid.lines(
+      x = c(0.1, 0.4, NA, 0.6, 0.9), y = c(0.1, 0.4, NA, 0.6, 0.9),
+      arrow = grid::arrow(ends = "both"), name = "gap_arrow"
+    )
+  }, width = 3, height = 3)
+  kids <- xml2::xml_children(by_id(doc, "gap_arrow.1"))
+  pieces <- kids[!is.na(xml2::xml_attr(kids, "id"))]
+
+  testthat::expect_equal(
+    xml2::xml_attr(pieces, "id"), c("gap_arrow.1.1a", "gap_arrow.1.1b")
+  )
+  testthat::expect_equal(
+    xml2::xml_attr(pieces, "points"),
+    c("21.6,21.6 86.4,86.4", "129.6,129.6 194.4,194.4")
+  )
+  # Both heads are drawn, in the one slot before the pieces.
+  testthat::expect_equal(xml2::xml_name(kids[[1]]), "g")
+  testthat::expect_length(xml2::xml_children(kids[[1]]), 2L)
+})
+
+test_that("points take the alpha and lex of the viewport they are drawn in", {
+  doc <- export_scene(function() {
+    grid::pushViewport(grid::viewport(gp = grid::gpar(alpha = 0.3, lex = 2)))
+    grid::grid.points(x = 0.5, y = 0.5, pch = 19, name = "faint")
+    grid::popViewport()
+    grid::grid.points(x = 0.5, y = 0.5, pch = 19, name = "plain")
+  })
+  faint <- by_id(doc, "faint.1.1")
+  plain <- by_id(doc, "plain.1.1")
+
+  testthat::expect_equal(xml2::xml_attr(faint, "fill-opacity"), "0.3")
+  testthat::expect_equal(xml2::xml_attr(faint, "stroke-opacity"), "0.3")
+  testthat::expect_equal(xml2::xml_attr(plain, "fill-opacity"), "1")
+  testthat::expect_equal(
+    as.numeric(xml2::xml_attr(faint, "stroke-width")),
+    2 * as.numeric(xml2::xml_attr(plain, "stroke-width")),
+    tolerance = 0.02
+  )
+})

@@ -439,13 +439,23 @@ svg_split_ids <- function(x) {
 }
 
 # Number of pieces gridSVG split a line into: runs of at least two finite
-# points. Only needed to tell a line's pieces from its arrow heads.
+# points. Only needed to tell a line's pieces from its arrow heads, which
+# the device writes interleaved with them (a piece, then its heads): each
+# piece is known by its point count and first point, in svglite's page
+# coordinates.
 svg_line_pieces <- function(x, y) {
-  xs <- suppressWarnings(grid::convertX(x, "inches", valueOnly = TRUE))
-  ys <- suppressWarnings(grid::convertY(y, "inches", valueOnly = TRUE))
-  ok <- is.finite(xs) & is.finite(ys)
+  loc <- suppressWarnings(grid::deviceLoc(x, y, valueOnly = TRUE))
+  ok <- is.finite(loc$x) & is.finite(loc$y)
   r <- rle(ok)
-  sum(r$values & r$lengths >= 2)
+  ends <- cumsum(r$lengths)
+  starts <- ends - r$lengths + 1L
+  keep <- r$values & r$lengths >= 2
+  page_h <- grDevices::dev.size("in")[2] * 72
+  data.frame(
+    n = r$lengths[keep],
+    x0 = loc$x[starts[keep]] * 72,
+    y0 = page_h - loc$y[starts[keep]] * 72
+  )
 }
 
 svg_draw_lines <- function(lg, id, st) {
@@ -762,6 +772,12 @@ svg_prim_points <- function(x, st) {
   fill <- rep(if (is.null(gp$fill)) cur$fill else gp$fill, length.out = n)
   lwd <- if (is.null(gp$lwd)) cur$lwd else gp$lwd
   if (!is.null(gp$lex)) lwd <- lwd * gp$lex
+  # A viewport's own lex and alpha reach every point drawn in it. gridSVG
+  # carried them on the viewport's group; the points here spell out their
+  # stroke and opacity, so they are folded in (both 1 unless a viewport set
+  # them).
+  if (!is.null(cur$lex)) lwd <- lwd * cur$lex
+  vp_alpha <- if (is.null(cur$alpha)) 1 else cur$alpha
   lwd <- rep(lwd, length.out = n)
 
   pch <- x$pch
@@ -815,6 +831,8 @@ svg_prim_points <- function(x, st) {
 
   stroke <- svg_col(col)
   fillc <- svg_col(fill)
+  stroke$alpha <- round(stroke$alpha * vp_alpha, 2)
+  fillc$alpha <- round(fillc$alpha * vp_alpha, 2)
   sw <- round(lwd / 96 * 72, 2)
   if (!is.null(gp$lty)) {
     lty <- rep(gp$lty, length.out = n)
@@ -1390,6 +1408,45 @@ svg_unreadable <- function(what) {
 # gridSVG's own lettering (`genAlpha()`): a..z, then aa, bb, cc, ... --
 # not spreadsheet columns (aa, ab, ...). Kept exactly, so a line broken into
 # more than 26 pieces keeps the ids it always had.
+#' Which of an arrowed line's shapes are its pieces
+#'
+#' The device writes each piece of a line and then that piece's arrow heads,
+#' so pieces and heads interleave. A shape is the next expected piece when it
+#' is a line with that piece's point count starting at its first point (to
+#' svglite's two decimals); everything else is a head.
+#'
+#' @param lines svglite lines for the element's shapes, in order.
+#' @param pieces Data frame of expected pieces (`n`, `x0`, `y0`).
+#' @return Logical vector: the shape is a piece.
+#' @keywords internal
+svg_match_pieces <- function(lines, pieces) {
+  out <- logical(length(lines))
+  k <- 1L
+  for (i in seq_along(lines)) {
+    if (k > nrow(pieces)) break
+    l <- lines[i]
+    if (startsWith(l, "<line ")) {
+      n <- 2L
+      x0 <- as.numeric(svg_attr(l, "x1"))
+      y0 <- as.numeric(svg_attr(l, "y1"))
+    } else if (startsWith(l, "<polyline ")) {
+      pts <- strsplit(trimws(svg_attr(l, "points")), "[ ]+")[[1]]
+      n <- length(pts)
+      xy <- as.numeric(strsplit(pts[1], ",", fixed = TRUE)[[1]])
+      x0 <- xy[1]
+      y0 <- xy[2]
+    } else {
+      next
+    }
+    if (n == pieces$n[k] && abs(x0 - pieces$x0[k]) < 0.02 &&
+      abs(y0 - pieces$y0[k]) < 0.02) {
+      out[i] <- TRUE
+      k <- k + 1L
+    }
+  }
+  out
+}
+
 svg_alpha_suffix <- function(n) {
   if (n <= 1) {
     return("")
@@ -1506,12 +1563,17 @@ build_svg_document <- function(walk, svg, w, h) {
       )
       put(label)
     } else {
-      pieces <- length(idx)
       heads <- integer(0)
-      if (!is.null(sink$pieces) && sink$pieces < length(idx)) {
-        pieces <- sink$pieces
-        heads <- idx[-seq_len(pieces)]
-        idx <- idx[seq_len(pieces)]
+      if (!is.null(sink$pieces)) {
+        is_piece <- svg_match_pieces(p$lines[shape_idx[idx]], sink$pieces)
+        if (sum(is_piece) != nrow(sink$pieces)) {
+          svg_unreadable(sprintf(
+            "%d of %d pieces of %s found", sum(is_piece), nrow(sink$pieces),
+            sink$id
+          ))
+        }
+        heads <- idx[!is_piece]
+        idx <- idx[is_piece]
       }
       if (length(heads)) {
         # gridSVG wrote an arrowed line's heads as one <defs> sibling before
