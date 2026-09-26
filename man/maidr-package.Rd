@@ -70,8 +70,18 @@ change without a deprecation period. In these docs an experimental type
 is marked [experimental] after its name; a type with no mark is stable.
 Among them:
 \itemize{
-\item ggplot2: area charts [experimental], contour plots - \code{geom_contour()} [experimental], error bars [experimental], Gantt charts - \code{\link{maidr_gantt}()} [experimental], hexbin plots [experimental], ROC curves - \code{\link{maidr_roc}()} [experimental]
-\item Base R: correlograms [experimental], Q-Q plots [experimental], radar charts - \code{stars()} [experimental], mosaic plots [experimental], violin plots - \code{vioplot::vioplot()} [experimental], word clouds [experimental]
+\item ggplot2 area charts [experimental]
+\item ggplot2 contour plots - \code{geom_contour()} [experimental]
+\item ggplot2 error bars [experimental]
+\item ggplot2 Gantt charts - \code{\link{maidr_gantt}()} [experimental]
+\item ggplot2 hexbin plots [experimental]
+\item ggplot2 ROC curves - \code{\link{maidr_roc}()} [experimental]
+\item Base R correlograms [experimental]
+\item Base R Q-Q plots [experimental]
+\item Base R radar charts - \code{stars()} [experimental]
+\item Base R mosaic plots [experimental]
+\item Base R violin plots - \code{vioplot::vioplot()} [experimental]
+\item Base R word clouds [experimental]
 }
 The full list is under "Experimental Plot Types" in the README.
 }
