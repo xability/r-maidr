@@ -10,8 +10,8 @@
 #' * each grob is a `<g id="<name>.<k>">`, `<k>` counting how often the same
 #'   name was drawn before, and each of its shapes carries
 #'   `<name>.<k>.<i>`, `<i>` being the shape's position within the grob
-#'   (lettered `a`, `b`, ... when a missing value breaks one line into
-#'   pieces);
+#'   (lettered `a`, `b`, ... `z`, `aa`, `bb`, ... when a missing value
+#'   breaks one line into pieces);
 #' * each viewport pushed is a `<g>` named by its viewport path, so nesting
 #'   and `:nth-child()` positions are those of the grob tree;
 #' * the page is drawn under `translate(0, H) scale(1, -1)`, so coordinates
@@ -1365,6 +1365,9 @@ svg_unreadable <- function(what) {
   )
 }
 
+# gridSVG's own lettering (`genAlpha()`): a..z, then aa, bb, cc, ... --
+# not spreadsheet columns (aa, ab, ...). Kept exactly, so a line broken into
+# more than 26 pieces keeps the ids it always had.
 svg_alpha_suffix <- function(n) {
   if (n <= 1) {
     return("")

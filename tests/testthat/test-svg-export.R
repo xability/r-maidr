@@ -297,3 +297,64 @@ test_that("more shapes than a grob can draw stops the export", {
     "at most 1"
   )
 })
+
+test_that("more than 26 pieces are lettered as gridSVG lettered them", {
+  # gridSVG's genAlpha(): a..z, then aa, bb, cc -- not aa, ab, ac. The ids
+  # a line has always had are the contract, so they are kept exactly.
+  suffix <- maidr:::svg_alpha_suffix(30)
+
+  testthat::expect_equal(suffix[1:3], c("a", "b", "c"))
+  testthat::expect_equal(suffix[26:30], c("z", "aa", "bb", "cc", "dd"))
+  testthat::expect_equal(anyDuplicated(maidr:::svg_alpha_suffix(200)), 0L)
+
+  doc <- export_scene(function() {
+    x <- seq(0.02, 0.98, length.out = 90)
+    y <- rep(c(0.2, 0.8, NA), 30)
+    grid::grid.polyline(x = x, y = y, name = "sparse")
+  })
+  testthat::expect_equal(
+    child_ids(doc, "sparse.1"), paste0("sparse.1.1", suffix)
+  )
+})
+
+test_that("a grob's shared clip is written once, on its group, in the flipped page", {
+  doc <- export_scene(function() {
+    grid::pushViewport(grid::viewport(
+      x = 0.25, y = 0.25, width = 0.5, height = 0.5,
+      just = c("left", "bottom"), clip = "on"
+    ))
+    grid::grid.rect(x = c(0.25, 0.75), width = 0.2, name = "boxed")
+    grid::grid.text("clipped", name = "said")
+    grid::popViewport()
+  })
+
+  group <- by_id(doc, "boxed.1")
+  ref <- sub("^url\\(#(.*)\\)$", "\\1", xml2::xml_attr(group, "clip-path"))
+  testthat::expect_false(is.na(ref))
+  testthat::expect_true(all(is.na(xml2::xml_attr(
+    xml2::xml_children(group), "clip-path"
+  ))))
+  # The viewport's lower-left quarter-inset box, in px from the bottom edge.
+  rect <- xml2::xml_find_first(
+    doc, sprintf("//s:clipPath[@id='%s']/s:rect", ref), svg_ns
+  )
+  testthat::expect_equal(
+    as.numeric(vapply(
+      c("x", "y", "width", "height"),
+      function(a) xml2::xml_attr(rect, a), character(1)
+    )),
+    c(54, 36, 108, 72)
+  )
+  # The label in the same viewport shares the same region, on its grob group.
+  testthat::expect_equal(
+    xml2::xml_attr(by_id(doc, "said.1"), "clip-path"),
+    xml2::xml_attr(group, "clip-path")
+  )
+})
+
+test_that("a clip covering the whole page is left off", {
+  doc <- export_scene(function() grid::grid.rect(name = "whole"))
+
+  testthat::expect_true(is.na(xml2::xml_attr(by_id(doc, "whole.1"), "clip-path")))
+  testthat::expect_length(xml2::xml_find_all(doc, "//s:clipPath", svg_ns), 0L)
+})
