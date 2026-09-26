@@ -192,7 +192,7 @@ pie(shares,
 
 ------------------------------------------------------------------------
 
-## Word Cloud
+## Word Cloud \[experimental\]
 
 A word cloud is the extreme case of a chart that carries real data while
 being readable only by eye: each term’s weight is drawn as **glyph

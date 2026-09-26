@@ -17,7 +17,7 @@ family.
 > mapping is not always the one the chart’s name suggests: a correlogram
 > is read as a lollipop, a cumulative periodogram as a step.
 
-## Correlogram
+## Correlogram \[experimental\]
 
 [`acf()`](https://r.maidr.ai/reference/base-r-wrappers.md),
 [`pacf()`](https://r.maidr.ai/reference/base-r-wrappers.md) and
@@ -52,7 +52,7 @@ and the sign says which series leads.
 ccf(mdeaths, fdeaths, lag.max = 4, main = "Male vs female deaths")
 ```
 
-## Spectral Density
+## Spectral Density \[experimental\]
 
 [`spectrum()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 estimates how a series’ variance is distributed across frequencies.
@@ -64,7 +64,7 @@ maidr reads the periodogram as a **line** of `spectrum` against
 spectrum(lh, main = "Luteinizing hormone: spectral density")
 ```
 
-## Cumulative Periodogram
+## Cumulative Periodogram \[experimental\]
 
 [`cpgram()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws the
 cumulative periodogram against its confidence band. The cumulative curve
@@ -81,7 +81,7 @@ announced.
 cpgram(lh, main = "Luteinizing hormone: cumulative periodogram")
 ```
 
-## Seasonal Subseries
+## Seasonal Subseries \[experimental\]
 
 [`monthplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) breaks
 a seasonal series into one segment per cycle position, so every January
@@ -103,7 +103,7 @@ monthplot(
 )
 ```
 
-## Lag Plot
+## Lag Plot \[experimental\]
 
 [`lag.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) plots a
 series against itself shifted by *k*, which is how serial dependence is
@@ -115,7 +115,7 @@ for the shift — `lag 1` against the series.
 lag.plot(lh, lags = 1, main = "Luteinizing hormone against its own lag")
 ```
 
-## Partial Effects
+## Partial Effects \[experimental\]
 
 [`termplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws
 each term’s fitted contribution against its own predictor, holding the
@@ -128,7 +128,7 @@ than a fitted value.
 termplot(lm(mpg ~ wt, data = mtcars), main = "Partial effect of weight")
 ```
 
-## Q-Q Plot
+## Q-Q Plot \[experimental\]
 
 [`qqnorm()`](https://r.maidr.ai/reference/base-r-wrappers.md) plots
 sample quantiles against theoretical ones, and

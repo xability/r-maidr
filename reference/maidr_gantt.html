@@ -9,7 +9,10 @@ object, not in the aesthetics, so the same xmin/xmax/ymin/ymax the
 author would have written to geom_rect() produce the same chart: measured
 on ggplot2 3.4.4, the built data is identical() to the bare
 geom_rect() layer's and the panel's x.range and y.range are identical
-too. Swapping geom_rect( for maidr_gantt( moves nothing on the page."><meta property="og:description" content="maidr_gantt() is ggplot2::geom_rect() with one thing added: the author
+too. Swapping geom_rect( for maidr_gantt( moves nothing on the page.
+The gantt layer type [experimental] is one of the experimental plot
+types: it has not been through a user study, and its reading may change
+without a deprecation period. See &quot;Experimental Plot Types&quot; in the README."><meta property="og:description" content="maidr_gantt() is ggplot2::geom_rect() with one thing added: the author
 saying that these rectangles are intervals in lanes. A declared layer is
 read as a gantt – lanes named, intervals announced, every bar
 highlightable – where the same rectangles drawn with geom_rect() are
@@ -19,7 +22,10 @@ object, not in the aesthetics, so the same xmin/xmax/ymin/ymax the
 author would have written to geom_rect() produce the same chart: measured
 on ggplot2 3.4.4, the built data is identical() to the bare
 geom_rect() layer's and the panel's x.range and y.range are identical
-too. Swapping geom_rect( for maidr_gantt( moves nothing on the page."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+too. Swapping geom_rect( for maidr_gantt( moves nothing on the page.
+The gantt layer type [experimental] is one of the experimental plot
+types: it has not been through a user study, and its reading may change
+without a deprecation period. See &quot;Experimental Plot Types&quot; in the README."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -53,13 +59,16 @@ object, not in the aesthetics, so the same xmin/xmax/ymin/ymax the
 author would have written to geom_rect() produce the same chart: measured
 on ggplot2 3.4.4, the built data is identical() to the bare
 geom_rect() layer&#x27;s and the panel&#x27;s x.range and y.range are identical
-too. Swapping geom_rect( for maidr_gantt( moves nothing on the page.">
+too. Swapping geom_rect( for maidr_gantt( moves nothing on the page.
+The gantt layer type [experimental] is one of the experimental plot
+types: it has not been through a user study, and its reading may change
+without a deprecation period. See &quot;Experimental Plot Types&quot; in the README.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/maidr_gantt.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-16">
+<meta name="DC.date" content="2026-09-26">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -120,6 +129,9 @@ author would have written to <code><a href="https://ggplot2.tidyverse.org/refere
 on ggplot2 3.4.4, the built data is <code><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical()</a></code> to the bare
 <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_rect()</a></code> layer's and the panel's <code>x.range</code> and <code>y.range</code> are identical
 too. Swapping <code>geom_rect(</code> for <code>maidr_gantt(</code> moves nothing on the page.</p>
+<p>The <code>gantt</code> layer type [experimental] is one of the experimental plot
+types: it has not been through a user study, and its reading may change
+without a deprecation period. See "Experimental Plot Types" in the README.</p>
     </div>
 
     <div class="section level2">

@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-23">
+<meta name="DC.date" content="2026-09-26">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -532,7 +532,8 @@ rather than on the slide element itself; either way
 — for values that are piecewise constant, such as a sleep-stage
 hypnogram</li>
 <li>Box plots</li>
-<li>Violin plots (ggplot2 only)</li>
+<li>Violin plots (ggplot2; Base R <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code>
+[experimental])</li>
 <li>Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
 <code>geom_ma()</code> moving-average overlays and a patchwork volume
 sub-panel); Base R via <code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code> (OHLC-only —
@@ -540,6 +541,8 @@ TA overlays such as <code>addVo()</code>, <code>addSMA()</code>,
 <code>addEMA()</code> are not supported and fall back to native
 graphics)</li>
 <li>Heatmaps</li>
+<li>Contour plots (Base R <code><a href="../reference/base-r-wrappers.html">contour()</a></code>; ggplot2
+<code><a href="https://ggplot2.tidyverse.org/reference/geom_contour.html" class="external-link">geom_contour()</a></code> [experimental])</li>
 <li>Density/smooth curves</li>
 </ul>
 <p>See the <a href="https://r.maidr.ai/articles/examples-heatmap-candlestick.html">Heat
@@ -560,6 +563,26 @@ volume pipeline and the Base R support matrix.</p>
 <strong>Multi-layered plots</strong> - Combine multiple geoms (e.g.,
 histogram + density)</li>
 </ul>
+</div>
+<div class="section level3">
+<h3 id="experimental-plot-types">Experimental Plot Types<a class="anchor" aria-label="anchor" href="#experimental-plot-types"></a>
+</h3>
+<p>Every type above is stable. maidr also reads a longer list of charts
+as prototypes: none has been through a user study, and each may change
+without a deprecation period. Here and in the rest of the docs an
+experimental type is marked <strong>[experimental]</strong> after its
+name; a type with no mark is stable. Among them:</p>
+<ul>
+<li>ggplot2: area and stacked area charts [experimental], contour plots
+[experimental], error bars [experimental], Gantt charts via
+<code><a href="../reference/maidr_gantt.html">maidr_gantt()</a></code> [experimental], hexbin plots [experimental]
+and ROC curves via <code><a href="../reference/maidr_roc.html">maidr_roc()</a></code> [experimental]</li>
+<li>Base R: correlograms [experimental], Q-Q plots [experimental], radar
+charts via <code><a href="../reference/base-r-wrappers.html">stars()</a></code> [experimental], mosaic plots
+[experimental], violin plots via <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code>
+[experimental] and word clouds [experimental]</li>
+</ul>
+<p>The full list is under “Experimental Plot Types” in the <a href="https://r.maidr.ai/#experimental-plot-types">README</a>.</p>
 </div>
 </div>
 <div class="section level2">

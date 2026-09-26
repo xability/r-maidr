@@ -45,7 +45,7 @@ understand data visualizations through multiple sensory modalities.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-13">
+<meta name="DC.date" content="2026-09-26">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -131,6 +131,7 @@ Base R plotting systems:</p>
 <li><p>Box plots - <code><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot()</a></code></p></li>
 <li><p>Violin plots - <code><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin()</a></code></p></li>
 <li><p>Heat maps - <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code></p></li>
+<li><p>Candlestick (OHLC) charts - <code><a href="https://business-science.github.io/tidyquant/reference/geom_chart.html" class="external-link">tidyquant::geom_candlestick()</a></code></p></li>
 <li><p>Density/smooth curves - <code><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/geom_smooth.html" class="external-link">geom_smooth()</a></code></p></li>
 <li><p>Faceted plots - <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap()</a></code>, <code><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid()</a></code></p></li>
 <li><p>Multi-panel layouts (via 'patchwork' package)</p></li>
@@ -142,8 +143,28 @@ Base R plotting systems:</p>
 <li><p>Step plots - <code>plot(type = "s")</code>, <code>plot(type = "S")</code></p></li>
 <li><p>Box plots - <code><a href="base-r-wrappers.html">boxplot()</a></code></p></li>
 <li><p>Heat maps - <code><a href="base-r-wrappers.html">image()</a></code>, <code><a href="base-r-wrappers.html">heatmap()</a></code></p></li>
+<li><p>Contour plots - <code><a href="base-r-wrappers.html">contour()</a></code></p></li>
+<li><p>Candlestick (OHLC) charts - <code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code></p></li>
 <li><p>Multi-panel layouts - <code>par(mfrow)</code>, <code>par(mfcol)</code></p></li>
-</ul></div>
+</ul><p><strong>Experimental plot types:</strong>
+The types above are stable. The package also reads a longer list of
+charts as prototypes: none has been through a user study, and each may
+change without a deprecation period. In these docs an experimental type
+is marked [experimental] after its name; a type with no mark is stable.
+Among them:</p><ul><li><p>ggplot2 area charts [experimental]</p></li>
+<li><p>ggplot2 contour plots - <code><a href="https://ggplot2.tidyverse.org/reference/geom_contour.html" class="external-link">geom_contour()</a></code> [experimental]</p></li>
+<li><p>ggplot2 error bars [experimental]</p></li>
+<li><p>ggplot2 Gantt charts - <code><a href="maidr_gantt.html">maidr_gantt()</a></code> [experimental]</p></li>
+<li><p>ggplot2 hexbin plots [experimental]</p></li>
+<li><p>ggplot2 ROC curves - <code><a href="maidr_roc.html">maidr_roc()</a></code> [experimental]</p></li>
+<li><p>Base R correlograms [experimental]</p></li>
+<li><p>Base R Q-Q plots [experimental]</p></li>
+<li><p>Base R radar charts - <code><a href="base-r-wrappers.html">stars()</a></code> [experimental]</p></li>
+<li><p>Base R mosaic plots [experimental]</p></li>
+<li><p>Base R violin plots - <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code> [experimental]</p></li>
+<li><p>Base R word clouds [experimental]</p></li>
+</ul><p>The full list is under "Experimental Plot Types" in the README.</p>
+    </div>
     <div class="section level2">
     <h2 id="accessibility-features">Accessibility Features<a class="anchor" aria-label="anchor" href="#accessibility-features"></a></h2>
 

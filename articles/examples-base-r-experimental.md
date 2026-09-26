@@ -17,7 +17,7 @@ family.
 > association plot is read as a heat map, a conditional density plot as
 > a 100% stacked area.
 
-## Biplot
+## Biplot \[experimental\]
 
 [`biplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) puts
 observations and variable loadings on one pair of principal component
@@ -30,7 +30,7 @@ observation they are on rather than a bare coordinate pair.
 biplot(prcomp(USArrests, scale. = TRUE), main = "US arrests: PC1 vs PC2")
 ```
 
-## Radar
+## Radar \[experimental\]
 
 [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws one
 star per row, with a ray per variable. maidr reads it as a **radar**:
@@ -45,7 +45,7 @@ one series per observation, each carrying a value per variable.
 stars(mtcars[1:5, 1:4], main = "Five cars over four measures")
 ```
 
-## Interaction Plot
+## Interaction Plot \[experimental\]
 
 [`interaction.plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 draws a line per level of the trace factor, so a non-parallel pair is
@@ -59,7 +59,7 @@ interaction.plot(ToothGrowth$dose, ToothGrowth$supp, ToothGrowth$len,
 )
 ```
 
-## Box Plot from Summary Statistics
+## Box Plot from Summary Statistics \[experimental\]
 
 [`bxp()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws a box
 plot from statistics already computed, rather than from raw data — which
@@ -75,7 +75,7 @@ bxp(boxplot(count ~ spray, data = InsectSprays, plot = FALSE),
 )
 ```
 
-## Strip Chart
+## Strip Chart \[experimental\]
 
 [`stripchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) is the
 one-dimensional scatter you reach for when a box plot would hide too few
@@ -90,7 +90,7 @@ stripchart(count ~ spray,
 )
 ```
 
-## Dot Chart
+## Dot Chart \[experimental\]
 
 [`dotchart()`](https://r.maidr.ai/reference/base-r-wrappers.md) is
 Cleveland’s alternative to a bar chart for labelled values. maidr reads
@@ -104,7 +104,7 @@ dotchart(VADeaths[, "Rural Male"],
 )
 ```
 
-## Lollipop
+## Lollipop \[experimental\]
 
 `plot(type = "h")` draws a vertical spike down to each value. maidr
 reads it as a **lollipop**, the same type the correlogram uses.
@@ -116,7 +116,7 @@ plot(1:8, c(2, 5, 3, 9, 4, 7, 6, 8),
 )
 ```
 
-## Mosaic and Spine Plots
+## Mosaic and Spine Plots \[experimental\]
 
 Both tile a contingency table so that area is proportion, and maidr
 reads both as a **mosaic**: the y axis is `Proportion`, and the second
@@ -138,7 +138,7 @@ case of the same reading.
 spineplot(factor(am) ~ wt, data = mtcars, xlab = "Weight", ylab = "Transmission")
 ```
 
-## Conditional Density
+## Conditional Density \[experimental\]
 
 [`cdplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is the
 continuous-predictor counterpart to a spine plot: it draws how the
@@ -151,7 +151,7 @@ one.
 cdplot(factor(am) ~ mpg, data = mtcars, xlab = "Miles per gallon")
 ```
 
-## Association Plot
+## Association Plot \[experimental\]
 
 [`assocplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) states
 one signed Pearson residual per cell of a contingency table — how far
@@ -164,7 +164,7 @@ size of each departure are read out per cell.
 assocplot(HairEyeColor[, , "Male"], main = "Hair and eye colour: residuals")
 ```
 
-## Fourfold Plot
+## Fourfold Plot \[experimental\]
 
 [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 draws one quarter-circle per cell of a 2x2 table. maidr reads it as a
@@ -198,7 +198,7 @@ fourfoldplot(
 )
 ```
 
-## Filled Contour
+## Filled Contour \[experimental\]
 
 [`filled.contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 shades the bands between contour lines. maidr reads the **contour**
@@ -225,7 +225,7 @@ filled.contour(
 )
 ```
 
-## 100% Stacked Bar
+## 100% Stacked Bar \[experimental\]
 
 A [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a
 proportion table draws columns that each sum to one. maidr reads it as a

@@ -69,6 +69,9 @@ and Base R plotting systems:
 - Heat maps -
   [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
 
+- Candlestick (OHLC) charts -
+  [`tidyquant::geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html)
+
 - Density/smooth curves -
   [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html),
   [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html)
@@ -106,7 +109,55 @@ and Base R plotting systems:
   [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md),
   [`heatmap()`](https://r.maidr.ai/reference/base-r-wrappers.md)
 
+- Contour plots -
+  [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+
+- Candlestick (OHLC) charts -
+  [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)
+
 - Multi-panel layouts - `par(mfrow)`, `par(mfcol)`
+
+**Experimental plot types:** The types above are stable. The package
+also reads a longer list of charts as prototypes: none has been through
+a user study, and each may change without a deprecation period. In these
+docs an experimental type is marked \[experimental\] after its name; a
+type with no mark is stable. Among them:
+
+- ggplot2 area charts \[experimental\]
+
+- ggplot2 contour plots -
+  [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
+  \[experimental\]
+
+- ggplot2 error bars \[experimental\]
+
+- ggplot2 Gantt charts -
+  [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md)
+  \[experimental\]
+
+- ggplot2 hexbin plots \[experimental\]
+
+- ggplot2 ROC curves -
+  [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md)
+  \[experimental\]
+
+- Base R correlograms \[experimental\]
+
+- Base R Q-Q plots \[experimental\]
+
+- Base R radar charts -
+  [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  \[experimental\]
+
+- Base R mosaic plots \[experimental\]
+
+- Base R violin plots -
+  [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
+  \[experimental\]
+
+- Base R word clouds \[experimental\]
+
+The full list is under "Experimental Plot Types" in the README.
 
 ## Accessibility Features
 

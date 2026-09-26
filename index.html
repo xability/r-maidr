@@ -293,7 +293,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-23">
+<meta name="DC.date" content="2026-09-26">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -510,13 +510,13 @@
 </tr>
 <tr>
 <td>Contour plots</td>
-<td>— (see below)</td>
+<td>— (<code><a href="https://ggplot2.tidyverse.org/reference/geom_contour.html" class="external-link">geom_contour()</a></code> is [experimental], see below)</td>
 <td><code><a href="reference/base-r-wrappers.html">contour()</a></code></td>
 </tr>
 <tr>
 <td>Violin plots</td>
 <td><code><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin()</a></code></td>
-<td>—</td>
+<td>— (<code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code> is [experimental], see below)</td>
 </tr>
 <tr>
 <td>Candlestick (OHLC)</td>
@@ -584,6 +584,7 @@
 <p>Everything in the two tables above predates the plot coverage roadmap (<a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a>) and has been exercised by real readers over real charts. Everything below was added by that roadmap and the base R sweeps that followed it (<a href="https://github.com/xability/r-maidr/issues/251" class="external-link">#251</a>, <a href="https://github.com/xability/r-maidr/issues/262" class="external-link">#262</a>), most inside a few weeks.</p>
 <p>Each was measured against the chart it reads — that is what the issues and the tests record. But measuring that a reading is <em>faithful to the drawing</em> is a different claim from establishing that it is <em>useful to a reader</em>. Nobody has asked a blind or low-vision reader whether hearing <code><a href="reference/base-r-wrappers.html">stars()</a></code> as a radar, or navigating a <code><a href="reference/base-r-wrappers.html">termplot()</a></code> panel by panel, is the right way to read one. Until that happens these are proposals about how a chart could be read, not answers.</p>
 <p>Feedback is exactly what would move one of these into the tables above.</p>
+<p>Elsewhere in these docs — the example articles, the getting-started vignette and the package help — an experimental type is marked <strong>[experimental]</strong> after its name; a type with no mark is stable.</p>
 <div class="section level4">
 <h4 id="ggplot2-1">ggplot2<a class="anchor" aria-label="anchor" href="#ggplot2-1"></a>
 </h4>
@@ -779,7 +780,7 @@
 </tbody>
 </table>
 <p>The split is the diff of each factory’s <code>get_supported_types()</code> against <code>8de0e98</code>, the last commit on <code>main</code> before <a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a> was filed. <code>tests/testthat/test-plot-type-stability.R</code> fails if a supported type appears in neither the stable tables nor the experimental ones, so a new layer type has to be placed deliberately rather than inherit either promise by being forgotten.</p>
-<p>The <a href="https://maidr.ai/" class="external-link">JavaScript core</a> and the <a href="https://py.maidr.ai/" class="external-link">Python binding</a> make the same distinction over their own type lists, with the same boundary and for the same reason.</p>
+<p>The <a href="https://maidr.ai/" class="external-link">JavaScript core</a> and the <a href="https://py.maidr.ai/" class="external-link">Python binding</a> make the same distinction over their own type lists, with the same boundary and for the same reason, and mark their docs the same way: see the JavaScript core’s <a href="https://maidr.ai/docs/SCHEMA.html#trace-type-stability" class="external-link">trace type stability</a> and the Python binding’s <a href="https://py.maidr.ai/stability.html" class="external-link">stability page</a>.</p>
 <p>See the <a href="https://r.maidr.ai/articles/examples.html">examples gallery</a> for a worked example of each plot type.</p>
 </div>
 </div>

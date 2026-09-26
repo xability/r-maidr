@@ -56,12 +56,14 @@ reference](https://maidr.ai/docs/CONTROLS.html).
 
 Each family page renders every example interactively, so you can explore
 the charts with the keyboard shortcuts above. The stable and
-experimental labels follow “Supported plot types” in the README.
+experimental labels follow “Supported plot types” in the README: an
+experimental type is marked \[experimental\] after its name, and a type
+with no mark is stable.
 
 - [Bar, Pie and Word Cloud
   Examples](https://r.maidr.ai/articles/examples-bar-pie.md): simple,
-  dodged and stacked bar charts, pie charts, and the experimental word
-  cloud.
+  dodged and stacked bar charts, pie charts, and the word cloud
+  \[experimental\].
 - [Histogram, Density, Box and Violin
   Examples](https://r.maidr.ai/articles/examples-distribution.md): the
   distribution family, including kernel density curves and violin plots.
@@ -81,14 +83,18 @@ experimental labels follow “Supported plot types” in the README.
   [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html).
 - [Base R Time-Series and Diagnostic
   Examples](https://r.maidr.ai/articles/examples-base-r-timeseries.md):
-  correlograms, spectral density, cumulative periodograms, seasonal
-  subseries, lag plots, partial effects and Q-Q plots (experimental).
+  correlograms \[experimental\], spectral density \[experimental\],
+  cumulative periodograms \[experimental\], seasonal subseries
+  \[experimental\], lag plots \[experimental\], partial effects
+  \[experimental\] and Q-Q plots \[experimental\].
 - [Experimental Base R Chart
   Examples](https://r.maidr.ai/articles/examples-base-r-experimental.md):
-  biplots, radar charts, interaction plots, summary box plots, strip and
-  dot charts, lollipops, mosaic and spine plots, conditional density,
-  association plots, filled contours and 100% stacked bars
-  (experimental).
+  biplots \[experimental\], radar charts \[experimental\], interaction
+  plots \[experimental\], summary box plots \[experimental\], strip
+  charts \[experimental\], dot charts \[experimental\], lollipops
+  \[experimental\], mosaic and spine plots \[experimental\], conditional
+  density \[experimental\], association plots \[experimental\], filled
+  contours \[experimental\] and 100% stacked bars \[experimental\].
 
 Every example is also runnable locally:
 [`run_example()`](https://r.maidr.ai/reference/run_example.md) lists the

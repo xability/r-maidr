@@ -373,7 +373,9 @@ MAIDR supports a comprehensive range of visualizations:
   in ggplot2, `plot(type = "s")` / `plot(type = "S")` in Base R — for
   values that are piecewise constant, such as a sleep-stage hypnogram
 - Box plots
-- Violin plots (ggplot2 only)
+- Violin plots (ggplot2; Base R
+  [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
+  \[experimental\])
 - Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
   `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
   Base R via
@@ -381,6 +383,11 @@ MAIDR supports a comprehensive range of visualizations:
   (OHLC-only — TA overlays such as `addVo()`, `addSMA()`, `addEMA()` are
   not supported and fall back to native graphics)
 - Heatmaps
+- Contour plots (Base R
+  [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md);
+  ggplot2
+  [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
+  \[experimental\])
 - Density/smooth curves
 
 See the [Heat Map and Candlestick
@@ -399,6 +406,30 @@ support matrix.
   for Base R
 - **Multi-layered plots** - Combine multiple geoms (e.g., histogram +
   density)
+
+### Experimental Plot Types
+
+Every type above is stable. maidr also reads a longer list of charts as
+prototypes: none has been through a user study, and each may change
+without a deprecation period. Here and in the rest of the docs an
+experimental type is marked **\[experimental\]** after its name; a type
+with no mark is stable. Among them:
+
+- ggplot2: area and stacked area charts \[experimental\], contour plots
+  \[experimental\], error bars \[experimental\], Gantt charts via
+  [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md)
+  \[experimental\], hexbin plots \[experimental\] and ROC curves via
+  [`maidr_roc()`](https://r.maidr.ai/reference/maidr_roc.md)
+  \[experimental\]
+- Base R: correlograms \[experimental\], Q-Q plots \[experimental\],
+  radar charts via
+  [`stars()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  \[experimental\], mosaic plots \[experimental\], violin plots via
+  [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
+  \[experimental\] and word clouds \[experimental\]
+
+The full list is under “Experimental Plot Types” in the
+[README](https://r.maidr.ai/#experimental-plot-types).
 
 ## Next Steps
 

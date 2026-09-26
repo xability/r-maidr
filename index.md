@@ -142,8 +142,8 @@ Base R:
 | Step plots | [`geom_step()`](https://ggplot2.tidyverse.org/reference/geom_path.html) | `plot(type = "s")`, `plot(type = "S")` |
 | Box plots | [`geom_boxplot()`](https://ggplot2.tidyverse.org/reference/geom_boxplot.html) | [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
 | Heatmaps | [`geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html) | [`image()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| Contour plots | — (see below) | [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
-| Violin plots | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html) | — |
+| Contour plots | — ([`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html) is \[experimental\], see below) | [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md) |
+| Violin plots | [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html) | — ([`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html) is \[experimental\], see below) |
 | Candlestick (OHLC) | [`tidyquant::geom_candlestick()`](https://business-science.github.io/tidyquant/reference/geom_chart.html) (+ `geom_ma()`, + patchwork volume) | [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html) (OHLC-only; no TA / no volume) |
 | Density/Smooth | [`geom_smooth()`](https://ggplot2.tidyverse.org/reference/geom_smooth.html), [`geom_density()`](https://ggplot2.tidyverse.org/reference/geom_density.html) | `lines(density())` |
 
@@ -191,6 +191,10 @@ panel, is the right way to read one. Until that happens these are
 proposals about how a chart could be read, not answers.
 
 Feedback is exactly what would move one of these into the tables above.
+
+Elsewhere in these docs — the example articles, the getting-started
+vignette and the package help — an experimental type is marked
+**\[experimental\]** after its name; a type with no mark is stable.
 
 #### ggplot2
 
@@ -248,7 +252,11 @@ promise by being forgotten.
 
 The [JavaScript core](https://maidr.ai/) and the [Python
 binding](https://py.maidr.ai/) make the same distinction over their own
-type lists, with the same boundary and for the same reason.
+type lists, with the same boundary and for the same reason, and mark
+their docs the same way: see the JavaScript core’s [trace type
+stability](https://maidr.ai/docs/SCHEMA.html#trace-type-stability) and
+the Python binding’s [stability
+page](https://py.maidr.ai/stability.html).
 
 See the [examples gallery](https://r.maidr.ai/articles/examples.html)
 for a worked example of each plot type.
