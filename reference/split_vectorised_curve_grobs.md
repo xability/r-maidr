@@ -43,5 +43,6 @@ by a third column, the four rows export as `rgb(248,118,109)`,
 `rgb(0,186,56)`, `rgb(97,156,255)` and `rgb(0,186,56)`, so collapsing to
 the first would paint the whole layer red.
 
-This is an upstream gridSVG gap rather than anything maidr introduced;
-drop the split if gridSVG ever gains a `curve` method of its own.
+This was an upstream gridSVG gap rather than anything maidr introduced.
+The svglite export draws a vectorised curve as it is, but the split
+stays: the element per row it gives is what a gantt's selectors address.

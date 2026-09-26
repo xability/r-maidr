@@ -57,7 +57,7 @@ unaffected because their text grobs already carry a numeric justification.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-09">
+<meta name="DC.date" content="2026-09-26">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -142,9 +142,10 @@ unaffected because their text grobs already carry a numeric justification.</p>
 a usable justification passes through untouched. 0.5 is exactly what grid
 resolves NA to for the <code>just = "centre"</code> these grobs declare, so the drawn
 output is byte-identical.</p>
-<p>This is an upstream gridSVG/gridGraphics incompatibility rather than
-anything maidr introduced; drop this repair if gridSVG ever handles NA
-justification itself.</p>
+<p>This was an upstream gridSVG/gridGraphics incompatibility rather than
+anything maidr introduced. The svglite export leaves justification to grid
+and does not need it; it is kept because it changes nothing grid draws and
+costs one pass over the tree.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

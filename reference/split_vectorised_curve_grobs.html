@@ -51,7 +51,7 @@ be read at all (#195).">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-20">
+<meta name="DC.date" content="2026-09-26">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -142,8 +142,9 @@ satisfy gridSVG and is visibly wrong: measured on a layer coloured by a
 third column, the four rows export as <code>rgb(248,118,109)</code>, <code>rgb(0,186,56)</code>,
 <code>rgb(97,156,255)</code> and <code>rgb(0,186,56)</code>, so collapsing to the first would
 paint the whole layer red.</p>
-<p>This is an upstream gridSVG gap rather than anything maidr introduced; drop
-the split if gridSVG ever gains a <code>curve</code> method of its own.</p>
+<p>This was an upstream gridSVG gap rather than anything maidr introduced.
+The svglite export draws a vectorised curve as it is, but the split stays:
+the element per row it gives is what a gantt's selectors address.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

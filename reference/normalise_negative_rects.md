@@ -38,4 +38,5 @@ A rect at `(y, h)` with `h < 0` covers the same pixels as one at
 `(y + h, |h|)`, so the drawing is unchanged – only the arithmetic
 gridSVG does with it. The same holds for `x` and a negative width.
 
-Drop this repair if gridSVG ever handles negative dimensions itself.
+The svglite export draws negative extents correctly; the repair is kept
+because it changes nothing drawn.

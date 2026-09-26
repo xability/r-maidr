@@ -1,0 +1,43 @@
+# svglite's `style` declarations as presentation attributes
+
+svglite resolves every setting a shape draws with. gridSVG wrote on a
+shape only what the shape's own gpar set and let the rest come from its
+groups, and that split is visible to maidr.js: a highlight clone of a
+group repaints the shapes inside it only where they inherit. So a shape
+keeps just the attributes its own gpar accounts for (NA: all of them),
+with the value svglite resolved, which is the value it was drawn with.
+
+## Usage
+
+``` r
+svg_style_attrs(
+  style,
+  text,
+  own = rep(NA_character_, length(style)),
+  line = logical(length(style))
+)
+```
+
+## Arguments
+
+- style:
+
+  Character vector of `style` values (NA for none).
+
+- text:
+
+  Logical vector: the element is text.
+
+- own:
+
+  Comma-separated names of each shape's own gpar settings, NA for a
+  shape drawn outside any grob.
+
+- line:
+
+  Logical vector: the element is an open line, which gridSVG always
+  wrote unfilled.
+
+## Value
+
+Character vector of attribute strings, each with a leading space.
