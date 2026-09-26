@@ -700,6 +700,8 @@ svg_prim_text <- function(x, st) {
 # the stroke scaled back), so the marks are the ones maidr always drew.
 
 svg_col <- function(col) {
+  # Palette index 0 is the background, which gridSVG's devColToSVG() wrote as
+  # "transparent" (no paint) rather than col2rgb()'s white; kept for parity.
   if (is.numeric(col)) col[col == 0] <- "transparent"
   rgb <- grDevices::col2rgb(col, alpha = TRUE)
   out <- paste0("rgb(", rgb[1, ], ",", rgb[2, ], ",", rgb[3, ], ")")
