@@ -1,6 +1,7 @@
-# Whether field names and types can head a data frame column for column
+# Whether the first record's fields can become data frame columns
 
-Whether field names and types can head a data frame column for column
+Each field becomes one column, so the names must be unique and non-empty
+and every type one that a column can hold a scalar of.
 
 ## Usage
 
