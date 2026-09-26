@@ -64,6 +64,10 @@ author would have written to \code{geom_rect()} produce the same chart: measured
 on ggplot2 3.4.4, the built data is \code{identical()} to the bare
 \code{geom_rect()} layer's and the panel's \code{x.range} and \code{y.range} are identical
 too. Swapping \verb{geom_rect(} for \verb{maidr_gantt(} moves nothing on the page.
+
+The \code{gantt} layer type [experimental] is one of the experimental plot
+types: it has not been through a user study, and its reading may change
+without a deprecation period. See "Experimental Plot Types" in the README.
 }
 \section{Why the author is asked}{
 A rectangle layer carries no evidence of what it means. Five structural

@@ -1,4 +1,4 @@
-# MAIDR Example: Gantt Chart / Project Schedule (ggplot2)
+# MAIDR Example: Gantt Chart / Project Schedule (ggplot2) [experimental]
 # Demonstrates an accessible schedule drawn with rectangles.
 #
 # A gantt chart is a set of lanes, and in each lane a set of intervals: two

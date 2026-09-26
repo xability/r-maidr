@@ -29,7 +29,7 @@ plot family.
 > is not always the one the chart's name suggests: an association plot is
 > read as a heat map, a conditional density plot as a 100% stacked area.
 
-## Biplot
+## Biplot [experimental]
 
 `biplot()` puts observations and variable loadings on one pair of principal
 component axes. maidr reads the observations as a **point** layer on `PC1`
@@ -40,7 +40,7 @@ observation they are on rather than a bare coordinate pair.
 biplot(prcomp(USArrests, scale. = TRUE), main = "US arrests: PC1 vs PC2")
 ```
 
-## Radar
+## Radar [experimental]
 
 `stars()` draws one star per row, with a ray per variable. maidr reads it as
 a **radar**: one series per observation, each carrying a value per variable.
@@ -52,7 +52,7 @@ a **radar**: one series per observation, each carrying a value per variable.
 stars(mtcars[1:5, 1:4], main = "Five cars over four measures")
 ```
 
-## Interaction Plot
+## Interaction Plot [experimental]
 
 `interaction.plot()` draws a line per level of the trace factor, so a
 non-parallel pair is the interaction. maidr reads one **line** per level and
@@ -64,7 +64,7 @@ interaction.plot(ToothGrowth$dose, ToothGrowth$supp, ToothGrowth$len,
 )
 ```
 
-## Box Plot from Summary Statistics
+## Box Plot from Summary Statistics [experimental]
 
 `bxp()` draws a box plot from statistics already computed, rather than from
 raw data — which is exactly what `boxplot(plot = FALSE)` hands back. maidr
@@ -77,7 +77,7 @@ bxp(boxplot(count ~ spray, data = InsectSprays, plot = FALSE),
 )
 ```
 
-## Strip Chart
+## Strip Chart [experimental]
 
 `stripchart()` is the one-dimensional scatter you reach for when a box plot
 would hide too few points. maidr reads **one point layer per group**, so the
@@ -90,7 +90,7 @@ stripchart(count ~ spray,
 )
 ```
 
-## Dot Chart
+## Dot Chart [experimental]
 
 `dotchart()` is Cleveland's alternative to a bar chart for labelled values.
 maidr reads it as a **dot** layer.
@@ -102,7 +102,7 @@ dotchart(VADeaths[, "Rural Male"],
 )
 ```
 
-## Lollipop
+## Lollipop [experimental]
 
 `plot(type = "h")` draws a vertical spike down to each value. maidr reads it
 as a **lollipop**, the same type the correlogram uses.
@@ -113,7 +113,7 @@ plot(1:8, c(2, 5, 3, 9, 4, 7, 6, 8),
 )
 ```
 
-## Mosaic and Spine Plots
+## Mosaic and Spine Plots [experimental]
 
 Both tile a contingency table so that area is proportion, and maidr reads
 both as a **mosaic**: the y axis is `Proportion`, and the second factor is
@@ -130,7 +130,7 @@ the two-column case of the same reading.
 spineplot(factor(am) ~ wt, data = mtcars, xlab = "Weight", ylab = "Transmission")
 ```
 
-## Conditional Density
+## Conditional Density [experimental]
 
 `cdplot()` is the continuous-predictor counterpart to a spine plot: it draws
 how the conditional distribution of a factor shifts along a numeric axis.
@@ -141,7 +141,7 @@ to one.
 cdplot(factor(am) ~ mpg, data = mtcars, xlab = "Miles per gallon")
 ```
 
-## Association Plot
+## Association Plot [experimental]
 
 `assocplot()` states one signed Pearson residual per cell of a contingency
 table — how far that cell sits from independence. maidr reads it as a
@@ -152,7 +152,7 @@ the sign and size of each departure are read out per cell.
 assocplot(HairEyeColor[, , "Male"], main = "Hair and eye colour: residuals")
 ```
 
-## Fourfold Plot
+## Fourfold Plot [experimental]
 
 `fourfoldplot()` draws one quarter-circle per cell of a 2x2 table. maidr
 reads it as a **heat**: the same named grid of one count per cell, navigated
@@ -182,7 +182,7 @@ fourfoldplot(
 )
 ```
 
-## Filled Contour
+## Filled Contour [experimental]
 
 `filled.contour()` shades the bands between contour lines. maidr reads the
 **contour** levels themselves, so a reader walks the level curves rather
@@ -207,7 +207,7 @@ filled.contour(
 )
 ```
 
-## 100% Stacked Bar
+## 100% Stacked Bar [experimental]
 
 A `barplot()` of a proportion table draws columns that each sum to one.
 maidr reads it as a **100% stacked bar**, so a segment is announced as its

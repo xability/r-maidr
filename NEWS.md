@@ -654,6 +654,17 @@
   order for vioplot, wordcloud and quantmod in one place. It is indexed
   under "What attaching maidr masks", and the README and the getting-started
   vignette summarise it in their session section (#320).
+* Stable and experimental plot types can no longer be mistaken for each
+  other. Outside the README's definition tables, every experimental type
+  named in a heading, list or table row of the example articles, the
+  getting-started vignette, `?maidr`, `?maidr_gantt`, `?maidr_roc` and the
+  example scripts carries an **[experimental]** mark after its name, and an
+  unmarked type is stable, the convention the MAIDR JavaScript core and
+  py-maidr follow in their own docs. The README says so, and its stable
+  table notes that ggplot2 contour and Base R `vioplot::vioplot()` are
+  experimental; the getting-started vignette gains an "Experimental Plot
+  Types" section and lists Base R contour plots, and `?maidr` lists contour
+  and candlestick charts.
 
 ## Performance
 

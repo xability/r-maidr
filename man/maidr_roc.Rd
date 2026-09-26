@@ -63,6 +63,10 @@ curve is drawn to say.
 
 Nothing about the picture changes: the geom draws exactly what
 \code{geom_path()} draws, and \code{threshold} reaches no mark.
+
+The \code{roc} layer type [experimental] is one of the experimental plot
+types: it has not been through a user study, and its reading may change
+without a deprecation period. See "Experimental Plot Types" in the README.
 }
 \section{What is asked of the data}{
 \code{x} is the false positive rate and \code{y} the true positive rate, both

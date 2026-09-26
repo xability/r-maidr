@@ -1,4 +1,4 @@
-# MAIDR Example: ROC Curve (ggplot2)
+# MAIDR Example: ROC Curve (ggplot2) [experimental]
 # Demonstrates an accessible receiver operating characteristic curve.
 #
 # A ROC curve is a classifier's true positive rate against its false positive

@@ -29,7 +29,7 @@ user study and each may change without a deprecation period. The
 > is not always the one the chart's name suggests: a correlogram is read as
 > a lollipop, a cumulative periodogram as a step.
 
-## Correlogram
+## Correlogram [experimental]
 
 `acf()`, `pacf()` and `ccf()` draw a spike per lag, and maidr reads each as
 a **lollipop**: one term per lag, carrying the correlation at that lag. The
@@ -55,7 +55,7 @@ terms are signed and the sign says which series leads.
 ccf(mdeaths, fdeaths, lag.max = 4, main = "Male vs female deaths")
 ```
 
-## Spectral Density
+## Spectral Density [experimental]
 
 `spectrum()` estimates how a series' variance is distributed across
 frequencies. maidr reads the periodogram as a **line** of `spectrum`
@@ -65,7 +65,7 @@ against `frequency`.
 spectrum(lh, main = "Luteinizing hormone: spectral density")
 ```
 
-## Cumulative Periodogram
+## Cumulative Periodogram [experimental]
 
 `cpgram()` draws the cumulative periodogram against its confidence band.
 The cumulative curve is read as a **step**; the band is drawing rather than
@@ -78,7 +78,7 @@ data, and is not announced.
 cpgram(lh, main = "Luteinizing hormone: cumulative periodogram")
 ```
 
-## Seasonal Subseries
+## Seasonal Subseries [experimental]
 
 `monthplot()` breaks a seasonal series into one segment per cycle position,
 so every January sits together and the seasonal shape is read directly.
@@ -96,7 +96,7 @@ monthplot(
 )
 ```
 
-## Lag Plot
+## Lag Plot [experimental]
 
 `lag.plot()` plots a series against itself shifted by *k*, which is how
 serial dependence is read by eye. maidr reads it as a **point** layer whose
@@ -106,7 +106,7 @@ x axis is named for the shift — `lag 1` against the series.
 lag.plot(lh, lags = 1, main = "Luteinizing hormone against its own lag")
 ```
 
-## Partial Effects
+## Partial Effects [experimental]
 
 `termplot()` draws each term's fitted contribution against its own
 predictor, holding the rest fixed. maidr reads each panel as a **line**,
@@ -117,7 +117,7 @@ rather than a fitted value.
 termplot(lm(mpg ~ wt, data = mtcars), main = "Partial effect of weight")
 ```
 
-## Q-Q Plot
+## Q-Q Plot [experimental]
 
 `qqnorm()` plots sample quantiles against theoretical ones, and `qqline()`
 adds the reference line through the quartiles. Both are read — the points as
