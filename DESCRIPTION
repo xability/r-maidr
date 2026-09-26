@@ -29,7 +29,7 @@ Imports:
     ggplot2,
     ggplotify,
     grid,
-    gridSVG,
+    svglite (>= 2.1.0),
     htmltools,
     htmlwidgets,
     jsonlite,

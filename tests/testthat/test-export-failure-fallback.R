@@ -1,13 +1,13 @@
 # An export that throws must cost the chart its interactivity, not the save.
 #
-# The reproducers are `matplot()` and `symbols()`, which fail inside gridSVG's
-# `grid.export()`. Those are exercised at the end, guarded, because whether a
-# given gridSVG release still fails on them is not this package's contract.
-# The contract is the one asserted first: whatever the build raises, a caller
-# who has fallback enabled gets a picture.
+# The reproducers were `matplot()` and `symbols()`, which failed inside
+# gridSVG's `grid.export()` when maidr exported with it; the svglite export
+# draws both. They are still exercised at the end, because whether a given
+# exporter manages them is not this package's contract. The contract is the
+# one asserted first: whatever the build raises, a caller who has fallback
+# enabled gets a picture.
 
 test_that("a build that throws falls back to the static image", {
-  skip_if_not_installed("gridSVG")
 
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -34,7 +34,6 @@ test_that("a build that throws falls back to the static image", {
 })
 
 test_that("the warning names the failure so it can be reported upstream", {
-  skip_if_not_installed("gridSVG")
 
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -58,7 +57,6 @@ test_that("the warning names the failure so it can be reported upstream", {
 })
 
 test_that("a caller who disabled fallback gets the error, not the picture", {
-  skip_if_not_installed("gridSVG")
 
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -84,7 +82,6 @@ test_that("a caller who disabled fallback gets the error, not the picture", {
 })
 
 test_that("a plot that exports cleanly is still read, not fallen back", {
-  skip_if_not_installed("gridSVG")
 
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -102,12 +99,11 @@ test_that("a plot that exports cleanly is still read, not fallen back", {
   expect_false(grepl("base64", html, fixed = TRUE))
 })
 
-# The two calls that surfaced this. A gridSVG release that learns to export
-# them makes these plots interactive, which is a better outcome and not a
-# regression -- so the assertion is on the save completing, not on which of
-# the two answers it gives.
+# The two calls that surfaced this. An exporter that manages them (the
+# svglite export does) makes these plots interactive, which is a better
+# outcome and not a regression -- so the assertion is on the save
+# completing, not on which of the two answers it gives.
 test_that("matplot and symbols leave the caller with a file either way", {
-  skip_if_not_installed("gridSVG")
 
   for (draw in list(
     function() matplot(matrix(1:12, 4)),

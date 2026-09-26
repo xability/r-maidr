@@ -6,7 +6,9 @@
 # positive heights export silently, and the same four with two heights
 # negated warn. So this is an upstream gridSVG defect rather than anything
 # about a particular chart -- but `assocplot()` reaches it by construction,
-# drawing every tile from a baseline with a signed height.
+# drawing every tile from a baseline with a signed height. maidr now exports
+# with svglite, which draws negative extents as they are; the last test keeps
+# the export of such a rect warning-free either way.
 
 test_that("a rect drawn with a negative height is restated positively", {
   grob <- grid::rectGrob(
@@ -85,16 +87,9 @@ test_that("exporting a rect with negative heights no longer warns", {
     just = c("left", "bottom"),
     gp = grid::gpar(fill = c("red", "red", "black", "black"))
   )
-  file <- tempfile(fileext = ".svg")
-  on.exit(unlink(file), add = TRUE)
-
   warnings <- character()
   withCallingHandlers({
-    grDevices::pdf(NULL)
-    grid::grid.newpage()
-    grid::grid.draw(normalise_negative_rects(grob))
-    suppressMessages(gridSVG::grid.export(file, res = 96))
-    grDevices::dev.off()
+    create_enhanced_svg(grob, list(id = "negative"))
   }, warning = function(w) {
     warnings <<- c(warnings, conditionMessage(w))
     invokeRestart("muffleWarning")

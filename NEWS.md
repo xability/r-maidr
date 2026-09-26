@@ -668,6 +668,17 @@
 
 ## Performance
 
+* Charts are exported to SVG with 'svglite' instead of 'gridSVG'. gridSVG
+  walked every grob in R and has not been released since 2017; svglite draws
+  with R's graphics engine in C++. The exported document keeps the shape
+  maidr's selectors and maidr.js are written against -- the same element
+  ids, groups, Y-flip, `<use>` points and presentation attributes -- so
+  highlighting, announcements and high-contrast mode are unchanged.
+  Exporting is 3 to 5 times faster (a 10,000-point
+  ggplot2 scatter in 0.4 s rather than 1.7 s, a 100 x 100 heat map in 0.5 s
+  rather than 1.5 s, 2,000 segments in 2.2 s rather than 15 s), and the
+  SVG is no larger, a little smaller for most charts. `matplot()` and `symbols()` charts, which gridSVG could not
+  export and which fell back to a static image, are now interactive.
 * Rendered SVGs no longer carry gridSVG's inline `gridSVGCoords` and
   `gridSVGMappings` script blocks. Nothing in maidr.js or this package read
   them, and they made up about a quarter of every chart's HTML, so `show()`,

@@ -4,7 +4,6 @@
 #' injection, and HTML generation that work for all plot types.
 #'
 #' @importFrom grid grid.newpage grid.draw
-#' @importFrom gridSVG grid.export
 #' @importFrom stats setNames
 #' @noRd
 NULL
@@ -39,12 +38,10 @@ generate_unique_id <- function() {
 #' @return Character vector of SVG content
 #' @keywords internal
 create_enhanced_svg <- function(gt, maidr_data, ...) {
-  svg_file <- tempfile(fileext = ".svg")
-
   # Save current device
   current_dev <- grDevices::dev.cur()
 
-  # Device dimensions (must match the PDF device)
+  # Device dimensions
   # Default: 7x5 (existing aspect ratio used by all other plot types).
   # Candlestick (chartSeries) needs a wider canvas (10x5) to keep
   # chartSeries' centered title and right-side bracketed date range
@@ -59,48 +56,43 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
   has_candlestick <- length(collect_candlestick_layers(maidr_data)) > 0L
   # Candlestick needs a larger canvas (12x6 in -> 864x432 px) so that
   # chartSeries' right-side date-range header and bottom date labels
-  # fit inside the gridSVG viewBox. This MUST match the gt_width/gt_height
-  # used in base_r_plot_orchestrator.R; otherwise gridSVG exports content
+  # fit inside the SVG viewBox. This MUST match the gt_width/gt_height
+  # used in base_r_plot_orchestrator.R; otherwise the export draws content
   # sized for 864x432 into a 720x360 viewBox, producing a background rect
   # at (-180,-90) with size 1080x540 and right-axis labels only ~47 px
   # from the right edge. See quantmod GH issue #129.
   dev_width  <- if (has_candlestick) 12 else 7  # inches (was 10)
   dev_height <- if (has_candlestick)  6 else 5  # inches (was 5)
 
-  # Use a null/invisible PDF device for rendering to avoid side effects
-  pdf_file <- tempfile(fileext = ".pdf")
-  grDevices::pdf(pdf_file, width = dev_width, height = dev_height)
+  # Draw on the svglite page the SVG is exported from, so everything
+  # measured below (the violin coordinates) is measured on the layout the
+  # reader sees.
+  svg_string <- open_svg_device(dev_width, dev_height)
+  svg_dev <- grDevices::dev.cur()
   on.exit(
     {
-      grDevices::dev.off()
-      if (current_dev > 1) grDevices::dev.set(current_dev)
-      unlink(pdf_file)
-      unlink(svg_file)
+      if (svg_dev %in% grDevices::dev.list()) grDevices::dev.off(svg_dev)
+      if (current_dev > 1 && current_dev %in% grDevices::dev.list()) {
+        grDevices::dev.set(current_dev)
+      }
     },
     add = TRUE
   )
 
-  # Render to the invisible device. Both repairs have to happen here rather
-  # than after drawing: grid.export() reads the grid display list, so only
-  # the tree that was actually drawn is the one it exports.
+  # All three repairs have to happen here rather than after drawing: the
+  # export reads the grid display list, so only the tree that was actually
+  # drawn is the one it exports.
   grid.newpage()
   grid.draw(normalise_negative_rects(
     split_vectorised_curve_grobs(repair_na_text_justification(gt))
   ))
 
   # Inject svg_x/svg_y coordinates into violin_kde layers while we have
-
   # access to the grid viewports (must happen after grid.draw but before
   # closing the device)
   maidr_data <- inject_violin_kde_svg_coords(gt, maidr_data)
 
-  # Export to SVG. gridSVG's coordinate and mapping tables are left out:
-  # nothing in maidr.js, this package or its tests reads `gridSVGCoords` or
-  # `gridSVGMappings` (selectors are built from element ids), and inlining
-  # them was a quarter of every rendered chart.
-  grid.export(svg_file, exportCoords = "none", exportMappings = "none")
-
-  svg_content <- readLines(svg_file, warn = FALSE, encoding = "UTF-8")
+  svg_content <- export_svg_scene(svg_string, dev_width, dev_height)
 
   # Candlestick post-processing + maidr-data injection. Parse the SVG
   # ONCE and apply all transformations to the same xml2 document (which
@@ -157,9 +149,10 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
 #' resolves NA to for the `just = "centre"` these grobs declare, so the drawn
 #' output is byte-identical.
 #'
-#' This is an upstream gridSVG/gridGraphics incompatibility rather than
-#' anything maidr introduced; drop this repair if gridSVG ever handles NA
-#' justification itself.
+#' This was an upstream gridSVG/gridGraphics incompatibility rather than
+#' anything maidr introduced. The svglite export leaves justification to grid
+#' and does not need it; it is kept because it changes nothing grid draws and
+#' costs one pass over the tree.
 #'
 #' @param grob A grob, gTree, gList, or gtable (or NULL)
 #' @return The same tree with NA `hjust`/`vjust` on text grobs set to 0.5
@@ -221,7 +214,8 @@ repair_na_text_justification <- function(grob) {
 #' `(y + h, |h|)`, so the drawing is unchanged -- only the arithmetic gridSVG
 #' does with it. The same holds for `x` and a negative width.
 #'
-#' Drop this repair if gridSVG ever handles negative dimensions itself.
+#' The svglite export draws negative extents correctly; the repair is kept
+#' because it changes nothing drawn.
 #'
 #' @param grob A grob, gTree, gList, or gtable (or NULL)
 #' @return The same tree with every rect's extent stated positively
@@ -366,8 +360,9 @@ flip_negative_extent <- function(position, extent, anchor) {
 #' `rgb(97,156,255)` and `rgb(0,186,56)`, so collapsing to the first would
 #' paint the whole layer red.
 #'
-#' This is an upstream gridSVG gap rather than anything maidr introduced; drop
-#' the split if gridSVG ever gains a `curve` method of its own.
+#' This was an upstream gridSVG gap rather than anything maidr introduced.
+#' The svglite export draws a vectorised curve as it is, but the split stays:
+#' the element per row it gives is what a gantt's selectors address.
 #'
 #' @param grob A grob, gTree, gList, or gtable (or NULL)
 #' @return The same tree with every multi-row `curve` grob split row-wise

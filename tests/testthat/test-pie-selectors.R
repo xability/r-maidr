@@ -14,7 +14,6 @@
 
 skip_if_no_export <- function() {
   testthat::skip_if_not_installed("ggplot2")
-  testthat::skip_if_not_installed("gridSVG")
   testthat::skip_if_not_installed("xml2")
   testthat::skip_if_not_installed("jsonlite")
 }

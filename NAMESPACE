@@ -76,7 +76,6 @@ importFrom(grid,
   grid.draw,
   grid.newpage
 )
-importFrom(gridSVG,grid.export)
 importFrom(htmlwidgets,
   createWidget,
   shinyRenderWidget,
