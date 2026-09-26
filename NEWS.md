@@ -666,6 +666,11 @@
 * Base R renders cache the replayed gtable instead of re-replaying every
   recorded call; candlestick SVG post-processing parses the document once;
   the bundled JS/CSS is read once per session.
+* The chart data embedded in each SVG is serialised about ten times faster
+  for layers with many points, with byte-identical output. `jsonlite` spent
+  2 s of a 5 s render on the per-point records of a 10,000-point ggplot2
+  scatter; that render now takes 2.7 s, and a 5,000-point line 0.9 s rather
+  than 1.9 s.
 
 # maidr 0.4.0
 
