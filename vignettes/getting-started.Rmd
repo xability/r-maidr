@@ -367,14 +367,14 @@ MAIDR supports a comprehensive range of visualizations:
   in Base R — for values that are piecewise constant, such as a sleep-stage
   hypnogram
 - Box plots
-- Violin plots (ggplot2; Base R `vioplot::vioplot()` [experimental])
+- Violin plots (ggplot2 `geom_violin()`)
 - Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
   `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
   Base R via `quantmod::chartSeries()` (OHLC-only — TA overlays such as
   `addVo()`, `addSMA()`, `addEMA()` are not supported and fall back to
   native graphics)
 - Heatmaps
-- Contour plots (Base R `contour()`; ggplot2 `geom_contour()` [experimental])
+- Contour plots (Base R `contour()`)
 - Density/smooth curves
 
 See the [Heat Map and Candlestick Examples](https://r.maidr.ai/articles/examples-heatmap-candlestick.html)
@@ -393,10 +393,10 @@ a deprecation period. Here and in the rest of the docs an experimental type
 is marked **[experimental]** after its name; a type with no mark is stable.
 Among them:
 
-- ggplot2: area and stacked area charts [experimental], contour plots
-  [experimental], error bars [experimental], Gantt charts via `maidr_gantt()`
-  [experimental], hexbin plots [experimental] and ROC curves via
-  `maidr_roc()` [experimental]
+- ggplot2: area and stacked area charts [experimental], contour plots via
+  `geom_contour()` [experimental], error bars [experimental], Gantt charts
+  via `maidr_gantt()` [experimental], hexbin plots [experimental] and ROC
+  curves via `maidr_roc()` [experimental]
 - Base R: correlograms [experimental], Q-Q plots [experimental], radar charts
   via `stars()` [experimental], mosaic plots [experimental], violin plots via
   `vioplot::vioplot()` [experimental] and word clouds [experimental]

@@ -73,8 +73,8 @@ articles:
 
   - title: Examples by plot family
     desc: >-
-      Worked, interactive examples of every supported plot type, split by
-      family so each page stays small enough to crawl and load quickly.
+      Worked, interactive examples of the stable plot types, split by family
+      so each page stays small enough to crawl and load quickly.
     navbar: Examples
     contents:
       - articles/examples
@@ -83,6 +83,15 @@ articles:
       - articles/examples-scatter-line
       - articles/examples-heatmap-candlestick
       - articles/examples-multi
+
+  # Pages that show only experimental plot types, kept apart from the stable
+  # families above so neither list interleaves the two tiers.
+  - title: Experimental plot families
+    desc: >-
+      Prototype readings of Base R charts: none has been through a user study,
+      and each may change without a deprecation period.
+    navbar: Experimental
+    contents:
       - articles/examples-base-r-timeseries
       - articles/examples-base-r-experimental
 
