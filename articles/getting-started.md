@@ -410,9 +410,8 @@ MAIDR supports a comprehensive range of visualizations:
   in ggplot2, `plot(type = "s")` / `plot(type = "S")` in Base R — for
   values that are piecewise constant, such as a sleep-stage hypnogram
 - Box plots
-- Violin plots (ggplot2; Base R
-  [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html)
-  \[experimental\])
+- Violin plots (ggplot2
+  [`geom_violin()`](https://ggplot2.tidyverse.org/reference/geom_violin.html))
 - Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
   `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
   Base R via
@@ -421,10 +420,7 @@ MAIDR supports a comprehensive range of visualizations:
   not supported and fall back to native graphics)
 - Heatmaps
 - Contour plots (Base R
-  [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md);
-  ggplot2
-  [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
-  \[experimental\])
+  [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md))
 - Density/smooth curves
 
 See the [Heat Map and Candlestick
@@ -453,6 +449,8 @@ experimental type is marked **\[experimental\]** after its name; a type
 with no mark is stable. Among them:
 
 - ggplot2: area and stacked area charts \[experimental\], contour plots
+  via
+  [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
   \[experimental\], error bars \[experimental\], Gantt charts via
   [`maidr_gantt()`](https://r.maidr.ai/reference/maidr_gantt.md)
   \[experimental\], hexbin plots \[experimental\] and ROC curves via

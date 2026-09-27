@@ -58,7 +58,13 @@ Each family page renders every example interactively, so you can explore
 the charts with the keyboard shortcuts above. The stable and
 experimental labels follow “Supported plot types” in the README: an
 experimental type is marked \[experimental\] after its name, and a type
-with no mark is stable.
+with no mark is stable. The stable families come first, and the
+experimental ones follow in a section of their own. Every example is
+also runnable locally:
+[`run_example()`](https://r.maidr.ai/reference/run_example.md) lists the
+scripts shipped with the package.
+
+### Stable plot families
 
 - [Bar, Pie and Word Cloud
   Examples](https://r.maidr.ai/articles/examples-bar-pie.md): simple,
@@ -81,6 +87,14 @@ with no mark is stable.
   [`facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)
   and
   [`facet_grid()`](https://ggplot2.tidyverse.org/reference/facet_grid.html).
+
+### Experimental plot families
+
+These pages show only experimental types, which are prototypes: none has
+been through a user study, and each may change without a deprecation
+period, as “Experimental Plot Types” in the
+[README](https://r.maidr.ai/#experimental-plot-types) explains.
+
 - [Base R Time-Series and Diagnostic
   Examples](https://r.maidr.ai/articles/examples-base-r-timeseries.md):
   correlograms \[experimental\], spectral density \[experimental\],
@@ -95,7 +109,3 @@ with no mark is stable.
   \[experimental\], mosaic and spine plots \[experimental\], conditional
   density \[experimental\], association plots \[experimental\], filled
   contours \[experimental\] and 100% stacked bars \[experimental\].
-
-Every example is also runnable locally:
-[`run_example()`](https://r.maidr.ai/reference/run_example.md) lists the
-scripts shipped with the package.

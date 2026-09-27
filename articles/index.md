@@ -18,8 +18,8 @@
 
 ### Examples by plot family
 
-Worked, interactive examples of every supported plot type, split by
-family so each page stays small enough to crawl and load quickly.
+Worked, interactive examples of the stable plot types, split by family
+so each page stays small enough to crawl and load quickly.
 
 - [Examples](https://r.maidr.ai/articles/examples.md):
 
@@ -62,6 +62,11 @@ family so each page stays small enough to crawl and load quickly.
   Accessible multi-layered plots, patchwork and par(mfrow) multi-panel
   layouts, and facet_wrap() and facet_grid() facets with maidr: switch
   layers and subplots by keyboard, each with its own sonification.
+
+### Experimental plot families
+
+Prototype readings of Base R charts: none has been through a user study,
+and each may change without a deprecation period.
 
 - [Base R Time-Series and Diagnostic
   Examples](https://r.maidr.ai/articles/examples-base-r-timeseries.md):

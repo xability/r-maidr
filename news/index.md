@@ -1022,6 +1022,17 @@
   Plot Types” section and lists Base R contour plots, and
   [`?maidr`](https://r.maidr.ai/reference/maidr-package.md) lists
   contour and candlestick charts.
+- Stable and experimental plot types are no longer interleaved where the
+  docs list them: the stable ones come first and the experimental ones
+  follow in a section of their own. The examples hub splits its plot
+  families into “Stable plot families” and “Experimental plot families”,
+  the pkgdown Articles menu gives the two wholly experimental Base R
+  pages a section of their own, and the getting-started vignette’s
+  stable list no longer names ggplot2
+  [`geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
+  or Base R
+  [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html),
+  which its experimental list already covers. The README says so.
 
 ### Performance
 

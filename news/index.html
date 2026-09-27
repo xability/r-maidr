@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-26">
+<meta name="DC.date" content="2026-09-27">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -61,6 +61,8 @@
     <li><a class="dropdown-item" href="../articles/examples-scatter-line.html">Scatter, Line, Step and Regression Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-heatmap-candlestick.html">Heat Map and Candlestick Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-multi.html">Multi-Layered, Multi-Panel and Facet Examples</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
   </ul></li>
@@ -269,6 +271,7 @@
 <li>The README, the getting-started vignette and the examples hub carry one keyboard table, identical on all three and matched to the MAIDR core’s controls reference: Up/Down, layer switching with Page Up/Page Down, label mode, high contrast and the shortcut help are listed, Space is “repeat the current sound”, and the Enter/Space and Escape rows the vignette had, which the core does not bind, are gone. Each copy sits between markers and <code>tests/testthat/test-docs-key-table.R</code> fails when the three drift apart (<a href="https://github.com/xability/r-maidr/issues/312" class="external-link">#312</a>).</li>
 <li>What attaching maidr masks is documented for users. <code><a href="../reference/base-r-wrappers.html">?"base-r-wrappers"</a></code>, which every Base R autolink on the website already pointed at but which was hidden from the reference index and the search engines, is now a user-facing page listing the graphics, stats, base and methods functions maidr replaces, saying that each passes through to the original, that <code><a href="../reference/show.html">show()</a></code> hands a non-plot object to <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code> and that scripts and packages should call <code><a href="../reference/show.html">maidr::show()</a></code> by name, and giving the attach order for vioplot, wordcloud and quantmod in one place. It is indexed under “What attaching maidr masks”, and the README and the getting-started vignette summarise it in their session section (<a href="https://github.com/xability/r-maidr/issues/320" class="external-link">#320</a>).</li>
 <li>Stable and experimental plot types can no longer be mistaken for each other. Outside the README’s definition tables, every experimental type named in a heading, list or table row of the example articles, the getting-started vignette, <code><a href="../reference/maidr-package.html">?maidr</a></code>, <code><a href="../reference/maidr_gantt.html">?maidr_gantt</a></code>, <code><a href="../reference/maidr_roc.html">?maidr_roc</a></code> and the example scripts carries an <strong>[experimental]</strong> mark after its name, and an unmarked type is stable, the convention the MAIDR JavaScript core and py-maidr follow in their own docs. The README says so, and its stable table notes that ggplot2 contour and Base R <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code> are experimental; the getting-started vignette gains an “Experimental Plot Types” section and lists Base R contour plots, and <code><a href="../reference/maidr-package.html">?maidr</a></code> lists contour and candlestick charts.</li>
+<li>Stable and experimental plot types are no longer interleaved where the docs list them: the stable ones come first and the experimental ones follow in a section of their own. The examples hub splits its plot families into “Stable plot families” and “Experimental plot families”, the pkgdown Articles menu gives the two wholly experimental Base R pages a section of their own, and the getting-started vignette’s stable list no longer names ggplot2 <code><a href="https://ggplot2.tidyverse.org/reference/geom_contour.html" class="external-link">geom_contour()</a></code> or Base R <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code>, which its experimental list already covers. The README says so.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="performance-0-5-0">Performance<a class="anchor" aria-label="anchor" href="#performance-0-5-0"></a></h3>
