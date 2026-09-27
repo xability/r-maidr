@@ -58,7 +58,12 @@ Every other shortcut, including autoplay, jumping to the ends, the command palet
 Each family page renders every example interactively, so you can explore the
 charts with the keyboard shortcuts above. The stable and experimental labels
 follow "Supported plot types" in the README: an experimental type is marked
-[experimental] after its name, and a type with no mark is stable.
+[experimental] after its name, and a type with no mark is stable. The stable
+families come first, and the experimental ones follow in a section of their
+own. Every example is also runnable locally: `run_example()` lists the
+scripts shipped with the package.
+
+### Stable plot families
 
 - [Bar, Pie and Word Cloud Examples](examples-bar-pie.html): simple, dodged
   and stacked bar charts, pie charts, and the word cloud [experimental].
@@ -73,6 +78,14 @@ follow "Supported plot types" in the README: an experimental type is marked
 - [Multi-Layered, Multi-Panel and Facet Examples](examples-multi.html):
   layered geoms, patchwork and `par(mfrow)` layouts, `facet_wrap()` and
   `facet_grid()`.
+
+### Experimental plot families
+
+These pages show only experimental types, which are prototypes: none has been
+through a user study, and each may change without a deprecation period, as
+"Experimental Plot Types" in the
+[README](https://r.maidr.ai/#experimental-plot-types) explains.
+
 - [Base R Time-Series and Diagnostic Examples](examples-base-r-timeseries.html):
   correlograms [experimental], spectral density [experimental], cumulative
   periodograms [experimental], seasonal subseries [experimental], lag plots
@@ -85,6 +98,3 @@ follow "Supported plot types" in the README: an experimental type is marked
   and spine plots [experimental], conditional density [experimental],
   association plots [experimental], filled contours [experimental] and 100%
   stacked bars [experimental].
-
-Every example is also runnable locally: `run_example()` lists the scripts
-shipped with the package.

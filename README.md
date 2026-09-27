@@ -186,7 +186,9 @@ Feedback is exactly what would move one of these into the tables above.
 
 Elsewhere in these docs — the example articles, the getting-started vignette
 and the package help — an experimental type is marked **[experimental]** after
-its name; a type with no mark is stable.
+its name; a type with no mark is stable. Wherever they list plot types, the
+stable ones come first and the experimental ones follow in a section of their
+own, as they do here.
 
 #### ggplot2
 
