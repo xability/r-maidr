@@ -70,6 +70,17 @@ system.
   between 0.1 and 30. Falls back to the environment variable
   `MAIDR_CDN_TIMEOUT`. Default: 3.
 
+- `maidr.locale_base_url`:
+
+  Character, or `FALSE`. Where maidr.js fetches a language other than
+  English from, in the documents that load the bundled maidr.js (see the
+  section on languages below): a directory URL to serve the locale packs
+  yourself, or `""` or `FALSE` to declare nothing, which keeps such a
+  document off the network and in English. A URL set here is declared in
+  CDN documents too. Falls back to the environment variable
+  `MAIDR_LOCALE_BASE_URL`. Default: unset, which declares the packs of
+  the bundled version on jsDelivr.
+
 ## Setting Options
 
 Options can be set in your `.Rprofile` to persist across sessions:
@@ -89,6 +100,10 @@ Options can be set in your `.Rprofile` to persist across sessions:
       maidr.dotpad_sdk_url = "https://example.org/vendor/DotPadSDK-3.0.3.js",
       maidr.dotpad_asset_base_url = "https://example.org/vendor/lib/"
     )
+
+    # Serve MAIDR's language packs yourself, or never fetch one (English only)
+    options(maidr.locale_base_url = "https://example.org/maidr/")
+    options(maidr.locale_base_url = FALSE)
 
 ## DotPad SDK and offline documents
 
@@ -114,6 +129,22 @@ over a downloaded copy. The widget, knitr and Shiny paths render their
 charts in `srcdoc` frames, where a relative path has nothing to resolve
 against, so they use only the URL options.
 
+## Languages other than English
+
+MAIDR.js reads a chart in English on its own, and in Korean, Japanese,
+Chinese, Spanish, German, French, Italian or Hindi from a locale pack,
+`locale-<code>.js`, that it fetches from beside itself when the reader's
+language is chosen or detected. A document that loads MAIDR.js from the
+CDN finds the packs there. This package does not bundle them – they
+would add 0.8 MB to an installed package already over CRAN's size
+guideline – so every document that loads the bundled MAIDR.js, from
+`lib/` or inlined, declares `window.maidrLocaleBaseUrl` ahead of it: the
+packs of the bundled version on jsDelivr, unless `maidr.locale_base_url`
+names another place or none. English needs no network; another language
+is fetched when the reader is online and stays English when they are
+not. A page that declares `window.maidrLocaleBaseUrl` itself keeps its
+own.
+
 ## Which MAIDR.js the CDN serves
 
 Documents that load MAIDR.js from the jsDelivr CDN –
@@ -122,7 +153,8 @@ Documents that load MAIDR.js from the jsDelivr CDN –
 `use_cdn = TRUE`, and the widget, knitr and Shiny paths when they find
 the machine online – load the latest published MAIDR.js, as the Python
 binding does. Documents rendered with `use_cdn = FALSE` load the copy
-bundled with this package and make no network request.
+bundled with this package, and reach the network only for the two things
+described above: a DotPad's SDK and a language other than English.
 
 The first CDN document in an R session asks which version is the latest:
 jsDelivr's data API

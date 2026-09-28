@@ -367,17 +367,32 @@ options(maidr.cdn_version = "4.9.0")    # a particular release
 ```
 
 or set `MAIDR_CDN_VERSION` in the environment. `use_cdn = FALSE` never
-makes a network request. See
+makes that lookup. See
 [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
 
-One path still reaches the network from an offline document: connecting
-a [DotPad tactile display](https://maidr.ai/docs/TACTILE_DISPLAY.html).
-maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB
-liblouis build, and imports the vendor’s copy from jsDelivr the first
-time a DotPad is connected. Rendering, sonification and braille work
-offline regardless. To keep the DotPad offline too, download the pinned
-SDK once and every `use_cdn = FALSE` document carries it in its `lib/`
-folder:
+Two things still reach the network from an offline document, and only
+when a reader uses them. One is a language other than English. maidr.js
+reads charts in English on its own and fetches Korean, Japanese,
+Chinese, Spanish, German, French, Italian or Hindi as a small pack from
+beside itself. This package does not bundle the packs, which would add
+0.8 MB against CRAN’s size limit, so a `use_cdn = FALSE` document points
+maidr.js at the packs of the bundled version on jsDelivr: a reader whose
+language is not English hears it when online, and English when not.
+Serve the packs yourself, or turn this off:
+
+``` r
+
+options(maidr.locale_base_url = "https://example.org/maidr/")  # your own copy
+options(maidr.locale_base_url = FALSE)  # never fetch a pack: English only
+```
+
+The other is connecting a [DotPad tactile
+display](https://maidr.ai/docs/TACTILE_DISPLAY.html). maidr.js does not
+bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build,
+and imports the vendor’s copy from jsDelivr the first time a DotPad is
+connected. Rendering, sonification and braille work offline regardless.
+To keep the DotPad offline too, download the pinned SDK once and every
+`use_cdn = FALSE` document carries it in its `lib/` folder:
 
 ``` r
 

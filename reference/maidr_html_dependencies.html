@@ -3,16 +3,18 @@
 Behavior is controlled by the use_cdn parameter:
 If TRUE: Use CDN (requires internet): the latest published maidr.js,
 as maidr_cdn_url() resolves it, unless maidr.cdn_version pins one
-If FALSE (default): Use local bundled files (works offline, and makes
-no network request)
+If FALSE (default): Use local bundled files (works offline; a reader
+whose language is not English fetches that language's pack when online,
+see below)
 If NULL: Same as FALSE - use local bundled files
 
 "><meta property="og:description" content="Creates the HTML dependency for the MAIDR JavaScript bundle.
 Behavior is controlled by the use_cdn parameter:
 If TRUE: Use CDN (requires internet): the latest published maidr.js,
 as maidr_cdn_url() resolves it, unless maidr.cdn_version pins one
-If FALSE (default): Use local bundled files (works offline, and makes
-no network request)
+If FALSE (default): Use local bundled files (works offline; a reader
+whose language is not English fetches that language's pack when online,
+see below)
 If NULL: Same as FALSE - use local bundled files
 
 "><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
@@ -44,8 +46,9 @@ If NULL: Same as FALSE - use local bundled files
 Behavior is controlled by the use_cdn parameter:
 If TRUE: Use CDN (requires internet): the latest published maidr.js,
 as maidr_cdn_url() resolves it, unless maidr.cdn_version pins one
-If FALSE (default): Use local bundled files (works offline, and makes
-no network request)
+If FALSE (default): Use local bundled files (works offline; a reader
+whose language is not English fetches that language&#x27;s pack when online,
+see below)
 If NULL: Same as FALSE - use local bundled files
 
 ">
@@ -54,7 +57,7 @@ If NULL: Same as FALSE - use local bundled files
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-23">
+<meta name="DC.date" content="2026-09-28">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -109,8 +112,9 @@ If NULL: Same as FALSE - use local bundled files
     <p>Creates the HTML dependency for the MAIDR JavaScript bundle.
 Behavior is controlled by the <code>use_cdn</code> parameter:</p><ul><li><p>If <code>TRUE</code>: Use CDN (requires internet): the latest published maidr.js,
 as <code><a href="maidr_cdn_url.html">maidr_cdn_url()</a></code> resolves it, unless <code>maidr.cdn_version</code> pins one</p></li>
-<li><p>If <code>FALSE</code> (default): Use local bundled files (works offline, and makes
-no network request)</p></li>
+<li><p>If <code>FALSE</code> (default): Use local bundled files (works offline; a reader
+whose language is not English fetches that language's pack when online,
+see below)</p></li>
 <li><p>If <code>NULL</code>: Same as <code>FALSE</code> - use local bundled files</p></li>
 </ul></div>
 
@@ -131,7 +135,8 @@ use bundled files.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list of htmlDependency objects: the <code>maidr</code> bundle, preceded by
-<code>maidr-dotpad-config</code> when a DotPad SDK location is configured</p>
+<code>maidr-dotpad-config</code> when a DotPad SDK location is configured and by
+<code>maidr-locale-config</code> when a locale pack location is declared</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -146,6 +151,12 @@ has always rendered correctly. Users who want CDN can still pass
 <code>maidr-dotpad-config</code> dependency precedes the <code>maidr</code> one: its <code>head</code>
 declares the <code>window.MAIDR_DOTPAD_*</code> globals, and listing it first is what
 puts them ahead of the bundle's <code>&lt;script&gt;</code> in the rendered document.</p>
+<p>A document that loads the bundled copy also gets a <code>maidr-locale-config</code>
+dependency ahead of the bundle. maidr.js fetches any language but English
+as a locale pack from beside itself, and this package does not bundle the
+packs, so its <code>head</code> declares <code>window.maidrLocaleBaseUrl</code>: the packs of the
+bundled version on jsDelivr, unless the session names another place or
+none (see <code><a href="maidr_locale_base_url.html">maidr_locale_base_url()</a></code> and <a href="maidr-options.html">maidr-options</a>).</p>
 <p>No stylesheet is declared. MAIDR styles its interface at runtime, and
 since maidr 3.75.1 the published <code>maidr.css</code> is a placeholder with no
 rules in it. The one stylesheet that does carry rules, <code>maidr-math.css</code>

@@ -7,8 +7,9 @@ controlled by the `use_cdn` parameter:
   as [`maidr_cdn_url()`](https://r.maidr.ai/reference/maidr_cdn_url.md)
   resolves it, unless `maidr.cdn_version` pins one
 
-- If `FALSE` (default): Use local bundled files (works offline, and
-  makes no network request)
+- If `FALSE` (default): Use local bundled files (works offline; a reader
+  whose language is not English fetches that language's pack when
+  online, see below)
 
 - If `NULL`: Same as `FALSE` - use local bundled files
 
@@ -28,7 +29,8 @@ maidr_html_dependencies(use_cdn = NULL)
 ## Value
 
 A list of htmlDependency objects: the `maidr` bundle, preceded by
-`maidr-dotpad-config` when a DotPad SDK location is configured
+`maidr-dotpad-config` when a DotPad SDK location is configured and by
+`maidr-locale-config` when a locale pack location is declared
 
 ## Details
 
@@ -47,6 +49,15 @@ When a DotPad SDK location is configured (see
 declares the `window.MAIDR_DOTPAD_*` globals, and listing it first is
 what puts them ahead of the bundle's `<script>` in the rendered
 document.
+
+A document that loads the bundled copy also gets a `maidr-locale-config`
+dependency ahead of the bundle. maidr.js fetches any language but
+English as a locale pack from beside itself, and this package does not
+bundle the packs, so its `head` declares `window.maidrLocaleBaseUrl`:
+the packs of the bundled version on jsDelivr, unless the session names
+another place or none (see
+[`maidr_locale_base_url()`](https://r.maidr.ai/reference/maidr_locale_base_url.md)
+and [maidr-options](https://r.maidr.ai/reference/maidr-options.md)).
 
 No stylesheet is declared. MAIDR styles its interface at runtime, and
 since maidr 3.75.1 the published `maidr.css` is a placeholder with no
