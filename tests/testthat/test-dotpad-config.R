@@ -210,10 +210,12 @@ test_that("the dependency list puts the globals ahead of maidr.js", {
   with_dotpad_settings(sdk = "/vendor/DotPadSDK-3.0.3.js", {
     for (use_cdn in list(TRUE, FALSE, NULL)) {
       deps <- maidr:::maidr_html_dependencies(use_cdn = use_cdn)
+      names <- vapply(deps, function(dep) dep$name, character(1))
 
-      testthat::expect_length(deps, 2)
-      testthat::expect_identical(deps[[1]]$name, "maidr-dotpad-config")
-      testthat::expect_identical(deps[[2]]$name, "maidr")
+      # A bundled document also declares where its locale packs are
+      # (test-locale-config.R); the globals still come first, the bundle last.
+      testthat::expect_identical(names[[1]], "maidr-dotpad-config")
+      testthat::expect_identical(names[[length(names)]], "maidr")
 
       rendered <- as.character(htmltools::renderDependencies(deps))
       declared_at <- regexpr(
@@ -232,8 +234,9 @@ test_that("the dependency list puts the globals ahead of maidr.js", {
 test_that("the dependency list is unchanged when nothing is configured", {
   with_dotpad_settings({
     deps <- maidr:::maidr_html_dependencies(use_cdn = FALSE)
-    testthat::expect_length(deps, 1)
-    testthat::expect_identical(deps[[1]]$name, "maidr")
+    names <- vapply(deps, function(dep) dep$name, character(1))
+    testthat::expect_false("maidr-dotpad-config" %in% names)
+    testthat::expect_identical(names[[length(names)]], "maidr")
   })
 })
 
@@ -683,7 +686,8 @@ test_that("a session that never downloaded the SDK is left alone", {
   with_dotpad_dir(tempfile(), {
     html_doc <- maidr:::create_html_document(svg_fixture_dotpad(), use_cdn = FALSE)
     names <- vapply(htmltools::htmlDependencies(html_doc), function(dep) dep$name, character(1))
-    testthat::expect_identical(names, c("maidr-responsive", "maidr"))
+    # No SDK copy; the locale pack location is the bundle's own (test-locale-config.R).
+    testthat::expect_identical(names, c("maidr-responsive", "maidr-locale-config", "maidr"))
   })
 })
 

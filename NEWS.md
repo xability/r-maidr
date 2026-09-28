@@ -36,7 +36,24 @@
   or `"latest"` for the `@latest` tag, the two tags without a lookup; the
   option wins over the variable, and anything else warns once and is
   ignored. `use_cdn = FALSE` still loads the bundled copy and makes no
-  network request. See `?"maidr-options"`.
+  version lookup. See `?"maidr-options"`.
+
+### Languages other than English
+
+* A document that loads the bundled maidr.js now reads charts in the reader's
+  language when maidr.js speaks it: Korean, Japanese, Chinese, Spanish,
+  German, French, Italian or Hindi, besides English. maidr.js (4.8.0 and
+  later) keeps each of those in a locale pack it fetches from beside itself,
+  and this package does not bundle the packs (0.8 MB), so these documents
+  stayed in English even online. Every `use_cdn = FALSE` document, and every
+  one that inlines the bundle, now declares `window.maidrLocaleBaseUrl`
+  ahead of maidr.js, pointing it at the packs of the bundled version on
+  jsDelivr. English still needs no network; another language is fetched
+  when the reader is online and stays English when they are not. A CDN
+  document is unchanged: its packs are beside the copy it loads.
+  `options(maidr.locale_base_url = ...)`, or `MAIDR_LOCALE_BASE_URL`, names
+  another place for the packs, and `""` or `FALSE` declares nothing. See
+  `?"maidr-options"`.
 
 ### DotPad tactile display
 

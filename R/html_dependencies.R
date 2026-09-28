@@ -9,8 +9,9 @@ MAIDR_VERSION <- "4.11.0"
 #' Behavior is controlled by the `use_cdn` parameter:
 #' - If `TRUE`: Use CDN (requires internet): the latest published maidr.js,
 #'   as [maidr_cdn_url()] resolves it, unless `maidr.cdn_version` pins one
-#' - If `FALSE` (default): Use local bundled files (works offline, and makes
-#'   no network request)
+#' - If `FALSE` (default): Use local bundled files (works offline; a reader
+#'   whose language is not English fetches that language's pack when online,
+#'   see below)
 #' - If `NULL`: Same as `FALSE` - use local bundled files
 #'
 #' We default to local bundled assets for deterministic rendering. Previously
@@ -26,6 +27,13 @@ MAIDR_VERSION <- "4.11.0"
 #' declares the `window.MAIDR_DOTPAD_*` globals, and listing it first is what
 #' puts them ahead of the bundle's `<script>` in the rendered document.
 #'
+#' A document that loads the bundled copy also gets a `maidr-locale-config`
+#' dependency ahead of the bundle. maidr.js fetches any language but English
+#' as a locale pack from beside itself, and this package does not bundle the
+#' packs, so its `head` declares `window.maidrLocaleBaseUrl`: the packs of the
+#' bundled version on jsDelivr, unless the session names another place or
+#' none (see [maidr_locale_base_url()] and [maidr-options]).
+#'
 #' No stylesheet is declared. MAIDR styles its interface at runtime, and
 #' since maidr 3.75.1 the published `maidr.css` is a placeholder with no
 #' rules in it. The one stylesheet that does carry rules, `maidr-math.css`
@@ -36,7 +44,8 @@ MAIDR_VERSION <- "4.11.0"
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL` (default),
 #'   use bundled files.
 #' @return A list of htmlDependency objects: the `maidr` bundle, preceded by
-#'   `maidr-dotpad-config` when a DotPad SDK location is configured
+#'   `maidr-dotpad-config` when a DotPad SDK location is configured and by
+#'   `maidr-locale-config` when a locale pack location is declared
 #' @keywords internal
 maidr_html_dependencies <- function(use_cdn = NULL) {
 
@@ -70,7 +79,11 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
 
   # NULL when nothing is configured, and dropped, so the list is unchanged
   # for everyone who has not asked for a local SDK.
-  Filter(Negate(is.null), list(maidr_dotpad_config_dependency(), maidr_dep))
+  Filter(Negate(is.null), list(
+    maidr_dotpad_config_dependency(),
+    maidr_locale_config_dependency(use_cdn),
+    maidr_dep
+  ))
 }
 
 #' Get paths to local MAIDR assets
