@@ -398,9 +398,17 @@ test_that("the offline branch inlines KaTeX alongside the script", {
   # inlined bundle itself carries jsDelivr URLs (the DotPad SDK, which
   # upstream cannot redistribute and imports from the vendor's copy on first
   # connect), and grepping the whole document for the host matched those.
-  testthat::expect_false(grepl(maidr:::maidr_cdn_url(), html, fixed = TRUE))
+  #
+  # The one maidr URL the offline branch does write is where maidr.js may
+  # fetch a language other than English (test-locale-config.R): a string in
+  # a script, not a loader. It is taken out, and the rest held to the same
+  # standard as before.
+  declaration <- maidr:::maidr_locale_config_script()
+  testthat::expect_true(grepl(declaration, html, fixed = TRUE))
+  rest <- sub(declaration, "", html, fixed = TRUE)
+  testthat::expect_false(grepl(maidr:::maidr_cdn_url(), rest, fixed = TRUE))
   testthat::expect_false(
-    grepl("cdn.jsdelivr.net/npm/maidr", html, fixed = TRUE)
+    grepl("cdn.jsdelivr.net/npm/maidr", rest, fixed = TRUE)
   )
   # And, at the attribute level, the document requests nothing external:
   # no src or href on any tag points at another origin.

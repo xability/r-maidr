@@ -218,9 +218,13 @@ test_that("no dependency declares a stylesheet", {
   # in it, kept only so that pre-existing <link> tags resolve. Declaring it
   # would cost a request and change nothing on the page.
   for (use_cdn in list(TRUE, FALSE)) {
-    dep <- maidr:::maidr_html_dependencies(use_cdn = use_cdn)[[1]]
-    testthat::expect_null(dep$stylesheet)
-    testthat::expect_identical(dep$script, "maidr.js")
+    deps <- maidr:::maidr_html_dependencies(use_cdn = use_cdn)
+    for (dep in deps) {
+      testthat::expect_null(dep$stylesheet)
+    }
+    bundle <- Filter(function(dep) identical(dep$name, "maidr"), deps)
+    testthat::expect_length(bundle, 1)
+    testthat::expect_identical(bundle[[1]]$script, "maidr.js")
   }
 })
 

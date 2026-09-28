@@ -662,7 +662,11 @@ test_that("an offline machine left to auto-detect inlines the bundle and never l
 
     html <- maidr:::create_standalone_html(svg_fixture_cdn(), use_cdn = NULL)
 
-    testthat::expect_false(grepl("cdn.jsdelivr.net/npm/maidr", html, fixed = TRUE))
+    # Where maidr.js may fetch a language other than English is the one
+    # maidr URL an inlined document carries (test-locale-config.R), and it
+    # is a string, not a loader; the rest must not name the CDN.
+    rest <- sub(maidr:::maidr_locale_config_script(), "", html, fixed = TRUE)
+    testthat::expect_false(grepl("cdn.jsdelivr.net/npm/maidr", rest, fixed = TRUE))
     testthat::expect_length(record$urls, 0)
   })
 })

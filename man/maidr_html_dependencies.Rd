@@ -12,7 +12,8 @@ use bundled files.}
 }
 \value{
 A list of htmlDependency objects: the \code{maidr} bundle, preceded by
-\code{maidr-dotpad-config} when a DotPad SDK location is configured
+\code{maidr-dotpad-config} when a DotPad SDK location is configured and by
+\code{maidr-locale-config} when a locale pack location is declared
 }
 \description{
 Creates the HTML dependency for the MAIDR JavaScript bundle.
@@ -20,8 +21,9 @@ Behavior is controlled by the \code{use_cdn} parameter:
 \itemize{
 \item If \code{TRUE}: Use CDN (requires internet): the latest published maidr.js,
 as \code{\link[=maidr_cdn_url]{maidr_cdn_url()}} resolves it, unless \code{maidr.cdn_version} pins one
-\item If \code{FALSE} (default): Use local bundled files (works offline, and makes
-no network request)
+\item If \code{FALSE} (default): Use local bundled files (works offline; a reader
+whose language is not English fetches that language's pack when online,
+see below)
 \item If \code{NULL}: Same as \code{FALSE} - use local bundled files
 }
 }
@@ -38,6 +40,13 @@ When a DotPad SDK location is configured (see \link{maidr-options}), a
 \code{maidr-dotpad-config} dependency precedes the \code{maidr} one: its \code{head}
 declares the \verb{window.MAIDR_DOTPAD_*} globals, and listing it first is what
 puts them ahead of the bundle's \verb{<script>} in the rendered document.
+
+A document that loads the bundled copy also gets a \code{maidr-locale-config}
+dependency ahead of the bundle. maidr.js fetches any language but English
+as a locale pack from beside itself, and this package does not bundle the
+packs, so its \code{head} declares \code{window.maidrLocaleBaseUrl}: the packs of the
+bundled version on jsDelivr, unless the session names another place or
+none (see \code{\link[=maidr_locale_base_url]{maidr_locale_base_url()}} and \link{maidr-options}).
 
 No stylesheet is declared. MAIDR styles its interface at runtime, and
 since maidr 3.75.1 the published \code{maidr.css} is a placeholder with no

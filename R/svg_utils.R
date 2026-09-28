@@ -1759,6 +1759,11 @@ create_standalone_html <- function(svg_content, use_cdn = NULL, page_fallback = 
   # bundle in either branch; "" when nothing is configured.
   dotpad_tag <- maidr_dotpad_config_script()
 
+  # Where maidr.js should fetch a language other than English from. The
+  # inlined bundle below has no URL to look beside, so it is told; a CDN copy
+  # has its packs beside it and is told nothing unless the session says.
+  locale_tag <- maidr_locale_config_script(maidr_locale_base_url(use_cdn))
+
   if (use_cdn) {
     # CDN links - smaller HTML, relies on internet at view time. No
     # stylesheet: maidr.js styles its interface at runtime and fetches
@@ -1793,6 +1798,7 @@ create_standalone_html <- function(svg_content, use_cdn = NULL, page_fallback = 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MAIDR Plot</title>
+  %s
   %s
   %s
   <style>
@@ -1894,7 +1900,7 @@ create_standalone_html <- function(svg_content, use_cdn = NULL, page_fallback = 
     })();
   </script>
 </body>
-</html>', dotpad_tag, css_tag, svg_html, js_tag)
+</html>', dotpad_tag, locale_tag, css_tag, svg_html, js_tag)
 
   html
 }
