@@ -214,6 +214,19 @@
 
 #### Base R
 
+- [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)
+  candlestick charts keep their volume panel. The panel
+  [`addVo()`](https://rdrr.io/pkg/quantmod/man/addVo.html) draws –
+  [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s
+  default whenever the data has a Volume column – is read as a second,
+  bar layer beside the candles, one bar per period, each highlighted as
+  it is read. These charts fell back to a static image before. Another
+  indicator ([`addSMA()`](https://rdrr.io/pkg/quantmod/man/addMA.html),
+  [`addMACD()`](https://rdrr.io/pkg/quantmod/man/addMACD.html), …) still
+  falls back, with the advisory, which now names
+  [`addVo()`](https://rdrr.io/pkg/quantmod/man/addVo.html) as the one
+  that is read. The volume bars are clipped to their panel, as R draws
+  them, rather than running on into the date labels.
 - Added Base R
   [`pie()`](https://r.maidr.ai/reference/base-r-wrappers.md) support,
   one navigable slice per wedge. Text grobs with an `NA` justification
@@ -883,6 +896,15 @@
   and
   [`fourfoldplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   are recorded and fall back to a static image instead.
+- [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  charts are titled as R titles them. A chart given no `name` was titled
+  with its series’ prices printed end to end, because the replay passed
+  the recorded data where quantmod reads the expression it was written
+  as; the date-range header was placed off the right of the page; and
+  the right axis’s line and ticks were drawn through the middle of the
+  plot. The title is recorded from the call, the header is placed inside
+  the page, and the misplaced axis ticks are dropped with the line,
+  keeping the price labels.
 - [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md):
   attaching ‘quantmod’ after ‘maidr’ masks maidr’s wrapper, which is now
   reported at attach time and in the “No Base R plots detected” error,

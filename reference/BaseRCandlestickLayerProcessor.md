@@ -129,7 +129,8 @@ A candlestick layer, or a multi-layer list with the volume bars
 
 ### `BaseRCandlestickLayerProcessor$has_add_vo()`
 
-Detect whether the chartSeries call requests addVo()
+Detect whether the chartSeries call draws the addVo() volume panel,
+which it does by default
 
 #### Usage
 

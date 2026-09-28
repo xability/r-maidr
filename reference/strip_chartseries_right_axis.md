@@ -1,13 +1,15 @@
-# Strip the right y-axis vertical line from chartSeries candlestick SVG
+# Strip the right y-axis line and ticks from chartSeries candlestick SVG
 
-quantmod::chartSeries() draws a right-hand y-axis with a vertical axis
-line, tick marks, and numeric price labels (e.g. 101..106). On sparse
-OHLC inputs (few candles spread across the plot region), the right-axis
-vertical line is positioned within the candle area and visually overlaps
-the rightmost candle, reading like a stray "axis through the middle" of
-the chart. This helper removes only the `right-axis-line-*` polyline;
-the tick marks and the price labels themselves are preserved so the
-chart still communicates the y-axis scale visually.
+quantmod::chartSeries() draws a right-hand y-axis (`axis(4)`) with a
+vertical axis line, tick marks, and numeric price labels (e.g.
+101..106). In the tree
+[`gridGraphics::grid.echo()`](https://rdrr.io/pkg/gridGraphics/man/grid.echo.html)
+rebuilds from it, the line and the ticks land inside the plot region,
+well left of its right border, reading like a stray "axis through the
+middle" of the chart, while the labels stay where R draws them. This
+helper removes the `right-axis-line-*` and `right-axis-ticks-*` groups;
+the price labels are preserved so the chart still communicates the
+y-axis scale visually.
 
 ## Usage
 
@@ -33,9 +35,9 @@ Modified SVG content (character vector). If any guard fails, returns
 
 ## Details
 
-The matched group has an ID of the form
-`graphics-plot-N-right-axis-line-...`; matched by substring with
-`contains(@id, 'right-axis-line-')`.
+The matched groups have IDs of the form
+`graphics-plot-N-right-axis-line-...` and
+`graphics-plot-N-right-axis-ticks-...`, matched by substring.
 
 Safety: no-op when `maidr_data` contains no candlestick layers (ggplot
 candlestick / non-candlestick plots use different SVG IDs and are

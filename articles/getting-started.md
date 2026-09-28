@@ -415,9 +415,10 @@ MAIDR supports a comprehensive range of visualizations:
 - Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
   `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
   Base R via
-  [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)
-  (OHLC-only — TA overlays such as `addVo()`, `addSMA()`, `addEMA()` are
-  not supported and fall back to native graphics)
+  [`quantmod::chartSeries()`](https://rdrr.io/pkg/quantmod/man/chartSeries.html),
+  with its `addVo()` volume panel read as a bar layer (other TA overlays
+  such as `addSMA()` and `addEMA()` are not supported and fall back to
+  native graphics)
 - Heatmaps
 - Contour plots (Base R
   [`contour()`](https://r.maidr.ai/reference/base-r-wrappers.md))

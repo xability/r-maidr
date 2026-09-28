@@ -1,10 +1,10 @@
-# Emit a one-time warning when quantmod::chartSeries() is called with a non-NULL `TA` argument (e.g. `TA = "addVo()"`).
+# Emit a one-time warning when quantmod::chartSeries() is called with a technical-analysis indicator other than the volume panel (e.g. `TA = "addSMA()"`).
 
-maidr does not read chartSeries' technical-analysis sub-panels, such as
-the volume panel `addVo()` adds, so it falls back to native
-(non-accessible) rendering for these calls and surfaces a one-time
-advisory pointing users to the ggplot2 + tidyquant + patchwork
-alternative, which maidr's ggplot2 path reads in full.
+maidr reads the candlesticks and the volume panel `addVo()` draws, but
+no other indicator, so it falls back to native (non-accessible)
+rendering for these calls and surfaces a one-time advisory pointing
+users to the ggplot2 + tidyquant + patchwork alternative, which maidr's
+ggplot2 path reads in full.
 
 ## Usage
 

@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-27">
+<meta name="DC.date" content="2026-09-28">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -570,10 +570,10 @@ hypnogram</li>
 <li>Violin plots (ggplot2 <code><a href="https://ggplot2.tidyverse.org/reference/geom_violin.html" class="external-link">geom_violin()</a></code>)</li>
 <li>Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
 <code>geom_ma()</code> moving-average overlays and a patchwork volume
-sub-panel); Base R via <code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code> (OHLC-only —
-TA overlays such as <code>addVo()</code>, <code>addSMA()</code>,
-<code>addEMA()</code> are not supported and fall back to native
-graphics)</li>
+sub-panel); Base R via <code><a href="https://rdrr.io/pkg/quantmod/man/chartSeries.html" class="external-link">quantmod::chartSeries()</a></code>, with its
+<code>addVo()</code> volume panel read as a bar layer (other TA overlays
+such as <code>addSMA()</code> and <code>addEMA()</code> are not
+supported and fall back to native graphics)</li>
 <li>Heatmaps</li>
 <li>Contour plots (Base R <code><a href="../reference/base-r-wrappers.html">contour()</a></code>)</li>
 <li>Density/smooth curves</li>

@@ -97,13 +97,13 @@ embedded in the data point.
 
 The accessible HTML pipeline supports different sets of overlays for the
 ggplot2 and Base R candlestick paths. Use the ggplot2 + tidyquant +
-patchwork path whenever you need moving averages or a volume sub-panel.
+patchwork path whenever you need moving averages.
 
 | Feature | ggplot2 ([`tidyquant::geom_candlestick`](https://business-science.github.io/tidyquant/reference/geom_chart.html)) | Base R ([`quantmod::chartSeries`](https://rdrr.io/pkg/quantmod/man/chartSeries.html)) |
 |----|----|----|
 | Plain OHLC candlestick | ✅ Supported | ✅ Supported (OHLC-only input) |
-| Moving-average overlay | ✅ via [`tidyquant::geom_ma()`](https://business-science.github.io/tidyquant/reference/geom_ma.html) (one or more layers; auto-collapsed into a single multi-series line layer) | ❌ `TA = "addSMA()"` / `"addEMA()"` not supported |
-| Volume sub-panel | ✅ via separate [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) + [`patchwork::plot_layout()`](https://patchwork.data-imaginist.com/reference/plot_layout.html) (collapsed into the candlestick subplot, with `volume` embedded into each candle point) | ❌ `TA = "addVo()"` not supported; default `TA` with a `Volume` column also unsupported |
+| Moving-average overlay | ✅ via [`tidyquant::geom_ma()`](https://business-science.github.io/tidyquant/reference/geom_ma.html) (one or more layers; auto-collapsed into a single multi-series line layer) | ❌ `TA = "addSMA()"` / `"addEMA()"` not supported, alone or beside [`addVo()`](https://rdrr.io/pkg/quantmod/man/addVo.html) |
+| Volume sub-panel | ✅ via separate [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) + [`patchwork::plot_layout()`](https://patchwork.data-imaginist.com/reference/plot_layout.html) (collapsed into the candlestick subplot, with `volume` embedded into each candle point) | ✅ `TA = "addVo()"`, the default whenever the data has a `Volume` column: read as a second, bar layer beside the candles |
 | Behavior when unsupported | n/a | One-time warning + fall back to native (non-accessible) graphics; advisory points users to the ggplot2 pipeline |
 
 ### Simple OHLC Candlestick
@@ -202,26 +202,26 @@ p_price / p_volume + plot_layout(heights = c(3, 1), axes = "collect_x")
 
 ### Base R Candlestick (quantmod)
 
-The Base R path supports a plain OHLC candlestick via
+The Base R path supports a candlestick via
 `quantmod::chartSeries(x, type = "candlesticks")`. Each row of the
 `xts`/`zoo` input is emitted as a navigable candle point with `value`
 (ISO date), `open`, `high`, `low`, `close`, computed `trend`, and
-`volatility`.
+`volatility`. When the input has a `Volume` column,
+[`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md) draws
+its volume panel by default (`TA = "addVo()"`), and maidr reads it as a
+second, bar layer: switch layers to move from the candles to the volume
+bars, one per period. Pass `TA = NULL` to draw the candles alone.
 
-> **Limitations.** Technical-analysis overlays via the `TA` argument
-> (e.g. [`addVo()`](https://rdrr.io/pkg/quantmod/man/addVo.html),
-> [`addSMA()`](https://rdrr.io/pkg/quantmod/man/addMA.html),
-> [`addEMA()`](https://rdrr.io/pkg/quantmod/man/addMA.html)) are **not
-> supported** by the accessible HTML pipeline. The same applies to
-> [`chartSeries()`](https://r.maidr.ai/reference/base-r-wrappers.md)’s
-> *default* `TA` whenever the input `xts` has a `Volume` column, since
-> the default auto-adds
-> [`addVo()`](https://rdrr.io/pkg/quantmod/man/addVo.html). In all these
-> cases maidr falls back to native (non-accessible) graphics with a
-> one-time advisory pointing users to the ggplot2 + tidyquant +
-> patchwork pipeline shown above. To opt in to accessible HTML for a
-> Base R candlestick, supply OHLC data **without** a `Volume` column
-> (default `TA` then becomes a no-op), or pass `TA = NULL` explicitly.
+> **Limitations.** Other technical-analysis overlays via the `TA`
+> argument
+> (e.g. [`addSMA()`](https://rdrr.io/pkg/quantmod/man/addMA.html),
+> [`addEMA()`](https://rdrr.io/pkg/quantmod/man/addMA.html),
+> [`addMACD()`](https://rdrr.io/pkg/quantmod/man/addMACD.html)) are
+> **not supported** by the accessible HTML pipeline, alone or beside
+> [`addVo()`](https://rdrr.io/pkg/quantmod/man/addVo.html). maidr then
+> falls back to native (non-accessible) graphics with a one-time
+> advisory pointing users to the ggplot2 + tidyquant + patchwork
+> pipeline shown above.
 
 > **Attach order matters.**
 > [`library(quantmod)`](https://www.quantmod.com/) after
@@ -256,4 +256,14 @@ TST <- xts::xts(
 colnames(TST) <- c("TST.Open", "TST.High", "TST.Low", "TST.Close")
 
 maidr::chartSeries(TST, type = "candlesticks", theme = "white", name = "TST")
+```
+
+With a `Volume` column, the same call draws the volume panel below the
+candles, and the chart carries both layers:
+
+``` r
+
+TSTV <- cbind(TST, TST.Volume = c(1200, 1500, 900, 1100))
+
+maidr::chartSeries(TSTV, type = "candlesticks", theme = "white", name = "TST")
 ```
