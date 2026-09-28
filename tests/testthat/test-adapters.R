@@ -667,14 +667,10 @@ test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with
   testthat::expect_equal(adapter$detect_layer_type(layer), "unknown")
 })
 
-test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with TA='addVo()' and warns", {
-  # Reset the one-time warning latch so this test sees the emission.
-  # Access the internal env via asNamespace() (load_all-safe).
+test_that("BaseRAdapter detect_layer_type accepts chartSeries with TA='addVo()' silently", {
+  # Clear the warn-once latch, so silence here is not an earlier warning's.
   warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
   warn_env$value <- FALSE
-  # Also clear rlang's onceonly cache for this id, otherwise the
-  # `.frequency = "once"` guard will suppress the emission within the
-  # same R session.
   rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
   on.exit({
     warn_env$value <- FALSE
@@ -686,11 +682,37 @@ test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with
     function_name = "chartSeries",
     args = list(type = "candlesticks", TA = "addVo()")
   )
-  testthat::expect_warning(
-    res <- adapter$detect_layer_type(layer),
-    class = "maidr_chartseries_ta_unsupported"
-  )
-  testthat::expect_equal(res, "unknown")
+  testthat::expect_no_warning(res <- adapter$detect_layer_type(layer))
+  testthat::expect_equal(res, "candlestick")
+})
+
+test_that("BaseRAdapter detect_layer_type returns 'unknown' for an indicator other than addVo() and warns", {
+  # Reset the one-time warning latch so each case sees the emission.
+  # Access the internal env via asNamespace() (load_all-safe).
+  warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
+  reset <- function() {
+    warn_env$value <- FALSE
+    # Also clear rlang's onceonly cache for this id, otherwise the
+    # `.frequency = "once"` guard will suppress the emission within the
+    # same R session.
+    rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  }
+  on.exit(reset(), add = TRUE)
+
+  adapter <- maidr:::BaseRAdapter$new()
+  # A lone indicator, one joined to addVo() by TAsep, and one in a vector.
+  for (ta in list("addSMA()", "addVo();addSMA()", c("addVo()", "addMACD()"))) {
+    reset()
+    layer <- list(
+      function_name = "chartSeries",
+      args = list(type = "candlesticks", TA = ta)
+    )
+    testthat::expect_warning(
+      res <- adapter$detect_layer_type(layer),
+      class = "maidr_chartseries_ta_unsupported"
+    )
+    testthat::expect_equal(res, "unknown", label = paste(ta, collapse = ","))
+  }
 })
 
 test_that("BaseRAdapter detect_layer_type accepts chartSeries with TA=NULL (no fallback)", {
@@ -706,7 +728,7 @@ test_that("BaseRAdapter detect_layer_type accepts chartSeries with TA=NULL (no f
   testthat::expect_equal(adapter$detect_layer_type(layer), "candlestick")
 })
 
-test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with Volume column and default TA", {
+test_that("BaseRAdapter detect_layer_type accepts chartSeries with Volume column and default TA", {
   testthat::skip_if_not_installed("quantmod")
   testthat::skip_if_not_installed("xts")
 
@@ -719,7 +741,7 @@ test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with
   }, add = TRUE)
 
   # xts with Volume column, mimicking the user's typical chartSeries() call
-  # WITHOUT an explicit TA arg. quantmod auto-adds addVo() in that case.
+  # WITHOUT an explicit TA arg. quantmod's default TA is "addVo()".
   tst <- xts::xts(
     cbind(
       Open   = c(101.371, 101.918, 105.285, 102.531),
@@ -741,11 +763,9 @@ test_that("BaseRAdapter detect_layer_type returns 'unknown' for chartSeries with
     function_name = "chartSeries",
     args = list(tst, type = "candlesticks")  # NB: no TA in args
   )
-  testthat::expect_warning(
-    res <- adapter$detect_layer_type(layer),
-    class = "maidr_chartseries_ta_unsupported"
-  )
-  testthat::expect_equal(res, "unknown")
+  # The default TA draws the volume panel, which is read as a bar layer.
+  testthat::expect_no_warning(res <- adapter$detect_layer_type(layer))
+  testthat::expect_equal(res, "candlestick")
 })
 
 test_that("BaseRAdapter detect_layer_type accepts chartSeries with Volume column and explicit TA=NULL", {

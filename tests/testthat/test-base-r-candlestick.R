@@ -234,9 +234,75 @@ test_that("has_add_vo returns FALSE for TA='addSMA()'", {
   testthat::expect_false(processor$has_add_vo(layer_info))
 })
 
-test_that("process() returns single layer when no addVo", {
+test_that("has_add_vo returns TRUE for the default TA, which is addVo()", {
+  layer_info <- list(plot_call = list(args = list(type = "candlesticks")))
+  processor <- maidr:::BaseRCandlestickLayerProcessor$new(list(index = 1L))
+  testthat::expect_true(processor$has_add_vo(layer_info))
+})
+
+test_that("has_add_vo reads indicators joined by TAsep", {
+  processor <- maidr:::BaseRCandlestickLayerProcessor$new(list(index = 1L))
+  joined <- list(plot_call = list(args = list(TA = "addSMA();addVo()")))
+  testthat::expect_true(processor$has_add_vo(joined))
+  piped <- list(plot_call = list(args = list(TA = "addSMA()|addVo()", TAsep = "|")))
+  testthat::expect_true(processor$has_add_vo(piped))
+})
+
+test_that("chartseries_ta_calls reads TA the way chartSeries() does", {
+  calls <- maidr:::chartseries_ta_calls
+  # Left out, TA is chartSeries()'s default.
+  testthat::expect_equal(calls(list(type = "candlesticks")), "addVo()")
+  # Every spelling of "no indicators".
+  for (none in list(NULL, NA, FALSE, "", character(0))) {
+    testthat::expect_equal(
+      calls(list(TA = none)), character(0),
+      label = paste(deparse(none), collapse = "")
+    )
+  }
+  testthat::expect_equal(
+    calls(list(TA = "addVo(); addSMA(n = 5)")), c("addVo()", "addSMA(n = 5)")
+  )
+  testthat::expect_equal(
+    calls(list(TA = "addVo()|addBBands()", TAsep = "|")),
+    c("addVo()", "addBBands()")
+  )
+  testthat::expect_equal(calls(list(TA = c("addVo()", "addSMA()"))), c("addVo()", "addSMA()"))
+  # An evaluated indicator object cannot be read.
+  testthat::expect_equal(calls(list(TA = list(1))), NA_character_)
+})
+
+test_that("is_chartseries_volume_ta matches addVo() and nothing named like it", {
+  testthat::expect_equal(
+    maidr:::is_chartseries_volume_ta(
+      c("addVo()", "addVo(log.scale = TRUE)", "addVolatility()", "addSMA()", NA)
+    ),
+    c(TRUE, TRUE, FALSE, FALSE, FALSE)
+  )
+})
+
+test_that("process() returns multi_layer = TRUE for the default TA on data with volume", {
   skip_if_no_quantmod()
   layer_info <- create_test_layer_info()
+  processor <- maidr:::BaseRCandlestickLayerProcessor$new(layer_info)
+  result <- processor$process(NULL, NULL, NULL, gt = NULL, layer_info = layer_info)
+
+  testthat::expect_true(isTRUE(result$multi_layer))
+  testthat::expect_equal(result$layers[[2L]]$type, "bar")
+})
+
+test_that("process() returns a single layer for the default TA on data without volume", {
+  skip_if_no_quantmod()
+  layer_info <- create_test_layer_info(with_volume = FALSE)
+  processor <- maidr:::BaseRCandlestickLayerProcessor$new(layer_info)
+  result <- processor$process(NULL, NULL, NULL, gt = NULL, layer_info = layer_info)
+
+  testthat::expect_false(isTRUE(result$multi_layer))
+  testthat::expect_equal(result$type, "candlestick")
+})
+
+test_that("process() returns single layer when no addVo", {
+  skip_if_no_quantmod()
+  layer_info <- create_test_layer_info(ta = "")
   processor <- maidr:::BaseRCandlestickLayerProcessor$new(layer_info)
   result <- processor$process(NULL, NULL, NULL, gt = NULL, layer_info = layer_info)
 
@@ -527,4 +593,122 @@ test_that("record_chartseries_name keeps the title chartSeries() would give", {
     record(list(1, name = "Mine"), quote(chartSeries(AAPL)))$name, "Mine"
   )
   testthat::expect_null(record(args, NULL)$name)
+})
+
+# ==============================================================================
+# End to end: the volume panel through the real pipeline
+# ==============================================================================
+
+# `draw` makes the chartSeries() call itself: forwarding `TA = NULL` through
+# a second `...` reaches quantmod as a dot symbol it cannot evaluate.
+render_chartseries <- function(draw) {
+  skip_if_no_quantmod()
+  testthat::skip_if_not_installed("ggplotify")
+  testthat::skip_if_not_installed("gridGraphics")
+  testthat::skip_if_not_installed("jsonlite")
+  maidr:::clear_all_device_storage()
+  file <- tempfile(fileext = ".html")
+  grDevices::pdf(NULL)
+  on.exit(
+    {
+      grDevices::dev.off()
+      unlink(file)
+      maidr:::clear_all_device_storage()
+    },
+    add = TRUE
+  )
+  AAPL <- create_test_ohlc_xts(with_volume = TRUE)
+  warnings_seen <- character(0)
+  withCallingHandlers(
+    {
+      draw(AAPL)
+      maidr::save_html(plot = NULL, file = file)
+    },
+    warning = function(w) {
+      warnings_seen <<- c(warnings_seen, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  list(html = html, warnings = warnings_seen)
+}
+
+schema_of <- function(html) {
+  raw <- regmatches(html, regexpr('maidr-data="[^"]*"', html))
+  if (length(raw) != 1L) {
+    return(NULL)
+  }
+  json <- sub('"$', "", sub('^maidr-data="', "", raw))
+  for (pair in list(
+    c("&quot;", '"'), c("&lt;", "<"), c("&gt;", ">"), c("&amp;", "&")
+  )) {
+    json <- gsub(pair[1], pair[2], json, fixed = TRUE)
+  }
+  jsonlite::fromJSON(json, simplifyVector = FALSE)
+}
+
+test_that("chartSeries() with its default volume panel renders both layers", {
+  out <- render_chartseries(function(AAPL) {
+    maidr::chartSeries(AAPL, type = "candlesticks", theme = "white")
+  })
+  testthat::expect_length(out$warnings, 0L)
+  layers <- schema_of(out$html)$subplots[[1]][[1]]$layers
+  testthat::expect_equal(
+    vapply(layers, function(l) l$type, ""), c("candlestick", "bar")
+  )
+  testthat::expect_equal(layers[[1]]$title, "AAPL")
+  vol <- layers[[2]]
+  testthat::expect_equal(
+    vapply(vol$data, function(p) p$y, 0), c(1000, 1500, 1200, 800)
+  )
+
+  # Each bar's selector names an element the document carries.
+  ids <- sub("^#", "", gsub("\\\\", "", trimws(strsplit(vol$selectors, ",")[[1]])))
+  testthat::expect_length(ids, 4L)
+  for (id in ids) {
+    testthat::expect_match(out$html, paste0('id="', id, '"'), fixed = TRUE)
+  }
+
+  # The bars are clipped to their panel, as R draws them, rather than
+  # running on into the date labels below it.
+  bars <- regexpr('<g id="graphics-plot-2-rect-2\\.1"', out$html)
+  before <- substr(out$html, 1L, bars)
+  testthat::expect_match(before, "graphics-plot-2-clip::graphics-window-2-1")
+  testthat::expect_match(out$html, "<clipPath", fixed = TRUE)
+})
+
+test_that("chartSeries() with an explicit TA = 'addVo()' renders both layers", {
+  out <- render_chartseries(function(AAPL) {
+    maidr::chartSeries(AAPL, type = "candlesticks", theme = "white", TA = "addVo()")
+  })
+  layers <- schema_of(out$html)$subplots[[1]][[1]]$layers
+  testthat::expect_equal(
+    vapply(layers, function(l) l$type, ""), c("candlestick", "bar")
+  )
+})
+
+test_that("chartSeries() with TA = NULL renders the candles alone", {
+  out <- render_chartseries(function(AAPL) {
+    maidr::chartSeries(AAPL, type = "candlesticks", theme = "white", TA = NULL)
+  })
+  layers <- schema_of(out$html)$subplots[[1]][[1]]$layers
+  testthat::expect_equal(vapply(layers, function(l) l$type, ""), "candlestick")
+})
+
+test_that("chartSeries() with another indicator still falls back to a picture", {
+  warn_env <- get(".maidr_chartseries_ta_warned", envir = asNamespace("maidr"))
+  warn_env$value <- FALSE
+  rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  on.exit({
+    warn_env$value <- FALSE
+    rlang::reset_warning_verbosity("maidr_chartseries_ta_unsupported")
+  }, add = TRUE)
+
+  out <- render_chartseries(function(AAPL) {
+    maidr::chartSeries(
+      AAPL, type = "candlesticks", theme = "white", TA = "addVo();addSMA(n = 2)"
+    )
+  })
+  testthat::expect_null(schema_of(out$html))
+  testthat::expect_true(any(grepl("other than `addVo()`", out$warnings, fixed = TRUE)))
 })

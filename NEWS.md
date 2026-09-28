@@ -149,6 +149,14 @@
 
 ### Base R
 
+* `quantmod::chartSeries()` candlestick charts keep their volume panel.
+  The panel `addVo()` draws -- `chartSeries()`'s default whenever the data
+  has a Volume column -- is read as a second, bar layer beside the candles,
+  one bar per period, each highlighted as it is read. These charts fell
+  back to a static image before. Another indicator (`addSMA()`,
+  `addMACD()`, ...) still falls back, with the advisory, which now names
+  `addVo()` as the one that is read. The volume bars are clipped to their
+  panel, as R draws them, rather than running on into the date labels.
 * Added Base R `pie()` support, one navigable slice per wedge. Text grobs
   with an `NA` justification are repaired so `pie()` exports through gridSVG.
 * A `pie()` layer now says where its ring begins and which way it runs:

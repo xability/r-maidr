@@ -370,9 +370,9 @@ MAIDR supports a comprehensive range of visualizations:
 - Violin plots (ggplot2 `geom_violin()`)
 - Candlestick (OHLC) charts — ggplot2 via {tidyquant} (with optional
   `geom_ma()` moving-average overlays and a patchwork volume sub-panel);
-  Base R via `quantmod::chartSeries()` (OHLC-only — TA overlays such as
-  `addVo()`, `addSMA()`, `addEMA()` are not supported and fall back to
-  native graphics)
+  Base R via `quantmod::chartSeries()`, with its `addVo()` volume panel read
+  as a bar layer (other TA overlays such as `addSMA()` and `addEMA()` are
+  not supported and fall back to native graphics)
 - Heatmaps
 - Contour plots (Base R `contour()`)
 - Density/smooth curves

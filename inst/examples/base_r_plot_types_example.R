@@ -725,17 +725,15 @@ cat("\n=== Base R Candlestick (quantmod::chartSeries, OHLC-only) Example ===\n")
 #
 # SUPPORT MATRIX FOR BASE R CANDLESTICK (chartSeries):
 #   Plain OHLC candlestick . . . . . . . . . . . . . . . . . . SUPPORTED
-#   TA = "addVo()" (volume sub-panel) . . . . . . . . . . . NOT SUPPORTED
+#   TA = "addVo()" (volume sub-panel, a second bar layer) . . . SUPPORTED
+#   Default TA with Volume column (draws addVo()) . . . . . . . SUPPORTED
 #   TA = "addSMA()" / "addEMA()" (moving averages) . . . . . NOT SUPPORTED
-#   Default TA with Volume column (auto-adds addVo()) . . . NOT SUPPORTED
 #
-# When chartSeries() is called with an unsupported TA (explicit OR the
-# implicit default-TA-with-Volume case), maidr emits a one-time warning
-# and falls back to native (non-accessible) graphics for that call. The
-# underlying gridSVG export pipeline mis-handles chartSeries' multi-panel
-# volume sub-plot; gridSVG is unmaintained (last CRAN release 2017).
+# When chartSeries() is called with any other TA indicator, alone or beside
+# addVo(), maidr emits a one-time warning and falls back to native
+# (non-accessible) graphics for that call.
 #
-# For accessible price + volume + moving-average charts, use the
+# For accessible price + moving-average charts, use the
 # ggplot2 + tidyquant::geom_candlestick() + tidyquant::geom_ma() +
 # patchwork pipeline shown in inst/examples/ggplot2_all_plot_types_example.R
 # (Tests 19-20) instead.

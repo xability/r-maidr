@@ -105,7 +105,8 @@ wicks via \code{segments()} calls (one SVG \verb{<polyline>} per wick under
 \if{html}{\out{<a id="method-BaseRCandlestickLayerProcessor-has_add_vo"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRCandlestickLayerProcessor-has_add_vo}{}}}
 \subsection{\code{BaseRCandlestickLayerProcessor$has_add_vo()}}{
-  Detect whether the chartSeries call requests addVo()
+  Detect whether the chartSeries call draws the addVo()
+volume panel, which it does by default
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRCandlestickLayerProcessor$has_add_vo(layer_info)}

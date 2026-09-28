@@ -3,7 +3,8 @@
 \name{warn_chartseries_ta_unsupported}
 \alias{warn_chartseries_ta_unsupported}
 \title{Emit a one-time warning when quantmod::chartSeries() is called with a
-non-NULL \code{TA} argument (e.g. \code{TA = "addVo()"}).}
+technical-analysis indicator other than the volume panel (e.g.
+\code{TA = "addSMA()"}).}
 \usage{
 warn_chartseries_ta_unsupported()
 }
@@ -11,10 +12,10 @@ warn_chartseries_ta_unsupported()
 Invisibly NULL.
 }
 \description{
-maidr does not read chartSeries' technical-analysis sub-panels, such as
-the volume panel \code{addVo()} adds, so it falls back to native
-(non-accessible) rendering for these calls and surfaces a one-time
-advisory pointing users to the ggplot2 + tidyquant + patchwork
-alternative, which maidr's ggplot2 path reads in full.
+maidr reads the candlesticks and the volume panel \code{addVo()} draws, but
+no other indicator, so it falls back to native (non-accessible)
+rendering for these calls and surfaces a one-time advisory pointing
+users to the ggplot2 + tidyquant + patchwork alternative, which maidr's
+ggplot2 path reads in full.
 }
 \keyword{internal}

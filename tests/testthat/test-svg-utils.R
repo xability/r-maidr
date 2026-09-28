@@ -518,6 +518,58 @@ test_that("create_maidr_iframe attaches the host script to the frame", {
 # chartSeries panels and post-processing
 # ==============================================================================
 
+test_that("clip_chartseries_panel_rects moves lower-panel rects into their clip viewport", {
+  testthat::skip_if_not_installed("quantmod")
+  testthat::skip_if_not_installed("ggplotify")
+  testthat::skip_if_not_installed("gridGraphics")
+
+  x <- xts::xts(
+    cbind(
+      S.Open = c(100, 105, 110), S.High = c(115, 108, 112),
+      S.Low = c(95, 102, 105), S.Close = c(110, 103, 111),
+      S.Volume = c(1000, 1500, 1200)
+    ),
+    order.by = as.Date(c("2023-01-02", "2023-01-03", "2023-01-04"))
+  )
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  gt <- suppressWarnings(ggplotify::as.grob(function() {
+    quantmod::chartSeries(x, type = "candlesticks", theme = "white", name = "S")
+  }))
+  vp_of <- function(tree, name) {
+    found <- NULL
+    walk <- function(g) {
+      if (!is.null(g$name) && identical(g$name, name)) found <<- g
+      for (child in g$children) walk(child)
+    }
+    walk(tree)
+    as.character(found$vp)
+  }
+
+  moved <- maidr:::clip_chartseries_panel_rects(gt)
+  # The volume bars were echoed into a viewport that does not clip.
+  testthat::expect_false(grepl("-clip::", vp_of(gt, "graphics-plot-2-rect-2")))
+  testthat::expect_match(
+    vp_of(moved, "graphics-plot-2-rect-2"),
+    "::graphics-plot-2-clip::graphics-window-2-1$"
+  )
+  # The price panel is left where it was.
+  testthat::expect_identical(
+    vp_of(moved, "graphics-plot-1-rect-2"), vp_of(gt, "graphics-plot-1-rect-2")
+  )
+  # The moved tree still draws.
+  grid::grid.newpage()
+  testthat::expect_no_error(grid::grid.draw(moved))
+})
+
+test_that("clip_chartseries_panel_rects leaves a tree without clip viewports alone", {
+  tree <- grid::gTree(children = grid::gList(
+    grid::rectGrob(name = "graphics-plot-2-rect-1")
+  ))
+  testthat::expect_identical(maidr:::clip_chartseries_panel_rects(tree), tree)
+  testthat::expect_null(maidr:::clip_chartseries_panel_rects(NULL))
+})
+
 test_that("translate_x reads the x of a translate() transform", {
   testthat::expect_equal(maidr:::translate_x("translate(789.94, 416.76)"), 789.94)
   testthat::expect_equal(maidr:::translate_x("translate(-3,4) scale(1, -1)"), -3)

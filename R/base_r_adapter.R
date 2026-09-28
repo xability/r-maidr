@@ -8,13 +8,14 @@
 .maidr_chartseries_ta_warned$value <- FALSE
 
 #' Emit a one-time warning when quantmod::chartSeries() is called with a
-#' non-NULL `TA` argument (e.g. `TA = "addVo()"`).
+#' technical-analysis indicator other than the volume panel (e.g.
+#' `TA = "addSMA()"`).
 #'
-#' maidr does not read chartSeries' technical-analysis sub-panels, such as
-#' the volume panel `addVo()` adds, so it falls back to native
-#' (non-accessible) rendering for these calls and surfaces a one-time
-#' advisory pointing users to the ggplot2 + tidyquant + patchwork
-#' alternative, which maidr's ggplot2 path reads in full.
+#' maidr reads the candlesticks and the volume panel `addVo()` draws, but
+#' no other indicator, so it falls back to native (non-accessible)
+#' rendering for these calls and surfaces a one-time advisory pointing
+#' users to the ggplot2 + tidyquant + patchwork alternative, which maidr's
+#' ggplot2 path reads in full.
 #'
 #' @return Invisibly NULL.
 #' @keywords internal
@@ -26,16 +27,16 @@ warn_chartseries_ta_unsupported <- function() {
   rlang::warn(
     c(
       paste0(
-        "quantmod::chartSeries() with a `TA` argument (e.g. ",
-        "`TA = \"addVo()\"`) is not supported by maidr's accessible ",
-        "HTML pipeline; maidr does not read the volume or other ",
-        "technical-analysis sub-panels."
+        "quantmod::chartSeries() with a `TA` indicator other than ",
+        "`addVo()` (e.g. `TA = \"addSMA()\"`) is not supported by maidr's ",
+        "accessible HTML pipeline; maidr reads the candlesticks and the ",
+        "volume panel only."
       ),
       i = paste0(
         "Falling back to native (non-accessible) graphics for this plot."
       ),
       i = paste0(
-        "For accessible price + volume charts use ggplot2 + ",
+        "For accessible charts with indicators use ggplot2 + ",
         "tidyquant::geom_candlestick() + patchwork instead."
       )
     ),
@@ -836,35 +837,20 @@ BaseRAdapter <- R6::R6Class(
         # defaults to "auto"; we accept the call as candlestick only when
         # the user explicitly requests it (matching the MVP scope).
         # Other types (bars / line / matchsticks) are deferred.
-        # Technical analysis overlays via the `TA` argument (e.g.
-        # `addVo()`) are also unsupported: no processor reads the
-        # sub-panels. They were refused first because gridSVG mis-exported
-        # the volume panel (rects with negative y spilling into the
-        # date-label band); the svglite export draws it correctly, so
-        # supporting them now only needs a processor. We return "unknown"
-        # (which triggers maidr's standard fallback to native graphics)
-        # and emit a one-time warning steering users to the working
-        # ggplot2 + tidyquant + patchwork path for accessible price+volume
-        # charts.
+        # Of the technical-analysis indicators the `TA` argument draws,
+        # only the volume panel, `addVo()`, is read: it becomes a bar
+        # layer beside the candles. It is drawn by default (`TA` defaults
+        # to "addVo()"), so a plain call on data with a Volume column gets
+        # it too. Any other indicator (`addSMA()`, `addMACD()`, ...) has no
+        # processor, so the call returns "unknown" (maidr's standard
+        # fallback to native graphics) with a one-time warning steering
+        # users to the ggplot2 + tidyquant + patchwork path.
         "chartSeries" = {
           ct <- args$type
-          ta <- args$TA
-          ta_in_args <- "TA" %in% names(args)
-          x <- args[[1]]
-          # quantmod::chartSeries() default `TA` auto-adds addVo() when
-          # the input has a Volume column. Treat that implicit case the
-          # same as an explicit TA: warn + fall back to native graphics.
-          has_default_vo <- !ta_in_args &&
-            !is.null(x) &&
-            requireNamespace("quantmod", quietly = TRUE) &&
-            tryCatch(isTRUE(quantmod::has.Vo(x)),
-                     error = function(e) FALSE)
-          ta_explicit_unsupported <- ta_in_args &&
-            !is.null(ta) && !identical(ta, FALSE) &&
-            !identical(ta, "") && !identical(ta, NA)
+          ta <- chartseries_ta_calls(args)
           if (is.null(ct) || !identical(as.character(ct)[1], "candlesticks")) {
             "unknown"
-          } else if (ta_explicit_unsupported || has_default_vo) {
+          } else if (!all(is_chartseries_volume_ta(ta))) {
             warn_chartseries_ta_unsupported()
             "unknown"
           } else {
