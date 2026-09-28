@@ -513,3 +513,45 @@ test_that("create_maidr_iframe attaches the host script to the frame", {
   testthat::expect_true(grepl("id=\"maidr-iframe-test-plot\"", html, fixed = TRUE))
   testthat::expect_true(grepl("__maidrIframeHost", html, fixed = TRUE))
 })
+
+# ==============================================================================
+# chartSeries panels and post-processing
+# ==============================================================================
+
+test_that("translate_x reads the x of a translate() transform", {
+  testthat::expect_equal(maidr:::translate_x("translate(789.94, 416.76)"), 789.94)
+  testthat::expect_equal(maidr:::translate_x("translate(-3,4) scale(1, -1)"), -3)
+  testthat::expect_equal(maidr:::translate_x("scale(1, -1)"), 0)
+  testthat::expect_equal(maidr:::translate_x(NA_character_), 0)
+})
+
+test_that("adjust_chartseries_bracket_doc places the header inside the page", {
+  doc <- xml2::read_xml(paste0(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 864 432">',
+    '<g transform="translate(0, 432) scale(1, -1)">',
+    '<g id="graphics-plot-1-main-2.1.1" transform="translate(789.94, 416.76)">',
+    '<g transform="scale(1, -1)">',
+    '<text x="0" y="0">[2024-01-01/2024-01-12]</text>',
+    "</g></g></g></svg>"
+  ))
+  testthat::expect_true(maidr:::adjust_chartseries_bracket_doc(doc))
+  text <- xml2::xml_find_first(doc, "//*[local-name()='text']")
+  # 95% of the page, less the translation the text is drawn under.
+  testthat::expect_equal(
+    as.numeric(xml2::xml_attr(text, "x")), 864 * 0.95 - 789.94, tolerance = 1e-6
+  )
+  testthat::expect_equal(xml2::xml_attr(text, "text-anchor"), "end")
+})
+
+test_that("strip_chartseries_right_axis_doc removes the axis line and ticks, not the labels", {
+  doc <- xml2::read_xml(paste0(
+    '<svg xmlns="http://www.w3.org/2000/svg">',
+    '<g id="graphics-plot-1-right-axis-line-1.1"/>',
+    '<g id="graphics-plot-1-right-axis-ticks-1.1"/>',
+    '<g id="graphics-plot-1-right-axis-labels-1.1"/>',
+    "</svg>"
+  ))
+  testthat::expect_true(maidr:::strip_chartseries_right_axis_doc(doc))
+  ids <- xml2::xml_attr(xml2::xml_find_all(doc, "//*[@id]"), "id")
+  testthat::expect_equal(ids, "graphics-plot-1-right-axis-labels-1.1")
+})

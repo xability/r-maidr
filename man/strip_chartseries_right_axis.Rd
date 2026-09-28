@@ -2,7 +2,7 @@
 % Please edit documentation in R/svg_utils.R
 \name{strip_chartseries_right_axis}
 \alias{strip_chartseries_right_axis}
-\title{Strip the right y-axis vertical line from chartSeries candlestick SVG}
+\title{Strip the right y-axis line and ticks from chartSeries candlestick SVG}
 \usage{
 strip_chartseries_right_axis(svg_content, maidr_data)
 }
@@ -17,20 +17,19 @@ Modified SVG content (character vector). If any guard
 fails, returns \code{svg_content} unchanged.
 }
 \description{
-quantmod::chartSeries() draws a right-hand y-axis with a vertical
-axis line, tick marks, and numeric price labels (e.g. 101..106).
-On sparse OHLC inputs (few candles spread across the plot region),
-the right-axis vertical line is positioned within the candle area
-and visually overlaps the rightmost candle, reading like a stray
-"axis through the middle" of the chart. This helper removes only
-the \verb{right-axis-line-*} polyline; the tick marks and the price
-labels themselves are preserved so the chart still communicates
-the y-axis scale visually.
+quantmod::chartSeries() draws a right-hand y-axis (\code{axis(4)}) with a
+vertical axis line, tick marks, and numeric price labels (e.g.
+101..106). In the tree \code{gridGraphics::grid.echo()} rebuilds from it, the
+line and the ticks land inside the plot region, well left of its right
+border, reading like a stray "axis through the middle" of the chart,
+while the labels stay where R draws them. This helper removes the
+\verb{right-axis-line-*} and \verb{right-axis-ticks-*} groups; the price labels
+are preserved so the chart still communicates the y-axis scale visually.
 }
 \details{
-The matched group has an ID of the form
-\code{graphics-plot-N-right-axis-line-...}; matched by substring with
-\verb{contains(@id, 'right-axis-line-')}.
+The matched groups have IDs of the form
+\code{graphics-plot-N-right-axis-line-...} and
+\code{graphics-plot-N-right-axis-ticks-...}, matched by substring.
 
 Safety: no-op when \code{maidr_data} contains no candlestick layers
 (ggplot candlestick / non-candlestick plots use different SVG IDs

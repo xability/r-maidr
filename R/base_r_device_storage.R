@@ -37,6 +37,36 @@ get_device_storage <- function(device_id = grDevices::dev.cur()) {
   .maidr_base_r_session$devices[[key]]
 }
 
+#' Keep the title chartSeries() would have given the call it was made from
+#'
+#' Without a `name`, `quantmod::chartSeries()` titles the chart with the
+#' expression its `x` was written as (`as.character(match.call()["x"])`), so
+#' `chartSeries(AAPL)` is titled "AAPL". The call is replayed later with the
+#' recorded value in place of that expression, and the title became the
+#' series' numbers printed end to end. The name is taken from the call as
+#' written, the way quantmod takes it, and recorded as an explicit `name`.
+#'
+#' @param args The recorded arguments of the chartSeries() call
+#' @param call_expr The call as written
+#' @return `args`, with `name` added when the caller gave none
+#' @keywords internal
+record_chartseries_name <- function(args, call_expr) {
+  keep <- !is.null(args[["name"]]) || !is.call(call_expr) ||
+    !requireNamespace("quantmod", quietly = TRUE)
+  if (keep) {
+    return(args)
+  }
+  matched <- tryCatch(
+    match.call(quantmod::chartSeries, call_expr),
+    error = function(e) NULL
+  )
+  if (is.null(matched) || is.null(matched[["x"]])) {
+    return(args)
+  }
+  args[["name"]] <- as.character(matched["x"])
+  args
+}
+
 #' Log Plot Call to Device Storage
 #'
 #' Records a plot call in the device-specific storage.
@@ -58,6 +88,9 @@ log_plot_call_to_device <- function(
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
   formula <- recorded_formula(args, call_env)
+  if (identical(function_name, "chartSeries")) {
+    args <- record_chartseries_name(args, call_expr)
+  }
 
   call_entry <- list(
     function_name = function_name,

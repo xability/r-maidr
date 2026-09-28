@@ -574,6 +574,14 @@
   exported, so a bare call is read rather than `save_html()` reporting "No
   Base R plots detected"; `persp()`, `sunflowerplot()` and `fourfoldplot()`
   are recorded and fall back to a static image instead.
+* `chartSeries()` charts are titled as R titles them. A chart given no
+  `name` was titled with its series' prices printed end to end, because the
+  replay passed the recorded data where quantmod reads the expression it was
+  written as; the date-range header was placed off the right of the page;
+  and the right axis's line and ticks were drawn through the middle of the
+  plot. The title is recorded from the call, the header is placed inside
+  the page, and the misplaced axis ticks are dropped with the line, keeping
+  the price labels.
 * `chartSeries()`: attaching 'quantmod' after 'maidr' masks maidr's wrapper,
   which is now reported at attach time and in the "No Base R plots
   detected" error, with `maidr::chartSeries()` as the explicit alternative;

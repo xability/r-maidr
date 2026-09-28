@@ -505,3 +505,26 @@ test_that("generate_volume_selectors returns empty when only one plot panel", {
   )
   testthat::expect_equal(sels, list())
 })
+
+# ==============================================================================
+# Recorded title
+# ==============================================================================
+
+test_that("record_chartseries_name keeps the title chartSeries() would give", {
+  skip_if_no_quantmod()
+  record <- maidr:::record_chartseries_name
+  args <- list(1, type = "candlesticks")
+  # quantmod titles the chart with the expression `x` was written as.
+  testthat::expect_equal(
+    record(args, quote(chartSeries(AAPL, type = "candlesticks")))$name, "AAPL"
+  )
+  testthat::expect_equal(
+    record(args, quote(chartSeries(type = "candlesticks", x = AAPL["2024"])))$name,
+    as.character(quote(f(AAPL["2024"]))[2])
+  )
+  # A name the caller gave is kept, and a call it cannot match is left alone.
+  testthat::expect_equal(
+    record(list(1, name = "Mine"), quote(chartSeries(AAPL)))$name, "Mine"
+  )
+  testthat::expect_null(record(args, NULL)$name)
+})
