@@ -79,10 +79,13 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
     add = TRUE
   )
 
-  # All three repairs have to happen here rather than after drawing: the
+  # The repairs have to happen here rather than after drawing: the
   # export reads the grid display list, so only the tree that was actually
   # drawn is the one it exports.
   grid.newpage()
+  if (has_candlestick) {
+    gt <- clip_chartseries_panel_rects(gt)
+  }
   grid.draw(normalise_negative_rects(
     split_vectorised_curve_grobs(repair_na_text_justification(gt))
   ))
@@ -116,10 +119,9 @@ create_enhanced_svg <- function(gt, maidr_data, ...) {
       # Remove the misaligned bottom-axis line and tick marks from
       # chartSeries candlestick output (date labels remain).
       strip_chartseries_date_axis_doc(svg_doc)
-      # Remove the right y-axis line from chartSeries candlestick output:
-      # on sparse OHLC the vertical axis line overlaps the rightmost
-      # candle. Price info remains in maidr-data JSON and is announced by
-      # the screen reader.
+      # Remove the right y-axis line and ticks from chartSeries
+      # candlestick output: the echoed tree draws them inside the plot
+      # region. The price labels stay.
       strip_chartseries_right_axis_doc(svg_doc)
       set_maidr_data_attr(svg_doc, maidr_data)
       return(strsplit(as.character(svg_doc), "\n")[[1]])
@@ -252,6 +254,116 @@ normalise_negative_rects <- function(grob) {
     }
   }
   grob
+}
+
+#' Clip chartSeries' lower-panel rects to their plot region
+#'
+#' `quantmod::chartSeries()` draws its volume panel (`addVo()`) as bars from
+#' zero, in a panel whose y range starts near the smallest volume, and leaves
+#' R to clip them to the plot region, as base graphics do by default. The
+#' tree `gridGraphics::grid.echo()` rebuilds from that drawing places those
+#' bars in `graphics-plot-<N>`, which does not clip, rather than in the
+#' `graphics-plot-<N>-clip` viewport it builds beside it, so every bar ran on
+#' past the panel's lower border into the date labels.
+#'
+#' Each rect of a panel below the first is moved into that panel's `-clip`
+#' viewport, when the tree has one. The rect keeps its name, so its element
+#' id, and the selectors built from it, are unchanged; only the viewport
+#' groups around it are named after the clipping viewport, and the export
+#' clips them as R clipped the drawing. The price panel is left alone: its
+#' candles lie within its range.
+#'
+#' @param grob A grob, gTree, gList, or gtable (or NULL)
+#' @return The same tree with lower-panel rects in their clipping viewport
+#' @keywords internal
+clip_chartseries_panel_rects <- function(grob) {
+  if (is.null(grob)) {
+    return(grob)
+  }
+  clip_paths <- collect_viewport_paths(grob)
+  clip_paths <- clip_paths[grepl("graphics-plot-[0-9]+-clip::", clip_paths)]
+  if (length(clip_paths) == 0L) {
+    return(grob)
+  }
+
+  move <- function(g) {
+    if (inherits(g, "rect") && inherits(g$vp, "vpPath")) {
+      panel <- sub("^graphics-plot-([0-9]+)-rect-[0-9]+$", "\\1", g$name)
+      if (!identical(panel, g$name) && as.integer(panel) >= 2L) {
+        parts <- strsplit(as.character(g$vp), "::", fixed = TRUE)[[1]]
+        n <- length(parts)
+        if (n >= 2L && identical(parts[[n - 1L]], paste0("graphics-plot-", panel))) {
+          parts[[n - 1L]] <- paste0(parts[[n - 1L]], "-clip")
+          if (paste(parts, collapse = "::") %in% clip_paths) {
+            g$vp <- do.call(grid::vpPath, as.list(parts))
+          }
+        }
+      }
+      return(g)
+    }
+    for (field in c("children", "grobs")) {
+      if (!is.null(g[[field]])) {
+        for (i in seq_along(g[[field]])) {
+          g[[field]][[i]] <- move(g[[field]][[i]])
+        }
+      }
+    }
+    if (inherits(g, "gList")) {
+      for (i in seq_along(g)) {
+        g[[i]] <- move(g[[i]])
+      }
+    }
+    g
+  }
+  move(grob)
+}
+
+#' The full paths of the viewports a grob tree defines
+#'
+#' @param grob A grob, gTree, gList, or gtable
+#' @return Character vector of `"a::b::c"` paths, from every `childrenvp`
+#' @keywords internal
+collect_viewport_paths <- function(grob) {
+  paths <- character(0)
+  walk_vp <- function(vp, prefix) {
+    if (inherits(vp, "vpTree")) {
+      parent <- walk_vp(vp$parent, prefix)
+      for (child in vp$children) {
+        walk_vp(child, parent)
+      }
+      return(parent)
+    }
+    if (inherits(vp, c("vpList", "vpStack"))) {
+      here <- prefix
+      for (child in vp) {
+        last <- walk_vp(child, if (inherits(vp, "vpStack")) here else prefix)
+        if (inherits(vp, "vpStack")) here <- last
+      }
+      return(here)
+    }
+    if (inherits(vp, "viewport")) {
+      path <- if (nzchar(prefix)) paste(prefix, vp$name, sep = "::") else vp$name
+      paths <<- c(paths, path)
+      return(path)
+    }
+    prefix
+  }
+  walk_grob <- function(g) {
+    if (is.null(g)) {
+      return(invisible())
+    }
+    if (!is.null(g$childrenvp)) {
+      walk_vp(g$childrenvp, "")
+    }
+    for (field in c("children", "grobs")) {
+      for (child in g[[field]]) walk_grob(child)
+    }
+    if (inherits(g, "gList")) {
+      for (child in g) walk_grob(child)
+    }
+  }
+  walk_grob(grob)
+  unique(paths)
 }
 
 #' Where a rect grob is anchored on one axis, as a fraction
@@ -997,7 +1109,15 @@ adjust_chartseries_bracket_doc <- function(svg_doc) {
   for (node in text_nodes) {
     content <- xml2::xml_text(node)
     if (grepl(bracket_re, content)) {
-      xml2::xml_set_attr(node, "x", format(safe_x, trim = TRUE))
+      # The text is written inside groups that translate it (the export
+      # places each label with `translate(x, y)` and draws it at its
+      # origin), so its own `x` is relative to them: subtract theirs.
+      offset <- sum(vapply(
+        xml2::xml_find_all(node, "ancestor::svg:g[@transform]", ns),
+        function(g) translate_x(xml2::xml_attr(g, "transform")),
+        numeric(1)
+      ))
+      xml2::xml_set_attr(node, "x", format(safe_x - offset, trim = TRUE))
       xml2::xml_set_attr(node, "text-anchor", "end")
       modified <- TRUE
       break  # chartSeries emits at most one bracket header
@@ -1005,6 +1125,23 @@ adjust_chartseries_bracket_doc <- function(svg_doc) {
   }
 
   modified
+}
+
+#' The x offset of an SVG `translate()` transform
+#'
+#' @param transform The `transform` attribute value
+#' @return The first `translate()`'s x, or 0 when there is none
+#' @keywords internal
+translate_x <- function(transform) {
+  m <- regmatches(
+    transform,
+    regexec("translate\\(\\s*([-+0-9.eE]+)", transform)
+  )[[1]]
+  if (length(m) < 2L) {
+    return(0)
+  }
+  value <- suppressWarnings(as.numeric(m[[2]]))
+  if (is.na(value)) 0 else value
 }
 
 #' Strip the bottom axis line and tick marks from chartSeries candlestick SVG
@@ -1086,21 +1223,20 @@ strip_chartseries_date_axis_doc <- function(svg_doc) {
   modified
 }
 
-#' Strip the right y-axis vertical line from chartSeries candlestick SVG
+#' Strip the right y-axis line and ticks from chartSeries candlestick SVG
 #'
-#' quantmod::chartSeries() draws a right-hand y-axis with a vertical
-#' axis line, tick marks, and numeric price labels (e.g. 101..106).
-#' On sparse OHLC inputs (few candles spread across the plot region),
-#' the right-axis vertical line is positioned within the candle area
-#' and visually overlaps the rightmost candle, reading like a stray
-#' "axis through the middle" of the chart. This helper removes only
-#' the `right-axis-line-*` polyline; the tick marks and the price
-#' labels themselves are preserved so the chart still communicates
-#' the y-axis scale visually.
+#' quantmod::chartSeries() draws a right-hand y-axis (`axis(4)`) with a
+#' vertical axis line, tick marks, and numeric price labels (e.g.
+#' 101..106). In the tree `gridGraphics::grid.echo()` rebuilds from it, the
+#' line and the ticks land inside the plot region, well left of its right
+#' border, reading like a stray "axis through the middle" of the chart,
+#' while the labels stay where R draws them. This helper removes the
+#' `right-axis-line-*` and `right-axis-ticks-*` groups; the price labels
+#' are preserved so the chart still communicates the y-axis scale visually.
 #'
-#' The matched group has an ID of the form
-#' `graphics-plot-N-right-axis-line-...`; matched by substring with
-#' `contains(@id, 'right-axis-line-')`.
+#' The matched groups have IDs of the form
+#' `graphics-plot-N-right-axis-line-...` and
+#' `graphics-plot-N-right-axis-ticks-...`, matched by substring.
 #'
 #' Safety: no-op when `maidr_data` contains no candlestick layers
 #' (ggplot candlestick / non-candlestick plots use different SVG IDs
@@ -1148,9 +1284,12 @@ strip_chartseries_right_axis_doc <- function(svg_doc) {
   ns <- c(svg = "http://www.w3.org/2000/svg")
   modified <- FALSE
 
-  # Strip only the right-axis vertical line; keep the ticks and the
-  # numeric price labels so the y-scale remains visible to sighted users.
-  xpath <- "//svg:g[contains(@id, 'right-axis-line-')]"
+  # Strip the misplaced right-axis line and ticks; keep the numeric price
+  # labels so the y-scale remains visible to sighted users.
+  xpath <- paste0(
+    "//svg:g[contains(@id, 'right-axis-line-') or ",
+    "contains(@id, 'right-axis-ticks-')]"
+  )
   nodes <- xml2::xml_find_all(svg_doc, xpath, ns)
   if (length(nodes) > 0L) {
     xml2::xml_remove(nodes)

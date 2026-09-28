@@ -1,3 +1,46 @@
+#' The technical-analysis indicators a recorded chartSeries() call draws
+#'
+#' `quantmod::chartSeries()` draws the indicators named by its `TA`
+#' argument, which defaults to `"addVo()"`, and splits a single string on
+#' `TAsep` (`";"` by default), so `TA = "addVo();addSMA()"` draws two. An
+#' explicit `TA = NULL`, `FALSE`, `NA` or `""` draws none.
+#'
+#' @param args The recorded arguments of the chartSeries() call
+#' @return A character vector of indicator calls, such as `"addVo()"`;
+#'   `character(0)` when none is drawn, or `NA` when `TA` is not a
+#'   character vector (an evaluated indicator object), which cannot be read.
+#' @keywords internal
+chartseries_ta_calls <- function(args) {
+  if (!"TA" %in% names(args)) {
+    return("addVo()")
+  }
+  ta <- args$TA
+  none <- is.null(ta) || length(ta) == 0L || identical(ta, FALSE) ||
+    (is.atomic(ta) && all(is.na(ta)))
+  if (none) {
+    return(character(0))
+  }
+  if (!is.character(ta)) {
+    return(NA_character_)
+  }
+  ta <- ta[!is.na(ta)]
+  sep <- args$TAsep
+  if (!is.character(sep) || length(sep) != 1L || !nzchar(sep)) {
+    sep <- ";"
+  }
+  calls <- trimws(unlist(strsplit(ta, sep, fixed = TRUE), use.names = FALSE))
+  calls[nzchar(calls)]
+}
+
+#' Whether an indicator call is quantmod's volume panel, `addVo()`
+#'
+#' @param calls Indicator calls from [chartseries_ta_calls()]
+#' @return A logical vector, `FALSE` for `NA`
+#' @keywords internal
+is_chartseries_volume_ta <- function(calls) {
+  !is.na(calls) & grepl("^addVo\\s*\\(.*\\)$", calls)
+}
+
 #' Base R Candlestick Layer Processor
 #'
 #' Processes Base R candlestick chart layers produced by
@@ -64,27 +107,17 @@ BaseRCandlestickLayerProcessor <- R6::R6Class(
       candle_layer
     },
 
-    #' @description Detect whether the chartSeries call requests addVo()
+    #' @description Detect whether the chartSeries call draws the addVo()
+    #'   volume panel, which it does by default
     #' @param layer_info Layer information with the recorded call
     #' @return Logical
     has_add_vo = function(layer_info) {
       if (is.null(layer_info)) {
         return(FALSE)
       }
-      args <- layer_info$plot_call$args
-      ta <- args$TA
-      if (is.null(ta)) {
-        return(FALSE)
-      }
-      # TA can be a character string ("addVo()") or a list/character
-      # vector of TA expressions.
-      ta_chr <- tryCatch(
-        vapply(as.list(ta), function(x) {
-          tryCatch(as.character(x)[[1L]], error = function(e) "")
-        }, character(1)),
-        error = function(e) as.character(ta)
-      )
-      any(grepl("addVo\\s*\\(", ta_chr))
+      any(is_chartseries_volume_ta(
+        chartseries_ta_calls(layer_info$plot_call$args)
+      ))
     },
 
     #' @description Build a "bar" layer carrying volume data

@@ -149,6 +149,14 @@
 
 ### Base R
 
+* `quantmod::chartSeries()` candlestick charts keep their volume panel.
+  The panel `addVo()` draws -- `chartSeries()`'s default whenever the data
+  has a Volume column -- is read as a second, bar layer beside the candles,
+  one bar per period, each highlighted as it is read. These charts fell
+  back to a static image before. Another indicator (`addSMA()`,
+  `addMACD()`, ...) still falls back, with the advisory, which now names
+  `addVo()` as the one that is read. The volume bars are clipped to their
+  panel, as R draws them, rather than running on into the date labels.
 * Added Base R `pie()` support, one navigable slice per wedge. Text grobs
   with an `NA` justification are repaired so `pie()` exports through gridSVG.
 * A `pie()` layer now says where its ring begins and which way it runs:
@@ -574,6 +582,14 @@
   exported, so a bare call is read rather than `save_html()` reporting "No
   Base R plots detected"; `persp()`, `sunflowerplot()` and `fourfoldplot()`
   are recorded and fall back to a static image instead.
+* `chartSeries()` charts are titled as R titles them. A chart given no
+  `name` was titled with its series' prices printed end to end, because the
+  replay passed the recorded data where quantmod reads the expression it was
+  written as; the date-range header was placed off the right of the page;
+  and the right axis's line and ticks were drawn through the middle of the
+  plot. The title is recorded from the call, the header is placed inside
+  the page, and the misplaced axis ticks are dropped with the line, keeping
+  the price labels.
 * `chartSeries()`: attaching 'quantmod' after 'maidr' masks maidr's wrapper,
   which is now reported at attach time and in the "No Base R plots
   detected" error, with `maidr::chartSeries()` as the explicit alternative;
