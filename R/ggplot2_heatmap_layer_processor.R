@@ -485,7 +485,7 @@ heat_level_codes <- function(values, levels) {
 #' cells it comes first for, with a missing value.
 #'
 #' Scanning the source for every tile made this quadratic -- a 300 x 300
-#' grid never finished -- so each source row is coded by level once and the
+#' grid took over a minute -- so each source row is coded by level once and the
 #' cells are looked up in C++. A column [heat_codable()] cannot code is
 #' still scanned.
 #'

@@ -77,6 +77,18 @@
   own record of the chart it drew last -- the one `trellis.focus()` and
   `trellis.last.object()` act on -- as it was.
 
+## Performance
+
+* The SVG export, the maidr-data payload and the ggplot2 heatmap grid now
+  do their per-shape and per-point work in C++ through 'Rcpp', which is
+  added to Imports and LinkingTo; the package now has compiled code. The
+  output is byte for byte what it was. Measured with `save_html()`: a
+  300 x 300 `geom_tile()` heatmap went from 65 s to 5.6 s -- its cells
+  were found by scanning every source row for every tile -- a 100 x 100
+  one from 2.2 s to 0.7 s, a 50,000-point `geom_line()` from 2.7 s to
+  1.2 s, a 50,000-point `geom_point()` from 4.4 s to 3.5 s, and a
+  2,000-bar `geom_col()` from 3.5 s to 1.9 s.
+
 ## Bug Fixes
 
 ### Base R
