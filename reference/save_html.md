@@ -1,7 +1,7 @@
 # Save Interactive Plot as HTML File
 
-Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
-accessibility features.
+Save a ggplot2, lattice or Base R plot as an HTML file with interactive
+MAIDR accessibility features.
 
 ## Usage
 
@@ -13,7 +13,8 @@ save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 
 - plot:
 
-  A ggplot2 object or NULL for Base R auto-detection
+  A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+  auto-detection
 
 - file:
 
@@ -69,6 +70,14 @@ p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
 # \donttest{
 maidr::save_html(p_violin, tempfile(fileext = ".html"))
+# }
+
+# lattice chart [experimental]
+# \donttest{
+if (requireNamespace("lattice", quietly = TRUE)) {
+  p_lattice <- lattice::bwplot(factor(cyl) ~ mpg, data = mtcars)
+  maidr::save_html(p_lattice, tempfile(fileext = ".html"))
+}
 # }
 
 # Base R example (requires interactive session for function patching)

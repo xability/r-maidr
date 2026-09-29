@@ -7,7 +7,7 @@ capabilities. Each example creates an interactive plot using
 ## Usage
 
 ``` r
-run_example(example = NULL, type = c("ggplot2", "base_r"))
+run_example(example = NULL, type = c("ggplot2", "base_r", "lattice"))
 ```
 
 ## Arguments
@@ -19,8 +19,8 @@ run_example(example = NULL, type = c("ggplot2", "base_r"))
 
 - type:
 
-  Character string specifying the plot system to use. Either `"ggplot2"`
-  (default) or `"base_r"`.
+  Character string specifying the plot system to use: `"ggplot2"`
+  (default), `"base_r"` or `"lattice"`.
 
 ## Value
 
@@ -31,6 +31,13 @@ interactive plot in the browser or listing available examples.
 
 Available examples include various plot types such as bar charts,
 histograms, scatter plots, line plots, boxplots, heatmaps, and more.
+
+The `"lattice"` examples are a bar chart \[experimental\], a histogram
+\[experimental\], a scatter plot \[experimental\], a box plot
+\[experimental\] and a conditioned (faceted) scatter plot
+\[experimental\]. Every chart maidr reads from 'lattice' is
+experimental: none has been through a user study, and each may change
+without a deprecation period. They need the 'lattice' package.
 
 Each example script creates a plot and calls
 [`show()`](https://r.maidr.ai/reference/show.md) to display it in your
@@ -85,9 +92,17 @@ run_example()
 #>   - stacked_bar
 #>   - step
 #> 
+#> lattice examples [experimental]:
+#>   - bar
+#>   - boxplot
+#>   - faceted
+#>   - histogram
+#>   - scatter
+#> 
 #> Usage:
 #>   run_example("bar")                 # Run ggplot2 bar chart
 #>   run_example("histogram", "base_r") # Run Base R histogram
+#>   run_example("boxplot", "lattice")  # Run lattice box plot [experimental]
 
 if (interactive()) {
   # Run ggplot2 bar chart example
@@ -95,5 +110,8 @@ if (interactive()) {
 
   # Run Base R histogram example
   run_example("histogram", type = "base_r")
+
+  # Run lattice box plot example [experimental]
+  run_example("boxplot", type = "lattice")
 }
 ```

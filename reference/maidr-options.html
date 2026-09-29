@@ -29,7 +29,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-28">
+<meta name="DC.date" content="2026-09-29">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -63,6 +63,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/examples-lattice.html">lattice Chart Examples</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -76,7 +77,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>MAIDR Package Options</h1>
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.5.0/R/maidr_options.R" class="external-link"><code>R/maidr_options.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/R/maidr_options.R" class="external-link"><code>R/maidr_options.R</code></a></small>
       <div class="d-none name"><code>maidr-options.Rd</code></div>
     </div>
 
@@ -102,6 +103,15 @@ Default: TRUE.</p></dd>
 <dd><p>Logical. Enable ggplot2 auto-display.
 When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
 instead of the standard graphics device. Default: TRUE.</p></dd>
+
+<dt><code>maidr.lattice</code></dt>
+<dd><p>Logical. Enable lattice auto-display. When
+TRUE, a lattice (trellis) object printed at the console to the screen
+is rendered in the MAIDR viewer, and <code><a href="maidr_on.html">maidr_on()</a></code> makes the ones
+an R Markdown or Quarto document prints accessible. A print into a
+file device, or one that places the chart on a shared page with
+<code>split</code>, <code>position</code> or <code>more</code>, is drawn by lattice as
+before. Default: TRUE.</p></dd>
 
 <dt><code>maidr.startup_message</code></dt>
 <dd><p>Logical. Show startup message when
@@ -167,6 +177,9 @@ of the bundled version on jsDelivr.</p></dd>
 <p>Options can be set in your <code>.Rprofile</code> to persist across sessions:</p><div class="sourceCode"><pre><code><span></span>
 <span><span class="co"># Disable ggplot2 interception by default</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.ggplot2 <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Draw printed lattice charts with lattice, as without maidr</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.lattice <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Disable all interception</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.auto_show <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>

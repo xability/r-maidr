@@ -33,7 +33,7 @@ to intercept Base R plotting calls and detect plot types.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-02">
+<meta name="DC.date" content="2026-09-29">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -67,6 +67,7 @@ to intercept Base R plotting calls and detect plot types.">
     <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/examples-lattice.html">lattice Chart Examples</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -80,7 +81,7 @@ to intercept Base R plotting calls and detect plot types.">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Base R System Adapter</h1>
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.5.0/R/base_r_adapter.R" class="external-link"><code>R/base_r_adapter.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/R/base_r_adapter.R" class="external-link"><code>R/base_r_adapter.R</code></a></small>
       <div class="d-none name"><code>BaseRAdapter.Rd</code></div>
     </div>
 
@@ -202,7 +203,14 @@ first term. Only the two-column numeric frame is read as points.</p><div class="
 
 <p></p><hr><a id="method-BaseRAdapter-can_handle"></a><div class="section">
 <h3 id="baseradapter-can-handle-"><code>BaseRAdapter$can_handle()</code><a class="anchor" aria-label="anchor" href="#baseradapter-can-handle-"></a></h3>
-<p>Check if this adapter can handle a plot object</p><div class="section">
+<p>Check if this adapter can handle a plot object</p>
+<p>Base R charts are claimed by device state – what the recording
+wrappers logged on the current device – because they are not
+objects. A plot object another system draws is never claimed that
+way: with a Base R call recorded, a lattice chart passed to
+<code><a href="save_html.html">save_html()</a></code> used to be exported as the recorded Base R chart.
+Anything else passed in is still judged by the device, which is what
+<code>save_html(barplot(x), file)</code> relies on.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRAdapter</span><span class="op">$</span><span class="fu">can_handle</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

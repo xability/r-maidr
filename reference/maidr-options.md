@@ -21,6 +21,16 @@ system.
   automatically rendered in the MAIDR viewer instead of the standard
   graphics device. Default: TRUE.
 
+- `maidr.lattice`:
+
+  Logical. Enable lattice auto-display. When TRUE, a lattice (trellis)
+  object printed at the console to the screen is rendered in the MAIDR
+  viewer, and [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md)
+  makes the ones an R Markdown or Quarto document prints accessible. A
+  print into a file device, or one that places the chart on a shared
+  page with `split`, `position` or `more`, is drawn by lattice as
+  before. Default: TRUE.
+
 - `maidr.startup_message`:
 
   Logical. Show startup message when package is loaded. Default: TRUE.
@@ -88,6 +98,9 @@ Options can be set in your `.Rprofile` to persist across sessions:
 
     # Disable ggplot2 interception by default
     options(maidr.ggplot2 = FALSE)
+
+    # Draw printed lattice charts with lattice, as without maidr
+    options(maidr.lattice = FALSE)
 
     # Disable all interception
     options(maidr.auto_show = FALSE)

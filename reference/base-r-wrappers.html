@@ -47,7 +47,7 @@ the wrappers pass straight through.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-22">
+<meta name="DC.date" content="2026-09-29">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -81,6 +81,7 @@ the wrappers pass straight through.">
     <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/examples-lattice.html">lattice Chart Examples</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -94,7 +95,7 @@ the wrappers pass straight through.">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Functions maidr masks on attach</h1>
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.5.0/R/base_r_wrapper_exports.R" class="external-link"><code>R/base_r_wrapper_exports.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/R/base_r_wrapper_exports.R" class="external-link"><code>R/base_r_wrapper_exports.R</code></a></small>
       <div class="d-none name"><code>base-r-wrappers.Rd</code></div>
     </div>
 
@@ -277,8 +278,8 @@ loaded.</p>
 <h3 id="show-and-methods-show-"><code><a href="show.html">show()</a></code> and <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code><a class="anchor" aria-label="anchor" href="#show-and-methods-show-"></a></h3>
 
 
-<p>maidr's <code><a href="show.html">show()</a></code> takes a ggplot2 object or, with no argument, the last
-recorded Base R chart. Anything else it is given goes to
+<p>maidr's <code><a href="show.html">show()</a></code> takes a ggplot2 or lattice object or, with no argument,
+the last recorded Base R chart. Anything else it is given goes to
 <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>, so <code>show(x)</code> on an S4 object prints as it did before
 maidr was attached. In a script or a package, where what is masked
 depends on what else is attached, call <code><a href="show.html">maidr::show()</a></code> and

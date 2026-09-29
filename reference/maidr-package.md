@@ -2,11 +2,12 @@
 
 The 'maidr' package provides accessible, interactive visualizations
 through the MAIDR (Multimodal Access and Interactive Data
-Representation) system. It converts 'ggplot2' and Base R plots into
-accessible HTML/SVG formats with keyboard navigation, screen reader
-support, and sonification capabilities. This enables users with visual
-impairments to independently explore and understand data visualizations
-through multiple sensory modalities.
+Representation) system. It converts 'ggplot2' and Base R plots, and
+experimentally 'lattice' charts, into accessible HTML/SVG formats with
+keyboard navigation, screen reader support, and sonification
+capabilities. This enables users with visual impairments to
+independently explore and understand data visualizations through
+multiple sensory modalities.
 
 ## Main Functions
 
@@ -121,7 +122,8 @@ and Base R plotting systems:
 also reads a longer list of charts as prototypes: none has been through
 a user study, and each may change without a deprecation period. In these
 docs an experimental type is marked \[experimental\] after its name; a
-type with no mark is stable. Among them:
+type with no mark is stable. Every chart read from 'lattice' is one of
+them, whatever its layer type. Among them:
 
 - ggplot2 area charts \[experimental\]
 
@@ -156,6 +158,41 @@ type with no mark is stable. Among them:
   \[experimental\]
 
 - Base R word clouds \[experimental\]
+
+- lattice bar charts (simple, grouped, stacked) -
+  [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html)
+  \[experimental\]
+
+- lattice histograms -
+  [`histogram()`](https://rdrr.io/pkg/lattice/man/histogram.html)
+  \[experimental\]
+
+- lattice box plots -
+  [`bwplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html)
+  \[experimental\]
+
+- lattice scatter, line, step and lollipop plots -
+  [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html)
+  \[experimental\]
+
+- lattice density curves -
+  [`densityplot()`](https://rdrr.io/pkg/lattice/man/histogram.html)
+  \[experimental\]
+
+- lattice dot plots -
+  [`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html)
+  \[experimental\]
+
+- lattice heat maps -
+  [`levelplot()`](https://rdrr.io/pkg/lattice/man/levelplot.html)
+  \[experimental\]
+
+- lattice contour plots -
+  [`contourplot()`](https://rdrr.io/pkg/lattice/man/levelplot.html)
+  \[experimental\]
+
+- lattice conditioned (multi-panel) charts - `y ~ x | g`
+  \[experimental\]
 
 The full list is under "Experimental Plot Types" in the README.
 

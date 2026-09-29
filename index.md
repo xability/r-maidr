@@ -4,12 +4,13 @@
 
 maidr (Multimodal Access and Interactive Data Representation) makes data
 visualizations accessible to users with visual impairments. It converts
-ggplot2 and Base R plots into interactive, accessible HTML/SVG formats
-with keyboard navigation, screen reader support, and sonification. maidr
-for R is the R binding of [MAIDR](https://maidr.ai/), the JavaScript
-core developed by the (x)Ability Design Lab at the University of
-Illinois Urbana-Champaign; the same accessibility layer is available for
-Python as [py-maidr](https://py.maidr.ai/).
+ggplot2 and Base R plots, and experimentally lattice charts, into
+interactive, accessible HTML/SVG formats with keyboard navigation,
+screen reader support, and sonification. maidr for R is the R binding of
+[MAIDR](https://maidr.ai/), the JavaScript core developed by the
+(x)Ability Design Lab at the University of Illinois Urbana-Champaign;
+the same accessibility layer is available for Python as
+[py-maidr](https://py.maidr.ai/).
 
 The package provides two main functions:
 
@@ -108,6 +109,41 @@ needs to highlight the mark being read. While an echarts4r chart shows
 its legend, the visual highlight is off; audio, text and braille are not
 affected.
 
+### lattice
+
+A lattice chart is used the way a ggplot2 object is: printing it opens
+the maidr viewer, and [`show()`](https://r.maidr.ai/reference/show.md)
+and [`save_html()`](https://r.maidr.ai/reference/save_html.md) take it.
+Every lattice chart type maidr reads is experimental; the lattice table
+under [Experimental Plot Types](#experimental-plot-types) lists them.
+
+``` r
+
+library(maidr)
+library(lattice)
+
+cylinders <- as.data.frame(table(Cylinders = mtcars$cyl))
+
+p <- barchart(
+  Freq ~ Cylinders,
+  data = cylinders,
+  origin = 0,
+  main = "Cars by Cylinder Count",
+  ylab = "Count"
+)
+
+# Printing the chart opens it in the maidr viewer
+p
+
+# show() is the explicit form; save_html() writes it to a file
+show(p)
+save_html(p, "cylinders.html")
+```
+
+A conditioned chart, such as `xyplot(mpg ~ wt | factor(cyl), mtcars)`,
+is read one panel at a time: each panel is a subplot of its own, named
+after its strip.
+
 ## How maidr hooks into your session
 
 - **Console.** [`library(maidr)`](https://github.com/xability/r-maidr)
@@ -116,25 +152,37 @@ affected.
   form. Base R plotting calls are recorded, and
   [`show()`](https://r.maidr.ai/reference/show.md) with no argument
   opens the recorded chart.
-  [`save_html()`](https://r.maidr.ai/reference/save_html.md) writes
-  either kind to a file.
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md) writes any
+  of them to a file.
+- **lattice.** Printing a lattice chart opens the viewer too, through
+  lattice’s own `print.function` option, which maidr sets once lattice
+  is loaded. A print that shares its page with other charts (`split`,
+  `position`, `more = TRUE`, `newpage = FALSE`), a print into a file
+  device such as [`pdf()`](https://rdrr.io/r/grDevices/pdf.html) or
+  [`png()`](https://rdrr.io/r/grDevices/png.html), and `plot(p)`, which
+  lattice does not route through that option, are drawn by lattice as
+  before, and so is a chart maidr cannot read.
 - **R Markdown and Quarto.** Call
   [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a
   setup chunk. It installs the knitr hooks that turn every plot the
   document draws into an accessible chart;
   [`library(maidr)`](https://github.com/xability/r-maidr) alone does not
-  install them.
+  install them. A lattice chart has to be the value a chunk returns: one
+  the chunk draws with `print(p)`, as in a loop, stays a static image,
+  and is lost to a Base R chart drawn after it in the same chunk.
 - **Shiny.** Put
   [`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md) in
   the UI and
   [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) in
-  the server; see
+  the server, with its expression returning the ggplot2 or lattice chart
+  rather than printing it; see
   [`vignette("shiny-integration", package = "maidr")`](https://r.maidr.ai/articles/shiny-integration.md).
 - **Turning it off.**
   [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) stops
   interception for the session and
   [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) starts it
   again. `options(maidr.ggplot2 = FALSE)` leaves ggplot2 printing alone,
+  `options(maidr.lattice = FALSE)` leaves lattice printing alone,
   `options(maidr.base_r = FALSE)` stops recording Base R calls, and
   `options(maidr.auto_show = FALSE)`, in `.Rprofile` to make it
   permanent, turns everything off. See
@@ -157,7 +205,9 @@ affected.
 ## Supported plot types
 
 maidr supports a wide range of visualization types in both ggplot2 and
-Base R:
+Base R, in the two tables below. It also reads lattice charts, but only
+as experimental types, so lattice has no column here: its charts are
+listed under [Experimental Plot Types](#experimental-plot-types).
 
 ### Basic Plot Types
 
@@ -206,9 +256,11 @@ whenever the input `xts` carries a `Volume` column — fall back to native
 Everything in the two tables above predates the plot coverage roadmap
 ([\#137](https://github.com/xability/r-maidr/issues/137)) and has been
 exercised by real readers over real charts. Everything below was added
-by that roadmap and the base R sweeps that followed it
+by that roadmap, by the base R sweeps that followed it
 ([\#251](https://github.com/xability/r-maidr/issues/251),
-[\#262](https://github.com/xability/r-maidr/issues/262)), most inside a
+[\#262](https://github.com/xability/r-maidr/issues/262)) or with the
+lattice reading
+([\#333](https://github.com/xability/r-maidr/issues/333)), most inside a
 few weeks.
 
 Each was measured against the chart it reads — that is what the issues
@@ -275,12 +327,57 @@ experimental ones follow in a section of their own, as they do here.
 | `violin` | [`vioplot::vioplot()`](https://rdrr.io/pkg/vioplot/man/vioplot.html) |
 | `word_cloud` | [`wordcloud::wordcloud()`](https://rdrr.io/pkg/wordcloud/man/wordcloud.html) |
 
+#### lattice
+
+Every chart maidr reads from lattice is experimental, including those
+read as a layer type that is stable for ggplot2 and Base R: a
+[`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is emitted
+as the same `bar` layer as
+[`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md), but
+reading what lattice drew, panel by panel and group by group, is new.
+
+| Layer type | Drawn by |
+|----|----|
+| `bar` | [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) without `groups`, [`histogram()`](https://rdrr.io/pkg/lattice/man/histogram.html) of a factor with one bar per level |
+| `dodged_bar` | [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) with `groups` |
+| `stacked_bar` | [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) with `groups` and `stack = TRUE`, [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) of a table or matrix |
+| `hist` | [`histogram()`](https://rdrr.io/pkg/lattice/man/histogram.html) |
+| `point` | [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`stripplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`qqmath()`](https://rdrr.io/pkg/lattice/man/qqmath.html), [`qq()`](https://rdrr.io/pkg/lattice/man/qq.html), [`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) with several values on a level |
+| `line` | `xyplot(type = "l")` and the lines of `"b"`, `"o"` and `"a"`, [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) of a time series, and the same `type`s on [`stripplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`qqmath()`](https://rdrr.io/pkg/lattice/man/qqmath.html) and [`qq()`](https://rdrr.io/pkg/lattice/man/qq.html) |
+| `step` | `xyplot(type = "s")`, `xyplot(type = "S")` |
+| `box` | [`bwplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) |
+| `heat` | [`levelplot()`](https://rdrr.io/pkg/lattice/man/levelplot.html), `contourplot(region = TRUE)` |
+| `contour` | [`contourplot()`](https://rdrr.io/pkg/lattice/man/levelplot.html), `levelplot(contour = TRUE)` |
+| `smooth` | [`densityplot()`](https://rdrr.io/pkg/lattice/man/histogram.html), and [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`qqmath()`](https://rdrr.io/pkg/lattice/man/qqmath.html) and [`qq()`](https://rdrr.io/pkg/lattice/man/qq.html) with `type = "r"`, `"smooth"` or `"spline"` on numeric axes |
+| `dot` | [`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) with one value per level |
+| `lollipop` | `xyplot(type = "h")`, and `type = "h"` on [`stripplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), [`qqmath()`](https://rdrr.io/pkg/lattice/man/qqmath.html) and [`qq()`](https://rdrr.io/pkg/lattice/man/qq.html) |
+
+A conditioned chart (`y ~ x | g`) is read one panel at a time, each
+panel a subplot, laid out as lattice lays them out; `groups` gives one
+point layer per group, or one series per group on a line or curve – one
+layer per group when the groups’ curves share no x value, since Up and
+Down only move between series that meet at the x being read. A chart
+laid out over several pages is read from its first page, with a warning.
+What the reading does not cover is shown as a static image:
+[`cloud()`](https://rdrr.io/pkg/lattice/man/cloud.html),
+[`wireframe()`](https://rdrr.io/pkg/lattice/man/cloud.html),
+[`splom()`](https://rdrr.io/pkg/lattice/man/splom.html),
+[`parallelplot()`](https://rdrr.io/pkg/lattice/man/splom.html), a panel
+function of your own or one such as `panel.violin`,
+`levelplot(useRaster = TRUE)`, latticeExtra layers and compositions, a
+fit (`type = "r"`, `"smooth"` or `"spline"`) over a factor axis, as on a
+[`stripplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) or
+[`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html), and a panel
+that fails to draw.
+
 The split is the diff of each factory’s `get_supported_types()` against
 `8de0e98`, the last commit on `main` before
-[\#137](https://github.com/xability/r-maidr/issues/137) was filed.
-`tests/testthat/test-plot-type-stability.R` fails if a supported type
-appears in neither the stable tables nor the experimental ones, so a new
-layer type has to be placed deliberately rather than inherit either
+[\#137](https://github.com/xability/r-maidr/issues/137) was filed. The
+lattice factory came later, so every type it reads is experimental.
+`tests/testthat/test-plot-type-stability.R` checks all three factories —
+ggplot2, Base R and lattice — and fails if a type one of them supports
+appears in neither the stable tables nor its experimental table, so a
+new layer type has to be placed deliberately rather than inherit either
 promise by being forgotten.
 
 The [JavaScript core](https://maidr.ai/) and the [Python
@@ -451,8 +548,8 @@ maidr for R is one of three MAIDR packages, all developed by the
 - [py-maidr for Python](https://py.maidr.ai/), the Python binding for
   matplotlib, seaborn, Plotly and Altair (PyPI package `maidr`).
 - [maidr for R](https://r.maidr.ai/), this package, for ggplot2 and Base
-  R graphics (CRAN package `maidr`; source at
-  [xability/r-maidr](https://github.com/xability/r-maidr)).
+  R graphics, with experimental lattice support (CRAN package `maidr`;
+  source at [xability/r-maidr](https://github.com/xability/r-maidr)).
 
 ## Citation
 

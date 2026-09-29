@@ -25,8 +25,8 @@ so each page stays small enough to crawl and load quickly.
 
   Gallery of accessible ggplot2 and Base R plots made with maidr,
   organized by plot family: bar and pie, distributions, scatter and
-  line, heat map and candlestick, multi-panel and facet, and Base R
-  time-series and experimental charts.
+  line, heat map and candlestick, multi-panel and facet, Base R
+  time-series and experimental charts, and lattice charts.
 
 - [Bar, Pie and Word Cloud
   Examples](https://r.maidr.ai/articles/examples-bar-pie.md):
@@ -65,8 +65,8 @@ so each page stays small enough to crawl and load quickly.
 
 ### Experimental plot families
 
-Prototype readings of Base R charts: none has been through a user study,
-and each may change without a deprecation period.
+Prototype readings of Base R and lattice charts: none has been through a
+user study, and each may change without a deprecation period.
 
 - [Base R Time-Series and Diagnostic
   Examples](https://r.maidr.ai/articles/examples-base-r-timeseries.md):
@@ -82,3 +82,12 @@ and each may change without a deprecation period.
   biplot(), stars() radar charts, mosaicplot(), cdplot(),
   fourfoldplot(), filled.contour() and more, each mapped onto a
   navigable, sonified layer type.
+
+- [lattice Chart
+  Examples](https://r.maidr.ai/articles/examples-lattice.md):
+
+  Experimental accessible readings of lattice charts with maidr:
+  barchart(), histogram(), xyplot(), bwplot(), levelplot(),
+  contourplot(), densityplot(), dotplot(), stripplot(), qqmath() and
+  conditioned multi-panel charts, each mapped onto a navigable, sonified
+  layer type.

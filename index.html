@@ -293,7 +293,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-28">
+<meta name="DC.date" content="2026-09-29">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -330,6 +330,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
+    <li><a class="dropdown-item" href="articles/examples-lattice.html">lattice Chart Examples</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -356,7 +357,7 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>maidr (Multimodal Access and Interactive Data Representation) makes data visualizations accessible to users with visual impairments. It converts ggplot2 and Base R plots into interactive, accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification. maidr for R is the R binding of <a href="https://maidr.ai/" class="external-link">MAIDR</a>, the JavaScript core developed by the (x)Ability Design Lab at the University of Illinois Urbana-Champaign; the same accessibility layer is available for Python as <a href="https://py.maidr.ai/" class="external-link">py-maidr</a>.</p>
+<p>maidr (Multimodal Access and Interactive Data Representation) makes data visualizations accessible to users with visual impairments. It converts ggplot2 and Base R plots, and experimentally lattice charts, into interactive, accessible HTML/SVG formats with keyboard navigation, screen reader support, and sonification. maidr for R is the R binding of <a href="https://maidr.ai/" class="external-link">MAIDR</a>, the JavaScript core developed by the (x)Ability Design Lab at the University of Illinois Urbana-Champaign; the same accessibility layer is available for Python as <a href="https://py.maidr.ai/" class="external-link">py-maidr</a>.</p>
 <p>The package provides two main functions:</p>
 <ul>
 <li>
@@ -432,19 +433,47 @@
 <span>  <span class="fu"><a href="reference/maidr_htmlwidget.html">maidr_htmlwidget</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>An echarts4r chart is switched to ECharts’ SVG renderer, which MAIDR needs to highlight the mark being read. While an echarts4r chart shows its legend, the visual highlight is off; audio, text and braille are not affected.</p>
 </div>
+<div class="section level3">
+<h3 id="lattice">lattice<a class="anchor" aria-label="anchor" href="#lattice"></a>
+</h3>
+<p>A lattice chart is used the way a ggplot2 object is: printing it opens the maidr viewer, and <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> take it. Every lattice chart type maidr reads is experimental; the lattice table under <a href="#experimental-plot-types">Experimental Plot Types</a> lists them.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lattice.r-forge.r-project.org/" class="external-link">lattice</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cylinders</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span>Cylinders <span class="op">=</span> <span class="va">mtcars</span><span class="op">$</span><span class="va">cyl</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart</a></span><span class="op">(</span></span>
+<span>  <span class="va">Freq</span> <span class="op">~</span> <span class="va">Cylinders</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">cylinders</span>,</span>
+<span>  origin <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Cars by Cylinder Count"</span>,</span>
+<span>  ylab <span class="op">=</span> <span class="st">"Count"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Printing the chart opens it in the maidr viewer</span></span>
+<span><span class="va">p</span></span>
+<span></span>
+<span><span class="co"># show() is the explicit form; save_html() writes it to a file</span></span>
+<span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"cylinders.html"</span><span class="op">)</span></span></code></pre></div>
+<p>A conditioned chart, such as <code>xyplot(mpg ~ wt | factor(cyl), mtcars)</code>, is read one panel at a time: each panel is a subplot of its own, named after its strip.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="how-maidr-hooks-into-your-session">How maidr hooks into your session<a class="anchor" aria-label="anchor" href="#how-maidr-hooks-into-your-session"></a>
 </h2>
 <ul>
 <li>
-<strong>Console.</strong> <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> is all it takes. Printing a ggplot2 object, by typing <code>p</code> or <code>print(p)</code>, opens it in the maidr viewer; <code>show(p)</code> is the explicit form. Base R plotting calls are recorded, and <code><a href="reference/show.html">show()</a></code> with no argument opens the recorded chart. <code><a href="reference/save_html.html">save_html()</a></code> writes either kind to a file.</li>
+<strong>Console.</strong> <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> is all it takes. Printing a ggplot2 object, by typing <code>p</code> or <code>print(p)</code>, opens it in the maidr viewer; <code>show(p)</code> is the explicit form. Base R plotting calls are recorded, and <code><a href="reference/show.html">show()</a></code> with no argument opens the recorded chart. <code><a href="reference/save_html.html">save_html()</a></code> writes any of them to a file.</li>
 <li>
-<strong>R Markdown and Quarto.</strong> Call <code><a href="reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk. It installs the knitr hooks that turn every plot the document draws into an accessible chart; <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone does not install them.</li>
+<strong>lattice.</strong> Printing a lattice chart opens the viewer too, through lattice’s own <code>print.function</code> option, which maidr sets once lattice is loaded. A print that shares its page with other charts (<code>split</code>, <code>position</code>, <code>more = TRUE</code>, <code>newpage = FALSE</code>), a print into a file device such as <code><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf()</a></code> or <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code>, and <code>plot(p)</code>, which lattice does not route through that option, are drawn by lattice as before, and so is a chart maidr cannot read.</li>
 <li>
-<strong>Shiny.</strong> Put <code><a href="reference/maidr_output.html">maidr_output()</a></code> in the UI and <code><a href="reference/render_maidr.html">render_maidr()</a></code> in the server; see <code><a href="articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code>.</li>
+<strong>R Markdown and Quarto.</strong> Call <code><a href="reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk. It installs the knitr hooks that turn every plot the document draws into an accessible chart; <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone does not install them. A lattice chart has to be the value a chunk returns: one the chunk draws with <code>print(p)</code>, as in a loop, stays a static image, and is lost to a Base R chart drawn after it in the same chunk.</li>
 <li>
-<strong>Turning it off.</strong> <code><a href="reference/maidr_off.html">maidr_off()</a></code> stops interception for the session and <code><a href="reference/maidr_on.html">maidr_on()</a></code> starts it again. <code>options(maidr.ggplot2 = FALSE)</code> leaves ggplot2 printing alone, <code>options(maidr.base_r = FALSE)</code> stops recording Base R calls, and <code>options(maidr.auto_show = FALSE)</code>, in <code>.Rprofile</code> to make it permanent, turns everything off. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</li>
+<strong>Shiny.</strong> Put <code><a href="reference/maidr_output.html">maidr_output()</a></code> in the UI and <code><a href="reference/render_maidr.html">render_maidr()</a></code> in the server, with its expression returning the ggplot2 or lattice chart rather than printing it; see <code><a href="articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code>.</li>
+<li>
+<strong>Turning it off.</strong> <code><a href="reference/maidr_off.html">maidr_off()</a></code> stops interception for the session and <code><a href="reference/maidr_on.html">maidr_on()</a></code> starts it again. <code>options(maidr.ggplot2 = FALSE)</code> leaves ggplot2 printing alone, <code>options(maidr.lattice = FALSE)</code> leaves lattice printing alone, <code>options(maidr.base_r = FALSE)</code> stops recording Base R calls, and <code>options(maidr.auto_show = FALSE)</code>, in <code>.Rprofile</code> to make it permanent, turns everything off. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</li>
 <li>
 <strong>What gets masked.</strong> Attaching maidr puts its own copies of the Base R plotting functions, and of <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>, ahead of the originals; R lists them at <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>. Each records the call and passes through to the original, and <code><a href="reference/show.html">show()</a></code> hands anything that is not a plot back to <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code>. In a script or a package call <code><a href="reference/show.html">maidr::show()</a></code> by name, and attach vioplot, wordcloud or quantmod <em>before</em> maidr, or their own functions mask the wrappers and their charts go unrecorded. See <a href="https://r.maidr.ai/reference/base-r-wrappers.html"><code>?"base-r-wrappers"</code></a>.</li>
 </ul>
@@ -452,7 +481,7 @@
 <div class="section level2">
 <h2 id="supported-plot-types">Supported plot types<a class="anchor" aria-label="anchor" href="#supported-plot-types"></a>
 </h2>
-<p>maidr supports a wide range of visualization types in both ggplot2 and Base R:</p>
+<p>maidr supports a wide range of visualization types in both ggplot2 and Base R, in the two tables below. It also reads lattice charts, but only as experimental types, so lattice has no column here: its charts are listed under <a href="#experimental-plot-types">Experimental Plot Types</a>.</p>
 <div class="section level3">
 <h3 id="basic-plot-types">Basic Plot Types<a class="anchor" aria-label="anchor" href="#basic-plot-types"></a>
 </h3>
@@ -599,7 +628,7 @@
 <blockquote>
 <p>[!WARNING] <strong>These are prototypes. Treat them as prototypes.</strong> They are under active development, they are unstable, and <strong>none of them has been through a user study</strong>. Field names, announcement wording and navigation may change without a deprecation period, including in a patch release. If you are building something that has to keep working, build it on the plot types above.</p>
 </blockquote>
-<p>Everything in the two tables above predates the plot coverage roadmap (<a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a>) and has been exercised by real readers over real charts. Everything below was added by that roadmap and the base R sweeps that followed it (<a href="https://github.com/xability/r-maidr/issues/251" class="external-link">#251</a>, <a href="https://github.com/xability/r-maidr/issues/262" class="external-link">#262</a>), most inside a few weeks.</p>
+<p>Everything in the two tables above predates the plot coverage roadmap (<a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a>) and has been exercised by real readers over real charts. Everything below was added by that roadmap, by the base R sweeps that followed it (<a href="https://github.com/xability/r-maidr/issues/251" class="external-link">#251</a>, <a href="https://github.com/xability/r-maidr/issues/262" class="external-link">#262</a>) or with the lattice reading (<a href="https://github.com/xability/r-maidr/issues/333" class="external-link">#333</a>), most inside a few weeks.</p>
 <p>Each was measured against the chart it reads — that is what the issues and the tests record. But measuring that a reading is <em>faithful to the drawing</em> is a different claim from establishing that it is <em>useful to a reader</em>. Nobody has asked a blind or low-vision reader whether hearing <code><a href="reference/base-r-wrappers.html">stars()</a></code> as a radar, or navigating a <code><a href="reference/base-r-wrappers.html">termplot()</a></code> panel by panel, is the right way to read one. Until that happens these are proposals about how a chart could be read, not answers.</p>
 <p>Feedback is exactly what would move one of these into the tables above.</p>
 <p>Elsewhere in these docs — the example articles, the getting-started vignette and the package help — an experimental type is marked <strong>[experimental]</strong> after its name; a type with no mark is stable. Wherever they list plot types, the stable ones come first and the experimental ones follow in a section of their own, as they do here.</p>
@@ -797,7 +826,94 @@
 </tr>
 </tbody>
 </table>
-<p>The split is the diff of each factory’s <code>get_supported_types()</code> against <code>8de0e98</code>, the last commit on <code>main</code> before <a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a> was filed. <code>tests/testthat/test-plot-type-stability.R</code> fails if a supported type appears in neither the stable tables nor the experimental ones, so a new layer type has to be placed deliberately rather than inherit either promise by being forgotten.</p>
+</div>
+<div class="section level4">
+<h4 id="lattice-1">lattice<a class="anchor" aria-label="anchor" href="#lattice-1"></a>
+</h4>
+<p>Every chart maidr reads from lattice is experimental, including those read as a layer type that is stable for ggplot2 and Base R: a <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> is emitted as the same <code>bar</code> layer as <code><a href="reference/base-r-wrappers.html">barplot()</a></code>, but reading what lattice drew, panel by panel and group by group, is new.</p>
+<table class="table">
+<colgroup>
+<col width="52%">
+<col width="47%">
+</colgroup>
+<thead><tr>
+<th>Layer type</th>
+<th>Drawn by</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>bar</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> without <code>groups</code>, <code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">histogram()</a></code> of a factor with one bar per level</td>
+</tr>
+<tr>
+<td><code>dodged_bar</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> with <code>groups</code>
+</td>
+</tr>
+<tr>
+<td><code>stacked_bar</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> with <code>groups</code> and <code>stack = TRUE</code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> of a table or matrix</td>
+</tr>
+<tr>
+<td><code>hist</code></td>
+<td><code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">histogram()</a></code></td>
+</tr>
+<tr>
+<td><code>point</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">stripplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/qqmath.html" class="external-link">qqmath()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/qq.html" class="external-link">qq()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code> with several values on a level</td>
+</tr>
+<tr>
+<td><code>line</code></td>
+<td>
+<code>xyplot(type = "l")</code> and the lines of <code>"b"</code>, <code>"o"</code> and <code>"a"</code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot()</a></code> of a time series, and the same <code>type</code>s on <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">stripplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/qqmath.html" class="external-link">qqmath()</a></code> and <code><a href="https://rdrr.io/pkg/lattice/man/qq.html" class="external-link">qq()</a></code>
+</td>
+</tr>
+<tr>
+<td><code>step</code></td>
+<td>
+<code>xyplot(type = "s")</code>, <code>xyplot(type = "S")</code>
+</td>
+</tr>
+<tr>
+<td><code>box</code></td>
+<td><code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">bwplot()</a></code></td>
+</tr>
+<tr>
+<td><code>heat</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/levelplot.html" class="external-link">levelplot()</a></code>, <code>contourplot(region = TRUE)</code>
+</td>
+</tr>
+<tr>
+<td><code>contour</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/levelplot.html" class="external-link">contourplot()</a></code>, <code>levelplot(contour = TRUE)</code>
+</td>
+</tr>
+<tr>
+<td><code>smooth</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">densityplot()</a></code>, and <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/qqmath.html" class="external-link">qqmath()</a></code> and <code><a href="https://rdrr.io/pkg/lattice/man/qq.html" class="external-link">qq()</a></code> with <code>type = "r"</code>, <code>"smooth"</code> or <code>"spline"</code> on numeric axes</td>
+</tr>
+<tr>
+<td><code>dot</code></td>
+<td>
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code> with one value per level</td>
+</tr>
+<tr>
+<td><code>lollipop</code></td>
+<td>
+<code>xyplot(type = "h")</code>, and <code>type = "h"</code> on <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">stripplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/qqmath.html" class="external-link">qqmath()</a></code> and <code><a href="https://rdrr.io/pkg/lattice/man/qq.html" class="external-link">qq()</a></code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A conditioned chart (<code>y ~ x | g</code>) is read one panel at a time, each panel a subplot, laid out as lattice lays them out; <code>groups</code> gives one point layer per group, or one series per group on a line or curve – one layer per group when the groups’ curves share no x value, since Up and Down only move between series that meet at the x being read. A chart laid out over several pages is read from its first page, with a warning. What the reading does not cover is shown as a static image: <code><a href="https://rdrr.io/pkg/lattice/man/cloud.html" class="external-link">cloud()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/cloud.html" class="external-link">wireframe()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/splom.html" class="external-link">splom()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/splom.html" class="external-link">parallelplot()</a></code>, a panel function of your own or one such as <code>panel.violin</code>, <code>levelplot(useRaster = TRUE)</code>, latticeExtra layers and compositions, a fit (<code>type = "r"</code>, <code>"smooth"</code> or <code>"spline"</code>) over a factor axis, as on a <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">stripplot()</a></code> or <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code>, and a panel that fails to draw.</p>
+<p>The split is the diff of each factory’s <code>get_supported_types()</code> against <code>8de0e98</code>, the last commit on <code>main</code> before <a href="https://github.com/xability/r-maidr/issues/137" class="external-link">#137</a> was filed. The lattice factory came later, so every type it reads is experimental. <code>tests/testthat/test-plot-type-stability.R</code> checks all three factories — ggplot2, Base R and lattice — and fails if a type one of them supports appears in neither the stable tables nor its experimental table, so a new layer type has to be placed deliberately rather than inherit either promise by being forgotten.</p>
 <p>The <a href="https://maidr.ai/" class="external-link">JavaScript core</a> and the <a href="https://py.maidr.ai/" class="external-link">Python binding</a> make the same distinction over their own type lists, with the same boundary and for the same reason, and mark their docs the same way: see the JavaScript core’s <a href="https://maidr.ai/docs/SCHEMA.html#trace-type-stability" class="external-link">trace type stability</a> and the Python binding’s <a href="https://py.maidr.ai/stability.html" class="external-link">stability page</a>.</p>
 <p>See the <a href="https://r.maidr.ai/articles/examples.html">examples gallery</a> for a worked example of each plot type.</p>
 </div>
@@ -887,7 +1003,7 @@
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
 <p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. A knitted R Markdown or Quarto document rendered online, and any page holding a widget, also carries its own copy of maidr.js, which its charts fall back on when the CDN cannot be reached, so a <code>self_contained</code> / <code>embed-resources</code> document works offline too. Use the <code>use_cdn</code> parameter for explicit control:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force CDN: one self-contained file, needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -896,20 +1012,20 @@
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The CDN paths load the <strong>latest published maidr.js</strong>, not the copy bundled with this package, as the Python binding does. The first CDN document in an R session asks jsDelivr (then the npm registry) which version that is, within 3 seconds, and every document in the session names that version. If the lookup cannot be made it costs no error: the document names the bundled version instead, the copy <code>use_cdn = FALSE</code> would serve. Pin a version when a document has to load the same maidr.js whenever it is opened:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span>  <span class="co"># the bundled version, no lookup</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span>    <span class="co"># a particular release</span></span></code></pre></div>
 <p>or set <code>MAIDR_CDN_VERSION</code> in the environment. <code>use_cdn = FALSE</code> never makes that lookup. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</p>
 <p>Two things still reach the network from an offline document, and only when a reader uses them. One is a language other than English. maidr.js reads charts in English on its own and fetches Korean, Japanese, Chinese, Spanish, German, French, Italian or Hindi as a small pack from beside itself. This package does not bundle the packs, which would add 0.8 MB against CRAN’s size limit, so a <code>use_cdn = FALSE</code> document points maidr.js at the packs of the bundled version on jsDelivr: a reader whose language is not English hears it when online, and English when not. Serve the packs yourself, or turn this off:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="st">"https://example.org/maidr/"</span><span class="op">)</span>  <span class="co"># your own copy</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># never fetch a pack: English only</span></span></code></pre></div>
 <p>The other is connecting a <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile display</a>. maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build, and imports the vendor’s copy from jsDelivr the first time a DotPad is connected. Rendering, sonification and braille work offline regardless. To keep the DotPad offline too, download the pinned SDK once and every <code>use_cdn = FALSE</code> document carries it in its <code>lib/</code> folder:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># ~14 MB, once, into a per-user cache</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># lib/dotpad-sdk-&lt;version&gt;/ beside it</span></span></code></pre></div>
 <p>A page served from elsewhere, or a knitr document (whose charts live in <code>srcdoc</code> frames with no base URL), names its copy by URL instead, through options or the environment variables of the same names:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/lib/"</span></span>
@@ -948,7 +1064,7 @@
 <li>
 <a href="https://py.maidr.ai/" class="external-link">py-maidr for Python</a>, the Python binding for matplotlib, seaborn, Plotly and Altair (PyPI package <code>maidr</code>).</li>
 <li>
-<a href="https://r.maidr.ai/">maidr for R</a>, this package, for ggplot2 and Base R graphics (CRAN package <code>maidr</code>; source at <a href="https://github.com/xability/r-maidr" class="external-link">xability/r-maidr</a>).</li>
+<a href="https://r.maidr.ai/">maidr for R</a>, this package, for ggplot2 and Base R graphics, with experimental lattice support (CRAN package <code>maidr</code>; source at <a href="https://github.com/xability/r-maidr" class="external-link">xability/r-maidr</a>).</li>
 </ul>
 </div>
 <div class="section level2">

@@ -19,7 +19,7 @@ create_fallback_image(
 
 - plot:
 
-  A ggplot2 object or NULL for Base R plots
+  A ggplot2 object, a lattice (trellis) object, or NULL for Base R plots
 
 - format:
 

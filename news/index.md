@@ -1,5 +1,159 @@
 # Changelog
 
+## maidr (development version)
+
+### New Features
+
+#### lattice
+
+- Charts drawn by ‘lattice’ are now read
+  ([\#333](https://github.com/xability/r-maidr/issues/333)).
+  [`show()`](https://r.maidr.ai/reference/show.md),
+  [`save_html()`](https://r.maidr.ai/reference/save_html.md),
+  `show(as_widget = TRUE)`,
+  [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) in
+  Shiny and, after
+  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md), R Markdown
+  and Quarto take a trellis object, and printing one at the console
+  opens it in the maidr viewer, as printing a ggplot2 object does. Every
+  lattice reading is experimental: none has been through a user study,
+  and each may change without a deprecation period. ‘lattice’ is now in
+  Suggests, as is ‘latticeExtra’, which only the tests use.
+- [`barchart()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is emitted
+  as a `bar` layer, as `dodged_bar` with `groups`, and as `stacked_bar`
+  with `stack = TRUE`, the default for a table or a matrix;
+  [`histogram()`](https://rdrr.io/pkg/lattice/man/histogram.html) as
+  `hist`; [`bwplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) as
+  `box`; [`levelplot()`](https://rdrr.io/pkg/lattice/man/levelplot.html)
+  as `heat`; and
+  [`contourplot()`](https://rdrr.io/pkg/lattice/man/levelplot.html) and
+  `levelplot(contour = TRUE)` as `contour`.
+  [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) is read by
+  its `type`: its points as `point`, one layer per group, named after
+  it; `"l"` as `line` and `"s"` or `"S"` as `step`, one series per
+  group; `"h"` as `lollipop`; and `"r"`, `"smooth"` and `"spline"` as a
+  `smooth` curve.
+  [`densityplot()`](https://rdrr.io/pkg/lattice/man/histogram.html) is
+  read as `smooth`, one curve per group;
+  [`dotplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) as `dot`,
+  or as points when a level holds several values; and
+  [`stripplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html),
+  [`qqmath()`](https://rdrr.io/pkg/lattice/man/qqmath.html) and
+  [`qq()`](https://rdrr.io/pkg/lattice/man/qq.html) as `point`, with the
+  lines, spikes, fits and averages their `type` adds read as
+  [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html)’s are – save
+  a fit over a factor axis, below – and a line through the levels of a
+  horizontal dot or strip plot read level by level, as its vertical
+  transpose is. A
+  [`histogram()`](https://rdrr.io/pkg/lattice/man/histogram.html) of a
+  factor, one bar per level, is read as a `bar` layer named by its
+  levels. [`xyplot()`](https://rdrr.io/pkg/lattice/man/xyplot.html) of a
+  time series is read as a `line`, in a panel per series or superposed,
+  its values named after the series rather than lattice’s own `x`. Every
+  layer names the marks it reads, so each point, bar, bin, dot and
+  spike, each box, each heat map cell and each line, curve and contour
+  is highlighted as it is read.
+- The groups of a line, step or smooth layer that share no x value – the
+  densities of a grouped
+  [`densityplot()`](https://rdrr.io/pkg/lattice/man/histogram.html), say
+  – are read as a layer each, named after the group, which Page Up and
+  Page Down reach. Kept together, only the first could be reached: the
+  frontend moves Up and Down only between series that meet at the x
+  being read. Where a panel holds layers of more than one kind, a
+  group’s layers also say what they are, as in “4 (point)” and “4
+  (line)”, and two curves of one kind say which curve each is: “4
+  (line)” and “4 (average)”, “4 (loess)” and “4 (spline)”, or “line” and
+  “average” where the groups are read together.
+- A conditioned chart (`y ~ x | g`) is read one panel at a time, each
+  panel a subplot titled by its strip and laid out as lattice lays the
+  panels out; a strip made by
+  [`strip.custom()`](https://rdrr.io/pkg/lattice/man/strip.default.html)
+  – its `factor.levels`, and the variable’s name where
+  `strip.names = TRUE` draws it – and an `auto.key`’s `text` name the
+  panels and groups as they show them. A chart laid out over several
+  pages is read from its first page – or the page a `packet.panel` picks
+  – with a warning that names `layout =` as the way to fit every panel
+  on one, and so is its image when it cannot be read. `main` is the
+  chart’s title and `sub` its subtitle, and an axis is named by `xlab`
+  or `ylab`, or by the variable lattice would name it after.
+- A chart the reading does not cover is shown as a static image rather
+  than read wrongly:
+  [`cloud()`](https://rdrr.io/pkg/lattice/man/cloud.html),
+  [`wireframe()`](https://rdrr.io/pkg/lattice/man/cloud.html),
+  [`splom()`](https://rdrr.io/pkg/lattice/man/splom.html),
+  [`parallelplot()`](https://rdrr.io/pkg/lattice/man/splom.html), a
+  panel function of the user’s own or one such as `panel.violin`,
+  `levelplot(useRaster = TRUE)`, latticeExtra layers and compositions
+  (`+ layer()`, [`c()`](https://rdrr.io/r/base/c.html),
+  `doubleYScale()`), a fit (`type = "r"`, `"smooth"` or `"spline"`) over
+  a factor axis, which lattice draws between the levels, where the axis
+  names nothing, and a panel that fails to draw. Printed at the console,
+  such a chart is drawn by lattice as before.
+- Printing goes through lattice’s own `print.function` option, which
+  maidr sets once ‘lattice’ is loaded and
+  [`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) restores. A
+  print that shares its page with other charts (`split`, `position`,
+  `more = TRUE`, `newpage = FALSE`, given to
+  [`print()`](https://rdrr.io/r/base/print.html) or carried in the
+  chart’s `plot.args`), a print into a file device such as
+  [`pdf()`](https://rdrr.io/r/grDevices/pdf.html) or
+  [`png()`](https://rdrr.io/r/grDevices/png.html), a print while
+  knitting or inside Shiny, and `plot(p)` are drawn by lattice as
+  before. A chart lattice draws at the console while a Base R chart
+  waits for [`show()`](https://r.maidr.ai/reference/show.md) goes on a
+  screen, with the theme set by
+  [`trellis.par.set()`](https://rdrr.io/pkg/lattice/man/trellis.par.get.html),
+  not onto the hidden device maidr records that chart on. In R Markdown
+  and Quarto a chart the chunk returns is made accessible, while one the
+  chunk draws with `print(p)` stays a static image.
+  `options(maidr.lattice = FALSE)` leaves lattice printing alone, and
+  setting it back to `TRUE` takes effect at the next print; see
+  [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md).
+  Saving, showing or knitting a chart leaves lattice’s own record of the
+  chart it drew last – the one
+  [`trellis.focus()`](https://rdrr.io/pkg/lattice/man/interaction.html)
+  and
+  [`trellis.last.object()`](https://rdrr.io/pkg/lattice/man/update.trellis.html)
+  act on – as it was.
+
+### Bug Fixes
+
+#### Base R
+
+- [`save_html()`](https://r.maidr.ai/reference/save_html.md) of a
+  lattice chart exports that chart even while a Base R call is recorded
+  on the current device. The Base R adapter claimed any object once the
+  device held a recorded call, so the chart was written out as the
+  recorded Base R chart instead. The adapter now leaves a ggplot2 or
+  lattice object to that package’s reading, whatever order the plotting
+  systems were registered in
+  ([\#333](https://github.com/xability/r-maidr/issues/333)).
+- [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) of a
+  lattice or ggplot2 object is no longer recorded as a Base R chart.
+  maidr’s [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+  wrapper took the call for one: with no graphics device open it drew
+  the chart on the hidden device Base R recording uses, so nothing
+  appeared, and a later [`show()`](https://r.maidr.ai/reference/show.md)
+  opened an empty scatter plot. The call now passes straight to the
+  package’s own
+  [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) method
+  ([\#333](https://github.com/xability/r-maidr/issues/333)).
+
+### Documentation
+
+- A new examples article, “lattice Chart Examples”, shows every lattice
+  reading on a small chart, each marked **\[experimental\]**, and is
+  listed under “Experimental plot families” on the examples hub and in
+  the pkgdown Articles menu. The README gains a lattice table under
+  “Experimental Plot Types” and says what printing a lattice chart does;
+  the getting-started vignette shows lattice use, and it and
+  [`?maidr`](https://r.maidr.ai/reference/maidr-package.md) list
+  lattice’s readings as experimental. Five lattice example scripts ship
+  with the package, listed by
+  [`run_example()`](https://r.maidr.ai/reference/run_example.md) and run
+  with `run_example("<name>", type = "lattice")`
+  ([\#333](https://github.com/xability/r-maidr/issues/333)).
+
 ## maidr 0.5.0
 
 ### New Features

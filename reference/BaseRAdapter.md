@@ -148,6 +148,15 @@ TRUE when the frame is a numeric pair
 
 Check if this adapter can handle a plot object
 
+Base R charts are claimed by device state – what the recording wrappers
+logged on the current device – because they are not objects. A plot
+object another system draws is never claimed that way: with a Base R
+call recorded, a lattice chart passed to
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) used to be
+exported as the recorded Base R chart. Anything else passed in is still
+judged by the device, which is what `save_html(barplot(x), file)` relies
+on.
+
 #### Usage
 
     BaseRAdapter$can_handle(plot_object)

@@ -14,8 +14,9 @@ render_maidr(expr, env = parent.frame(), quoted = FALSE)
 
 - expr:
 
-  An expression that draws a plot. Either a ggplot object, or Base R
-  plotting calls – their return values differ
+  An expression that draws a plot. Either a ggplot object or a lattice
+  (trellis) object, returned rather than printed, or Base R plotting
+  calls – their return values differ
   ([`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) returns
   NULL, [`barplot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
   returns bar midpoints) and are ignored; what counts is whether the

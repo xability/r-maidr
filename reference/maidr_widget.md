@@ -22,7 +22,8 @@ maidr_widget(
 
 - plot:
 
-  A ggplot object, or NULL to auto-detect recorded Base R plots
+  A ggplot object, a lattice (trellis) object, or NULL to auto-detect
+  recorded Base R plots
 
 - use_cdn:
 

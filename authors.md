@@ -9,7 +9,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/xability/r-maidr/blob/v0.5.0/inst/CITATION)
+[`inst/CITATION`](https://github.com/xability/r-maidr/blob/main/inst/CITATION)
 
 Seo J, Xia Y, Lee B, Mccurry S, Yam Y (2024). “MAIDR: Making Statistical
 Visualizations Accessible with Multimodal Data Representation.” In

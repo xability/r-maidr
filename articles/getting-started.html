@@ -61,7 +61,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-28">
+<meta name="DC.date" content="2026-09-29">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -98,6 +98,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/examples-lattice.html">lattice Chart Examples</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -124,7 +125,7 @@
 Seo</h4>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.5.0/vignettes/getting-started.Rmd" class="external-link"><code>vignettes/getting-started.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/vignettes/getting-started.Rmd" class="external-link"><code>vignettes/getting-started.Rmd</code></a></small>
       <div class="d-none name"><code>getting-started.Rmd</code></div>
     </div>
 
@@ -136,7 +137,8 @@ Seo</h4>
 <p><strong>MAIDR</strong> (Multimodal Access and Interactive Data
 Representation) is an R package that makes data visualizations
 accessible to users with visual impairments. It converts ggplot2 and
-Base R plots into interactive, accessible formats with:</p>
+Base R plots, and experimentally lattice charts, into interactive,
+accessible formats with:</p>
 <ul>
 <li>
 <strong>Keyboard navigation</strong> - Explore data using arrow
@@ -244,21 +246,35 @@ takes. Printing a ggplot2 object, by typing <code>p</code> or
 <code>print(p)</code>, opens it in the maidr viewer;
 <code>show(p)</code> is the explicit form. Base R plotting calls are
 recorded, and <code><a href="../reference/show.html">show()</a></code> with no argument opens the recorded
-chart. <code><a href="../reference/save_html.html">save_html()</a></code> writes either kind to a file.</li>
+chart. <code><a href="../reference/save_html.html">save_html()</a></code> writes any of them to a file.</li>
+<li>
+<strong>lattice.</strong> Printing a lattice chart opens the viewer
+too, through lattice’s own <code>print.function</code> option, which
+maidr sets once lattice is loaded. A print that shares its page with
+other charts (<code>split</code>, <code>position</code>,
+<code>more = TRUE</code>, <code>newpage = FALSE</code>), a print into a
+file device such as <code><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf()</a></code> or <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code>, and
+<code>plot(p)</code>, which lattice does not route through that option,
+are drawn by lattice as before, and so is a chart maidr cannot
+read.</li>
 <li>
 <strong>R Markdown and Quarto.</strong> Call <code><a href="../reference/maidr_on.html">maidr_on()</a></code>
 once in a setup chunk. It installs the knitr hooks that turn every plot
 the document draws into an accessible chart; <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>
-alone does not install them.</li>
+alone does not install them. A lattice chart has to be the value a chunk
+returns: one the chunk draws with <code>print(p)</code>, as in a loop,
+stays a static image.</li>
 <li>
 <strong>Shiny.</strong> Put <code><a href="../reference/maidr_output.html">maidr_output()</a></code> in the UI
-and <code><a href="../reference/render_maidr.html">render_maidr()</a></code> in the server; see
+and <code><a href="../reference/render_maidr.html">render_maidr()</a></code> in the server, with its expression
+returning the ggplot2 or lattice chart rather than printing it; see
 <code><a href="../articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code>.</li>
 <li>
 <strong>Turning it off.</strong> <code><a href="../reference/maidr_off.html">maidr_off()</a></code> stops
 interception for the session and <code><a href="../reference/maidr_on.html">maidr_on()</a></code> starts it
 again. <code>options(maidr.ggplot2 = FALSE)</code> leaves ggplot2
-printing alone, <code>options(maidr.base_r = FALSE)</code> stops
+printing alone, <code>options(maidr.lattice = FALSE)</code> leaves
+lattice printing alone, <code>options(maidr.base_r = FALSE)</code> stops
 recording Base R calls, and
 <code>options(maidr.auto_show = FALSE)</code>, in <code>.Rprofile</code>
 to make it permanent, turns everything off. See
@@ -309,6 +325,54 @@ its legend, the visual highlight is off; audio, text and braille are not
 affected.</p>
 </div>
 <div class="section level2">
+<h2 id="lattice-charts-experimental">lattice Charts [experimental]<a class="anchor" aria-label="anchor" href="#lattice-charts-experimental"></a>
+</h2>
+<p>A chart drawn by lattice’s own high-level functions –
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">histogram()</a></code>,
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">bwplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/levelplot.html" class="external-link">levelplot()</a></code>,
+<code><a href="https://rdrr.io/pkg/lattice/man/levelplot.html" class="external-link">contourplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">densityplot()</a></code>,
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">stripplot()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/qqmath.html" class="external-link">qqmath()</a></code>
+and <code><a href="https://rdrr.io/pkg/lattice/man/qq.html" class="external-link">qq()</a></code> – is read as a layer type maidr already knows, and
+used the way a ggplot2 object is. Every lattice reading is experimental:
+none has been through a user study, and each may change without a
+deprecation period.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lattice.r-forge.r-project.org/" class="external-link">lattice</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">bwplot</a></span><span class="op">(</span><span class="va">voice.part</span> <span class="op">~</span> <span class="va">height</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">singer</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"Height (inches)"</span>,</span>
+<span>  main <span class="op">=</span> <span class="st">"Heights of Singers by Voice Part"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Printing the chart opens it in the maidr viewer, as a ggplot2 object does</span></span>
+<span><span class="va">p</span></span>
+<span></span>
+<span><span class="co"># show() is the explicit form; save_html() writes it to a file</span></span>
+<span><span class="fu"><a href="../reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"singer_heights.html"</span><span class="op">)</span></span></code></pre></div>
+<p>A conditioned chart is read one panel at a time. Each panel is a
+subplot of its own, named after its strip: the chart opens a level above
+its panels, where the arrow keys choose one, <strong>Enter</strong> goes
+into it and <strong>Escape</strong> comes back out.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">wt</span> <span class="op">|</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">cyl</span><span class="op">)</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">mtcars</span>,</span>
+<span>  layout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"Weight (1000 lbs)"</span>,</span>
+<span>  ylab <span class="op">=</span> <span class="st">"Miles per Gallon"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>In R Markdown and Quarto, with <code><a href="../reference/maidr_on.html">maidr_on()</a></code> in a setup
+chunk, end the chunk with the chart itself, as above, rather than
+calling <code>print(p)</code>: knitr hands a chart the chunk returns to
+maidr, and draws a printed one as a static image. A chart maidr cannot
+read, such as <code><a href="https://rdrr.io/pkg/lattice/man/cloud.html" class="external-link">cloud()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/splom.html" class="external-link">splom()</a></code> or one drawn
+with a panel function of your own, is drawn by lattice as before, and
+<code><a href="../reference/save_html.html">save_html()</a></code> saves it as a static image. The <a href="https://r.maidr.ai/articles/examples-lattice.html">lattice
+examples</a> show every chart maidr reads from lattice.</p>
+</div>
+<div class="section level2">
 <h2 id="offline-vs-cdn-usage">Offline vs CDN Usage<a class="anchor" aria-label="anchor" href="#offline-vs-cdn-usage"></a>
 </h2>
 <p>By default, <code><a href="../reference/show.html">show()</a></code> and <code><a href="../reference/save_html.html">save_html()</a></code> use the
@@ -320,7 +384,7 @@ MAIDR.js and shows a plain, inaccessible chart. Widgets, knitr documents
 and Shiny apps auto-detect internet availability and use the CDN when
 online. You can control this behavior with the <code>use_cdn</code>
 parameter:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -336,7 +400,7 @@ parameter:</p>
 <span><span class="co"># Force bundled/local files (works offline)</span></span>
 <span><span class="fu"><a href="../reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The same parameter works with <code><a href="../reference/save_html.html">save_html()</a></code>:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># One self-contained file; needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="../reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot_cdn.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
@@ -354,7 +418,7 @@ request at all.</p>
 <p>To load a fixed version from the CDN instead, pin it with an option
 or the <code>MAIDR_CDN_VERSION</code> environment variable (the option
 wins). A pinned document makes no lookup:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># The version bundled with this package</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span></span>
 <span></span>
@@ -386,7 +450,7 @@ brailles without the network; only that first connect needs it.</p>
 <p>To keep the DotPad offline as well, serve the SDK yourself and tell
 maidr where it is before rendering. Options and environment variables of
 the same names both work; an option wins when both are set:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  <span class="co"># Only if the braille engine (liblouis) is not in lib/ beside the module</span></span>
@@ -530,12 +594,12 @@ time after reveal.js cuts one. Nothing will need to change in your deck
 when it does.</p>
 <p>Until then, <a href="https://github.com/mcanouil/quarto-revealjs-a11y" class="external-link">quarto-revealjs-a11y</a>
 does the same thing for a Quarto deck. Add it once per project:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="ex">quarto</span> add mcanouil/quarto-revealjs-a11y</span></code></pre></div>
 <p>and enable it in the deck’s front matter:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="at">  </span><span class="fu">revealjs</span><span class="kw">:</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="at">    </span><span class="fu">revealjs-plugins</span><span class="kw">:</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> a11y</span></span></code></pre></div>
 <p>Use <strong>0.2.3 or newer</strong>. Earlier versions took off-slide
 elements out of the tab order by setting <code>tabindex="-1"</code> on
 them and could not find them again to put them back, which left the
@@ -615,6 +679,16 @@ via <code><a href="https://ggplot2.tidyverse.org/reference/geom_contour.html" cl
 charts via <code><a href="../reference/base-r-wrappers.html">stars()</a></code> [experimental], mosaic plots
 [experimental], violin plots via <code><a href="https://rdrr.io/pkg/vioplot/man/vioplot.html" class="external-link">vioplot::vioplot()</a></code>
 [experimental] and word clouds [experimental]</li>
+<li>lattice, where every reading is experimental: bar charts via
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">barchart()</a></code> [experimental], histograms via
+<code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">histogram()</a></code> [experimental], scatter, line and step plots
+via <code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">xyplot()</a></code> [experimental], box plots via
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">bwplot()</a></code> [experimental], heat maps via
+<code><a href="https://rdrr.io/pkg/lattice/man/levelplot.html" class="external-link">levelplot()</a></code> [experimental], contour plots via
+<code><a href="https://rdrr.io/pkg/lattice/man/levelplot.html" class="external-link">contourplot()</a></code> [experimental], density curves via
+<code><a href="https://rdrr.io/pkg/lattice/man/histogram.html" class="external-link">densityplot()</a></code> [experimental], dot plots via
+<code><a href="https://rdrr.io/pkg/lattice/man/xyplot.html" class="external-link">dotplot()</a></code> [experimental] and conditioned multi-panel charts
+[experimental]</li>
 </ul>
 <p>The full list is under “Experimental Plot Types” in the <a href="https://r.maidr.ai/#experimental-plot-types">README</a>.</p>
 </div>
@@ -640,7 +714,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="histogram">Histogram<a class="anchor" aria-label="anchor" href="#histogram"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -661,7 +735,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="scatter-plot">Scatter Plot<a class="anchor" aria-label="anchor" href="#scatter-plot"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -686,7 +760,7 @@ Integration</a></strong> - Use MAIDR in Shiny apps</li>
 <div class="section level3">
 <h3 id="line-plot">Line Plot<a class="anchor" aria-label="anchor" href="#line-plot"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>

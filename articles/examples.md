@@ -2,8 +2,8 @@
 
 Making accessible data representation with **maidr** is easy and
 straightforward. If you already have data visualization code using
-**ggplot2** or **Base R**, you can make your plots accessible with maidr
-in just a few lines of code.
+**ggplot2** or **Base R**, or, experimentally, **lattice**, you can make
+your plots accessible with maidr in just a few lines of code.
 
 In an R Markdown or Quarto document, load the maidr package and call
 [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a setup
@@ -109,3 +109,13 @@ period, as “Experimental Plot Types” in the
   \[experimental\], mosaic and spine plots \[experimental\], conditional
   density \[experimental\], association plots \[experimental\], filled
   contours \[experimental\] and 100% stacked bars \[experimental\].
+- [lattice Chart
+  Examples](https://r.maidr.ai/articles/examples-lattice.md): bar charts
+  \[experimental\], dodged and stacked bar charts \[experimental\],
+  histograms \[experimental\], scatter plots \[experimental\], line and
+  step plots \[experimental\], lollipops \[experimental\], box plots
+  \[experimental\], heat maps \[experimental\], contour plots
+  \[experimental\], density and smooth curves \[experimental\], dot
+  plots \[experimental\], strip plots \[experimental\], Q-Q plots
+  \[experimental\] and conditioned multi-panel charts \[experimental\].
+  Every chart maidr reads from lattice is experimental.

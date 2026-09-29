@@ -18,7 +18,7 @@ create_fallback_html(
 
 - plot:
 
-  A ggplot2 object or NULL for Base R plots
+  A ggplot2 or trellis object, or NULL for Base R plots
 
 - shiny:
 

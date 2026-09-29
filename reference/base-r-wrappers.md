@@ -181,8 +181,8 @@ are wrapped as well, once their package is loaded.
 ### [`show()`](https://r.maidr.ai/reference/show.md) and [`methods::show()`](https://rdrr.io/r/methods/show.html)
 
 maidr's [`show()`](https://r.maidr.ai/reference/show.md) takes a ggplot2
-object or, with no argument, the last recorded Base R chart. Anything
-else it is given goes to
+or lattice object or, with no argument, the last recorded Base R chart.
+Anything else it is given goes to
 [`methods::show()`](https://rdrr.io/r/methods/show.html), so `show(x)`
 on an S4 object prints as it did before maidr was attached. In a script
 or a package, where what is masked depends on what else is attached,

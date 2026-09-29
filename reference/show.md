@@ -1,6 +1,6 @@
 # Display Interactive MAIDR Plot
 
-Display a ggplot2 or Base R plot as an interactive, accessible
+Display a ggplot2, lattice or Base R plot as an interactive, accessible
 visualization using the MAIDR (Multimodal Access and Interactive Data
 Representation) system.
 
@@ -14,7 +14,8 @@ show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 
 - plot:
 
-  A ggplot2 object or NULL for Base R auto-detection
+  A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+  auto-detection
 
 - use_cdn:
 
@@ -80,6 +81,13 @@ p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
 # \donttest{
 maidr::show(p_violin)
+# }
+
+# lattice chart [experimental]
+# \donttest{
+if (requireNamespace("lattice", quietly = TRUE)) {
+  maidr::show(lattice::xyplot(mpg ~ wt, data = mtcars))
+}
 # }
 
 # Base R example (requires interactive session for function patching)

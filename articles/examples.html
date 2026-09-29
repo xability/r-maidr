@@ -51,19 +51,19 @@
 </script>
 <link rel="canonical" href="https://r.maidr.ai/articles/examples.html">
 <meta property="og:url" content="https://r.maidr.ai/articles/examples.html">
-<meta name="description" content="Gallery of accessible ggplot2 and Base R plots made with maidr, organized by plot family: bar and pie, distributions, scatter and line, heat map and candlestick, multi-panel and facet, and Base R time-series and experimental charts.">
-<meta property="og:description" content="Gallery of accessible ggplot2 and Base R plots made with maidr, organized by plot family: bar and pie, distributions, scatter and line, heat map and candlestick, multi-panel and facet, and Base R time-series and experimental charts.">
+<meta name="description" content="Gallery of accessible ggplot2 and Base R plots made with maidr, organized by plot family: bar and pie, distributions, scatter and line, heat map and candlestick, multi-panel and facet, Base R time-series and experimental charts, and lattice charts.">
+<meta property="og:description" content="Gallery of accessible ggplot2 and Base R plots made with maidr, organized by plot family: bar and pie, distributions, scatter and line, heat map and candlestick, multi-panel and facet, Base R time-series and experimental charts, and lattice charts.">
 <meta name="DC.title" content="Examples">
 <meta name="DC.creator" content="Seo, JooYoung">
 <meta name="DC.creator" content="Kalaiselvan, Niranjan">
 <meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
-<meta name="DC.description" content="Gallery of accessible ggplot2 and Base R plots made with maidr, organized by plot family: bar and pie, distributions, scatter and line, heat map and candlestick, multi-panel and facet, and Base R time-series and experimental charts.">
+<meta name="DC.description" content="Gallery of accessible ggplot2 and Base R plots made with maidr, organized by plot family: bar and pie, distributions, scatter and line, heat map and candlestick, multi-panel and facet, Base R time-series and experimental charts, and lattice charts.">
 <meta name="DC.identifier" content="https://r.maidr.ai/articles/examples.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-27">
+<meta name="DC.date" content="2026-09-29">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -100,6 +100,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Experimental</h6></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a></li>
     <li><a class="dropdown-item" href="../articles/examples-base-r-experimental.html">Experimental Base R Chart Examples</a></li>
+    <li><a class="dropdown-item" href="../articles/examples-lattice.html">lattice Chart Examples</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -122,7 +123,7 @@
 
 
 
-      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/v0.5.0/vignettes/articles/examples.qmd" class="external-link"><code>vignettes/articles/examples.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/xability/r-maidr/blob/main/vignettes/articles/examples.qmd" class="external-link"><code>vignettes/articles/examples.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -131,7 +132,7 @@
 
 
 
-    <p>Making accessible data representation with <strong>maidr</strong> is easy and straightforward. If you already have data visualization code using <strong>ggplot2</strong> or <strong>Base R</strong>, you can make your plots accessible with maidr in just a few lines of code.</p>
+    <p>Making accessible data representation with <strong>maidr</strong> is easy and straightforward. If you already have data visualization code using <strong>ggplot2</strong> or <strong>Base R</strong>, or, experimentally, <strong>lattice</strong>, you can make your plots accessible with maidr in just a few lines of code.</p>
 <p>In an R Markdown or Quarto document, load the maidr package and call <code><a href="../reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk, as every page here does; from then on each plot the document prints comes out as an accessible chart. At the console <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone is enough (see “How maidr hooks into your session” in the <a href="getting-started.html">getting-started vignette</a>). You can then explore each chart with the keyboard shortcuts below.</p>
 <!-- maidr-keys:start -->
 <table class="table caption-top">
@@ -307,6 +308,8 @@
 <a href="examples-base-r-timeseries.html">Base R Time-Series and Diagnostic Examples</a>: correlograms [experimental], spectral density [experimental], cumulative periodograms [experimental], seasonal subseries [experimental], lag plots [experimental], partial effects [experimental] and Q-Q plots [experimental].</li>
 <li>
 <a href="examples-base-r-experimental.html">Experimental Base R Chart Examples</a>: biplots [experimental], radar charts [experimental], interaction plots [experimental], summary box plots [experimental], strip charts [experimental], dot charts [experimental], lollipops [experimental], mosaic and spine plots [experimental], conditional density [experimental], association plots [experimental], filled contours [experimental] and 100% stacked bars [experimental].</li>
+<li>
+<a href="examples-lattice.html">lattice Chart Examples</a>: bar charts [experimental], dodged and stacked bar charts [experimental], histograms [experimental], scatter plots [experimental], line and step plots [experimental], lollipops [experimental], box plots [experimental], heat maps [experimental], contour plots [experimental], density and smooth curves [experimental], dot plots [experimental], strip plots [experimental], Q-Q plots [experimental] and conditioned multi-panel charts [experimental]. Every chart maidr reads from lattice is experimental.</li>
 </ul></section></section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
