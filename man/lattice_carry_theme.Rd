@@ -14,12 +14,12 @@ The trellis object, carrying the theme.
 }
 \description{
 lattice keeps a theme per kind of device and draws with the theme of the
-device it draws on, so a chart MAIDR draws on another device -- off-screen
-to read it, or on a screen in place of its hidden device -- would be drawn
-with that device's own. A theme the reader set with \code{trellis.par.set()} on
-the current device -- larger text, colours they can tell apart -- goes
-with the chart as its own \code{par.settings}, which lattice applies for that
-drawing only, under whatever settings the chart was given itself. With no
-device open nothing has been set, and asking lattice would open a device.
+device it draws on, so a chart MAIDR draws off-screen to read it would be
+drawn with that device's own. A theme the reader set with
+\code{trellis.par.set()} on the current device -- larger text, colours they can
+tell apart -- goes with the chart as its own \code{par.settings}, which lattice
+applies for that drawing only, under whatever settings the chart was given
+itself. With no device open nothing has been set, and asking lattice would
+open a device.
 }
 \keyword{internal}

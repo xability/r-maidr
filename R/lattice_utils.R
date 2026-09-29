@@ -335,13 +335,13 @@ lattice_page_open <- function() {
 #' A trellis object carrying the theme of the device the reader looks at
 #'
 #' lattice keeps a theme per kind of device and draws with the theme of the
-#' device it draws on, so a chart MAIDR draws on another device -- off-screen
-#' to read it, or on a screen in place of its hidden device -- would be drawn
-#' with that device's own. A theme the reader set with `trellis.par.set()` on
-#' the current device -- larger text, colours they can tell apart -- goes
-#' with the chart as its own `par.settings`, which lattice applies for that
-#' drawing only, under whatever settings the chart was given itself. With no
-#' device open nothing has been set, and asking lattice would open a device.
+#' device it draws on, so a chart MAIDR draws off-screen to read it would be
+#' drawn with that device's own. A theme the reader set with
+#' `trellis.par.set()` on the current device -- larger text, colours they can
+#' tell apart -- goes with the chart as its own `par.settings`, which lattice
+#' applies for that drawing only, under whatever settings the chart was given
+#' itself. With no device open nothing has been set, and asking lattice would
+#' open a device.
 #'
 #' @param plot A trellis object
 #' @return The trellis object, carrying the theme.
@@ -355,6 +355,88 @@ lattice_carry_theme <- function(plot) {
     plot$par.settings <- utils::modifyList(theme, as.list(plot$par.settings))
   }
   plot
+}
+
+#' A trellis object carrying what the reader changed on MAIDR's hidden device
+#'
+#' A chart MAIDR moves off its hidden device onto a screen
+#' ([lattice_draw_on_screen()]) is drawn with the screen's own lattice theme,
+#' which holds whatever the reader set on a screen of that kind before. What
+#' they set while the hidden device was current went to the hidden device's
+#' kind, `pdf`, since they had no other device. So only that goes with the
+#' chart, as its own `par.settings`: the settings in which the hidden device's
+#' theme differs from the theme lattice starts a device of its kind with
+#' ([lattice_starting_theme()]). Carried whole, the `pdf` defaults would
+#' replace what the reader set on the screen's kind.
+#'
+#' @param plot A trellis object
+#' @return The trellis object, carrying the settings the reader changed.
+#' @keywords internal
+lattice_carry_reader_settings <- function(plot) {
+  if (grDevices::dev.cur() == 1L) {
+    return(plot)
+  }
+  theme <- tryCatch(lattice::trellis.par.get(), error = function(e) NULL)
+  if (!is.list(theme)) {
+    return(plot)
+  }
+  changed <- lattice_changed_settings(theme, lattice_starting_theme())
+  if (length(changed) > 0L) {
+    plot$par.settings <- utils::modifyList(changed, as.list(plot$par.settings))
+  }
+  plot
+}
+
+#' The theme lattice starts a device of the current kind with
+#'
+#' What `trellis.device()` sets for a kind of device lattice has not drawn on
+#' yet: `standard.theme()`, in colour except on `postscript()`, with the
+#' `default.theme` lattice option -- a list, a function, or a function's
+#' name -- over it.
+#'
+#' @return A lattice theme.
+#' @keywords internal
+lattice_starting_theme <- function() {
+  kind <- names(grDevices::dev.cur())
+  theme <- lattice::standard.theme(color = kind != "postscript")
+  default <- lattice::lattice.getOption("default.theme")
+  if (is.character(default)) {
+    default <- get(default, envir = asNamespace("lattice"))
+  }
+  if (is.function(default)) {
+    default <- default()
+  }
+  if (is.list(default)) {
+    theme <- utils::modifyList(theme, default)
+  }
+  theme
+}
+
+#' The settings in which one lattice theme differs from another
+#'
+#' Compared setting by setting, down to the leaves: `plot.symbol$pch` changed
+#' is that alone, not the whole of `plot.symbol`. A function compares without
+#' its environment, as lattice builds a new one for `shade.colors$palette`
+#' every time it builds a theme.
+#'
+#' @param theme The theme in use
+#' @param base The theme it started from
+#' @return A list of the settings of `theme` that differ from `base`.
+#' @keywords internal
+lattice_changed_settings <- function(theme, base) {
+  changed <- list()
+  for (name in names(theme)) {
+    value <- theme[[name]]
+    if (is.list(value) && is.list(base[[name]])) {
+      value <- lattice_changed_settings(value, base[[name]])
+      if (length(value) > 0L) {
+        changed[[name]] <- value
+      }
+    } else if (!identical(value, base[[name]], ignore.environment = TRUE)) {
+      changed[name] <- list(value)
+    }
+  }
+  changed
 }
 
 #' Draw a picture of a trellis object: its first page, as lattice draws it

@@ -374,8 +374,8 @@ print_trellis_natively <- function(x, ...) {
 #' sees, which `show()` then deletes. So a chart drawn there at the console
 #' ([drawn_at_console()]) is drawn on the screen lattice would have drawn it
 #' on instead: the one MAIDR opened last, as plain R draws every chart on
-#' one screen ([use_default_device()]), with the theme the reader set
-#' ([lattice_carry_theme()]). The charts that join its page with
+#' one screen ([use_default_device()]), with the settings the reader made
+#' ([lattice_carry_reader_settings()]). The charts that join its page with
 #' `more = TRUE` follow it there, and go to a new screen should that one
 #' have been closed before the page was finished. The hidden device is made
 #' current again for the Base R chart it holds. A chart drawn into a page
@@ -415,7 +415,7 @@ lattice_draw_on_screen <- function(x, ..., .draw) {
     return(if (drawn$visible) drawn$value else invisible(drawn$value))
   }
 
-  x <- lattice_carry_theme(x)
+  x <- lattice_carry_reader_settings(x)
   recording <- grDevices::dev.cur()
   on.exit(
     if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),

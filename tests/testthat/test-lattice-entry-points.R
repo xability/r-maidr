@@ -1129,12 +1129,40 @@ test_that("charts lattice draws while a Base R chart waits for show() share one 
   testthat::expect_identical(grDevices::dev.cur(), screen$device)
 })
 
-test_that("a chart drawn on a screen in place of the hidden device keeps the reader's theme", {
+test_that("a chart moved off MAIDR's hidden device keeps the reader's lattice settings", {
   skip_if_no_lattice()
   restore <- use_lattice_hook()
   on.exit(restore(), add = TRUE)
   undo_recording <- use_base_r_recording()
   on.exit(undo_recording(), add = TRUE)
+
+  # lattice keeps its settings per kind of device, and a chart moved off the
+  # hidden pdf() goes to a screen of another kind: an svglite device stands
+  # in for it, as an X11 or quartz window does at the console. The settings
+  # outlive the devices they were set on, so both kinds get theirs back.
+  on_screen <- function(...) svglite::svglite(tempfile(fileext = ".svg"))
+  kinds <- list(screen = on_screen, pdf = function(...) grDevices::pdf(NULL))
+  on_kind <- function(open, expr) {
+    current <- grDevices::dev.cur()
+    open()
+    on.exit({
+      grDevices::dev.off()
+      if (current > 1L && current %in% grDevices::dev.list()) grDevices::dev.set(current)
+    })
+    expr
+  }
+  saved <- lapply(kinds, function(open) on_kind(open, lattice::trellis.par.get()))
+  on.exit(
+    for (kind in names(kinds)) {
+      on_kind(kinds[[kind]], lattice::trellis.par.set(theme = saved[[kind]], strict = 2L))
+    },
+    add = TRUE
+  )
+  # A colour the reader set on a screen of that kind before, one since
+  # closed, as the window lattice opens for trellis.par.set() is: that
+  # kind's own, which the move leaves alone.
+  on_kind(on_screen, lattice::trellis.par.set(plot.symbol = list(col = "#D55E00")))
+
   screen <- use_hidden_device()
   on.exit(
     {
@@ -1144,32 +1172,60 @@ test_that("a chart drawn on a screen in place of the hidden device keeps the rea
     add = TRUE
   )
   clear_base_r_device(screen$device)
-  # A screen of another kind than the hidden pdf device: lattice keeps a
-  # theme per kind of device.
-  fresh <- use_new_screen(function(...) grDevices::png(tempfile(fileext = ".png")))
+  fresh <- use_new_screen(on_screen)
   on.exit(fresh$close(), add = TRUE)
-  local_console()
+  viewer <- local_console()
 
-  # Set while the hidden device is current, as a reader who sees no other
-  # device sets it; MAIDR's viewer draws with it, and so does the screen.
-  before <- lattice::trellis.par.get("plot.symbol")
-  on.exit(
-    {
-      grDevices::dev.set(screen$device)
-      lattice::trellis.par.set(plot.symbol = before)
-    },
-    add = TRUE
-  )
-  lattice::trellis.par.set(plot.symbol = list(col = "#D55E00"))
-
+  # Filled points, set while a Base R chart waits on the hidden device for
+  # show(), as they would be on the screen that device stands in for.
   barplot(c(3, 1, 2))
-  print(mtcars_scatter(), split = c(1, 1, 1, 1))
+  lattice::trellis.par.set(plot.symbol = list(pch = 19))
 
+  symbols <- function(device) {
+    names <- grep(scatter_points, drawn_on(device), value = TRUE)
+    current <- grDevices::dev.cur()
+    on.exit(grDevices::dev.set(current), add = TRUE)
+    grDevices::dev.set(device)
+    grobs <- lapply(names, grid::grid.get)
+    list(
+      col = unique(unlist(lapply(grobs, function(grob) grob$gp$col))),
+      pch = unique(unlist(lapply(grobs, function(grob) grob$pch)))
+    )
+  }
+  unreadable <- mtcars_scatter(panel = function(...) lattice::panel.xyplot(...))
+  moves <- list(
+    "a composed page" = function() {
+      print(mtcars_scatter(), split = c(1, 1, 2, 1), more = TRUE)
+      print(mtcars_scatter(), split = c(2, 1, 2, 1))
+    },
+    "plot()" = function() maidr::plot(mtcars_scatter()),
+    "a print with maidr.lattice off" = function() {
+      old <- options(maidr.lattice = FALSE)
+      on.exit(options(old))
+      print(mtcars_scatter())
+    },
+    "a print the reading does not cover" = function() print(unreadable),
+    "show() of a chart the reading does not cover" = function() {
+      testthat::expect_warning(maidr::show(unreadable), "unsupported elements")
+    }
+  )
+  for (move in names(moves)) {
+    moves[[move]]()
+    opened <- fresh$opened()
+    drawn <- symbols(opened[length(opened)])
+    testthat::expect_identical(drawn$col, "#D55E00", label = move)
+    testthat::expect_equal(drawn$pch, 19, label = move)
+    testthat::expect_identical(grDevices::dev.cur(), screen$device)
+  }
+  # One screen for the charts drawn in place of the hidden device, and one
+  # of its own for show()'s.
+  testthat::expect_length(fresh$opened(), 2L)
+  testthat::expect_length(viewer$pages, 0L)
+
+  # The chart's own settings still come first.
+  maidr::plot(mtcars_scatter(par.settings = list(plot.symbol = list(pch = 17))))
   opened <- fresh$opened()
-  testthat::expect_length(opened, 1L)
-  grDevices::dev.set(opened)
-  points <- grep(scatter_points, drawn_on(opened), value = TRUE)
-  testthat::expect_identical(unique(grid::grid.get(points[1])$gp$col), "#D55E00")
+  testthat::expect_equal(symbols(opened[length(opened)])$pch, 17)
 })
 
 test_that("a chart that carries its place on a shared page is drawn by lattice", {

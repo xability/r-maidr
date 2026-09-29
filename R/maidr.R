@@ -111,7 +111,9 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
         # with MAIDR's hidden device made current again for the Base R
         # chart it holds, which is then still show()'s to open.
         recording <- if (maidr_hidden_device_is_current()) grDevices::dev.cur()
-        plot <- lattice_carry_theme(plot)
+        if (!is.null(recording)) {
+          plot <- lattice_carry_reader_settings(plot)
+        }
         open_default_device()
         if (!is.null(recording)) {
           on.exit(
