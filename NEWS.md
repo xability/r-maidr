@@ -1,4 +1,4 @@
-# maidr 0.5.0
+# maidr (development version)
 
 ## New Features
 
@@ -76,6 +76,39 @@
   `?"maidr-options"`. Saving, showing or knitting a chart leaves lattice's
   own record of the chart it drew last -- the one `trellis.focus()` and
   `trellis.last.object()` act on -- as it was.
+
+## Bug Fixes
+
+### Base R
+
+* `save_html()` of a lattice chart exports that chart even while a Base R
+  call is recorded on the current device. The Base R adapter claimed any
+  object once the device held a recorded call, so the chart was written
+  out as the recorded Base R chart instead. The adapter now leaves a
+  ggplot2 or lattice object to that package's reading, whatever order the
+  plotting systems were registered in (#333).
+* `plot()` of a lattice or ggplot2 object is no longer recorded as a Base R
+  chart. maidr's `plot()` wrapper took the call for one: with no graphics
+  device open it drew the chart on the hidden device Base R recording
+  uses, so nothing appeared, and a later `show()` opened an empty scatter
+  plot. The call now passes straight to the package's own `plot()` method
+  (#333).
+
+## Documentation
+
+* A new examples article, "lattice Chart Examples", shows every lattice
+  reading on a small chart, each marked **[experimental]**, and is listed
+  under "Experimental plot families" on the examples hub and in the
+  pkgdown Articles menu. The README gains a lattice table under
+  "Experimental Plot Types" and says what printing a lattice chart does;
+  the getting-started vignette shows lattice use, and it and `?maidr` list
+  lattice's readings as experimental. Five lattice example scripts ship
+  with the package, listed by `run_example()` and run with
+  `run_example("<name>", type = "lattice")` (#333).
+
+# maidr 0.5.0
+
+## New Features
 
 ### plotly, highcharter and echarts4r widgets
 
@@ -601,18 +634,6 @@
 
 ### Base R
 
-* `save_html()` of a lattice chart exports that chart even while a Base R
-  call is recorded on the current device. The Base R adapter claimed any
-  object once the device held a recorded call, so the chart was written
-  out as the recorded Base R chart instead. The adapter now leaves a
-  ggplot2 or lattice object to that package's reading, whatever order the
-  plotting systems were registered in (#333).
-* `plot()` of a lattice or ggplot2 object is no longer recorded as a Base R
-  chart. maidr's `plot()` wrapper took the call for one: with no graphics
-  device open it drew the chart on the hidden device Base R recording
-  uses, so nothing appeared, and a later `show()` opened an empty scatter
-  plot. The call now passes straight to the package's own `plot()` method
-  (#333).
 * A line or step layer (`plot(type = "l")`, `lines()`, `matplot()`,
   `plot(type = "s")`) over a numeric x now emits x as a number rather than
   a string, as the point layer beside it does. `axis()` labels and a `Date`
@@ -808,15 +829,6 @@
   section of their own, and the getting-started vignette's stable list no
   longer names ggplot2 `geom_contour()` or Base R `vioplot::vioplot()`,
   which its experimental list already covers. The README says so.
-* A new examples article, "lattice Chart Examples", shows every lattice
-  reading on a small chart, each marked **[experimental]**, and is listed
-  under "Experimental plot families" on the examples hub and in the
-  pkgdown Articles menu. The README gains a lattice table under
-  "Experimental Plot Types" and says what printing a lattice chart does;
-  the getting-started vignette shows lattice use, and it and `?maidr` list
-  lattice's readings as experimental. Five lattice example scripts ship
-  with the package, listed by `run_example()` and run with
-  `run_example("<name>", type = "lattice")` (#333).
 
 ## Performance
 
