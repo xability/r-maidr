@@ -14,7 +14,8 @@ maidr_widget(
 )
 }
 \arguments{
-\item{plot}{A ggplot object, or NULL to auto-detect recorded Base R plots}
+\item{plot}{A ggplot object, a lattice (trellis) object, or NULL to
+auto-detect recorded Base R plots}
 
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from, matching
 \code{show()} and \code{save_html()}:

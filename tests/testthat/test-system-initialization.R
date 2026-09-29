@@ -236,3 +236,91 @@ test_that("Registry errors on unsupported plot object", {
     "No registered system can handle this plot object"
   )
 })
+
+# ==============================================================================
+# initialize_lattice_system Tests
+# ==============================================================================
+
+test_that("initialize_lattice_system returns NULL invisibly", {
+  result <- withVisible(maidr:::initialize_lattice_system())
+
+  testthat::expect_null(result$value)
+  testthat::expect_false(result$visible)
+})
+
+test_that("initialize_lattice_system registers lattice system", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+
+  testthat::expect_true(registry$is_system_registered("lattice"))
+})
+
+test_that("initialize_lattice_system creates adapter", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+
+  adapter <- registry$get_adapter("lattice")
+
+  testthat::expect_s3_class(adapter, "LatticeAdapter")
+  testthat::expect_s3_class(adapter, "SystemAdapter")
+})
+
+test_that("initialize_lattice_system creates processor factory", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+
+  factory <- registry$get_processor_factory("lattice")
+
+  testthat::expect_s3_class(factory, "LatticeProcessorFactory")
+  testthat::expect_s3_class(factory, "ProcessorFactory")
+})
+
+test_that("initialize_lattice_system is idempotent", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+  maidr:::initialize_lattice_system()
+  maidr:::initialize_lattice_system()
+
+  systems <- registry$list_systems()
+  testthat::expect_equal(sum(systems == "lattice"), 1)
+})
+
+test_that("Registry can detect lattice plots after initialization", {
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::get_global_registry()
+  maidr:::initialize_lattice_system()
+
+  p <- lattice::histogram(~mpg, mtcars)
+
+  testthat::expect_equal(registry$detect_system(p), "lattice")
+})
+
+test_that("Registry can get adapter for lattice plots", {
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::get_global_registry()
+  maidr:::initialize_lattice_system()
+
+  p <- lattice::histogram(~mpg, mtcars)
+
+  testthat::expect_s3_class(registry$get_adapter_for_plot(p), "LatticeAdapter")
+})
+
+test_that("Registry can get factory for lattice plots", {
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::get_global_registry()
+  maidr:::initialize_lattice_system()
+
+  p <- lattice::histogram(~mpg, mtcars)
+
+  testthat::expect_s3_class(
+    registry$get_processor_factory_for_plot(p),
+    "LatticeProcessorFactory"
+  )
+})

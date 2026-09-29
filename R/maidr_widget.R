@@ -11,7 +11,8 @@ NULL
 #' Each widget gets its own isolated JavaScript context where MAIDR.js
 #' can discover and initialize the SVG with maidr-data attribute.
 #'
-#' @param plot A ggplot object, or NULL to auto-detect recorded Base R plots
+#' @param plot A ggplot object, a lattice (trellis) object, or NULL to
+#'   auto-detect recorded Base R plots
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from, matching
 #'   \code{show()} and \code{save_html()}:
 #'   \itemize{
@@ -36,8 +37,11 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
     if (!is_patching_active() || !has_device_calls(grDevices::dev.cur())) {
       stop(no_base_r_plots_message(), call. = FALSE)
     }
-  } else if (!inherits(plot, "ggplot")) {
-    stop("Input must be a ggplot object or NULL (Base R auto-detection).")
+  } else if (!is_maidr_plot_object(plot)) {
+    stop(
+      "Input must be a ggplot object, a lattice (trellis) object, ",
+      "or NULL (Base R auto-detection)."
+    )
   }
 
   svg_content <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)

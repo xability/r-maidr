@@ -13,7 +13,7 @@ create_fallback_html(
 )
 }
 \arguments{
-\item{plot}{A ggplot2 object or NULL for Base R plots}
+\item{plot}{A ggplot2 or trellis object, or NULL for Base R plots}
 
 \item{shiny}{If TRUE, returns just the image tag for Shiny/knitr use}
 

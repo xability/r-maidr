@@ -437,14 +437,10 @@ test_that("reset_global_registry replaces the instance, sealed namespace or not"
   # package is installed rather than loaded from source. It is kept in a
   # package-private environment now, so the reset works either way.
   before <- maidr:::get_global_registry()
-  on.exit(
-    {
-      maidr:::reset_global_registry()
-      maidr:::initialize_ggplot2_system()
-      maidr:::initialize_base_r_system()
-    },
-    add = TRUE
-  )
+  # The registry `.onLoad()` built is put back afterwards -- the same object,
+  # so every system it registered, in its order, is there for the tests that
+  # run after this one, and a change to that order is not hidden by a copy.
+  on.exit(assign("instance", before, envir = maidr:::.maidr_registry), add = TRUE)
 
   maidr:::reset_global_registry()
   after <- maidr:::get_global_registry()
@@ -573,4 +569,60 @@ test_that("Registry handles empty string system name", {
   registry$register_system("", adapter, factory)
 
   testthat::expect_true(registry$is_system_registered(""))
+})
+
+# ==============================================================================
+# Integration with the lattice Adapter
+# ==============================================================================
+
+test_that("Global registry has lattice system registered", {
+  registry <- maidr:::get_global_registry()
+
+  # Ensure lattice is initialized
+  maidr:::initialize_lattice_system()
+
+  testthat::expect_true(registry$is_system_registered("lattice"))
+})
+
+test_that("Global registry can detect lattice plots", {
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::get_global_registry()
+  maidr:::initialize_lattice_system()
+
+  p <- lattice::xyplot(mpg ~ wt, mtcars)
+
+  system <- registry$detect_system(p)
+
+  testthat::expect_equal(system, "lattice")
+})
+
+test_that("Global registry returns correct adapter for lattice", {
+  registry <- maidr:::get_global_registry()
+  maidr:::initialize_lattice_system()
+
+  adapter <- registry$get_adapter("lattice")
+
+  testthat::expect_s3_class(adapter, "LatticeAdapter")
+  testthat::expect_s3_class(adapter, "SystemAdapter")
+})
+
+test_that("Global registry returns correct factory for lattice", {
+  registry <- maidr:::get_global_registry()
+  maidr:::initialize_lattice_system()
+
+  factory <- registry$get_processor_factory("lattice")
+
+  testthat::expect_s3_class(factory, "LatticeProcessorFactory")
+  testthat::expect_s3_class(factory, "ProcessorFactory")
+})
+
+test_that("Global registry lists the systems in .onLoad()'s order", {
+  # lattice before Base R, as `.onLoad()` registered them (the reset above
+  # puts its registry back): the Base R adapter still claims a NULL plot by
+  # device state, so it goes last.
+  systems <- maidr:::get_global_registry()$list_systems()
+
+  testthat::expect_true(all(c("ggplot2", "lattice", "base_r") %in% systems))
+  testthat::expect_lt(match("lattice", systems), match("base_r", systems))
 })

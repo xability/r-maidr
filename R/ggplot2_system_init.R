@@ -212,6 +212,17 @@ announce_masking <- function(package) {
     }
   )
 
+  # Before Base R: the Base R adapter used to claim any object while the
+  # device held a recorded call, and it still claims a NULL plot that way.
+  tryCatch(
+    {
+      initialize_lattice_system()
+    },
+    error = function(e) {
+      warning("Failed to initialize lattice system: ", e$message)
+    }
+  )
+
   tryCatch(
     {
       initialize_base_r_system()
@@ -242,6 +253,20 @@ announce_masking <- function(package) {
       # Not critical - ggplot2 may not be installed
       NULL
     }
+  )
+
+  # Printing a trellis object opens it in the viewer through lattice's own
+  # print hook, set once lattice's namespace is loaded -- now, or when it is.
+  tryCatch(
+    .maidr_lattice_onload_hook(),
+    error = function(e) NULL
+  )
+  tryCatch(
+    setHook(
+      packageEvent("lattice", "onLoad"),
+      .maidr_lattice_onload_hook
+    ),
+    error = function(e) NULL
   )
 
   # Late-binding wrapper installation for optional Suggests packages.
@@ -311,6 +336,11 @@ announce_masking <- function(package) {
   drop_hook("attach", .maidr_vioplot_attach_hook, package = "vioplot")
   drop_hook("onLoad", .maidr_wordcloud_onload_hook, package = "wordcloud")
   drop_hook("attach", .maidr_wordcloud_attach_hook, package = "wordcloud")
+  drop_hook("onLoad", .maidr_lattice_onload_hook, package = "lattice")
+
+  # lattice outlives maidr, and would otherwise keep printing through a
+  # function from a namespace that is gone.
+  tryCatch(restore_lattice_print_method(), error = function(e) NULL)
 }
 
 # Show startup message when package is attached via library()
@@ -322,6 +352,7 @@ announce_masking <- function(package) {
   packageStartupMessage(
     "maidr ", utils::packageVersion(pkgname), " loaded\n",
     "- ggplot2 plots open in the maidr interactive viewer automatically\n",
+    "- lattice plots open in it too when printed at the console\n",
     "- Base R plots are recorded; call show() to open the viewer\n",
     "- Use maidr_off() to disable interception\n",
     "- Use options(maidr.auto_show = FALSE) to disable permanently\n",

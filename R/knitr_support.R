@@ -1,11 +1,11 @@
 #' Enable MAIDR Plot Interception
 #'
-#' Turns on the accessible rendering of ggplot2 and Base R plots, and
-#' installs the knitr hooks that an R Markdown or Quarto document needs.
+#' Turns on the accessible rendering of ggplot2, lattice and Base R plots,
+#' and installs the knitr hooks that an R Markdown or Quarto document needs.
 #'
 #' Interception is on by default after `library(maidr)`: printing a ggplot2
-#' object opens it in the MAIDR viewer, and Base R plotting calls are
-#' recorded until [show()] is called. Calling `maidr_on()` yourself is needed
+#' or lattice object opens it in the MAIDR viewer, and Base R plotting calls
+#' are recorded until [show()] is called. Calling `maidr_on()` yourself is needed
 #' in two places: after [maidr_off()], to start again, and once in the setup
 #' chunk of an R Markdown or Quarto document, where it registers the
 #' `knit_print` methods and the plot hook that turn every plot the document
@@ -33,6 +33,7 @@ maidr_on <- function() {
   options(maidr.auto_show = TRUE)
   options(maidr.base_r = TRUE)
   options(maidr.ggplot2 = TRUE)
+  options(maidr.lattice = TRUE)
 
   # Enable Base R function patching
   initialize_base_r_patching()
@@ -40,6 +41,13 @@ maidr_on <- function() {
   # Register custom print.ggplot for interactive sessions
   tryCatch(
     register_ggplot2_print_method(),
+    error = function(e) NULL
+  )
+
+  # And lattice's print hook, when lattice is loaded; its onLoad hook sets
+  # it when lattice loads later.
+  tryCatch(
+    register_lattice_print_method(),
     error = function(e) NULL
   )
 
@@ -62,6 +70,15 @@ maidr_on <- function() {
         envir = asNamespace("knitr")
       ),
       error = function(e) NULL
+    )
+
+    # A trellis object a chunk returns is auto-printed through knit_print,
+    # which makes it accessible whether or not lattice is loaded yet.
+    registerS3method(
+      "knit_print",
+      "trellis",
+      knit_print.trellis,
+      envir = asNamespace("knitr")
     )
 
     # Register knit_print methods to suppress return value printing
@@ -100,8 +117,9 @@ maidr_on <- function() {
 #' Disable MAIDR Plot Interception
 #'
 #' Disables automatic MAIDR rendering and restores normal plot behavior.
-#' After calling this, Base R plots display in the standard graphics window
-#' and ggplot2 objects render with the default ggplot2 method.
+#' After calling this, Base R plots display in the standard graphics window,
+#' ggplot2 objects render with the default ggplot2 method, and lattice charts
+#' print as lattice draws them.
 #'
 #' @return Invisible TRUE on success
 #' @seealso [maidr_on()] to enable MAIDR rendering
@@ -125,6 +143,12 @@ maidr_off <- function() {
   # Restore original print.ggplot method
   tryCatch(
     restore_ggplot2_print_method(),
+    error = function(e) NULL
+  )
+
+  # And the print function lattice had before
+  tryCatch(
+    restore_lattice_print_method(),
     error = function(e) NULL
   )
 
@@ -198,6 +222,46 @@ knit_print.ggplot <- function(x, options = list(), ...) {
 
   # Return as raw HTML
   knitr::asis_output(iframe_html)
+}
+
+#' Custom knit_print Method for lattice (trellis) Objects
+#'
+#' Converts a trellis object a chunk returns to an accessible MAIDR chart,
+#' as \code{knit_print.ggplot()} does for a ggplot object: in its own iframe
+#' in HTML output, as an inline image when the chart cannot be read, and as
+#' lattice draws it in any other output format.
+#'
+#' Only a chart the chunk returns reaches this method. One the chunk prints
+#' itself -- \code{print(p)}, lattice's idiom for a chart inside a loop or a
+#' function -- is drawn by lattice onto knitr's device and included as the
+#' figure knitr records, since knitr does not route an explicit print
+#' through \code{knit_print}. A Base R chart drawn later in the same chunk
+#' takes that figure's place: the plot hook hands the first figure of a
+#' chunk whose device recorded Base R calls to those calls.
+#'
+#' @param x A trellis object
+#' @param options Chunk options from knitr
+#' @param ... Additional arguments (ignored)
+#' @return A knit_asis object containing the iframe HTML or inline image
+#' @keywords internal
+knit_print.trellis <- function(x, options = list(), ...) {
+  # registerS3method() cannot be undone, so honour maidr_off() here, and
+  # draw with lattice itself: a plain print() would go through MAIDR's own
+  # print hook.
+  if (!is_lattice_enabled() || !is_html_output()) {
+    print_trellis_natively(x)
+    return(invisible(NULL))
+  }
+
+  orchestrator <- get_global_registry()$get_adapter("lattice")$create_orchestrator(x)
+
+  if (orchestrator$should_fallback()) {
+    img_html <- create_inline_image(x)
+    return(knitr::asis_output(img_html))
+  }
+
+  content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
+  knitr::asis_output(create_knitr_iframe(content))
 }
 
 #' Custom knit_print Method for histogram Objects

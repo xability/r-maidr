@@ -7,7 +7,8 @@
 show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
 }
 \arguments{
-\item{plot}{A ggplot2 object or NULL for Base R auto-detection}
+\item{plot}{A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+auto-detection}
 
 \item{use_cdn}{Logical. Controls where MAIDR.js is loaded from:
 \itemize{
@@ -34,8 +35,8 @@ as the knitr and Shiny paths do.
 Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
 }
 \description{
-Display a ggplot2 or Base R plot as an interactive, accessible visualization
-using the MAIDR (Multimodal Access and Interactive Data Representation) system.
+Display a ggplot2, lattice or Base R plot as an interactive, accessible
+visualization using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 }
 \details{
 Attaching maidr masks \code{methods::show()}. An object that is not a
@@ -60,6 +61,13 @@ p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
 \donttest{
 maidr::show(p_violin)
+}
+
+# lattice chart [experimental]
+\donttest{
+if (requireNamespace("lattice", quietly = TRUE)) {
+  maidr::show(lattice::xyplot(mpg ~ wt, data = mtcars))
+}
 }
 
 # Base R example (requires interactive session for function patching)

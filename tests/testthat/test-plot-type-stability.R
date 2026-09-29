@@ -1,9 +1,9 @@
 # README's stability split has to cover every supported layer type
 #
-# "Supported plot types" divides what the two adapters read into tables that
-# predate the coverage roadmap and an "Experimental Plot Types" section that
-# does not. The split is a promise: the first set has been exercised by real
-# readers, the second is prototypes that may change in a patch release.
+# "Supported plot types" divides what the three adapters read into tables
+# that predate the coverage roadmap and an "Experimental Plot Types" section
+# that does not. The split is a promise: the first set has been exercised by
+# real readers, the second is prototypes that may change in a patch release.
 #
 # A type in neither set inherits whichever promise the reader assumes, which
 # is the failure this guards. Thirty-one types were added across the two
@@ -16,6 +16,11 @@
 # names -- each factory's `get_supported_types()` at `8de0e98`, the last
 # commit before #137 was filed -- written out here so the check does not need
 # a git history to run against.
+#
+# The lattice factory came after that commit (#333), so nothing it reads has
+# a stable baseline. Its one entry is `unknown`, which every factory claims
+# for a layer it cannot read and which is not a reading at all: it is not a
+# type a reader meets, so it belongs in no README table.
 
 #' Layer types each factory claimed before the coverage roadmap
 STABLE <- list(
@@ -26,7 +31,8 @@ STABLE <- list(
   base_r = c(
     "bar", "box", "candlestick", "contour", "dodged_bar", "heat", "hist",
     "line", "pie", "point", "smooth", "stacked_bar", "step", "unknown"
-  )
+  ),
+  lattice = "unknown"
 )
 
 #' The README's lines, or `character(0)` where it is not reachable
@@ -87,6 +93,16 @@ test_that("every base R layer type is classified as stable or experimental", {
 })
 
 
+test_that("every lattice layer type is classified as stable or experimental", {
+  # The factory is an R6 class like the other two, so this needs no lattice
+  # installed: what it claims is a list, not a drawing.
+  supported <- maidr:::LatticeProcessorFactory$new()$get_supported_types()
+  classified <- c(STABLE$lattice, experimental_in_readme("lattice"))
+
+  testthat::expect_setequal(classified, supported)
+})
+
+
 test_that("no layer type is called both stable and experimental", {
   # Each list reads as complete on its own, so an overlap makes both wrong.
   testthat::expect_length(
@@ -94,6 +110,9 @@ test_that("no layer type is called both stable and experimental", {
   )
   testthat::expect_length(
     intersect(STABLE$base_r, experimental_in_readme("Base R")), 0
+  )
+  testthat::expect_length(
+    intersect(STABLE$lattice, experimental_in_readme("lattice")), 0
   )
 })
 
@@ -107,6 +126,12 @@ test_that("the boundary is where the README says it is", {
   # Base R's own last-before and first-after.
   testthat::expect_true("candlestick" %in% STABLE$base_r)
   testthat::expect_true("radar" %in% experimental_in_readme("Base R"))
+
+  # The tier belongs to a reading, not to a type name: `bar` is stable as
+  # ggplot2 and Base R read it, and experimental as lattice's `barchart()`
+  # is read, because that reading is new.
+  testthat::expect_true("bar" %in% STABLE$base_r)
+  testthat::expect_true("bar" %in% experimental_in_readme("lattice"))
 })
 
 

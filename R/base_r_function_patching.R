@@ -729,6 +729,19 @@ create_function_wrapper <- function(function_name, original_function) {
         return(ORIG(...))
       }
 
+      # `plot()` of a lattice or ggplot2 object dispatches to that
+      # package's own method, which draws with grid, not Base R graphics.
+      # Recorded, it was read as an empty Base R scatter, and drawn onto
+      # the hidden device the recording opens rather than the screen. A
+      # first argument that fails to evaluate here fails again, the same
+      # way, when the original forces it below.
+      if (identical(FNAME, "plot") && ...length() > 0L) {
+        first <- tryCatch(list(..1), error = function(e) NULL)
+        if (!is.null(first) && is_maidr_plot_object(first[[1L]])) {
+          return(ORIG(...))
+        }
+      }
+
       this_call <- match.call()
       caller_env <- parent.frame()
 
@@ -742,7 +755,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # `hist(x)` does not.
       call_failed <- FALSE
       result <- tryCatch(
-        withVisible(ORIG(...)),
+        withVisible(muffle_promise_restart(ORIG(...))),
         error = function(e) {
           call_failed <<- TRUE
           e

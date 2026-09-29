@@ -2,6 +2,72 @@
 
 ## New Features
 
+### lattice
+
+* Charts drawn by 'lattice' are now read (#333). `show()`, `save_html()`,
+  `show(as_widget = TRUE)`, `render_maidr()` in Shiny and, after
+  `maidr_on()`, R Markdown and Quarto take a trellis object, and printing
+  one at the console opens it in the maidr viewer, as printing a ggplot2
+  object does. Every lattice reading is experimental: none has been
+  through a user study, and each may change without a deprecation period.
+  'lattice' is now in Suggests, as is 'latticeExtra', which only the tests
+  use.
+* `barchart()` is emitted as a `bar` layer, as `dodged_bar` with `groups`,
+  and as `stacked_bar` with `stack = TRUE`, the default for a table or a
+  matrix; `histogram()` as `hist`; `bwplot()` as `box`; `levelplot()` as
+  `heat`; and `contourplot()` and `levelplot(contour = TRUE)` as
+  `contour`. `xyplot()` is read by its `type`: its points as `point`, one
+  layer per group, named after it; `"l"` as `line` and `"s"` or `"S"` as
+  `step`, one series per group; `"h"` as `lollipop`; and `"r"`,
+  `"smooth"` and `"spline"` as a `smooth` curve. `densityplot()` is read
+  as `smooth`, one curve per group; `dotplot()` as `dot`, or as points
+  when a level holds several values; and `stripplot()`, `qqmath()` and
+  `qq()` as `point`, with the lines, spikes, fits and averages their
+  `type` adds read as `xyplot()`'s are. A `histogram()` of a factor, one
+  bar per level, is
+  read as a `bar` layer named by its levels. `xyplot()` of a time series
+  is read as a `line`, in a panel per series or superposed, its values
+  named after the series rather than lattice's own `x`. Every layer names
+  the marks it reads, so each point, bar, bin, dot and spike, each box,
+  each heat map cell and each line, curve and contour is highlighted as it
+  is read.
+* The groups of a line, step or smooth layer that share no x value -- the
+  densities of a grouped `densityplot()`, say -- are read as a layer each,
+  named after the group, which Page Up and Page Down reach. Kept together,
+  only the first could be reached: the frontend moves Up and Down only
+  between series that meet at the x being read. Where a panel holds layers
+  of more than one kind, a group's layers also say what they are, as in
+  "4 (point)" and "4 (line)".
+* A conditioned chart (`y ~ x | g`) is read one panel at a time, each
+  panel a subplot titled by its strip and laid out as lattice lays the
+  panels out; a strip made by `strip.custom(factor.levels = )` and an
+  `auto.key`'s `text` name the panels and groups as they show them. A chart
+  laid out over several pages is read from its first page -- or the page a
+  `packet.panel` picks -- with a warning that names `layout =` as the way to
+  fit every panel on one, and so is its image when it cannot be read.
+  `main` is the chart's title and `sub` its subtitle, and an axis is named
+  by `xlab` or `ylab`, or by the variable lattice would name it after.
+* A chart the reading does not cover is shown as a static image rather
+  than read wrongly: `cloud()`, `wireframe()`, `splom()`,
+  `parallelplot()`, a panel function of the user's own or one such as
+  `panel.violin`, `levelplot(useRaster = TRUE)`, latticeExtra layers and
+  compositions (`+ layer()`, `c()`, `doubleYScale()`), and a panel that
+  fails to draw. Printed at the console, such a chart is drawn by lattice
+  as before.
+* Printing goes through lattice's own `print.function` option, which
+  maidr sets once 'lattice' is loaded and `maidr_off()` restores. A print
+  that shares its page with other charts (`split`, `position`,
+  `more = TRUE`, `newpage = FALSE`, given to `print()` or carried in the
+  chart's `plot.args`), a print into a file device such as
+  `pdf()` or `png()`, a print while knitting or inside Shiny, and
+  `plot(p)` are drawn by lattice as before. In R Markdown and Quarto a
+  chart the chunk returns is made accessible, while one the chunk draws
+  with `print(p)` stays a static image. `options(maidr.lattice = FALSE)`
+  leaves lattice printing alone, and setting it back to `TRUE` takes effect
+  at the next print; see `?"maidr-options"`. Saving, showing or knitting
+  a chart leaves lattice's own record of the chart it drew last -- the one
+  `trellis.focus()` and `trellis.last.object()` act on -- as it was.
+
 ### plotly, highcharter and echarts4r widgets
 
 * `maidr_htmlwidget()` makes an interactive chart drawn by plotly
@@ -526,6 +592,18 @@
 
 ### Base R
 
+* `save_html()` of a lattice chart exports that chart even while a Base R
+  call is recorded on the current device. The Base R adapter claimed any
+  object once the device held a recorded call, so the chart was written
+  out as the recorded Base R chart instead. The adapter now leaves a
+  ggplot2 or lattice object to that package's reading, whatever order the
+  plotting systems were registered in (#333).
+* `plot()` of a lattice or ggplot2 object is no longer recorded as a Base R
+  chart. maidr's `plot()` wrapper took the call for one: with no graphics
+  device open it drew the chart on the hidden device Base R recording
+  uses, so nothing appeared, and a later `show()` opened an empty scatter
+  plot. The call now passes straight to the package's own `plot()` method
+  (#333).
 * A line or step layer (`plot(type = "l")`, `lines()`, `matplot()`,
   `plot(type = "s")`) over a numeric x now emits x as a number rather than
   a string, as the point layer beside it does. `axis()` labels and a `Date`
@@ -721,6 +799,15 @@
   section of their own, and the getting-started vignette's stable list no
   longer names ggplot2 `geom_contour()` or Base R `vioplot::vioplot()`,
   which its experimental list already covers. The README says so.
+* A new examples article, "lattice Chart Examples", shows every lattice
+  reading on a small chart, each marked **[experimental]**, and is listed
+  under "Experimental plot families" on the examples hub and in the
+  pkgdown Articles menu. The README gains a lattice table under
+  "Experimental Plot Types" and says what printing a lattice chart does;
+  the getting-started vignette shows lattice use, and it and `?maidr` list
+  lattice's readings as experimental. Five lattice example scripts ship
+  with the package, listed by `run_example()` and run with
+  `run_example("<name>", type = "lattice")` (#333).
 
 ## Performance
 

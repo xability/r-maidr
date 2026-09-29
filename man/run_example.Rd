@@ -4,14 +4,14 @@
 \alias{run_example}
 \title{Run MAIDR Example Plots}
 \usage{
-run_example(example = NULL, type = c("ggplot2", "base_r"))
+run_example(example = NULL, type = c("ggplot2", "base_r", "lattice"))
 }
 \arguments{
 \item{example}{Character string specifying which example to run. If \code{NULL}
 (the default), lists all available examples.}
 
-\item{type}{Character string specifying the plot system to use.
-Either \code{"ggplot2"} (default) or \code{"base_r"}.}
+\item{type}{Character string specifying the plot system to use:
+\code{"ggplot2"} (default), \code{"base_r"} or \code{"lattice"}.}
 }
 \value{
 Invisibly returns \code{NULL}. Called for its side effect of displaying
@@ -24,6 +24,13 @@ capabilities. Each example creates an interactive plot using \code{show()}.
 \details{
 Available examples include various plot types such as bar charts,
 histograms, scatter plots, line plots, boxplots, heatmaps, and more.
+
+The \code{"lattice"} examples are a bar chart [experimental], a histogram
+[experimental], a scatter plot [experimental], a box plot
+[experimental] and a conditioned (faceted) scatter plot
+[experimental]. Every chart maidr reads from 'lattice' is
+experimental: none has been through a user study, and each may change
+without a deprecation period. They need the 'lattice' package.
 
 Each example script creates a plot and calls \code{show()} to display it
 in your default web browser with full MAIDR accessibility features
@@ -39,6 +46,9 @@ if (interactive()) {
 
   # Run Base R histogram example
   run_example("histogram", type = "base_r")
+
+  # Run lattice box plot example [experimental]
+  run_example("boxplot", type = "lattice")
 }
 
 }

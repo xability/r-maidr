@@ -13,7 +13,8 @@ create_fallback_image(
 )
 }
 \arguments{
-\item{plot}{A ggplot2 object or NULL for Base R plots}
+\item{plot}{A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+plots}
 
 \item{format}{Image format: "png" (default), "svg", or "jpeg"}
 
