@@ -123,12 +123,14 @@ ref_svg_style_attrs <- function(style, text, own = rep(NA_character_, length(sty
 
 # Finite numbers are formatted through formatC() on Windows, where R's
 # printf rounds some halves its own way, and through snprintf() elsewhere.
-# Each formatting case runs both ways, so both are held to the R original
-# on whichever platform the tests run.
+# Each formatting case runs through formatC() everywhere, and through
+# snprintf() too where the package uses it: on Windows snprintf() is known
+# to disagree, which is why it is not used there.
 with_each_formatter <- function(code) {
   code <- substitute(code)
   env <- parent.frame()
-  for (via_r in c(FALSE, TRUE)) {
+  modes <- if (.Platform$OS.type == "windows") TRUE else c(FALSE, TRUE)
+  for (via_r in modes) {
     previous <- maidr:::svg_format_via_r_cpp(via_r)
     tryCatch(eval(code, env), finally = maidr:::svg_format_via_r_cpp(previous))
   }

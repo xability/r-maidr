@@ -87,7 +87,7 @@
   were found by scanning every source row for every tile -- a 100 x 100
   one from 2.2 s to 0.7 s, a 50,000-point `geom_line()` from 2.7 s to
   1.2 s, a 50,000-point `geom_point()` from 4.4 s to 3.5 s, and a
-  2,000-bar `geom_col()` from 3.5 s to 1.9 s.
+  2,000-bar `geom_col()` from 3.5 s to 1.9 s (#343).
 
 ## Bug Fixes
 
