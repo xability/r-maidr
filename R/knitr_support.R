@@ -5,7 +5,10 @@
 #'
 #' Interception is on by default after `library(maidr)`: printing a ggplot2
 #' or lattice object opens it in the MAIDR viewer, and Base R plotting calls
-#' are recorded until [show()] is called. Calling `maidr_on()` yourself is needed
+#' are recorded until [show()] is called. lattice is reached through its own
+#' hook, `lattice.options(print.function = )`, which maidr sets once lattice's
+#' namespace is loaded; a print function set before is kept, and draws the
+#' prints maidr leaves to lattice. Calling `maidr_on()` yourself is needed
 #' in two places: after [maidr_off()], to start again, and once in the setup
 #' chunk of an R Markdown or Quarto document, where it registers the
 #' `knit_print` methods and the plot hook that turn every plot the document
@@ -119,7 +122,8 @@ maidr_on <- function() {
 #' Disables automatic MAIDR rendering and restores normal plot behavior.
 #' After calling this, Base R plots display in the standard graphics window,
 #' ggplot2 objects render with the default ggplot2 method, and lattice charts
-#' print as lattice draws them.
+#' print as lattice draws them: `lattice.options(print.function = )` is set
+#' back to what it was before maidr set it.
 #'
 #' @return Invisible TRUE on success
 #' @seealso [maidr_on()] to enable MAIDR rendering
