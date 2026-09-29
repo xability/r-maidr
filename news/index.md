@@ -116,8 +116,8 @@
   of a
   [`yardstick::roc_curve()`](https://yardstick.tidymodels.org/reference/roc_curve.html)
   are read as they stand, by the `sensitivity` and `specificity` they
-  map. The trace needs maidr.js 4.9.0, the version bundled with this
-  release; an older bundle keeps the line reading these charts had.
+  map. The trace needs maidr.js 4.9.0 or later (this release bundles
+  4.11.0); an older bundle keeps the line reading these charts had.
 - Added pie chart support: a
   [`geom_col()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)/[`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html)
   layer under `coord_polar("y")` or `coord_radial(theta = "y")` is
@@ -609,7 +609,7 @@
   `allow` attribute says, so a tactile display such as a Dot Pad can be
   reached from an R chart; the frame carries `allow="bluetooth; serial"`
   for a chart inside a cross-origin frame. Reading by touch also needs a
-  maidr build that supports the display; the bundled 4.9.0 does.
+  maidr build that supports the display; the bundled 4.11.0 does.
 
 - [`save_html()`](https://r.maidr.ai/reference/save_html.md) and
   [`show()`](https://r.maidr.ai/reference/show.md) no longer warn
@@ -953,8 +953,9 @@
 
 ### Enhancements
 
-- Bundled MAIDR.js updated from 3.72.1 to 4.9.0, and CDN assets are
-  pinned to the bundled version instead of `@latest`.
+- Bundled MAIDR.js updated from 3.72.1 to 4.11.0. CDN documents name the
+  version resolved once per session rather than `@latest` (see “maidr.js
+  from the CDN” above).
 - maidr now requires R \>= 4.0.0.
 - Iframe height auto-resize works in RMarkdown documents, not only in
   the htmlwidgets binding.
