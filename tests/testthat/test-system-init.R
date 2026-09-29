@@ -229,3 +229,73 @@ test_that("Initialization functions are safe to call multiple times", {
   testthat::expect_silent(maidr:::initialize_ggplot2_system())
   testthat::expect_silent(maidr:::initialize_base_r_system())
 })
+
+# ==============================================================================
+# lattice System Initialization Tests
+# ==============================================================================
+
+test_that("initialize_lattice_system() is idempotent", {
+  registry <- maidr:::get_global_registry()
+
+  # Registered from .onLoad; call under covr tracking
+  result <- maidr:::initialize_lattice_system()
+
+  testthat::expect_true(registry$is_system_registered("lattice"))
+  testthat::expect_null(result)
+})
+
+test_that("initialize_lattice_system() ensures adapter exists", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+
+  adapter <- registry$get_adapter("lattice")
+  testthat::expect_s3_class(adapter, "LatticeAdapter")
+  testthat::expect_s3_class(adapter, "SystemAdapter")
+})
+
+test_that("initialize_lattice_system() ensures factory exists", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+
+  factory <- registry$get_processor_factory("lattice")
+  testthat::expect_s3_class(factory, "LatticeProcessorFactory")
+  testthat::expect_s3_class(factory, "ProcessorFactory")
+})
+
+test_that("Multiple calls to initialize_lattice_system() don't duplicate registrations", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+  maidr:::initialize_lattice_system()
+  maidr:::initialize_lattice_system()
+
+  testthat::expect_true(registry$is_system_registered("lattice"))
+  testthat::expect_equal(sum(registry$list_systems() == "lattice"), 1)
+})
+
+test_that("initialize_lattice_system() sets adapter system_name", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_lattice_system()
+
+  adapter <- registry$get_adapter("lattice")
+  testthat::expect_equal(adapter$system_name, "lattice")
+})
+
+test_that("initialize_lattice_system() is safe to call multiple times", {
+  testthat::expect_silent(maidr:::initialize_lattice_system())
+  testthat::expect_silent(maidr:::initialize_lattice_system())
+})
+
+test_that("All three systems are initialized", {
+  registry <- maidr:::get_global_registry()
+
+  maidr:::initialize_ggplot2_system()
+  maidr:::initialize_lattice_system()
+  maidr:::initialize_base_r_system()
+
+  systems <- registry$list_systems()
+  testthat::expect_true(all(c("ggplot2", "lattice", "base_r") %in% systems))
+})

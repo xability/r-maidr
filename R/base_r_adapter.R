@@ -466,9 +466,21 @@ BaseRAdapter <- R6::R6Class(
     },
 
     #' @description Check if this adapter can handle a plot object
+    #'
+    #' Base R charts are claimed by device state -- what the recording
+    #' wrappers logged on the current device -- because they are not
+    #' objects. A plot object another system draws is never claimed that
+    #' way: with a Base R call recorded, a lattice chart passed to
+    #' `save_html()` used to be exported as the recorded Base R chart.
+    #' Anything else passed in is still judged by the device, which is what
+    #' `save_html(barplot(x), file)` relies on.
+    #'
     #' @param plot_object The plot object to check (should be NULL for Base R)
     #' @return TRUE if Base R plotting is active, FALSE otherwise
     can_handle = function(plot_object) {
+      if (is_maidr_plot_object(plot_object)) {
+        return(FALSE)
+      }
       active <- is_patching_active()
       device_id <- grDevices::dev.cur()
       has_calls <- has_device_calls(device_id)

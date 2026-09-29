@@ -35,6 +35,17 @@ test_that("the startup message does not promise Base R auto-display", {
   testthat::expect_match(msg, "show()", fixed = TRUE)
 })
 
+test_that("the startup message says a lattice chart opens in the viewer when printed", {
+  msg <- startup_message()
+
+  # Printed, not drawn: plot() of a trellis object and a print into a file
+  # or onto a shared page are lattice's, and the message promises no more.
+  testthat::expect_match(
+    msg, "lattice plots open in it too when printed at the console",
+    fixed = TRUE
+  )
+})
+
 test_that("the startup message still documents how to turn interception off", {
   msg <- startup_message()
 

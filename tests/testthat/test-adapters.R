@@ -1027,3 +1027,153 @@ test_that("BaseRAdapter orchestrator processes plot correctly", {
 
   clear_base_r_state()
 })
+
+# ==============================================================================
+# LatticeAdapter - Initialization Tests
+# ==============================================================================
+
+test_that("LatticeAdapter initializes correctly", {
+  adapter <- maidr:::LatticeAdapter$new()
+
+  testthat::expect_s3_class(adapter, "LatticeAdapter")
+  testthat::expect_s3_class(adapter, "SystemAdapter")
+  testthat::expect_equal(adapter$system_name, "lattice")
+})
+
+test_that("LatticeAdapter inherits from SystemAdapter", {
+  adapter <- maidr:::LatticeAdapter$new()
+
+  testthat::expect_true(inherits(adapter, "SystemAdapter"))
+})
+
+# ==============================================================================
+# LatticeAdapter - can_handle() Tests
+# ==============================================================================
+
+test_that("LatticeAdapter can_handle detects trellis objects", {
+  testthat::skip_if_not_installed("lattice")
+
+  adapter <- maidr:::LatticeAdapter$new()
+
+  testthat::expect_true(adapter$can_handle(lattice::xyplot(mpg ~ wt, mtcars)))
+  testthat::expect_true(adapter$can_handle(lattice::barchart(VADeaths)))
+  testthat::expect_true(adapter$can_handle(lattice::histogram(~mpg, mtcars)))
+})
+
+test_that("LatticeAdapter can_handle rejects non-trellis objects", {
+  adapter <- maidr:::LatticeAdapter$new()
+
+  testthat::expect_false(adapter$can_handle(NULL))
+  testthat::expect_false(adapter$can_handle(list(a = 1)))
+  testthat::expect_false(adapter$can_handle(42))
+  testthat::expect_false(adapter$can_handle("plot"))
+})
+
+test_that("LatticeAdapter can_handle rejects ggplot objects", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  adapter <- maidr:::LatticeAdapter$new()
+
+  testthat::expect_false(adapter$can_handle(create_test_ggplot_bar()))
+})
+
+test_that("LatticeAdapter can_handle rejects a bare latticeExtra layer", {
+  testthat::skip_if_not_installed("lattice")
+  testthat::skip_if_not_installed("latticeExtra")
+
+  adapter <- maidr:::LatticeAdapter$new()
+  # Classed "trellis" too, but an overlay waiting for a chart.
+  overlay <- latticeExtra::layer(lattice::panel.abline(h = 20))
+
+  testthat::expect_s3_class(overlay, "trellis")
+  testthat::expect_false(adapter$can_handle(overlay))
+})
+
+# ==============================================================================
+# LatticeAdapter - detect_layer_type() Tests
+# ==============================================================================
+
+test_that("LatticeAdapter detect_layer_type detects points", {
+  testthat::skip_if_not_installed("lattice")
+
+  adapter <- maidr:::LatticeAdapter$new()
+  p <- lattice::xyplot(mpg ~ wt, mtcars)
+
+  testthat::expect_equal(adapter$detect_layer_type(list(what = "xyplot.points"), p), "points")
+})
+
+test_that("LatticeAdapter detect_layer_type returns unknown for NULL", {
+  testthat::skip_if_not_installed("lattice")
+
+  adapter <- maidr:::LatticeAdapter$new()
+  p <- lattice::xyplot(mpg ~ wt, mtcars)
+
+  testthat::expect_equal(adapter$detect_layer_type(NULL, p), "unknown")
+})
+
+# ==============================================================================
+# LatticeAdapter - create_orchestrator() Tests
+# ==============================================================================
+
+test_that("LatticeAdapter create_orchestrator returns orchestrator", {
+  testthat::skip_if_not_installed("lattice")
+  testthat::skip_on_cran()
+
+  adapter <- maidr:::LatticeAdapter$new()
+
+  orchestrator <- adapter$create_orchestrator(lattice::xyplot(mpg ~ wt, mtcars))
+
+  testthat::expect_s3_class(orchestrator, "LatticePlotOrchestrator")
+  testthat::expect_true(R6::is.R6(orchestrator))
+})
+
+test_that("LatticeAdapter create_orchestrator errors for non-trellis", {
+  adapter <- maidr:::LatticeAdapter$new()
+
+  testthat::expect_error(
+    adapter$create_orchestrator(list(a = 1)),
+    "Plot object is not a lattice \\(trellis\\) object"
+  )
+})
+
+# ==============================================================================
+# LatticeAdapter - Utility Methods Tests
+# ==============================================================================
+
+test_that("LatticeAdapter get_system_name returns lattice", {
+  adapter <- maidr:::LatticeAdapter$new()
+
+  name <- adapter$get_system_name()
+  testthat::expect_equal(name, "lattice")
+})
+
+test_that("Adapters work together in registry with lattice", {
+  testthat::skip_if_not_installed("lattice")
+
+  gg_adapter <- maidr:::Ggplot2Adapter$new()
+  base_adapter <- maidr:::BaseRAdapter$new()
+  lattice_adapter <- maidr:::LatticeAdapter$new()
+
+  p <- lattice::xyplot(mpg ~ wt, mtcars)
+
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+
+  # A trellis object is lattice's alone, even with a Base R chart recorded
+  # on the device: the Base R adapter judges by the device only when it is
+  # given no object another system draws.
+  barplot(c(10, 20, 30))
+  testthat::expect_true(lattice_adapter$can_handle(p))
+  testthat::expect_false(gg_adapter$can_handle(p))
+  testthat::expect_false(base_adapter$can_handle(p))
+  testthat::expect_true(base_adapter$can_handle(NULL))
+  testthat::expect_false(lattice_adapter$can_handle(NULL))
+})

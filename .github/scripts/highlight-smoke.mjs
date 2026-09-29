@@ -124,7 +124,7 @@ for (const file of files) {
   // The bar-shaped charts: the outlined mark's height has to rank the way
   // the announced values do. Two distinct values outlined with the same
   // mark, or a larger value on a shorter bar, is the wrong bar.
-  const ranked = /^(ggplot2-(bar|hist|dodged|stacked|normalized)|base-(barplot|hist|dodged|stacked|lollipop))\.html$/.test(file);
+  const ranked = /^(ggplot2-(bar|hist|dodged|stacked|normalized)|base-(barplot|hist|dodged|stacked|lollipop)|lattice-(bar|hist|dodged|stacked))\.html$/.test(file);
   let misranked = null;
   if (ranked) {
     const byMark = new Map();

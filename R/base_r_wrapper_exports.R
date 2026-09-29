@@ -37,8 +37,8 @@
 #'
 #' ## `show()` and `methods::show()`
 #'
-#' maidr's [show()] takes a ggplot2 object or, with no argument, the last
-#' recorded Base R chart. Anything else it is given goes to
+#' maidr's [show()] takes a ggplot2 or lattice object or, with no argument,
+#' the last recorded Base R chart. Anything else it is given goes to
 #' `methods::show()`, so `show(x)` on an S4 object prints as it did before
 #' maidr was attached. In a script or a package, where what is masked
 #' depends on what else is attached, call `maidr::show()` and

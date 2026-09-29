@@ -3,8 +3,9 @@
 #' @description
 #' The 'maidr' package provides accessible, interactive visualizations through
 #' the MAIDR (Multimodal Access and Interactive Data Representation) system.
-#' It converts 'ggplot2' and Base R plots into accessible HTML/SVG formats with
-#' keyboard navigation, screen reader support, and sonification capabilities.
+#' It converts 'ggplot2' and Base R plots, and experimentally 'lattice' charts,
+#' into accessible HTML/SVG formats with keyboard navigation, screen reader
+#' support, and sonification capabilities.
 #' This enables users with visual impairments to independently explore and
 #' understand data visualizations through multiple sensory modalities.
 #'
@@ -60,6 +61,7 @@
 #' charts as prototypes: none has been through a user study, and each may
 #' change without a deprecation period. In these docs an experimental type
 #' is marked \[experimental\] after its name; a type with no mark is stable.
+#' Every chart read from 'lattice' is one of them, whatever its layer type.
 #' Among them:
 #' \itemize{
 #'   \item ggplot2 area charts \[experimental\]
@@ -74,6 +76,15 @@
 #'   \item Base R mosaic plots \[experimental\]
 #'   \item Base R violin plots - \code{vioplot::vioplot()} \[experimental\]
 #'   \item Base R word clouds \[experimental\]
+#'   \item lattice bar charts (simple, grouped, stacked) - \code{barchart()} \[experimental\]
+#'   \item lattice histograms - \code{histogram()} \[experimental\]
+#'   \item lattice box plots - \code{bwplot()} \[experimental\]
+#'   \item lattice scatter, line, step and lollipop plots - \code{xyplot()} \[experimental\]
+#'   \item lattice density curves - \code{densityplot()} \[experimental\]
+#'   \item lattice dot plots - \code{dotplot()} \[experimental\]
+#'   \item lattice heat maps - \code{levelplot()} \[experimental\]
+#'   \item lattice contour plots - \code{contourplot()} \[experimental\]
+#'   \item lattice conditioned (multi-panel) charts - \code{y ~ x | g} \[experimental\]
 #' }
 #' The full list is under "Experimental Plot Types" in the README.
 #'

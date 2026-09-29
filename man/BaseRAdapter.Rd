@@ -136,6 +136,14 @@ first term. Only the two-column numeric frame is read as points.
 \if{latex}{\out{\hypertarget{method-BaseRAdapter-can_handle}{}}}
 \subsection{\code{BaseRAdapter$can_handle()}}{
   Check if this adapter can handle a plot object
+
+Base R charts are claimed by device state -- what the recording
+wrappers logged on the current device -- because they are not
+objects. A plot object another system draws is never claimed that
+way: with a Base R call recorded, a lattice chart passed to
+\code{save_html()} used to be exported as the recorded Base R chart.
+Anything else passed in is still judged by the device, which is what
+\code{save_html(barplot(x), file)} relies on.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRAdapter$can_handle(plot_object)}

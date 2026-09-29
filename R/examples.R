@@ -5,8 +5,8 @@
 #'
 #' @param example Character string specifying which example to run. If `NULL`
 #'   (the default), lists all available examples.
-#' @param type Character string specifying the plot system to use.
-#'   Either `"ggplot2"` (default) or `"base_r"`.
+#' @param type Character string specifying the plot system to use:
+#'   `"ggplot2"` (default), `"base_r"` or `"lattice"`.
 #'
 #' @return Invisibly returns `NULL`. Called for its side effect of displaying
 #'   an interactive plot in the browser or listing available examples.
@@ -14,6 +14,13 @@
 #' @details
 #' Available examples include various plot types such as bar charts,
 #' histograms, scatter plots, line plots, boxplots, heatmaps, and more.
+#'
+#' The `"lattice"` examples are a bar chart \[experimental\], a histogram
+#' \[experimental\], a scatter plot \[experimental\], a box plot
+#' \[experimental\] and a conditioned (faceted) scatter plot
+#' \[experimental\]. Every chart maidr reads from 'lattice' is
+#' experimental: none has been through a user study, and each may change
+#' without a deprecation period. They need the 'lattice' package.
 #'
 #' Each example script creates a plot and calls `show()` to display it
 #' in your default web browser with full MAIDR accessibility features
@@ -29,11 +36,14 @@
 #'
 #'   # Run Base R histogram example
 #'   run_example("histogram", type = "base_r")
+#'
+#'   # Run lattice box plot example [experimental]
+#'   run_example("boxplot", type = "lattice")
 #' }
 #'
 #' @seealso [show()] for displaying plots, [save_html()] for saving to file
 #' @export
-run_example <- function(example = NULL, type = c("ggplot2", "base_r")) {
+run_example <- function(example = NULL, type = c("ggplot2", "base_r", "lattice")) {
   type <- match.arg(type)
 
   # Get the examples directory
@@ -58,35 +68,32 @@ run_example <- function(example = NULL, type = c("ggplot2", "base_r")) {
   if (is.null(example)) {
     message("Available MAIDR examples:\n")
 
-    message("ggplot2 examples:")
-    ggplot2_dir <- system.file("examples", "ggplot2", package = "maidr")
-    if (ggplot2_dir != "") {
-      ggplot2_examples <- sub("\\.R$", "", list.files(ggplot2_dir, pattern = "\\.R$"))
-      if (length(ggplot2_examples) > 0) {
-        for (ex in ggplot2_examples) {
-          message("  - ", ex)
+    # Every lattice reading is experimental, so its heading says so, as the
+    # rest of the docs mark an experimental type wherever they name it.
+    headings <- c(
+      ggplot2 = "ggplot2 examples:",
+      base_r = "\nbase_r examples:",
+      lattice = "\nlattice examples [experimental]:"
+    )
+    for (plot_system in names(headings)) {
+      message(headings[[plot_system]])
+      system_dir <- system.file("examples", plot_system, package = "maidr")
+      if (system_dir != "") {
+        system_examples <- sub("\\.R$", "", list.files(system_dir, pattern = "\\.R$"))
+        if (length(system_examples) > 0) {
+          for (ex in system_examples) {
+            message("  - ", ex)
+          }
+        } else {
+          message("  (no examples found)")
         }
-      } else {
-        message("  (no examples found)")
-      }
-    }
-
-    message("\nbase_r examples:")
-    base_r_dir <- system.file("examples", "base_r", package = "maidr")
-    if (base_r_dir != "") {
-      base_r_examples <- sub("\\.R$", "", list.files(base_r_dir, pattern = "\\.R$"))
-      if (length(base_r_examples) > 0) {
-        for (ex in base_r_examples) {
-          message("  - ", ex)
-        }
-      } else {
-        message("  (no examples found)")
       }
     }
 
     message("\nUsage:")
     message("  run_example(\"bar\")                 # Run ggplot2 bar chart")
     message("  run_example(\"histogram\", \"base_r\") # Run Base R histogram")
+    message("  run_example(\"boxplot\", \"lattice\")  # Run lattice box plot [experimental]")
 
     return(invisible(NULL))
   }

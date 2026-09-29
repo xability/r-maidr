@@ -10,13 +10,16 @@ maidr_on()
 Invisible TRUE on success
 }
 \description{
-Turns on the accessible rendering of ggplot2 and Base R plots, and
-installs the knitr hooks that an R Markdown or Quarto document needs.
+Turns on the accessible rendering of ggplot2, lattice and Base R plots,
+and installs the knitr hooks that an R Markdown or Quarto document needs.
 }
 \details{
 Interception is on by default after \code{library(maidr)}: printing a ggplot2
-object opens it in the MAIDR viewer, and Base R plotting calls are
-recorded until \code{\link[=show]{show()}} is called. Calling \code{maidr_on()} yourself is needed
+or lattice object opens it in the MAIDR viewer, and Base R plotting calls
+are recorded until \code{\link[=show]{show()}} is called. lattice is reached through its own
+hook, \code{lattice.options(print.function = )}, which maidr sets once lattice's
+namespace is loaded; a print function set before is kept, and draws the
+prints maidr leaves to lattice. Calling \code{maidr_on()} yourself is needed
 in two places: after \code{\link[=maidr_off]{maidr_off()}}, to start again, and once in the setup
 chunk of an R Markdown or Quarto document, where it registers the
 \code{knit_print} methods and the plot hook that turn every plot the document

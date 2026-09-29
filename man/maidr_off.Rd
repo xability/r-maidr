@@ -11,8 +11,10 @@ Invisible TRUE on success
 }
 \description{
 Disables automatic MAIDR rendering and restores normal plot behavior.
-After calling this, Base R plots display in the standard graphics window
-and ggplot2 objects render with the default ggplot2 method.
+After calling this, Base R plots display in the standard graphics window,
+ggplot2 objects render with the default ggplot2 method, and lattice charts
+print as lattice draws them: \code{lattice.options(print.function = )} is set
+back to what it was before maidr set it.
 }
 \seealso{
 \code{\link[=maidr_on]{maidr_on()}} to enable MAIDR rendering

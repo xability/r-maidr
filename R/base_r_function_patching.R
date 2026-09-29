@@ -195,7 +195,7 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
   close_maidr_temp_device()
 
   # Open native graphics device
-  grDevices::dev.new()
+  open_default_device()
 
   # Replay every call in its original order using ORIGINAL functions
   # (not wrapped). Replaying in order preserves interleaved LAYOUT calls
@@ -207,6 +207,9 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
       call_entry$call_env
     )
   }
+  # A par() setting every parameter, as par(oldpar) does with a list saved
+  # on the hidden device, takes away the mark the device is remembered by.
+  remember_default_device()
 
   invisible(NULL)
 }
@@ -727,6 +730,39 @@ create_function_wrapper <- function(function_name, original_function) {
       # If patching is disabled, pass through to original function
       if (!is_patching_enabled()) {
         return(ORIG(...))
+      }
+
+      # `plot()` of a lattice or ggplot2 object dispatches to that
+      # package's own method, which draws with grid, not Base R graphics.
+      # Recorded, it was read as an empty Base R scatter, and drawn onto
+      # the hidden device the recording opens rather than the screen. With
+      # that device already current, a lattice chart is drawn on a screen
+      # of its own; see lattice_draw_on_screen().
+      #
+      # Only the argument the generic `plot(x, y, ...)` dispatches on is
+      # forced: `x`, else the first unnamed one. The rest stay promises for
+      # the method to force when it means to -- `panel.first` belongs on
+      # the new plot, and the formula method evaluates `subset` within
+      # `data`. `x` is forced uncaught, as the generic's own UseMethod()
+      # forces it first, so one that fails to evaluate fails once, reported
+      # against the reader's call; a missing one is left for the original
+      # to report.
+      if (identical(FNAME, "plot")) {
+        dots <- as.list(substitute(list(...)))[-1L]
+        tags <- names(dots) %||% character(length(dots))
+        at <- match("x", tags)
+        if (is.na(at)) {
+          at <- match("", tags)
+        }
+        if (!is.na(at) && !eval(call("missing", as.name(paste0("..", at))))) {
+          first <- ...elt(at)
+          if (inherits(first, "trellis")) {
+            return(draw_on_default_device(lattice_draw_on_screen(..., .draw = ORIG)))
+          }
+          if (is_maidr_plot_object(first)) {
+            return(draw_on_default_device(ORIG(...)))
+          }
+        }
       }
 
       this_call <- match.call()

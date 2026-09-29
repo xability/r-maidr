@@ -12,6 +12,13 @@
 #'   \item{\code{maidr.ggplot2}}{Logical. Enable ggplot2 auto-display.
 #'     When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
 #'     instead of the standard graphics device. Default: TRUE.}
+#'   \item{\code{maidr.lattice}}{Logical. Enable lattice auto-display. When
+#'     TRUE, a lattice (trellis) object printed at the console to the screen
+#'     is rendered in the MAIDR viewer, and \code{maidr_on()} makes the ones
+#'     an R Markdown or Quarto document prints accessible. A print into a
+#'     file device, or one that places the chart on a shared page with
+#'     \code{split}, \code{position} or \code{more}, is drawn by lattice as
+#'     before. Default: TRUE.}
 #'   \item{\code{maidr.startup_message}}{Logical. Show startup message when
 #'     package is loaded. Default: TRUE.}
 #'   \item{\code{maidr.dotpad_sdk_url}}{Character. URL of a copy of the DotPad
@@ -60,6 +67,9 @@
 #' \preformatted{
 #' # Disable ggplot2 interception by default
 #' options(maidr.ggplot2 = FALSE)
+#'
+#' # Draw printed lattice charts with lattice, as without maidr
+#' options(maidr.lattice = FALSE)
 #'
 #' # Disable all interception
 #' options(maidr.auto_show = FALSE)
@@ -163,6 +173,7 @@ initialize_maidr_options <- function() {
     maidr.auto_show = TRUE,
     maidr.base_r = TRUE,
     maidr.ggplot2 = TRUE,
+    maidr.lattice = TRUE,
     maidr.startup_message = TRUE,
     maidr.fallback_enabled = TRUE,
     maidr.fallback_format = "png",
@@ -199,4 +210,12 @@ is_base_r_enabled <- function() {
 #' @keywords internal
 is_ggplot2_enabled <- function() {
   is_maidr_enabled() && isTRUE(getOption("maidr.ggplot2", TRUE))
+}
+
+#' Check if lattice interception is enabled
+#'
+#' @return TRUE if lattice interception is active
+#' @keywords internal
+is_lattice_enabled <- function() {
+  is_maidr_enabled() && isTRUE(getOption("maidr.lattice", TRUE))
 }

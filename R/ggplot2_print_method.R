@@ -103,7 +103,7 @@ maidr_print_ggplot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
 
   # Check if ggplot2 interception is enabled
   if (!is_ggplot2_enabled()) {
-    return(original_print(x, newpage = newpage, vp = vp, ...))
+    return(draw_on_default_device(original_print(x, newpage = newpage, vp = vp, ...)))
   }
 
   # Check if the plot is supported by MAIDR. Keep the orchestrator so the
@@ -121,7 +121,7 @@ maidr_print_ggplot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
 
   if (!supported) {
     # Unsupported plot - fall back to normal ggplot2 rendering
-    return(original_print(x, newpage = newpage, vp = vp, ...))
+    return(draw_on_default_device(original_print(x, newpage = newpage, vp = vp, ...)))
   }
 
   # Supported plot - render in MAIDR interactive viewer, reusing the
@@ -135,7 +135,7 @@ maidr_print_ggplot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
     error = function(e) FALSE
   )
   if (!rendered) {
-    return(original_print(x, newpage = newpage, vp = vp, ...))
+    return(draw_on_default_device(original_print(x, newpage = newpage, vp = vp, ...)))
   }
 
   invisible(x)

@@ -1,7 +1,7 @@
 #' Display Interactive MAIDR Plot
 #'
-#' Display a ggplot2 or Base R plot as an interactive, accessible visualization
-#' using the MAIDR (Multimodal Access and Interactive Data Representation) system.
+#' Display a ggplot2, lattice or Base R plot as an interactive, accessible
+#' visualization using the MAIDR (Multimodal Access and Interactive Data Representation) system.
 #'
 #' Attaching maidr masks \code{methods::show()}. An object that is not a
 #' plot maidr renders -- an S4 object, a vector, a data frame -- is handed to
@@ -10,7 +10,8 @@
 #' \code{methods::show()} by name; \code{?"base-r-wrappers"} lists
 #' everything else attaching maidr masks.
 #'
-#' @param plot A ggplot2 object or NULL for Base R auto-detection
+#' @param plot A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+#'   auto-detection
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
 #'     \item \code{TRUE}: Use the jsDelivr CDN (requires internet), which
@@ -46,6 +47,13 @@
 #' maidr::show(p_violin)
 #' }
 #'
+#' # lattice chart [experimental]
+#' \donttest{
+#' if (requireNamespace("lattice", quietly = TRUE)) {
+#'   maidr::show(lattice::xyplot(mpg ~ wt, data = mtcars))
+#' }
+#' }
+#'
 #' # Base R example (requires interactive session for function patching)
 #' if (interactive()) {
 #'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
@@ -61,7 +69,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
   # than through the registry: the Base R adapter claims by device state,
   # not by what it was given, so with a recorded chart on the device an S4
   # object would otherwise be "handled" as Base R and never printed.
-  if (!is.null(plot) && !inherits(plot, "ggplot")) {
+  if (!is.null(plot) && !is_maidr_plot_object(plot)) {
     return(methods::show(plot))
   }
 
@@ -96,11 +104,29 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
         # Base R: Plot is already drawn - replay to native device
         replay_to_native_device(device_id)
         clear_device_storage(device_id)
+      } else if (inherits(plot, "trellis")) {
+        # lattice: draw with lattice itself, not through the print hook
+        # maidr set, which would run the support check a second time. As
+        # the hook draws a chart it cannot read, on a screen of its own and
+        # with MAIDR's hidden device made current again for the Base R
+        # chart it holds, which is then still show()'s to open.
+        recording <- if (maidr_hidden_device_is_current()) grDevices::dev.cur()
+        if (!is.null(recording)) {
+          plot <- lattice_carry_reader_settings(plot)
+        }
+        open_default_device()
+        if (!is.null(recording)) {
+          on.exit(
+            if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),
+            add = TRUE
+          )
+        }
+        print_trellis_natively(plot)
       } else {
         # ggplot2: Print to native graphics device with ggplot2's own
         # method, not the one maidr registered, which would run the support
         # check a second time.
-        grDevices::dev.new()
+        open_default_device()
         print_ggplot_natively(plot)
       }
 
@@ -144,6 +170,19 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
   display_html(html_doc)
 
   invisible(NULL)
+}
+
+#' Whether an object is a plot maidr renders from the object itself
+#'
+#' A ggplot2 object or a lattice (trellis) object. Base R charts are not
+#' objects: they are recorded as they are drawn, and \code{show()} and
+#' \code{save_html()} take them with no argument.
+#'
+#' @param x Any object
+#' @return TRUE for a ggplot2 or trellis object
+#' @keywords internal
+is_maidr_plot_object <- function(x) {
+  inherits(x, c("ggplot", "trellis"))
 }
 
 #' Create HTML document with maidr enhancements using the orchestrator
@@ -283,7 +322,7 @@ warn_panel_fallback <- function(orchestrator) {
 
 #' Save Interactive Plot as HTML File
 #'
-#' Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
+#' Save a ggplot2, lattice or Base R plot as an HTML file with interactive MAIDR
 #' accessibility features.
 #'
 #' By default the MAIDR.js library is written to a \code{lib/} folder beside
@@ -294,7 +333,8 @@ warn_panel_fallback <- function(orchestrator) {
 #' whenever it is viewed and loads the latest published MAIDR.js from
 #' jsDelivr rather than the copy bundled with this package.
 #'
-#' @param plot A ggplot2 object or NULL for Base R auto-detection
+#' @param plot A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+#'   auto-detection
 #' @param file File path where to save the HTML file (e.g., "plot.html")
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
 #'   \itemize{
@@ -325,6 +365,14 @@ warn_panel_fallback <- function(orchestrator) {
 #'   labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
 #' \donttest{
 #' maidr::save_html(p_violin, tempfile(fileext = ".html"))
+#' }
+#'
+#' # lattice chart [experimental]
+#' \donttest{
+#' if (requireNamespace("lattice", quietly = TRUE)) {
+#'   p_lattice <- lattice::bwplot(factor(cyl) ~ mpg, data = mtcars)
+#'   maidr::save_html(p_lattice, tempfile(fileext = ".html"))
+#' }
 #' }
 #'
 #' # Base R example (requires interactive session for function patching)

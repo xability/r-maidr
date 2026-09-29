@@ -225,8 +225,8 @@ loaded.
 
 \subsection{\code{show()} and \code{methods::show()}}{
 
-maidr's \code{\link[=show]{show()}} takes a ggplot2 object or, with no argument, the last
-recorded Base R chart. Anything else it is given goes to
+maidr's \code{\link[=show]{show()}} takes a ggplot2 or lattice object or, with no argument,
+the last recorded Base R chart. Anything else it is given goes to
 \code{methods::show()}, so \code{show(x)} on an S4 object prints as it did before
 maidr was attached. In a script or a package, where what is masked
 depends on what else is attached, call \code{maidr::show()} and

@@ -16,13 +16,15 @@ authors:
 repository-code: "https://github.com/xability/r-maidr"
 url: "https://r.maidr.ai/"
 abstract: >-
-  An R package that converts ggplot2 and Base R plots into interactive,
-  accessible HTML and SVG with keyboard navigation, screen reader support and
-  sonification, for RStudio, R Markdown, Quarto and Shiny.
+  An R package that converts ggplot2 and Base R plots, and experimentally
+  lattice charts, into interactive, accessible HTML and SVG with keyboard
+  navigation, screen reader support and sonification, for RStudio,
+  R Markdown, Quarto and Shiny.
 keywords:
   - accessibility
   - r
   - ggplot2
+  - lattice
   - data visualization
   - sonification
   - braille

@@ -12,7 +12,8 @@ NULL
 #' Renders a plot as a standard PNG image when MAIDR cannot process it.
 #' This is used as a fallback for unsupported plot types or layers.
 #'
-#' @param plot A ggplot2 object or NULL for Base R plots
+#' @param plot A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+#'   plots
 #' @param format Image format: "png" (default), "svg", or "jpeg"
 #' @param width Image width in inches (default: 7)
 #' @param height Image height in inches (default: 5)
@@ -49,6 +50,9 @@ create_fallback_image <- function(plot = NULL, format = "png",
     stop("Unsupported format: ", format, ". Use 'png', 'svg', or 'jpeg'.")
   }
 
+  # Pages of a lattice chart the picture leaves out; see below.
+  pages <- 1
+
   # Render the plot
   tryCatch(
     {
@@ -63,6 +67,9 @@ create_fallback_image <- function(plot = NULL, format = "png",
         # png() device until R runs out of them. The chart that could not be
         # exported is drawn as the picture it is, not re-attempted.
         print_ggplot_natively(plot)
+      } else if (inherits(plot, "trellis")) {
+        # lattice: drawn by lattice, for the same reason, from its first page.
+        pages <- lattice_draw_picture(plot)
       } else {
         stop("Unknown plot type")
       }
@@ -86,6 +93,19 @@ create_fallback_image <- function(plot = NULL, format = "png",
       }
     }
   )
+
+  # Nothing in the picture shows that it is one page of several, so the
+  # pages left out are named, as the interactive reading names them. Said
+  # once the picture is made, so a warning turned into an error cannot turn
+  # the picture into the placeholder.
+  if (isTRUE(pages > 1) && is_fallback_warning_enabled()) {
+    warning(
+      "This lattice chart is laid out on ", pages, " pages. ",
+      "Only the first page is shown as an image; set `layout =` ",
+      "to fit every panel on one page.",
+      call. = FALSE
+    )
+  }
 
   # Read file and convert to base64
   if (!file.exists(temp_file)) {
@@ -154,7 +174,7 @@ replay_base_r_plot <- function(device_id) {
 #'
 #' Creates HTML content with the fallback image, styled to fit in iframes.
 #'
-#' @param plot A ggplot2 object or NULL for Base R plots
+#' @param plot A ggplot2 or trellis object, or NULL for Base R plots
 #' @param shiny If TRUE, returns just the image tag for Shiny/knitr use
 #' @param format Image format. Defaults to the `maidr.fallback_format`
 #'   option, which [maidr_set_fallback()] sets.

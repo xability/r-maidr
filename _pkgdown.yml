@@ -88,12 +88,13 @@ articles:
   # families above so neither list interleaves the two tiers.
   - title: Experimental plot families
     desc: >-
-      Prototype readings of Base R charts: none has been through a user study,
-      and each may change without a deprecation period.
+      Prototype readings of Base R and lattice charts: none has been through a
+      user study, and each may change without a deprecation period.
     navbar: Experimental
     contents:
       - articles/examples-base-r-timeseries
       - articles/examples-base-r-experimental
+      - articles/examples-lattice
 
 reference:
   - title: Main functions
@@ -119,8 +120,8 @@ reference:
 
   - title: Turning interception on and off
     desc: >
-      Interception is on after library(maidr): printing a ggplot2 object
-      opens the viewer and Base R calls are recorded until show(). An
+      Interception is on after library(maidr): printing a ggplot2 or lattice
+      chart opens the viewer and Base R calls are recorded until show(). An
       R Markdown or Quarto document calls maidr_on() in a setup chunk for
       the knitr hooks; the options turn parts of it off.
     contents:

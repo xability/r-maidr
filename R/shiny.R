@@ -31,8 +31,9 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #' Creates a Shiny render function for MAIDR widgets using htmlwidgets.
 #' This provides automatic dependency injection and robust JavaScript initialization.
 #'
-#' @param expr An expression that draws a plot. Either a ggplot object, or
-#'   Base R plotting calls -- their return values differ
+#' @param expr An expression that draws a plot. Either a ggplot object or a
+#'   lattice (trellis) object, returned rather than printed, or Base R
+#'   plotting calls -- their return values differ
 #'   (\code{plot()} returns NULL, \code{barplot()} returns bar midpoints)
 #'   and are ignored; what counts is whether the expression drew. An
 #'   expression that draws nothing and returns NULL renders nothing, per
@@ -88,7 +89,7 @@ render_maidr <- function(expr, env = parent.frame(), quoted = FALSE) {
       has_device_calls(device_after)
     }
 
-    if (inherits(plot_result, "ggplot")) {
+    if (is_maidr_plot_object(plot_result)) {
       maidr_widget(plot_result)
     } else if (drew_something && is_patching_active()) {
       # A Base R call that drew to the recorded device; its return value is

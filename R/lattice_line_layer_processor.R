@@ -1,0 +1,251 @@
+#' lattice Line Layer Processor
+#'
+#' @description
+#' Reads the lines an `xyplot()` panel draws -- `type = "l"`, `"b"`, `"o"`,
+#' the average line of `"a"` -- and a `qqmath()` panel's, as a `line` layer
+#' with one series per group; and the staircase of `type = "s"` or `"S"` as
+#' a `step` layer.
+#'
+#' A line is read in the order it was drawn, which for lattice is the order
+#' of the data: `panel.xyplot()` joins the points as they come, so unsorted
+#' x draws a zigzag, and reading it sorted would describe a line the chart
+#' does not show. A missing y breaks the drawn line and is emitted as a gap
+#' (`y: null`) at its x. A row with no x breaks it too, but has no position
+#' a gap could be put at -- the frontend places a line's points by their x,
+#' a number or a string -- and is left out, as py-maidr leaves out the
+#' matplotlib points with no x: the pieces on either side are read as one.
+#' A value with a break on both sides, such as one between two missing
+#' values, is drawn as nothing at all, and is emitted as a gap as well
+#' (`lattice_line_alone()`).
+#'
+#' A staircase is drawn through `2n - 1` vertices for `n` samples, sorted
+#' by x; the samples are the odd vertices, and `stepDirection` says which
+#' way each riser runs: `"hv"` for `"s"`, `"vh"` for `"S"`. A missing value
+#' breaks the staircase into pieces, and maidr.js 4.11.0 outlines most
+#' samples of a staircase drawn in pieces at a corner rather than at the
+#' sample; what is read is right, only the outline is not. With
+#' `distribute.type = TRUE` that is the type of the layer's own groups,
+#' which the adapter keeps apart by direction, not of the chart's `type`
+#' vector as a whole.
+#'
+#' A line on a factor axis runs through the levels' positions: its x is the
+#' level's name, and on a factor y axis the name goes with the position as
+#' `label`, since the frontend sonifies y and needs it a number. A date or
+#' date-time axis is emitted in milliseconds with a date format, as the
+#' frontend reads a time (`lattice_time_milliseconds()`).
+#'
+#' A panel drawn with `horizontal = TRUE` -- the default of `dotplot()` and
+#' of `stripplot(factor ~ numeric)` -- runs its levels up the y axis and its
+#' values along x, and a line there is a value per level: `panel.average()`
+#' averages x within each y level, and a dot plot's line joins a group's
+#' dots level by level. The frontend walks a line along its x and sonifies
+#' and brailles its y, so that line is read as its vertical transpose is:
+#' x is the level's name and y the value. Read as drawn, y would be the
+#' level's position, `1..n` whatever the values, and groups whose values
+#' differ would share no x for Up and Down to compare them at. A staircase
+#' is left as drawn.
+#'
+#' @keywords internal
+LatticeLineLayerProcessor <- R6::R6Class(
+  "LatticeLineLayerProcessor",
+  inherit = LatticeLayerProcessor,
+  public = list(
+    #' @description Read the layer
+    #' @param plot The trellis object
+    #' @param layout The figure's layout: title and axis labels
+    #' @param built Unused for lattice
+    #' @param gt The drawn chart
+    #' @param grob_id Unused for lattice
+    #' @param panel_id Unused for lattice
+    #' @param panel_ctx The panel the layer was drawn in
+    #' @param layer_info The layer: its type, role and grobs
+    #' @return The layer, or NULL when its marks cannot be read
+    process = function(plot,
+                       layout,
+                       built = NULL,
+                       gt = NULL,
+                       grob_id = NULL,
+                       panel_id = NULL,
+                       panel_ctx = NULL,
+                       layer_info = NULL) {
+      step <- identical(layer_info$type, "step")
+      across <- !step && self$runs_across_levels(panel_ctx)
+      entries <- lattice_sort_entries(layer_info$grobs)
+      grouped <- any(!is.na(vapply(entries, function(e) e$group, integer(1))))
+
+      series <- list()
+      selectors <- list()
+      for (entry in entries) {
+        grob <- self$grob(gt, entry)
+        if (is.null(grob) || !inherits(grob, "lines")) {
+          return(NULL)
+        }
+        points <- if (across) {
+          self$extract_across_levels(plot, panel_ctx, grob)
+        } else {
+          self$extract_series(plot, panel_ctx, grob, step)
+        }
+        # A line through no finite value draws nothing: lattice skips a
+        # group whose values are all missing, but not one whose values are
+        # infinite -- a zero on a log scale is -Inf -- and its series would be
+        # all gaps, with no mark to highlight.
+        if (all(vapply(points, function(point) is.na(point$y), logical(1)))) {
+          next
+        }
+        name <- self$group_label(panel_ctx, entry)
+        if (!is.null(name)) {
+          points <- lapply(points, function(point) c(point, list(z = name)))
+        }
+        series[[length(series) + 1L]] <- points
+        selectors[[length(selectors) + 1L]] <- lattice_grob_selector(entry$name, "polyline")
+      }
+
+      axes <- if (across) {
+        # Transposed with the line: the levels' axis is x, the values' y.
+        attach_axis_format(
+          build_axes(
+            x = layout$y_label,
+            y = layout$x_label,
+            z = if (grouped) panel_ctx$group_title
+          ),
+          "y",
+          lattice_time_format(panel_ctx$x_limits)
+        )
+      } else {
+        self$time_axes(self$layer_axes(layout, panel_ctx, grouped = grouped), panel_ctx)
+      }
+      result <- list(
+        type = if (step) "step" else "line",
+        data = series,
+        selectors = selectors,
+        title = panel_ctx$title,
+        axes = axes
+      )
+      if (step) {
+        # The type the layer's groups were drawn with: under
+        # `distribute.type = TRUE` the chart's `type` vector names every
+        # group's, and holds an "S" whenever any group is drawn with one.
+        type <- lattice_group_type(panel_ctx$args, entries[[1]]$group)
+        result$stepDirection <- if ("S" %in% type) "vh" else "hv"
+      }
+      result
+    },
+
+    #' @description Read one drawn line as a series of points
+    #' @param plot The trellis object
+    #' @param panel_ctx The panel
+    #' @param grob The lines grob
+    #' @param step Whether the line is a staircase
+    #' @return List of points
+    extract_series = function(plot, panel_ctx, grob, step = FALSE) {
+      x <- as.numeric(grob$x)
+      y <- as.numeric(grob$y)
+      if (step) {
+        samples <- seq(1L, length(x), by = 2L)
+        x <- x[samples]
+        y <- y[samples]
+      }
+      # Decided before the rows with no x are left out, since each of them
+      # breaks the line where it stands. A staircase, whose samples are
+      # every other vertex, is read as it was.
+      alone <- if (step) logical(length(x)) else lattice_line_alone(x, y)
+      # A row with no x has no position, gap or not.
+      drawn <- is.finite(x)
+      x <- x[drawn]
+      y <- y[drawn]
+      # A gap is where no line was drawn, which is decided in the units
+      # lattice drew in: a zero on a log scale is drawn at -Inf, which is no
+      # position, and back on the data's scale it would read as 0.
+      gap <- !is.finite(y) | alone[drawn]
+
+      x_value <- if (is.character(panel_ctx$x_limits)) {
+        self$category_of(x, panel_ctx$x_limits)$label
+      } else {
+        self$position_values(x, "x", plot, panel_ctx)
+      }
+      y_categories <- is.character(panel_ctx$y_limits)
+      y_value <- if (y_categories) y else self$position_values(y, "y", plot, panel_ctx)
+      y_label <- if (y_categories) self$category_of(y, panel_ctx$y_limits)$label
+
+      lapply(seq_along(x), function(i) {
+        point <- list(x = x_value[i], y = if (gap[i]) NA else y_value[i])
+        if (y_categories && !gap[i] && !is.na(y_label[i])) {
+          point$label <- y_label[i]
+        }
+        point
+      })
+    },
+
+    #' @description Whether the panel's lines run through levels up the y axis
+    #' @param panel_ctx The panel
+    #' @return TRUE when the panel is drawn with `horizontal = TRUE`, its y
+    #'   axis a factor and its x axis not
+    runs_across_levels = function(panel_ctx) {
+      isTRUE(panel_ctx$args[["horizontal"]]) &&
+        is.character(panel_ctx$y_limits) &&
+        !is.character(panel_ctx$x_limits)
+    },
+
+    #' @description Read a line through the levels up the y axis, transposed
+    #'
+    #' The level a vertex is drawn at is its position, and a vertex drawn at
+    #' no level has none. A missing value breaks the drawn line and is
+    #' emitted as a gap (`y: null`) at its level, as is a value drawn as
+    #' nothing (`lattice_line_alone()`).
+    #'
+    #' @param plot The trellis object
+    #' @param panel_ctx The panel
+    #' @param grob The lines grob
+    #' @return List of points: `x` the level's name, `y` the value
+    extract_across_levels = function(plot, panel_ctx, grob) {
+      value <- as.numeric(grob$x)
+      level <- as.numeric(grob$y)
+      alone <- lattice_line_alone(value, level)
+      drawn <- is.finite(level)
+      value <- value[drawn]
+      name <- self$category_of(level[drawn], panel_ctx$y_limits)$label
+      gap <- !is.finite(value) | alone[drawn]
+      value <- self$position_values(value, "x", plot, panel_ctx)
+      lapply(seq_along(value), function(i) {
+        list(x = name[i], y = if (gap[i]) NA else value[i])
+      })
+    }
+  )
+)
+
+#' A layer's grob entries in group order
+#'
+#' @param entries Grob entries of one layer
+#' @return The entries, ungrouped first, then by group number
+#' @keywords internal
+lattice_sort_entries <- function(entries) {
+  groups <- vapply(entries, function(e) {
+    if (is.null(e$group) || is.na(e$group)) 0L else as.integer(e$group)
+  }, integer(1))
+  entries[order(groups)]
+}
+
+#' The values of a line that nothing is drawn for
+#'
+#' grid draws a line as its runs of two or more finite vertices: a missing
+#' or infinite coordinate breaks it, and a vertex with a break or an end of
+#' the line on both sides -- a value between two missing ones, or next to
+#' one at the line's end, or a line's only value -- is in no run, so it is
+#' drawn as nothing and the SVG holds no vertex for it. The frontend pairs
+#' a line's readings with its vertices in order, and when there are more
+#' readings than vertices it places the readings by their x between the
+#' first vertex and the last, which puts them off their vertices, and all
+#' on the first one when x is a level's name. Such a value is read as the
+#' gap the chart shows; with `type = "b"` or `"o"` its point is still read,
+#' in the point layer.
+#'
+#' @param x,y The line's coordinates, in the order drawn
+#' @return Logical, one per vertex: `TRUE` for a finite one that no segment
+#'   is drawn through
+#' @keywords internal
+lattice_line_alone <- function(x, y) {
+  finite <- is.finite(x) & is.finite(y)
+  n <- length(finite)
+  joined <- c(finite[-1L], FALSE) | c(FALSE, finite[-n])
+  finite & !joined
+}

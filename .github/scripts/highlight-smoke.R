@@ -19,6 +19,12 @@
 # mark: a stacked bar with an empty first cell would highlight nothing and
 # say nothing about the contract.
 #
+# lattice charts are here too, one of each reading its bar, histogram,
+# scatter, line, curve, heat, box and dot layers carry, because every one
+# of them is addressed by the names lattice gives its grobs rather than by
+# anything the other two systems share -- and a time series, whose line is
+# drawn by another panel function under the same names.
+#
 #     Rscript .github/scripts/highlight-smoke.R <out-dir>
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -31,6 +37,7 @@ dir.create(out, showWarnings = FALSE, recursive = TRUE)
 suppressPackageStartupMessages({
   library(maidr)
   library(ggplot2)
+  library(lattice)
 })
 options(maidr.auto_show = FALSE)
 
@@ -104,6 +111,35 @@ write_ggplot(
   ggplot(data.frame(x = c(0, 4, 6, 2), y = c(0, 1, 5, 4)), aes(x, y)) +
     geom_polygon()
 )
+
+# lattice draws with grid, as ggplot2 does, and its marks are exported under
+# the names lattice gives them. The bar-shaped ones are drawn vertically so
+# the height ranking below applies to them; the grouped bars are addressed
+# one id per bar, which is the contract the ranking checks.
+write_lattice <- function(name, plot) {
+  save_html(plot, file.path(out, paste0(name, ".html")), use_cdn = FALSE)
+}
+
+write_lattice("lattice-bar", barchart(y ~ x, three))
+write_lattice("lattice-hist", histogram(~mpg, mtcars, nint = 8))
+write_lattice(
+  "lattice-dodged",
+  barchart(val ~ cat, crossed, groups = grp, stack = FALSE)
+)
+write_lattice(
+  "lattice-stacked",
+  barchart(val ~ cat, crossed, groups = grp, stack = TRUE)
+)
+write_lattice("lattice-point", xyplot(mpg ~ wt, mtcars))
+write_lattice(
+  "lattice-line",
+  xyplot(y ~ x, data.frame(x = 1:10, y = (1:10)^2), type = "l")
+)
+write_lattice("lattice-ts", xyplot(ldeaths))
+write_lattice("lattice-smooth", densityplot(~mpg, mtcars, plot.points = FALSE))
+write_lattice("lattice-heat", levelplot(v ~ factor(x) * factor(y), heat))
+write_lattice("lattice-box", bwplot(mpg ~ factor(cyl), mtcars))
+write_lattice("lattice-dot", dotplot(x ~ y, three))
 
 maidr_on()
 write_base_r <- function(name, draw) {

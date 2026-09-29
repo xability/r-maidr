@@ -454,3 +454,77 @@ test_that("registry handles re-registration of same system", {
   # Cleanup
   registry$unregister_system("test_reregister")
 })
+
+# ==============================================================================
+# lattice Tests
+# ==============================================================================
+
+test_that("detect_system() returns correct system for lattice", {
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::get_global_registry()
+  adapter <- maidr:::LatticeAdapter$new()
+  factory <- maidr:::LatticeProcessorFactory$new()
+  registry$register_system("lattice", adapter, factory)
+
+  p <- lattice::xyplot(mpg ~ wt, mtcars)
+
+  system_name <- registry$detect_system(p)
+  testthat::expect_equal(system_name, "lattice")
+})
+
+test_that("detect_system() finds lattice registered after base_r with a Base R chart recorded", {
+  # The Base R adapter used to claim any object while the device held a
+  # recorded call, so a trellis object went to whichever of the two was
+  # registered first. It declines plot objects now, and order is moot.
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::PlotSystemRegistry$new()
+  registry$register_system(
+    "base_r", maidr:::BaseRAdapter$new(), maidr:::BaseRProcessorFactory$new()
+  )
+  registry$register_system(
+    "lattice", maidr:::LatticeAdapter$new(), maidr:::LatticeProcessorFactory$new()
+  )
+
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+  barplot(c(10, 20, 30))
+
+  testthat::expect_equal(registry$detect_system(lattice::xyplot(mpg ~ wt, mtcars)), "lattice")
+  testthat::expect_equal(registry$detect_system(NULL), "base_r")
+})
+
+test_that("registry works end-to-end with lattice", {
+  testthat::skip_if_not_installed("lattice")
+
+  registry <- maidr:::get_global_registry()
+  adapter <- maidr:::LatticeAdapter$new()
+  factory <- maidr:::LatticeProcessorFactory$new()
+  registry$register_system("lattice", adapter, factory)
+
+  p <- lattice::barchart(VADeaths)
+
+  # Detect system
+  system_name <- registry$detect_system(p)
+  testthat::expect_equal(system_name, "lattice")
+
+  # Get adapter
+  retrieved_adapter <- registry$get_adapter(system_name)
+  testthat::expect_s3_class(retrieved_adapter, "LatticeAdapter")
+
+  # Get factory
+  retrieved_factory <- registry$get_processor_factory(system_name)
+  testthat::expect_s3_class(retrieved_factory, "LatticeProcessorFactory")
+
+  # Adapter can handle plot
+  testthat::expect_true(retrieved_adapter$can_handle(p))
+})

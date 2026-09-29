@@ -7,7 +7,8 @@
 save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
 }
 \arguments{
-\item{plot}{A ggplot2 object or NULL for Base R auto-detection}
+\item{plot}{A ggplot2 object, a lattice (trellis) object, or NULL for Base R
+auto-detection}
 
 \item{file}{File path where to save the HTML file (e.g., "plot.html")}
 
@@ -30,7 +31,7 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 The file path where the HTML was saved (invisibly)
 }
 \description{
-Save a ggplot2 or Base R plot as an HTML file with interactive MAIDR
+Save a ggplot2, lattice or Base R plot as an HTML file with interactive MAIDR
 accessibility features.
 }
 \details{
@@ -57,6 +58,14 @@ p_violin <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   labs(title = "MPG by Cylinders", x = "Cylinders", y = "MPG")
 \donttest{
 maidr::save_html(p_violin, tempfile(fileext = ".html"))
+}
+
+# lattice chart [experimental]
+\donttest{
+if (requireNamespace("lattice", quietly = TRUE)) {
+  p_lattice <- lattice::bwplot(factor(cyl) ~ mpg, data = mtcars)
+  maidr::save_html(p_lattice, tempfile(fileext = ".html"))
+}
 }
 
 # Base R example (requires interactive session for function patching)

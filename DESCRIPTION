@@ -10,8 +10,9 @@ URL: https://github.com/xability/r-maidr, https://r.maidr.ai/
 BugReports: https://github.com/xability/r-maidr/issues
 Description: Provides accessible, interactive visualizations through the 'MAIDR'
     (Multimodal Access and Interactive Data Representation) system. Converts
-    'ggplot2' and Base R plots into accessible HTML/SVG formats with keyboard
-    navigation, screen reader support, and 'sonification' capabilities. Supports
+    'ggplot2' and Base R plots, and experimentally 'lattice' charts, into
+    accessible HTML/SVG formats with keyboard navigation, screen reader
+    support, and 'sonification' capabilities. Supports
     bar charts (simple, grouped, stacked), pie charts, histograms, line plots,
     step plots, scatter plots, box plots, violin plots, candlestick (OHLC)
     charts, heat maps, density/smooth curves, faceted plots,
@@ -68,7 +69,9 @@ Suggests:
     yardstick,
     plotly,
     highcharter,
-    echarts4r
+    echarts4r,
+    lattice,
+    latticeExtra
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

@@ -7,8 +7,9 @@
 render_maidr(expr, env = parent.frame(), quoted = FALSE)
 }
 \arguments{
-\item{expr}{An expression that draws a plot. Either a ggplot object, or
-Base R plotting calls -- their return values differ
+\item{expr}{An expression that draws a plot. Either a ggplot object or a
+lattice (trellis) object, returned rather than printed, or Base R
+plotting calls -- their return values differ
 (\code{plot()} returns NULL, \code{barplot()} returns bar midpoints)
 and are ignored; what counts is whether the expression drew. An
 expression that draws nothing and returns NULL renders nothing, per

@@ -100,7 +100,7 @@ maidr_htmlwidget_adapter <- function(widget) {
   if (!inherits(widget, "htmlwidget")) {
     stop(
       "`widget` must be an htmlwidget from plotly, highcharter or echarts4r. ",
-      "For a ggplot2 or Base R plot, use maidr::show() instead.",
+      "For a ggplot2, lattice or Base R plot, use maidr::show() instead.",
       call. = FALSE
     )
   }

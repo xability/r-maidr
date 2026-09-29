@@ -642,3 +642,147 @@ test_that("Both factories create processors with correct layer_info", {
   testthat::expect_equal(ggplot2_processor$get_layer_index(), 5)
   testthat::expect_equal(base_r_processor$get_layer_index(), 5)
 })
+
+# ==============================================================================
+# LatticeProcessorFactory Initialization Tests
+# ==============================================================================
+
+test_that("LatticeProcessorFactory initializes correctly", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  testthat::expect_s3_class(factory, "LatticeProcessorFactory")
+  testthat::expect_s3_class(factory, "ProcessorFactory")
+  testthat::expect_true(R6::is.R6(factory))
+})
+
+test_that("LatticeProcessorFactory get_system_name returns lattice", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  result <- factory$get_system_name()
+  testthat::expect_equal(result, "lattice")
+})
+
+test_that("LatticeProcessorFactory get_supported_types returns expected types", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  types <- factory$get_supported_types()
+
+  testthat::expect_type(types, "character")
+  for (type in c(
+    "point", "dot", "lollipop", "line", "step", "smooth", "bar",
+    "dodged_bar", "stacked_bar", "hist", "box", "heat", "contour", "unknown"
+  )) {
+    testthat::expect_true(type %in% types, info = type)
+  }
+})
+
+test_that("LatticeProcessorFactory supports_plot_type works correctly", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  testthat::expect_true(factory$supports_plot_type("bar"))
+  testthat::expect_true(factory$supports_plot_type("point"))
+  testthat::expect_true(factory$supports_plot_type("line"))
+  testthat::expect_true(factory$supports_plot_type("unknown"))
+  testthat::expect_false(factory$supports_plot_type("violin"))
+  testthat::expect_false(factory$supports_plot_type("unsupported_type"))
+})
+
+# ==============================================================================
+# LatticeProcessorFactory create_processor Tests
+# ==============================================================================
+
+test_that("LatticeProcessorFactory create_processor errors on NULL layer_info", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  testthat::expect_error(
+    factory$create_processor("bar", NULL),
+    "Layer info must be provided"
+  )
+})
+
+test_that("LatticeProcessorFactory creates the processor for each type", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+  layer_info <- list(index = 1)
+
+  expected <- c(
+    point = "LatticePointLayerProcessor",
+    dot = "LatticeDotLayerProcessor",
+    lollipop = "LatticeLollipopLayerProcessor",
+    line = "LatticeLineLayerProcessor",
+    # A staircase is drawn by the same grob as a line.
+    step = "LatticeLineLayerProcessor",
+    smooth = "LatticeSmoothLayerProcessor",
+    # Grouped bars are the same marks read as a grid.
+    bar = "LatticeBarLayerProcessor",
+    dodged_bar = "LatticeBarLayerProcessor",
+    stacked_bar = "LatticeBarLayerProcessor",
+    hist = "LatticeHistogramLayerProcessor",
+    box = "LatticeBoxLayerProcessor",
+    heat = "LatticeHeatmapLayerProcessor",
+    contour = "LatticeContourLayerProcessor"
+  )
+  for (type in names(expected)) {
+    processor <- factory$create_processor(type, layer_info)
+    testthat::expect_s3_class(processor, expected[[type]])
+    testthat::expect_s3_class(processor, "LatticeLayerProcessor")
+    testthat::expect_s3_class(processor, "LayerProcessor")
+  }
+})
+
+test_that("LatticeProcessorFactory creates unknown processor for unrecognized types", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+  layer_info <- list(index = 1)
+
+  processor <- factory$create_processor("unsupported_type", layer_info)
+
+  testthat::expect_s3_class(processor, "LatticeUnknownLayerProcessor")
+  testthat::expect_s3_class(processor, "LayerProcessor")
+})
+
+# ==============================================================================
+# LatticeProcessorFactory Utility Methods Tests
+# ==============================================================================
+
+test_that("LatticeProcessorFactory is_processor_available returns logical", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  testthat::expect_true(factory$is_processor_available("LatticeBarLayerProcessor"))
+  testthat::expect_false(factory$is_processor_available("NonExistentProcessor"))
+  testthat::expect_false(factory$is_processor_available("FakeProcessor"))
+})
+
+test_that("LatticeProcessorFactory available processors are the ones it ships", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+
+  processors <- factory$get_available_processors()
+
+  testthat::expect_type(processors, "character")
+  testthat::expect_gt(length(processors), 0)
+  testthat::expect_true("LatticeBarLayerProcessor" %in% processors)
+  testthat::expect_true("LatticeUnknownLayerProcessor" %in% processors)
+})
+
+test_that("LatticeProcessorFactory available processors cannot drift from its dispatch", {
+  # The same guard as the other two factories' (#200): the list is read off
+  # `create_processor()`, so it cannot be a second copy that goes stale.
+  factory <- maidr:::LatticeProcessorFactory$new()
+  dispatched <- maidr:::dispatched_processor_classes(
+    maidr:::LatticeProcessorFactory, "Lattice"
+  )
+
+  testthat::expect_gt(length(dispatched), 0)
+  testthat::expect_setequal(factory$get_available_processors(), dispatched)
+  testthat::expect_true(all(vapply(
+    dispatched, maidr:::processor_class_exists, logical(1)
+  )))
+})
+
+test_that("LatticeProcessorFactory creates processors with correct layer_info", {
+  factory <- maidr:::LatticeProcessorFactory$new()
+  layer_info <- list(index = 5, type = "bar")
+
+  processor <- factory$create_processor("bar", layer_info)
+
+  testthat::expect_equal(processor$get_layer_index(), 5)
+  testthat::expect_identical(processor$layer_info, layer_info)
+})
