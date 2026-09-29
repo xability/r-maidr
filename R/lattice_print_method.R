@@ -472,8 +472,14 @@ use_default_device <- function() {
 #' @return NULL (invisible)
 #' @keywords internal
 open_default_device <- function() {
+  before <- grDevices::dev.list()
   grDevices::dev.new()
-  remember_default_device()
+  # Only a device dev.new() opened: RStudio Server allows one device of its
+  # own, and refusing a second, leaves the one current before -- MAIDR's
+  # hidden device, say -- current.
+  if (!identical(grDevices::dev.list(), before)) {
+    remember_default_device()
+  }
 }
 
 #' Draw natively, remembering the device R opens when none is open
