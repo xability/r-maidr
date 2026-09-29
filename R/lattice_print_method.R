@@ -344,6 +344,10 @@ print_trellis_natively <- function(x, ...) {
   none_open <- grDevices::dev.cur() == 1L
   draw(x, ...)
   if (none_open && grDevices::dev.cur() != 1L) {
+    # A mark only this device carries: a pdf() the reader opens once it is
+    # closed gets its number, name and default file. `err` is a graphical
+    # parameter R documents as unimplemented, so setting it draws nothing.
+    graphics::par(err = -1L)
     .maidr_lattice_state$default_device <- current_device_identity()
   }
   invisible(x)
@@ -353,15 +357,20 @@ print_trellis_natively <- function(x, ...) {
 #'
 #' R gives a closed device's number to the next device opened, so the
 #' number is kept with the device's name and, for a file device, the file
-#' `.Devices` records.
+#' `.Devices` records. Those three are all a `pdf()` opened on R's default
+#' file once the default device is closed has too, so `marked` is kept as
+#' well: whether the device carries the mark [print_trellis_natively()] sets
+#' on the device R opened by default.
 #'
-#' @return A list: `number`, `name` and `path` (`NULL` for no file).
+#' @return A list: `number`, `name`, `path` (`NULL` for no file) and
+#'   `marked`.
 #' @keywords internal
 current_device_identity <- function() {
   device <- grDevices::dev.cur()
   list(
     number = unname(device),
     name = names(device),
-    path = attr(get(".Devices", envir = baseenv())[[device]], "filepath")
+    path = attr(get(".Devices", envir = baseenv())[[device]], "filepath"),
+    marked = identical(graphics::par("err"), -1L)
   )
 }

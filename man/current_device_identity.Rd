@@ -7,11 +7,15 @@
 current_device_identity()
 }
 \value{
-A list: \code{number}, \code{name} and \code{path} (\code{NULL} for no file).
+A list: \code{number}, \code{name}, \code{path} (\code{NULL} for no file) and
+\code{marked}.
 }
 \description{
 R gives a closed device's number to the next device opened, so the
 number is kept with the device's name and, for a file device, the file
-\code{.Devices} records.
+\code{.Devices} records. Those three are all a \code{pdf()} opened on R's default
+file once the default device is closed has too, so \code{marked} is kept as
+well: whether the device carries the mark \code{\link[=print_trellis_natively]{print_trellis_natively()}} sets
+on the device R opened by default.
 }
 \keyword{internal}

@@ -1309,6 +1309,62 @@ test_that("the default device a native drawing opened stays the reader's screen"
   expect_emitted(session, "pages_after", "1")
 })
 
+test_that("a pdf() the reader opens once that default device is closed gets the chart", {
+  skip_if_no_lattice()
+  # R gives the closed device's number to the next one, and pdf() with no
+  # file writes Rplots.pdf, so the reader's own pdf() has the number, name
+  # and file of the device R opened by default. It is a file the reader
+  # chose, and a print there is drawn into it, not taken to the viewer.
+  session <- in_fresh_session(c(
+    "work <- tempfile('maidr-session-')",
+    "dir.create(work)",
+    "setwd(work)",
+    "options(device = 'pdf')",
+    "load_maidr()",
+    "invisible(loadNamespace('lattice'))",
+    "pages <- 0L",
+    "view <- function(p, ...) testthat::with_mocked_bindings(",
+    "  print(p, ...),",
+    "  session_is_interactive = function() TRUE,",
+    "  display_html = function(html_doc) pages <<- pages + 1L,",
+    "  .package = 'maidr'",
+    ")",
+    "view(lattice::cloud(mpg ~ wt * hp, data = mtcars))",
+    "invisible(grDevices::dev.off())",
+    "grDevices::pdf()",
+    "emit('reused', paste(grDevices::dev.cur(), names(grDevices::dev.cur())))",
+    "view(lattice::xyplot(mpg ~ wt, data = mtcars))",
+    "emit('pages_after_pdf', pages)",
+    sprintf(
+      "emit('drawn_in_file', any(grepl(%s, grid::grid.ls(print = FALSE)$name)))",
+      deparse(scatter_points)
+    ),
+    "invisible(grDevices::dev.off())",
+    # A composition opens the default device the same way.
+    "view(lattice::xyplot(mpg ~ wt, data = mtcars), split = c(1, 1, 2, 1))",
+    "invisible(grDevices::graphics.off())",
+    "grDevices::pdf()",
+    "view(lattice::xyplot(mpg ~ wt, data = mtcars))",
+    "emit('pages_after_composition', pages)",
+    "invisible(grDevices::dev.off())",
+    # Closed and opened again within one call, as a function or a sourced
+    # script does, with nothing run between the two.
+    "view(lattice::cloud(mpg ~ wt * hp, data = mtcars))",
+    "local({",
+    "  grDevices::dev.off()",
+    "  grDevices::pdf()",
+    "  view(lattice::xyplot(mpg ~ wt, data = mtcars))",
+    "})",
+    "emit('pages_within_one_call', pages)",
+    "invisible(grDevices::dev.off())"
+  ))
+  expect_emitted(session, "reused", "2 pdf")
+  expect_emitted(session, "pages_after_pdf", "0")
+  expect_emitted(session, "drawn_in_file", "TRUE")
+  expect_emitted(session, "pages_after_composition", "0")
+  expect_emitted(session, "pages_within_one_call", "0")
+})
+
 test_that("an option off when lattice loads and set back on opens the viewer, as ggplot2's does", {
   skip_if_no_lattice()
 
