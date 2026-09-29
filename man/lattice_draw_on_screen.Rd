@@ -30,7 +30,7 @@ one screen (\code{\link[=use_default_device]{use_default_device()}}), with the t
 have been closed before the page was finished. The hidden device is made
 current again for the Base R chart it holds. A chart drawn into a page
 made on the hidden device itself (\code{draw.in}, or \code{newpage = FALSE} with no
-page being composed) stays there, with that page and its viewports, and
-so does one MAIDR draws while it renders.
+page being composed) stays there, with that page and its viewports, as do
+the charts that join it, and so does one MAIDR draws while it renders.
 }
 \keyword{internal}

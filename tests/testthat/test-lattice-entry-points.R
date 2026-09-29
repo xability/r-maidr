@@ -1030,21 +1030,72 @@ test_that("a page whose screen was closed before it was finished goes on a new s
   fresh <- use_new_screen()
   on.exit(fresh$close(), add = TRUE)
   viewer <- local_console()
+  box <- lattice::bwplot(factor(cyl) ~ mpg, data = datasets::mtcars)
+  lattice_drawn_on <- function(device) {
+    grep("\\.(xyplot|bwplot)\\.", drawn_on(device), value = TRUE)
+  }
+  # The reader closes the window a page is on, and R makes the hidden device
+  # current again, as it does when that is the only other device open.
+  close_screen <- function(device) {
+    grDevices::dev.off(device)
+    grDevices::dev.set(screen$device)
+  }
 
-  # The reader closes the screen the page was started on, and carries on
-  # with the page: without MAIDR, lattice would draw the rest on a new
-  # screen, and it does, rather than into MAIDR's hidden device.
+  # lattice's record of a page still being composed outlives the device the
+  # page is on, and without MAIDR the page goes on on a new screen. On the
+  # hidden device it would go into the temporary file show() deletes.
   barplot(c(3, 1, 2))
   print(mtcars_scatter(), split = c(1, 1, 2, 1), more = TRUE)
-  grDevices::dev.off(fresh$opened())
-  print(lattice::bwplot(factor(cyl) ~ mpg, data = datasets::mtcars), split = c(2, 1, 2, 1))
+  close_screen(fresh$opened())
+  print(mtcars_scatter(), split = c(1, 1, 2, 1), more = TRUE)
+  print(box, split = c(2, 1, 2, 1))
 
-  testthat::expect_length(viewer$pages, 0L)
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(has_scatter(opened))
+  testthat::expect_true(any(grepl("\\.bwplot\\.", drawn_on(opened))))
+  testthat::expect_length(lattice_drawn_on(screen$device), 0L)
+  testthat::expect_identical(grDevices::dev.cur(), screen$device)
+
+  # A page lattice started on a screen of the reader's, which MAIDR never
+  # moved, goes on the same way once that screen is closed.
+  close_screen(opened)
+  grDevices::dev.new()
+  print(mtcars_scatter(), split = c(1, 1, 2, 1), more = TRUE)
+  close_screen(grDevices::dev.cur())
+  print(box, split = c(2, 1, 2, 1))
   opened <- fresh$opened()
   testthat::expect_length(opened, 1L)
   testthat::expect_true(any(grepl("\\.bwplot\\.", drawn_on(opened))))
-  testthat::expect_false(any(grepl("\\.(xyplot|bwplot)\\.", drawn_on(screen$device))))
+  testthat::expect_length(lattice_drawn_on(screen$device), 0L)
+
+  # So does a chart plot() draws once a page left unfinished has lost its
+  # screen, as graphics.off() leaves one.
+  close_screen(opened)
+  print(box, split = c(1, 1, 2, 1), more = TRUE)
+  close_screen(fresh$opened())
+  shown <- withVisible(maidr::plot(mtcars_scatter()))
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(has_scatter(opened))
+  testthat::expect_false(shown$visible)
+  testthat::expect_length(lattice_drawn_on(screen$device), 0L)
+
+  # A page made on the hidden device itself keeps the charts that join it.
+  grid::grid.newpage()
+  print(mtcars_scatter(), newpage = FALSE, split = c(1, 1, 2, 1), more = TRUE)
+  print(box, split = c(2, 1, 2, 1))
+  testthat::expect_true(has_scatter(screen$device))
+  testthat::expect_true(any(grepl("\\.bwplot\\.", drawn_on(screen$device))))
+  testthat::expect_identical(fresh$opened(), opened)
+
   testthat::expect_identical(grDevices::dev.cur(), screen$device)
+  testthat::expect_length(viewer$pages, 0L)
+  recorded <- maidr:::get_device_calls(screen$device)
+  testthat::expect_identical(
+    vapply(recorded, function(call) call$function_name, character(1)),
+    "barplot"
+  )
   testthat::expect_false(maidr:::lattice_page_open())
 })
 

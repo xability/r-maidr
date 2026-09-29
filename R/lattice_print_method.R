@@ -380,8 +380,8 @@ print_trellis_natively <- function(x, ...) {
 #' have been closed before the page was finished. The hidden device is made
 #' current again for the Base R chart it holds. A chart drawn into a page
 #' made on the hidden device itself (`draw.in`, or `newpage = FALSE` with no
-#' page being composed) stays there, with that page and its viewports, and
-#' so does one MAIDR draws while it renders.
+#' page being composed) stays there, with that page and its viewports, as do
+#' the charts that join it, and so does one MAIDR draws while it renders.
 #'
 #' @param x A trellis object
 #' @param ... The arguments of the print or `plot()` call besides the object
@@ -401,8 +401,18 @@ lattice_draw_on_screen <- function(x, ..., .draw) {
     return(.draw(x, ...))
   }
   page_open <- lattice_page_open()
-  if (!is.null(args[["draw.in"]]) || (!page_open && identical(args[["newpage"]], FALSE))) {
-    return(.draw(x, ...))
+  page <- .maidr_lattice_state$shared_page
+  here <- current_device_identity()
+  # A page made on the hidden device itself -- drawn into with `draw.in`, or
+  # with `newpage = FALSE` -- stays there with its viewports, and so do the
+  # charts that join it. Remembered, it is told apart from a page whose
+  # screen is gone: lattice keeps one record of a page being composed, for
+  # every device, and it outlives the device the page is on.
+  if (!is.null(args[["draw.in"]]) || (!page_open && identical(args[["newpage"]], FALSE)) ||
+    (page_open && identical(page, here))) {
+    drawn <- withVisible(.draw(x, ...))
+    .maidr_lattice_state$shared_page <- if (lattice_page_open()) here
+    return(if (drawn$visible) drawn$value else invisible(drawn$value))
   }
 
   x <- lattice_carry_theme(x)
@@ -412,7 +422,6 @@ lattice_draw_on_screen <- function(x, ..., .draw) {
     add = TRUE
   )
   if (page_open) {
-    page <- .maidr_lattice_state$shared_page
     if (!is.null(page) && page$number %in% grDevices::dev.list()) {
       grDevices::dev.set(page$number)
     }
