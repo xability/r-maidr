@@ -12,6 +12,8 @@
 # is what these tests pin - the title is checked against the text ggplot2
 # actually exported, not against a literal chosen here.
 
+skip_slow_file_on_cran()
+
 # Held at file scope rather than built inside the helpers below: the
 # processor resolves column names with `rlang::as_label()`, so the mapping has
 # to stay written as bare `cat` / `val` / `fill`.

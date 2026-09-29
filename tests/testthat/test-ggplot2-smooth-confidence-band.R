@@ -23,6 +23,8 @@
 # The Python binding emits the same shape for `sns.regplot`
 # (xability/py-maidr#425), so the two bindings describe an interval alike.
 
+skip_slow_file_on_cran()
+
 smooth_band_df <- function() {
   set.seed(1)
   data.frame(x = 1:20, y = (1:20) + stats::rnorm(20, sd = 3))

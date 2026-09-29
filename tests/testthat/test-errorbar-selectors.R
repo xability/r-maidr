@@ -9,6 +9,8 @@
 # as long as the layer's data and discards it otherwise, so a count that is
 # merely non-zero is not enough: it has to be right.
 
+skip_slow_file_on_cran()
+
 skip_if_no_export <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

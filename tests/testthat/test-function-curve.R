@@ -17,6 +17,8 @@
 # are no observations to announce and the sample count is a drawing parameter,
 # not data. That is the distinction `smooth` already carries in this package.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

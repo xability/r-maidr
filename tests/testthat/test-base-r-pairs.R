@@ -23,6 +23,8 @@
 # a three-column matrix: six panels, three elements each, eighteen `<use>`
 # elements on the page.
 
+skip_slow_file_on_cran()
+
 #' The subplot grid a base R drawing produces
 #'
 #' `base_r_layers()` answers with the first cell's layers, which is the whole

@@ -16,6 +16,8 @@
 # data would drop it silently, which is worse than the honest picture -- the
 # reader is not told anything is missing.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

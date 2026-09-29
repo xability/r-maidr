@@ -27,6 +27,8 @@
 # limit, and the way to have both is `geom_tile()`, which draws a `<rect>` per
 # cell and reads identically.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

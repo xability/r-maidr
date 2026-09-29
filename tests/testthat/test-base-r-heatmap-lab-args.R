@@ -13,6 +13,8 @@
 # the top. That convention is unchanged here and is what `rev()` below undoes
 # before comparing against the drawn labels.
 
+skip_slow_file_on_cran()
+
 lab_matrix <- function() {
   matrix(
     c(1, 9, 2, 8, 3, 7, 4, 6, 5, 2, 2, 9, 7, 1, 4),

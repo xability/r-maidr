@@ -14,6 +14,8 @@
 # reachable input: ggplot2 lays out a third panel and draws nothing in it,
 # so the panel grob resolves but holds no marks.
 
+skip_slow_file_on_cran()
+
 skip_if_no_ggplot2 <- function() {
   testthat::skip_if_not_installed("ggplot2")
 }

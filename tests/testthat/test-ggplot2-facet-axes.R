@@ -6,6 +6,8 @@
 # stat-computed "count" of geom_bar(), the mapped column names, and the legend
 # title a grouped layer needs so MAIDR announces it instead of "Group".
 
+skip_slow_file_on_cran()
+
 facet_payload <- function(plot) {
   file <- tempfile(fileext = ".html")
   on.exit(unlink(file), add = TRUE)

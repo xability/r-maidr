@@ -11,6 +11,8 @@
 # entirely of proportions. `geom_col()` has no `count` column and so was never
 # affected, which is why this needs testing on both geoms rather than one.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

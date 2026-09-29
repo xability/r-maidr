@@ -15,6 +15,8 @@
 # Either way a reader arrowing into that panel is told there is nothing there,
 # while ggplot2 has drawn bars or tiles in it and written "NA" on its strip.
 
+skip_slow_file_on_cran()
+
 # Held at file scope: the processors resolve column names with
 # `rlang::as_label()`, so the mappings have to stay written as bare columns.
 na_dodged_aes <- ggplot2::aes(x = cat, y = val, fill = fill)

@@ -27,6 +27,8 @@
 # was declined before is claimed now. A flat one is a gantt written the other
 # way round: a lane per y, running from x to x + radius.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

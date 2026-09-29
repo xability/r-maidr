@@ -11,6 +11,8 @@
 # of the exported SVG, and the marks it addresses must be the leaf's own -
 # a lookup that lands on a neighbour's panel resolves just as happily.
 
+skip_slow_file_on_cran()
+
 skip_if_no_patchwork <- function() {
   testthat::skip_if_not_installed("patchwork")
   testthat::skip_if_not_installed("xml2")

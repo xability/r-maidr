@@ -17,6 +17,8 @@
 # cells rely on - against the rects the pipeline really exports, at each of the
 # three places a gap can fall: the start, the middle and the end of the frame.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

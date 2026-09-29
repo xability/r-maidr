@@ -9,6 +9,8 @@
 # its y values actually track the expression the user wrote, so the data
 # assertions recompute the function rather than checking that points exist.
 
+skip_slow_file_on_cran()
+
 # Read every maidr-data payload back out of a rendered HTML file.
 read_curve_payloads <- function(file) {
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")

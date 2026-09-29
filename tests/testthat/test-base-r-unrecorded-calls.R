@@ -39,6 +39,8 @@
 # established about them is that a recorded call never stops the save, and
 # that still has to hold on the far side of gaining a reading.
 
+skip_slow_file_on_cran()
+
 skip_unless_jsonlite <- function() {
   testthat::skip_if_not_installed("jsonlite")
 }

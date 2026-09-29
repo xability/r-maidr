@@ -25,6 +25,8 @@
 # not observations" for those spellings, which is worth less than a chart that
 # renders.
 
+skip_slow_file_on_cran()
+
 positions <- ggplot2::aes(x = x, y = y)
 
 observations <- function() {

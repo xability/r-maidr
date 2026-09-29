@@ -13,6 +13,8 @@
 # property that makes the central fix safe: the argument R dispatches on is
 # left exactly as the user wrote it, so replay still reaches the same method.
 
+skip_slow_file_on_cran()
+
 setup_positional <- function() {
   maidr:::clear_all_device_storage()
 }

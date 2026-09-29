@@ -7,6 +7,8 @@
 # unsupported call; the whole-figure fallback survives only where there
 # is no panel to scope to.
 
+skip_slow_file_on_cran()
+
 # Read every maidr-data payload back out of a rendered HTML file.
 read_maidr_payloads <- function(file) {
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")

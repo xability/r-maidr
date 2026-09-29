@@ -314,3 +314,27 @@ draw_unread_base_r_chart <- function() {
   coplot(mpg ~ wt | factor(cyl), data = mtcars)
   invisible(NULL)
 }
+
+# ============================================================================
+# CRAN
+# ============================================================================
+
+#' Skip the rest of a test file on CRAN
+#'
+#' CRAN asks that a package's whole check finish in about ten minutes. The
+#' 0.5.0 submission's tests took 13 minutes of a 16-minute check on
+#' r-devel-windows-x86_64, and the pretest archived it. The files that call
+#' this at their top are the slowest in the suite, several seconds each:
+#' regression suites that render charts end to end (patchwork compositions,
+#' facets with missing levels, bar orientation, selector contracts) and the
+#' experimental plot types. They run wherever NOT_CRAN is "true":
+#' `devtools::test()`, `testthat::test_local()` and every CI job. On CRAN the
+#' unit tests of each layer processor, the orchestrators, the adapters,
+#' patchwork and the `save_html()`, `show()` and widget API still run.
+#'
+#' A file belongs here when it takes more than about 3.5 s with NOT_CRAN
+#' unset and is none of those. The timings the list was drawn from are in
+#' #340.
+skip_slow_file_on_cran <- function() {
+  testthat::skip_on_cran()
+}

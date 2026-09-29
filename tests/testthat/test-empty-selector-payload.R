@@ -20,6 +20,8 @@
 # with an empty list. Returning an empty list from a processor is right;
 # letting it reach the payload as a JSON empty array is not.
 
+skip_slow_file_on_cran()
+
 skip_if_no_payload <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

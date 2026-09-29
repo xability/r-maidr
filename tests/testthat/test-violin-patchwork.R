@@ -5,6 +5,8 @@
 # scoped selectors that resolve against the exported SVG, and KDE highlight
 # coordinates that land on the violin they describe.
 
+skip_slow_file_on_cran()
+
 skip_if_no_patchwork <- function() {
   testthat::skip_if_not_installed("patchwork")
   testthat::skip_if_not_installed("xml2")
