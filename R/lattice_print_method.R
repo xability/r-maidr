@@ -151,19 +151,10 @@ maidr_print_trellis <- function(x, ...) {
     error = function(e) FALSE
   )
   if (!rendered) {
-    # The print is a reader's at a screen, and MAIDR's hidden device only
-    # counts as one because it kept the screen from opening: drawn there, the
-    # chart would go into a temporary file nobody sees. A new device is the
-    # screen lattice would have drawn it on, as show() opens for this chart;
-    # the hidden device is made current again for the Base R chart it holds.
-    if (maidr_hidden_device_is_current()) {
-      recording <- grDevices::dev.cur()
-      open_default_device()
-      on.exit(
-        if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),
-        add = TRUE
-      )
-    }
+    # Drawn as any print left to lattice is -- on a screen rather than in
+    # MAIDR's hidden device, see lattice_draw_on_screen() -- and no longer a
+    # drawing MAIDR makes while it renders.
+    .maidr_lattice_state$busy <- FALSE
     return(print_trellis_natively(x, ...))
   }
 
@@ -381,13 +372,16 @@ print_trellis_natively <- function(x, ...) {
 #' until `show()`, and counts as a screen only because it kept one from
 #' opening: a chart lattice draws there goes into a temporary file nobody
 #' sees, which `show()` then deletes. So a chart drawn there at the console
-#' ([drawn_at_console()]) that starts a page, as `plot.trellis()` decides
-#' that, is drawn on a new device instead -- the screen lattice would have
-#' drawn it on -- and the charts that join its page with `more = TRUE`
-#' follow it there. The hidden device is made current again for the Base R
-#' chart it holds. A chart drawn into a page made on the hidden device
-#' itself (`newpage = FALSE`, `draw.in`) stays there, with that page and
-#' its viewports, and so does one MAIDR draws while it renders.
+#' ([drawn_at_console()]) is drawn on the screen lattice would have drawn it
+#' on instead: the one MAIDR opened last, as plain R draws every chart on
+#' one screen ([use_default_device()]), with the theme the reader set
+#' ([lattice_carry_theme()]). The charts that join its page with
+#' `more = TRUE` follow it there, and go to a new screen should that one
+#' have been closed before the page was finished. The hidden device is made
+#' current again for the Base R chart it holds. A chart drawn into a page
+#' made on the hidden device itself (`draw.in`, or `newpage = FALSE` with no
+#' page being composed) stays there, with that page and its viewports, and
+#' so does one MAIDR draws while it renders.
 #'
 #' @param x A trellis object
 #' @param ... The arguments of the print or `plot()` call besides the object
@@ -407,33 +401,57 @@ lattice_draw_on_screen <- function(x, ..., .draw) {
     return(.draw(x, ...))
   }
   page_open <- lattice_page_open()
-  page <- .maidr_lattice_state$shared_page
-  continues <- page_open && is.null(args[["draw.in"]]) && !is.null(page) &&
-    page$number %in% grDevices::dev.list()
-  starts <- !page_open && !identical(args[["newpage"]], FALSE) &&
-    is.null(args[["draw.in"]])
-  if (!continues && !starts) {
+  if (!is.null(args[["draw.in"]]) || (!page_open && identical(args[["newpage"]], FALSE))) {
     return(.draw(x, ...))
   }
 
+  x <- lattice_carry_theme(x)
   recording <- grDevices::dev.cur()
   on.exit(
     if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),
     add = TRUE
   )
-  if (continues) {
-    grDevices::dev.set(page$number)
-  }
-  # R gives a closed device's number to the next one opened, so the page's
-  # screen is known by more than its number.
-  if (!continues || !identical(current_device_identity(), page)) {
-    open_default_device()
+  if (page_open) {
+    page <- .maidr_lattice_state$shared_page
+    if (!is.null(page) && page$number %in% grDevices::dev.list()) {
+      grDevices::dev.set(page$number)
+    }
+    # R gives a closed device's number to the next one opened, so the page's
+    # screen is known by more than its number. A page whose screen is gone
+    # goes on a new one, which starts blank, as it would without MAIDR.
+    if (!identical(current_device_identity(), page)) {
+      open_default_device()
+    }
+  } else {
+    use_default_device()
   }
   drawn <- withVisible(.draw(x, ...))
   .maidr_lattice_state$shared_page <- if (lattice_page_open()) {
     current_device_identity()
   }
   if (drawn$visible) drawn$value else invisible(drawn$value)
+}
+
+#' Make the screen MAIDR opened last current, or open one
+#'
+#' Plain R draws every chart on one screen, each new page replacing the
+#' last, so the default device MAIDR opened last that is still open is used
+#' again, known by its identity ([remember_default_device()]). A new one is
+#' opened only when none is left.
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+use_default_device <- function() {
+  open <- grDevices::dev.list()
+  for (kept in rev(.maidr_lattice_state$default_devices)) {
+    if (kept$number %in% open) {
+      grDevices::dev.set(kept$number)
+      if (identical(current_device_identity(), kept)) {
+        return(invisible(NULL))
+      }
+    }
+  }
+  open_default_device()
 }
 
 #' Open R's default device for a chart MAIDR draws natively

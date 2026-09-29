@@ -22,12 +22,15 @@ MAIDR's hidden device is current from the first Base R call it records
 until \code{show()}, and counts as a screen only because it kept one from
 opening: a chart lattice draws there goes into a temporary file nobody
 sees, which \code{show()} then deletes. So a chart drawn there at the console
-(\code{\link[=drawn_at_console]{drawn_at_console()}}) that starts a page, as \code{plot.trellis()} decides
-that, is drawn on a new device instead -- the screen lattice would have
-drawn it on -- and the charts that join its page with \code{more = TRUE}
-follow it there. The hidden device is made current again for the Base R
-chart it holds. A chart drawn into a page made on the hidden device
-itself (\code{newpage = FALSE}, \code{draw.in}) stays there, with that page and
-its viewports, and so does one MAIDR draws while it renders.
+(\code{\link[=drawn_at_console]{drawn_at_console()}}) is drawn on the screen lattice would have drawn it
+on instead: the one MAIDR opened last, as plain R draws every chart on
+one screen (\code{\link[=use_default_device]{use_default_device()}}), with the theme the reader set
+(\code{\link[=lattice_carry_theme]{lattice_carry_theme()}}). The charts that join its page with
+\code{more = TRUE} follow it there, and go to a new screen should that one
+have been closed before the page was finished. The hidden device is made
+current again for the Base R chart it holds. A chart drawn into a page
+made on the hidden device itself (\code{draw.in}, or \code{newpage = FALSE} with no
+page being composed) stays there, with that page and its viewports, and
+so does one MAIDR draws while it renders.
 }
 \keyword{internal}

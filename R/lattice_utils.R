@@ -332,6 +332,31 @@ lattice_page_open <- function() {
   is.list(status) && isTRUE(status[["print.more"]])
 }
 
+#' A trellis object carrying the theme of the device the reader looks at
+#'
+#' lattice keeps a theme per kind of device and draws with the theme of the
+#' device it draws on, so a chart MAIDR draws on another device -- off-screen
+#' to read it, or on a screen in place of its hidden device -- would be drawn
+#' with that device's own. A theme the reader set with `trellis.par.set()` on
+#' the current device -- larger text, colours they can tell apart -- goes
+#' with the chart as its own `par.settings`, which lattice applies for that
+#' drawing only, under whatever settings the chart was given itself. With no
+#' device open nothing has been set, and asking lattice would open a device.
+#'
+#' @param plot A trellis object
+#' @return The trellis object, carrying the theme.
+#' @keywords internal
+lattice_carry_theme <- function(plot) {
+  if (grDevices::dev.cur() == 1L) {
+    return(plot)
+  }
+  theme <- tryCatch(lattice::trellis.par.get(), error = function(e) NULL)
+  if (is.list(theme)) {
+    plot$par.settings <- utils::modifyList(theme, as.list(plot$par.settings))
+  }
+  plot
+}
+
 #' Draw a picture of a trellis object: its first page, as lattice draws it
 #'
 #' A file holds one page, and the first is the one the interactive reading

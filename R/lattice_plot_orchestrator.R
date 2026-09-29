@@ -9,13 +9,9 @@
 #' (`grid.ls()`), which is how grobs inside a panel are told from its axes
 #' and strips.
 #'
-#' lattice keeps a theme per kind of device and draws with the theme of the
-#' device it draws on, so the off-screen device would draw with its own. A
-#' theme the reader set with `trellis.par.set()` on the device they look at
-#' -- larger text, colours they can tell apart -- is carried over as the
-#' chart's own `par.settings`, which lattice applies for this drawing only,
-#' under whatever settings the chart was given itself. With no device open
-#' nothing has been set, and asking lattice would open a device.
+#' The off-screen device would draw with its own lattice theme, so the theme
+#' the reader set on the device they look at is carried over
+#' ([lattice_carry_theme()]).
 #'
 #' No device is opened that a reader could see, or left open. With none
 #' open, `grid.grabExpr()` would end by making "the device that was current
@@ -40,12 +36,8 @@ lattice_draw_scene <- function(plot, prefix = LATTICE_PREFIX) {
   restore_status <- lattice_keep_status()
   on.exit(restore_status(), add = TRUE)
 
-  if (grDevices::dev.cur() > 1L) {
-    theme <- tryCatch(lattice::trellis.par.get(), error = function(e) NULL)
-    if (is.list(theme)) {
-      plot$par.settings <- utils::modifyList(theme, as.list(plot$par.settings))
-    }
-  } else {
+  plot <- lattice_carry_theme(plot)
+  if (grDevices::dev.cur() == 1L) {
     grDevices::pdf(NULL)
     stand_in <- grDevices::dev.cur()
     on.exit(

@@ -27,13 +27,9 @@ drawing) and every grob drawn, with the viewport it was drawn in
 and strips.
 }
 \details{
-lattice keeps a theme per kind of device and draws with the theme of the
-device it draws on, so the off-screen device would draw with its own. A
-theme the reader set with \code{trellis.par.set()} on the device they look at
--- larger text, colours they can tell apart -- is carried over as the
-chart's own \code{par.settings}, which lattice applies for this drawing only,
-under whatever settings the chart was given itself. With no device open
-nothing has been set, and asking lattice would open a device.
+The off-screen device would draw with its own lattice theme, so the theme
+the reader set on the device they look at is carried over
+(\code{\link[=lattice_carry_theme]{lattice_carry_theme()}}).
 
 No device is opened that a reader could see, or left open. With none
 open, \code{grid.grabExpr()} would end by making "the device that was current

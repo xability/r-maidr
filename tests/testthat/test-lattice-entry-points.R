@@ -216,18 +216,26 @@ use_hidden_device <- function() {
 #' Catch the screen a native drawing opens in place of MAIDR's hidden device
 #'
 #' A chart the hook draws natively while MAIDR's hidden device is current
-#' goes onto a new device -- the screen lattice would have drawn it on --
-#' which here is an off-screen one. `opened()` lists the devices opened since;
-#' `close()` closes them.
-use_new_screen <- function() {
-  old <- options(device = function(...) grDevices::pdf(NULL))
+#' goes onto the screen lattice would have drawn it on -- the one MAIDR
+#' opened last, or a new device -- which here is an off-screen one. The
+#' screens earlier tests had MAIDR open are set aside, so the test sees only
+#' its own. `opened()` lists the devices opened since; `close()` closes them
+#' and puts the others back.
+#'
+#' @param device The function R opens its default device with.
+use_new_screen <- function(device = function(...) grDevices::pdf(NULL)) {
+  old <- options(device = device)
   before <- grDevices::dev.list()
+  state <- maidr:::.maidr_lattice_state
+  remembered <- state$default_devices
+  state$default_devices <- list()
   list(
     opened = function() setdiff(grDevices::dev.list(), before),
     close = function() {
       for (device in setdiff(grDevices::dev.list(), before)) {
         grDevices::dev.off(device)
       }
+      state$default_devices <- remembered
       options(old)
       invisible(NULL)
     }
@@ -909,8 +917,9 @@ test_that("a print that places the chart on a shared page is drawn by lattice", 
   # lattice's own idiom for arranging several charts on one page. The
   # arguments are matched as plot.trellis() matches them, so a position
   # given by place or by a partial name places the chart just the same.
-  # Each of these starts a page, which goes on a screen of its own rather
-  # than into MAIDR's hidden device.
+  # Each of these starts a page, which goes on a screen rather than into
+  # MAIDR's hidden device: the one screen, each page replacing the last, as
+  # plain R has.
   compositions <- list(
     "split" = list(split = c(1, 1, 2, 1)),
     "position" = list(position = c(0, 0, 0.5, 1)),
@@ -931,12 +940,12 @@ test_that("a print that places the chart on a shared page is drawn by lattice", 
     testthat::expect_identical(grDevices::dev.cur(), screen$device)
     testthat::expect_false(shown$visible, label = composition)
   }
-  testthat::expect_length(fresh$opened(), length(compositions))
+  testthat::expect_length(fresh$opened(), 1L)
   # The page left open joins the next chart, and closes with it, so
   # lattice's own record of a page still being composed is closed again
   # for later prints.
   print(p, split = c(2, 1, 2, 1))
-  testthat::expect_length(fresh$opened(), length(compositions))
+  testthat::expect_length(fresh$opened(), 1L)
   testthat::expect_false(maidr:::lattice_page_open())
 
   # A chart drawn into the page it is given -- the current page, or a
@@ -957,7 +966,7 @@ test_that("a print that places the chart on a shared page is drawn by lattice", 
     testthat::expect_true(has_scatter(screen$device), label = composition)
     testthat::expect_false(shown$visible, label = composition)
   }
-  testthat::expect_length(fresh$opened(), length(compositions))
+  testthat::expect_length(fresh$opened(), 1L)
 })
 
 test_that("a page composed while MAIDR's hidden device is current is drawn on one screen", {
@@ -1001,6 +1010,115 @@ test_that("a page composed while MAIDR's hidden device is current is drawn on on
     c("barplot", "abline")
   )
   testthat::expect_false(maidr:::lattice_page_open())
+})
+
+test_that("a page whose screen was closed before it was finished goes on a new screen", {
+  skip_if_no_lattice()
+  restore <- use_lattice_hook()
+  on.exit(restore(), add = TRUE)
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+  screen <- use_hidden_device()
+  on.exit(
+    {
+      clear_base_r_device(screen$device)
+      screen$close()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(screen$device)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
+  viewer <- local_console()
+
+  # The reader closes the screen the page was started on, and carries on
+  # with the page: without MAIDR, lattice would draw the rest on a new
+  # screen, and it does, rather than into MAIDR's hidden device.
+  barplot(c(3, 1, 2))
+  print(mtcars_scatter(), split = c(1, 1, 2, 1), more = TRUE)
+  grDevices::dev.off(fresh$opened())
+  print(lattice::bwplot(factor(cyl) ~ mpg, data = datasets::mtcars), split = c(2, 1, 2, 1))
+
+  testthat::expect_length(viewer$pages, 0L)
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(any(grepl("\\.bwplot\\.", drawn_on(opened))))
+  testthat::expect_false(any(grepl("\\.(xyplot|bwplot)\\.", drawn_on(screen$device))))
+  testthat::expect_identical(grDevices::dev.cur(), screen$device)
+  testthat::expect_false(maidr:::lattice_page_open())
+})
+
+test_that("charts lattice draws while a Base R chart waits for show() share one screen", {
+  skip_if_no_lattice()
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+  screen <- use_hidden_device()
+  on.exit(
+    {
+      clear_base_r_device(screen$device)
+      screen$close()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(screen$device)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
+  local_console()
+
+  # Plain R draws each chart on the one screen, replacing the last; a device
+  # for each would leave a window, or an Rplots<n>.pdf, per chart.
+  barplot(c(3, 1, 2))
+  maidr::plot(mtcars_scatter())
+  maidr::plot(lattice::histogram(~mpg, data = datasets::mtcars))
+
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(any(grepl("\\.histogram\\.rect", drawn_on(opened))))
+  testthat::expect_false(has_scatter(opened))
+  testthat::expect_identical(grDevices::dev.cur(), screen$device)
+})
+
+test_that("a chart drawn on a screen in place of the hidden device keeps the reader's theme", {
+  skip_if_no_lattice()
+  restore <- use_lattice_hook()
+  on.exit(restore(), add = TRUE)
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+  screen <- use_hidden_device()
+  on.exit(
+    {
+      clear_base_r_device(screen$device)
+      screen$close()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(screen$device)
+  # A screen of another kind than the hidden pdf device: lattice keeps a
+  # theme per kind of device.
+  fresh <- use_new_screen(function(...) grDevices::png(tempfile(fileext = ".png")))
+  on.exit(fresh$close(), add = TRUE)
+  local_console()
+
+  # Set while the hidden device is current, as a reader who sees no other
+  # device sets it; MAIDR's viewer draws with it, and so does the screen.
+  before <- lattice::trellis.par.get("plot.symbol")
+  on.exit(
+    {
+      grDevices::dev.set(screen$device)
+      lattice::trellis.par.set(plot.symbol = before)
+    },
+    add = TRUE
+  )
+  lattice::trellis.par.set(plot.symbol = list(col = "#D55E00"))
+
+  barplot(c(3, 1, 2))
+  print(mtcars_scatter(), split = c(1, 1, 1, 1))
+
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  grDevices::dev.set(opened)
+  points <- grep(scatter_points, drawn_on(opened), value = TRUE)
+  testthat::expect_identical(unique(grid::grid.get(points[1])$gp$col), "#D55E00")
 })
 
 test_that("a chart that carries its place on a shared page is drawn by lattice", {
@@ -1116,7 +1234,7 @@ test_that("a print with lattice interception or all interception off is drawn by
     testthat::expect_false(has_scatter(screen$device), label = names(off))
     testthat::expect_identical(grDevices::dev.cur(), screen$device)
   }
-  testthat::expect_length(fresh$opened(), 2L)
+  testthat::expect_length(fresh$opened(), 1L)
 })
 
 test_that("a print outside an interactive session is drawn by lattice", {
