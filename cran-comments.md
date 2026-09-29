@@ -1,6 +1,19 @@
-## Submission
+## Resubmission
 
-This is an update of the CRAN package 'maidr', from 0.4.0 to 0.5.0.
+This resubmits 0.5.0. The pretest archived the submission of 2026-09-21:
+on r-devel-windows-x86_64 the check took 16 minutes, 13 of them in the
+tests, and Uwe Ligges asked us to reduce the test timings. In this version:
+
+* The 48 slowest test files skip on CRAN (a `skip_on_cran()` wrapper called
+  at the top of each). They are regression suites that render charts end to
+  end, and the tests of the experimental plot types; our CI still runs them
+  on every platform. On CRAN the unit tests of each layer processor and of
+  the public API still run.
+* Charts are exported to SVG with 'svglite' instead of 'gridSVG', 3 to 7
+  times faster.
+
+On win-builder R-release, which runs on the same machines as R-devel, the
+tests now take 184 s (previously 13 minutes) and the whole check 431 s.
 
 ## Maintainer change
 
@@ -21,10 +34,21 @@ acknowledged it the same day.
   fourfoldplot(), stripchart(), qqnorm()/qqplot()/qqline(), bxp(), pairs(),
   acf()/pacf()/ccf(), interaction.plot(), monthplot(), lag.plot(), stars(),
   termplot(), spectrum(), cpgram(), biplot() and word clouds.
+* `maidr_htmlwidget()` makes 'plotly', 'highcharter' and 'echarts4r' widgets
+  accessible by attaching the MAIDR JavaScript adapter for the library that
+  draws them. The adapters are bundled beside maidr.js.
 * Fixes for horizontal bars, faceted plots and 'patchwork' compositions,
   transformed scales, dodged bars, Base R formula interfaces and multi-panel
   layouts, and for non-ASCII labels under a C locale. Details are in NEWS.md.
-* The bundled MAIDR JavaScript is updated from 3.72.1 to 4.9.0.
+* The bundled MAIDR JavaScript is updated from 3.72.1 to 4.11.0.
+* A document that loads maidr.js from the CDN (with `use_cdn = TRUE`, or a
+  widget, knitr or Shiny chart when the machine is online) names the latest
+  published version. The package asks jsDelivr's data API, then the npm
+  registry, once per R session and within 3 seconds in all; offline or
+  blocked, the document names the bundled version and nothing fails.
+  `show()` and `save_html()` use the bundled files by default. The tests
+  replace the function that makes the request, so no check waits on the
+  network.
 * Optional support for a DotPad tactile display in offline documents.
   `maidr_download_dotpad_sdk()` fetches the SDK once, only when the user
   calls it, into `tools::R_user_dir("maidr", "cache")` (or a directory the
@@ -36,15 +60,16 @@ acknowledged it the same day.
   and 'svglite' (>= 2.1.1) joins it.
 * The package now requires R >= 4.0.0 (previously 3.5.0). New Suggests:
   'hexbin', 'vioplot', 'wordcloud', 'sm', 'gridGraphics', 'pROC',
-  'yardstick', 'scales', 'tibble', 'pkgload'.
+  'yardstick', 'scales', 'tibble', 'pkgload', 'plotly', 'highcharter',
+  'echarts4r'.
 
 ## Bundled third-party components
 
-The bundled MAIDR web assets in 'inst/htmlwidgets/lib/maidr-*/' embed React
-and KaTeX, under permissive MIT licenses compatible with this package's
-GPL (>= 3) license. They are documented in 'inst/COPYRIGHTS'. The KaTeX
-web-font data is stripped from the bundled stylesheet to keep the installed
-size small.
+The bundled MAIDR web assets in 'inst/htmlwidgets/lib/maidr-*/' are, like
+this package, under GPL (>= 3). They embed React, KaTeX and other
+components under MIT licenses, which are compatible with it; all are
+documented in 'inst/COPYRIGHTS'. The KaTeX web-font data is stripped from
+the bundled stylesheet to keep the installed size small.
 
 ## R CMD check results
 
@@ -54,18 +79,19 @@ The only NOTE is the expected one from 'checking CRAN incoming feasibility':
 "New maintainer: JooYoung Seo; Old maintainer(s): Niranjan Kalaiselvan",
 explained above.
 
-The installed size is about 7 MB (R 3 MB, help 1.7 MB, htmlwidgets 1.7 MB).
-The 'htmlwidgets' part is the bundled MAIDR engine that makes the charts
-navigable, already stripped of its embedded web fonts; 'R' and 'help' are
-the layer processors and their documentation for the many plot types this
-release adds. The source tarball is 1.6 MB.
+The installed size is about 7.3 MB (R 3.0 MB, help 1.9 MB, htmlwidgets
+1.9 MB). The 'htmlwidgets' part is the bundled MAIDR engine that makes the
+charts navigable, already stripped of its embedded web fonts; 'R' and 'help'
+are the layer processors and their documentation for the many plot types
+this release adds. The source tarball is 1.9 MB.
 
 ## Test environments
 
 * local: Windows 11, R 4.6.1: 0 errors | 0 warnings | 1 note
-* win-builder, R-devel (r90574): 0 errors | 0 warnings | 1 note
 * win-builder, R-release (R 4.6.1): 0 errors | 0 warnings | 1 note
 * mac-builder (macOS 26.6, arm64), R 4.6.1 Patched: 0 errors | 0 warnings | 0 notes
+* GitHub Actions, R-release on macOS, Windows and Ubuntu, and R-oldrel on
+  Ubuntu: 0 errors | 0 warnings | 0 notes
 
 ## Downstream dependencies
 
