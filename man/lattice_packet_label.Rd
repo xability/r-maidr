@@ -31,5 +31,8 @@ two apart.
 
 A strip made by \code{strip.custom(factor.levels = , var.name = )} draws those
 in place of the levels and names lattice hands it, and is read as drawn.
+A factor's name is drawn only when the strip asks for it, as
+\code{strip.custom(strip.names = TRUE)} does, and then before its level across
+the strip's \code{sep}, so the packet is read \code{"cyl : 4"} as it is drawn.
 }
 \keyword{internal}

@@ -514,6 +514,9 @@ lattice_series_name <- function(plot) {
 #'
 #' A strip made by `strip.custom(factor.levels = , var.name = )` draws those
 #' in place of the levels and names lattice hands it, and is read as drawn.
+#' A factor's name is drawn only when the strip asks for it, as
+#' `strip.custom(strip.names = TRUE)` does, and then before its level across
+#' the strip's `sep`, so the packet is read `"cyl : 4"` as it is drawn.
 #'
 #' @param plot A trellis object
 #' @param level_index The packet's level index for each variable
@@ -526,6 +529,12 @@ lattice_packet_label <- function(plot, level_index) {
     return("")
   }
   custom <- lattice_strip_args(plot)
+  # `strip.default()` recycles `strip.names` over a factor and a shingle, in
+  # that order, and writes a factor's name out in styles 1 and 3 alone; the
+  # others draw the levels by themselves.
+  shows_name <- rep_len(as.logical(custom$strip.names %||% FALSE), 2L)[1] &&
+    (custom$style %||% 1) %in% c(1, 3)
+  sep <- as.character(custom$sep %||% " : ")
   parts <- vapply(seq_along(level_index), function(i) {
     levels <- plot$condlevels[[i]]
     text <- as.character(levels)[level_index[i]]
@@ -534,12 +543,12 @@ lattice_packet_label <- function(plot, level_index) {
       name <- as.character(custom$var.name)[i]
     }
     if (inherits(levels, "shingleLevel") && nzchar(name)) {
-      paste(name, text)
-    } else if (level_index[i] <= length(custom$factor.levels)) {
-      as.character(custom$factor.levels)[level_index[i]]
-    } else {
-      text
+      return(paste(name, text))
     }
+    if (level_index[i] <= length(custom$factor.levels)) {
+      text <- as.character(custom$factor.levels)[level_index[i]]
+    }
+    if (isTRUE(shows_name) && nzchar(name)) paste0(name, sep, text) else text
   }, character(1))
   paste(parts, collapse = " & ")
 }

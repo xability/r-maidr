@@ -1059,6 +1059,69 @@ test_that("a strip.custom() strip's labels title its packets, as lattice draws t
   }
 })
 
+test_that("a strip that names its variable titles its packets with the name", {
+  # `strip.names = TRUE` draws a factor's name before its level, across the
+  # strip's `sep`, on the top strip or the left one alike; a sighted reader
+  # sees "Cylinders : 4", and a reader should hear it.
+  skip_if_no_lattice()
+  m <- mtcars
+  m$am <- factor(m$am, labels = c("automatic", "manual"))
+  cases <- list(
+    list(type = "strip", p = lattice::xyplot(mpg ~ wt | factor(cyl), m,
+      strip = lattice::strip.custom(var.name = "Cylinders", strip.names = TRUE)
+    )),
+    list(type = "strip", p = lattice::xyplot(mpg ~ wt | factor(cyl) + am, m,
+      perm.cond = 2:1, strip = lattice::strip.custom(strip.names = TRUE, sep = " = ")
+    )),
+    list(type = "strip.left", p = lattice::xyplot(mpg ~ wt | am, m,
+      strip = FALSE, strip.left = lattice::strip.custom(strip.names = TRUE, style = 3)
+    ))
+  )
+  for (case in cases) {
+    p <- case$p
+    n <- length(p$condlevels)
+    drawn <- with_native_drawing(p, function() {
+      listing <- drawn_listing()$name
+      text <- function(name) {
+        if (name %in% listing) paste(grid::grid.get(name)$label, collapse = " ") else ""
+      }
+      packets <- lattice::trellis.currentLayout("packet", prefix = "st")
+      out <- character()
+      for (row in seq_len(nrow(packets))) {
+        for (column in seq_len(ncol(packets))) {
+          if (packets[row, column] == 0) {
+            next
+          }
+          out[packets[row, column]] <- paste(vapply(seq_len(n), function(i) {
+            where <- sprintf("%s.%d.%d", case$type, column, row)
+            if (n > 1L) where <- sprintf("given.%d.%s", i, where)
+            paste0(
+              text(paste0("st.textl.", where)), text(paste0("st.sep.", where)),
+              text(paste0("st.textr.", where))
+            )
+          }, character(1)), collapse = " & ")
+        }
+      }
+      out
+    }, prefix = "st")
+    testthat::expect_length(drawn, prod(lengths(p$condlevels)))
+    for (packet in seq_along(drawn)) {
+      levels <- as.vector(arrayInd(packet, lengths(p$condlevels)))
+      testthat::expect_identical(maidr:::lattice_packet_label(p, levels), drawn[packet])
+    }
+  }
+  testthat::expect_identical(
+    maidr:::lattice_packet_label(cases[[1]]$p, 1L),
+    "Cylinders : 4"
+  )
+
+  # Styles 2, 4 and 5 write the levels out by themselves, name or no name.
+  p <- lattice::xyplot(mpg ~ wt | factor(cyl), m,
+    strip = lattice::strip.custom(strip.names = TRUE, style = 2)
+  )
+  testthat::expect_identical(maidr:::lattice_packet_label(p, 1L), "4")
+})
+
 test_that("an auto.key's text names the groups it labels", {
   skip_if_no_lattice()
   key_text <- function(p) {

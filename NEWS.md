@@ -43,7 +43,8 @@
   "4 (spline)".
 * A conditioned chart (`y ~ x | g`) is read one panel at a time, each
   panel a subplot titled by its strip and laid out as lattice lays the
-  panels out; a strip made by `strip.custom(factor.levels = )` and an
+  panels out; a strip made by `strip.custom()` -- its `factor.levels`, and
+  the variable's name where `strip.names = TRUE` draws it -- and an
   `auto.key`'s `text` name the panels and groups as they show them. A chart
   laid out over several pages is read from its first page -- or the page a
   `packet.panel` picks -- with a warning that names `layout =` as the way to
