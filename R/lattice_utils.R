@@ -305,8 +305,8 @@ lattice_draw <- function(plot, prefix = LATTICE_PREFIX) {
 #'   called; it does nothing when there is nothing to put back.
 #' @keywords internal
 lattice_keep_status <- function() {
-  status_env <- asNamespace("lattice")[[".LatticeEnv"]]
-  if (isTRUE(.maidr_lattice_state$busy) || !is.environment(status_env) ||
+  status_env <- lattice_status_env()
+  if (isTRUE(.maidr_lattice_state$busy) || is.null(status_env) ||
     !exists("lattice.status", envir = status_env, inherits = FALSE)) {
     return(function() invisible(NULL))
   }
@@ -327,9 +327,25 @@ lattice_keep_status <- function() {
 #' @return `TRUE` when the next chart lattice draws joins the current page.
 #' @keywords internal
 lattice_page_open <- function() {
-  status_env <- asNamespace("lattice")[[".LatticeEnv"]]
-  status <- if (is.environment(status_env)) status_env[["lattice.status"]]
+  status_env <- lattice_status_env()
+  status <- if (!is.null(status_env)) status_env[["lattice.status"]]
   is.list(status) && isTRUE(status[["print.more"]])
+}
+
+#' Where lattice keeps its record of the chart it drew last
+#'
+#' lattice's own environment, which it does not export. Read in one place,
+#' so that [lattice_keep_status()] and [lattice_page_open()] find it, or
+#' find it gone, the same way.
+#'
+#' @return The environment, or `NULL` should lattice no longer have it.
+#' @keywords internal
+lattice_status_env <- function() {
+  status_env <- tryCatch(
+    asNamespace("lattice")[[".LatticeEnv"]],
+    error = function(e) NULL
+  )
+  if (is.environment(status_env)) status_env
 }
 
 #' A trellis object carrying the theme of the device the reader looks at

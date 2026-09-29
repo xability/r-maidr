@@ -1971,3 +1971,18 @@ test_that("lattice keeps the status record maidr reads where maidr reads it", {
   restore()
   testthat::expect_false(maidr:::lattice_page_open())
 })
+
+test_that("a chart is drawn and read as before where lattice keeps no such record", {
+  skip_if_no_lattice()
+  # Should a lattice release move the record, or leave it empty, nothing is
+  # put back, no page is taken to be open, and the chart is read all the same.
+  for (moved in list(NULL, new.env(parent = emptyenv()))) {
+    testthat::local_mocked_bindings(lattice_status_env = function() moved, .package = "maidr")
+    restore <- maidr:::lattice_keep_status()
+    testthat::expect_null(restore())
+    testthat::expect_false(maidr:::lattice_page_open())
+    r <- render_lattice(lattice::xyplot(mpg ~ wt, datasets::mtcars))
+    testthat::expect_false(r$fallback)
+    testthat::expect_identical(lattice_rendered_layers(r)[[1]]$type, "point")
+  }
+})
