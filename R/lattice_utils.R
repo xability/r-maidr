@@ -317,6 +317,21 @@ lattice_keep_status <- function() {
   }
 }
 
+#' Whether lattice's current page is still being composed
+#'
+#' Read from the record [lattice_keep_status()] keeps: a chart drawn with
+#' `more = TRUE` leaves its page open, and `plot.trellis()` draws the next
+#' chart onto that page rather than starting one. Should the record not be
+#' where it is looked for, no page is taken to be open.
+#'
+#' @return `TRUE` when the next chart lattice draws joins the current page.
+#' @keywords internal
+lattice_page_open <- function() {
+  status_env <- asNamespace("lattice")[[".LatticeEnv"]]
+  status <- if (is.environment(status_env)) status_env[["lattice.status"]]
+  is.list(status) && isTRUE(status[["print.more"]])
+}
+
 #' Draw a picture of a trellis object: its first page, as lattice draws it
 #'
 #' A file holds one page, and the first is the one the interactive reading

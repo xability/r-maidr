@@ -733,6 +733,49 @@ test_that("show() of a chart the reading does not cover draws it with lattice on
   testthat::expect_length(viewer$pages, 0L)
 })
 
+test_that("show() of a chart the reading does not cover keeps the recorded Base R chart", {
+  skip_if_no_lattice()
+  viewer <- local_console()
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+  screen <- use_hidden_device()
+  on.exit(
+    {
+      clear_base_r_device(screen$device)
+      screen$close()
+    },
+    add = TRUE
+  )
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
+  clear_base_r_device(screen$device)
+  barplot(c(3, 1, 2))
+  testthat::expect_true(maidr:::has_device_calls(screen$device))
+
+  p <- lattice::cloud(mpg ~ wt * hp, data = datasets::mtcars)
+  testthat::expect_warning(maidr::show(p), "unsupported elements")
+
+  # Drawn on a screen of its own, as the print hook draws it, and MAIDR's
+  # hidden device current again for the Base R chart it holds.
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(any(grepl("\\.3dscatter\\.points", drawn_on(opened))))
+  testthat::expect_identical(grDevices::dev.cur(), screen$device)
+  testthat::expect_length(viewer$pages, 0L)
+
+  # show() with no argument opens the chart that was recorded.
+  maidr::show()
+  testthat::expect_length(viewer$pages, 1L)
+  svg <- chart_svg(viewer$pages[[1]])
+  schema <- jsonlite::fromJSON(xml2::xml_attr(svg, "maidr-data"), simplifyVector = FALSE)
+  layer <- schema$subplots[[1]][[1]]$layers[[1]]
+  testthat::expect_identical(layer$type, "bar")
+  testthat::expect_equal(
+    vapply(layer$data, function(bar) as.numeric(bar$y), numeric(1)),
+    c(3, 1, 2)
+  )
+})
+
 test_that("show() of anything else is still methods::show()'s to print", {
   skip_if_no_lattice()
 
@@ -859,37 +902,105 @@ test_that("a print that places the chart on a shared page is drawn by lattice", 
   on.exit(restore(), add = TRUE)
   screen <- use_hidden_device()
   on.exit(screen$close(), add = TRUE)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
   viewer <- local_console()
 
   # lattice's own idiom for arranging several charts on one page. The
   # arguments are matched as plot.trellis() matches them, so a position
   # given by place or by a partial name places the chart just the same.
+  # Each of these starts a page, which goes on a screen of its own rather
+  # than into MAIDR's hidden device.
   compositions <- list(
-    "split and more" = list(split = c(1, 1, 2, 1), more = TRUE),
-    "more" = list(more = TRUE),
+    "split" = list(split = c(1, 1, 2, 1)),
     "position" = list(position = c(0, 0, 0.5, 1)),
     "position by place" = list(c(0, 0, 0.5, 1)),
     "position by partial name" = list(pos = c(0, 0, 0.5, 1)),
     "split by place" = list(NULL, c(1, 1, 2, 1)),
-    "newpage = FALSE" = list(newpage = FALSE),
-    "draw.in" = list(draw.in = "maidr_test_region")
+    "split and more" = list(split = c(1, 1, 2, 1), more = TRUE)
   )
 
   p <- mtcars_scatter()
   for (composition in names(compositions)) {
+    shown <- withVisible(do.call(print, c(list(p), compositions[[composition]])))
+
+    testthat::expect_length(viewer$pages, 0L)
+    opened <- fresh$opened()
+    testthat::expect_true(has_scatter(opened[length(opened)]), label = composition)
+    testthat::expect_false(has_scatter(screen$device), label = composition)
+    testthat::expect_identical(grDevices::dev.cur(), screen$device)
+    testthat::expect_false(shown$visible, label = composition)
+  }
+  testthat::expect_length(fresh$opened(), length(compositions))
+  # The page left open joins the next chart, and closes with it, so
+  # lattice's own record of a page still being composed is closed again
+  # for later prints.
+  print(p, split = c(2, 1, 2, 1))
+  testthat::expect_length(fresh$opened(), length(compositions))
+  testthat::expect_false(maidr:::lattice_page_open())
+
+  # A chart drawn into the page it is given -- the current page, or a
+  # viewport pushed on it -- is drawn where that page is.
+  into_page <- list(
+    "newpage = FALSE" = list(newpage = FALSE),
+    "draw.in" = list(draw.in = "maidr_test_region")
+  )
+  for (composition in names(into_page)) {
     grid::grid.newpage()
     if (composition == "draw.in") {
       grid::pushViewport(grid::viewport(width = 0.5, name = "maidr_test_region"))
       grid::upViewport()
     }
-    shown <- withVisible(do.call(print, c(list(p), compositions[[composition]])))
+    shown <- withVisible(do.call(print, c(list(p), into_page[[composition]])))
 
     testthat::expect_length(viewer$pages, 0L)
     testthat::expect_true(has_scatter(screen$device), label = composition)
     testthat::expect_false(shown$visible, label = composition)
   }
-  # The last composition was drawn without `more`, so lattice's own record
-  # of a page still being composed is closed again for later prints.
+  testthat::expect_length(fresh$opened(), length(compositions))
+})
+
+test_that("a page composed while MAIDR's hidden device is current is drawn on one screen", {
+  skip_if_no_lattice()
+  restore <- use_lattice_hook()
+  on.exit(restore(), add = TRUE)
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+  screen <- use_hidden_device()
+  on.exit(
+    {
+      clear_base_r_device(screen$device)
+      screen$close()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(screen$device)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
+  viewer <- local_console()
+
+  # A Base R chart waits on the hidden device for show(). Drawn there, a
+  # page lattice composes would go into its temporary file, which show()
+  # deletes; it goes on a screen, the whole page on the same one, and the
+  # Base R chart keeps recording in between.
+  barplot(c(3, 1, 2))
+  print(mtcars_scatter(), split = c(1, 1, 2, 1), more = TRUE)
+  abline(h = 2)
+  print(lattice::bwplot(factor(cyl) ~ mpg, data = datasets::mtcars), split = c(2, 1, 2, 1))
+
+  testthat::expect_length(viewer$pages, 0L)
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(has_scatter(opened))
+  testthat::expect_true(any(grepl("\\.bwplot\\.", drawn_on(opened))))
+  testthat::expect_false(any(grepl("\\.(xyplot|bwplot)\\.", drawn_on(screen$device))))
+  testthat::expect_identical(grDevices::dev.cur(), screen$device)
+  recorded <- maidr:::get_device_calls(screen$device)
+  testthat::expect_identical(
+    vapply(recorded, function(call) call$function_name, character(1)),
+    c("barplot", "abline")
+  )
+  testthat::expect_false(maidr:::lattice_page_open())
 })
 
 test_that("a chart that carries its place on a shared page is drawn by lattice", {
@@ -901,6 +1012,8 @@ test_that("a chart that carries its place on a shared page is drawn by lattice",
   on.exit(restore(), add = TRUE)
   screen <- use_hidden_device()
   on.exit(screen$close(), add = TRUE)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
   viewer <- local_console()
 
   left <- mtcars_scatter(plot.args = list(split = c(1, 1, 2, 1), more = TRUE))
@@ -909,7 +1022,9 @@ test_that("a chart that carries its place on a shared page is drawn by lattice",
   print(right)
 
   testthat::expect_length(viewer$pages, 0L)
-  testthat::expect_identical(sum(grepl(scatter_points, drawn_on(screen$device))), 2L)
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_identical(sum(grepl(scatter_points, drawn_on(opened))), 2L)
 
   # An argument print() is given wins over the stored one, as in lattice,
   # and lattice takes a stored one only by its exact name.
@@ -982,19 +1097,26 @@ test_that("a print with lattice interception or all interception off is drawn by
   on.exit(restore(), add = TRUE)
   screen <- use_hidden_device()
   on.exit(screen$close(), add = TRUE)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
   viewer <- local_console()
   old <- options(maidr.lattice = TRUE, maidr.auto_show = TRUE)
   on.exit(options(old), add = TRUE)
 
+  # As without maidr: on a screen, not in MAIDR's hidden device, which only
+  # kept that screen from opening.
   for (off in list(list(maidr.lattice = FALSE), list(maidr.auto_show = FALSE))) {
-    grid::grid.newpage()
     switched <- options(off)
     print(mtcars_scatter())
     options(switched)
 
     testthat::expect_length(viewer$pages, 0L)
-    testthat::expect_true(has_scatter(screen$device), label = names(off))
+    opened <- fresh$opened()
+    testthat::expect_true(has_scatter(opened[length(opened)]), label = names(off))
+    testthat::expect_false(has_scatter(screen$device), label = names(off))
+    testthat::expect_identical(grDevices::dev.cur(), screen$device)
   }
+  testthat::expect_length(fresh$opened(), 2L)
 })
 
 test_that("a print outside an interactive session is drawn by lattice", {
@@ -1309,7 +1431,7 @@ test_that("the default device a native drawing opened stays the reader's screen"
   expect_emitted(session, "pages_after", "1")
 })
 
-test_that("a pdf() the reader opens once that default device is closed gets the chart", {
+test_that("a pdf() or grob capture opened once that default device is closed gets the chart", {
   skip_if_no_lattice()
   # R gives the closed device's number to the next one, and pdf() with no
   # file writes Rplots.pdf, so the reader's own pdf() has the number, name
@@ -1356,13 +1478,97 @@ test_that("a pdf() the reader opens once that default device is closed gets the 
     "  view(lattice::xyplot(mpg ~ wt, data = mtcars))",
     "})",
     "emit('pages_within_one_call', pages)",
-    "invisible(grDevices::dev.off())"
+    "invisible(grDevices::dev.off())",
+    # An IDE's device that writes no file, as vscode-R's is: the off-screen
+    # pdf(NULL) grid.grabExpr() opens once it is closed has its number,
+    # name and no file too, and the chart belongs in the grob.
+    "options(device = function(...) {",
+    "  grDevices::pdf(NULL)",
+    "  grDevices::dev.control('enable')",
+    "})",
+    "view(lattice::cloud(mpg ~ wt * hp, data = mtcars))",
+    "invisible(grDevices::dev.off())",
+    "grabbed <- grid::grid.grabExpr(view(lattice::xyplot(mpg ~ wt, data = mtcars)), warn = 0)",
+    "emit('pages_after_grob', pages)",
+    sprintf(
+      "emit('drawn_in_grob', any(grepl(%s, grid::grid.ls(grabbed, print = FALSE)$name)))",
+      deparse(scatter_points)
+    )
   ))
   expect_emitted(session, "reused", "2 pdf")
   expect_emitted(session, "pages_after_pdf", "0")
   expect_emitted(session, "drawn_in_file", "TRUE")
   expect_emitted(session, "pages_after_composition", "0")
   expect_emitted(session, "pages_within_one_call", "0")
+  expect_emitted(session, "pages_after_grob", "0")
+  expect_emitted(session, "drawn_in_grob", "TRUE")
+})
+
+test_that("the default device any native drawing MAIDR makes opens stays the reader's screen", {
+  skip_if_no_lattice()
+  testthat::skip_if_not_installed("ggplot2")
+  # show()'s fallbacks and the hook's switch away from the hidden device open
+  # the default device with dev.new() and then draw; an unreadable ggplot2
+  # print and plot(p) open it by drawing with none open. Each is a device the
+  # reader chose no file for, as a lattice chart drawn with none open is.
+  session <- in_fresh_session(c(
+    "work <- tempfile('maidr-session-')",
+    "dir.create(work)",
+    "setwd(work)",
+    "options(device = function(...) grDevices::pdf(tempfile(fileext = '.pdf')))",
+    "load_maidr()",
+    "invisible(loadNamespace('lattice'))",
+    "pages <- 0L",
+    "console <- function(expr) testthat::with_mocked_bindings(",
+    "  expr,",
+    "  session_is_interactive = function() TRUE,",
+    "  display_html = function(html_doc) pages <<- pages + 1L,",
+    "  .package = 'maidr'",
+    ")",
+    "cloud <- lattice::cloud(mpg ~ wt * hp, data = mtcars)",
+    "labels <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +",
+    "  ggplot2::geom_text(ggplot2::aes(label = rownames(mtcars)))",
+    "triggers <- list(",
+    "  show_lattice = function() suppressWarnings(maidr::show(cloud)),",
+    "  show_ggplot = function() suppressWarnings(maidr::show(labels)),",
+    "  show_base_r = function() {",
+    "    maidr::persp(volcano)",
+    "    suppressWarnings(maidr::show())",
+    "  },",
+    "  print_ggplot = function() print(labels),",
+    "  plot_trellis = function() maidr::plot(lattice::xyplot(hp ~ disp, data = mtcars)),",
+    "  hidden_device = function() {",
+    "    maidr::barplot(c(3, 1, 2))",
+    "    print(cloud)",
+    "    maidr::show()",
+    "  }",
+    ")",
+    "for (name in names(triggers)) {",
+    "  console(triggers[[name]]())",
+    "  emit(paste0(name, '_left_a_device'), grDevices::dev.cur() > 1L)",
+    "  before <- pages",
+    "  console(print(lattice::xyplot(mpg ~ wt, data = mtcars)))",
+    "  emit(paste0(name, '_then_viewer'), pages - before)",
+    "  invisible(grDevices::graphics.off())",
+    "}",
+    "# Two such devices open, the later one closed: the earlier is current.",
+    "console(print(cloud))",
+    "console(suppressWarnings(maidr::show(cloud)))",
+    "invisible(grDevices::dev.off())",
+    "before <- pages",
+    "console(print(lattice::xyplot(mpg ~ wt, data = mtcars)))",
+    "emit('earlier_default_then_viewer', pages - before)",
+    "invisible(grDevices::graphics.off())"
+  ))
+  triggers <- c(
+    "show_lattice", "show_ggplot", "show_base_r", "print_ggplot", "plot_trellis",
+    "hidden_device"
+  )
+  for (trigger in triggers) {
+    expect_emitted(session, paste0(trigger, "_left_a_device"), "TRUE")
+    expect_emitted(session, paste0(trigger, "_then_viewer"), "1")
+  }
+  expect_emitted(session, "earlier_default_then_viewer", "1")
 })
 
 test_that("an option off when lattice loads and set back on opens the viewer, as ggplot2's does", {
@@ -1460,9 +1666,53 @@ test_that("plot() of a trellis or ggplot object is drawn on the current device, 
   drawn <- grid::grid.ls(panels, print = FALSE)$name
   testthat::expect_true(any(grepl("^geom_point\\.points", drawn)))
 
+  # Given by name, as `x` is what the generic dispatches on.
+  grid::grid.newpage()
+  maidr::plot(
+    x = ggplot2::ggplot(datasets::mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()
+  )
+  testthat::expect_false(maidr:::has_device_calls(device))
+  testthat::expect_identical(drawn_on(device), "layout")
+
   # Neither opened the hidden device the recording draws on.
   testthat::expect_identical(maidr:::.maidr_patching_env$.temp_device_id, hidden_before)
   testthat::expect_identical(grDevices::dev.cur(), device)
+})
+
+test_that("plot() of a trellis object while a Base R chart waits for show() is drawn on a screen", {
+  skip_if_no_lattice()
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+  screen <- use_hidden_device()
+  on.exit(
+    {
+      clear_base_r_device(screen$device)
+      screen$close()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(screen$device)
+  fresh <- use_new_screen()
+  on.exit(fresh$close(), add = TRUE)
+  local_console()
+
+  # The Base R chart waits on the hidden device, whose file show() deletes.
+  # Drawn there, lattice's own chart was never seen.
+  barplot(c(3, 1, 2))
+  shown <- withVisible(maidr::plot(mtcars_scatter()))
+
+  opened <- fresh$opened()
+  testthat::expect_length(opened, 1L)
+  testthat::expect_true(has_scatter(opened))
+  testthat::expect_false(has_scatter(screen$device))
+  testthat::expect_false(shown$visible)
+  # The hidden device is current again, and holds the Base R chart alone.
+  testthat::expect_identical(grDevices::dev.cur(), screen$device)
+  recorded <- maidr:::get_device_calls(screen$device)
+  testthat::expect_identical(
+    vapply(recorded, function(call) call$function_name, character(1)),
+    "barplot"
+  )
 })
 
 test_that("plot() of a trellis object in a fresh session draws on the default device", {

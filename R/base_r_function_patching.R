@@ -195,7 +195,7 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
   close_maidr_temp_device()
 
   # Open native graphics device
-  grDevices::dev.new()
+  open_default_device()
 
   # Replay every call in its original order using ORIGINAL functions
   # (not wrapped). Replaying in order preserves interleaved LAYOUT calls
@@ -732,7 +732,9 @@ create_function_wrapper <- function(function_name, original_function) {
       # `plot()` of a lattice or ggplot2 object dispatches to that
       # package's own method, which draws with grid, not Base R graphics.
       # Recorded, it was read as an empty Base R scatter, and drawn onto
-      # the hidden device the recording opens rather than the screen.
+      # the hidden device the recording opens rather than the screen. With
+      # that device already current, a lattice chart is drawn on a screen
+      # of its own; see lattice_draw_on_screen().
       #
       # Only the argument the generic `plot(x, y, ...)` dispatches on is
       # forced: `x`, else the first unnamed one. The rest stay promises for
@@ -751,8 +753,11 @@ create_function_wrapper <- function(function_name, original_function) {
         }
         if (!is.na(at) && !eval(call("missing", as.name(paste0("..", at))))) {
           first <- ...elt(at)
+          if (inherits(first, "trellis")) {
+            return(draw_on_default_device(lattice_draw_on_screen(..., .draw = ORIG)))
+          }
           if (is_maidr_plot_object(first)) {
-            return(ORIG(...))
+            return(draw_on_default_device(ORIG(...)))
           }
         }
       }

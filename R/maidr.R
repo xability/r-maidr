@@ -106,14 +106,24 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
         clear_device_storage(device_id)
       } else if (inherits(plot, "trellis")) {
         # lattice: draw with lattice itself, not through the print hook
-        # maidr set, which would run the support check a second time.
-        grDevices::dev.new()
+        # maidr set, which would run the support check a second time. As
+        # the hook draws a chart it cannot read, on a screen of its own and
+        # with MAIDR's hidden device made current again for the Base R
+        # chart it holds, which is then still show()'s to open.
+        recording <- if (maidr_hidden_device_is_current()) grDevices::dev.cur()
+        open_default_device()
+        if (!is.null(recording)) {
+          on.exit(
+            if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),
+            add = TRUE
+          )
+        }
         print_trellis_natively(plot)
       } else {
         # ggplot2: Print to native graphics device with ggplot2's own
         # method, not the one maidr registered, which would run the support
         # check a second time.
-        grDevices::dev.new()
+        open_default_device()
         print_ggplot_natively(plot)
       }
 

@@ -21,9 +21,12 @@ NULL
 .maidr_lattice_state$previous_print_function <- NULL
 .maidr_lattice_state$registered <- FALSE
 .maidr_lattice_state$busy <- FALSE
-# The device R opened by default when a chart was drawn natively with none
-# open; see screen_device_is_current().
-.maidr_lattice_state$default_device <- NULL
+# The devices R opened by default for charts MAIDR drew natively; see
+# remember_default_device().
+.maidr_lattice_state$default_devices <- list()
+# The screen a page lattice is still composing was moved to, off MAIDR's
+# hidden device; see lattice_draw_on_screen().
+.maidr_lattice_state$shared_page <- NULL
 # TRUE from maidr_off() until maidr_on(): lattice loaded meanwhile keeps its
 # own print function, as ggplot2 keeps its print method.
 .maidr_lattice_state$switched_off <- FALSE
@@ -155,7 +158,7 @@ maidr_print_trellis <- function(x, ...) {
     # the hidden device is made current again for the Base R chart it holds.
     if (maidr_hidden_device_is_current()) {
       recording <- grDevices::dev.cur()
-      grDevices::dev.new()
+      open_default_device()
       on.exit(
         if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),
         add = TRUE
@@ -193,17 +196,10 @@ maidr_print_trellis <- function(x, ...) {
 #' @keywords internal
 lattice_print_opens_viewer <- function(args, stored = NULL) {
   # A print lattice will refuse is lattice's to refuse, with its own error.
-  args <- lattice_print_arguments(args)
+  args <- lattice_drawing_arguments(args, stored)
   if (is.null(args)) {
     return(FALSE)
   }
-  # A chart can carry its place on a shared page in its `plot.args`, set by
-  # `xyplot(plot.args = )` or `update()`. `plot.trellis()` takes an argument
-  # from there only by its exact name and only when `print()` was not given
-  # it, so they are added after the print's own are matched, never matched
-  # by place or partial name themselves.
-  stored <- as.list(stored)
-  args <- c(args, stored[setdiff(names(stored), c("", names(args)))])
 
   composing <- !is.null(args[["position"]]) ||
     !is.null(args[["split"]]) ||
@@ -214,10 +210,22 @@ lattice_print_opens_viewer <- function(args, stored = NULL) {
   !composing &&
     !isTRUE(.maidr_lattice_state$busy) &&
     is_lattice_enabled() &&
-    session_is_interactive() &&
-    !isTRUE(getOption("knitr.in.progress")) &&
-    is.null(shiny::getDefaultReactiveDomain()) &&
+    drawn_at_console() &&
     screen_device_is_current()
+}
+
+#' Whether a chart drawn now is drawn at the console
+#'
+#' In an interactive session, and neither while knitr runs, which makes the
+#' chart a chunk's figure, nor inside a Shiny render, which draws it for its
+#' output.
+#'
+#' @return `TRUE` for a chart drawn at the console.
+#' @keywords internal
+drawn_at_console <- function() {
+  session_is_interactive() &&
+    !isTRUE(getOption("knitr.in.progress")) &&
+    is.null(shiny::getDefaultReactiveDomain())
 }
 
 #' The arguments of a print, named as lattice's drawer matches them
@@ -244,6 +252,29 @@ lattice_print_arguments <- function(args) {
     return(NULL)
   }
   as.list(matched)[-1L]
+}
+
+#' The arguments a trellis object is drawn with
+#'
+#' A chart can carry its place on a shared page in its `plot.args`, set by
+#' `xyplot(plot.args = )` or `update()`. `plot.trellis()` takes an argument
+#' from there only by its exact name and only when the call did not give
+#' it, so they are added after the call's own are matched, never matched by
+#' place or partial name themselves.
+#'
+#' @param args The arguments `print()` or `plot()` was given besides the
+#'   object.
+#' @param stored The object's `plot.args`.
+#' @return The arguments named as `plot.trellis()` draws with them, or
+#'   `NULL` when the call's own do not match it at all.
+#' @keywords internal
+lattice_drawing_arguments <- function(args, stored = NULL) {
+  args <- lattice_print_arguments(args)
+  if (is.null(args)) {
+    return(NULL)
+  }
+  stored <- as.list(stored)
+  c(args, stored[setdiff(names(stored), c("", names(args)))])
 }
 
 #' Whether this R session is interactive
@@ -273,11 +304,12 @@ screen_device_is_current <- function() {
   if (device == 1L || maidr_hidden_device_is_current()) {
     return(TRUE)
   }
-  # The device R opened by default when MAIDR drew a chart natively with
-  # none open. In a session with no display that is pdf() on Rplots.pdf: a
-  # device the reader never chose, standing where the screen would be, so
-  # it counts as the screen no device open counted as.
-  if (identical(current_device_identity(), .maidr_lattice_state$default_device)) {
+  # A device R opened by default for a chart MAIDR drew natively. In a
+  # session with no display that is pdf() on Rplots.pdf: a device the reader
+  # never chose, standing where the screen would be, so it counts as the
+  # screen no device open counted as.
+  current <- current_device_identity()
+  if (any(vapply(.maidr_lattice_state$default_devices, identical, logical(1), current))) {
     return(TRUE)
   }
   names(device) %in% c(
@@ -339,18 +371,125 @@ print_trellis_natively <- function(x, ...) {
   if (!is.function(draw)) {
     draw <- utils::getS3method("plot", "trellis")
   }
-  # With no device open, drawing opens R's default device, which stays
-  # current; see screen_device_is_current().
-  none_open <- grDevices::dev.cur() == 1L
-  draw(x, ...)
-  if (none_open && grDevices::dev.cur() != 1L) {
-    # A mark only this device carries: a pdf() the reader opens once it is
-    # closed gets its number, name and default file. `err` is a graphical
-    # parameter R documents as unimplemented, so setting it draws nothing.
-    graphics::par(err = -1L)
-    .maidr_lattice_state$default_device <- current_device_identity()
-  }
+  draw_on_default_device(lattice_draw_on_screen(x, ..., .draw = draw))
   invisible(x)
+}
+
+#' Draw a trellis object on a screen rather than on MAIDR's hidden device
+#'
+#' MAIDR's hidden device is current from the first Base R call it records
+#' until `show()`, and counts as a screen only because it kept one from
+#' opening: a chart lattice draws there goes into a temporary file nobody
+#' sees, which `show()` then deletes. So a chart drawn there at the console
+#' ([drawn_at_console()]) that starts a page, as `plot.trellis()` decides
+#' that, is drawn on a new device instead -- the screen lattice would have
+#' drawn it on -- and the charts that join its page with `more = TRUE`
+#' follow it there. The hidden device is made current again for the Base R
+#' chart it holds. A chart drawn into a page made on the hidden device
+#' itself (`newpage = FALSE`, `draw.in`) stays there, with that page and
+#' its viewports, and so does one MAIDR draws while it renders.
+#'
+#' @param x A trellis object
+#' @param ... The arguments of the print or `plot()` call besides the object
+#' @param .draw The function that draws it: lattice's print function, or
+#'   Base R's `plot()`
+#' @return What `.draw` returns, with its visibility
+#' @keywords internal
+lattice_draw_on_screen <- function(x, ..., .draw) {
+  if (!maidr_hidden_device_is_current() || isTRUE(.maidr_lattice_state$busy) ||
+    !drawn_at_console()) {
+    return(.draw(x, ...))
+  }
+  # Arguments lattice refuses are lattice's to report, from the device the
+  # call was made on.
+  args <- lattice_drawing_arguments(list(...), x$plot.args)
+  if (is.null(args)) {
+    return(.draw(x, ...))
+  }
+  page_open <- lattice_page_open()
+  page <- .maidr_lattice_state$shared_page
+  continues <- page_open && is.null(args[["draw.in"]]) && !is.null(page) &&
+    page$number %in% grDevices::dev.list()
+  starts <- !page_open && !identical(args[["newpage"]], FALSE) &&
+    is.null(args[["draw.in"]])
+  if (!continues && !starts) {
+    return(.draw(x, ...))
+  }
+
+  recording <- grDevices::dev.cur()
+  on.exit(
+    if (recording %in% grDevices::dev.list()) grDevices::dev.set(recording),
+    add = TRUE
+  )
+  if (continues) {
+    grDevices::dev.set(page$number)
+  }
+  # R gives a closed device's number to the next one opened, so the page's
+  # screen is known by more than its number.
+  if (!continues || !identical(current_device_identity(), page)) {
+    open_default_device()
+  }
+  drawn <- withVisible(.draw(x, ...))
+  .maidr_lattice_state$shared_page <- if (lattice_page_open()) {
+    current_device_identity()
+  }
+  if (drawn$visible) drawn$value else invisible(drawn$value)
+}
+
+#' Open R's default device for a chart MAIDR draws natively
+#'
+#' The device the chart would have gone to at the console without MAIDR, and
+#' one the reader never chose, so it is remembered as their screen
+#' ([remember_default_device()]).
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+open_default_device <- function() {
+  grDevices::dev.new()
+  remember_default_device()
+}
+
+#' Draw natively, remembering the device R opens when none is open
+#'
+#' With no device open, drawing opens R's default device, which stays
+#' current: `pdf()` on `Rplots.pdf` in a session with no display, or an
+#' IDE's own `pdf(NULL)`. The reader chose no file, so it is remembered as
+#' their screen ([remember_default_device()]).
+#'
+#' @param drawing The drawing, evaluated here.
+#' @return What `drawing` evaluates to, with its visibility
+#' @keywords internal
+draw_on_default_device <- function(drawing) {
+  none_open <- grDevices::dev.cur() == 1L
+  on.exit(if (none_open) remember_default_device(), add = TRUE)
+  drawn <- withVisible(drawing)
+  if (drawn$visible) drawn$value else invisible(drawn$value)
+}
+
+#' Remember the current device as one R opened by default
+#'
+#' [screen_device_is_current()] counts it as the reader's screen. It is kept
+#' by [current_device_identity()], with a mark set on the device itself: R
+#' gives a closed device's number to the next device opened, and a `pdf()`
+#' the reader opens, or the `pdf(NULL)` `grid.grabExpr()` opens, can have the
+#' number, name and file of one since closed, but not the mark. `err` is a
+#' graphical parameter R keeps for each device and documents as unimplemented,
+#' so setting it draws nothing; a device opened later starts at `0`.
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+remember_default_device <- function() {
+  if (grDevices::dev.cur() == 1L) {
+    return(invisible(NULL))
+  }
+  graphics::par(err = -1L)
+  device <- current_device_identity()
+  others <- Filter(
+    function(kept) kept$number != device$number,
+    .maidr_lattice_state$default_devices
+  )
+  .maidr_lattice_state$default_devices <- c(others, list(device))
+  invisible(NULL)
 }
 
 #' The current device, told apart from a later one given its number
@@ -359,8 +498,8 @@ print_trellis_natively <- function(x, ...) {
 #' number is kept with the device's name and, for a file device, the file
 #' `.Devices` records. Those three are all a `pdf()` opened on R's default
 #' file once the default device is closed has too, so `marked` is kept as
-#' well: whether the device carries the mark [print_trellis_natively()] sets
-#' on the device R opened by default.
+#' well: whether the device carries the mark [remember_default_device()]
+#' sets on a device R opened by default.
 #'
 #' @return A list: `number`, `name`, `path` (`NULL` for no file) and
 #'   `marked`.

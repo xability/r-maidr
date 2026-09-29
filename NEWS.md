@@ -60,13 +60,16 @@
   `more = TRUE`, `newpage = FALSE`, given to `print()` or carried in the
   chart's `plot.args`), a print into a file device such as
   `pdf()` or `png()`, a print while knitting or inside Shiny, and
-  `plot(p)` are drawn by lattice as before. In R Markdown and Quarto a
-  chart the chunk returns is made accessible, while one the chunk draws
-  with `print(p)` stays a static image. `options(maidr.lattice = FALSE)`
-  leaves lattice printing alone, and setting it back to `TRUE` takes effect
-  at the next print; see `?"maidr-options"`. Saving, showing or knitting
-  a chart leaves lattice's own record of the chart it drew last -- the one
-  `trellis.focus()` and `trellis.last.object()` act on -- as it was.
+  `plot(p)` are drawn by lattice as before. A chart lattice draws at the
+  console while a Base R chart waits for `show()` goes on a screen of its
+  own, not onto the hidden device maidr records that chart on. In R
+  Markdown and Quarto a chart the chunk returns is made accessible, while
+  one the chunk draws with `print(p)` stays a static image.
+  `options(maidr.lattice = FALSE)` leaves lattice printing alone, and
+  setting it back to `TRUE` takes effect at the next print; see
+  `?"maidr-options"`. Saving, showing or knitting a chart leaves lattice's
+  own record of the chart it drew last -- the one `trellis.focus()` and
+  `trellis.last.object()` act on -- as it was.
 
 ### plotly, highcharter and echarts4r widgets
 
