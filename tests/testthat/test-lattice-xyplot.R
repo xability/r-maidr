@@ -752,6 +752,44 @@ test_that("a group's two curves of one type say which curve each is", {
   testthat::expect_equal(unname(xy_matrix(layers[[5]]$data[[1]])), cbind(spline$x, spline$y))
 })
 
+test_that("two curves of one type kept whole say which curve each is", {
+  skip_if_no_lattice()
+  # Groups observed at the same x are kept in one layer, with no name, and
+  # a layer with no name is announced by its type: the lines through the
+  # data and through its averages would both be "line", and a loess and a
+  # spline both "smooth".
+  d <- data.frame(
+    x = c(1, 2, 2, 3, 1, 2, 3, 3),
+    y = c(1, 3, 5, 2, 5, 4, 6, 2),
+    g = rep(c("a", "b"), each = 4)
+  )
+  layers <- lattice_rendered_layers(xy_render(
+    lattice::xyplot(y ~ x, d, groups = g, type = c("l", "a"))
+  ))
+  testthat::expect_identical(vapply(layers, `[[`, "", "type"), c("line", "line"))
+  testthat::expect_identical(vapply(layers, `[[`, "", "name"), c("line", "average"))
+  # Each named for the curve it holds: the average is each x's mean.
+  testthat::expect_equal(
+    unname(xy_matrix(layers[[2]]$data[[1]])),
+    cbind(c(1, 2, 3), c(1, 4, 2))
+  )
+
+  # Both groups observed at 1..12, so their loess and spline grids coincide.
+  set.seed(7)
+  e <- data.frame(x = rep(1:12, 2), g = rep(c("a", "b"), each = 12))
+  e$y <- ifelse(e$g == "a", sin(e$x / 3), cos(e$x / 4)) + stats::rnorm(24, sd = 0.1)
+  layers <- lattice_rendered_layers(xy_render(
+    lattice::xyplot(y ~ x, e, groups = g, type = c("p", "smooth", "spline"))
+  ))
+  curves <- layers[vapply(layers, `[[`, "", "type") == "smooth"]
+  testthat::expect_identical(vapply(curves, `[[`, "", "name"), c("loess", "spline"))
+  # A curve with nothing announced alike beside it keeps its type.
+  layers <- lattice_rendered_layers(xy_render(
+    lattice::xyplot(y ~ x, e, type = c("p", "smooth"))
+  ))
+  testthat::expect_true(all(vapply(layers, function(layer) is.null(layer$name), logical(1))))
+})
+
 test_that("type 'b' and 'o' are read as the points and then the line through them", {
   skip_if_no_lattice()
   for (type in c("b", "o")) {

@@ -499,36 +499,42 @@ lattice_layer_kind <- function(layer, type) {
 #' would say "4", "6", "8", "4", "6", "8" with nothing to tell the points
 #' from the lines, so each named layer says its type too: "4 (line)".
 #'
-#' Two curves of one type drawn for one group -- the line through the data
-#' and the line through its averages, `type = c("l", "a")`; a loess and a
-#' spline -- would still share a name, by group alone or by group and type,
-#' so those say which curve they are instead: "4 (line)" and
-#' "4 (average)", "4 (loess)" and "4 (spline)" ([lattice_layer_kind()]).
+#' Two curves of one type -- the line through the data and the line through
+#' its averages, `type = c("l", "a")`; a loess and a spline -- would still be
+#' announced alike: by group alone or by group and type when they are named,
+#' and by their type when they are not, as a curve whose groups share an x is
+#' kept whole and unnamed ([lattice_split_series()]). So those say which
+#' curve they are instead: "4 (line)" and "4 (average)", "4 (loess)" and
+#' "4 (spline)", or, unnamed, "line" and "average" ([lattice_layer_kind()]).
 #'
 #' @param layers A subplot's layers
 #' @param kinds What kind of curve or mark each layer is, from
 #'   [lattice_layer_kind()]
 #' @return The layers, their names qualified by type when the subplot's
-#'   layers are not all one type, and by kind where two would otherwise
-#'   share a name.
+#'   layers are not all one type, and by kind where two would otherwise be
+#'   announced alike.
 #' @keywords internal
 lattice_qualify_layer_names <- function(layers, kinds) {
-  named <- which(!vapply(layers, function(layer) is.null(layer$name), logical(1)))
-  if (length(named) == 0L) {
+  if (length(layers) == 0L) {
     return(layers)
   }
   types <- vapply(layers, function(layer) layer$type, character(1))
-  bare <- vapply(layers[named], function(layer) layer$name, character(1))
-  qualifier <- if (length(unique(types)) > 1L) types[named] else rep(NA, length(named))
-  label <- function(qualifier) {
-    ifelse(is.na(qualifier), bare, sprintf("%s (%s)", bare, qualifier))
+  bare <- vapply(layers, function(layer) layer$name %||% NA_character_, character(1))
+  named <- !is.na(bare)
+  qualifier <- if (length(unique(types)) > 1L) types else rep(NA_character_, length(types))
+  # What each layer is announced as: its name, or its type when it has none.
+  announced <- function(qualifier) {
+    ifelse(!named, types, ifelse(is.na(qualifier), bare, sprintf("%s (%s)", bare, qualifier)))
   }
-  names <- label(qualifier)
-  shared <- duplicated(names) | duplicated(names, fromLast = TRUE)
-  qualifier[shared] <- kinds[named][shared]
-  names <- label(qualifier)
-  for (i in seq_along(named)) {
-    layers[[named[i]]]$name <- names[[i]]
+  said <- announced(qualifier)
+  alike <- duplicated(said) | duplicated(said, fromLast = TRUE)
+  qualifier[alike] <- kinds[alike]
+  said <- announced(qualifier)
+  for (i in which(named)) {
+    layers[[i]]$name <- said[[i]]
+  }
+  for (i in which(alike & !named)) {
+    layers[[i]]$name <- kinds[[i]]
   }
   layers
 }

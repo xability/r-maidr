@@ -14,8 +14,8 @@ lattice_qualify_layer_names(layers, kinds)
 }
 \value{
 The layers, their names qualified by type when the subplot's
-layers are not all one type, and by kind where two would otherwise
-share a name.
+layers are not all one type, and by kind where two would otherwise be
+announced alike.
 }
 \description{
 A layer's \code{name} is announced on a layer switch in place of its type, which
@@ -26,10 +26,12 @@ would say "4", "6", "8", "4", "6", "8" with nothing to tell the points
 from the lines, so each named layer says its type too: "4 (line)".
 }
 \details{
-Two curves of one type drawn for one group -- the line through the data
-and the line through its averages, \code{type = c("l", "a")}; a loess and a
-spline -- would still share a name, by group alone or by group and type,
-so those say which curve they are instead: "4 (line)" and
-"4 (average)", "4 (loess)" and "4 (spline)" (\code{\link[=lattice_layer_kind]{lattice_layer_kind()}}).
+Two curves of one type -- the line through the data and the line through
+its averages, \code{type = c("l", "a")}; a loess and a spline -- would still be
+announced alike: by group alone or by group and type when they are named,
+and by their type when they are not, as a curve whose groups share an x is
+kept whole and unnamed (\code{\link[=lattice_split_series]{lattice_split_series()}}). So those say which
+curve they are instead: "4 (line)" and "4 (average)", "4 (loess)" and
+"4 (spline)", or, unnamed, "line" and "average" (\code{\link[=lattice_layer_kind]{lattice_layer_kind()}}).
 }
 \keyword{internal}
