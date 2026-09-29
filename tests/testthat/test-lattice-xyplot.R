@@ -622,6 +622,59 @@ test_that("a line's gaps are where nothing was drawn, and a line drawn through n
   )
 })
 
+test_that("a value with a break on both sides is read as the gap the chart draws there", {
+  skip_if_no_lattice()
+  # grid draws a line as its runs of two or more values, and nothing for a
+  # value with a missing one or the line's end on both sides: 5 at x = 1
+  # and 7 at x = 6 here. The frontend pairs a line's readings with its
+  # vertices, and one reading with no vertex put every marker off its own.
+  d <- data.frame(x = 1:9, y = c(5, NA, 3, 4, NA, 7, NA, 6, 2))
+  alone <- c(1, 6)
+  for (type in c("l", "b")) {
+    r <- xy_render(lattice::xyplot(y ~ x, d, type = type))
+    layers <- lattice_rendered_layers(r)
+    line <- Filter(function(layer) layer$type == "line", layers)[[1]]
+    read <- xy_matrix(line$data[[1]])
+    testthat::expect_equal(unname(read[, "x"]), d$x)
+    testthat::expect_equal(unname(read[, "y"]), replace(d$y, alone, NA))
+    # Every value read is a vertex drawn, in order.
+    shown <- !is.na(read[, "y"])
+    vertices <- xy_polyline_vertices(r$doc, line$selectors[[1]])
+    xy_expect_drawn_at(vertices[, "x"], read[shown, "x"])
+    xy_expect_drawn_at(vertices[, "y"], read[shown, "y"])
+  }
+  # With type "b" the value's point is drawn, and read in the point layer.
+  testthat::expect_equal(unname(xy_matrix(layers[[1]]$data)), unname(as.matrix(d[!is.na(d$y), ])))
+
+  # A row with no x breaks the line as well. On a factor y axis the gap
+  # carries no level name, which would be read in place of "missing".
+  d <- data.frame(x = c(1, NA, 3, 4), g = factor(letters[1:4]))
+  r <- xy_render(lattice::xyplot(g ~ x, d, type = "l"))
+  line <- lattice_rendered_layers(r)[[1]]
+  testthat::expect_equal(unname(xy_matrix(line$data[[1]])), cbind(c(1, 3, 4), c(NA, 3, 4)))
+  testthat::expect_identical(xy_field(line$data[[1]], "label"), c(NA, "c", "d"))
+
+  # A line through a horizontal panel's levels, read by level.
+  d <- data.frame(g = factor(letters[1:5]), v = c(50, NA, 40, 20, 30))
+  r <- xy_render(lattice::dotplot(g ~ v, d, type = "l"))
+  line <- lattice_rendered_layers(r)[[1]]
+  testthat::expect_identical(xy_field(line$data[[1]], "x"), letters[1:5])
+  values <- vapply(line$data[[1]], function(p) if (is.null(p$y)) NA_real_ else p$y, numeric(1))
+  testthat::expect_equal(values, c(NA, NA, 40, 20, 30))
+  vertices <- xy_polyline_vertices(r$doc, line$selectors[[1]])
+  xy_expect_drawn_at(vertices[, "x"], values[!is.na(values)])
+  xy_expect_drawn_at(vertices[, "y"], which(!is.na(values)))
+
+  # A group whose every value is alone draws nothing, and is left out as a
+  # group drawn through no finite value is.
+  d <- data.frame(x = rep(1:3, 2), y = c(1, 2, 3, 4, NA, 6), g = rep(c("a", "b"), each = 3))
+  r <- xy_render(lattice::xyplot(y ~ x, d, groups = g, type = c("p", "l")))
+  lines <- Filter(function(layer) layer$type == "line", lattice_rendered_layers(r))
+  testthat::expect_length(lines, 1L)
+  testthat::expect_length(lines[[1]]$data, 1L)
+  testthat::expect_identical(unique(xy_field(lines[[1]]$data[[1]], "z")), "a")
+})
+
 test_that("grouped lines are one series per group, named by the group", {
   skip_if_no_lattice()
   d <- data.frame(

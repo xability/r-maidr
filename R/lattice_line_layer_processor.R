@@ -14,6 +14,9 @@
 #' a gap could be put at -- the frontend places a line's points by their x,
 #' a number or a string -- and is left out, as py-maidr leaves out the
 #' matplotlib points with no x: the pieces on either side are read as one.
+#' A value with a break on both sides, such as one between two missing
+#' values, is drawn as nothing at all, and is emitted as a gap as well
+#' (`lattice_line_alone()`).
 #'
 #' A staircase is drawn through `2n - 1` vertices for `n` samples, sorted
 #' by x; the samples are the odd vertices, and `stepDirection` says which
@@ -142,6 +145,10 @@ LatticeLineLayerProcessor <- R6::R6Class(
         x <- x[samples]
         y <- y[samples]
       }
+      # Decided before the rows with no x are left out, since each of them
+      # breaks the line where it stands. A staircase, whose samples are
+      # every other vertex, is read as it was.
+      alone <- if (step) logical(length(x)) else lattice_line_alone(x, y)
       # A row with no x has no position, gap or not.
       drawn <- is.finite(x)
       x <- x[drawn]
@@ -149,7 +156,7 @@ LatticeLineLayerProcessor <- R6::R6Class(
       # A gap is where no line was drawn, which is decided in the units
       # lattice drew in: a zero on a log scale is drawn at -Inf, which is no
       # position, and back on the data's scale it would read as 0.
-      gap <- !is.finite(y)
+      gap <- !is.finite(y) | alone[drawn]
 
       x_value <- if (is.character(panel_ctx$x_limits)) {
         self$category_of(x, panel_ctx$x_limits)$label
@@ -162,7 +169,7 @@ LatticeLineLayerProcessor <- R6::R6Class(
 
       lapply(seq_along(x), function(i) {
         point <- list(x = x_value[i], y = if (gap[i]) NA else y_value[i])
-        if (y_categories && !is.na(y_label[i])) {
+        if (y_categories && !gap[i] && !is.na(y_label[i])) {
           point$label <- y_label[i]
         }
         point
@@ -183,7 +190,8 @@ LatticeLineLayerProcessor <- R6::R6Class(
     #'
     #' The level a vertex is drawn at is its position, and a vertex drawn at
     #' no level has none. A missing value breaks the drawn line and is
-    #' emitted as a gap (`y: null`) at its level.
+    #' emitted as a gap (`y: null`) at its level, as is a value drawn as
+    #' nothing (`lattice_line_alone()`).
     #'
     #' @param plot The trellis object
     #' @param panel_ctx The panel
@@ -192,10 +200,11 @@ LatticeLineLayerProcessor <- R6::R6Class(
     extract_across_levels = function(plot, panel_ctx, grob) {
       value <- as.numeric(grob$x)
       level <- as.numeric(grob$y)
+      alone <- lattice_line_alone(value, level)
       drawn <- is.finite(level)
       value <- value[drawn]
       name <- self$category_of(level[drawn], panel_ctx$y_limits)$label
-      gap <- !is.finite(value)
+      gap <- !is.finite(value) | alone[drawn]
       value <- self$position_values(value, "x", plot, panel_ctx)
       lapply(seq_along(value), function(i) {
         list(x = name[i], y = if (gap[i]) NA else value[i])
@@ -214,4 +223,29 @@ lattice_sort_entries <- function(entries) {
     if (is.null(e$group) || is.na(e$group)) 0L else as.integer(e$group)
   }, integer(1))
   entries[order(groups)]
+}
+
+#' The values of a line that nothing is drawn for
+#'
+#' grid draws a line as its runs of two or more finite vertices: a missing
+#' or infinite coordinate breaks it, and a vertex with a break or an end of
+#' the line on both sides -- a value between two missing ones, or next to
+#' one at the line's end, or a line's only value -- is in no run, so it is
+#' drawn as nothing and the SVG holds no vertex for it. The frontend pairs
+#' a line's readings with its vertices in order, and when there are more
+#' readings than vertices it places the readings by their x between the
+#' first vertex and the last, which puts them off their vertices, and all
+#' on the first one when x is a level's name. Such a value is read as the
+#' gap the chart shows; with `type = "b"` or `"o"` its point is still read,
+#' in the point layer.
+#'
+#' @param x,y The line's coordinates, in the order drawn
+#' @return Logical, one per vertex: `TRUE` for a finite one that no segment
+#'   is drawn through
+#' @keywords internal
+lattice_line_alone <- function(x, y) {
+  finite <- is.finite(x) & is.finite(y)
+  n <- length(finite)
+  joined <- c(finite[-1L], FALSE) | c(FALSE, finite[-n])
+  finite & !joined
 }

@@ -17,6 +17,9 @@ does not show. A missing y breaks the drawn line and is emitted as a gap
 a gap could be put at -- the frontend places a line's points by their x,
 a number or a string -- and is left out, as py-maidr leaves out the
 matplotlib points with no x: the pieces on either side are read as one.
+A value with a break on both sides, such as one between two missing
+values, is drawn as nothing at all, and is emitted as a gap as well
+(\code{lattice_line_alone()}).
 
 A staircase is drawn through \verb{2n - 1} vertices for \code{n} samples, sorted
 by x; the samples are the odd vertices, and \code{stepDirection} says which
@@ -187,7 +190,8 @@ axis a factor and its x axis not
 
 The level a vertex is drawn at is its position, and a vertex drawn at
 no level has none. A missing value breaks the drawn line and is
-emitted as a gap (\code{y: null}) at its level.
+emitted as a gap (\code{y: null}) at its level, as is a value drawn as
+nothing (\code{lattice_line_alone()}).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{LatticeLineLayerProcessor$extract_across_levels(plot, panel_ctx, grob)}
