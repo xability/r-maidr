@@ -1477,6 +1477,70 @@ test_that("plot() of a trellis object in a fresh session draws on the default de
   expect_emitted(session, "plot_drawn", "TRUE")
 })
 
+test_that("plot() forces only the argument it dispatches on, once, as plain R does", {
+  skip_if_no_lattice()
+
+  undo_recording <- use_base_r_recording()
+  on.exit(undo_recording(), add = TRUE)
+
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device)
+      grDevices::dev.off(device)
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device)
+
+  # An `x` that fails to evaluate is evaluated once. A check that swallowed
+  # the failure left the original, and then the retry, to evaluate it
+  # again: every side effect and warning of it, three times.
+  evaluated <- 0L
+  unreadable <- function() {
+    evaluated <<- evaluated + 1L
+    warning("cannot open file 'no-such-file.csv'")
+    stop("bad first argument")
+  }
+  warned <- 0L
+  testthat::expect_error(
+    withCallingHandlers(
+      maidr::plot(unreadable()),
+      warning = function(w) {
+        warned <<- warned + 1L
+        invokeRestart("muffleWarning")
+      }
+    ),
+    "bad first argument"
+  )
+  testthat::expect_identical(evaluated, 1L)
+  testthat::expect_identical(warned, 1L)
+
+  # What evaluating it warns of is reported against the reader's call.
+  coercion <- testthat::capture_warning(maidr::plot(as.numeric(c("1", "a", "3"))))
+  testthat::expect_identical(conditionCall(coercion)[[1L]], quote(maidr::plot))
+
+  # Every other argument is the method's to force, wherever it is written:
+  # `panel.first` once the new plot is set up, not on the one before it...
+  maidr::plot(1:5)
+  usr <- list()
+  maidr::plot(panel.first = usr <- c(usr, list(graphics::par("usr"))), 1:10)
+  testthat::expect_length(usr, 1L)
+  testthat::expect_gt(usr[[1L]][2L], 10)
+
+  # ...and `subset` within `data`, where the formula method evaluates it.
+  d <- data.frame(x = 1:10, y = (1:10)^2, g = rep(1:2, 5))
+  testthat::expect_error(maidr::plot(subset = g == 1, y ~ x, data = d), NA)
+
+  # A trellis chart given as `x` is lattice's to draw wherever it is written.
+  clear_base_r_device(device)
+  grid::grid.newpage()
+  maidr::plot(newpage = TRUE, x = mtcars_scatter())
+  testthat::expect_false(maidr:::has_device_calls(device))
+  testthat::expect_true(has_scatter(device))
+})
+
 # ==============================================================================
 # Options and theme
 # ==============================================================================

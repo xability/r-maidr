@@ -732,13 +732,28 @@ create_function_wrapper <- function(function_name, original_function) {
       # `plot()` of a lattice or ggplot2 object dispatches to that
       # package's own method, which draws with grid, not Base R graphics.
       # Recorded, it was read as an empty Base R scatter, and drawn onto
-      # the hidden device the recording opens rather than the screen. A
-      # first argument that fails to evaluate here fails again, the same
-      # way, when the original forces it below.
-      if (identical(FNAME, "plot") && ...length() > 0L) {
-        first <- tryCatch(list(..1), error = function(e) NULL)
-        if (!is.null(first) && is_maidr_plot_object(first[[1L]])) {
-          return(ORIG(...))
+      # the hidden device the recording opens rather than the screen.
+      #
+      # Only the argument the generic `plot(x, y, ...)` dispatches on is
+      # forced: `x`, else the first unnamed one. The rest stay promises for
+      # the method to force when it means to -- `panel.first` belongs on
+      # the new plot, and the formula method evaluates `subset` within
+      # `data`. `x` is forced uncaught, as the generic's own UseMethod()
+      # forces it first, so one that fails to evaluate fails once, reported
+      # against the reader's call; a missing one is left for the original
+      # to report.
+      if (identical(FNAME, "plot")) {
+        dots <- as.list(substitute(list(...)))[-1L]
+        tags <- names(dots) %||% character(length(dots))
+        at <- match("x", tags)
+        if (is.na(at)) {
+          at <- match("", tags)
+        }
+        if (!is.na(at) && !eval(call("missing", as.name(paste0("..", at))))) {
+          first <- ...elt(at)
+          if (is_maidr_plot_object(first)) {
+            return(ORIG(...))
+          }
         }
       }
 
@@ -755,7 +770,7 @@ create_function_wrapper <- function(function_name, original_function) {
       # `hist(x)` does not.
       call_failed <- FALSE
       result <- tryCatch(
-        withVisible(muffle_promise_restart(ORIG(...))),
+        withVisible(ORIG(...)),
         error = function(e) {
           call_failed <<- TRUE
           e
