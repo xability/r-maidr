@@ -13,9 +13,10 @@ using namespace Rcpp;
 
 namespace {
 
-// R 4.5 took ATTRIB() out of the API in favour of these; older R has only
+// R 4.6 took ATTRIB() out of the API in favour of these (R_mapAttrib() is
+// new in 4.6); older R has only
 // ATTRIB().
-#if R_VERSION >= R_Version(4, 5, 0)
+#if R_VERSION >= R_Version(4, 6, 0)
 SEXP count_one(SEXP, SEXP, void* data) {
   ++*static_cast<int*>(data);
   return NULL;
