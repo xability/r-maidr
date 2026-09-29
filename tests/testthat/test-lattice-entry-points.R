@@ -281,9 +281,12 @@ has_scatter <- function(device) {
 in_fresh_session <- function(lines) {
   rscript <- file.path(R.home("bin"), "Rscript")
   root <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
+  # The tests beside the source tree, not beside an installed package: covr
+  # runs them from inside the installed package, whose R/ holds no sources,
+  # and load_all() there would load an empty namespace.
   from_source <- requireNamespace("pkgload", quietly = TRUE) &&
     file.exists(file.path(root, "DESCRIPTION")) &&
-    dir.exists(file.path(root, "R"))
+    file.exists(file.path(root, "R", "maidr.R"))
   loader <- if (from_source) {
     c(
       sprintf(
