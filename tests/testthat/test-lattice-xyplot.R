@@ -774,6 +774,24 @@ test_that("two curves of one type kept whole say which curve each is", {
     cbind(c(1, 2, 3), c(1, 4, 2))
   )
 
+  # A horizontal strip plot's groups share its levels, and so are always
+  # read together.
+  mt <- transform(datasets::mtcars, cyl = factor(cyl), am = factor(am))
+  layers <- lattice_rendered_layers(xy_render(
+    lattice::stripplot(cyl ~ mpg, mt, groups = am, type = c("l", "a"))
+  ))
+  testthat::expect_identical(vapply(layers, `[[`, "", "name"), c("line", "average"))
+  for (k in 1:2) {
+    rows <- mt$am == levels(mt$am)[k]
+    testthat::expect_identical(xy_field(layers[[1]]$data[[k]], "x"), as.character(mt$cyl[rows]))
+    means <- tapply(mt$mpg[rows], mt$cyl[rows], mean)
+    testthat::expect_identical(xy_field(layers[[2]]$data[[k]], "x"), names(means))
+    testthat::expect_equal(
+      vapply(layers[[2]]$data[[k]], function(p) as.numeric(p$y), numeric(1)),
+      as.numeric(means)
+    )
+  }
+
   # Both groups observed at 1..12, so their loess and spline grids coincide.
   set.seed(7)
   e <- data.frame(x = rep(1:12, 2), g = rep(c("a", "b"), each = 12))
