@@ -304,7 +304,7 @@ by panel and group by group, is new.
 | `box` | `bwplot()` |
 | `heat` | `levelplot()`, `contourplot(region = TRUE)` |
 | `contour` | `contourplot()`, `levelplot(contour = TRUE)` |
-| `smooth` | `densityplot()`, `xyplot()`, `stripplot()`, `dotplot()`, `qqmath()` and `qq()` with `type = "r"`, `"smooth"` or `"spline"` |
+| `smooth` | `densityplot()`, and `xyplot()`, `qqmath()` and `qq()` with `type = "r"`, `"smooth"` or `"spline"` on numeric axes |
 | `dot` | `dotplot()` with one value per level |
 | `lollipop` | `xyplot(type = "h")`, and `type = "h"` on `stripplot()`, `dotplot()`, `qqmath()` and `qq()` |
 
@@ -317,7 +317,8 @@ several pages is read from its first page, with a warning. What the reading
 does not cover is shown as a static image: `cloud()`, `wireframe()`,
 `splom()`, `parallelplot()`, a panel function of your own or one such as
 `panel.violin`, `levelplot(useRaster = TRUE)`, latticeExtra layers and
-compositions, and a panel that fails to draw.
+compositions, a fit (`type = "r"`, `"smooth"` or `"spline"`) over a factor
+axis, as on a `stripplot()` or `dotplot()`, and a panel that fails to draw.
 
 The split is the diff of each factory's `get_supported_types()` against
 `8de0e98`, the last commit on `main` before

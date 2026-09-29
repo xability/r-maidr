@@ -926,6 +926,42 @@ test_that("a spline is smooth.spline() predicted where panel.spline() predicts i
   )
 })
 
+test_that("a fit over a factor axis is shown as an image, not read by the levels' positions", {
+  skip_if_no_lattice()
+  # lattice fits the curve to the levels' positions, 1..5, and draws it
+  # between them and out to the panel's edges, 0.4 and 5.6, where the axis
+  # names nothing: read as drawn, the first point would be "f is 1" where
+  # the axis says "lo".
+  levels <- c("lo", "mid", "hi", "top", "max")
+  d <- data.frame(
+    f = factor(rep(levels, each = 3), levels = levels),
+    v = c(2, 3, 4, 5, 6, 5, 7, 9, 8, 6, 8, 7, 9, 12, 10),
+    g = rep(c("a", "b", "c"), 5)
+  )
+  charts <- list(
+    lattice::stripplot(v ~ f, d, type = c("p", "smooth")),
+    lattice::stripplot(v ~ f, d, groups = g, type = c("p", "r")),
+    lattice::stripplot(f ~ v, d, type = c("p", "r")),
+    lattice::dotplot(f ~ v, d, type = c("p", "spline")),
+    lattice::xyplot(v ~ f, d, type = c("p", "smooth"))
+  )
+  for (chart in charts) {
+    r <- render_lattice(chart)
+    testthat::expect_true(r$fallback)
+    testthat::expect_identical(
+      r$orchestrator$unsupported_reasons(),
+      "its smooth marks could not be read"
+    )
+  }
+
+  # The average of type "a" has a value at each level, and is read, named
+  # by the level.
+  r <- xy_render(lattice::stripplot(v ~ f, d, type = c("p", "a")))
+  average <- lattice_rendered_layers(r)[[2]]
+  testthat::expect_identical(average$type, "line")
+  testthat::expect_identical(xy_field(average$data[[1]], "x"), levels)
+})
+
 test_that("the average line of type 'a' is the mean of y at each x", {
   skip_if_no_lattice()
   set.seed(5)

@@ -17,6 +17,13 @@ panel, and is read as its two ends.
 The observations \code{densityplot()} draws under its curve -- jittered
 points or a rug -- are the data again rather than the reading, and are
 left out, as the curve is what the chart is drawn to show.
+
+A fit over a factor axis -- \code{type = "r"}, \code{"smooth"} or \code{"spline"} on a
+\code{stripplot()}, a \code{dotplot()} or an \code{xyplot()} of a factor -- is not
+read, and the chart is shown as an image. lattice fits it to the levels'
+positions, \verb{1..n}, and draws it between them and out to the panel's
+edges, where no level is: read as drawn it would announce "cyl is 1"
+where the axis says 4, and "cyl is 0.4" where it says nothing.
 }
 \keyword{internal}
 \section{Super classes}{

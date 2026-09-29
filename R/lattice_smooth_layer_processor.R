@@ -15,6 +15,13 @@
 #' points or a rug -- are the data again rather than the reading, and are
 #' left out, as the curve is what the chart is drawn to show.
 #'
+#' A fit over a factor axis -- `type = "r"`, `"smooth"` or `"spline"` on a
+#' `stripplot()`, a `dotplot()` or an `xyplot()` of a factor -- is not
+#' read, and the chart is shown as an image. lattice fits it to the levels'
+#' positions, `1..n`, and draws it between them and out to the panel's
+#' edges, where no level is: read as drawn it would announce "cyl is 1"
+#' where the axis says 4, and "cyl is 0.4" where it says nothing.
+#'
 #' @keywords internal
 LatticeSmoothLayerProcessor <- R6::R6Class(
   "LatticeSmoothLayerProcessor",
@@ -38,6 +45,11 @@ LatticeSmoothLayerProcessor <- R6::R6Class(
                        panel_id = NULL,
                        panel_ctx = NULL,
                        layer_info = NULL) {
+      # A factor axis holds its levels' names, and a fit's positions between
+      # them have none (see the class documentation).
+      if (is.character(panel_ctx$x_limits) || is.character(panel_ctx$y_limits)) {
+        return(NULL)
+      }
       entries <- lattice_sort_entries(layer_info$grobs)
       grouped <- any(!is.na(vapply(entries, function(e) e$group, integer(1))))
 

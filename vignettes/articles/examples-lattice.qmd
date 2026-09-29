@@ -325,5 +325,7 @@ function drew. Anything else is shown as a static image, the way lattice draws
 it, rather than read wrongly: `cloud()`, `wireframe()`, `splom()` and
 `parallelplot()`; a panel function of your own, or one such as
 `panel.violin`, in place of the stock one; `levelplot(useRaster = TRUE)`;
-latticeExtra layers and compositions; and a panel that fails to draw. Printed
-at the console, such a chart is drawn by lattice as it always was.
+latticeExtra layers and compositions; a fit (`type = "r"`, `"smooth"` or
+`"spline"`) over a factor axis, as on a `stripplot()` or `dotplot()`; and a
+panel that fails to draw. Printed at the console, such a chart is drawn by
+lattice as it always was.

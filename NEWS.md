@@ -23,14 +23,13 @@
   as `smooth`, one curve per group; `dotplot()` as `dot`, or as points
   when a level holds several values; and `stripplot()`, `qqmath()` and
   `qq()` as `point`, with the lines, spikes, fits and averages their
-  `type` adds read as `xyplot()`'s are. A `histogram()` of a factor, one
-  bar per level, is
-  read as a `bar` layer named by its levels. `xyplot()` of a time series
-  is read as a `line`, in a panel per series or superposed, its values
-  named after the series rather than lattice's own `x`. Every layer names
-  the marks it reads, so each point, bar, bin, dot and spike, each box,
-  each heat map cell and each line, curve and contour is highlighted as it
-  is read.
+  `type` adds read as `xyplot()`'s are -- save a fit over a factor axis,
+  below. A `histogram()` of a factor, one bar per level, is read as a `bar`
+  layer named by its levels. `xyplot()` of a time series is read as a
+  `line`, in a panel per series or superposed, its values named after the
+  series rather than lattice's own `x`. Every layer names the marks it
+  reads, so each point, bar, bin, dot and spike, each box, each heat map
+  cell and each line, curve and contour is highlighted as it is read.
 * The groups of a line, step or smooth layer that share no x value -- the
   densities of a grouped `densityplot()`, say -- are read as a layer each,
   named after the group, which Page Up and Page Down reach. Kept together,
@@ -51,9 +50,11 @@
   than read wrongly: `cloud()`, `wireframe()`, `splom()`,
   `parallelplot()`, a panel function of the user's own or one such as
   `panel.violin`, `levelplot(useRaster = TRUE)`, latticeExtra layers and
-  compositions (`+ layer()`, `c()`, `doubleYScale()`), and a panel that
-  fails to draw. Printed at the console, such a chart is drawn by lattice
-  as before.
+  compositions (`+ layer()`, `c()`, `doubleYScale()`), a fit
+  (`type = "r"`, `"smooth"` or `"spline"`) over a factor axis, which
+  lattice draws between the levels, where the axis names nothing, and a
+  panel that fails to draw. Printed at the console, such a chart is drawn
+  by lattice as before.
 * Printing goes through lattice's own `print.function` option, which
   maidr sets once 'lattice' is loaded and `maidr_off()` restores. A print
   that shares its page with other charts (`split`, `position`,
