@@ -8,6 +8,8 @@
 # is silent misalignment rather than an error - the drawn SVG geometry it
 # has to line up with.
 
+skip_slow_file_on_cran()
+
 reset_devices <- function() {
   maidr:::clear_all_device_storage()
 }

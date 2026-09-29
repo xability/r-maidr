@@ -18,6 +18,8 @@
 # it worse rather than better: the axis names say which way round the chart is
 # and the data underneath contradicted them.
 
+skip_slow_file_on_cran()
+
 bar_schema <- function(plot) {
   maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
 }

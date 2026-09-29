@@ -22,6 +22,8 @@
 # so the drawn order interleaves the groups and the series order does not:
 # 1, 3, 5 then 2, 4, 6.
 
+skip_slow_file_on_cran()
+
 skip_if_not_installed("ggplot2")
 
 library(ggplot2)

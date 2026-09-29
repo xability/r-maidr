@@ -31,6 +31,8 @@
 # finds one mark per point" -- the two conditions the frontend checks before
 # it keeps the highlight.
 
+skip_slow_file_on_cran()
+
 skip_if_no_contract <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

@@ -13,6 +13,8 @@
 # so a change to the emitted shape, the column order or the per-column walk
 # direction fails here instead of silently highlighting the wrong bar.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

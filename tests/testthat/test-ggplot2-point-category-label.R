@@ -22,6 +22,8 @@
 # The Python binding emits the same two fields for `sns.stripplot` and
 # `sns.swarmplot` (xability/py-maidr#439).
 
+skip_slow_file_on_cran()
+
 testthat::skip_if_not_installed("ggplot2")
 
 df <- function() {

@@ -31,6 +31,8 @@
 # on the unfixed code it reported `should_fallback() == FALSE` and emitted 0
 # layers.
 
+skip_slow_file_on_cran()
+
 testthat::skip_if_not_installed("ggplot2")
 
 # Built at top level: inside a closure the bare column names in `aes()` read

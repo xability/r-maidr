@@ -23,6 +23,8 @@
 # against 3.22 s, one `ggplot_build()` of 0.14 s, and the same 0.14 s however
 # many layers the chart has.
 
+skip_slow_file_on_cran()
+
 # `emitted_layers()`, `rendered()` and `fell_back()` live in
 # `helper-render.R`, shared with #227's and #230's tests.
 

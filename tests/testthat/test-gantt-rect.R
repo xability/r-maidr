@@ -36,6 +36,8 @@
 # that lanes are named by the ticks inside them, that the right rectangles are
 # highlighted -- and last, out loud, the wrong answer the declaration buys.
 
+skip_slow_file_on_cran()
+
 skip_unless_ggplot2 <- function() {
   testthat::skip_if_not_installed("ggplot2")
 }

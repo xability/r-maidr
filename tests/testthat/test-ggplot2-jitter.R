@@ -17,6 +17,8 @@
 # values against the **source column**, not against a rebuild, so they would
 # fail if the recovery drifted rather than agreeing with itself.
 
+skip_slow_file_on_cran()
+
 set.seed(1)
 
 likert_df <- function() {

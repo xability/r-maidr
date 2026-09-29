@@ -25,6 +25,8 @@
 # now has its own file, `test-gantt-curve.R`, because the two geoms reach
 # one-element-per-row by different routes and their selectors differ.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

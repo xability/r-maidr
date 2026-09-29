@@ -23,6 +23,8 @@
 # the two named idioms are read, with specificity inverted into the rate the
 # core measures against; and what a reader receives.
 
+skip_slow_file_on_cran()
+
 skip_unless_ggplot2 <- function() {
   testthat::skip_if_not_installed("ggplot2")
 }

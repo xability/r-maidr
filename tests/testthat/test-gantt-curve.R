@@ -18,6 +18,8 @@
 # taking `gp[[1]]` would also satisfy gridSVG and would paint every row the
 # first row's colour.
 
+skip_slow_file_on_cran()
+
 skip_if_no_curve_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

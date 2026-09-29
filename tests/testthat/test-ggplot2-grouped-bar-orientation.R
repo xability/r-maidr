@@ -20,6 +20,8 @@
 # None of the three emitted an `orientation` key either, so even correct data
 # would have been read as a vertical chart.
 
+skip_slow_file_on_cran()
+
 grouped_schema <- function(plot) {
   maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
 }

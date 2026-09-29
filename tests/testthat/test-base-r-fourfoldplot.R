@@ -22,6 +22,8 @@
 # check -- the default, the standardisation, the grob inventory -- is asserted
 # against a LIVE drawing below rather than assumed.
 
+skip_slow_file_on_cran()
+
 two_by_two <- function() {
   as.table(matrix(
     c(10, 40, 90, 160),

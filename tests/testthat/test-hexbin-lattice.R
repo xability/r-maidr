@@ -21,6 +21,8 @@
 # So the regrouping is tested directly, on a deliberately shuffled frame,
 # rather than through a chart that happens to arrive already sorted.
 
+skip_slow_file_on_cran()
+
 skip_if_no_hex <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("hexbin")

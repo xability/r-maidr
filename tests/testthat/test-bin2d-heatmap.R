@@ -24,6 +24,8 @@
 # So these assert the grid against what ggplot2 actually drew, rather than
 # against a shape chosen here.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

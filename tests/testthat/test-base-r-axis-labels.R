@@ -13,6 +13,8 @@
 # wins, and an axis a processor cannot name is omitted rather than blanked --
 # which leaves the generic to the renderer, where that decision belongs.
 
+skip_slow_file_on_cran()
+
 label_axes <- function(draw) {
   testthat::skip_if_not_installed("jsonlite")
 

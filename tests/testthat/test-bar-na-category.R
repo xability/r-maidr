@@ -18,6 +18,8 @@
 # category correctly and outline the wrong bar, and no assertion on the payload
 # alone can see that.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

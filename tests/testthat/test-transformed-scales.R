@@ -30,6 +30,8 @@
 # compresses, so a plausibility check on the announced range passes it while
 # every value has the wrong sign.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

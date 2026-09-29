@@ -28,6 +28,8 @@
 # the scatter underneath. Reading `sides` alone fails the other way, since it
 # says `"bl"` on a rug that has no `y` to mark.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

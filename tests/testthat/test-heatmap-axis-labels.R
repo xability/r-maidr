@@ -18,6 +18,8 @@
 # the two adapters disagreed and the ggplot2 one was the wrong half. Both
 # now go through the same chain the rest of the package uses.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("xml2")

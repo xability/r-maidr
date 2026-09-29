@@ -32,6 +32,10 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # The slowest test files skip on CRAN, whose check has a ten-minute
+      # budget (skip_slow_file_on_cran() in tests/testthat/helper.R). This is
+      # not CRAN: run the whole suite on every platform here.
+      NOT_CRAN: true
 
     steps:
       - uses: actions/checkout@v4

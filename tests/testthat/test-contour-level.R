@@ -23,6 +23,8 @@
 # both charts reading correctly and both outlining the wrong thing, which is
 # the blind spot xability/maidr#814 names.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")

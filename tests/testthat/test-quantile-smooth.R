@@ -34,6 +34,8 @@
 #   - the reading needs a layer that draws, which `layer(geom = GeomQuantile,
 #     stat = "identity", ...)` gives over data the test supplies.
 
+skip_slow_file_on_cran()
+
 skip_if_no_render <- function() {
   testthat::skip_if_not_installed("ggplot2")
   testthat::skip_if_not_installed("jsonlite")
