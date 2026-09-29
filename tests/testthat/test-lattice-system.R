@@ -1942,3 +1942,32 @@ test_that("detect_layer_type names a grob's role from its panel function's table
   custom <- lattice::xyplot(mpg ~ wt, mtcars, panel = function(...) lattice::panel.xyplot(...))
   testthat::expect_identical(role("xyplot.points", custom), "unknown")
 })
+
+test_that("lattice keeps the status record maidr reads where maidr reads it", {
+  skip_if_no_lattice()
+  # lattice_keep_status() and lattice_page_open() read lattice's record of
+  # the chart it drew last, which has no exported accessor. Both do nothing
+  # should it move, and what they look after would then change without a
+  # word; this says so at once.
+  status_env <- asNamespace("lattice")[[".LatticeEnv"]]
+  testthat::expect_true(is.environment(status_env))
+  testthat::expect_type(status_env[["lattice.status"]], "list")
+
+  plot_trellis <- utils::getS3method("plot", "trellis")
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  p <- lattice::xyplot(mpg ~ wt, datasets::mtcars)
+
+  # It is the record a chart drawn with more = TRUE leaves its page open in...
+  plot_trellis(p, split = c(1, 1, 2, 1), more = TRUE)
+  testthat::expect_true(maidr:::lattice_page_open())
+  plot_trellis(p, split = c(2, 1, 2, 1))
+  testthat::expect_false(maidr:::lattice_page_open())
+
+  # ...and the one lattice_keep_status() puts back.
+  restore <- maidr:::lattice_keep_status()
+  plot_trellis(p, more = TRUE)
+  testthat::expect_true(maidr:::lattice_page_open())
+  restore()
+  testthat::expect_false(maidr:::lattice_page_open())
+})
