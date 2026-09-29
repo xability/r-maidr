@@ -55,6 +55,11 @@ if (installed != pinned) {
 # pattern is the line to update, and the throwaway-package check in #297
 # (a block merged into the next one must exit 1) is how to tell.
 options(cli.unicode = FALSE, cli.num_colors = 1)
+
+# The R wrappers of the C++ in src/ are generated too, and roxygen2 reads
+# them, so they are regenerated first.
+Rcpp::compileAttributes()
+
 faults <- character(0)
 withCallingHandlers(
   roxygen2::roxygenise(),
