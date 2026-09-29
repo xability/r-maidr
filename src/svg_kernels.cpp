@@ -91,45 +91,86 @@ std::string trim_zeros(std::string s) {
   return s.substr(0, last_nonzero + 1);
 }
 
+// Where finite numbers are formatted. formatC() goes through R's own
+// printf, and on Windows that rounds some halves differently from the C
+// runtime (0.005 is "0.00" to R and "0.01" to snprintf()), so there it is
+// asked; elsewhere both are the C library's, and snprintf() is used.
+// test-svg-kernels.R runs every case both ways.
+#ifdef _WIN32
+bool format_via_r = true;
+#else
+bool format_via_r = false;
+#endif
+
+// formatC(x, format = "f", digits = 2) on finite values, then svg_trim().
+std::vector<std::string> format_finite(const std::vector<double>& x) {
+  std::vector<std::string> out(x.size());
+  if (x.empty()) return out;
+  if (format_via_r) {
+    Environment base = Environment::base_env();
+    Function formatC = base["formatC"];
+    CharacterVector s = formatC(NumericVector(x.begin(), x.end()),
+                                Named("format") = "f", Named("digits") = 2);
+    for (size_t i = 0; i < x.size(); ++i) out[i] = trim_zeros(utf8(s[i]));
+    return out;
+  }
+  char buf[512];
+  for (size_t i = 0; i < x.size(); ++i) {
+    std::snprintf(buf, sizeof(buf), "%.2f", x[i]);
+    out[i] = trim_zeros(buf);
+  }
+  return out;
+}
+
+std::string special_name(double x) {
+  if (ISNA(x)) return "NA";
+  if (ISNAN(x)) return "NaN";
+  return x > 0 ? "Inf" : "-Inf";
+}
+
 // svg_fmt() on a batch: formatC(v, format = "f", digits = 2), then
 // svg_trim(). formatC() writes the non-finite values of one call right-
 // justified to a shared width ("NA" counting as three wide), so the width
 // is a property of the batch, not of the value.
 std::vector<std::string> fmt_batch(const std::vector<double>& v) {
   std::vector<std::string> out(v.size());
+  std::vector<double> finite;
   size_t width = 0;
-  bool special = false;
-  char buf[512];
   for (size_t i = 0; i < v.size(); ++i) {
-    double x = v[i];
-    if (std::isfinite(x)) {
-      std::snprintf(buf, sizeof(buf), "%.2f", x);
-      out[i] = trim_zeros(buf);
+    if (std::isfinite(v[i])) {
+      finite.push_back(v[i]);
       continue;
     }
-    special = true;
-    if (ISNA(x)) {
-      out[i] = "NA";
-      width = std::max<size_t>(width, 3);
-    } else if (ISNAN(x)) {
-      out[i] = "NaN";
-    } else {
-      out[i] = x > 0 ? "Inf" : "-Inf";
-    }
-    width = std::max(width, out[i].size());
+    out[i] = special_name(v[i]);
+    width = std::max(width, ISNA(v[i]) ? std::max<size_t>(out[i].size(), 3) : out[i].size());
   }
-  if (special) {
-    for (size_t i = 0; i < v.size(); ++i) {
-      if (!std::isfinite(v[i]) && out[i].size() < width) {
-        out[i] = std::string(width - out[i].size(), ' ') + out[i];
-      }
+  std::vector<std::string> f = format_finite(finite);
+  for (size_t i = 0, j = 0; i < v.size(); ++i) {
+    if (std::isfinite(v[i])) {
+      out[i] = f[j++];
+    } else if (out[i].size() < width) {
+      out[i] = std::string(width - out[i].size(), ' ') + out[i];
     }
   }
   return out;
 }
 
-std::string fmt_one(double x) {
-  return fmt_batch(std::vector<double>(1, x))[0];
+// Each value as its own svg_fmt() call would write it, formatted together.
+std::vector<std::string> fmt_each(const std::vector<double>& v) {
+  std::vector<std::string> out(v.size());
+  std::vector<double> finite;
+  for (size_t i = 0; i < v.size(); ++i) {
+    if (std::isfinite(v[i])) {
+      finite.push_back(v[i]);
+    } else {
+      out[i] = ISNA(v[i]) ? " NA" : special_name(v[i]);
+    }
+  }
+  std::vector<std::string> f = format_finite(finite);
+  for (size_t i = 0, j = 0; i < v.size(); ++i) {
+    if (std::isfinite(v[i])) out[i] = f[j++];
+  }
+  return out;
 }
 
 // -- attributes --------------------------------------------------------------
@@ -281,11 +322,17 @@ CharacterVector svg_flip_points_cpp(CharacterVector points, double h) {
 // [[Rcpp::export]]
 CharacterVector svg_flip_path_cpp(CharacterVector d, double h) {
   R_xlen_t n = d.size();
-  CharacterVector out(n);
+  // Every y is its own svg_fmt() call in the R version; they are formatted
+  // together once all the paths are read.
+  std::vector<std::vector<std::string>> results(n);
+  std::vector<R_xlen_t> y_path;
+  std::vector<size_t> y_at;
+  std::vector<double> y_value;
+  std::vector<bool> is_na(n, false);
   for (R_xlen_t k = 0; k < n; ++k) {
     SEXP s = d[k];
     if (s == NA_STRING) {
-      out[k] = make_string("NA");
+      is_na[k] = true;
       continue;
     }
     // gsub("([MLZ])", " \\1 ") then strsplit on "[ ,]+", empty pieces
@@ -310,7 +357,8 @@ CharacterVector svg_flip_path_cpp(CharacterVector d, double h) {
     auto numeric = [](const std::string& t) {
       return !t.empty() && (is_digit(t[0]) || t[0] == '.' || t[0] == '-');
     };
-    std::vector<std::string> res(tok.size());
+    std::vector<std::string>& res = results[k];
+    res.resize(tok.size());
     for (size_t i = 0; i < tok.size(); ++i) {
       res[i] = numeric(tok[i]) ? trim_zeros(tok[i]) : tok[i];
     }
@@ -319,7 +367,9 @@ CharacterVector svg_flip_path_cpp(CharacterVector d, double h) {
     auto set_y = [&](size_t at) {
       double y = at < tok.size() ? parse_num(tok[at], false) : NA_REAL;
       if (at >= res.size()) res.resize(at + 1, "NA");
-      res[at] = fmt_one(h - y);
+      y_path.push_back(k);
+      y_at.push_back(at);
+      y_value.push_back(h - y);
     };
     size_t i = 0;
     while (i < tok.size()) {
@@ -333,10 +383,20 @@ CharacterVector svg_flip_path_cpp(CharacterVector d, double h) {
         i += 1;
       }
     }
+  }
+  std::vector<std::string> ys = fmt_each(y_value);
+  for (size_t j = 0; j < ys.size(); ++j) results[y_path[j]][y_at[j]] = ys[j];
+
+  CharacterVector out(n);
+  for (R_xlen_t k = 0; k < n; ++k) {
+    if (is_na[k]) {
+      out[k] = make_string("NA");
+      continue;
+    }
     std::string joined;
-    for (size_t j = 0; j < res.size(); ++j) {
+    for (size_t j = 0; j < results[k].size(); ++j) {
       if (j) joined += " ";
-      joined += res[j];
+      joined += results[k][j];
     }
     out[k] = make_string(joined);
   }
@@ -607,4 +667,20 @@ CharacterVector svg_style_attrs_cpp(CharacterVector style, LogicalVector text,
     out[i] = make_string(it->second);
   }
   return out;
+}
+
+//' Format finite numbers through R's formatC() or snprintf()
+//'
+//' Windows formats through R, everywhere else through snprintf(); the
+//' tests switch between the two to hold both to the R original.
+//'
+//' @param via_r `TRUE` for formatC(), `FALSE` for snprintf().
+//' @return The previous setting.
+//' @keywords internal
+//' @noRd
+// [[Rcpp::export]]
+bool svg_format_via_r_cpp(bool via_r) {
+  bool previous = format_via_r;
+  format_via_r = via_r;
+  return previous;
 }

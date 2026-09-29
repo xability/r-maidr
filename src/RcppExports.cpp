@@ -139,6 +139,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// svg_format_via_r_cpp
+bool svg_format_via_r_cpp(bool via_r);
+RcppExport SEXP _maidr_svg_format_via_r_cpp(SEXP via_rSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type via_r(via_rSEXP);
+    rcpp_result_gen = Rcpp::wrap(svg_format_via_r_cpp(via_r));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_maidr_record_run_frame_cpp", (DL_FUNC) &_maidr_record_run_frame_cpp, 1},
@@ -151,6 +162,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_maidr_svg_flip_points_cpp", (DL_FUNC) &_maidr_svg_flip_points_cpp, 2},
     {"_maidr_svg_flip_path_cpp", (DL_FUNC) &_maidr_svg_flip_path_cpp, 2},
     {"_maidr_svg_style_attrs_cpp", (DL_FUNC) &_maidr_svg_style_attrs_cpp, 8},
+    {"_maidr_svg_format_via_r_cpp", (DL_FUNC) &_maidr_svg_format_via_r_cpp, 1},
     {NULL, NULL, 0}
 };
 

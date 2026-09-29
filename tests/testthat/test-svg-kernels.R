@@ -121,6 +121,19 @@ ref_svg_style_attrs <- function(style, text, own = rep(NA_character_, length(sty
   conv[match(key, key[uniq])]
 }
 
+# Finite numbers are formatted through formatC() on Windows, where R's
+# printf rounds some halves its own way, and through snprintf() elsewhere.
+# Each formatting case runs both ways, so both are held to the R original
+# on whichever platform the tests run.
+with_each_formatter <- function(code) {
+  code <- substitute(code)
+  env <- parent.frame()
+  for (via_r in c(FALSE, TRUE)) {
+    previous <- maidr:::svg_format_via_r_cpp(via_r)
+    tryCatch(eval(code, env), finally = maidr:::svg_format_via_r_cpp(previous))
+  }
+}
+
 # Numbers as svglite writes them, and the awkward ones.
 kernel_numbers <- function(n = 400) {
   set.seed(20260929)
@@ -133,15 +146,17 @@ kernel_numbers <- function(n = 400) {
 }
 
 test_that("svg_fmt() writes what formatC() and svg_trim() wrote", {
-  v <- kernel_numbers()
-  expect_identical(maidr:::svg_fmt(v), ref_svg_fmt(v))
-  # formatC() pads a call's non-finite values to one width, so what a
-  # value becomes depends on what it is formatted with.
-  for (batch in list(NA_real_, NaN, Inf, -Inf, c(NA, 1), c(NA, -Inf, 2), c(NaN, NA), c(Inf, NA))) {
-    expect_identical(maidr:::svg_fmt(batch), ref_svg_fmt(batch))
-  }
-  expect_identical(maidr:::svg_fmt(numeric(0)), ref_svg_fmt(numeric(0)))
-  expect_identical(maidr:::svg_fmt(c(3L, NA, -7L)), ref_svg_fmt(c(3, NA, -7)))
+  with_each_formatter({
+    v <- kernel_numbers()
+    expect_identical(maidr:::svg_fmt(v), ref_svg_fmt(v))
+    # formatC() pads a call's non-finite values to one width, so what a
+    # value becomes depends on what it is formatted with.
+    for (batch in list(NA_real_, NaN, Inf, -Inf, c(NA, 1), c(NA, -Inf, 2), c(NaN, NA), c(Inf, NA))) {
+      expect_identical(maidr:::svg_fmt(batch), ref_svg_fmt(batch))
+    }
+    expect_identical(maidr:::svg_fmt(numeric(0)), ref_svg_fmt(numeric(0)))
+    expect_identical(maidr:::svg_fmt(c(3L, NA, -7L)), ref_svg_fmt(c(3, NA, -7)))
+  })
 })
 
 test_that("svg_trim() drops trailing zeros as the regular expressions did", {
@@ -173,37 +188,41 @@ test_that("svg_attr() reads the first value of an attribute", {
 })
 
 test_that("svg_flip_points() flips every y about the page height", {
-  points <- c(
-    "1,2 3,4", "  1.50,2.25   3,4  ", "", NA, "5", "5,", ",5", "1,2,3",
-    "1\t2,3 4,5", "0.10,0.105 7.00,8.004", "1,x", "1,2  3,4 5,6"
-  )
-  for (h in c(0, 100, 432.5)) {
-    expect_identical(maidr:::svg_flip_points(points, h), ref_svg_flip_points(points, h))
-  }
-  set.seed(1)
-  long <- paste(
-    paste0(formatC(runif(2000, 0, 500), format = "f", digits = 2), ",",
-           formatC(runif(2000, 0, 500), format = "f", digits = 2)),
-    collapse = " "
-  )
-  expect_identical(maidr:::svg_flip_points(long, 504), ref_svg_flip_points(long, 504))
-  # One list with nothing in it, among others, shortens the result as
-  # split() did.
-  expect_identical(
-    maidr:::svg_flip_points(c("1,2", "", "3,4"), 10),
-    ref_svg_flip_points(c("1,2", "", "3,4"), 10)
-  )
+  with_each_formatter({
+    points <- c(
+      "1,2 3,4", "  1.50,2.25   3,4  ", "", NA, "5", "5,", ",5", "1,2,3",
+      "1\t2,3 4,5", "0.10,0.105 7.00,8.004", "1,x", "1,2  3,4 5,6"
+    )
+    for (h in c(0, 100, 432.5)) {
+      expect_identical(maidr:::svg_flip_points(points, h), ref_svg_flip_points(points, h))
+    }
+    set.seed(1)
+    long <- paste(
+      paste0(formatC(runif(2000, 0, 500), format = "f", digits = 2), ",",
+             formatC(runif(2000, 0, 500), format = "f", digits = 2)),
+      collapse = " "
+    )
+    expect_identical(maidr:::svg_flip_points(long, 504), ref_svg_flip_points(long, 504))
+    # One list with nothing in it, among others, shortens the result as
+    # split() did.
+    expect_identical(
+      maidr:::svg_flip_points(c("1,2", "", "3,4"), 10),
+      ref_svg_flip_points(c("1,2", "", "3,4"), 10)
+    )
+  })
 })
 
 test_that("svg_flip_path() flips every y of an M/L/Z path", {
-  d <- c(
-    "M 1.00 2.00 L 3.50 4.25 Z", "M1,2L3,4Z", "M 1 2 3 4 5 6 Z", "M 1",
-    "M 1 2 L", "", NA, "C 1 2", "M -1.50 -2 L .5 0.105", "M 1 x L 2 3",
-    "Z Z", "M 1 2 L 3 4 M 5 6 L 7 8 Z"
-  )
-  for (h in c(0, 100, 432.5)) {
-    expect_identical(maidr:::svg_flip_path(d, h), ref_svg_flip_path(d, h))
-  }
+  with_each_formatter({
+    d <- c(
+      "M 1.00 2.00 L 3.50 4.25 Z", "M1,2L3,4Z", "M 1 2 3 4 5 6 Z", "M 1",
+      "M 1 2 L", "", NA, "C 1 2", "M -1.50 -2 L .5 0.105", "M 1 x L 2 3",
+      "Z Z", "M 1 2 L 3 4 M 5 6 L 7 8 Z", "M 1 99.995 L 2 0.005 L 3 97.325 L 4 100.015"
+    )
+    for (h in c(0, 100, 432.5)) {
+      expect_identical(maidr:::svg_flip_path(d, h), ref_svg_flip_path(d, h))
+    }
+  })
 })
 
 test_that("svg_style_attrs() keeps what each shape's own gpar accounts for", {

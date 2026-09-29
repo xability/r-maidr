@@ -124,3 +124,16 @@ svg_style_attrs_cpp <- function(style, text, own, line, gp_map, defaults, aliase
     .Call(`_maidr_svg_style_attrs_cpp`, style, text, own, line, gp_map, defaults, aliases, sans)
 }
 
+#' Format finite numbers through R's formatC() or snprintf()
+#'
+#' Windows formats through R, everywhere else through snprintf(); the
+#' tests switch between the two to hold both to the R original.
+#'
+#' @param via_r `TRUE` for formatC(), `FALSE` for snprintf().
+#' @return The previous setting.
+#' @keywords internal
+#' @noRd
+svg_format_via_r_cpp <- function(via_r) {
+    .Call(`_maidr_svg_format_via_r_cpp`, via_r)
+}
+
