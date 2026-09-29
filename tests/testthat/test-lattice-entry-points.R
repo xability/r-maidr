@@ -1535,6 +1535,16 @@ test_that("the default device any native drawing MAIDR makes opens stays the rea
     "    maidr::persp(volcano)",
     "    suppressWarnings(maidr::show())",
     "  },",
+    "  # par(oldpar) with a list saved on the hidden device, replayed onto",
+    "  # the new one, sets every parameter, the device's mark among them.",
+    "  show_base_r_par = function() {",
+    "    oldpar <- maidr::par(no.readonly = TRUE)",
+    "    maidr::par(mfrow = c(1, 2))",
+    "    maidr::persp(volcano)",
+    "    maidr::contour(volcano)",
+    "    maidr::par(oldpar)",
+    "    suppressWarnings(maidr::show())",
+    "  },",
     "  print_ggplot = function() print(labels),",
     "  plot_trellis = function() maidr::plot(lattice::xyplot(hp ~ disp, data = mtcars)),",
     "  hidden_device = function() {",
@@ -1561,8 +1571,8 @@ test_that("the default device any native drawing MAIDR makes opens stays the rea
     "invisible(grDevices::graphics.off())"
   ))
   triggers <- c(
-    "show_lattice", "show_ggplot", "show_base_r", "print_ggplot", "plot_trellis",
-    "hidden_device"
+    "show_lattice", "show_ggplot", "show_base_r", "show_base_r_par", "print_ggplot",
+    "plot_trellis", "hidden_device"
   )
   for (trigger in triggers) {
     expect_emitted(session, paste0(trigger, "_left_a_device"), "TRUE")

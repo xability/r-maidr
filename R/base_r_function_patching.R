@@ -207,6 +207,9 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
       call_entry$call_env
     )
   }
+  # A par() setting every parameter, as par(oldpar) does with a list saved
+  # on the hidden device, takes away the mark the device is remembered by.
+  remember_default_device()
 
   invisible(NULL)
 }
