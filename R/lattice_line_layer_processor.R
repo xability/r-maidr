@@ -31,6 +31,17 @@
 #' date-time axis is emitted in milliseconds with a date format, as the
 #' frontend reads a time (`lattice_time_milliseconds()`).
 #'
+#' A panel drawn with `horizontal = TRUE` -- the default of `dotplot()` and
+#' of `stripplot(factor ~ numeric)` -- runs its levels up the y axis and its
+#' values along x, and a line there is a value per level: `panel.average()`
+#' averages x within each y level, and a dot plot's line joins a group's
+#' dots level by level. The frontend walks a line along its x and sonifies
+#' and brailles its y, so that line is read as its vertical transpose is:
+#' x is the level's name and y the value. Read as drawn, y would be the
+#' level's position, `1..n` whatever the values, and groups whose values
+#' differ would share no x for Up and Down to compare them at. A staircase
+#' is left as drawn.
+#'
 #' @keywords internal
 LatticeLineLayerProcessor <- R6::R6Class(
   "LatticeLineLayerProcessor",
@@ -55,6 +66,7 @@ LatticeLineLayerProcessor <- R6::R6Class(
                        panel_ctx = NULL,
                        layer_info = NULL) {
       step <- identical(layer_info$type, "step")
+      across <- !step && self$runs_across_levels(panel_ctx)
       entries <- lattice_sort_entries(layer_info$grobs)
       grouped <- any(!is.na(vapply(entries, function(e) e$group, integer(1))))
 
@@ -65,7 +77,11 @@ LatticeLineLayerProcessor <- R6::R6Class(
         if (is.null(grob) || !inherits(grob, "lines")) {
           return(NULL)
         }
-        points <- self$extract_series(plot, panel_ctx, grob, step)
+        points <- if (across) {
+          self$extract_across_levels(plot, panel_ctx, grob)
+        } else {
+          self$extract_series(plot, panel_ctx, grob, step)
+        }
         # A line through no finite value draws nothing: lattice skips a
         # group whose values are all missing, but not one whose values are
         # infinite -- a zero on a log scale is -Inf -- and its series would be
@@ -81,15 +97,26 @@ LatticeLineLayerProcessor <- R6::R6Class(
         selectors[[length(selectors) + 1L]] <- lattice_grob_selector(entry$name, "polyline")
       }
 
+      axes <- if (across) {
+        # Transposed with the line: the levels' axis is x, the values' y.
+        attach_axis_format(
+          build_axes(
+            x = layout$y_label,
+            y = layout$x_label,
+            z = if (grouped) panel_ctx$group_title
+          ),
+          "y",
+          lattice_time_format(panel_ctx$x_limits)
+        )
+      } else {
+        self$time_axes(self$layer_axes(layout, panel_ctx, grouped = grouped), panel_ctx)
+      }
       result <- list(
         type = if (step) "step" else "line",
         data = series,
         selectors = selectors,
         title = panel_ctx$title,
-        axes = self$time_axes(
-          self$layer_axes(layout, panel_ctx, grouped = grouped),
-          panel_ctx
-        )
+        axes = axes
       )
       if (step) {
         # The type the layer's groups were drawn with: under
@@ -139,6 +166,39 @@ LatticeLineLayerProcessor <- R6::R6Class(
           point$label <- y_label[i]
         }
         point
+      })
+    },
+
+    #' @description Whether the panel's lines run through levels up the y axis
+    #' @param panel_ctx The panel
+    #' @return TRUE when the panel is drawn with `horizontal = TRUE`, its y
+    #'   axis a factor and its x axis not
+    runs_across_levels = function(panel_ctx) {
+      isTRUE(panel_ctx$args[["horizontal"]]) &&
+        is.character(panel_ctx$y_limits) &&
+        !is.character(panel_ctx$x_limits)
+    },
+
+    #' @description Read a line through the levels up the y axis, transposed
+    #'
+    #' The level a vertex is drawn at is its position, and a vertex drawn at
+    #' no level has none. A missing value breaks the drawn line and is
+    #' emitted as a gap (`y: null`) at its level.
+    #'
+    #' @param plot The trellis object
+    #' @param panel_ctx The panel
+    #' @param grob The lines grob
+    #' @return List of points: `x` the level's name, `y` the value
+    extract_across_levels = function(plot, panel_ctx, grob) {
+      value <- as.numeric(grob$x)
+      level <- as.numeric(grob$y)
+      drawn <- is.finite(level)
+      value <- value[drawn]
+      name <- self$category_of(level[drawn], panel_ctx$y_limits)$label
+      gap <- !is.finite(value)
+      value <- self$position_values(value, "x", plot, panel_ctx)
+      lapply(seq_along(value), function(i) {
+        list(x = name[i], y = if (gap[i]) NA else value[i])
       })
     }
   )

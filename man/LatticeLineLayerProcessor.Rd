@@ -33,6 +33,17 @@ level's name, and on a factor y axis the name goes with the position as
 \code{label}, since the frontend sonifies y and needs it a number. A date or
 date-time axis is emitted in milliseconds with a date format, as the
 frontend reads a time (\code{lattice_time_milliseconds()}).
+
+A panel drawn with \code{horizontal = TRUE} -- the default of \code{dotplot()} and
+of \code{stripplot(factor ~ numeric)} -- runs its levels up the y axis and its
+values along x, and a line there is a value per level: \code{panel.average()}
+averages x within each y level, and a dot plot's line joins a group's
+dots level by level. The frontend walks a line along its x and sonifies
+and brailles its y, so that line is read as its vertical transpose is:
+x is the level's name and y the value. Read as drawn, y would be the
+level's position, \verb{1..n} whatever the values, and groups whose values
+differ would share no x for Up and Down to compare them at. A staircase
+is left as drawn.
 }
 \keyword{internal}
 \section{Super classes}{
@@ -43,6 +54,8 @@ frontend reads a time (\code{lattice_time_milliseconds()}).
   \itemize{
     \item \href{#method-LatticeLineLayerProcessor-process}{\code{LatticeLineLayerProcessor$process()}}
     \item \href{#method-LatticeLineLayerProcessor-extract_series}{\code{LatticeLineLayerProcessor$extract_series()}}
+    \item \href{#method-LatticeLineLayerProcessor-runs_across_levels}{\code{LatticeLineLayerProcessor$runs_across_levels()}}
+    \item \href{#method-LatticeLineLayerProcessor-extract_across_levels}{\code{LatticeLineLayerProcessor$extract_across_levels()}}
     \item \href{#method-LatticeLineLayerProcessor-clone}{\code{LatticeLineLayerProcessor$clone()}}
   }
 }
@@ -140,6 +153,57 @@ frontend reads a time (\code{lattice_time_milliseconds()}).
   }
   \subsection{Returns}{
     List of points
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LatticeLineLayerProcessor-runs_across_levels"></a>}}
+\if{latex}{\out{\hypertarget{method-LatticeLineLayerProcessor-runs_across_levels}{}}}
+\subsection{\code{LatticeLineLayerProcessor$runs_across_levels()}}{
+  Whether the panel's lines run through levels up the y axis
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LatticeLineLayerProcessor$runs_across_levels(panel_ctx)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{panel_ctx}}{The panel}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    TRUE when the panel is drawn with \code{horizontal = TRUE}, its y
+axis a factor and its x axis not
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LatticeLineLayerProcessor-extract_across_levels"></a>}}
+\if{latex}{\out{\hypertarget{method-LatticeLineLayerProcessor-extract_across_levels}{}}}
+\subsection{\code{LatticeLineLayerProcessor$extract_across_levels()}}{
+  Read a line through the levels up the y axis, transposed
+
+The level a vertex is drawn at is its position, and a vertex drawn at
+no level has none. A missing value breaks the drawn line and is
+emitted as a gap (\code{y: null}) at its level.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LatticeLineLayerProcessor$extract_across_levels(plot, panel_ctx, grob)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{plot}}{The trellis object}
+      \item{\code{panel_ctx}}{The panel}
+      \item{\code{grob}}{The lines grob}
+    }
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    List of points: \code{x} the level's name, \code{y} the value
   }
 }
 

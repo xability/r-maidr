@@ -24,12 +24,14 @@
   when a level holds several values; and `stripplot()`, `qqmath()` and
   `qq()` as `point`, with the lines, spikes, fits and averages their
   `type` adds read as `xyplot()`'s are -- save a fit over a factor axis,
-  below. A `histogram()` of a factor, one bar per level, is read as a `bar`
-  layer named by its levels. `xyplot()` of a time series is read as a
-  `line`, in a panel per series or superposed, its values named after the
-  series rather than lattice's own `x`. Every layer names the marks it
-  reads, so each point, bar, bin, dot and spike, each box, each heat map
-  cell and each line, curve and contour is highlighted as it is read.
+  below -- and a line through the levels of a horizontal dot or strip plot
+  read level by level, as its vertical transpose is. A `histogram()` of a
+  factor, one bar per level, is read as a `bar` layer named by its levels.
+  `xyplot()` of a time series is read as a `line`, in a panel per series
+  or superposed, its values named after the series rather than lattice's
+  own `x`. Every layer names the marks it reads, so each point, bar, bin,
+  dot and spike, each box, each heat map cell and each line, curve and
+  contour is highlighted as it is read.
 * The groups of a line, step or smooth layer that share no x value -- the
   densities of a grouped `densityplot()`, say -- are read as a layer each,
   named after the group, which Page Up and Page Down reach. Kept together,

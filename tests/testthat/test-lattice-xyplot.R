@@ -319,6 +319,68 @@ test_that("lines and spikes on a factor axis are read by the level's name", {
   )
 })
 
+test_that("a line through the levels of a horizontal dot or strip plot is read by level", {
+  skip_if_no_lattice()
+  # horizontal = TRUE puts the levels up the y axis and the values along x.
+  # panel.average() averages x within each y level, and a dot plot's line
+  # joins a group's dots level by level: the level is where each value is
+  # read, and the value is what is sonified and brailled.
+  d <- data.frame(
+    g = factor(rep(c("a", "b", "c", "d"), 2)),
+    k = factor(rep(c("K1", "K2"), each = 4)),
+    v = c(50, 10, 40, 20, 12, 44, 18, 36)
+  )
+  r <- xy_render(lattice::dotplot(g ~ v, d, groups = k, type = "o"))
+  lines <- Filter(function(layer) layer$type == "line", lattice_rendered_layers(r))
+  # The groups share their levels, so they stay one layer Up and Down
+  # compare them in.
+  testthat::expect_length(lines, 1L)
+  line <- lines[[1]]
+  testthat::expect_identical(line$axes$x$label, "g")
+  testthat::expect_identical(line$axes$y$label, "v")
+  for (k in seq_along(levels(d$k))) {
+    rows <- d[d$k == levels(d$k)[k], ]
+    series <- line$data[[k]]
+    testthat::expect_identical(xy_field(series, "x"), as.character(rows$g))
+    testthat::expect_equal(vapply(series, function(p) as.numeric(p$y), numeric(1)), rows$v)
+    testthat::expect_true(all(is.na(xy_field(series, "label"))))
+    # Each value is drawn along x at its level up y, vertex for vertex.
+    vertices <- xy_polyline_vertices(r$doc, line$selectors[[k]])
+    xy_expect_drawn_at(vertices[, "x"], rows$v)
+    xy_expect_drawn_at(vertices[, "y"], as.integer(rows$g))
+  }
+
+  # A strip plot's averages are each level's mean, from the lowest level up.
+  mt <- transform(datasets::mtcars, cyl = factor(cyl))
+  r <- xy_render(lattice::stripplot(cyl ~ mpg, mt, type = c("p", "a")))
+  average <- Filter(function(layer) layer$type == "line", lattice_rendered_layers(r))[[1]]
+  means <- tapply(mt$mpg, mt$cyl, mean)
+  testthat::expect_identical(xy_field(average$data[[1]], "x"), names(means))
+  testthat::expect_equal(
+    vapply(average$data[[1]], function(p) as.numeric(p$y), numeric(1)),
+    unname(as.numeric(means))
+  )
+
+  # Read as its vertical transpose is.
+  pairs <- list(
+    list(
+      lattice::dotplot(g ~ v, d, groups = k, type = "o"),
+      lattice::dotplot(v ~ g, d, groups = k, type = "o", horizontal = FALSE)
+    ),
+    list(
+      lattice::stripplot(cyl ~ mpg, mt, type = c("p", "a")),
+      lattice::stripplot(mpg ~ cyl, mt, type = c("p", "a"))
+    )
+  )
+  for (pair in pairs) {
+    read <- lapply(pair, function(p) {
+      Filter(function(layer) layer$type == "line", lattice_rendered_layers(xy_render(p)))
+    })
+    testthat::expect_identical(lapply(read[[1]], `[[`, "data"), lapply(read[[2]], `[[`, "data"))
+    testthat::expect_identical(lapply(read[[1]], `[[`, "axes"), lapply(read[[2]], `[[`, "axes"))
+  }
+})
+
 test_that("points on a log scale are read on the data's own scale", {
   skip_if_no_lattice()
   d <- data.frame(x = c(1, 3, 10, 30, 100, 300), y = c(2, 5, 3, 8, 13, 21))
