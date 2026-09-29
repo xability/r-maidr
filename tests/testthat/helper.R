@@ -333,8 +333,8 @@ draw_unread_base_r_chart <- function() {
 #' patchwork and the `save_html()`, `show()` and widget API still run.
 #'
 #' A file belongs here when it takes more than about 3.5 s with NOT_CRAN
-#' unset and is none of those. Measured on R 4.6.1, Windows: the suite took
-#' 796 s with NOT_CRAN unset, and 363 s once these files skipped.
+#' unset and is none of those. The timings the list was drawn from are in
+#' #340.
 skip_slow_file_on_cran <- function() {
   testthat::skip_on_cran()
 }
