@@ -147,5 +147,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib maidr, .registration = TRUE
 ## usethis namespace: end
 NULL

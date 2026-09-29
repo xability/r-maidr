@@ -33,3 +33,8 @@ CRAN-SUBMISSION
 # root from any ad-hoc render run there.
 inst/output/lib/
 /lib/
+
+# Compiled code
+src/*.o
+src/*.so
+src/*.dll
