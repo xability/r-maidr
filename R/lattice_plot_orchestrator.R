@@ -470,6 +470,34 @@ lattice_split_series <- function(layer) {
   })
 }
 
+#' What kind of curve a layer is, in lattice's own words
+#'
+#' `panel.xyplot()` draws two curves read as a type another of its curves
+#' is also read as: the line through each x value's average (`type = "a"`)
+#' is a `line`, as the line through the data is, and a loess, a spline and
+#' a regression line are each a `smooth`. These are named as lattice's
+#' `smooth` argument and `?panel.xyplot` name them, so that two of them
+#' drawn for one group can be told apart ([lattice_qualify_layer_names()]).
+#'
+#' @param layer A layer description from the adapter
+#' @param type The type the layer was read as
+#' @return `"average"`, `"loess"`, `"spline"` or `"regression"` for those
+#'   curves; `type` for anything else.
+#' @keywords internal
+lattice_layer_kind <- function(layer, type) {
+  if (identical(layer$role, "average")) {
+    return("average")
+  }
+  if (identical(layer$role, "fit")) {
+    fits <- c(loess = "loess", spline = "spline", lmline = "regression")
+    kind <- fits[sub("\\..*$", "", layer$grobs[[1]]$what)]
+    if (!is.na(kind)) {
+      return(unname(kind))
+    }
+  }
+  type
+}
+
 #' Say what kind each named layer is, in a panel of more than one kind
 #'
 #' A layer's `name` is announced on a layer switch in place of its type, which
@@ -479,21 +507,38 @@ lattice_split_series <- function(layer) {
 #' would say "4", "6", "8", "4", "6", "8" with nothing to tell the points
 #' from the lines, so each named layer says its type too: "4 (line)".
 #'
+#' Two curves of one type drawn for one group -- the line through the data
+#' and the line through its averages, `type = c("l", "a")`; a loess and a
+#' spline -- would still share a name, by group alone or by group and type,
+#' so those say which curve they are instead: "4 (line)" and
+#' "4 (average)", "4 (loess)" and "4 (spline)" ([lattice_layer_kind()]).
+#'
 #' @param layers A subplot's layers
+#' @param kinds What kind of curve or mark each layer is, from
+#'   [lattice_layer_kind()]
 #' @return The layers, their names qualified by type when the subplot's
-#'   layers are not all one type.
+#'   layers are not all one type, and by kind where two would otherwise
+#'   share a name.
 #' @keywords internal
-lattice_qualify_layer_names <- function(layers) {
-  types <- vapply(layers, function(layer) layer$type, character(1))
-  if (length(unique(types)) < 2L) {
+lattice_qualify_layer_names <- function(layers, kinds) {
+  named <- which(!vapply(layers, function(layer) is.null(layer$name), logical(1)))
+  if (length(named) == 0L) {
     return(layers)
   }
-  lapply(layers, function(layer) {
-    if (!is.null(layer$name)) {
-      layer$name <- sprintf("%s (%s)", layer$name, layer$type)
-    }
-    layer
-  })
+  types <- vapply(layers, function(layer) layer$type, character(1))
+  bare <- vapply(layers[named], function(layer) layer$name, character(1))
+  qualifier <- if (length(unique(types)) > 1L) types[named] else rep(NA, length(named))
+  label <- function(qualifier) {
+    ifelse(is.na(qualifier), bare, sprintf("%s (%s)", bare, qualifier))
+  }
+  names <- label(qualifier)
+  shared <- duplicated(names) | duplicated(names, fromLast = TRUE)
+  qualifier[shared] <- kinds[named][shared]
+  names <- label(qualifier)
+  for (i in seq_along(named)) {
+    layers[[named[i]]]$name <- names[[i]]
+  }
+  layers
 }
 
 #' Plot Orchestrator for lattice
@@ -657,6 +702,7 @@ LatticePlotOrchestrator <- R6::R6Class(
             ]
             here <- lapply(seq_len(nrow(here)), function(i) as.list(here[i, ]))
             layers <- private$.adapter$detect_panel_layers(here, plot, panel_ctx$args)
+            kinds <- character(0)
             for (layer in layers) {
               counter <- counter + 1L
               result <- self$process_layer(layer, counter, panel_ctx)
@@ -676,9 +722,10 @@ LatticePlotOrchestrator <- R6::R6Class(
                   part$id <- paste0("maidr-layer-", counter)
                 }
                 subplot$layers[[length(subplot$layers) + 1L]] <- part
+                kinds[length(kinds) + 1L] <- lattice_layer_kind(layer, part$type)
               }
             }
-            subplot$layers <- lattice_qualify_layer_names(subplot$layers)
+            subplot$layers <- lattice_qualify_layer_names(subplot$layers, kinds)
             if (multi_panel) {
               subplot$selector <- lattice_grob_selector(
                 sprintf("%s.border.panel.%d.%d", LATTICE_PREFIX, column, row),

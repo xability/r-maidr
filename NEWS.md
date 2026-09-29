@@ -38,7 +38,9 @@
   only the first could be reached: the frontend moves Up and Down only
   between series that meet at the x being read. Where a panel holds layers
   of more than one kind, a group's layers also say what they are, as in
-  "4 (point)" and "4 (line)".
+  "4 (point)" and "4 (line)", and a group's two curves of one kind say
+  which curve each is: "4 (line)" and "4 (average)", "4 (loess)" and
+  "4 (spline)".
 * A conditioned chart (`y ~ x | g`) is read one panel at a time, each
   panel a subplot titled by its strip and laid out as lattice lays the
   panels out; a strip made by `strip.custom(factor.levels = )` and an

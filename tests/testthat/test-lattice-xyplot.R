@@ -703,6 +703,55 @@ test_that("a group's layers say what kind they are only where a panel mixes kind
   testthat::expect_identical(vapply(lattice_rendered_layers(r), `[[`, "", "name"), c("a", "b"))
 })
 
+test_that("a group's two curves of one type say which curve each is", {
+  skip_if_no_lattice()
+  # Group a has two rows at x = 2, so its average differs from its line.
+  d <- data.frame(
+    x = c(1, 2, 2, 3, 1.5, 2.5, 3.5),
+    y = c(1, 3, 5, 2, 5, 4, 6),
+    g = c("a", "a", "a", "a", "b", "b", "b")
+  )
+  # The line through the data and the line through each x value's average
+  # are both lines: named by group alone, or by group and type beside the
+  # points, a group's two would share a name.
+  for (type in list(c("l", "a"), c("b", "a"))) {
+    layers <- lattice_rendered_layers(xy_render(lattice::xyplot(y ~ x, d, groups = g, type = type)))
+    lines <- layers[vapply(layers, `[[`, "", "type") == "line"]
+    testthat::expect_identical(
+      vapply(lines, `[[`, "", "name"),
+      c("a (line)", "b (line)", "a (average)", "b (average)")
+    )
+    # The line is a's rows as drawn; the average, a's mean at each x.
+    testthat::expect_equal(unname(xy_matrix(lines[[1]]$data[[1]])), cbind(d$x[1:4], d$y[1:4]))
+    testthat::expect_equal(unname(xy_matrix(lines[[3]]$data[[1]])), cbind(c(1, 2, 3), c(1, 4, 2)))
+    names <- vapply(layers, `[[`, "", "name")
+    testthat::expect_false(anyDuplicated(names) > 0L, label = paste(type, collapse = ", "))
+  }
+
+  # A loess and a spline are both smooths.
+  set.seed(7)
+  d <- data.frame(x = c(1:12, 1:12 + 0.5), g = rep(c("a", "b"), each = 12))
+  d$y <- ifelse(d$g == "a", sin(d$x / 3), cos(d$x / 4)) + stats::rnorm(24, sd = 0.1)
+  layers <- lattice_rendered_layers(xy_render(
+    lattice::xyplot(y ~ x, d, groups = g, type = c("p", "smooth", "spline"))
+  ))
+  testthat::expect_identical(
+    vapply(layers, `[[`, "", "name"),
+    c("a (point)", "b (point)", "a (loess)", "b (loess)", "a (spline)", "b (spline)")
+  )
+  rows <- d$g == "a"
+  loess <- stats::loess.smooth(
+    d$x[rows], d$y[rows],
+    span = 2 / 3, degree = 1, family = "symmetric", evaluation = 50
+  )
+  testthat::expect_equal(unname(xy_matrix(layers[[3]]$data[[1]])), cbind(loess$x, loess$y))
+  spline <- stats::predict(
+    stats::smooth.spline(d$x[rows], d$y[rows]),
+    x = seq(1, 12, length.out = 102)
+  )
+  testthat::expect_equal(unname(xy_matrix(layers[[5]]$data[[1]])), cbind(spline$x, spline$y))
+})
+
 test_that("type 'b' and 'o' are read as the points and then the line through them", {
   skip_if_no_lattice()
   for (type in c("b", "o")) {

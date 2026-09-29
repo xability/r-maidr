@@ -4,14 +4,18 @@
 \alias{lattice_qualify_layer_names}
 \title{Say what kind each named layer is, in a panel of more than one kind}
 \usage{
-lattice_qualify_layer_names(layers)
+lattice_qualify_layer_names(layers, kinds)
 }
 \arguments{
 \item{layers}{A subplot's layers}
+
+\item{kinds}{What kind of curve or mark each layer is, from
+\code{\link[=lattice_layer_kind]{lattice_layer_kind()}}}
 }
 \value{
 The layers, their names qualified by type when the subplot's
-layers are not all one type.
+layers are not all one type, and by kind where two would otherwise
+share a name.
 }
 \description{
 A layer's \code{name} is announced on a layer switch in place of its type, which
@@ -20,5 +24,12 @@ of thing. Where they are not -- a group's points and the line through
 them, \code{type = "b"}; points under a fitted curve -- the bare group names
 would say "4", "6", "8", "4", "6", "8" with nothing to tell the points
 from the lines, so each named layer says its type too: "4 (line)".
+}
+\details{
+Two curves of one type drawn for one group -- the line through the data
+and the line through its averages, \code{type = c("l", "a")}; a loess and a
+spline -- would still share a name, by group alone or by group and type,
+so those say which curve they are instead: "4 (line)" and
+"4 (average)", "4 (loess)" and "4 (spline)" (\code{\link[=lattice_layer_kind]{lattice_layer_kind()}}).
 }
 \keyword{internal}
