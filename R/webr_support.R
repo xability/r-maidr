@@ -93,24 +93,26 @@ maidr_webr_display <- function(html) {
     return(invisible(NULL))
   }
 
-  if (requireNamespace("webr", quietly = TRUE)) {
-    shown <- tryCatch(
-      {
-        payload <- jsonlite::toJSON(html, auto_unbox = TRUE)
-        call <- sprintf(
-          paste0(
-            "typeof globalThis.maidrWebRShow === 'function'",
-            " ? (globalThis.maidrWebRShow(%s), true) : false"
-          ),
-          payload
-        )
-        isTRUE(getExportedValue("webr", "eval_js")(call))
-      },
-      error = function(e) FALSE
-    )
-    if (shown) {
-      return(invisible(NULL))
-    }
+  # The `webr` package ships with webR and is not on CRAN (a different package
+  # of that name is), so it is reached by name rather than declared.
+  webr_pkg <- "webr"
+  shown <- tryCatch(
+    {
+      eval_js <- get("eval_js", envir = asNamespace(webr_pkg), inherits = FALSE)
+      payload <- jsonlite::toJSON(html, auto_unbox = TRUE)
+      call <- sprintf(
+        paste0(
+          "typeof globalThis.maidrWebRShow === 'function'",
+          " ? (globalThis.maidrWebRShow(%s), true) : false"
+        ),
+        payload
+      )
+      isTRUE(eval_js(call))
+    },
+    error = function(e) FALSE
+  )
+  if (shown) {
+    return(invisible(NULL))
   }
 
   file <- tempfile(fileext = ".html")

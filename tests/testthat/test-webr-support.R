@@ -87,7 +87,7 @@ test_that("maidr_webr_display() calls options(maidr.webr_display)", {
 
 test_that("maidr_webr_display() falls back to a file and says where", {
   withr::local_options(maidr.webr_display = NULL)
-  skip_if(requireNamespace("webr", quietly = TRUE))
+  skip_if(identical(R.version$os, "emscripten"))
 
   expect_message(file <- maidr:::maidr_webr_display("<p>hi</p>"), "Running under webR")
 
