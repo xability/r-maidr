@@ -78,6 +78,18 @@ test_that("every occurrence of a tag is inlined", {
   expect_false(grepl("lib/a.js", html, fixed = TRUE))
 })
 
+test_that("single-quoted attributes are left as they are", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "lib"))
+  writeLines("var a = 1;", file.path(dir, "lib", "a.js"))
+  head <- "<script src='lib/a.js'></script>"
+  page <- write_page(dir, head)
+
+  html <- maidr:::maidr_inline_local_assets(page)
+
+  expect_match(html, head, fixed = TRUE)
+})
+
 test_that("replacement text is inserted literally", {
   dir <- withr::local_tempdir()
   dir.create(file.path(dir, "lib"))
@@ -169,4 +181,45 @@ test_that("the fallback message says why the page could not show the chart", {
     maidr:::maidr_webr_display("<p>hi</p>"),
     "could not show the chart on the page \\(.+\\)"
   )
+})
+
+test_that("a document comes back as one string with its dependencies inlined", {
+  dir <- withr::local_tempdir()
+  writeLines("var dep = 1;", file.path(dir, "dep.js"))
+  page <- htmltools::tagList(
+    htmltools::htmlDependency("dep", "1.0", src = c(file = dir), script = "dep.js"),
+    htmltools::tags$p("chart")
+  )
+
+  html <- maidr:::maidr_webr_document(page)
+
+  expect_match(html, "<script>var dep = 1;</script>", fixed = TRUE)
+  expect_match(html, "<p>chart</p>", fixed = TRUE)
+  expect_false(grepl("src=\"lib/", html, fixed = TRUE))
+  expect_length(list.files(tempdir(), pattern = "^maidr-webr-"), 0L)
+})
+
+test_that("the listener code is the listener script without its element", {
+  code <- maidr:::maidr_iframe_host_script_code()
+
+  expect_false(grepl("<script", code, fixed = TRUE))
+  expect_equal(
+    maidr:::maidr_iframe_host_script(),
+    paste0("<script>", code, "</script>")
+  )
+})
+
+test_that("the JavaScript sent to the page parses", {
+  node <- Sys.which("node")
+  skip_if(!nzchar(node), "node is not installed")
+  dir <- withr::local_tempdir()
+
+  check <- function(name, code) {
+    file <- file.path(dir, name)
+    writeLines(code, file, useBytes = TRUE)
+    system2(node, c("--check", shQuote(file)), stdout = TRUE, stderr = TRUE)
+  }
+
+  expect_null(attr(check("show.js", maidr:::maidr_webr_show_js("<p>hi</p>")), "status"))
+  expect_null(attr(check("host.js", maidr:::maidr_iframe_host_script_code()), "status"))
 })

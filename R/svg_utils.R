@@ -2112,12 +2112,23 @@ create_maidr_iframe <- function(svg_content, width = "100%", height = "450px",
 #' @return Character string with a script tag
 #' @keywords internal
 maidr_iframe_host_script <- function() {
+  paste0("<script>", maidr_iframe_host_script_code(), "</script>")
+}
+
+#' The listener [maidr_iframe_host_script()] registers, as JavaScript
+#'
+#' The same code without its `<script>` element, for a page that runs it
+#' itself, as the webR path does with `new Function()`.
+#'
+#' @return Character string of JavaScript
+#' @keywords internal
+maidr_iframe_host_script_code <- function() {
   # `inst/htmlwidgets/maidr.js` carries its own copy of both listeners, because
   # the widget binding sets the iframe HTML through `innerHTML` and a script
   # element assigned that way never runs. Change one and change the other:
   # nothing checks that the two agree.
   paste0(
-    "<script>(function() {",
+    "(function() {",
     "if (window.__maidrIframeHost) return;",
     "window.__maidrIframeHost = true;",
     "var FRAMES = \"iframe[id^='maidr-iframe-'], iframe[id^='maidr-fallback-']\";",
@@ -2184,7 +2195,7 @@ maidr_iframe_host_script <- function() {
     "}",
     "}",
     "});",
-    "})();</script>"
+    "})();"
   )
 }
 

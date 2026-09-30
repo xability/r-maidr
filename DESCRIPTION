@@ -47,7 +47,6 @@ LinkingTo:
     Rcpp
 Suggests:
     testthat (>= 3.0.0),
-    withr,
     lintr,
     styler,
     goodpractice,
@@ -75,7 +74,8 @@ Suggests:
     highcharter,
     echarts4r,
     lattice,
-    latticeExtra
+    latticeExtra,
+    withr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

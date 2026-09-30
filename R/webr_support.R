@@ -13,6 +13,11 @@ is_webr <- function() {
   identical(R.version$os, "emscripten")
 }
 
+#' Read a text file as one string
+#'
+#' @param path File to read
+#' @return The lines of the file joined by newlines
+#' @keywords internal
 read_text_file <- function(path) {
   paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
 }
@@ -87,8 +92,7 @@ maidr_inline_local_assets <- function(file) {
 #' @return A JavaScript expression that evaluates to `true`
 #' @keywords internal
 maidr_webr_show_js <- function(html) {
-  host_code <- sub("^<script>", "", maidr_iframe_host_script())
-  host_code <- sub("</script>$", "", host_code)
+  host_code <- maidr_iframe_host_script_code()
   js <- paste0(
     "(function(html, hostCode) {",
     "if (typeof globalThis.maidrWebRShow === 'function') {",
@@ -200,14 +204,27 @@ maidr_webr_display <- function(html) {
   invisible(file)
 }
 
-#' Show an htmltools document under webR
+#' Render an htmltools document to one self-contained string
+#'
+#' Saves the document with its dependencies beside it, in a directory that is
+#' removed again, and inlines what it points at; see
+#' [maidr_inline_local_assets()].
+#'
 #' @param html_doc An htmltools HTML document object
+#' @return The document as a single string
 #' @keywords internal
-display_html_webr <- function(html_doc) {
+maidr_webr_document <- function(html_doc) {
   dir <- tempfile("maidr-webr-")
   dir.create(dir)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
   file <- file.path(dir, "index.html")
   htmltools::save_html(html_doc, file = file, libdir = "lib")
-  maidr_webr_display(maidr_inline_local_assets(file))
+  maidr_inline_local_assets(file)
+}
+
+#' Show an htmltools document under webR
+#' @param html_doc An htmltools HTML document object
+#' @keywords internal
+display_html_webr <- function(html_doc) {
+  maidr_webr_display(maidr_webr_document(html_doc))
 }
