@@ -45,38 +45,51 @@ maidr_inline_local_assets <- function(file) {
     !grepl("^([a-z][a-z0-9+.-]*:|//|/)", path, ignore.case = TRUE)
   }
 
-  replace_all <- function(html, pattern, build) {
-    hits <- regmatches(html, gregexpr(pattern, html, perl = TRUE))[[1]]
-    for (tag in unique(hits)) {
+  # Every tag is found in the document as it came, and all are replaced in one
+  # pass: text that is inlined is never searched again, so a string in a
+  # bundle that looks like a tag is left alone.
+  hits <- list()
+  collect <- function(pattern, build) {
+    found <- gregexpr(pattern, html, perl = TRUE)[[1]]
+    if (found[[1]] == -1L) {
+      return(invisible())
+    }
+    starts <- as.integer(found)
+    ends <- starts + attr(found, "match.length") - 1L
+    for (i in seq_along(starts)) {
+      tag <- substr(html, starts[[i]], ends[[i]])
       path <- sub(pattern, "\\1", tag, perl = TRUE)
       body <- if (is_local(path)) read_asset(path) else NULL
       if (!is.null(body)) {
-        # regmatches<- inserts the text as it is, every occurrence of the tag.
-        found <- gregexpr(tag, html, fixed = TRUE)
-        regmatches(html, found) <- list(rep(build(body), length(found[[1]])))
+        hits[[length(hits) + 1L]] <<- list(start = starts[[i]], end = ends[[i]], text = build(body))
       }
     }
-    html
   }
 
   # htmltools writes double-quoted attributes; single-quoted ones are left alone.
   # "</script" or "</style" inside an inline body would end it early.
-  html <- replace_all(
-    html,
+  collect(
     '<script[^>]*?\\ssrc="([^"]+)"[^>]*></script>',
     function(body) {
       body <- gsub("</script", "<\\\\/script", body, ignore.case = TRUE)
       paste0("<script>", body, "</script>")
     }
   )
-  replace_all(
-    html,
+  collect(
     '<link(?=[^>]*\\srel="stylesheet")[^>]*?\\shref="([^"]+)"[^>]*>',
     function(body) {
       body <- gsub("</style", "<\\\\/style", body, ignore.case = TRUE)
       paste0("<style>", body, "</style>")
     }
   )
+
+  pieces <- character()
+  position <- 1L
+  for (hit in hits[order(vapply(hits, function(h) h$start, integer(1)))]) {
+    pieces <- c(pieces, substr(html, position, hit$start - 1L), hit$text)
+    position <- hit$end + 1L
+  }
+  paste0(c(pieces, substr(html, position, nchar(html))), collapse = "")
 }
 
 #' JavaScript that shows a finished document on the page

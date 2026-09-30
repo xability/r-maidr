@@ -90,6 +90,40 @@ test_that("single-quoted attributes are left as they are", {
   expect_match(html, head, fixed = TRUE)
 })
 
+test_that("text that is inlined is not searched for tags again", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "lib"))
+  writeLines("not css", file.path(dir, "lib", "b.css"))
+  link <- '<link rel="stylesheet" href="lib/b.css">'
+  writeLines(paste0("var t = '", link, "';"), file.path(dir, "lib", "a.js"))
+  page <- write_page(dir, paste0('<script src="lib/a.js"></script>', link))
+
+  html <- maidr:::maidr_inline_local_assets(page)
+
+  # The link in the page is inlined; the one inside the script is just text.
+  expect_match(html, paste0("<script>var t = '", link, "';</script>"), fixed = TRUE)
+  expect_match(html, "<style>not css</style>", fixed = TRUE)
+  expect_equal(lengths(regmatches(html, gregexpr("not css", html, fixed = TRUE))), 1L)
+})
+
+test_that("inlined assets keep the order of the page", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "lib"))
+  for (name in c("a", "b", "c")) {
+    writeLines(paste0("var ", name, " = 1;"), file.path(dir, "lib", paste0(name, ".js")))
+  }
+  scripts <- paste0('<script src="lib/', c("c", "a", "b"), '.js"></script>', collapse = "")
+  page <- write_page(dir, paste0(scripts, "<title>t</title>"))
+
+  html <- maidr:::maidr_inline_local_assets(page)
+
+  expect_match(
+    html,
+    "<script>var c = 1;</script><script>var a = 1;</script><script>var b = 1;</script><title>t</title>",
+    fixed = TRUE
+  )
+})
+
 test_that("replacement text is inserted literally", {
   dir <- withr::local_tempdir()
   dir.create(file.path(dir, "lib"))
