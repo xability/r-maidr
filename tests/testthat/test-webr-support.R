@@ -133,9 +133,13 @@ test_that("the page script hands the document to maidrWebRShow or embeds it", {
   expect_match(js, "document.createElement('iframe')", fixed = TRUE)
   expect_match(js, "maidr-output", fixed = TRUE)
   expect_match(js, "f.srcdoc = html", fixed = TRUE)
+  # The frame is sized to its content, not to itself.
+  expect_match(js, "min-height: 0 !important", fixed = TRUE)
+  expect_match(js, "new MutationObserver(later)", fixed = TRUE)
   expect_match(js, "width:100%;height:450px", fixed = TRUE)
-  # The document travels as a JSON string, so nothing in it is code.
-  expect_match(js, '"<p>100% \\"quoted\\"</p>"', fixed = TRUE)
+  # The document travels as a JSON string, so nothing in it is code, and a
+  # closing tag in it cannot end the script it sits in.
+  expect_match(js, '"<p>100% \\"quoted\\"<\\/p>"', fixed = TRUE)
   # The frame listener script is passed as a string, without its <script> tags.
   expect_false(grepl("<script>", js, fixed = TRUE))
 })
