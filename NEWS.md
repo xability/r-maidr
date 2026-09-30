@@ -86,13 +86,20 @@
   any other maidr frame. A page can take the document itself by defining
   `globalThis.maidrWebRShow(html)`, and R code can by setting
   `options(maidr.webr_display = function(html) ...)`; either is used
-  instead of the iframe. Where there is no page to reach, as with webR in
-  Node, the document is saved to a temporary file and its path reported.
-  The package has to be built for webR (`rwasm::build()`) and installed
-  from a repository that serves it: it is not in the webR binary
-  repository. Tested with webR 4.6.0 in Node and its page code in
-  Chromium; lattice, multi-panel and htmlwidget charts have not been
-  tried.
+  instead of the iframe. R runs in a web worker, so reaching the page
+  needs webR's `SharedArrayBuffer` or service worker channel, and a page
+  that allows `unsafe-eval`. Where the page cannot be reached, `show()`
+  says why and saves the document to a temporary file; take it from R with
+  the option instead, which works over every channel. The package has to be
+  built for webR (`rwasm::add_pkg()`) and installed from a repository that
+  serves it: it is not in the webR binary repository. See
+  `vignette("webr")`. A new CI job builds maidr for webR and, in a browser,
+  installs it from that build and calls `show()`.
+  A ggplot2 bar chart, a faceted scatter plot, a patchwork, lattice
+  `xyplot()` and `barchart()`, and Base R `barplot()`, `plot()`, `boxplot()`
+  and a two-panel layout each become a document in webR that a keyboard
+  reads in the page; the ggplot2 bar chart has been through the whole path
+  in a browser. htmlwidget charts have not been tried.
 
 ## Performance
 

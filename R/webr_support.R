@@ -184,14 +184,16 @@ maidr_webr_display <- function(html) {
   }
 
   # The `webr` package ships with webR and is not on CRAN (a different package
-  # of that name is), so it is reached by name rather than declared.
+  # of that name is), so it is reached by name rather than declared. R runs in
+  # a web worker, which has no `document` and none of the page's globals;
+  # `await = TRUE` hands the script to the page's own thread.
   webr_pkg <- "webr"
   failure <- NULL
   shown <- tryCatch(
     {
       eval_js <- get("eval_js", envir = asNamespace(webr_pkg), inherits = FALSE)
       call <- maidr_webr_show_js(html)
-      ok <- isTRUE(eval_js(call))
+      ok <- isTRUE(eval_js(call, await = TRUE))
       if (!ok) {
         failure <<- "the page did not take the document"
       }
