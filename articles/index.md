@@ -16,6 +16,12 @@
   with maidr_output() and render_maidr(), including reactive inputs and
   multiple plots per page.
 
+- [Using MAIDR in webR](https://r.maidr.ai/articles/webr.md):
+
+  Run maidr in a web page with webR, so ggplot2, lattice and Base R
+  charts are drawn, sonified and read from the page itself, with no R
+  server.
+
 ### Examples by plot family
 
 Worked, interactive examples of the stable plot types, split by family
