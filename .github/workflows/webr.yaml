@@ -1,0 +1,120 @@
+# maidr has to run in webR -- R compiled to WebAssembly -- and nothing else in
+# CI runs it there. The R-CMD-check jobs run the package natively, and the
+# browser jobs there run the script `show()` sends to a page with no webR
+# behind it. A change that compiled and passed every one of those could still
+# stop `show()` reaching the page: when it first went in, it asked webR to run
+# its script with `eval_js()` in R's own thread, a web worker, which has no
+# page to put a chart on. Only a real webR session on a real page shows that.
+#
+# So this builds maidr for webR, in the container webR publishes for that, and
+# then, from the repository that build makes:
+#
+#   * runs the webR display tests in webR under node;
+#   * loads webR on a page in headless Chromium, installs maidr from the
+#     repository, and calls `show()` (webr-e2e.mjs).
+#
+# Both webR (the container and the npm package) are pinned to one release, so
+# the build and what runs it cannot drift apart: maidr contains compiled code,
+# and a build is for one webR.
+
+name: webr
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'R/**'
+      - 'src/**'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - 'inst/**'
+      - 'tests/testthat/test-webr-support.R'
+      - '.github/workflows/webr.yaml'
+      - '.github/scripts/webr-*'
+  pull_request:
+    paths:
+      - 'R/**'
+      - 'src/**'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - 'inst/**'
+      - 'tests/testthat/test-webr-support.R'
+      - '.github/workflows/webr.yaml'
+      - '.github/scripts/webr-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # The same release as the container tag in `build` below, which cannot read
+  # this: change the two together.
+  WEBR_VERSION: '0.6.0'
+
+jobs:
+  build:
+    name: build for webR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container: ghcr.io/r-wasm/webr:v0.6.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The image carries an apt source for rig, signed with a key it does not
+      # have, and `apt-get update` fails on it: pak runs that to install the
+      # system libraries the dependencies need.
+      - name: Drop the apt source apt cannot verify
+        run: rm -f /etc/apt/sources.list.d/*rig*
+
+      # The build loads the package, so what it imports has to be installed in
+      # the container's own R as well as built for webR.
+      - name: Install the package's dependencies
+        run: Rscript -e 'pak::local_install_deps(".", dependencies = c("Depends", "Imports", "LinkingTo"))'
+
+      - name: Build maidr for webR
+        run: Rscript .github/scripts/webr-build.R webr-repo
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webr-repo
+          path: webr-repo
+          if-no-files-found: error
+          retention-days: 7
+
+  run:
+    name: maidr in webR
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The container tag in `build` cannot read WEBR_VERSION, so check that the
+      # two still name one release.
+      - name: Check the container and the npm package are one webR
+        run: |
+          grep -q "container: ghcr.io/r-wasm/webr:v${WEBR_VERSION}\$" .github/workflows/webr.yaml
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: webr-repo
+          path: webr-repo
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Pinned, like the browser job in R-CMD-check.yaml: the browser the check
+      # runs in changes only when someone changes it here.
+      - name: Install webR, Playwright and Chromium
+        run: |
+          npm install --no-save "webr@${WEBR_VERSION}" playwright@1.57.0
+          npx playwright install --with-deps chromium
+
+      - name: Run the webR display tests in webR
+        run: node .github/scripts/webr-tests.mjs webr-repo
+
+      - name: Show a chart from a webR session on a page
+        run: node .github/scripts/webr-e2e.mjs webr-repo
