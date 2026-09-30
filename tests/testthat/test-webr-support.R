@@ -117,11 +117,13 @@ test_that("inlined assets keep the order of the page", {
 
   html <- maidr:::maidr_inline_local_assets(page)
 
-  expect_match(
-    html,
-    "<script>var c = 1;</script><script>var a = 1;</script><script>var b = 1;</script><title>t</title>",
-    fixed = TRUE
+  ordered <- paste0(
+    "<script>var c = 1;</script>",
+    "<script>var a = 1;</script>",
+    "<script>var b = 1;</script>",
+    "<title>t</title>"
   )
+  expect_match(html, ordered, fixed = TRUE)
 })
 
 test_that("replacement text is inserted literally", {
