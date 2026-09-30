@@ -65,6 +65,19 @@ test_that("a closing tag inside an inlined body cannot end it early", {
   expect_equal(lengths(regmatches(html, gregexpr("</style>", html, fixed = TRUE))), 1L)
 })
 
+test_that("every occurrence of a tag is inlined", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "lib"))
+  writeLines("var a = 1;", file.path(dir, "lib", "a.js"))
+  tag <- '<script src="lib/a.js"></script>'
+  page <- write_page(dir, paste0(tag, tag))
+
+  html <- maidr:::maidr_inline_local_assets(page)
+
+  expect_equal(lengths(regmatches(html, gregexpr("var a = 1;", html, fixed = TRUE))), 2L)
+  expect_false(grepl("lib/a.js", html, fixed = TRUE))
+})
+
 test_that("replacement text is inserted literally", {
   dir <- withr::local_tempdir()
   dir.create(file.path(dir, "lib"))
@@ -111,4 +124,28 @@ test_that("display_html() takes the webR path when is_webr() is TRUE", {
 test_that("is_webr() is FALSE on a native build", {
   skip_if(identical(R.version$os, "emscripten"))
   expect_false(maidr:::is_webr())
+})
+
+test_that("the page script hands the document to maidrWebRShow or embeds it", {
+  js <- maidr:::maidr_webr_show_js("<p>100% \"quoted\"</p>")
+
+  expect_match(js, "globalThis.maidrWebRShow", fixed = TRUE)
+  expect_match(js, "document.createElement('iframe')", fixed = TRUE)
+  expect_match(js, "maidr-output", fixed = TRUE)
+  expect_match(js, "f.srcdoc = html", fixed = TRUE)
+  expect_match(js, "width:100%;height:450px", fixed = TRUE)
+  # The document travels as a JSON string, so nothing in it is code.
+  expect_match(js, '"<p>100% \\"quoted\\"</p>"', fixed = TRUE)
+  # The frame listener script is passed as a string, without its <script> tags.
+  expect_false(grepl("<script>", js, fixed = TRUE))
+})
+
+test_that("the fallback message says why the page could not show the chart", {
+  skip_if(identical(R.version$os, "emscripten"))
+  withr::local_options(maidr.webr_display = NULL)
+
+  expect_message(
+    maidr:::maidr_webr_display("<p>hi</p>"),
+    "could not show the chart on the page \\(.+\\)"
+  )
 })

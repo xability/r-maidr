@@ -3,8 +3,8 @@
 # There is no desktop browser to hand a file to, so `show()` cannot call
 # `utils::browseURL()`. The document is instead rendered to one self-contained
 # string (webR's virtual file system is not reachable from a page's URLs, so
-# the `lib/` folder a saved document points at would not resolve) and handed
-# to whatever the host page provides.
+# the `lib/` folder a saved document points at would not resolve) and shown in
+# an iframe on the page, or handed to whatever the host page provides.
 
 #' Whether R is running under webR
 #' @return TRUE when R was built for Emscripten
@@ -46,12 +46,9 @@ maidr_inline_local_assets <- function(file) {
       path <- sub(pattern, "\\1", tag, perl = TRUE)
       body <- if (is_local(path)) read_asset(path) else NULL
       if (!is.null(body)) {
-        pos <- regexpr(tag, html, fixed = TRUE)
-        html <- paste0(
-          substr(html, 1L, pos - 1L),
-          build(body),
-          substring(html, pos + attr(pos, "match.length"))
-        )
+        # regmatches<- inserts the text as it is, every occurrence of the tag.
+        found <- gregexpr(tag, html, fixed = TRUE)
+        regmatches(html, found) <- list(rep(build(body), length(found[[1]])))
       }
     }
     html
@@ -77,11 +74,62 @@ maidr_inline_local_assets <- function(file) {
   )
 }
 
+#' JavaScript that shows a finished document on the page
+#'
+#' Hands it to `globalThis.maidrWebRShow(html)` when the page defines one.
+#' Otherwise the document goes into an iframe, in the element with id
+#' `maidr-output` when the page has one, else at the end of `<body>`. The frame
+#' is sized to its content, and carries the
+#' listener [maidr_iframe_host_script()] gives every MAIDR frame, so the
+#' keyboard can leave the chart.
+#'
+#' @param html The self-contained document, a string
+#' @return A JavaScript expression that evaluates to `true`
+#' @keywords internal
+maidr_webr_show_js <- function(html) {
+  host_code <- sub("^<script>", "", maidr_iframe_host_script())
+  host_code <- sub("</script>$", "", host_code)
+  js <- paste0(
+    "(function(html, hostCode) {",
+    "if (typeof globalThis.maidrWebRShow === 'function') {",
+    "globalThis.maidrWebRShow(html); return true;",
+    "}",
+    "if (!window.__maidrIframeHost) { (new Function(hostCode))(); }",
+    "var host = document.getElementById('maidr-output') || document.body;",
+    "window.__maidrWebRFrames = (window.__maidrWebRFrames || 0) + 1;",
+    "var f = document.createElement('iframe');",
+    "f.id = 'maidr-iframe-webr-' + window.__maidrWebRFrames;",
+    "f.title = 'MAIDR chart';",
+    "f.setAttribute('allow', 'bluetooth; serial');",
+    "f.setAttribute('role', 'img');",
+    "f.tabIndex = 0;",
+    "f.style.cssText = 'width:100%%;height:450px;border:none;display:block;",
+    "margin:0 auto;outline:none';",
+    "f.addEventListener('load', function() {",
+    "var body = f.contentDocument && f.contentDocument.body;",
+    "if (!body || !window.ResizeObserver) { return; }",
+    "new ResizeObserver(function() {",
+    "f.style.height = (Math.max(body.scrollHeight, 100) + 20) + 'px';",
+    "}).observe(body);",
+    "});",
+    "f.srcdoc = html;",
+    "host.appendChild(f);",
+    "return true;",
+    "})(%s, %s)"
+  )
+  sprintf(
+    js,
+    jsonlite::toJSON(html, auto_unbox = TRUE),
+    jsonlite::toJSON(host_code, auto_unbox = TRUE)
+  )
+}
+
 #' Hand a finished document to the page webR runs in
 #'
 #' In order: the function in `options(maidr.webr_display)`, called with the
-#' HTML string; `globalThis.maidrWebRShow(html)` when the page defines it;
-#' otherwise the document is written to a file and its path is reported.
+#' HTML string; then the page, see [maidr_webr_show_js()]; otherwise, when
+#' there is no page to reach, the document is written to a file and its path is
+#' reported.
 #'
 #' @param html The self-contained document, a string
 #' @return Invisibly, the file path when nothing showed the document
@@ -96,20 +144,17 @@ maidr_webr_display <- function(html) {
   # The `webr` package ships with webR and is not on CRAN (a different package
   # of that name is), so it is reached by name rather than declared.
   webr_pkg <- "webr"
+  failure <- NULL
   shown <- tryCatch(
     {
       eval_js <- get("eval_js", envir = asNamespace(webr_pkg), inherits = FALSE)
-      payload <- jsonlite::toJSON(html, auto_unbox = TRUE)
-      call <- sprintf(
-        paste0(
-          "typeof globalThis.maidrWebRShow === 'function'",
-          " ? (globalThis.maidrWebRShow(%s), true) : false"
-        ),
-        payload
-      )
+      call <- maidr_webr_show_js(html)
       isTRUE(eval_js(call))
     },
-    error = function(e) FALSE
+    error = function(e) {
+      failure <<- conditionMessage(e)
+      FALSE
+    }
   )
   if (shown) {
     return(invisible(NULL))
@@ -118,9 +163,10 @@ maidr_webr_display <- function(html) {
   file <- tempfile(fileext = ".html")
   writeLines(html, file, useBytes = TRUE)
   message(
-    "Running under webR: no browser to open. The chart is saved at ", file,
-    ". Define `globalThis.maidrWebRShow(html)` on the page or set ",
-    "`options(maidr.webr_display = function(html) ...)` to show it."
+    "Running under webR: could not show the chart on the page",
+    if (!is.null(failure)) paste0(" (", failure, ")"),
+    ". It is saved at ", file, ". Define `globalThis.maidrWebRShow(html)` on the page ",
+    "or set `options(maidr.webr_display = function(html) ...)` to show it."
   )
   invisible(file)
 }
