@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://r.maidr.ai/CRAN-RELEASE.html</loc></url>
 <url><loc>https://r.maidr.ai/articles/examples-bar-pie.html</loc></url>
 <url><loc>https://r.maidr.ai/articles/examples-base-r-experimental.html</loc></url>
 <url><loc>https://r.maidr.ai/articles/examples-base-r-timeseries.html</loc></url>
