@@ -70,6 +70,7 @@ articles:
     contents:
       - getting-started
       - shiny-integration
+      - webr
 
   - title: Examples by plot family
     desc: >-
