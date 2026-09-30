@@ -1708,7 +1708,9 @@ save_html_document <- function(html_doc, file) {
 #' @param html_doc An htmltools HTML document object
 #' @keywords internal
 display_html <- function(html_doc) {
-  if (Sys.getenv("RSTUDIO") == "1") {
+  if (is_webr()) {
+    display_html_webr(html_doc)
+  } else if (Sys.getenv("RSTUDIO") == "1") {
     htmltools::html_print(html_doc)
   } else {
     temp_file <- tempfile(fileext = ".html")
@@ -1721,7 +1723,9 @@ display_html <- function(html_doc) {
 #' @param file HTML file path
 #' @keywords internal
 display_html_file <- function(file) {
-  if (Sys.getenv("RSTUDIO") == "1") {
+  if (is_webr()) {
+    maidr_webr_display(maidr_inline_local_assets(file))
+  } else if (Sys.getenv("RSTUDIO") == "1") {
     htmltools::html_print(htmltools::includeHTML(file))
   } else {
     utils::browseURL(file)
