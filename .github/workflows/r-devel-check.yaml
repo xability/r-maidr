@@ -1,0 +1,119 @@
+# `R CMD check --as-cran` on the current r-devel, set up the way CRAN's
+# incoming checks are, for the last look before a CRAN submission (see
+# .github/CRAN-RELEASE.md). CRAN asks for exactly this check, and the
+# confirmation page of every submission asks the maintainer to affirm it.
+#
+# win-builder's R-devel queue answers by email and sometimes not at all (for
+# 0.5.0 it sent nothing twice), and the R-devel installer can be blocked on a
+# managed Windows machine, so the check runs here instead.
+#
+# Unlike R-CMD-check.yaml, the tests run as they do on CRAN: setup-r exports
+# NOT_CRAN=true, and this workflow sets it back to false, so the files that
+# call skip_slow_file_on_cran() skip and the test time in the summary is the
+# one CRAN's ten-minute budget applies to.
+on:
+  workflow_dispatch:
+  # A change to this file checks itself.
+  pull_request:
+    paths:
+      - .github/workflows/r-devel-check.yaml
+
+name: r-devel --as-cran
+
+permissions: read-all
+
+jobs:
+  check:
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os }} (r-devel)
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # The incoming feasibility, spelling and URL checks.
+      _R_CHECK_CRAN_INCOMING_: true
+      _R_CHECK_CRAN_INCOMING_REMOTE_: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-tinytex@v2
+
+      # The minimal TinyTeX lacks the Courier metrics Rd.sty's `times` fonts
+      # need, and makeindex, which the PDF manual's index needs. Without them
+      # the manual check fails for reasons that have nothing to do with the
+      # package.
+      - name: Install the fonts and tools the PDF manual uses
+        run: tlmgr install courier helvetic times inconsolata makeindex
+
+      # Without HTML Tidy the HTML manual is not validated and the check says
+      # so in a NOTE.
+      - name: Install HTML Tidy
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y tidy
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: devel
+          use-public-rspm: true
+
+      - name: Run the tests as CRAN does
+        run: echo "NOT_CRAN=false" >> "$GITHUB_ENV"
+        shell: bash
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--as-cran")'
+          error-on: '"warning"'
+          upload-results: true
+
+      # R version, status, every check that did not say OK with what it said,
+      # and the test time. CRAN's incoming checks allow the whole check about
+      # ten minutes; the 0.5.0 pretest's tests took 266 s on Windows.
+      - name: Summarise the check
+        if: always()
+        shell: bash
+        run: |
+          log=check/maidr.Rcheck/00check.log
+          if [ ! -f "$log" ]; then
+            echo "No check log was written." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # Windows writes Running 'testthat.R' [266s]; Linux writes curly
+          # quotes, three bytes each, and CPU/elapsed: [127s/128s]. Long runs
+          # read [13m]. The pattern avoids matching the quotes, which a
+          # non-UTF-8 locale would read byte by byte.
+          line=$(grep -m1 "Running.*testthat\.R" "$log")
+          time=$(printf '%s\n' "$line" | grep -o '\[[^]]*\]' | tail -1 | tr -d '[]' | awk -F/ '{print $NF}')
+          case "$time" in
+            *m) seconds=$(( ${time%m} * 60 )) ;;
+            *s) seconds=${time%s} ;;
+            *) seconds="" ;;
+          esac
+          {
+            echo "### ${{ matrix.os }}"
+            echo
+            echo "- $(grep -m1 '^\* using R' "$log" | sed 's/^\* using //')"
+            echo "- $(grep -m1 '^Status:' "$log")"
+            echo "- Tests with the CRAN settings: ${seconds:-unknown} s"
+            echo
+            echo '```'
+            awk '/^\* / { keep = ($0 ~ /(NOTE|WARNING|ERROR)$/) } keep' "$log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$seconds" ]; then
+            echo "::warning::Could not read the test time from the check log (${line:-no testthat line})."
+          elif [ "${{ runner.os }}" = "Windows" ] && [ "$seconds" -gt 300 ]; then
+            echo "::warning::The tests took ${seconds} s on Windows with the CRAN settings (0.5.0: 266 s). Mark the slowest files with skip_slow_file_on_cran()."
+          fi
