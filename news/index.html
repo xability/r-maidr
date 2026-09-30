@@ -98,6 +98,10 @@
 </ul></div>
 </div>
 <div class="section level3">
+<h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
+<ul><li>The SVG export, the maidr-data payload and the ggplot2 heatmap grid now do their per-shape and per-point work in C++ through ‘Rcpp’, which is added to Imports and LinkingTo; the package now has compiled code. The output is byte for byte what it was. Measured with <code><a href="../reference/save_html.html">save_html()</a></code>: a 300 x 300 <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile()</a></code> heatmap went from 65 s to 5.6 s – its cells were found by scanning every source row for every tile – a 100 x 100 one from 2.2 s to 0.7 s, a 50,000-point <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> from 2.7 s to 1.2 s, a 50,000-point <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> from 4.4 s to 3.5 s, and a 2,000-bar <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col()</a></code> from 3.5 s to 1.9 s (<a href="https://github.com/xability/r-maidr/issues/343" class="external-link">#343</a>).</li>
+</ul></div>
+<div class="section level3">
 <h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
 <div class="section level4">
 <h4 id="base-r-development-version">Base R<a class="anchor" aria-label="anchor" href="#base-r-development-version"></a></h4>
