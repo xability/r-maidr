@@ -43,7 +43,8 @@ on:
       - '.github/scripts/webr-*'
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 env:
   # The same release as the container tag in `build` below, which cannot read
@@ -54,6 +55,7 @@ jobs:
   build:
     name: build for webR
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     container: ghcr.io/r-wasm/webr:v0.6.0
 
     steps:
@@ -71,7 +73,7 @@ jobs:
         run: Rscript -e 'pak::local_install_deps(".", dependencies = c("Depends", "Imports", "LinkingTo"))'
 
       - name: Build maidr for webR
-        run: Rscript -e 'rwasm::add_pkg(".", repo_dir = "webr-repo")'
+        run: Rscript .github/scripts/webr-build.R webr-repo
 
       - uses: actions/upload-artifact@v4
         with:
@@ -84,6 +86,7 @@ jobs:
     name: maidr in webR
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4

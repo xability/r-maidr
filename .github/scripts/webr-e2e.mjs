@@ -113,7 +113,7 @@ if (process.env.WEBR_E2E_FETCH_VIA_NODE === '1') {
         },
         body: Buffer.from(await response.arrayBuffer()),
       });
-    } catch (error) {
+    } catch {
       await route.abort();
     }
   });
