@@ -139,3 +139,12 @@ jobs:
 
       - name: Press Right Arrow on every chart
         run: node .github/scripts/highlight-smoke.mjs smoke
+
+      # What `show()` sends to the page under webR: an iframe added to it.
+      # There is no webR here; the script is plain JavaScript made from the
+      # same document, and this runs it in the browser.
+      - name: Render the webR page script
+        run: Rscript .github/scripts/webr-embed-smoke.R webr
+
+      - name: Show a chart on a page the way webR does
+        run: node .github/scripts/webr-embed-smoke.mjs webr

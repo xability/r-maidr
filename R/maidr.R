@@ -10,6 +10,13 @@
 #' \code{methods::show()} by name; \code{?"base-r-wrappers"} lists
 #' everything else attaching maidr masks.
 #'
+#' Under webR there is no browser to open, so the chart is added to the page
+#' the session runs in: as an iframe in the element with id
+#' \code{maidr-output}, or at the end of \code{<body>} when there is none. A
+#' page that defines \code{globalThis.maidrWebRShow(html)}, or R code that sets
+#' \code{options(maidr.webr_display = function(html) ...)}, receives the
+#' document instead.
+#'
 #' @param plot A ggplot2 object, a lattice (trellis) object, or NULL for Base R
 #'   auto-detection
 #' @param use_cdn Logical. Controls where MAIDR.js is loaded from:
