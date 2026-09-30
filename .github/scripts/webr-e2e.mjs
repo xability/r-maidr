@@ -184,8 +184,15 @@ try {
       await until(() => document.activeElement.tagName === 'IFRAME', 10000),
       'Tab from the button before reaches the chart',
     );
-    await tab.keyboard.press('ArrowRight');
     const frame = tab.frames().find(f => f !== tab.mainFrame());
+    // Tab puts the focus on the frame; maidr then takes it to the chart, and
+    // the arrow keys are read only once it has.
+    await frame.waitForFunction(
+      () => document.activeElement && document.activeElement.getAttribute('role') === 'application',
+      null,
+      { timeout: 10000 },
+    ).catch(() => {});
+    await tab.keyboard.press('ArrowRight');
     const announcement = () => frame.evaluate(() =>
       Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
         .map(element => element.textContent.trim()).filter(Boolean).join(' | '));

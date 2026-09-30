@@ -204,7 +204,7 @@ maidr_webr_display <- function(html) {
       # globals; `await = TRUE` hands the script to the page's own thread.
       ok <- isTRUE(eval_js(call, await = TRUE))
       if (!ok) {
-        failure <<- "the page did not take the document"
+        failure <- "the page did not take the document"
       }
       ok
     },
