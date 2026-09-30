@@ -90,9 +90,12 @@ jobs:
             echo "No check log was written." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          # "[266s]", "[127s/128s]" (CPU/elapsed) or "[13m]": the elapsed
-          # part, in seconds.
-          time=$(grep -m1 "Running .testthat.R" "$log" | grep -o '\[[^]]*\]' | tail -1 | tr -d '[]' | awk -F/ '{print $NF}')
+          # Windows writes Running 'testthat.R' [266s]; Linux writes curly
+          # quotes, three bytes each, and CPU/elapsed: [127s/128s]. Long runs
+          # read [13m]. The pattern avoids matching the quotes, which a
+          # non-UTF-8 locale would read byte by byte.
+          line=$(grep -m1 "Running.*testthat\.R" "$log")
+          time=$(printf '%s\n' "$line" | grep -o '\[[^]]*\]' | tail -1 | tr -d '[]' | awk -F/ '{print $NF}')
           case "$time" in
             *m) seconds=$(( ${time%m} * 60 )) ;;
             *s) seconds=${time%s} ;;
@@ -109,6 +112,8 @@ jobs:
             awk '/^\* / { keep = ($0 ~ /(NOTE|WARNING|ERROR)$/) } keep' "$log"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ runner.os }}" = "Windows" ] && [ -n "$seconds" ] && [ "$seconds" -gt 300 ]; then
+          if [ -z "$seconds" ]; then
+            echo "::warning::Could not read the test time from the check log (${line:-no testthat line})."
+          elif [ "${{ runner.os }}" = "Windows" ] && [ "$seconds" -gt 300 ]; then
             echo "::warning::The tests took ${seconds} s on Windows with the CRAN settings (0.5.0: 266 s). Mark the slowest files with skip_slow_file_on_cran()."
           fi
