@@ -57,6 +57,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The image carries an apt source for rig, signed with a key it does not
+      # have, and `apt-get update` fails on it: pak runs that to install the
+      # system libraries the dependencies need.
+      - name: Drop the apt source apt cannot verify
+        run: rm -f /etc/apt/sources.list.d/*rig*
+
       # The build loads the package, so what it imports has to be installed in
       # the container's own R as well as built for webR.
       - name: Install the package's dependencies
