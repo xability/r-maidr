@@ -121,6 +121,23 @@ test_that("display_html() takes the webR path when is_webr() is TRUE", {
   expect_true(seen)
 })
 
+test_that("display_html_file() takes the webR path when is_webr() is TRUE", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "lib"))
+  writeLines("var a = 1;", file.path(dir, "lib", "a.js"))
+  page <- write_page(dir, '<script src="lib/a.js"></script>')
+  shown <- NULL
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    maidr_webr_display = function(html) shown <<- html,
+    .package = "maidr"
+  )
+
+  maidr:::display_html_file(page)
+
+  expect_match(shown, "<script>var a = 1;</script>", fixed = TRUE)
+})
+
 test_that("is_webr() is FALSE on a native build", {
   skip_if(identical(R.version$os, "emscripten"))
   expect_false(maidr:::is_webr())

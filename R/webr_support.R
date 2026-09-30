@@ -174,7 +174,11 @@ maidr_webr_display <- function(html) {
     {
       eval_js <- get("eval_js", envir = asNamespace(webr_pkg), inherits = FALSE)
       call <- maidr_webr_show_js(html)
-      isTRUE(eval_js(call))
+      ok <- isTRUE(eval_js(call))
+      if (!ok) {
+        failure <<- "the page did not take the document"
+      }
+      ok
     },
     error = function(e) {
       failure <<- conditionMessage(e)
