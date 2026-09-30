@@ -113,7 +113,8 @@ if (process.env.WEBR_E2E_FETCH_VIA_NODE === '1') {
         },
         body: Buffer.from(await response.arrayBuffer()),
       });
-    } catch {
+    } catch (error) {
+      console.error(`  could not fetch ${request.url()}: ${error}`);
       await route.abort();
     }
   });
@@ -187,11 +188,14 @@ try {
     const frame = tab.frames().find(f => f !== tab.mainFrame());
     // Tab puts the focus on the frame; maidr then takes it to the chart, and
     // the arrow keys are read only once it has.
-    await frame.waitForFunction(
-      () => document.activeElement && document.activeElement.getAttribute('role') === 'application',
-      null,
-      { timeout: 10000 },
-    ).catch(() => {});
+    check(
+      await frame.waitForFunction(
+        () => document.activeElement && document.activeElement.getAttribute('role') === 'application',
+        null,
+        { timeout: 10000 },
+      ).then(() => true, () => false),
+      'maidr takes the focus into the chart',
+    );
     await tab.keyboard.press('ArrowRight');
     const announcement = () => frame.evaluate(() =>
       Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
@@ -201,7 +205,7 @@ try {
         .some(element => element.textContent.trim() !== ''),
       null,
       { timeout: 10000 },
-    ).catch(() => {});
+    ).then(() => {}, () => {});
     const announced = await announcement();
     check(/x is a, y is 3/.test(announced), `Right Arrow announces a value (${announced})`);
     await tab.keyboard.press('Shift+Tab');

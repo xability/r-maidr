@@ -91,6 +91,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The container tag in `build` cannot read WEBR_VERSION, so check that the
+      # two still name one release.
+      - name: Check the container and the npm package are one webR
+        run: |
+          grep -q "container: ghcr.io/r-wasm/webr:v${WEBR_VERSION}\$" .github/workflows/webr.yaml
+
       - uses: actions/download-artifact@v4
         with:
           name: webr-repo

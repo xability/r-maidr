@@ -4,9 +4,13 @@
 #     Rscript .github/scripts/webr-build.R <repo-dir>
 #
 # Run it in the container webR publishes, from the package's root. The work is
-# `rwasm::add_pkg()`; what this adds is the stack of calls when that fails, in
-# the job's log, because its own message -- an error from deep in the package
-# resolver -- names nothing of ours.
+# `rwasm::add_pkg()`. `remotes = NULL` skips its look-up of the packages webR
+# patches: by default it resolves every reference in a list the image carries,
+# over the network, before building anything, and on a runner one of them failed
+# with an error from deep in the package resolver, `nrow(out)` must equal `1`.
+# maidr is not in that list and needs none of them. When something else fails,
+# the stack of calls goes to the job's log, because the message alone names
+# nothing of ours.
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 1) {
@@ -14,7 +18,7 @@ if (length(args) != 1) {
 }
 
 withCallingHandlers(
-  rwasm::add_pkg(".", repo_dir = args[1]),
+  rwasm::add_pkg(".", repo_dir = args[1], remotes = NULL),
   error = function(e) {
     message("--- the error ---")
     message(conditionMessage(e))

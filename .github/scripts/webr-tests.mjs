@@ -48,23 +48,43 @@ await webR.FS.writeFile('/tmp/test-webr-support.R', new TextEncoder().encode(rea
 
 const result = await webR.evalR(`
   suppressPackageStartupMessages(library(testthat))
-  res <- as.data.frame(test_file("/tmp/test-webr-support.R", reporter = "silent"))
+  res <- test_file("/tmp/test-webr-support.R", reporter = "silent")
+  frame <- as.data.frame(res)
+  skips <- unlist(lapply(res, function(test) {
+    vapply(
+      Filter(function(x) inherits(x, "expectation_skip"), test$results),
+      conditionMessage, character(1)
+    )
+  }))
+  failing <- frame$test[frame$failed > 0 | frame$error]
   c(
-    paste0("passed ", sum(res$passed), ", failed ", sum(res$failed),
-           ", errors ", sum(res$error), ", skipped ", sum(res$skipped)),
-    res$test[res$failed > 0 | res$error]
+    paste0("passed ", sum(frame$passed), ", failed ", sum(frame$failed),
+           ", errors ", sum(frame$error), ", skipped ", sum(frame$skipped)),
+    if (length(failing)) paste0("FAIL ", failing),
+    if (length(skips)) paste0("SKIPPED ", skips)
   )
 `);
-const [summary, ...bad] = (await result.toJs()).values;
+const lines = (await result.toJs()).values;
+const summary = lines[0];
 console.log(summary);
-for (const name of bad) {
-  console.error(`FAIL ${name}`);
+
+// What may skip in webR: the tests about a native build, and the one that
+// needs node. A test that skips for any other reason is one the job was
+// meant to run.
+const expected = /emscripten|node is not installed/;
+const bad = lines.filter(line => line.startsWith('FAIL '));
+const unexpected = lines.filter(line => line.startsWith('SKIPPED ') && !expected.test(line));
+for (const line of bad) {
+  console.error(line);
+}
+for (const line of unexpected) {
+  console.error(`unexpected skip: ${line.slice('SKIPPED '.length)}`);
 }
 const passed = Number(/passed (\d+)/.exec(summary)[1]);
 
 server.close();
 await webR.close();
-if (bad.length > 0 || passed === 0) {
+if (bad.length > 0 || unexpected.length > 0 || passed === 0) {
   process.exit(1);
 }
 process.exit(0);
