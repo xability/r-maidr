@@ -26,7 +26,9 @@ const testFile = new URL('../../tests/testthat/test-webr-support.R', import.meta
 
 const server = createServer((req, res) => {
   const file = path.join(root, path.normalize(new URL(req.url, 'http://localhost').pathname));
-  if (!file.startsWith(root) || !existsSync(file) || !statSync(file).isFile()) {
+  const inside = path.relative(root, file);
+  if (inside.startsWith('..') || path.isAbsolute(inside)
+    || !existsSync(file) || !statSync(file).isFile()) {
     res.writeHead(404).end();
     return;
   }

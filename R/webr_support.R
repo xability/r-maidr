@@ -166,6 +166,18 @@ maidr_webr_show_js <- function(html) {
   )
 }
 
+#' The function that runs JavaScript from webR's R session
+#'
+#' The `webr` package ships with webR and is not on CRAN (a different package
+#' of that name is), so it is reached by name rather than declared.
+#'
+#' @return `webr::eval_js`
+#' @keywords internal
+maidr_webr_eval_js <- function() {
+  webr_pkg <- "webr"
+  get("eval_js", envir = asNamespace(webr_pkg), inherits = FALSE)
+}
+
 #' Hand a finished document to the page webR runs in
 #'
 #' In order: the function in `options(maidr.webr_display)`, called with the
@@ -183,16 +195,13 @@ maidr_webr_display <- function(html) {
     return(invisible(NULL))
   }
 
-  # The `webr` package ships with webR and is not on CRAN (a different package
-  # of that name is), so it is reached by name rather than declared. R runs in
-  # a web worker, which has no `document` and none of the page's globals;
-  # `await = TRUE` hands the script to the page's own thread.
-  webr_pkg <- "webr"
   failure <- NULL
   shown <- tryCatch(
     {
-      eval_js <- get("eval_js", envir = asNamespace(webr_pkg), inherits = FALSE)
+      eval_js <- maidr_webr_eval_js()
       call <- maidr_webr_show_js(html)
+      # R runs in a web worker, which has no `document` and none of the page's
+      # globals; `await = TRUE` hands the script to the page's own thread.
       ok <- isTRUE(eval_js(call, await = TRUE))
       if (!ok) {
         failure <<- "the page did not take the document"

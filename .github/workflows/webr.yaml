@@ -46,6 +46,8 @@ on:
 permissions: read-all
 
 env:
+  # The same release as the container tag in `build` below, which cannot read
+  # this: change the two together.
   WEBR_VERSION: '0.6.0'
 
 jobs:

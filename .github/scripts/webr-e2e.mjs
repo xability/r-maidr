@@ -61,7 +61,9 @@ const page = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>
 // Serve from under a root, refusing to leave it.
 const serveFile = (root, rel, res) => {
   const file = path.join(root, path.normalize(rel));
-  if (!file.startsWith(root) || !existsSync(file) || !statSync(file).isFile()) {
+  const inside = path.relative(root, file);
+  if (inside.startsWith('..') || path.isAbsolute(inside)
+    || !existsSync(file) || !statSync(file).isFile()) {
     res.writeHead(404).end();
     return;
   }
@@ -117,6 +119,11 @@ if (process.env.WEBR_E2E_FETCH_VIA_NODE === '1') {
   });
 }
 
+// Wait for something on the page rather than for a while: true once it holds,
+// false if it does not within `ms`.
+const until = (fn, ms = 30000) =>
+  tab.waitForFunction(fn, null, { timeout: ms }).then(() => true, () => false);
+
 const failures = [];
 const check = (ok, what) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`);
@@ -154,7 +161,11 @@ try {
     return text;
   });
   console.log(`     R said: ${JSON.stringify(message)}`);
-  await tab.waitForTimeout(3000);
+  await until(() => {
+    const frame = document.querySelector('#maidr-output > iframe');
+    return frame && frame.contentDocument
+      && frame.contentDocument.querySelectorAll('svg[maidr-data]').length === 1;
+  });
 
   const framed = await tab.evaluate(() => {
     const frame = document.querySelector('#maidr-output > iframe');
@@ -169,18 +180,26 @@ try {
   if (framed.inside) {
     await tab.focus('#before');
     await tab.keyboard.press('Tab');
-    await tab.waitForTimeout(500);
+    check(
+      await until(() => document.activeElement.tagName === 'IFRAME', 10000),
+      'Tab from the button before reaches the chart',
+    );
     await tab.keyboard.press('ArrowRight');
-    await tab.waitForTimeout(800);
     const frame = tab.frames().find(f => f !== tab.mainFrame());
-    const announced = await frame.evaluate(() =>
+    const announcement = () => frame.evaluate(() =>
       Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
         .map(element => element.textContent.trim()).filter(Boolean).join(' | '));
+    await frame.waitForFunction(
+      () => Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
+        .some(element => element.textContent.trim() !== ''),
+      null,
+      { timeout: 10000 },
+    ).catch(() => {});
+    const announced = await announcement();
     check(/x is a, y is 3/.test(announced), `Right Arrow announces a value (${announced})`);
     await tab.keyboard.press('Shift+Tab');
-    await tab.waitForTimeout(600);
     check(
-      await tab.evaluate(() => document.activeElement.id === 'before'),
+      await until(() => document.activeElement.id === 'before', 10000),
       'Shift+Tab returns to the button before',
     );
   }
@@ -194,8 +213,7 @@ try {
   await tab.evaluate(async () => {
     await window.webR.evalRVoid('show(ggplot(data.frame(x = "a", y = 1), aes(x, y)) + geom_col())');
   });
-  await tab.waitForTimeout(2000);
-  check(await tab.evaluate(() => window.__received > 0), 'a page-defined maidrWebRShow receives the document');
+  check(await until(() => window.__received > 0, 10000), 'a page-defined maidrWebRShow receives the document');
   check(
     (await tab.evaluate(() => document.querySelectorAll('iframe').length)) === before,
     'and no frame is added',

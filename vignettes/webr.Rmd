@@ -74,10 +74,10 @@ keys read it, and Shift+Tab goes back to that control.
 
 The same works for lattice charts and for Base R charts, which are recorded as
 they are drawn and shown with `show()` and no argument. Charts of these kinds
-become a document in webR that a keyboard reads in the page: a ggplot2 bar chart, a faceted scatter plot and
-a patchwork of a scatter plot and a bar chart, lattice `xyplot()` and
-`barchart()`, and Base R `barplot()`, `plot(type = "l")`, `boxplot()` and a
-two-panel layout.
+become a document in webR that a keyboard reads in the page: a ggplot2 bar
+chart, a faceted scatter plot and a patchwork of a scatter plot and a bar
+chart, lattice `xyplot()` and `barchart()`, and Base R `barplot()`,
+`plot(type = "l")`, `boxplot()` and a two-panel layout.
 
 ## The page must be able to run code for R
 

@@ -259,3 +259,54 @@ test_that("the JavaScript sent to the page parses", {
   expect_null(attr(check("show.js", maidr:::maidr_webr_show_js("<p>hi</p>")), "status"))
   expect_null(attr(check("host.js", maidr:::maidr_iframe_host_script_code()), "status"))
 })
+
+test_that("the script goes to the page's thread, and the page's answer is taken", {
+  seen <- list()
+  testthat::local_mocked_bindings(
+    maidr_webr_eval_js = function() {
+      function(code, await = FALSE) {
+        seen <<- list(code = code, await = await)
+        TRUE
+      }
+    },
+    .package = "maidr"
+  )
+  withr::local_options(maidr.webr_display = NULL)
+
+  result <- maidr:::maidr_webr_display("<p>hi</p>")
+
+  expect_null(result)
+  # Without `await = TRUE` the code runs in webR's worker, which has no page.
+  expect_true(seen$await)
+  expect_match(seen$code, "<p>hi<\\/p>", fixed = TRUE)
+})
+
+test_that("a script that could not run on the page falls back to a file and says why", {
+  testthat::local_mocked_bindings(
+    maidr_webr_eval_js = function() {
+      function(code, await = FALSE) stop("window is not defined")
+    },
+    .package = "maidr"
+  )
+  withr::local_options(maidr.webr_display = NULL)
+
+  expect_message(
+    file <- maidr:::maidr_webr_display("<p>hi</p>"),
+    "could not show the chart on the page \\(window is not defined\\)"
+  )
+  expect_equal(readLines(file, warn = FALSE), "<p>hi</p>")
+})
+
+test_that("a page that does not take the document gets the file fallback too", {
+  testthat::local_mocked_bindings(
+    maidr_webr_eval_js = function() function(code, await = FALSE) FALSE,
+    .package = "maidr"
+  )
+  withr::local_options(maidr.webr_display = NULL)
+
+  expect_message(
+    file <- maidr:::maidr_webr_display("<p>hi</p>"),
+    "the page did not take the document"
+  )
+  expect_true(file.exists(file))
+})
