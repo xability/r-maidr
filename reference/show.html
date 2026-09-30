@@ -32,7 +32,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-09-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -142,6 +142,12 @@ plot maidr renders – an S4 object, a vector, a data frame – is handed to
 In a script or a package, call <code>maidr::show()</code> and
 <code><a href="https://rdrr.io/r/methods/show.html" class="external-link">methods::show()</a></code> by name; <code><a href="base-r-wrappers.html">?"base-r-wrappers"</a></code> lists
 everything else attaching maidr masks.</p>
+<p>Under webR there is no browser to open, so the chart is added to the page
+the session runs in: as an iframe in the element with id
+<code>maidr-output</code>, or at the end of <code>&lt;body&gt;</code> when there is none. A
+page that defines <code>globalThis.maidrWebRShow(html)</code>, or R code that sets
+<code>options(maidr.webr_display = function(html) ...)</code>, receives the
+document instead.</p>
     </div>
 
     <div class="section level2">

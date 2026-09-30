@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-09-30">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -96,6 +96,11 @@
 <li>A chart the reading does not cover is shown as a static image rather than read wrongly: <code><a href="https://rdrr.io/pkg/lattice/man/cloud.html" class="external-link">cloud()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/cloud.html" class="external-link">wireframe()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/splom.html" class="external-link">splom()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/splom.html" class="external-link">parallelplot()</a></code>, a panel function of the user’s own or one such as <code>panel.violin</code>, <code>levelplot(useRaster = TRUE)</code>, latticeExtra layers and compositions (<code>+ layer()</code>, <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>, <code>doubleYScale()</code>), a fit (<code>type = "r"</code>, <code>"smooth"</code> or <code>"spline"</code>) over a factor axis, which lattice draws between the levels, where the axis names nothing, and a panel that fails to draw. Printed at the console, such a chart is drawn by lattice as before.</li>
 <li>Printing goes through lattice’s own <code>print.function</code> option, which maidr sets once ‘lattice’ is loaded and <code><a href="../reference/maidr_off.html">maidr_off()</a></code> restores. A print that shares its page with other charts (<code>split</code>, <code>position</code>, <code>more = TRUE</code>, <code>newpage = FALSE</code>, given to <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or carried in the chart’s <code>plot.args</code>), a print into a file device such as <code><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf()</a></code> or <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code>, a print while knitting or inside Shiny, and <code>plot(p)</code> are drawn by lattice as before. A chart lattice draws at the console while a Base R chart waits for <code><a href="../reference/show.html">show()</a></code> goes on a screen, with the theme set by <code><a href="https://rdrr.io/pkg/lattice/man/trellis.par.get.html" class="external-link">trellis.par.set()</a></code>, not onto the hidden device maidr records that chart on. In R Markdown and Quarto a chart the chunk returns is made accessible, while one the chunk draws with <code>print(p)</code> stays a static image. <code>options(maidr.lattice = FALSE)</code> leaves lattice printing alone, and setting it back to <code>TRUE</code> takes effect at the next print; see <code><a href="../reference/maidr-options.html">?"maidr-options"</a></code>. Saving, showing or knitting a chart leaves lattice’s own record of the chart it drew last – the one <code><a href="https://rdrr.io/pkg/lattice/man/interaction.html" class="external-link">trellis.focus()</a></code> and <code><a href="https://rdrr.io/pkg/lattice/man/update.trellis.html" class="external-link">trellis.last.object()</a></code> act on – as it was.</li>
 </ul></div>
+<div class="section level4">
+<h4 id="webr-development-version">webR<a class="anchor" aria-label="anchor" href="#webr-development-version"></a></h4>
+<ul><li>
+<code><a href="../reference/show.html">show()</a></code> works under webR, where it used to stop at <code><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">utils::browseURL()</a></code>. The chart is added to the page the R session runs in, as an iframe in the element with id <code>maidr-output</code>, or at the end of <code>&lt;body&gt;</code> when there is none; the frame is sized to the chart and Shift+Tab leaves it, as from any other maidr frame. A page can take the document itself by defining <code>globalThis.maidrWebRShow(html)</code>, and R code can by setting <code>options(maidr.webr_display = function(html) ...)</code>; either is used instead of the iframe. Where there is no page to reach, as with webR in Node, the document is saved to a temporary file and its path reported. The package has to be built for webR (<code>rwasm::build()</code>) and installed from a repository that serves it: it is not in the webR binary repository. Tested with webR 4.6.0 in Node and its page code in Chromium; lattice, multi-panel and htmlwidget charts have not been tried.</li>
+</ul></div>
 </div>
 <div class="section level3">
 <h3 id="performance-development-version">Performance<a class="anchor" aria-label="anchor" href="#performance-development-version"></a></h3>
@@ -117,7 +122,7 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.0" id="maidr-050">maidr 0.5.0<a class="anchor" aria-label="anchor" href="#maidr-050"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.5.0" id="maidr-050">maidr 0.5.0<a class="anchor" aria-label="anchor" href="#maidr-050"></a></h2><p class="text-muted">CRAN release: 2026-09-29</p>
 <div class="section level3">
 <h3 id="new-features-0-5-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-0"></a></h3>
 <div class="section level4">

@@ -116,6 +116,25 @@
   [`trellis.last.object()`](https://rdrr.io/pkg/lattice/man/update.trellis.html)
   act on – as it was.
 
+#### webR
+
+- [`show()`](https://r.maidr.ai/reference/show.md) works under webR,
+  where it used to stop at
+  [`utils::browseURL()`](https://rdrr.io/r/utils/browseURL.html). The
+  chart is added to the page the R session runs in, as an iframe in the
+  element with id `maidr-output`, or at the end of `<body>` when there
+  is none; the frame is sized to the chart and Shift+Tab leaves it, as
+  from any other maidr frame. A page can take the document itself by
+  defining `globalThis.maidrWebRShow(html)`, and R code can by setting
+  `options(maidr.webr_display = function(html) ...)`; either is used
+  instead of the iframe. Where there is no page to reach, as with webR
+  in Node, the document is saved to a temporary file and its path
+  reported. The package has to be built for webR (`rwasm::build()`) and
+  installed from a repository that serves it: it is not in the webR
+  binary repository. Tested with webR 4.6.0 in Node and its page code in
+  Chromium; lattice, multi-panel and htmlwidget charts have not been
+  tried.
+
 ### Performance
 
 - The SVG export, the maidr-data payload and the ggplot2 heatmap grid
@@ -175,6 +194,8 @@
   ([\#333](https://github.com/xability/r-maidr/issues/333)).
 
 ## maidr 0.5.0
+
+CRAN release: 2026-09-29
 
 ### New Features
 

@@ -64,6 +64,13 @@ call `maidr::show()` and
 [`?"base-r-wrappers"`](https://r.maidr.ai/reference/base-r-wrappers.md)
 lists everything else attaching maidr masks.
 
+Under webR there is no browser to open, so the chart is added to the
+page the session runs in: as an iframe in the element with id
+`maidr-output`, or at the end of `<body>` when there is none. A page
+that defines `globalThis.maidrWebRShow(html)`, or R code that sets
+`options(maidr.webr_display = function(html) ...)`, receives the
+document instead.
+
 ## Examples
 
 ``` r
