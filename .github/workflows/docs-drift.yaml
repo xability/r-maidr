@@ -82,13 +82,14 @@ jobs:
       # the log names the files rather than only reporting that something
       # did. DESCRIPTION is included because roxygen2 writes its version
       # stamp there, and leaving it out would let the pin above drift from
-      # the thing it pins.
+      # the thing it pins. The Rcpp exports are generated from src/ by the
+      # same script.
       - name: Check for drift
         run: |
-          if ! git diff --exit-code -- man NAMESPACE DESCRIPTION; then
+          if ! git diff --exit-code -- man NAMESPACE DESCRIPTION R/RcppExports.R src/RcppExports.cpp; then
             {
-              echo "man/, NAMESPACE or DESCRIPTION does not match the roxygen"
-              echo "comments in R/. Run:"
+              echo "man/, NAMESPACE, DESCRIPTION or the Rcpp exports do not match"
+              echo "the roxygen comments in R/ and the C++ in src/. Run:"
               echo
               echo "    Rscript tools/document.R"
               echo

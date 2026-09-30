@@ -72,6 +72,7 @@ export(title)
 export(vioplot)
 export(wordcloud)
 importFrom(R6,R6Class)
+importFrom(Rcpp,sourceCpp)
 importFrom(ggplotify,as.grob)
 importFrom(grid,
   grid.draw,
@@ -86,3 +87,4 @@ importFrom(htmlwidgets,
 importFrom(shiny,installExprFunction)
 importFrom(stats,setNames)
 importFrom(utils,getS3method)
+useDynLib(maidr, .registration = TRUE)

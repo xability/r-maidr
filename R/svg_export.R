@@ -1107,16 +1107,6 @@ svg_font_stack <- function(family) {
   unname(out)
 }
 
-svg_hex_to_rgb <- function(hex) {
-  if (!length(hex)) {
-    return(character(0))
-  }
-  paste0(
-    "rgb(", strtoi(substr(hex, 2, 3), 16L), ",",
-    strtoi(substr(hex, 4, 5), 16L), ",", strtoi(substr(hex, 6, 7), 16L), ")"
-  )
-}
-
 # Which presentation attributes each gpar setting accounts for.
 svg_gp_attr_map <- list(
   col = c("stroke", "stroke-opacity"),
@@ -1159,112 +1149,42 @@ svg_style_defaults <- c(
 #' @keywords internal
 svg_style_attrs <- function(style, text, own = rep(NA_character_, length(style)),
                             line = logical(length(style))) {
-  style[is.na(style)] <- ""
-  key <- paste(as.integer(text), as.integer(line), own, style, sep = "\r")
-  uniq <- !duplicated(key)
-  conv <- vapply(which(uniq), function(i) {
-    d <- trimws(strsplit(style[i], ";", fixed = TRUE)[[1]])
-    d <- d[nzchar(d)]
-    k <- trimws(sub(":.*$", "", d))
-    v <- trimws(sub("^[^:]*:", "", d))
-    keep <- k != "white-space"
-    val <- stats::setNames(v[keep], k[keep])
-    if (is.na(own[i])) {
-      want <- union(names(val), c("fill", "stroke"))
-    } else {
-      set <- strsplit(own[i], ",", fixed = TRUE)[[1]]
-      want <- unique(unlist(svg_gp_attr_map[intersect(set, names(svg_gp_attr_map))]))
-      want <- c(want, intersect(names(val), "fill-rule"))
-      if (text[i]) {
-        want <- union(want, c("fill", "fill-opacity", "font-size", "font-family"))
-      }
-    }
-    miss <- setdiff(want, names(val))
-    val[miss] <- svg_style_defaults[miss]
-    if (text[i]) {
-      # gridSVG painted a label's colour as its stroke as well as its fill
-      # (the stroke hairline-thin, from the label's group).
-      if ("fill" %in% miss) val[["fill"]] <- "#000000"
-      if ("stroke" %in% want) {
-        val[["stroke"]] <- val[["fill"]]
-        val[["stroke-opacity"]] <- if (is.na(val["fill-opacity"])) "1" else val[["fill-opacity"]]
-      }
-    }
-    val <- val[want]
-    val <- val[!is.na(val)]
-    if (line[i]) val[["fill"]] <- "none"
-    hex <- grepl("^#[0-9A-Fa-f]{6}$", val)
-    val[hex] <- svg_hex_to_rgb(val[hex])
-    val <- sub("^([0-9.]+)px$", "\\1", val)
-    num <- grepl("^[0-9.]+$", val)
-    val[num] <- svg_trim(val[num])
-    fam <- names(val) == "font-family"
-    val[fam] <- svg_font_stack(gsub("\"", "", val[fam], fixed = TRUE))
-    if (!length(val)) {
-      return("")
-    }
-    paste0(" ", names(val), '="', val, '"', collapse = "")
-  }, character(1))
-  conv[match(key, key[uniq])]
+  if (!length(style)) {
+    return(character(0))
+  }
+  svg_style_attrs_cpp(
+    as.character(style), rep_len(as.logical(text), length(style)),
+    rep_len(as.character(own), length(style)),
+    rep_len(as.logical(line), length(style)), svg_gp_attr_map, svg_style_defaults,
+    svg_font_aliases(), svg_font_stacks$sans
+  )
 }
 
 # Numbers as gridSVG wrote them: to two places, without trailing zeros.
+# The string helpers below run in C++ (src/svg_kernels.cpp), and
+# tests/testthat/test-svg-kernels.R holds the R they replaced.
 svg_fmt <- function(v) {
-  svg_trim(formatC(v, format = "f", digits = 2))
+  svg_fmt_cpp(as.double(v))
 }
 
+# A number's text without the trailing zeros of its decimal part.
 svg_trim <- function(x) {
-  sub("(\\.[0-9]*[1-9])0+$", "\\1", sub("\\.0+$", "", x))
+  svg_trim_cpp(as.character(x))
 }
 
 # Flip "x,y x,y" point lists about the page height.
 svg_flip_points <- function(points, h) {
-  parts <- strsplit(trimws(points), "[ ]+")
-  lens <- lengths(parts)
-  flat <- unlist(parts, use.names = FALSE)
-  xy <- strsplit(flat, ",", fixed = TRUE)
-  x <- svg_trim(vapply(xy, `[`, "", 1L))
-  y <- svg_fmt(h - as.numeric(vapply(xy, `[`, "", 2L)))
-  pairs <- paste0(x, ",", y)
-  unname(vapply(
-    split(pairs, rep(seq_along(points), lens)),
-    paste, "", collapse = " "
-  ))
+  svg_flip_points_cpp(as.character(points), h)
 }
 
 # Flip an absolute M/L/Z path about the page height.
 svg_flip_path <- function(d, h) {
-  vapply(d, function(one) {
-    tok <- strsplit(gsub("([MLZ])", " \\1 ", one), "[ ,]+")[[1]]
-    tok <- tok[nzchar(tok)]
-    out <- tok
-    num <- grepl("^[0-9.-]", tok)
-    out[num] <- svg_trim(tok[num])
-    i <- 1L
-    while (i <= length(tok)) {
-      if (tok[i] %in% c("M", "L")) {
-        out[i + 2L] <- svg_fmt(h - as.numeric(tok[i + 2L]))
-        i <- i + 3L
-      } else if (grepl("^[0-9.-]", tok[i])) {
-        # an implicit L continuing the previous command
-        out[i + 1L] <- svg_fmt(h - as.numeric(tok[i + 1L]))
-        i <- i + 2L
-      } else {
-        i <- i + 1L
-      }
-    }
-    paste(out, collapse = " ")
-  }, character(1), USE.NAMES = FALSE)
+  svg_flip_path_cpp(as.character(d), h)
 }
 
+# The value of each line's first ` name='...'`, NA where it has none.
 svg_attr <- function(lines, name) {
-  key <- paste0(" ", name, "='")
-  out <- rep(NA_character_, length(lines))
-  has <- grepl(key, lines, fixed = TRUE)
-  out[has] <- sub(
-    paste0("^.*? ", name, "='([^']*)'.*$"), "\\1", lines[has], perl = TRUE
-  )
-  out
+  svg_attr_cpp(as.character(lines), name)
 }
 
 #' Rewrite svglite shapes into the exported document's shapes

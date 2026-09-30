@@ -393,32 +393,13 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
         }
       }
 
-      x_mapping <- setNames(x_values, seq_along(x_values))
-      y_mapping <- setNames(y_values, seq_along(y_values))
-
       score_matrix <- matrix(NA, nrow = length(y_values), ncol = length(x_values))
       rownames(score_matrix) <- y_values
       colnames(score_matrix) <- x_values
-
-      # Fill the matrix with scores using built data
-      for (i in seq_len(nrow(built_data))) {
-        x_pos <- built_data$x[i]
-        y_pos <- built_data$y[i]
-
-        # Map positions back to original values
-        x_val <- x_mapping[as.character(x_pos)]
-        y_val <- y_mapping[as.character(y_pos)]
-
-        score_val <- panel_source[[fill_col]][
-          panel_source[[x_col]] == x_val & panel_source[[y_col]] == y_val
-        ]
-
-        if (length(score_val) > 0) {
-          row_idx <- which(y_values == y_val)
-          col_idx <- which(x_values == x_val)
-          score_matrix[row_idx, col_idx] <- score_val[1]
-        }
-      }
+      score_matrix <- heat_fill_scores(
+        score_matrix, panel_source, x_col, y_col, fill_col,
+        x_values, y_values, built_data$x, built_data$y
+      )
 
       # Reverse y_values to match DOM order (bottom row first)
       y_values_reversed <- rev(y_values)
@@ -465,3 +446,95 @@ Ggplot2HeatmapLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+#' Whether a heatmap source column can be coded by level
+#'
+#' Only where `match()` against the levels agrees with the `==` the cell
+#' lookup is defined by: a factor, or a plain character, number or logical.
+#' Any other class could give `==` a meaning of its own.
+#'
+#' @param values A source column
+#' @return `TRUE` when [heat_level_codes()] may code it
+#' @keywords internal
+heat_codable <- function(values) {
+  is.factor(values) ||
+    (!is.object(values) && (is.character(values) || is.numeric(values) || is.logical(values)))
+}
+
+#' Each source row's level, for the heatmap cell lookup
+#'
+#' @param values A source column accepted by [heat_codable()]
+#' @param levels The axis levels
+#' @return Integer vector: the level each value equals, `0` for none and
+#'   `NA` for a missing value, which compares `NA` against every level
+#' @keywords internal
+heat_level_codes <- function(values, levels) {
+  if (is.factor(values)) {
+    values <- as.character(values)
+  }
+  codes <- match(values, levels, nomatch = 0L)
+  codes[is.na(values)] <- NA_integer_
+  codes
+}
+
+#' Fill a heatmap's score matrix from the source rows
+#'
+#' Each drawn tile takes the fill of the first source row at its (x, y):
+#' the row whose `x == x_level & y == y_level` is first not `FALSE`. A row
+#' with a missing x or y compares `NA` against every level, so it wins the
+#' cells it comes first for, with a missing value.
+#'
+#' Scanning the source for every tile made this quadratic -- a 300 x 300
+#' grid took over a minute -- so each source row is coded by level once and the
+#' cells are looked up in C++. A column [heat_codable()] cannot code is
+#' still scanned.
+#'
+#' @param score_matrix The y-by-x matrix to fill, all `NA`
+#' @param source This panel's source rows
+#' @param x_col,y_col,fill_col Column names in `source`
+#' @param x_values,y_values The axis levels
+#' @param built_x,built_y Each drawn tile's position, a level index
+#' @return `score_matrix`, filled. Read it through `as.numeric()`: where no
+#'   cell takes a value its storage type is left as it was.
+#' @keywords internal
+heat_fill_scores <- function(score_matrix, source, x_col, y_col, fill_col,
+                             x_values, y_values, built_x, built_y) {
+  # Positions map back to levels by name: position i is the i-th level.
+  x_mapping <- setNames(x_values, seq_along(x_values))
+  y_mapping <- setNames(y_values, seq_along(y_values))
+  source_x <- source[[x_col]]
+  source_y <- source[[y_col]]
+  fill <- source[[fill_col]]
+
+  if (!(heat_codable(source_x) && heat_codable(source_y) && !is.null(fill))) {
+    for (i in seq_along(built_x)) {
+      x_val <- x_mapping[as.character(built_x[i])]
+      y_val <- y_mapping[as.character(built_y[i])]
+      score_val <- fill[source_x == x_val & source_y == y_val]
+      if (length(score_val) > 0) {
+        row_idx <- which(y_values == y_val)
+        col_idx <- which(x_values == x_val)
+        score_matrix[row_idx, col_idx] <- score_val[1]
+      }
+    }
+    return(score_matrix)
+  }
+
+  # A tile at a missing level matches no cell.
+  cell_x <- match(as.character(built_x), names(x_mapping))
+  cell_y <- match(as.character(built_y), names(y_mapping))
+  cell_x[is.na(x_values[cell_x])] <- NA_integer_
+  cell_y[is.na(y_values[cell_y])] <- NA_integer_
+  rows <- heat_cell_rows_cpp(
+    heat_level_codes(source_x, x_values),
+    heat_level_codes(source_y, y_values),
+    length(x_values), length(y_values), cell_x, cell_y
+  )
+  hit <- rows != 0L
+  if (any(hit)) {
+    score_val <- fill[abs(rows[hit])]
+    score_val[rows[hit] < 0L] <- NA
+    score_matrix[cbind(cell_y[hit], cell_x[hit])] <- score_val
+  }
+  score_matrix
+}

@@ -34,6 +34,10 @@ pak::pak("xability/r-maidr")
 pacman::p_load_gh("xability/r-maidr")
 ```
 
+The development version is built from source, and maidr includes C++ code,
+so this needs a compiler: Rtools on Windows, the Xcode command line tools
+on macOS.
+
 ## Usage
 
 ### ggplot2

@@ -1489,7 +1489,13 @@ records_as_frames <- function(node) {
   if (!is.list(node) || is.data.frame(node) || length(node) == 0) {
     return(node)
   }
-  if (is_record_run(node)) {
+  # The check and the columns in C++; NA leaves an exotic run (a pairlist
+  # record) to the R version below.
+  frame <- record_run_frame_cpp(node)
+  if (is.data.frame(frame)) {
+    return(frame)
+  }
+  if (identical(frame, NA) && is_record_run(node)) {
     fields <- names(node[[1]])
     columns <- lapply(fields, function(field) {
       unlist(lapply(node, .subset2, field), use.names = FALSE)
@@ -1567,8 +1573,13 @@ is_flat_record <- function(record, fields, types) {
 #' @return NULL (invisible)
 #' @keywords internal
 set_maidr_data_attr <- function(svg_doc, maidr_data) {
-  maidr_data <- drop_empty_selectors(maidr_data)
-  maidr_data <- flatten_single_selectors(maidr_data)
+  # Both passes visit every node of the payload, every data point
+  # included, so they run in C++; a classed list is handed back to the R
+  # versions, whose `$<-` and `[<-` could dispatch on it.
+  maidr_data <- drop_empty_selectors_cpp(maidr_data, drop_empty_selectors)
+  maidr_data <- flatten_single_selectors_cpp(
+    maidr_data, SINGLE_SELECTOR_LAYER_TYPES, flatten_single_selectors, join_selector_list
+  )
 
   # `na = "null"` ensures NA y-values (e.g. the leading rows of an SMA
   # moving-average line) serialize to JSON `null` rather than the string
