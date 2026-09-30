@@ -13,6 +13,10 @@ is_webr <- function() {
   identical(R.version$os, "emscripten")
 }
 
+read_text_file <- function(path) {
+  paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+}
+
 #' Turn a saved document into one self-contained string
 #'
 #' Replaces each local `<script src>` and `<link rel="stylesheet" href>` that
@@ -23,15 +27,18 @@ is_webr <- function() {
 #' @keywords internal
 maidr_inline_local_assets <- function(file) {
   base <- dirname(file)
-  html <- paste(readLines(file, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  html <- read_text_file(file)
   read_asset <- function(path) {
     full <- file.path(base, utils::URLdecode(path))
     if (!file.exists(full)) {
       return(NULL)
     }
-    paste(readLines(full, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+    read_text_file(full)
   }
-  is_local <- function(path) !grepl("^([a-z][a-z0-9+.-]*:|//|/)", path, ignore.case = TRUE)
+  # A URL scheme, a //host URL or an absolute path is not beside the file.
+  is_local <- function(path) {
+    !grepl("^([a-z][a-z0-9+.-]*:|//|/)", path, ignore.case = TRUE)
+  }
 
   replace_all <- function(html, pattern, build) {
     hits <- regmatches(html, gregexpr(pattern, html, perl = TRUE))[[1]]
@@ -50,16 +57,23 @@ maidr_inline_local_assets <- function(file) {
     html
   }
 
-  # "</script" inside an inline script would end it early.
+  # htmltools writes double-quoted attributes; single-quoted ones are left alone.
+  # "</script" or "</style" inside an inline body would end it early.
   html <- replace_all(
     html,
     '<script[^>]*?\\ssrc="([^"]+)"[^>]*></script>',
-    function(body) paste0("<script>", gsub("</script", "<\\\\/script", body, ignore.case = TRUE), "</script>")
+    function(body) {
+      body <- gsub("</script", "<\\\\/script", body, ignore.case = TRUE)
+      paste0("<script>", body, "</script>")
+    }
   )
   replace_all(
     html,
-    '<link[^>]*?\\shref="([^"]+)"[^>]*>',
-    function(body) paste0("<style>", body, "</style>")
+    '<link(?=[^>]*\\srel="stylesheet")[^>]*?\\shref="([^"]+)"[^>]*>',
+    function(body) {
+      body <- gsub("</style", "<\\\\/style", body, ignore.case = TRUE)
+      paste0("<style>", body, "</style>")
+    }
   )
 }
 
@@ -84,7 +98,10 @@ maidr_webr_display <- function(html) {
       {
         payload <- jsonlite::toJSON(html, auto_unbox = TRUE)
         call <- sprintf(
-          "typeof globalThis.maidrWebRShow === 'function' ? (globalThis.maidrWebRShow(%s), true) : false",
+          paste0(
+            "typeof globalThis.maidrWebRShow === 'function'",
+            " ? (globalThis.maidrWebRShow(%s), true) : false"
+          ),
           payload
         )
         isTRUE(getExportedValue("webr", "eval_js")(call))
