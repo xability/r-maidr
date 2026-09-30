@@ -45,6 +45,13 @@ plot maidr renders -- an S4 object, a vector, a data frame -- is handed to
 In a script or a package, call \code{maidr::show()} and
 \code{methods::show()} by name; \code{?"base-r-wrappers"} lists
 everything else attaching maidr masks.
+
+Under webR there is no browser to open, so the chart is added to the page
+the session runs in: as an iframe in the element with id
+\code{maidr-output}, or at the end of \code{<body>} when there is none. A
+page that defines \code{globalThis.maidrWebRShow(html)}, or R code that sets
+\code{options(maidr.webr_display = function(html) ...)}, receives the
+document instead.
 }
 \examples{
 # ggplot2 bar chart
