@@ -15,7 +15,9 @@
 #' \code{maidr-output}, or at the end of \code{<body>} when there is none. A
 #' page that defines \code{globalThis.maidrWebRShow(html)}, or R code that sets
 #' \code{options(maidr.webr_display = function(html) ...)}, receives the
-#' document instead.
+#' document instead. A plotly, highcharter or echarts4r widget is shown the
+#' same way, made accessible with \code{\link{maidr_htmlwidget}()} first; its
+#' document carries the chart library, a few megabytes.
 #'
 #' @param plot A ggplot2 object, a lattice (trellis) object, or NULL for Base R
 #'   auto-detection
@@ -77,6 +79,13 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
   # not by what it was given, so with a recorded chart on the device an S4
   # object would otherwise be "handled" as Base R and never printed.
   if (!is.null(plot) && !is_maidr_plot_object(plot)) {
+    # An htmlwidget has no viewer to print into under webR, where methods::show()
+    # prints nothing; the three maidr reads are made accessible and put on the
+    # page like any other chart.
+    if (is_webr() && inherits(plot, c("plotly", "highchart", "echarts4r"))) {
+      display_html_webr(maidr_htmlwidget(plot))
+      return(invisible(NULL))
+    }
     return(methods::show(plot))
   }
 

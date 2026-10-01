@@ -310,3 +310,32 @@ test_that("a page that does not take the document gets the file fallback too", {
   )
   expect_true(file.exists(file))
 })
+
+test_that("under webR, show() makes a plotly widget accessible and puts it on the page", {
+  skip_if_not_installed("plotly")
+  shown <- NULL
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    display_html_webr = function(html_doc) shown <<- html_doc,
+    .package = "maidr"
+  )
+  widget <- plotly::plot_ly(x = c("Mon", "Tue"), y = c(20, 14), type = "bar")
+
+  result <- withVisible(maidr::show(widget))
+
+  expect_null(result$value)
+  expect_false(result$visible)
+  expect_s3_class(shown, "htmlwidget")
+  bound <- vapply(shown$dependencies, function(dep) identical(dep$name, "maidr"), logical(1))
+  expect_true(any(bound))
+})
+
+test_that("under webR, show() hands any other object to methods::show()", {
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    display_html_webr = function(html_doc) stop("not for this object"),
+    .package = "maidr"
+  )
+
+  expect_output(maidr::show(1:3), "[1] 1 2 3", fixed = TRUE)
+})
