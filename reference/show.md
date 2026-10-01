@@ -69,7 +69,13 @@ page the session runs in: as an iframe in the element with id
 `maidr-output`, or at the end of `<body>` when there is none. A page
 that defines `globalThis.maidrWebRShow(html)`, or R code that sets
 `options(maidr.webr_display = function(html) ...)`, receives the
-document instead.
+document instead. A plotly, highcharter or echarts4r widget is shown the
+same way, made accessible with
+[`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+first; its document carries the chart library, a few megabytes. Any
+other htmlwidget is refused, with the message
+[`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+gives.
 
 ## Examples
 

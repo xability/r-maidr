@@ -32,7 +32,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-30">
+<meta name="DC.date" content="2026-10-01">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -148,7 +148,10 @@ the session runs in: as an iframe in the element with id
 <code>maidr-output</code>, or at the end of <code>&lt;body&gt;</code> when there is none. A
 page that defines <code>globalThis.maidrWebRShow(html)</code>, or R code that sets
 <code>options(maidr.webr_display = function(html) ...)</code>, receives the
-document instead.</p>
+document instead. A plotly, highcharter or echarts4r widget is shown the
+same way, made accessible with <code><a href="maidr_htmlwidget.html">maidr_htmlwidget()</a></code> first; its
+document carries the chart library, a few megabytes. Any other htmlwidget is
+refused, with the message <code><a href="maidr_htmlwidget.html">maidr_htmlwidget()</a></code> gives.</p>
     </div>
 
     <div class="section level2">

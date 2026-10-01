@@ -148,7 +148,14 @@
   [`boxplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) and a
   two-panel layout each become a document in webR that a keyboard reads
   in the page; the ggplot2 bar chart has been through the whole path in
-  a browser. htmlwidget charts have not been tried.
+  a browser. A plotly, highcharter or echarts4r widget given to
+  [`show()`](https://r.maidr.ai/reference/show.md) is made accessible
+  with
+  [`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+  and shown the same way; its document carries the chart library, three
+  to six megabytes. A plotly bar chart has been through the whole path
+  in a browser. `show(as_widget = TRUE)` and the Shiny functions have
+  not been tried.
 
 ### Performance
 

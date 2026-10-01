@@ -148,7 +148,30 @@ Two hooks replace the iframe, and both receive the document as a string.
 
 The option comes first. Either is used instead of the iframe.
 
+## Widgets from plotly, highcharter and echarts4r
+
+[`show()`](https://r.maidr.ai/reference/show.md) also takes a widget
+from plotly, highcharter or echarts4r. It makes the widget accessible
+with
+[`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
+and puts it on the page as it does any other chart. The widget packages
+come from webR’s own repository:
+
+``` r
+
+webr::install(c("plotly", "highcharter", "echarts4r"))
+```
+
+``` r
+
+library(maidr)
+show(plotly::plot_ly(x = c("Mon", "Tue", "Wed"), y = c(20, 14, 23), type = "bar"))
+```
+
+The chart is drawn by its own library in the browser and read there by
+maidr, so the document carries that library as well: three to six
+megabytes, instead of the two a ggplot2 chart takes.
+
 ## What is not covered
 
-htmlwidget outputs (`show(as_widget = TRUE)`, the plotly, highcharter
-and echarts4r adapters) are not run under webR.
+`show(as_widget = TRUE)` and the Shiny functions are not run under webR.

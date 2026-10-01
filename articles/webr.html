@@ -263,10 +263,26 @@ set in R.</li>
 <p>The option comes first. Either is used instead of the iframe.</p>
 </div>
 <div class="section level2">
+<h2 id="widgets-from-plotly-highcharter-and-echarts4r">Widgets from plotly, highcharter and echarts4r<a class="anchor" aria-label="anchor" href="#widgets-from-plotly-highcharter-and-echarts4r"></a>
+</h2>
+<p><code><a href="../reference/show.html">show()</a></code> also takes a widget from plotly, highcharter or
+echarts4r. It makes the widget accessible with
+<code><a href="../reference/maidr_htmlwidget.html">maidr_htmlwidget()</a></code> and puts it on the page as it does any
+other chart. The widget packages come from webR’s own repository:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">webr</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"plotly"</span>, <span class="st">"highcharter"</span>, <span class="st">"echarts4r"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/show.html">show</a></span><span class="op">(</span><span class="fu">plotly</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/plotly/man/plot_ly.html" class="external-link">plot_ly</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mon"</span>, <span class="st">"Tue"</span>, <span class="st">"Wed"</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">14</span>, <span class="fl">23</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"bar"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The chart is drawn by its own library in the browser and read there
+by maidr, so the document carries that library as well: three to six
+megabytes, instead of the two a ggplot2 chart takes.</p>
+</div>
+<div class="section level2">
 <h2 id="what-is-not-covered">What is not covered<a class="anchor" aria-label="anchor" href="#what-is-not-covered"></a>
 </h2>
-<p>htmlwidget outputs (<code>show(as_widget = TRUE)</code>, the plotly,
-highcharter and echarts4r adapters) are not run under webR.</p>
+<p><code>show(as_widget = TRUE)</code> and the Shiny functions are not
+run under webR.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
