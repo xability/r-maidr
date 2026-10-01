@@ -24,10 +24,11 @@ server behind the page. maidr runs there too: `show()` adds the chart to the
 page the session runs in, and a reader uses it there, with the keyboard,
 sound, text and braille, as anywhere else.
 
-webR's own binary repository carries an old maidr, from before it could do this,
-and a release that can reaches it only after a CRAN release does. Until then,
-install the development version, which [r-universe](https://xability.r-universe.dev)
-builds for webR, or build maidr for webR yourself.
+webR's own binary repository carries an old maidr, from before it could do this.
+A release that can do it reaches that repository only after a CRAN release.
+Until then, install the development version, which
+[r-universe](https://xability.r-universe.dev) builds for webR, or build maidr
+for webR yourself.
 
 ## Install maidr in webR
 
