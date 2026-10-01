@@ -350,7 +350,9 @@ for (package in c("plotly", "highcharter", "echarts4r")) {
 test_that("under webR, show() refuses an htmlwidget maidr cannot read, and says so", {
   testthat::local_mocked_bindings(
     is_webr = function() TRUE,
-    display_html_webr = function(html_doc) stop("not for this widget"),
+    # The argument is read first, as the real function reads it, and it is the
+    # refusal that stops it.
+    display_html_webr = function(html_doc) force(html_doc),
     .package = "maidr"
   )
   widget <- htmlwidgets::createWidget("somethingelse", list())
