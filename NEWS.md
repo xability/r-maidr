@@ -90,11 +90,12 @@
   needs webR's `SharedArrayBuffer` or service worker channel, and a page
   that allows `unsafe-eval`. Where the page cannot be reached, `show()`
   says why and saves the document to a temporary file; take it from R with
-  the option instead, which works over every channel. The package has to be
-  built for webR (`rwasm::add_pkg()`) and installed from a repository that
-  serves it: it is not in the webR binary repository. See
-  `vignette("webr")`. A new CI job builds maidr for webR and, in a browser,
-  installs it from that build and calls `show()`.
+  the option instead, which works over every channel. webR's own repository
+  carries an older maidr until a release with this reaches CRAN; install the
+  development version from r-universe (`xability.r-universe.dev`), which builds
+  it for webR, or build it with `rwasm::add_pkg()`. See `vignette("webr")`. A
+  new CI job builds maidr for webR and, in a browser, installs it from that
+  build and calls `show()`.
   A ggplot2 bar chart, a faceted scatter plot, a patchwork, lattice
   `xyplot()` and `barchart()`, and Base R `barplot()`, `plot()`, `boxplot()`
   and a two-panel layout each become a document in webR that a keyboard
