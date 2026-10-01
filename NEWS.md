@@ -91,9 +91,10 @@
   that allows `unsafe-eval`. Where the page cannot be reached, `show()`
   says why and saves the document to a temporary file; take it from R with
   the option instead, which works over every channel. webR's own repository
-  carries an older maidr until a release with this reaches CRAN; install the
-  development version from r-universe (`xability.r-universe.dev`), which builds
-  it for webR, or build it with `rwasm::add_pkg()`. See `vignette("webr")`. A
+  carries an older maidr until a CRAN release containing this is picked up
+  by it; install the development version from r-universe
+  (`xability.r-universe.dev`), which builds it for webR, or build it with
+  `rwasm::add_pkg()`. See `vignette("webr")`. A
   new CI job builds maidr for webR and, in a browser, installs it from that
   build and calls `show()`.
   A ggplot2 bar chart, a faceted scatter plot, a patchwork, lattice

@@ -25,8 +25,8 @@ page the session runs in, and a reader uses it there, with the keyboard,
 sound, text and braille, as anywhere else.
 
 webR's own binary repository carries an old maidr, from before it could do this.
-A release that can do it reaches that repository only after a CRAN release.
-Until then, install the development version, which
+A release that can do it reaches that repository only after a CRAN release,
+which webR's builds then pick up. Until then, install the development version, which
 [r-universe](https://xability.r-universe.dev) builds for webR, or build maidr
 for webR yourself.
 
@@ -44,7 +44,10 @@ await webR.installPackages(["maidr"], {
 or, from R in a webR session:
 
 ```r
-webr::install("maidr", repos = c("https://xability.r-universe.dev/", "https://repo.r-wasm.org/"))
+webr::install(
+  "maidr",
+  repos = c("https://xability.r-universe.dev/", "https://repo.r-wasm.org/")
+)
 ```
 
 maidr contains compiled code (through 'Rcpp'), so a build is for one version of
