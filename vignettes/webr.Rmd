@@ -48,8 +48,10 @@ webr::install("maidr", repos = c("https://xability.r-universe.dev/", "https://re
 
 maidr contains compiled code (through 'Rcpp'), so a build is for one version of
 webR. r-universe builds for the webR release it currently runs, which is R
-4.6.0, webR 0.6.0 at the time of writing. When your page loads another webR, or
-you want a build that is not the latest, build it yourself.
+4.6.0, webR 0.6.0 at the time of writing; [its page for
+maidr](https://xability.r-universe.dev/maidr) shows what has been built. When
+your page loads another webR, or you want a build that is not the latest, build
+it yourself.
 
 ## Build maidr for webR yourself
 
@@ -63,10 +65,11 @@ docker run --rm -v "$PWD":/src -w /src ghcr.io/r-wasm/webr:v0.6.0 \
           -e 'rwasm::add_pkg(".", repo_dir = "webr-repo", remotes = NULL)'
 ```
 
-`webr-repo/` is a package repository. Serve it from any static host and use its
-address in place of r-universe's above. The other packages maidr needs come from
-webR's own repository, so list both when you install. Build with the container
-of the webR release your page loads.
+`remotes = NULL` skips rwasm's look-up of the packages webR patches, which
+maidr is not one of. `webr-repo/` is a package repository. Serve it from any
+static host and use its address in place of r-universe's above. The other
+packages maidr needs come from webR's own repository, so list both when you
+install. Build with the container of the webR release your page loads.
 
 ## Show a chart on a page
 
