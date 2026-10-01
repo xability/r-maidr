@@ -311,23 +311,51 @@ test_that("a page that does not take the document gets the file fallback too", {
   expect_true(file.exists(file))
 })
 
-test_that("under webR, show() makes a plotly widget accessible and puts it on the page", {
-  skip_if_not_installed("plotly")
-  shown <- NULL
+widget_for <- function(package) {
+  switch(
+    package,
+    plotly = plotly::plot_ly(x = c("Mon", "Tue"), y = c(20, 14), type = "bar"),
+    highcharter = highcharter::hchart(
+      data.frame(x = c("Mon", "Tue"), y = c(20, 14)), "column", highcharter::hcaes(x, y)
+    ),
+    echarts4r = echarts4r::e_bar(
+      echarts4r::e_charts(data.frame(x = c("Mon", "Tue"), y = c(20, 14)), x), y
+    )
+  )
+}
+
+for (package in c("plotly", "highcharter", "echarts4r")) {
+  local({
+    package <- package
+    test_that(paste0("under webR, show() makes a ", package, " widget accessible and shows it"), {
+      skip_if_not_installed(package)
+      shown <- NULL
+      testthat::local_mocked_bindings(
+        is_webr = function() TRUE,
+        display_html_webr = function(html_doc) shown <<- html_doc,
+        .package = "maidr"
+      )
+
+      result <- withVisible(maidr::show(widget_for(package)))
+
+      expect_null(result$value)
+      expect_false(result$visible)
+      expect_s3_class(shown, "htmlwidget")
+      bound <- vapply(shown$dependencies, function(dep) identical(dep$name, "maidr"), logical(1))
+      expect_true(any(bound))
+    })
+  })
+}
+
+test_that("under webR, show() refuses an htmlwidget maidr cannot read, and says so", {
   testthat::local_mocked_bindings(
     is_webr = function() TRUE,
-    display_html_webr = function(html_doc) shown <<- html_doc,
+    display_html_webr = function(html_doc) stop("not for this widget"),
     .package = "maidr"
   )
-  widget <- plotly::plot_ly(x = c("Mon", "Tue"), y = c(20, 14), type = "bar")
+  widget <- htmlwidgets::createWidget("somethingelse", list())
 
-  result <- withVisible(maidr::show(widget))
-
-  expect_null(result$value)
-  expect_false(result$visible)
-  expect_s3_class(shown, "htmlwidget")
-  bound <- vapply(shown$dependencies, function(dep) identical(dep$name, "maidr"), logical(1))
-  expect_true(any(bound))
+  expect_error(maidr::show(widget), "cannot read a `somethingelse` htmlwidget")
 })
 
 test_that("under webR, show() hands any other object to methods::show()", {

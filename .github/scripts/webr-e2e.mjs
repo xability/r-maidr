@@ -249,8 +249,9 @@ try {
     }),
     'show() puts a plotly widget on the page, drawn by plotly',
   );
-  // The chart is drawn before maidr has taken it over, and a Tab that comes
-  // first reaches the frame and no more: try again until it reaches the chart.
+  // The chart is drawn before maidr has taken it over (its chart element exists
+  // only once the chart has the focus), and a Tab that comes first reaches the
+  // frame and no more: try again until it reaches the chart.
   const widgetFrame = tab.frames().find(f => f !== tab.mainFrame());
   let inChart = false;
   for (let attempt = 0; attempt < 20 && !inChart; attempt++) {
