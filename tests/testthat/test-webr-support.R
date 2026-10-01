@@ -347,6 +347,30 @@ for (package in c("plotly", "highcharter", "echarts4r")) {
   })
 }
 
+test_that("under webR, show() passes use_cdn on to a widget, and the default is the bundled copy", {
+  skip_if_not_installed("plotly")
+  shown <- NULL
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    display_html_webr = function(html_doc) shown <<- html_doc,
+    maidr_cdn_url = function() "https://cdn.example/maidr",
+    .package = "maidr"
+  )
+  widget <- widget_for("plotly")
+  maidr_dependency <- function(w) {
+    Filter(function(dep) identical(dep$name, "maidr"), w$dependencies)[[1]]
+  }
+
+  maidr::show(widget, use_cdn = TRUE)
+  expect_equal(maidr_dependency(shown)$src$href, "https://cdn.example/maidr")
+
+  maidr::show(widget)
+  expect_null(maidr_dependency(shown)$src$href)
+  expect_equal(maidr_dependency(shown)$package, "maidr")
+
+  expect_error(maidr::show(widget, use_cdn = "yes"), "`use_cdn` must be TRUE or FALSE")
+})
+
 test_that("under webR, show() refuses an htmlwidget maidr cannot read, and says so", {
   testthat::local_mocked_bindings(
     is_webr = function() TRUE,

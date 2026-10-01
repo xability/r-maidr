@@ -84,7 +84,11 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
     # prints nothing. Those maidr reads are made accessible and put on the page
     # like any other chart; maidr_htmlwidget() says plainly which it cannot read.
     if (is_webr() && inherits(plot, "htmlwidget")) {
-      display_html_webr(maidr_htmlwidget(plot))
+      # NULL is the bundled copy here, as everywhere; anything else goes on to
+      # maidr_htmlwidget(), which checks it.
+      display_html_webr(
+        maidr_htmlwidget(plot, use_cdn = if (is.null(use_cdn)) FALSE else use_cdn)
+      )
       return(invisible(NULL))
     }
     return(methods::show(plot))
