@@ -229,6 +229,52 @@ try {
     (await tab.evaluate(() => document.querySelectorAll('iframe').length)) === before,
     'and no frame is added',
   );
+  // An htmlwidget: plotly draws its own chart in the browser, and maidr reads
+  // it there. show() makes it accessible and puts it on the page like the rest.
+  await tab.evaluate(() => {
+    delete window.maidrWebRShow;
+    document.querySelectorAll('#maidr-output iframe').forEach(frame => frame.remove());
+  });
+  await tab.evaluate(async () => {
+    await window.webR.installPackages(['plotly'], { repos: ['https://repo.r-wasm.org/'], quiet: true });
+    await window.webR.evalRVoid(`
+      suppressPackageStartupMessages(library(maidr))
+      show(plotly::plot_ly(x = c("Mon", "Tue", "Wed"), y = c(20, 14, 23), type = "bar"))
+    `);
+  });
+  check(
+    await until(() => {
+      const frame = document.querySelector('#maidr-output > iframe');
+      return frame && frame.contentDocument && frame.contentDocument.querySelector('.js-plotly-plot');
+    }),
+    'show() puts a plotly widget on the page, drawn by plotly',
+  );
+  // The chart is drawn before maidr has taken it over (its chart element exists
+  // only once the chart has the focus), and a Tab that comes first reaches the
+  // frame and no more: try again until it reaches the chart.
+  const widgetFrame = tab.frames().find(f => f !== tab.mainFrame());
+  let inChart = false;
+  for (let attempt = 0; attempt < 20 && !inChart; attempt++) {
+    await tab.focus('#before');
+    await tab.keyboard.press('Tab');
+    inChart = await widgetFrame.waitForFunction(
+      () => document.activeElement && document.activeElement.getAttribute('role') === 'application',
+      null,
+      { timeout: 2000 },
+    ).then(() => true, () => false);
+  }
+  check(inChart, 'maidr takes the focus into the plotly chart');
+  await tab.keyboard.press('ArrowRight');
+  await widgetFrame.waitForFunction(
+    () => Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
+      .some(element => element.textContent.trim() !== ''),
+    null,
+    { timeout: 10000 },
+  ).then(() => {}, () => {});
+  const widgetAnnounced = await widgetFrame.evaluate(() =>
+    Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
+      .map(element => element.textContent.trim()).filter(Boolean).join(' | '));
+  check(/Mon.*20/.test(widgetAnnounced), `Right Arrow reads the plotly chart (${widgetAnnounced})`);
   check(errors.length === 0, `no page errors${errors.length ? ': ' + errors[0] : ''}`);
 } catch (error) {
   failures.push(String(error));

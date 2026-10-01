@@ -40,7 +40,8 @@ const repo = `http://127.0.0.1:${server.address().port}/`;
 
 const webR = new WebR();
 await webR.init();
-await webR.installPackages(['maidr', 'testthat', 'withr'], {
+// The widget packages are what the widget tests draw with; without them those tests would skip.
+await webR.installPackages(['maidr', 'testthat', 'withr', 'plotly', 'highcharter', 'echarts4r'], {
   repos: [repo, 'https://repo.r-wasm.org/'],
   quiet: true,
 });

@@ -310,3 +310,86 @@ test_that("a page that does not take the document gets the file fallback too", {
   )
   expect_true(file.exists(file))
 })
+
+widget_for <- function(package) {
+  switch(
+    package,
+    plotly = plotly::plot_ly(x = c("Mon", "Tue"), y = c(20, 14), type = "bar"),
+    highcharter = highcharter::hchart(
+      data.frame(x = c("Mon", "Tue"), y = c(20, 14)), "column", highcharter::hcaes(x, y)
+    ),
+    echarts4r = echarts4r::e_bar(
+      echarts4r::e_charts(data.frame(x = c("Mon", "Tue"), y = c(20, 14)), x), y
+    )
+  )
+}
+
+for (package in c("plotly", "highcharter", "echarts4r")) {
+  local({
+    package <- package
+    test_that(paste0("under webR, show() makes a ", package, " widget accessible and shows it"), {
+      skip_if_not_installed(package)
+      shown <- NULL
+      testthat::local_mocked_bindings(
+        is_webr = function() TRUE,
+        display_html_webr = function(html_doc) shown <<- html_doc,
+        .package = "maidr"
+      )
+
+      result <- withVisible(maidr::show(widget_for(package)))
+
+      expect_null(result$value)
+      expect_false(result$visible)
+      expect_s3_class(shown, "htmlwidget")
+      bound <- vapply(shown$dependencies, function(dep) identical(dep$name, "maidr"), logical(1))
+      expect_true(any(bound))
+    })
+  })
+}
+
+test_that("under webR, show() passes use_cdn on to a widget, and the default is the bundled copy", {
+  skip_if_not_installed("plotly")
+  shown <- NULL
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    display_html_webr = function(html_doc) shown <<- html_doc,
+    maidr_cdn_url = function() "https://cdn.example/maidr",
+    .package = "maidr"
+  )
+  widget <- widget_for("plotly")
+  maidr_dependency <- function(w) {
+    Filter(function(dep) identical(dep$name, "maidr"), w$dependencies)[[1]]
+  }
+
+  maidr::show(widget, use_cdn = TRUE)
+  expect_equal(maidr_dependency(shown)$src$href, "https://cdn.example/maidr")
+
+  maidr::show(widget)
+  expect_null(maidr_dependency(shown)$src$href)
+  expect_equal(maidr_dependency(shown)$package, "maidr")
+
+  expect_error(maidr::show(widget, use_cdn = "yes"), "`use_cdn` must be TRUE or FALSE")
+})
+
+test_that("under webR, show() refuses an htmlwidget maidr cannot read, and says so", {
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    # The argument is read first, as the real function reads it, and it is the
+    # refusal that stops it.
+    display_html_webr = function(html_doc) force(html_doc),
+    .package = "maidr"
+  )
+  widget <- htmlwidgets::createWidget("somethingelse", list())
+
+  expect_error(maidr::show(widget), "cannot read a `somethingelse` htmlwidget")
+})
+
+test_that("under webR, show() hands any other object to methods::show()", {
+  testthat::local_mocked_bindings(
+    is_webr = function() TRUE,
+    display_html_webr = function(html_doc) stop("not for this object"),
+    .package = "maidr"
+  )
+
+  expect_output(maidr::show(1:3), "[1] 1 2 3", fixed = TRUE)
+})

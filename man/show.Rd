@@ -51,7 +51,10 @@ the session runs in: as an iframe in the element with id
 \code{maidr-output}, or at the end of \code{<body>} when there is none. A
 page that defines \code{globalThis.maidrWebRShow(html)}, or R code that sets
 \code{options(maidr.webr_display = function(html) ...)}, receives the
-document instead.
+document instead. A plotly, highcharter or echarts4r widget is shown the
+same way, made accessible with \code{\link{maidr_htmlwidget}()} first; its
+document carries the chart library, a few megabytes. Any other htmlwidget is
+refused, with the message \code{maidr_htmlwidget()} gives.
 }
 \examples{
 # ggplot2 bar chart
