@@ -249,17 +249,20 @@ try {
     }),
     'show() puts a plotly widget on the page, drawn by plotly',
   );
-  await tab.focus('#before');
-  await tab.keyboard.press('Tab');
+  // The chart is drawn before maidr has taken it over, and a Tab that comes
+  // first reaches the frame and no more: try again until it reaches the chart.
   const widgetFrame = tab.frames().find(f => f !== tab.mainFrame());
-  check(
-    await widgetFrame.waitForFunction(
+  let inChart = false;
+  for (let attempt = 0; attempt < 20 && !inChart; attempt++) {
+    await tab.focus('#before');
+    await tab.keyboard.press('Tab');
+    inChart = await widgetFrame.waitForFunction(
       () => document.activeElement && document.activeElement.getAttribute('role') === 'application',
       null,
-      { timeout: 20000 },
-    ).then(() => true, () => false),
-    'maidr takes the focus into the plotly chart',
-  );
+      { timeout: 2000 },
+    ).then(() => true, () => false);
+  }
+  check(inChart, 'maidr takes the focus into the plotly chart');
   await tab.keyboard.press('ArrowRight');
   await widgetFrame.waitForFunction(
     () => Array.from(document.querySelectorAll('[aria-live], [role=status], [role=alert]'))
