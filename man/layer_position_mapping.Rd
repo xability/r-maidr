@@ -23,4 +23,10 @@ inherits it, else the value its stat computes by default -- the
 when the layer plots nothing there, or a constant it was given as a
 parameter.
 }
+\details{
+A stat default named for the aesthetic itself -- \code{stat_function()}'s
+\code{after_scale(y)}, \code{stat_qq_line()}'s \code{after_stat(y)} -- is NULL as well:
+it is the stat's output with no name of its own, not a variable another
+layer could plot differently.
+}
 \keyword{internal}

@@ -451,7 +451,9 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         # Collapse multiple line layers (e.g. candlestick + several MAs)
         # into one multi-series line layer so the JS frontend announces
         # them as one multiline layer (matching py-maidr).
-        single_subplot <- collapse_lines_to_multiseries(single_subplot)
+        single_subplot <- collapse_lines_to_multiseries(
+          single_subplot, private$.layout$axes
+        )
         private$.combined_data <- list(list(single_subplot))
       } else {
         # Faceted/patchwork plots already have the correct 2D grid format

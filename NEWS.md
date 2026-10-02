@@ -129,10 +129,16 @@
   labs(y = "Density")` was announced as "after_stat(density) is 0.07" while
   the axis said "Density", and a one-layer `geom_col(aes(month, sales))`
   lost its `labs()` titles to "month" and "sales". A layer is now named for
-  its own mapping only when another layer plots something else on that
-  axis -- `geom_col(aes(y = sales)) + geom_line(aes(y = target))` still
-  reads "sales" and "target" -- and then by the name ggplot2 gives it,
-  "density" rather than "after_stat(density)" (#349).
+  its own mapping only when another layer read beside it plots something
+  else on that axis -- `geom_col(aes(y = sales)) + geom_line(aes(y = target))`
+  still reads "sales" and "target" -- and then by the name ggplot2 gives it,
+  "density" rather than "after_stat(density)". Decoration maidr does not
+  read, such as `annotate()` and `geom_text()` value labels, does not count
+  as such a layer, nor does a `stat_function()` curve, so a density
+  histogram with a normal curve over it reads "Density" on both. Line
+  layers read together as one multi-series layer are named by the axis
+  title when they plot different things, rather than after the first of
+  them (#349).
 
 ### Base R
 

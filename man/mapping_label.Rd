@@ -7,16 +7,20 @@
 mapping_label(mapping)
 }
 \arguments{
-\item{mapping}{A quosure or expression from \code{aes()}}
+\item{mapping}{A quosure or expression from \code{aes()}, or NULL}
 }
 \value{
 Character scalar, or NULL when the mapping cannot be named
 }
 \description{
-The default title ggplot2 derives from a mapping: a stat-computed value is
-named for the variable it reads, so \code{after_stat(density)}, \code{stat(density)},
-\code{..density..} and \code{stage(hwy, after_stat = density)} are all "density",
-\code{..count.. / sum(..count..)} is "count/sum(count)", and \code{.data$hwy} is
-"hwy". Any other expression is named as \code{rlang::as_label()} names it.
+The default title ggplot2 derives from a mapping: \code{\link[=mapping_expr]{mapping_expr()}}'s
+expression, deparsed and cut at the end of its first line, as
+\code{make_labels()} cuts it. So \code{after_stat(density)}, \code{stat(density)},
+\code{..density..} and \code{.data$density} are all "density", and
+\code{..count.. / sum(..count..)} is "count/sum(count)".
+}
+\details{
+A name, not a key: two long expressions can share their first line. Compare
+mappings with \code{\link[=mapping_key]{mapping_key()}}.
 }
 \keyword{internal}

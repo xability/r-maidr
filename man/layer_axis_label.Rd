@@ -20,7 +20,7 @@ Character scalar
 }
 \description{
 The axis title -- \code{labs()}, or the name ggplot2 gave the axis -- unless
-the layer maps the aesthetic itself and another layer of the plot puts
+the layer maps the aesthetic itself and another layer read beside it puts
 something else on that axis. Only then is the axis title no description
 of this layer in particular, and the layer is named for what it plots:
 \code{geom_col(aes(y = sales)) + geom_line(aes(y = target))} reads "sales" and
@@ -29,10 +29,13 @@ no other layer has, is what the axis title already describes, so a
 one-layer plot keeps its \code{labs()} title (#349).
 }
 \details{
-Layers are compared by the name ggplot2 gives what they plot (see
-\code{\link[=mapping_label]{mapping_label()}}), so \code{aes(y = after_stat(density))} on a histogram
-agrees with a \code{geom_density()} beside it, which plots \code{after_stat(density)}
-without being asked to. Where it is named for itself, the layer is named
-the same way -- "density", never "after_stat(density)".
+Layers are compared by what they plot once ggplot2's own spellings are
+taken out (see \code{\link[=mapping_expr]{mapping_expr()}}), so \code{aes(y = after_stat(density))} on a
+histogram agrees with a \code{geom_density()} beside it, which plots
+\code{after_stat(density)} without being asked to. Where it is named for itself,
+the layer is named as ggplot2 would name it -- "density", never
+"after_stat(density)". Decoration maidr does not read (see
+\code{\link[=layer_is_decoration]{layer_is_decoration()}}) takes no part: an \code{annotate()} arrow does not make
+a one-layer chart a two-layer one.
 }
 \keyword{internal}

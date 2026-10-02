@@ -89,10 +89,10 @@ Ggplot2LineLayerProcessor <- R6::R6Class(
     #' The parent `LayerProcessor$extract_layer_axes()` names y after the axis
     #' title, or after the layer's own aesthetic mapping when other layers
     #' plot something else on y. For a moving-average overlay typically
-    #' written as `geom_ma(aes(y = close), ma_fun = SMA, ...)`, both name the
-    #' price it reads -- the literal column name `"close"`, say -- which is misleading:
-    #' the value being plotted (and announced during navigation) is the moving
-    #' average of `close`, not `close` itself. We detect `GeomMA` (the class of
+    #' written as `geom_ma(aes(y = close), ma_fun = SMA, ...)`, either name
+    #' describes the prices it averages -- `"close"`, say -- which is
+    #' misleading: the value being plotted (and announced during navigation)
+    #' is the moving average of `close`, not `close` itself. We detect `GeomMA` (the class of
     #' tidyquant's geom_ma layer) and override the y-label accordingly. Plain
     #' `geom_line` / `geom_smooth` overlays are untouched.
     #'

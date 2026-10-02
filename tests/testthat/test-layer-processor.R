@@ -244,8 +244,8 @@ test_that("LayerProcessor extract_layer_axes() names layers that plot different 
 
   # Both layers share x, but plot different things on y
   p <- ggplot2::ggplot(mtcars, ggplot2::aes(x = disp)) +
-    ggplot2::geom_point(ggplot2::aes(y = hp)) +
-    ggplot2::geom_point(ggplot2::aes(y = qsec))
+    ggplot2::geom_col(ggplot2::aes(y = hp)) +
+    ggplot2::geom_line(ggplot2::aes(y = qsec))
 
   first <- maidr:::LayerProcessor$new(list(index = 1))$extract_layer_axes(p, layout)
   second <- maidr:::LayerProcessor$new(list(index = 2))$extract_layer_axes(p, layout)

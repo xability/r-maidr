@@ -4,7 +4,12 @@
 \alias{merge_line_layers}
 \title{Combine a list of single-line layer entries into one multi-series line entry.}
 \usage{
-merge_line_layers(line_layers)
+merge_line_layers(line_layers, axes = NULL)
+}
+\arguments{
+\item{line_layers}{The line layer entries, in panel order}
+
+\item{axes}{The panel's axis titles, or NULL to keep the first layer's names}
 }
 \description{
 Each input line layer's \code{data} is a list-of-series (typically length-1 for
@@ -21,5 +26,10 @@ set. What still has to hold after merging is the frontend precondition
 is why the trim below stays. There is deliberately no pad: a short
 list fails that precondition and the frontend drops the layer's highlight
 rather than aiming it at the wrong curve.
+
+The merged layer is read under one name per axis. When the line layers were
+named differently -- \code{geom_line(aes(y = sales)) + geom_line(aes(y = target))}
+-- none of their names describes every series, and the panel's axis title
+does (#349).
 }
 \keyword{internal}

@@ -808,7 +808,7 @@ process_patchwork_panel <- function(leaf_plot, panel_name, panel_index, row, col
   # candlestick) should be merged into a single multi-series line layer so
   # the JS frontend announces them as one "multiline" layer (matching
   # py-maidr's behaviour) rather than N separate layers.
-  collapse_lines_to_multiseries(panel)
+  collapse_lines_to_multiseries(panel, leaf_axes)
 }
 
 # ==============================================================================
@@ -863,12 +863,16 @@ is_volume_only_bar_panel <- function(panel) {
 #' multi-series line layer entry. Other layers are left untouched.
 #'
 #' The first line layer's id, title, and axes are preserved; data and
-#' selectors are concatenated across all line layers.
+#' selectors are concatenated across all line layers. An axis the line layers
+#' name differently is named by the panel's axis title instead (see
+#' [merge_line_layers()]).
 #'
 #' @param panel A processed panel list with $id and $layers
+#' @param axes The panel's axis titles, as a layout carries them, or NULL to
+#'   keep the first line layer's names whatever the others say
 #' @return Panel with line layers merged
 #' @keywords internal
-collapse_lines_to_multiseries <- function(panel) {
+collapse_lines_to_multiseries <- function(panel, axes = NULL) {
   if (is.null(panel) || is.null(panel$layers) || length(panel$layers) < 2) {
     return(panel)
   }
@@ -883,7 +887,7 @@ collapse_lines_to_multiseries <- function(panel) {
   }
 
   line_layers <- layers[is_line]
-  merged_line <- merge_line_layers(line_layers)
+  merged_line <- merge_line_layers(line_layers, axes)
 
   # Rebuild layers list: keep non-line layers in their original order,
   # insert the merged line layer at the position of the first line layer.
@@ -920,9 +924,28 @@ collapse_lines_to_multiseries <- function(panel) {
 #' is why the trim below stays. There is deliberately no pad: a short
 #' list fails that precondition and the frontend drops the layer's highlight
 #' rather than aiming it at the wrong curve.
+#'
+#' The merged layer is read under one name per axis. When the line layers were
+#' named differently -- `geom_line(aes(y = sales)) + geom_line(aes(y = target))`
+#' -- none of their names describes every series, and the panel's axis title
+#' does (#349).
+#'
+#' @param line_layers The line layer entries, in panel order
+#' @param axes The panel's axis titles, or NULL to keep the first layer's names
 #' @keywords internal
-merge_line_layers <- function(line_layers) {
+merge_line_layers <- function(line_layers, axes = NULL) {
   first <- line_layers[[1]]
+
+  merged_axes <- first$axes
+  for (axis in intersect(c("x", "y"), names(merged_axes))) {
+    title <- extract_axis_label(axes[[axis]], default = "")
+    names_given <- unique(vapply(line_layers, function(l) {
+      extract_axis_label(l$axes[[axis]], default = "")
+    }, character(1)))
+    if (length(names_given) > 1 && nzchar(title)) {
+      merged_axes[[axis]]$label <- title
+    }
+  }
 
   combined_data <- list()
   all_selectors <- list()
@@ -974,7 +997,7 @@ merge_line_layers <- function(line_layers) {
     id = first$id,
     type = "line",
     title = first$title,
-    axes = first$axes,
+    axes = merged_axes,
     data = combined_data,
     selectors = unique_selectors
   )
