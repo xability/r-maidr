@@ -135,10 +135,11 @@
   "density" rather than "after_stat(density)". Decoration maidr does not
   read, such as `annotate()` and `geom_text()` value labels, does not count
   as such a layer, nor does a `stat_function()` curve, so a density
-  histogram with a normal curve over it reads "Density" on both. Line
-  layers read together as one multi-series layer are named by the axis
-  title when they plot different things, rather than after the first of
-  them (#349).
+  histogram with a normal curve over it reads "Density" on both. Layers
+  read together as one entry -- line layers merged into one multi-series
+  layer, and the layers of a facet panel -- are named by the axis title
+  when they plot different things, rather than after the first of them
+  (#349).
 
 ### Base R
 
