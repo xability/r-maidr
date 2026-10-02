@@ -219,22 +219,41 @@ test_that("LayerProcessor extract_layer_axes() handles empty layout", {
   testthat::expect_type(result, "list")
 })
 
-test_that("LayerProcessor extract_layer_axes() extracts layer-specific mapping", {
+test_that("LayerProcessor extract_layer_axes() keeps the layout title for a lone layer mapping", {
   testthat::skip_if_not_installed("ggplot2")
 
   layer_info <- list(index = 1)
   processor <- maidr:::LayerProcessor$new(layer_info)
 
-  layout <- list(axes = list(x = "default_x", y = "default_y"))
+  layout <- list(axes = list(x = "Displacement", y = "Horsepower"))
 
-  # Layer-specific mapping should override plot mapping
+  # No other layer plots anything else, so the axis title describes this one
   p <- ggplot2::ggplot(mtcars) +
     ggplot2::geom_point(ggplot2::aes(x = disp, y = hp))
 
   result <- processor$extract_layer_axes(p, layout)
 
-  testthat::expect_equal(result$x$label, "disp")
-  testthat::expect_equal(result$y$label, "hp")
+  testthat::expect_equal(result$x$label, "Displacement")
+  testthat::expect_equal(result$y$label, "Horsepower")
+})
+
+test_that("LayerProcessor extract_layer_axes() names layers that plot different things", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  layout <- list(axes = list(x = "Displacement", y = "Horsepower"))
+
+  # Both layers share x, but plot different things on y
+  p <- ggplot2::ggplot(mtcars, ggplot2::aes(x = disp)) +
+    ggplot2::geom_col(ggplot2::aes(y = hp)) +
+    ggplot2::geom_line(ggplot2::aes(y = qsec))
+
+  first <- maidr:::LayerProcessor$new(list(index = 1))$extract_layer_axes(p, layout)
+  second <- maidr:::LayerProcessor$new(list(index = 2))$extract_layer_axes(p, layout)
+
+  testthat::expect_equal(first$x$label, "Displacement")
+  testthat::expect_equal(first$y$label, "hp")
+  testthat::expect_equal(second$x$label, "Displacement")
+  testthat::expect_equal(second$y$label, "qsec")
 })
 
 # ==============================================================================

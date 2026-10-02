@@ -662,6 +662,11 @@ handled as well as a flat one.}
 Returns axes in the canonical per-axis object schema:
 \code{list(x = list(label = "..."), y = list(label = "..."))}.
 
+Each axis is labelled by the plot's axis title, which honours
+\code{labs()}, unless the layer maps that axis itself and another layer
+plots something else there; then the layer is named for what it plots
+(see \code{layer_axis_label()}).
+
 Bare strings, top-level \code{format}/\code{min}/\code{max}/\code{tickStep}/
 \code{fill}/\code{level}, and any non-\{x,y,z\} keys are NOT permitted.
   \subsection{Usage}{

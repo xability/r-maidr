@@ -191,12 +191,13 @@ nothing is mapped) and \code{column} (the mapped column name, or
   Extract axes labels for line layers, with a special case for
 moving-average geoms (e.g. \code{tidyquant::geom_ma}).
 
-By default the parent \code{LayerProcessor$extract_layer_axes()} reads the
-y-label from the layer's aesthetic mapping. For a moving-average
-overlay typically written as \code{geom_ma(aes(y = close), ma_fun = SMA, ...)},
-this yields the literal input-column name \code{"close"}, which is misleading:
-the value being plotted (and announced during navigation) is the moving
-average of \code{close}, not \code{close} itself. We detect \code{GeomMA} (the class of
+The parent \code{LayerProcessor$extract_layer_axes()} names y after the axis
+title, or after the layer's own aesthetic mapping when other layers
+plot something else on y. For a moving-average overlay typically
+written as \code{geom_ma(aes(y = close), ma_fun = SMA, ...)}, either name
+describes the prices it averages -- \code{"close"}, say -- which is
+misleading: the value being plotted (and announced during navigation)
+is the moving average of \code{close}, not \code{close} itself. We detect \code{GeomMA} (the class of
 tidyquant's geom_ma layer) and override the y-label accordingly. Plain
 \code{geom_line} / \code{geom_smooth} overlays are untouched.
   \subsection{Usage}{

@@ -476,6 +476,11 @@ LayerProcessor <- R6::R6Class(
     #' Returns axes in the canonical per-axis object schema:
     #' \code{list(x = list(label = "..."), y = list(label = "..."))}.
     #'
+    #' Each axis is labelled by the plot's axis title, which honours
+    #' \code{labs()}, unless the layer maps that axis itself and another layer
+    #' plots something else there; then the layer is named for what it plots
+    #' (see \code{layer_axis_label()}).
+    #'
     #' Bare strings, top-level \code{format}/\code{min}/\code{max}/\code{tickStep}/
     #' \code{fill}/\code{level}, and any non-\{x,y,z\} keys are NOT permitted.
     #'
@@ -485,58 +490,14 @@ LayerProcessor <- R6::R6Class(
     extract_layer_axes = function(plot, layout) {
       layer_index <- self$get_layer_index()
 
-      # Start with layout axes as fallback. Layout may already carry the new
-      # AxisConfig shape, a legacy bare string, or be NULL.
+      # Layout may already carry the new AxisConfig shape, a legacy bare
+      # string, or be NULL.
       x_label <- extract_axis_label(layout$axes$x, default = "")
       y_label <- extract_axis_label(layout$axes$y, default = "")
 
-      # Helper to extract variable name from potentially complex expressions
-      extract_var_name <- function(mapping_expr) {
-        tryCatch(
-          {
-            # Try simple conversion first
-            rlang::as_label(mapping_expr)
-          },
-          error = function(e) {
-            # If that fails, try to extract the first symbol from the expression
-            expr <- rlang::quo_get_expr(mapping_expr)
-            if (is.call(expr) && length(expr) > 1) {
-              # For expressions like line_values * scale_factor, extract first symbol
-              first_arg <- expr[[2]]
-              if (is.symbol(first_arg)) {
-                return(as.character(first_arg))
-              }
-            }
-            # If all else fails, return NULL to use fallback
-            NULL
-          }
-        )
-      }
-
-      # Try to get layer-specific mapping
-      if (!is.null(plot$layers[[layer_index]]$mapping)) {
-        layer_mapping <- plot$layers[[layer_index]]$mapping
-
-        # Override with layer-specific x mapping if it exists
-        if (!is.null(layer_mapping$x)) {
-          extracted_x <- extract_var_name(layer_mapping$x)
-          if (!is.null(extracted_x)) {
-            x_label <- extracted_x
-          }
-        }
-
-        # Override with layer-specific y mapping if it exists
-        if (!is.null(layer_mapping$y)) {
-          extracted_y <- extract_var_name(layer_mapping$y)
-          if (!is.null(extracted_y)) {
-            y_label <- extracted_y
-          }
-        }
-      }
-
       list(
-        x = list(label = x_label),
-        y = list(label = y_label)
+        x = list(label = layer_axis_label(plot, layer_index, "x", x_label)),
+        y = list(label = layer_axis_label(plot, layer_index, "y", y_label))
       )
     }
   )

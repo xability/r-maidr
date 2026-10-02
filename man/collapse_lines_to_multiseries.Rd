@@ -5,16 +5,21 @@
 \title{Collapse multiple "line" layer entries in a single panel into one
 multi-series line layer entry. Other layers are left untouched.}
 \usage{
-collapse_lines_to_multiseries(panel)
+collapse_lines_to_multiseries(panel, axes = NULL)
 }
 \arguments{
 \item{panel}{A processed panel list with $id and $layers}
+
+\item{axes}{The panel's axis titles, as a layout carries them, or NULL to
+keep the first line layer's names whatever the others say}
 }
 \value{
 Panel with line layers merged
 }
 \description{
 The first line layer's id, title, and axes are preserved; data and
-selectors are concatenated across all line layers.
+selectors are concatenated across all line layers. An axis the line layers
+name differently is named by the panel's axis title instead (see
+\code{\link[=merge_line_layers]{merge_line_layers()}}).
 }
 \keyword{internal}

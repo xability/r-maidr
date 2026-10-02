@@ -121,6 +121,26 @@
 
 ## Bug Fixes
 
+### ggplot2
+
+* A layer that maps x or y in its own `aes()` is read under the axis title,
+  `labs()` included, as the chart shows it. The layer's own mapping replaced
+  the title outright, so `geom_histogram(aes(y = after_stat(density))) +
+  labs(y = "Density")` was announced as "after_stat(density) is 0.07" while
+  the axis said "Density", and a one-layer `geom_col(aes(month, sales))`
+  lost its `labs()` titles to "month" and "sales". A layer is now named for
+  its own mapping only when another layer read beside it plots something
+  else on that axis -- `geom_col(aes(y = sales)) + geom_line(aes(y = target))`
+  still reads "sales" and "target" -- and then by the name ggplot2 gives it,
+  "density" rather than "after_stat(density)". Decoration maidr does not
+  read, such as `annotate()` and `geom_text()` value labels, does not count
+  as such a layer, nor does a `stat_function()` curve, so a density
+  histogram with a normal curve over it reads "Density" on both. Layers
+  read together as one entry -- line layers merged into one multi-series
+  layer, and the layers of a facet panel -- are named by the axis title
+  when they plot different things, rather than after the first of them
+  (#349).
+
 ### Base R
 
 * `save_html()` of a lattice chart exports that chart even while a Base R

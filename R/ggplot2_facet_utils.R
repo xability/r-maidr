@@ -270,6 +270,23 @@ process_facet_panel <- function(
       )
     }
 
+    # The names are the exception to the leading layer winning: a layer is
+    # named for its own mapping when another plots something else, and once
+    # they are read as one entry, neither name describes it -- the axis
+    # title does (#349).
+    for (axis in intersect(c("x", "y"), names(axes))) {
+      names_given <- unique(unlist(lapply(layer_results, function(result) {
+        if (is.null(result) || is.null(result$axes[[axis]])) {
+          return(NULL)
+        }
+        extract_axis_label(result$axes[[axis]], default = "")
+      })))
+      title <- extract_axis_label(layout$axes[[axis]], default = "")
+      if (length(names_given) > 1 && nzchar(title)) {
+        axes[[axis]]$label <- title
+      }
+    }
+
     # Add format config per axis (attaching the whole {x, y} list as the
     # x-axis format would drop the y format and malform the x one)
     if (!is.null(format_config)) {

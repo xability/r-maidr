@@ -999,6 +999,26 @@ layer_is_annotation <- function(layer) {
   isTRUE("annotate" %in% head)
 }
 
+#' Whether a ggplot2 layer is decoration maidr does not read
+#'
+#' The layers \code{Ggplot2Adapter$detect_layer_type()} skips for what they
+#' are rather than for what they drew: anything \code{annotate()} built, text
+#' and labels, \code{geom_blank()} and reference lines. A mapping ggplot2 marks
+#' "unlabelled" counts too, since ggplot2 leaves it out of the axis titles it
+#' derives -- \code{annotate()}'s literal \code{aes(x = x, y = y)} is one.
+#'
+#' @param layer A ggplot2 layer object
+#' @return TRUE when the layer is decoration
+#' @keywords internal
+layer_is_decoration <- function(layer) {
+  inherits(layer$mapping, "unlabelled") ||
+    layer_is_annotation(layer) ||
+    class(layer$geom)[1] %in% c(
+      "GeomText", "GeomLabel", "GeomBlank",
+      "GeomHline", "GeomVline", "GeomAbline"
+    )
+}
+
 
 #' Whether a layer's author declared it a schedule
 #'
