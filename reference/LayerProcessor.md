@@ -704,6 +704,12 @@ Extract axes labels for this specific layer
 Returns axes in the canonical per-axis object schema:
 `list(x = list(label = "..."), y = list(label = "..."))`.
 
+Each axis is labelled by the plot's axis title, which honours
+[`labs()`](https://ggplot2.tidyverse.org/reference/labs.html), unless
+the layer maps that axis itself and another layer plots something else
+there; then the layer is named for what it plots (see
+[`layer_axis_label()`](https://r.maidr.ai/reference/layer_axis_label.md)).
+
 Bare strings, top-level `format`/`min`/`max`/`tickStep`/ `fill`/`level`,
 and any non-{x,y,z} keys are NOT permitted.
 

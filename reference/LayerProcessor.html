@@ -33,7 +33,7 @@ interface that all layer processors must implement.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-10-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -696,6 +696,10 @@ handled as well as a flat one.</p></dd>
 <p>Extract axes labels for this specific layer</p>
 <p>Returns axes in the canonical per-axis object schema:
 <code>list(x = list(label = "..."), y = list(label = "..."))</code>.</p>
+<p>Each axis is labelled by the plot's axis title, which honours
+<code><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs()</a></code>, unless the layer maps that axis itself and another layer
+plots something else there; then the layer is named for what it plots
+(see <code><a href="layer_axis_label.html">layer_axis_label()</a></code>).</p>
 <p>Bare strings, top-level <code>format</code>/<code>min</code>/<code>max</code>/<code>tickStep</code>/
 <code>fill</code>/<code>level</code>, and any non-{x,y,z} keys are NOT permitted.</p><div class="section">
 <h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>

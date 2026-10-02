@@ -7,8 +7,18 @@ layers.
 ## Usage
 
 ``` r
-merge_line_layers(line_layers)
+merge_line_layers(line_layers, axes = NULL)
 ```
+
+## Arguments
+
+- line_layers:
+
+  The line layer entries, in panel order
+
+- axes:
+
+  The panel's axis titles, or NULL to keep the first layer's names
 
 ## Details
 
@@ -23,3 +33,8 @@ per merged series, which is why the trim below stays. There is
 deliberately no pad: a short list fails that precondition and the
 frontend drops the layer's highlight rather than aiming it at the wrong
 curve.
+
+The merged layer is read under one name per axis. When the line layers
+were named differently –
+`geom_line(aes(y = sales)) + geom_line(aes(y = target))` – none of their
+names describes every series, and the panel's axis title does (#349).

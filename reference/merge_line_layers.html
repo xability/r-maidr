@@ -33,7 +33,7 @@ a single GeomLine/GeomMA). We concatenate all series across all layers.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-10">
+<meta name="DC.date" content="2026-10-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -93,9 +93,21 @@ a single GeomLine/GeomMA). We concatenate all series across all layers.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">merge_line_layers</span><span class="op">(</span><span class="va">line_layers</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">merge_line_layers</span><span class="op">(</span><span class="va">line_layers</span>, axes <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
+    <div class="section level2">
+    <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
+
+
+<dl><dt id="arg-line-layers">line_layers<a class="anchor" aria-label="anchor" href="#arg-line-layers"></a></dt>
+<dd><p>The line layer entries, in panel order</p></dd>
+
+
+<dt id="arg-axes">axes<a class="anchor" aria-label="anchor" href="#arg-axes"></a></dt>
+<dd><p>The panel's axis titles, or NULL to keep the first layer's names</p></dd>
+
+</dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Selector handling: each input layer now resolves to its OWN polyline grob
@@ -108,6 +120,10 @@ set. What still has to hold after merging is the frontend precondition
 is why the trim below stays. There is deliberately no pad: a short
 list fails that precondition and the frontend drops the layer's highlight
 rather than aiming it at the wrong curve.</p>
+<p>The merged layer is read under one name per axis. When the line layers were
+named differently – <code>geom_line(aes(y = sales)) + geom_line(aes(y = target))</code>
+– none of their names describes every series, and the panel's axis title
+does (#349).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

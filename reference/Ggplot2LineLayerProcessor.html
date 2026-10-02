@@ -42,7 +42,7 @@ Points: geom_point.points.63.1.1 through geom_point.points.63.1.24 (grouped by s
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-25">
+<meta name="DC.date" content="2026-10-02">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -279,12 +279,13 @@ nothing is mapped) and <code>column</code> (the mapped column name, or
 <h3 id="ggplot-linelayerprocessor-extract-layer-axes-"><code>Ggplot2LineLayerProcessor$extract_layer_axes()</code><a class="anchor" aria-label="anchor" href="#ggplot-linelayerprocessor-extract-layer-axes-"></a></h3>
 <p>Extract axes labels for line layers, with a special case for
 moving-average geoms (e.g. <code><a href="https://business-science.github.io/tidyquant/reference/geom_ma.html" class="external-link">tidyquant::geom_ma</a></code>).</p>
-<p>By default the parent <code>LayerProcessor$extract_layer_axes()</code> reads the
-y-label from the layer's aesthetic mapping. For a moving-average
-overlay typically written as <code>geom_ma(aes(y = close), ma_fun = SMA, ...)</code>,
-this yields the literal input-column name <code>"close"</code>, which is misleading:
-the value being plotted (and announced during navigation) is the moving
-average of <code>close</code>, not <code>close</code> itself. We detect <code>GeomMA</code> (the class of
+<p>The parent <code>LayerProcessor$extract_layer_axes()</code> names y after the axis
+title, or after the layer's own aesthetic mapping when other layers
+plot something else on y. For a moving-average overlay typically
+written as <code>geom_ma(aes(y = close), ma_fun = SMA, ...)</code>, either name
+describes the prices it averages – <code>"close"</code>, say – which is
+misleading: the value being plotted (and announced during navigation)
+is the moving average of <code>close</code>, not <code>close</code> itself. We detect <code>GeomMA</code> (the class of
 tidyquant's geom_ma layer) and override the y-label accordingly. Plain
 <code>geom_line</code> / <code>geom_smooth</code> overlays are untouched.</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
