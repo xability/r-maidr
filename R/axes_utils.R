@@ -409,9 +409,10 @@ layer_axis_label <- function(plot, layer_index, aes_name, axis_label) {
   # every layer replaced it, so a title that is that mapping's name need not
   # describe anything a layer plots.
   plot_mapping <- plot$mapping[[aes_name]]
-  if (!is.null(plot_mapping) &&
+  stale_title <- !is.null(plot_mapping) &&
     identical(axis_label, mapping_label(plot_mapping)) &&
-    !identical(mapping_key(plot_mapping), mapping_key(own_mapping))) {
+    !identical(mapping_key(plot_mapping), mapping_key(own_mapping))
+  if (stale_title) {
     return(own)
   }
 

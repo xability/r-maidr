@@ -336,3 +336,40 @@ test_that("a title from a plot mapping no layer plots does not name the layer", 
   testthat::expect_identical(maidr:::layer_axis_label(p, 1, "y", "sales"), "target")
   testthat::expect_identical(maidr:::layer_axis_label(p, 1, "y", "Target"), "Target")
 })
+
+test_that("facet and patchwork panels read as one entry are named by the axis title", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  two_lines <- function(data) {
+    ggplot2::ggplot(data, ggplot2::aes(month, group = 1)) +
+      ggplot2::geom_line(ggplot2::aes(y = sales)) +
+      ggplot2::geom_line(ggplot2::aes(y = target), linetype = 2) +
+      ggplot2::labs(y = "Units")
+  }
+  panel_y_labels <- function(plot) {
+    data <- maidr:::Ggplot2PlotOrchestrator$new(plot)$generate_maidr_data()
+    unlist(lapply(data$subplots, function(row) {
+      lapply(row, function(cell) {
+        vapply(cell$layers, function(layer) layer$axes$y$label, character(1))
+      })
+    }))
+  }
+
+  faceted <- rbind(
+    transform(sales(), region = "North"),
+    transform(sales(), region = "South")
+  )
+  testthat::expect_identical(
+    panel_y_labels(two_lines(faceted) + ggplot2::facet_wrap(~region)),
+    c("Units", "Units")
+  )
+
+  testthat::skip_if_not_installed("patchwork")
+  bars <- ggplot2::ggplot(sales()) +
+    ggplot2::geom_col(ggplot2::aes(month, sales)) +
+    ggplot2::labs(y = "Units sold")
+  testthat::expect_identical(
+    panel_y_labels(two_lines(sales()) + bars),
+    c("Units", "Units sold")
+  )
+})
