@@ -207,6 +207,148 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
   if (is.null(label)) aes_name else label
 }
 
+#' The name ggplot2 gives a mapped expression
+#'
+#' The default title ggplot2 derives from a mapping: a stat-computed value is
+#' named for the variable it reads, so `after_stat(density)`, `stat(density)`,
+#' `..density..` and `stage(hwy, after_stat = density)` are all "density",
+#' `..count.. / sum(..count..)` is "count/sum(count)", and `.data$hwy` is
+#' "hwy". Any other expression is named as `rlang::as_label()` names it.
+#'
+#' @param mapping A quosure or expression from `aes()`
+#' @return Character scalar, or NULL when the mapping cannot be named
+#' @keywords internal
+mapping_label <- function(mapping) {
+  if (is.null(mapping)) {
+    return(NULL)
+  }
+  expr <- if (rlang::is_quosure(mapping)) {
+    rlang::quo_get_expr(mapping)
+  } else {
+    mapping
+  }
+
+  # The stage a mapping is evaluated at is not part of its name.
+  repeat {
+    if (rlang::is_call(expr, c("after_stat", "after_scale"), n = 1)) {
+      expr <- expr[[2]]
+    } else if (rlang::is_call(expr, "stage")) {
+      stage <- tryCatch(
+        as.list(match.call(
+          function(start = NULL, after_stat = NULL, after_scale = NULL) NULL,
+          expr
+        )),
+        error = function(e) list()
+      )
+      inner <- stage$after_stat %||% stage$start %||% stage$after_scale
+      if (is.null(inner)) {
+        break
+      }
+      expr <- inner
+    } else {
+      break
+    }
+  }
+
+  # Nor are the older spellings of a computed variable, wherever they sit.
+  strip_computed <- function(e) {
+    if (is.symbol(e)) {
+      name <- as.character(e)
+      if (!nzchar(name)) {
+        return(e)
+      }
+      return(as.symbol(sub("^\\.\\.([a-zA-Z._]+)\\.\\.$", "\\1", name)))
+    }
+    if (!is.call(e)) {
+      return(e)
+    }
+    if (rlang::is_call(e, "stat", n = 1)) {
+      return(strip_computed(e[[2]]))
+    }
+    for (i in seq_along(e)[-1]) {
+      # An empty argument (`x[, 1]`) cannot be bound to a name, and a
+      # constant is left alone: assigning NULL would drop the argument.
+      if (identical(e[[i]], quote(expr = ))) next
+      if (is.symbol(e[[i]]) || is.call(e[[i]])) {
+        e[[i]] <- strip_computed(e[[i]])
+      }
+    }
+    e
+  }
+
+  tryCatch(rlang::as_label(strip_computed(expr)), error = function(e) NULL)
+}
+
+#' What a ggplot2 layer plots on a positional axis
+#'
+#' The layer's own mapping for the aesthetic, else the plot's when the layer
+#' inherits it, else the value its stat computes by default -- the
+#' `after_stat(count)` a histogram plots on y without being asked to. NULL
+#' when the layer plots nothing there, or a constant it was given as a
+#' parameter.
+#'
+#' @param plot The ggplot object
+#' @param layer One of its layers
+#' @param aes_name \code{"x"} or \code{"y"}
+#' @return A quosure or expression, or NULL
+#' @keywords internal
+layer_position_mapping <- function(plot, layer, aes_name) {
+  if (aes_name %in% names(layer$aes_params)) {
+    return(NULL)
+  }
+  own <- layer$mapping[[aes_name]]
+  if (!is.null(own)) {
+    return(own)
+  }
+  if (isTRUE(layer$inherit.aes) && !is.null(plot$mapping[[aes_name]])) {
+    return(plot$mapping[[aes_name]])
+  }
+  computed <- layer$stat$default_aes[[aes_name]]
+  if (is.language(computed)) computed else NULL
+}
+
+#' The label a ggplot2 layer's values are read under on a positional axis
+#'
+#' The axis title -- `labs()`, or the name ggplot2 gave the axis -- unless
+#' the layer maps the aesthetic itself and another layer of the plot puts
+#' something else on that axis. Only then is the axis title no description
+#' of this layer in particular, and the layer is named for what it plots:
+#' `geom_col(aes(y = sales)) + geom_line(aes(y = target))` reads "sales" and
+#' "target". A layer's own mapping that every other layer agrees with, or that
+#' no other layer has, is what the axis title already describes, so a
+#' one-layer plot keeps its `labs()` title (#349).
+#'
+#' Layers are compared by the name ggplot2 gives what they plot (see
+#' [mapping_label()]), so `aes(y = after_stat(density))` on a histogram
+#' agrees with a `geom_density()` beside it, which plots `after_stat(density)`
+#' without being asked to. Where it is named for itself, the layer is named
+#' the same way -- "density", never "after_stat(density)".
+#'
+#' @param plot The ggplot object
+#' @param layer_index Index of the layer being read
+#' @param aes_name \code{"x"} or \code{"y"}
+#' @param axis_label The axis title from the plot's layout
+#' @return Character scalar
+#' @keywords internal
+layer_axis_label <- function(plot, layer_index, aes_name, axis_label) {
+  layers <- plot$layers
+  if (layer_index > length(layers)) {
+    return(axis_label)
+  }
+  own <- mapping_label(layers[[layer_index]]$mapping[[aes_name]])
+  if (is.null(own)) {
+    return(axis_label)
+  }
+  if (!nzchar(axis_label)) {
+    return(own)
+  }
+
+  plotted <- unique(unlist(lapply(layers, function(layer) {
+    mapping_label(layer_position_mapping(plot, layer, aes_name))
+  })))
+  if (length(plotted) > 1) own else axis_label
+}
+
 #' Attach a format object to a specific axis
 #'
 #' Mutates a single axis's \code{format} field. Creates the axis slot
