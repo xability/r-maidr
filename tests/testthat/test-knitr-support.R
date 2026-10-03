@@ -380,12 +380,18 @@ test_that("a trellis object a chunk returns is a MAIDR chart in HTML output", {
   dir.create(dir)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
 
-  page <- knit_lattice(list(chart = "lattice::xyplot(mpg ~ wt, data = mtcars)"), dir)
+  page <- knit_lattice(
+    list(chart = "lattice::xyplot(mpg ~ wt, data = mtcars)", control = lattice_control_chunk),
+    dir
+  )
 
   expect_inline_scatter(page)
-  # In place of the figure knitr would have recorded, not beside it.
-  testthat::expect_length(knitted_figures(page), 0L)
-  testthat::expect_length(list.files(dir), 0L)
+  # In place of the figure knitr recorded, drawn as lattice draws it, not
+  # beside it.
+  figures <- knitted_figures(page)
+  testthat::expect_identical(basename(figures), "figure-control-1.svg")
+  chart <- file.path(dirname(figures), "figure-chart-1.svg")
+  testthat::expect_identical(unname(tools::md5sum(chart)), unname(tools::md5sum(figures)))
 })
 
 test_that("in any other output format a returned trellis object is lattice's figure", {
@@ -473,7 +479,7 @@ test_that("a trellis object a chunk prints itself is a MAIDR chart in place of i
   testthat::expect_identical(unname(tools::md5sum(printed)), unname(tools::md5sum(figures)))
 })
 
-test_that("a trellis object the reading does not cover is an inline picture of it", {
+test_that("a trellis object the reading does not cover stays lattice's figure", {
   testthat::skip_on_cran()
   skip_if_no_lattice()
   testthat::skip_if_not_installed("knitr")
@@ -483,7 +489,38 @@ test_that("a trellis object the reading does not cover is an inline picture of i
   dir.create(dir)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
 
-  page <- knit_lattice(list(chart = "lattice::cloud(mpg ~ wt * hp, data = mtcars)"), dir)
+  page <- knit_lattice(
+    list(
+      chart = "lattice::cloud(mpg ~ wt * hp, data = mtcars)",
+      control = paste(
+        "invisible(utils::getS3method('plot', 'trellis')(",
+        "lattice::cloud(mpg ~ wt * hp, data = mtcars)))"
+      )
+    ),
+    dir
+  )
+
+  testthat::expect_false(grepl("<iframe|data-maidr-knitr", page))
+  figures <- knitted_figures(page)
+  testthat::expect_identical(basename(figures), c("figure-chart-1.svg", "figure-control-1.svg"))
+  testthat::expect_identical(unname(tools::md5sum(figures[1])), unname(tools::md5sum(figures[2])))
+})
+
+test_that("a trellis object the reading does not cover is an inline picture when asked for", {
+  testthat::skip_on_cran()
+  skip_if_no_lattice()
+  testthat::skip_if_not_installed("knitr")
+  env_state <- save_knitr_env()
+  on.exit(restore_knitr_env(env_state), add = TRUE)
+  dir <- tempfile("maidr-knit-")
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+
+  # knit_print() called by the chunk's code returns the chart's Markdown.
+  page <- knit_lattice(
+    list(chart = "knitr::knit_print(lattice::cloud(mpg ~ wt * hp, data = mtcars))"),
+    dir
+  )
 
   testthat::expect_false(grepl("<iframe", page, fixed = TRUE))
   images <- regmatches(

@@ -153,6 +153,58 @@ test_that("fig.keep and fig.show pick the figures, and each is the chart it show
   testthat::expect_match(page, "ANIMATION", fixed = TRUE)
 })
 
+test_that("a chart a chunk returns is one of its figures, as it is without maidr", {
+  skip_if_no_figures()
+  local_knitr_state()
+  chunks <- c(
+    chart_setup,
+    "```{r alt, fig.alt = c('Drawn bars', 'Returned bars')}",
+    "barplot(c(1, 9), main = 'drawn')",
+    "p + ggplot2::ggtitle('returned')",
+    "```",
+    # Held to the end of the chunk, in the order they were drawn.
+    "```{r hold, fig.show = 'hold', fig.cap = c('Held first', 'Held second')}",
+    "barplot(c(2, 9), main = 'held-drawn')",
+    "cat('held-text\\n')",
+    "p + ggplot2::ggtitle('held-returned')",
+    "```",
+    "```{r keep, fig.keep = 'last'}",
+    "p + ggplot2::ggtitle('dropped')",
+    "lattice::barchart(c(a = 1, b = 2), main = 'kept')",
+    "```",
+    "```{r hidden, results = 'hide'}",
+    "p + ggplot2::ggtitle('results-hidden')",
+    "```"
+  )
+  # Each chart's name, and each figure's alt text or Markdown caption.
+  names <- function(page) {
+    found <- regmatches(page, gregexpr('(aria-label|alt)="[^"]*"|!\\[[^]]*\\]', page))[[1]]
+    gsub('^(aria-label="|alt="|!\\[)|("|\\])$', "", found)
+  }
+
+  charts <- knit_for(chunks, withr::local_tempdir("maidr-figures-"))
+  maidr::maidr_off()
+  figures <- knit_for(chunks, withr::local_tempdir("maidr-figures-"))
+
+  testthat::expect_identical(figure_sequence(charts), c(
+    "drawn: bar:2", "returned: bar:3",
+    "held-drawn: bar:2", "held-returned: bar:3",
+    "kept: bar:2",
+    "results-hidden: bar:3"
+  ))
+  testthat::expect_lt(regexpr("## held-text", charts), regexpr('aria-label="Held first"', charts))
+  # Each chart takes the alt text or caption its figure takes; one with
+  # neither is named by its title.
+  testthat::expect_identical(
+    names(figures),
+    c("Drawn bars", "Returned bars", "Held first", "Held second", "", "")
+  )
+  testthat::expect_identical(
+    names(charts),
+    c("Drawn bars", "Returned bars", "Held first", "Held second", "kept", "results-hidden")
+  )
+})
+
 test_that("a figure that is not one whole chart stays knitr's figure", {
   skip_if_no_figures()
   local_knitr_state()

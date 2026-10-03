@@ -150,9 +150,17 @@ is_maidr_on <- function() {
 #'
 #' Makes a ggplot object a chunk returns an accessible MAIDR chart: inline in
 #' an HTML page, in its own iframe in other HTML output (see
-#' `knitr_chart_output()`), and as an inline image when MAIDR cannot read the
-#' chart. In any other output format (PDF, Word, ...) the chart is drawn by
-#' ggplot2 and becomes knitr's figure.
+#' `knitr_chart_output()`). In any other output format (PDF, Word, ...) the
+#' chart is drawn by ggplot2 and becomes knitr's figure.
+#'
+#' A chart knitr prints for a chunk is one of the chunk's figures: ggplot2
+#' draws it on the chunk's device, and the plot hook shows the chart in place
+#' of the figure (see `draw_as_knit_figure()`), so knitr numbers, captions,
+#' keeps and holds it with the chunk's other figures, as it would without
+#' maidr. A chart maidr cannot read stays that figure. One the chunk's code
+#' asks `knit_print()` for itself, with no chunk options -- as
+#' `cat(knit_print(p))` in a `results = "asis"` loop does -- is returned as
+#' the chart's Markdown, and as an inline image when MAIDR cannot read it.
 #'
 #' Registered for knitr when maidr loads, so `library(maidr)` is all a
 #' document needs; it installs maidr into the running knit as well.
@@ -181,6 +189,10 @@ knit_print.ggplot <- function(x, options = list(), ...) {
     print_ggplot_natively(x)
     return(invisible(NULL))
   }
+  if (!missing(options) && knit_print_draws_figure(...)) {
+    draw_as_knit_figure(x, function() print_ggplot_natively(x))
+    return(invisible(NULL))
+  }
   if (identical(options$fig.show, "hide")) {
     return(knitr::asis_output(""))
   }
@@ -206,15 +218,18 @@ knit_print.ggplot <- function(x, options = list(), ...) {
 #'
 #' Converts a trellis object a chunk returns to an accessible MAIDR chart,
 #' as \code{knit_print.ggplot()} does for a ggplot object: inline in an HTML
-#' page, in its own iframe in other HTML output, as an inline image when the
-#' chart cannot be read, and as lattice draws it in any other output format.
+#' page, in its own iframe in other HTML output, and as lattice draws it in
+#' any other output format. A chart knitr prints for a chunk is one of the
+#' chunk's figures, drawn by lattice, and the chart is shown in its place --
+#' unless lattice draws it onto a page a \code{print(more = TRUE)} left open,
+#' whose figure stays knitr's. One the chunk's code asks \code{knit_print()}
+#' for itself is returned as the chart's Markdown, or as an inline image
+#' when the chart cannot be read.
 #'
-#' Only a chart the chunk returns reaches this method. One the chunk prints
-#' itself -- \code{print(p)}, lattice's idiom for a chart inside a loop or a
-#' function -- is drawn by lattice onto knitr's device, since knitr does not
-#' route an explicit print through \code{knit_print}, and the plot hook
-#' shows the figure knitr records of it as the chart, as it does a Base R
-#' chart.
+#' A chart the chunk prints itself -- \code{print(p)}, lattice's idiom for a
+#' chart inside a loop or a function -- does not reach this method, since
+#' knitr does not route an explicit print through \code{knit_print}; it is
+#' a figure of the chunk all the same.
 #'
 #' @param x A trellis object
 #' @param options Chunk options from knitr
@@ -238,6 +253,11 @@ knit_print.trellis <- function(x, options = list(), ...) {
     print_trellis_natively(x)
     return(invisible(NULL))
   }
+  if (!missing(options) && knit_print_draws_figure(...)) {
+    own_page <- !lattice_print_composes(list(), x$plot.args) && !lattice_page_open()
+    draw_as_knit_figure(x, function() print_trellis_natively(x), mark = own_page)
+    return(invisible(NULL))
+  }
   if (identical(options$fig.show, "hide")) {
     return(knitr::asis_output(""))
   }
@@ -251,6 +271,20 @@ knit_print.trellis <- function(x, options = list(), ...) {
 
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
   knitr::asis_output(knitr_chart_output(content, options))
+}
+
+#' Whether a chart knitr prints for a chunk is drawn as one of its figures
+#'
+#' Wherever the plot hook shows a figure's chart (`knit_figures_active()`),
+#' except for a value of inline code, which is no figure.
+#'
+#' @param ... The arguments `knit_print()` was given besides the chart and
+#'   the chunk options
+#' @return Logical
+#' @keywords internal
+#' @noRd
+knit_print_draws_figure <- function(...) {
+  !isTRUE(list(...)$inline) && knit_figures_active()
 }
 
 #' Custom knit_print Method for histogram Objects

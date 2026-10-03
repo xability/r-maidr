@@ -14,8 +14,10 @@
 # (`knit_page_replayed()`). knitr replays a figure's page just before it
 # calls the hook for that figure, so the tokens reported by the page
 # replayed last name the charts on the figure in hand -- whatever
-# `fig.keep`, `fig.show` or `dev` say. A ggplot2 or lattice chart printed in the knit is queued
-# under its token; a Base R call is recorded with its token as `uid`.
+# `fig.keep`, `fig.show` or `dev` say. A ggplot2 or lattice chart printed in
+# the knit -- by the chunk's code, or by knitr for a chart the chunk returns
+# -- is queued under its token; a Base R call is recorded with its token as
+# `uid`.
 #
 # The hook shows a figure as a chart only when its tokens name exactly one
 # ggplot2 or lattice chart, or Base R calls alone, recorded on one device;
