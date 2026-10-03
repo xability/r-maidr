@@ -66,10 +66,13 @@ ensure_knitr_integration <- function() {
 #' run, and the chunk hook after that, so hooks installed while a chunk runs
 #' already cover that chunk.
 #'
-#' Base R calls recorded before the first install of a knit belong to no
-#' chart of it, and are dropped. A knit whose hooks are already maidr's is a
-#' child document, which put its parent's `opts_knit` back when it ended:
-#' the current device's calls are then this chunk's, and are kept.
+#' Base R calls recorded on the chunk's device before the first install of
+#' a knit belong to no chart of it, and are dropped. A knit whose hooks are
+#' already maidr's is a child document, which put its parent's `opts_knit`
+#' back when it ended: the current device's calls are then this chunk's,
+#' and are kept. Calls on any other open device, such as the session's own,
+#' are left for the session: the plot hook reads only the device a chunk
+#' drew on (`knit_chunk_device()`).
 #'
 #' @return NULL (invisible)
 #' @keywords internal
@@ -367,15 +370,20 @@ dev_args_suit_svglite <- function(dev_args) {
 #' chunk records a call on, or draws a ggplot2 or lattice chart on, is
 #' noted, and forgotten when the chunk ends.
 #'
-#' @return The chunk's device when one was noted and is still open, the
-#'   current device otherwise
+#' A chunk with no device noted recorded nothing, and the current device is
+#' not read in its place: it can be the session's own, holding a chart drawn
+#' at the console before the render, which would be shown for the chunk's
+#' figure.
+#'
+#' @return The chunk's device when one was noted and is still open, `NULL`
+#'   otherwise
 #' @keywords internal
 knit_chunk_device <- function() {
   device <- .maidr_knitr_state$device
   if (!is.null(device) && device %in% grDevices::dev.list()) {
     return(device)
   }
-  grDevices::dev.cur()
+  NULL
 }
 
 #' Note the device a knitted chunk draws on

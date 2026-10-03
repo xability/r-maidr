@@ -354,10 +354,11 @@ create_maidr_widget_internal <- function(plot = NULL) {
 #' and every figure of any other output format (PDF, Word, ...), is left to
 #' the hook it was installed over.
 #'
-#' A chunk's recorded calls make its first figure. A chunk that also drew a
-#' ggplot2 or lattice chart with `print()` on the same device keeps knitr's
-#' figures: which figure the calls drew cannot be told, and a wrong chart
-#' must never be shown.
+#' A chunk's recorded calls make its first figure; calls recorded on any
+#' other device, such as a chart drawn at the console before the render, are
+#' not read. A chunk that also drew a ggplot2 or lattice chart with
+#' `print()` on the same device keeps knitr's figures: which figure the
+#' calls drew cannot be told, and a wrong chart must never be shown.
 #'
 #' @param x The plot file path from knitr
 #' @param options Chunk options
@@ -368,7 +369,11 @@ create_maidr_widget_internal <- function(plot = NULL) {
 maidr_plot_hook <- function(x, options, original = NULL) {
   # Every reader of the recorded calls reads the current device's, which is
   # not the chunk's once knitr has saved the figure: see knit_chunk_device().
+  # A chunk that recorded nothing has no chart to show.
   device_id <- knit_chunk_device()
+  if (is.null(device_id)) {
+    return(call_original_plot_hook(x, options, original))
+  }
   if (device_id != grDevices::dev.cur()) {
     previous <- grDevices::dev.cur()
     grDevices::dev.set(device_id)

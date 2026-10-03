@@ -894,6 +894,32 @@ test_that("charts after maidr_off() are knitr's figures, and inline again after 
   testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 2L)
 })
 
+test_that("a Base R chart recorded before maidr_off() is no layer of one after maidr_on()", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+
+  # maidr_off() takes the plot hook out before the chunk's figure is written,
+  # so nothing reads the barplot's calls; maidr_on() drops them.
+  page <- knit_for(c(
+    "```{r before}",
+    "barplot(c(A = 10, B = 20, C = 30))",
+    "maidr::maidr_off()",
+    "```",
+    "```{r again}",
+    "maidr::maidr_on()",
+    "hist(c(1, 2, 2, 3, 3, 3, 4, 4, 5))",
+    "```"
+  ), dir)
+
+  charts <- inline_charts(page)
+  testthat::expect_length(charts, 1L)
+  data <- jsonlite::parse_json(xml2::xml_attr(charts[[1]], "data-maidr-knitr"))
+  layers <- data$subplots[[1]][[1]]$layers
+  testthat::expect_identical(vapply(layers, function(layer) layer$type, character(1)), "hist")
+})
+
 # ==============================================================================
 # A document in a session of its own
 # ==============================================================================
@@ -964,6 +990,48 @@ test_that("library(maidr) in a document sets up the knit quietly, and every late
   # page, and the two printed charts as figures.
   testthat::expect_true("RESULT first 3 0 1 0 2 " %in% out, info = log)
   testthat::expect_true("RESULT second 3 0 1 0 2 " %in% out, info = log)
+})
+
+test_that("a chart left on the session's device before a render is no chunk's chart", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  dir <- withr::local_tempdir("maidr-session-")
+
+  # The session's device is current again when the grid chunk's figure is
+  # written, after knitr has closed the chunk's own devices.
+  writeLines(c(
+    "---", "title: session", "output:", "  html_document:", "    self_contained: false", "---",
+    "```{r}", "library(maidr)", "```",
+    "```{r bars}", "barplot(c(doc = 2))", "```",
+    "```{r circle, fig.alt = 'A circle'}", "grid::grid.newpage()", "grid::grid.circle()", "```"
+  ), file.path(dir, "session.Rmd"))
+  script <- file.path(dir, "render.R")
+  writeLines(c(
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    sprintf("setwd(%s)", deparse(dir)),
+    maidr_loader(),
+    "barplot(c(console = 1))",
+    "session <- grDevices::dev.cur()",
+    "file <- rmarkdown::render('session.Rmd', quiet = TRUE)",
+    "html <- paste(readLines(file, warn = FALSE), collapse = '\\n')",
+    "count <- function(pattern) lengths(regmatches(html, gregexpr(pattern, html)))",
+    "cat('RESULT', count('<svg[^>]*data-maidr-knitr='), count('console'),",
+    "  count('<img src=\"[^\"]*circle-1[.]svg\" alt=\"A circle\"'),",
+    "  maidr:::has_device_calls(session), '\\n')"
+  ), script)
+
+  out <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"), script,
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  status <- attr(out, "status")
+  log <- paste(out, collapse = "\n")
+  testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
+  # The document's one chart, the circle as its own figure, and the console
+  # chart left to the session.
+  testthat::expect_true("RESULT 1 0 1 TRUE " %in% out, info = log)
 })
 
 test_that("Quarto shows the charts inline, captions them and resolves a reference to one", {

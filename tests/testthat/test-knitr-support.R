@@ -48,6 +48,7 @@ restore_knitr_env <- function(state) {
   # Last, so the saved values win over whatever maidr_on()/maidr_off() set.
   options(state$options)
   maidr:::clear_all_device_storage()
+  maidr:::note_knit_device(NULL)
 
   invisible(NULL)
 }
@@ -74,10 +75,14 @@ test_that("maidr_plot_hook clears device storage when interception is off", {
 
   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
   testthat::expect_true(maidr:::has_device_calls(device_id))
+  # A chunk that records a call notes its device; outside a knit, nothing
+  # does, so the test notes it.
+  maidr:::note_knit_device(device_id)
 
-  # maidr_off() disables interception; the hook must behave like the original
+  # Base R interception turned off while maidr's hooks stay in the knit
+  # (maidr_off() takes them out): the hook must behave like the original
   # hook AND drop what was already recorded, rather than leaving it behind.
-  maidr::maidr_off()
+  options(maidr.base_r = FALSE)
   testthat::expect_false(maidr:::is_base_r_enabled())
 
   original <- function(x, options) paste("original hook:", x)
@@ -90,7 +95,7 @@ test_that("maidr_plot_hook clears device storage when interception is off", {
   testthat::expect_length(maidr:::get_device_calls(device_id), 0)
 })
 
-test_that("toggling maidr_off()/maidr_on() does not leak phantom layers", {
+test_that("maidr_plot_hook reads no device for a chunk that recorded nothing", {
   testthat::skip_if_not_installed("knitr")
 
   env_state <- save_knitr_env()
@@ -99,29 +104,25 @@ test_that("toggling maidr_off()/maidr_on() does not leak phantom layers", {
   maidr::maidr_on()
   maidr:::clear_all_device_storage()
 
+  # The session's own device, holding a chart drawn before the render and
+  # never shown. It is current when the hook runs for a chunk that drew
+  # only grid graphics: knitr has closed the chunk's devices by then.
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()
   on.exit(
     tryCatch(grDevices::dev.off(device_id), error = function(e) NULL),
     add = TRUE
   )
-
-  # Chunk 1: recorded while interception is on.
   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
+  maidr:::note_knit_device(NULL)
 
-  # Chunk 2: rendered after maidr_off() - the stale barplot must not survive.
-  maidr::maidr_off()
-  maidr:::maidr_plot_hook("figure-1.png", list(), function(x, options) x)
-
-  # Chunk 3: interception back on, a brand new plot.
-  maidr::maidr_on()
-  hist(c(1, 2, 2, 3, 3, 3, 4, 4, 5))
-
-  calls <- maidr:::get_device_calls(device_id)
-  recorded <- vapply(calls, function(entry) entry$function_name, character(1))
-
-  testthat::expect_false("barplot" %in% recorded)
-  testthat::expect_true("hist" %in% recorded)
+  original <- function(x, options) paste("original hook:", x)
+  testthat::expect_identical(
+    maidr:::maidr_plot_hook("figure-1.png", list(), original),
+    "original hook: figure-1.png"
+  )
+  # Left for the session, whose show() is still to come.
+  testthat::expect_true(maidr:::has_device_calls(device_id))
 })
 
 test_that("the test helpers leave global patching state as they found it", {
