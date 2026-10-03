@@ -467,7 +467,13 @@ call_original_plot_hook <- function(x, options, original = NULL) {
 #' Check if current knitr output format is HTML
 #'
 #' Detects whether the current RMarkdown document is being rendered to HTML
-#' format (html_document, bookdown, etc.) vs non-HTML formats (pdf, epub, etc.)
+#' format (html_document, bookdown, etc.) vs non-HTML formats (pdf, etc.)
+#'
+#' Markdown output (`github_document`, `md_document`, `knitr::knit()` of an
+#' `.Rmd`), which knitr also counts as HTML, is not: GitHub and most Markdown
+#' viewers drop an iframe, and rmarkdown refuses the dependency a frame
+#' brings, so a chart in one was either lost or stopped the render. Its
+#' charts are drawn as their libraries draw them, as knitr's figures.
 #'
 #' @return TRUE if rendering to HTML, FALSE otherwise
 #' @keywords internal
@@ -475,9 +481,10 @@ is_html_output <- function() {
   # Use knitr's built-in detection if available
 
   if (requireNamespace("knitr", quietly = TRUE)) {
-    # knitr::is_html_output() checks the current output format
+    # knitr::is_html_output() checks the current output format; it folds
+    # every markdown_* variant into "markdown" before it compares.
     if (exists("is_html_output", where = asNamespace("knitr"))) {
-      return(knitr::is_html_output())
+      return(knitr::is_html_output(excludes = c("markdown", "gfm")))
     }
 
     # Fallback: check pandoc output format

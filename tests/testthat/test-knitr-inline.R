@@ -230,19 +230,51 @@ test_that("an HTML document knitted without pandoc keeps its charts in iframes",
   local_knitr_state()
   dir <- withr::local_tempdir("maidr-knit-")
   testthat::local_mocked_bindings(maidr_internet_available = function() FALSE, .package = "maidr")
-
-  # knitr::knit() of an .Rmd, with no pandoc format named: Markdown.
   hooks <- knitr::knit_hooks$get()
   knitr::knit_hooks$restore()
   on.exit(knitr::knit_hooks$restore(hooks), add = TRUE)
-  page <- paste(knitr::knit(
-    text = c(
-      "```{r}", "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()", "```"
-    ),
-    quiet = TRUE, envir = new.env()
-  ), collapse = "\n")
+  withr::local_dir(dir)
+
+  writeLines(c(
+    "<html><body>",
+    "<!--begin.rcode chart",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "end.rcode-->",
+    "</body></html>"
+  ), "chart.Rhtml")
+  out <- knitr::knit("chart.Rhtml", quiet = TRUE, envir = new.env())
+  page <- paste(readLines(out), collapse = "\n")
   testthat::expect_match(page, "<iframe", fixed = TRUE)
   testthat::expect_false(grepl("data-maidr-knitr", page, fixed = TRUE))
+})
+
+test_that("Markdown output draws its charts as knitr's figures", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  testthat::local_mocked_bindings(maidr_internet_available = function() TRUE, .package = "maidr")
+  chunks <- c(
+    "```{r gg}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "```",
+    "```{r base}",
+    "barplot(c(a = 1, b = 2))",
+    "```"
+  )
+  knitr::knit_meta(clean = TRUE)
+
+  # GitHub drops an iframe, and rmarkdown refuses to render a Markdown
+  # document that declares the page bundle an online frame brings.
+  for (to in c("gfm", "markdown_strict")) {
+    page <- knit_for(chunks, dir, to = to)
+    testthat::expect_false(grepl("<iframe|data-maidr-knitr", page), info = to)
+    testthat::expect_identical(
+      lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 2L,
+      info = to
+    )
+    testthat::expect_length(knitr::knit_meta(clean = TRUE), 0L)
+  }
 })
 
 # ==============================================================================

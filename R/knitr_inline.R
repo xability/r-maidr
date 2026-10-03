@@ -11,9 +11,9 @@
 # sharing the page never reach into one another.
 #
 # The other outputs keep what they had: an iframe in HTML that is not a
-# page pandoc writes (`.Rhtml`, an HTML fragment, Markdown, EPUB, and the
-# slide formats whose page cannot hold the raw block), and the plot as its
-# library draws it in any other format.
+# page pandoc writes (`.Rhtml`, an HTML fragment, EPUB, and the formats
+# whose page cannot hold the raw block), and the plot as its library draws
+# it in any other format, Markdown among them (see `is_html_output()`).
 
 #' Whether a chart is shown inline in the document being knitted
 #'
@@ -25,7 +25,8 @@
 #' script, and EPUB. Not for an HTML fragment either, which has no `<head>`
 #' for maidr.js, nor for xaringan, whose remark.js shows a raw HTML block as
 #' code, nor for pagedown, whose paged.js rebuilds the page before maidr.js
-#' could bind a chart in it.
+#' could bind a chart in it. Those keep a chart in an iframe of its own,
+#' except Markdown, which keeps the plot as its library draws it.
 #'
 #' @return Logical
 #' @keywords internal
