@@ -18,5 +18,8 @@ are rather than for what they drew: anything \code{annotate()} built, text
 and labels, \code{geom_blank()} and reference lines. A mapping ggplot2 marks
 "unlabelled" counts too, since ggplot2 leaves it out of the axis titles it
 derives -- \code{annotate()}'s literal \code{aes(x = x, y = y)} is one.
+So does a segment or curve drawn with an arrow, from a data frame as often
+as through \code{annotate()}: it points at something rather than plotting
+a variable.
 }
 \keyword{internal}

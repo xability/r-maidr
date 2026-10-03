@@ -146,7 +146,12 @@
   `geom_point()` layers plotting `hp` and `qsec` both as "hp". They now read
   "target", and "hp" and "qsec"; so does a `geom_pointrange()` or
   `geom_errorbar()` that maps its own y beside a layer plotting something
-  else (#349).
+  else. A constant in `aes()` -- the `y = 0` a lollipop's stems start from,
+  or `aes(x = "")` for a one-group strip chart -- names no variable, so it
+  neither names its layer ("0") nor counts as another layer plotting
+  something else; nor does a segment or curve drawn with an arrow. A
+  category dodged or nudged by hand -- `as.numeric(term) + 0.1`, or
+  `factor(cyl)` beside `cyl` -- is still that category (#349).
 
 ### Base R
 

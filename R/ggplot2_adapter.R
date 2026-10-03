@@ -1006,6 +1006,9 @@ layer_is_annotation <- function(layer) {
 #' and labels, \code{geom_blank()} and reference lines. A mapping ggplot2 marks
 #' "unlabelled" counts too, since ggplot2 leaves it out of the axis titles it
 #' derives -- \code{annotate()}'s literal \code{aes(x = x, y = y)} is one.
+#' So does a segment or curve drawn with an arrow, from a data frame as often
+#' as through \code{annotate()}: it points at something rather than plotting
+#' a variable.
 #'
 #' @param layer A ggplot2 layer object
 #' @return TRUE when the layer is decoration
@@ -1016,7 +1019,8 @@ layer_is_decoration <- function(layer) {
     class(layer$geom)[1] %in% c(
       "GeomText", "GeomLabel", "GeomBlank",
       "GeomHline", "GeomVline", "GeomAbline"
-    )
+    ) ||
+    (inherits(layer$geom, "GeomSegment") && !is.null(layer$geom_params$arrow))
 }
 
 
