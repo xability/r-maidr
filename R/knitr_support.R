@@ -296,13 +296,27 @@ knit_print.density <- function(x, options = list(), ...) {
 
 #' Print a ggplot with the original (non-MAIDR) print method
 #'
+#' The print method `print()` would find without MAIDR: that of the chart's
+#' own class when it has one ahead of ggplot2's -- a patchwork's, which
+#' draws every plot of it where ggplot2's draws the last alone -- and
+#' ggplot2's otherwise.
+#'
 #' @param x A ggplot object
 #' @return NULL (invisible)
 #' @keywords internal
 print_ggplot_natively <- function(x) {
-  original_print <- .maidr_ggplot_state$original_print_ggplot
-  if (!is.null(original_print)) {
-    original_print(x)
+  method <- NULL
+  for (class in class(x)) {
+    method <- utils::getS3method("print", class, optional = TRUE)
+    if (!is.null(method)) {
+      break
+    }
+  }
+  if (is.null(method) || identical(method, maidr_print_ggplot)) {
+    method <- .maidr_ggplot_state$original_print_ggplot
+  }
+  if (!is.null(method)) {
+    method(x)
   } else {
     print(x)
   }

@@ -206,6 +206,35 @@ test_that("Markdown output draws its charts as knitr's figures", {
   }
 })
 
+test_that("a patchwork maidr does not make a chart is drawn as patchwork draws it", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("patchwork")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  # The same plots printed, which print() hands to patchwork's own method,
+  # never maidr's.
+  setup <- c(
+    "```{r plots}",
+    "library(patchwork)",
+    "one <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "two <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(gear))) + ggplot2::geom_bar()",
+    "```"
+  )
+  returned <- c("```{r returned}", "one + two", "```")
+  control <- c("```{r control}", "print(one + two)", "```")
+  same_figures <- function(page) {
+    figures <- file.path(dir, regmatches(page, gregexpr("figure/[^)]+[.]png", page))[[1]])
+    testthat::expect_identical(basename(figures), c("returned-1.png", "control-1.png"))
+    unname(tools::md5sum(figures[[1]])) == unname(tools::md5sum(figures[[2]]))
+  }
+
+  # Markdown output, and an HTML page after maidr_off().
+  testthat::expect_true(same_figures(knit_for(c(setup, returned, control), dir, to = "gfm")))
+  off <- c("```{r off}", "maidr::maidr_off()", "```")
+  testthat::expect_true(same_figures(knit_for(c(setup, off, returned, control), dir)))
+})
+
 # ==============================================================================
 # The emitter
 # ==============================================================================
