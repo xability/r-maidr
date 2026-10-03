@@ -208,6 +208,25 @@
   are named by the axis title when they plot different things, rather
   than after the first of them
   ([\#349](https://github.com/xability/r-maidr/issues/349)).
+- A point layer follows the same rule. It was always read under the axis
+  title, so the points of
+  `geom_col(aes(y = sales)) + geom_point(aes(y = target))` were
+  announced as “sales”, and two
+  [`geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
+  layers plotting `hp` and `qsec` both as “hp”. They now read “target”,
+  and “hp” and “qsec”; so does a
+  [`geom_pointrange()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  or
+  [`geom_errorbar()`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)
+  that maps its own y beside a layer plotting something else. A constant
+  in [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html) – the
+  `y = 0` a lollipop’s stems start from, or `aes(x = "")` for a
+  one-group strip chart – names no variable, so it neither names its
+  layer (“0”) nor counts as another layer plotting something else; nor
+  does a segment or curve drawn with an arrow. A category dodged or
+  nudged by hand – `as.numeric(term) + 0.1`, or `factor(cyl)` beside
+  `cyl` – is still that category
+  ([\#349](https://github.com/xability/r-maidr/issues/349)).
 
 #### Base R
 

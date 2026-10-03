@@ -8,7 +8,10 @@ built, text and labels,
 and reference lines. A mapping ggplot2 marks "unlabelled" counts too,
 since ggplot2 leaves it out of the axis titles it derives –
 [`annotate()`](https://ggplot2.tidyverse.org/reference/annotate.html)'s
-literal `aes(x = x, y = y)` is one.
+literal `aes(x = x, y = y)` is one. So does a segment or curve drawn
+with an arrow, from a data frame as often as through
+[`annotate()`](https://ggplot2.tidyverse.org/reference/annotate.html):
+it points at something rather than plotting a variable.
 
 ## Usage
 

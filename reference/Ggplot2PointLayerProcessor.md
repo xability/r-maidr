@@ -114,6 +114,11 @@ Returns per-axis objects with label and optional grid navigation fields
 (min, max, tickStep). Grid fields are only included when they can be
 successfully extracted from the built plot scales.
 
+Each label is the axis title unless the layer maps that axis itself and
+another layer plots something else there (see
+[`layer_axis_label()`](https://r.maidr.ai/reference/layer_axis_label.md)),
+the rule every other layer follows.
+
 #### Usage
 
     Ggplot2PointLayerProcessor$extract_axes_labels(

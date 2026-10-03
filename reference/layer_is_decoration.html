@@ -3,11 +3,17 @@
 are rather than for what they drew: anything annotate() built, text
 and labels, geom_blank() and reference lines. A mapping ggplot2 marks
 &quot;unlabelled&quot; counts too, since ggplot2 leaves it out of the axis titles it
-derives – annotate()'s literal aes(x = x, y = y) is one."><meta property="og:description" content="The layers Ggplot2Adapter$detect_layer_type() skips for what they
+derives – annotate()'s literal aes(x = x, y = y) is one.
+So does a segment or curve drawn with an arrow, from a data frame as often
+as through annotate(): it points at something rather than plotting
+a variable."><meta property="og:description" content="The layers Ggplot2Adapter$detect_layer_type() skips for what they
 are rather than for what they drew: anything annotate() built, text
 and labels, geom_blank() and reference lines. A mapping ggplot2 marks
 &quot;unlabelled&quot; counts too, since ggplot2 leaves it out of the axis titles it
-derives – annotate()'s literal aes(x = x, y = y) is one."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+derives – annotate()'s literal aes(x = x, y = y) is one.
+So does a segment or curve drawn with an arrow, from a data frame as often
+as through annotate(): it points at something rather than plotting
+a variable."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -36,13 +42,16 @@ derives – annotate()'s literal aes(x = x, y = y) is one."><meta property="og:i
 are rather than for what they drew: anything annotate() built, text
 and labels, geom_blank() and reference lines. A mapping ggplot2 marks
 &quot;unlabelled&quot; counts too, since ggplot2 leaves it out of the axis titles it
-derives – annotate()&#x27;s literal aes(x = x, y = y) is one.">
+derives – annotate()&#x27;s literal aes(x = x, y = y) is one.
+So does a segment or curve drawn with an arrow, from a data frame as often
+as through annotate(): it points at something rather than plotting
+a variable.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/layer_is_decoration.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-02">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -100,7 +109,10 @@ derives – annotate()&#x27;s literal aes(x = x, y = y) is one.">
 are rather than for what they drew: anything <code><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate()</a></code> built, text
 and labels, <code><a href="https://ggplot2.tidyverse.org/reference/geom_blank.html" class="external-link">geom_blank()</a></code> and reference lines. A mapping ggplot2 marks
 "unlabelled" counts too, since ggplot2 leaves it out of the axis titles it
-derives – <code><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate()</a></code>'s literal <code>aes(x = x, y = y)</code> is one.</p>
+derives – <code><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate()</a></code>'s literal <code>aes(x = x, y = y)</code> is one.
+So does a segment or curve drawn with an arrow, from a data frame as often
+as through <code><a href="https://ggplot2.tidyverse.org/reference/annotate.html" class="external-link">annotate()</a></code>: it points at something rather than plotting
+a variable.</p>
     </div>
 
     <div class="section level2">

@@ -23,3 +23,10 @@ mapping_expr(mapping)
 ## Value
 
 The expression, or NULL
+
+## Details
+
+A mapping that names no variable – a constant such as `aes(y = 0)`,
+`aes(x = "")` or `aes(x = factor(1))` – is NULL, as if the layer had
+none: it places the layer rather than plotting something, and ggplot2
+does not name an axis after it either.

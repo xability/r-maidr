@@ -37,7 +37,7 @@ and the .data pronoun (.data$hwy, .data[["hwy"]]), wherever they sit.'><meta pro
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-02">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -114,6 +114,13 @@ and the <code>.data</code> pronoun (<code>.data$hwy</code>, <code>.data[["hwy"]]
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The expression, or NULL</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>A mapping that names no variable – a constant such as <code>aes(y = 0)</code>,
+<code>aes(x = "")</code> or <code>aes(x = factor(1))</code> – is NULL, as if the layer had none:
+it places the layer rather than plotting something, and ggplot2 does not
+name an axis after it either.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

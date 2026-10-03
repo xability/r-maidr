@@ -22,3 +22,12 @@ mapping_key(mapping)
 ## Value
 
 Character scalar, or NULL
+
+## Details
+
+Less the ways a category is drawn somewhere else on its own axis: a
+change of type, and a category's position offset by a number.
+`factor(cyl)` is `cyl`, `as.numeric(term) + 0.1` is `term` dodged by
+hand, and `as.numeric(factor(class)) - 0.3` is `class` nudged beside its
+boxes, so none of them is something else plotted on that axis. An offset
+of anything else – `sales + 1` – is a different value, and stays one.
