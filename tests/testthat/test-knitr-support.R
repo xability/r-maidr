@@ -215,7 +215,7 @@ test_that("a knitted chart adds the page bundle online, and only online", {
   testthat::expect_false(grepl("fromPage", offline, fixed = TRUE))
 })
 
-test_that("a self-contained R Markdown document carries the bundle once", {
+test_that("a self-contained R Markdown document embeds maidr.js once for its inline charts", {
   testthat::skip_on_cran()
   testthat::skip_if_not_installed("rmarkdown")
   testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
@@ -247,11 +247,15 @@ test_that("a self-contained R Markdown document carries the bundle once", {
   html <- paste(readLines(out, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
 
   testthat::expect_false(dir.exists(file.path(dir, "charts_files")))
-  testthat::expect_identical(lengths(regmatches(html, gregexpr("<iframe", html, fixed = TRUE))), 2L)
-  pattern <- sprintf('<script[^>]*type="%s"', maidr:::MAIDR_PAGE_JS_TYPE)
-  testthat::expect_identical(lengths(regmatches(html, gregexpr(pattern, html))), 1L)
-
-  # Embedded, not linked: the copy is in the file itself.
+  testthat::expect_false(grepl("<iframe", html, fixed = TRUE))
+  page <- xml2::read_html(out)
+  testthat::expect_length(xml2::xml_find_all(page, "//svg[@data-maidr-knitr]"), 2L)
+  # The page's own copy, embedded once; the frames' fallback copy is gone.
+  testthat::expect_identical(
+    lengths(regmatches(html, gregexpr("window.maidrLive={", html, fixed = TRUE))),
+    1L
+  )
+  testthat::expect_false(grepl(maidr:::MAIDR_PAGE_JS_TYPE, html, fixed = TRUE))
   bundle <- readLines(maidr:::maidr_local_assets()$js, n = 1L, warn = FALSE)
   testthat::expect_true(grepl(substr(bundle, 1L, 200L), html, fixed = TRUE))
 })
@@ -316,19 +320,18 @@ knitted_figures <- function(page) {
   sub("^!\\[[^]]*\\]\\(([^)]+)\\)$", "\\1", images)
 }
 
-#' Expect the one frame of a page to hold the mtcars scatter, read back
+#' Expect the one inline chart of a page to be the mtcars scatter, read back
 #'
 #' One point layer, holding the data frame's values in row order, whose
-#' selector finds the 32 points drawn and nothing else.
-expect_framed_scatter <- function(page) {
-  frames <- xml2::xml_find_all(xml2::read_html(page, encoding = "UTF-8"), "//iframe")
-  testthat::expect_length(frames, 1L)
-  srcdoc <- xml2::xml_attr(frames[[1]], "srcdoc")
-  svg <- xml2::read_xml(regmatches(
-    srcdoc,
-    regexpr("<svg[^>]*maidr-data=[\\s\\S]*?</svg>", srcdoc, perl = TRUE)
-  ))
-  schema <- jsonlite::fromJSON(xml2::xml_attr(svg, "maidr-data"), simplifyVector = FALSE)
+#' selector finds the 32 points drawn and nothing else -- in the chart's own
+#' svg, whose ids carry the chart's prefix.
+expect_inline_scatter <- function(page) {
+  doc <- xml2::read_html(page, encoding = "UTF-8")
+  testthat::expect_length(xml2::xml_find_all(doc, "//iframe"), 0L)
+  charts <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
+  testthat::expect_length(charts, 1L)
+  svg <- xml2::read_xml(as.character(charts[[1]]))
+  schema <- jsonlite::fromJSON(xml2::xml_attr(svg, "data-maidr-knitr"), simplifyVector = FALSE)
   layers <- schema$subplots[[1]][[1]]$layers
   testthat::expect_length(layers, 1L)
   testthat::expect_identical(layers[[1]]$type, "point")
@@ -354,7 +357,7 @@ test_that("a trellis object a chunk returns is a MAIDR chart in HTML output", {
 
   page <- knit_lattice(list(chart = "lattice::xyplot(mpg ~ wt, data = mtcars)"), dir)
 
-  expect_framed_scatter(page)
+  expect_inline_scatter(page)
   # In place of the figure knitr would have recorded, not beside it.
   testthat::expect_length(knitted_figures(page), 0L)
   testthat::expect_length(list.files(dir), 0L)
@@ -438,6 +441,7 @@ test_that("a trellis object a chunk prints itself is lattice's figure", {
 
   testthat::expect_identical(opened, 0L)
   testthat::expect_false(grepl("<iframe", page, fixed = TRUE))
+  testthat::expect_false(grepl("data-maidr-knitr", page, fixed = TRUE))
   figures <- knitted_figures(page)
   testthat::expect_identical(basename(figures), c("figure-printed-1.svg", "figure-control-1.svg"))
   testthat::expect_identical(unname(tools::md5sum(figures[1])), unname(tools::md5sum(figures[2])))
@@ -504,7 +508,7 @@ test_that("R Markdown renders a lattice chunk as a MAIDR chart", {
   out <- rmarkdown::render(rmd, quiet = TRUE, envir = new.env())
   page <- paste(readLines(out, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
 
-  expect_framed_scatter(page)
+  expect_inline_scatter(page)
   # And no picture of it besides: a figure is embedded as a PNG.
   testthat::expect_false(grepl('<img src="data:image/png', page, fixed = TRUE))
 })

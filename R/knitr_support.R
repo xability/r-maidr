@@ -12,7 +12,8 @@
 #'
 #' In an R Markdown or Quarto document, `library(maidr)` is enough: the
 #' first plot the document draws installs the knitr hooks that make every
-#' plot of it an accessible chart, in each render of a session. Calling
+#' plot of it an accessible chart, in each render of a session. In HTML
+#' output the charts are part of the page, which loads maidr.js once. Calling
 #' `maidr_on()` yourself is needed after [maidr_off()], to start again; in a
 #' document, it installs the hooks at once.
 #'
@@ -147,9 +148,10 @@ is_maidr_on <- function() {
 
 #' Custom knit_print Method for ggplot Objects
 #'
-#' Makes a ggplot object a chunk returns an accessible MAIDR chart: in its
-#' own iframe in HTML output, and as an inline image when MAIDR cannot read
-#' the chart. In any other output format (PDF, Word, ...) the chart is drawn by
+#' Makes a ggplot object a chunk returns an accessible MAIDR chart: inline in
+#' an HTML page, in its own iframe in other HTML output (see
+#' `knitr_chart_output()`), and as an inline image when MAIDR cannot read the
+#' chart. In any other output format (PDF, Word, ...) the chart is drawn by
 #' ggplot2 and becomes knitr's figure.
 #'
 #' Registered for knitr when maidr loads, so `library(maidr)` is all a
@@ -179,6 +181,10 @@ knit_print.ggplot <- function(x, options = list(), ...) {
     print_ggplot_natively(x)
     return(invisible(NULL))
   }
+  if (identical(options$fig.show, "hide")) {
+    return(knitr::asis_output(""))
+  }
+
   # Create orchestrator ONCE and reuse it
   registry <- get_global_registry()
   adapter <- registry$get_adapter("ggplot2")
@@ -193,16 +199,15 @@ knit_print.ggplot <- function(x, options = list(), ...) {
   # Get content using the SAME orchestrator (avoid creating another)
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
 
-  # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
-  knitr::asis_output(create_knitr_iframe(content))
+  knitr::asis_output(knitr_chart_output(content, options))
 }
 
 #' Custom knit_print Method for lattice (trellis) Objects
 #'
 #' Converts a trellis object a chunk returns to an accessible MAIDR chart,
-#' as \code{knit_print.ggplot()} does for a ggplot object: in its own iframe
-#' in HTML output, as an inline image when the chart cannot be read, and as
-#' lattice draws it in any other output format.
+#' as \code{knit_print.ggplot()} does for a ggplot object: inline in an HTML
+#' page, in its own iframe in other HTML output, as an inline image when the
+#' chart cannot be read, and as lattice draws it in any other output format.
 #'
 #' Only a chart the chunk returns reaches this method. One the chunk prints
 #' itself -- \code{print(p)}, lattice's idiom for a chart inside a loop or a
@@ -234,6 +239,10 @@ knit_print.trellis <- function(x, options = list(), ...) {
     print_trellis_natively(x)
     return(invisible(NULL))
   }
+  if (identical(options$fig.show, "hide")) {
+    return(knitr::asis_output(""))
+  }
+
   orchestrator <- get_global_registry()$get_adapter("lattice")$create_orchestrator(x)
 
   if (orchestrator$should_fallback()) {
@@ -242,7 +251,7 @@ knit_print.trellis <- function(x, options = list(), ...) {
   }
 
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
-  knitr::asis_output(create_knitr_iframe(content))
+  knitr::asis_output(knitr_chart_output(content, options))
 }
 
 #' Custom knit_print Method for histogram Objects
@@ -339,8 +348,9 @@ create_maidr_widget_internal <- function(plot = NULL) {
 #' knitr Plot Hook for Base R Plots
 #'
 #' Makes the figure of a chunk that drew Base R charts an accessible MAIDR
-#' chart, in place of the figure file knitr saved: in its own iframe in HTML
-#' output, and as an inline image when MAIDR cannot read the chart. Any other figure,
+#' chart, in place of the figure file knitr saved: inline in an HTML page,
+#' in its own iframe in other HTML output (see `knitr_chart_output()`), and
+#' as an inline image when MAIDR cannot read the chart. Any other figure,
 #' and every figure of any other output format (PDF, Word, ...), is left to
 #' the hook it was installed over.
 #'
@@ -394,8 +404,7 @@ maidr_plot_hook <- function(x, options, original = NULL) {
     # Clear the device storage
     clear_device_storage(device_id)
 
-    # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
-    return(create_knitr_iframe(content))
+    return(knitr_chart_output(content, options, figure = TRUE))
   }
 
   # Fall back to original plot hook if no Base R calls captured
@@ -448,9 +457,12 @@ call_original_plot_hook <- function(x, options, original = NULL) {
 }
 
 # Internal state for knitr integration: whether maidr_on() was called last
-# (rather than maidr_off()).
+# (rather than maidr_off()), and the label and count of the charts of the
+# chunk being knitted (knitr_chart_index()).
 .maidr_knitr_state <- new.env(parent = emptyenv())
 .maidr_knitr_state$enabled <- FALSE
+.maidr_knitr_state$chart_label <- NULL
+.maidr_knitr_state$chart_count <- 0L
 
 #' Check if current knitr output format is HTML
 #'

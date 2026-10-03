@@ -145,6 +145,21 @@ inline_refuse <- function(fmt, ...) {
 #'   `maidr_inline_unsupported`.
 #' @keywords internal
 inline_prefix_svg_ids <- function(svg, prefix) {
+  inline_svg_markup(inline_prefix_svg_document(svg, prefix))
+}
+
+#' Prefix Every Id of One maidr SVG, Keeping the Parsed Document
+#'
+#' What `inline_prefix_svg_ids()` does, returning the xml2 document rather
+#' than its markup, for a caller that sets attributes of its own on the
+#' `<svg>` before writing it out with `inline_svg_markup()`: the knitr
+#' emitter names the chart and moves its maidr-data aside.
+#'
+#' @param svg,prefix As for `inline_prefix_svg_ids()`.
+#' @return The SVG document, an `xml_document`.
+#' @keywords internal
+#' @noRd
+inline_prefix_svg_document <- function(svg, prefix) {
   check_inline_prefix(prefix)
   text <- paste(as.character(svg), collapse = "\n")
   # read_xml() takes a string without `<` for a file path or a URL.
@@ -192,6 +207,16 @@ inline_prefix_svg_ids <- function(svg, prefix) {
 
   xml2::xml_attr(root, "maidr-data") <- prefix_maidr_data_ids(json, prefix)
 
+  doc
+}
+
+#' The Markup of an SVG Document, Without the Prolog
+#'
+#' @param doc An `xml_document` whose root is the `<svg>`.
+#' @return The SVG as one string.
+#' @keywords internal
+#' @noRd
+inline_svg_markup <- function(doc) {
   # `no_declaration` drops the prolog; the sub() keeps it dropped whatever
   # the xml2 release.
   out <- as.character(doc, options = c("format", "no_declaration"))

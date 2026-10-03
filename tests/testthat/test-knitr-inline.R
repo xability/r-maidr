@@ -1,9 +1,10 @@
-# maidr in a running knit: R/knitr_lifecycle.R, with R/knitr_inline.R's
-# test of which documents show charts inline, and the page dependencies in
-# R/html_dependencies.R.
+# Charts shown inline in knitted HTML: R/knitr_inline.R, R/knitr_lifecycle.R
+# and the page dependencies in R/html_dependencies.R.
 #
 # A document needs only library(maidr): the first maidr chart, figure or
-# Base R call of a knit installs maidr's hooks into it.
+# Base R call of a knit installs maidr's hooks into it, and each chart is the
+# page's own <svg>, with ids no other chart on the page has, bound by
+# knitr-inline.js to the one maidr.js the page loads.
 
 # ==============================================================================
 # Helpers
@@ -75,6 +76,66 @@ knit_for <- function(chunks, dir, to = "html") {
 figure_types <- function(dir) {
   files <- list.files(file.path(dir, "figure"))
   stats::setNames(tools::file_ext(files), sub("-[0-9]+\\.[a-z]+$", "", files))
+}
+
+#' The inline charts of a page: each svg, as its own xml2 document
+inline_charts <- function(html) {
+  doc <- xml2::read_html(html, encoding = "UTF-8")
+  lapply(
+    xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]"),
+    function(svg) xml2::read_xml(as.character(svg), options = c("HUGE", "NOBLANKS"))
+  )
+}
+
+#' The strings under every `selectors` or `selector` key of parsed maidr-data
+selector_strings <- function(x) {
+  if (!is.list(x)) {
+    return(character())
+  }
+  keys <- if (is.null(names(x))) character(length(x)) else names(x)
+  keyed <- keys %in% c("selectors", "selector")
+  c(
+    unlist(x[keyed], use.names = FALSE),
+    unlist(lapply(x[!keyed], selector_strings), use.names = FALSE)
+  )
+}
+
+#' Expect every id a chart's selectors name to be an id of its own svg
+#'
+#' `#id` tokens, `[id='..']` and `[id^='..']`, unescaped as CSS escapes them;
+#' and every id of the svg, and of its JSON figure, to start with one prefix
+#' that no other chart of the page has.
+expect_own_selectors <- function(svg) {
+  ids <- xml2::xml_attr(xml2::xml_find_all(svg, "//*[@id]"), "id")
+  testthat::expect_gt(length(ids), 0L)
+  prefix <- unique(sub("^(m[a-z0-9]+-).*$", "\\1", ids))
+  testthat::expect_length(prefix, 1L)
+  testthat::expect_true(all(startsWith(ids, prefix)))
+
+  data <- jsonlite::parse_json(xml2::xml_attr(svg, "data-maidr-knitr"))
+  testthat::expect_true(startsWith(data$id, prefix))
+  selectors <- selector_strings(data)
+  testthat::expect_gt(length(selectors), 0L)
+  unescape <- function(x) gsub("\\\\(.)", "\\1", x)
+  named <- unescape(unlist(regmatches(
+    selectors, gregexpr("(?<=#)(?:[A-Za-z0-9_-]|\\\\.)+", selectors, perl = TRUE)
+  )))
+  exact <- unescape(unlist(regmatches(
+    selectors, gregexpr("(?<=\\[id=['\"])[^'\"]*", selectors, perl = TRUE)
+  )))
+  starts <- unescape(unlist(regmatches(
+    selectors, gregexpr("(?<=\\[id\\^=['\"])[^'\"]*", selectors, perl = TRUE)
+  )))
+  testthat::expect_true(all(c(named, exact) %in% ids))
+  testthat::expect_true(all(vapply(starts, function(s) any(startsWith(ids, s)), logical(1))))
+  testthat::expect_true(all(startsWith(c(named, exact, starts), prefix)))
+  invisible(prefix)
+}
+
+#' A small maidr chart's SVG, as create_maidr_html() returns it for knitr
+bar_chart_svg <- function(title = NULL) {
+  plot <- create_test_ggplot_bar() + ggplot2::labs(title = title)
+  suppressWarnings(maidr:::create_maidr_html(plot, shiny = TRUE))
 }
 
 # ==============================================================================
@@ -182,6 +243,175 @@ test_that("an HTML document knitted without pandoc keeps its charts in iframes",
   ), collapse = "\n")
   testthat::expect_match(page, "<iframe", fixed = TRUE)
   testthat::expect_false(grepl("data-maidr-knitr", page, fixed = TRUE))
+})
+
+# ==============================================================================
+# The emitter
+# ==============================================================================
+
+test_that("an inline chart is a named svg in a raw block, its data set aside", {
+  skip_if_no_render()
+  out <- maidr:::knitr_inline_chart(bar_chart_svg("Three bars"), list(label = "bars"))
+
+  # A raw HTML block of its own, between blank lines.
+  testthat::expect_match(out, "^\n\n\n```+ \\{=html\\}\n<div class=\"maidr-knitr\">\n<svg ")
+  testthat::expect_match(out, "</div>\n```+\n\n$")
+  page <- xml2::read_html(out)
+  wrapper <- xml2::xml_find_first(page, "//div[@class = 'maidr-knitr']")
+  svg <- xml2::read_xml(as.character(xml2::xml_find_first(wrapper, "./svg")))
+  testthat::expect_identical(xml2::xml_attr(svg, "role"), "img")
+  testthat::expect_identical(xml2::xml_attr(svg, "aria-label"), "Three bars")
+  testthat::expect_identical(xml2::xml_attr(svg, "class"), "maidr-knitr-svg")
+  testthat::expect_true(is.na(xml2::xml_attr(svg, "maidr-data")))
+  testthat::expect_false(grepl("maidr-data=", out, fixed = TRUE))
+  testthat::expect_false(grepl("<?xml", out, fixed = TRUE))
+  expect_own_selectors(svg)
+  # The title is the name, and stays the description once maidr names the
+  # chart itself.
+  alt <- xml2::xml_find_first(wrapper, "./span[@class = 'maidr-knitr-alt']")
+  testthat::expect_identical(xml2::xml_text(alt), "Three bars")
+  testthat::expect_identical(xml2::xml_attr(alt, "hidden"), "")
+  testthat::expect_match(xml2::xml_attr(alt, "id"), "^m[a-z0-9]+-alt$")
+})
+
+test_that("a chart is named by fig.alt, then fig.cap, then its title, then 'Chart'", {
+  skip_if_no_render()
+  name_of <- function(out) regmatches(out, regexpr('aria-label="[^"]*"', out))
+  titled <- bar_chart_svg("Title")
+
+  both <- maidr:::knitr_inline_chart(titled, list(fig.alt = "Alt", fig.cap = "Cap"))
+  testthat::expect_identical(name_of(both), 'aria-label="Alt"')
+  testthat::expect_match(
+    both, '<span class="maidr-knitr-alt" id="m[a-z0-9]+-alt" hidden>Alt</span>'
+  )
+  testthat::expect_match(
+    both, '<p class="caption maidr-knitr-caption" id="m[a-z0-9]+-caption">Cap</p>'
+  )
+  testthat::expect_match(both, '<div class="figure maidr-knitr">', fixed = TRUE)
+
+  captioned <- maidr:::knitr_inline_chart(titled, list(fig.cap = "Cap"))
+  testthat::expect_identical(name_of(captioned), 'aria-label="Cap"')
+  # The caption is already the description.
+  testthat::expect_false(grepl("maidr-knitr-alt", captioned, fixed = TRUE))
+
+  untitled <- maidr:::knitr_inline_chart(bar_chart_svg(), list())
+  testthat::expect_identical(name_of(untitled), 'aria-label="Chart"')
+  testthat::expect_false(grepl("maidr-knitr-alt", untitled, fixed = TRUE))
+  testthat::expect_false(grepl("maidr-knitr-caption", untitled, fixed = TRUE))
+})
+
+test_that("a caption knitr has not evaluated yet is evaluated, picked and escaped", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  env <- knitr::knit_global()
+  assign("maidr_test_group", "group A", envir = env)
+  withr::defer(rm("maidr_test_group", envir = env))
+
+  # knit_print() sees fig.cap before knitr evaluates it, after the chunk.
+  lazy <- maidr:::knitr_inline_chart(
+    svg, list(fig.cap = quote(paste("Bars for", maidr_test_group)))
+  )
+  testthat::expect_match(lazy, 'aria-label="Bars for group A"', fixed = TRUE)
+  testthat::expect_match(lazy, ">Bars for group A</p>", fixed = TRUE)
+
+  # One that refers to what the chunk has not made yet is no caption.
+  later <- maidr:::knitr_inline_chart(svg, list(fig.cap = quote(not_made_yet)))
+  testthat::expect_match(later, 'aria-label="Chart"', fixed = TRUE)
+
+  # The chunk's second chart takes the second caption.
+  second <- maidr:::knitr_inline_chart(svg, list(fig.cap = quote(c("First", "Second"))), index = 2L)
+  testthat::expect_match(second, 'aria-label="Second"', fixed = TRUE)
+
+  escaped <- maidr:::knitr_inline_chart(svg, list(fig.cap = "if a<b & c then &copy; done"))
+  testthat::expect_match(escaped, ">if a&lt;b &amp; c then &amp;copy; done</p>", fixed = TRUE)
+  testthat::expect_match(
+    escaped, 'aria-label="if a&lt;b &amp; c then &amp;copy; done"',
+    fixed = TRUE
+  )
+})
+
+test_that("bookdown labels a captioned chart, and Quarto writes the caption itself", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  withr::defer(knitr::opts_knit$delete(c("bookdown.internal.label", "quarto.version")))
+
+  knitr::opts_knit$set(bookdown.internal.label = TRUE)
+  one <- maidr:::knitr_inline_chart(svg, list(label = "bars", fig.cap = "Bars", fig.lp = "fig:"))
+  testthat::expect_match(one, '<div class="figure maidr-knitr">', fixed = TRUE)
+  testthat::expect_match(one, '-caption">(#fig:bars) Bars</p>', fixed = TRUE)
+  two <- maidr:::knitr_inline_chart(
+    svg, list(label = "bars", fig.cap = c("A", "B"), fig.lp = "fig:"),
+    index = 2L
+  )
+  testthat::expect_match(two, '-caption">(#fig:bars-2) B</p>', fixed = TRUE)
+  knitr::opts_knit$delete("bookdown.internal.label")
+
+  knitr::opts_knit$set(quarto.version = "1.7.32")
+  float <- maidr:::knitr_inline_chart(svg, list(label = "fig-bars", fig.cap = "Bars"))
+  testthat::expect_false(grepl("maidr-knitr-caption", float, fixed = TRUE))
+  testthat::expect_match(float, '<div class="maidr-knitr">', fixed = TRUE)
+  testthat::expect_match(float, 'aria-label="Bars"', fixed = TRUE)
+  # Outside a fig- float Quarto's caption is a plain paragraph: a hidden copy
+  # describes the chart.
+  plain <- maidr:::knitr_inline_chart(svg, list(label = "unnamed-chunk-1", fig.cap = "Bars"))
+  testthat::expect_match(
+    plain, '<span class="maidr-knitr-caption" id="m[a-z0-9]+-caption" hidden>Bars</span>'
+  )
+  # A figure the plot hook replaces is not captioned by Quarto.
+  figure <- maidr:::knitr_inline_chart(
+    svg, list(label = "fig-bars", fig.cap = "Bars"),
+    figure = TRUE
+  )
+  testthat::expect_match(
+    figure, '<p class="caption maidr-knitr-caption" id="m[a-z0-9]+-caption">Bars</p>'
+  )
+})
+
+test_that("fig.align and the author's out.width lay the chart out", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  testthat::local_mocked_bindings(
+    chunk_sets_option = function(options, name) TRUE,
+    .package = "maidr"
+  )
+  centred <- maidr:::knitr_inline_chart(svg, list(fig.align = "center", out.width = "50%"))
+  testthat::expect_match(
+    centred, '<div class="maidr-knitr maidr-knitr-center" style="width: 50%;">',
+    fixed = TRUE
+  )
+  testthat::expect_match(
+    maidr:::knitr_inline_chart(svg, list(fig.align = "default", out.width = 300)),
+    '<div class="maidr-knitr" style="width: 300px;">', fixed = TRUE
+  )
+  testthat::expect_match(
+    maidr:::knitr_inline_chart(svg, list(out.width = "\\linewidth")),
+    '<div class="maidr-knitr">', fixed = TRUE
+  )
+})
+
+test_that("a chart knitr is told to hide is not written", {
+  testthat::expect_identical(maidr:::knitr_chart_output("<svg/>", list(fig.show = "hide")), "")
+})
+
+test_that("a chart that cannot be shown inline goes in an iframe, with one warning", {
+  skip_if_no_render()
+  local_knitr_state()
+  testthat::local_mocked_bindings(
+    inline_output_ok = function() TRUE,
+    maidr_internet_available = function() FALSE,
+    .package = "maidr"
+  )
+  withr::defer(knitr::opts_knit$delete("maidr.inline_warned"))
+  # A <style> in an inline svg would style the whole page: refused.
+  svg <- sub("</svg>$", "<style>rect{fill:red}</style></svg>", as.character(bar_chart_svg()))
+
+  testthat::expect_warning(
+    first <- maidr:::knitr_chart_output(svg, list(label = "a")),
+    "could not be shown inline"
+  )
+  testthat::expect_match(first, "<iframe", fixed = TRUE)
+  testthat::expect_no_warning(second <- maidr:::knitr_chart_output(svg, list(label = "b")))
+  testthat::expect_match(second, "<iframe", fixed = TRUE)
 })
 
 # ==============================================================================
@@ -328,6 +558,219 @@ test_that("options(maidr.knitr_dev = FALSE), other formats and maidr_off() keep 
 # Documents
 # ==============================================================================
 
+# One document with charts of every system, several to a chunk, a chart
+# printed with print(), and a chunk that draws a ggplot2 chart and a Base R
+# one on the same device. Its setup chunk only attaches maidr, which these
+# tests have loaded already: maidr installs itself into the knit from the
+# first chart.
+several_charts_rmd <- function(dir, self_contained) {
+  rmd <- file.path(dir, "charts.Rmd")
+  writeLines(c(
+    "---",
+    "title: Several charts",
+    "output:",
+    "  html_document:",
+    sprintf("    self_contained: %s", tolower(self_contained)),
+    "---",
+    "",
+    "```{r setup, message = FALSE}",
+    "library(maidr)",
+    "library(ggplot2)",
+    "```",
+    "",
+    "```{r gg, fig.cap = 'Cars by cylinder'}",
+    "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "```",
+    "",
+    "```{r gg2}",
+    "ggplot(mtcars, aes(wt, mpg)) + geom_point() + labs(title = 'Weight and mileage')",
+    "ggplot(mtcars, aes(factor(gear))) + geom_bar()",
+    "```",
+    "",
+    "```{r lattice}",
+    "lattice::xyplot(mpg ~ wt, data = mtcars)",
+    "```",
+    "",
+    "```{r lattice2}",
+    "lattice::barchart(c(p = 3, q = 4, r = 2))",
+    "```",
+    "",
+    "```{r base, fig.alt = 'Three bars'}",
+    "barplot(c(a = 3, b = 5, c = 2))",
+    "```",
+    "",
+    "```{r base2}",
+    "hist(mtcars$mpg)",
+    "```",
+    "",
+    "```{r printed}",
+    "print(ggplot(mtcars, aes(factor(am))) + geom_bar())",
+    "```",
+    "",
+    "```{r mixed}",
+    "print(ggplot(mtcars, aes(factor(vs))) + geom_bar())",
+    "plot(mtcars$wt, mtcars$mpg)",
+    "```"
+  ), rmd)
+  rmd
+}
+
+expect_several_charts <- function(out) {
+  html <- paste(readLines(out, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  doc <- xml2::read_html(out, encoding = "UTF-8")
+  testthat::expect_length(xml2::xml_find_all(doc, "//iframe"), 0L)
+
+  charts <- inline_charts(out)
+  testthat::expect_length(charts, 7L)
+  prefixes <- vapply(charts, expect_own_selectors, character(1))
+  testthat::expect_false(anyDuplicated(prefixes) > 0L)
+  ids <- xml2::xml_attr(xml2::xml_find_all(doc, "//*[@id]"), "id")
+  testthat::expect_false(anyDuplicated(ids) > 0L)
+  # In the order the document draws them.
+  types <- vapply(charts, function(svg) {
+    data <- jsonlite::parse_json(xml2::xml_attr(svg, "data-maidr-knitr"))
+    data$subplots[[1]][[1]]$layers[[1]]$type
+  }, character(1))
+  testthat::expect_identical(types, c("bar", "point", "bar", "point", "bar", "bar", "hist"))
+  names <- vapply(charts, function(svg) xml2::xml_attr(svg, "aria-label"), character(1))
+  testthat::expect_identical(
+    names[c(1, 2, 6)],
+    c("Cars by cylinder", "Weight and mileage", "Three bars")
+  )
+  testthat::expect_match(html, ">Cars by cylinder</p>", fixed = TRUE)
+
+  # maidr.js, once; and the script that binds the charts.
+  testthat::expect_identical(
+    lengths(regmatches(html, gregexpr("window.maidrLive={", html, fixed = TRUE))) +
+      length(xml2::xml_find_all(doc, "//script[contains(@src, 'maidr.js')]")),
+    1L
+  )
+  testthat::expect_identical(
+    lengths(regmatches(html, gregexpr("window.__maidrKnitr = true", html, fixed = TRUE))) +
+      length(xml2::xml_find_all(doc, "//script[contains(@src, 'knitr-inline.js')]")),
+    1L
+  )
+  # The printed chart, and both figures of the chunk that mixes a printed
+  # chart with a Base R one, are knitr's own figures: svg images.
+  images <- xml2::xml_attr(xml2::xml_find_all(doc, "//img"), "src")
+  testthat::expect_length(images, 3L)
+  static <- "printed-1\\.svg$|mixed-[12]\\.svg$|^data:image/svg\\+xml"
+  testthat::expect_true(all(grepl(static, images)))
+  invisible(html)
+}
+
+test_that("only library(maidr) shows an R Markdown page's charts inline, on every render", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("lattice")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  opened <- 0L
+  testthat::local_mocked_bindings(
+    display_html = function(html_doc) opened <<- opened + 1L,
+    session_is_interactive = function() TRUE,
+    .package = "maidr"
+  )
+  dir <- withr::local_tempdir("maidr-rmd-")
+
+  linked <- rmarkdown::render(
+    several_charts_rmd(dir, FALSE),
+    quiet = TRUE, envir = new.env()
+  )
+  html <- expect_several_charts(linked)
+  testthat::expect_match(
+    html,
+    sprintf('<script src="charts_files/maidr-%s/maidr.js" defer></script>', maidr:::MAIDR_VERSION),
+    fixed = TRUE
+  )
+  testthat::expect_true(any(startsWith(list.files(file.path(dir, "charts_files")), "maidr-knitr-")))
+  testthat::expect_identical(opened, 0L)
+
+  # The same session renders it again, self-contained: maidr installs itself
+  # into the second knit as into the first.
+  embedded <- rmarkdown::render(
+    several_charts_rmd(dir, TRUE),
+    quiet = TRUE, envir = new.env()
+  )
+  expect_several_charts(embedded)
+  testthat::expect_false(dir.exists(file.path(dir, "charts_files")))
+  testthat::expect_identical(opened, 0L)
+})
+
+test_that("a chunk printing a lattice or ggplot2 chart beside Base R keeps knitr's figures", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("lattice")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+
+  page <- knit_for(c(
+    "```{r lattice}",
+    "print(lattice::xyplot(mpg ~ wt, data = mtcars))",
+    "barplot(c(a = 1, b = 2))",
+    "```",
+    "```{r ggplot}",
+    "barplot(c(a = 1, b = 2))",
+    "print(ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar())",
+    "```",
+    "```{r alone}",
+    "barplot(c(a = 1, b = 2))",
+    "```"
+  ), dir)
+
+  # The Base R calls of a chunk make its first figure, which here is the
+  # lattice chart or would be the barplot beside a ggplot2 chart drawn after
+  # it: neither chunk can be told apart, so both keep their figures.
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("data-maidr-knitr=", page))), 1L)
+  testthat::expect_identical(
+    sort(names(figure_types(dir))),
+    c("alone", "ggplot", "ggplot", "lattice", "lattice")
+  )
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 4L)
+})
+
+test_that("charts written with cat() in an asis loop, and cached charts, bring maidr.js", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  bundle_declared <- function() {
+    meta <- knitr::knit_meta(clean = TRUE)
+    names <- vapply(meta, function(dep) if (is.null(dep$name)) "" else dep$name, character(1))
+    all(c("maidr", "maidr-knitr") %in% names)
+  }
+  knitr::knit_meta(clean = TRUE)
+
+  page <- knit_for(c(
+    "```{r loop, results = 'asis'}",
+    "for (v in c('cyl', 'gear')) {",
+    "  p <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(.data[[v]]))) + ggplot2::geom_bar()",
+    "  cat(knitr::knit_print(p))",
+    "}",
+    "```"
+  ), dir)
+  # cat() drops the meta a knit_asis object carries.
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("data-maidr-knitr=", page))), 2L)
+  testthat::expect_true(bundle_declared())
+
+  cached <- c(
+    "```{r gg, cache = TRUE}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "```",
+    "```{r base, cache = TRUE}",
+    "barplot(c(a = 1, b = 2))",
+    "```"
+  )
+  first <- knit_for(cached, dir)
+  testthat::expect_true(bundle_declared())
+  # Run again, from the cache: neither chart is made, and only what knitr
+  # cached comes back.
+  second <- knit_for(cached, dir)
+  testthat::expect_identical(lengths(regmatches(second, gregexpr("data-maidr-knitr=", second))), 2L)
+  testthat::expect_true(bundle_declared())
+})
+
 test_that("a PDF document's charts are what they are without maidr", {
   testthat::skip_on_cran()
   skip_if_no_render()
@@ -361,4 +804,177 @@ test_that("a PDF document's charts are what they are without maidr", {
     unname(tools::md5sum(file.path(with_maidr, "figure", files))),
     unname(tools::md5sum(file.path(without, "figure", files)))
   )
+})
+
+test_that("charts after maidr_off() are knitr's figures, and inline again after maidr_on()", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  chart <- c(
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "barplot(c(a = 1, b = 2))"
+  )
+
+  page <- knit_for(c(
+    "```{r before}", chart, "```",
+    "```{r}", "maidr::maidr_off()", "```",
+    "```{r after}", chart, "```",
+    "```{r}", "maidr::maidr_on()", "```",
+    "```{r again}", chart, "```"
+  ), dir)
+
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("data-maidr-knitr=", page))), 4L)
+  types <- figure_types(dir)
+  testthat::expect_identical(unname(types[names(types) == "after"]), c("png", "png"))
+  # The two charts after maidr_off() are its only figures shown as figures.
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 2L)
+})
+
+# ==============================================================================
+# A document in a session of its own
+# ==============================================================================
+
+#' How a session started for a test loads this maidr
+#'
+#' The source tree when the tests run from it, the installed package under
+#' R CMD check.
+maidr_loader <- function() {
+  root <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
+  from_source <- requireNamespace("pkgload", quietly = TRUE) &&
+    file.exists(file.path(root, "DESCRIPTION")) &&
+    file.exists(file.path(root, "R", "maidr.R"))
+  if (from_source) {
+    sprintf("pkgload::load_all(%s, quiet = TRUE)", deparse(root))
+  } else {
+    "library(maidr)"
+  }
+}
+
+test_that("library(maidr) in a document sets up the knit quietly, and every later render", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("lattice")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  dir <- withr::local_tempdir("maidr-fresh-")
+
+  document <- function(loader) {
+    c(
+      "---", "title: fresh", "output:", "  html_document:", "    self_contained: false", "---",
+      "```{r}", loader, "library(ggplot2)", "```",
+      "```{r}", "ggplot(mtcars, aes(factor(cyl))) + geom_bar()", "```",
+      "```{r}", "lattice::xyplot(mpg ~ wt, data = mtcars)", "```",
+      "```{r}", "barplot(c(a = 1, b = 2))", "```",
+      "```{r}", "print(ggplot(mtcars, aes(factor(gear))) + geom_bar())", "```",
+      "```{r}", "print(lattice::xyplot(mpg ~ hp, data = mtcars))", "```"
+    )
+  }
+  writeLines(document(maidr_loader()), file.path(dir, "first.Rmd"))
+  writeLines(document("library(maidr)"), file.path(dir, "second.Rmd"))
+  script <- file.path(dir, "render.R")
+  writeLines(c(
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    sprintf("setwd(%s)", deparse(dir)),
+    "Sys.unsetenv('RSTUDIO')",
+    "options(browser = function(url) cat('BROWSER-OPENED', url, '\\n'))",
+    "report <- function(name, file) {",
+    "  html <- paste(readLines(file, warn = FALSE), collapse = '\\n')",
+    "  count <- function(pattern) lengths(regmatches(html, gregexpr(pattern, html)))",
+    "  cat('RESULT', name, count('<svg[^>]*data-maidr-knitr='), count('<iframe'),",
+    "    count('maidr\\\\.js\" defer'), count('Base R plots are recorded'),",
+    "    count('<img src=\"[^\"]*figure-html'), '\\n')",
+    "}",
+    "report('first', rmarkdown::render('first.Rmd', quiet = TRUE))",
+    "report('second', rmarkdown::render('second.Rmd', quiet = TRUE))"
+  ), script)
+
+  out <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"), script,
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  status <- attr(out, "status")
+  log <- paste(out, collapse = "\n")
+  testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
+  testthat::expect_false(any(grepl("BROWSER-OPENED", out, fixed = TRUE)), info = log)
+  # Three charts inline, no frame, maidr.js once, no startup message in the
+  # page, and the two printed charts as figures.
+  testthat::expect_true("RESULT first 3 0 1 0 2 " %in% out, info = log)
+  testthat::expect_true("RESULT second 3 0 1 0 2 " %in% out, info = log)
+})
+
+test_that("Quarto shows the charts inline, captions them and resolves a reference to one", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("lattice")
+  testthat::skip_if_not_installed("withr")
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  dir <- withr::local_tempdir("maidr-qmd-")
+  qmd <- file.path(dir, "charts.qmd")
+  writeLines(c(
+    "---", "title: charts", "format: html", "---",
+    "```{r}",
+    "#| message: false",
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    maidr_loader(),
+    "library(ggplot2)",
+    "```",
+    "",
+    "See @fig-bars.",
+    "",
+    "```{r}",
+    "#| label: fig-bars",
+    "#| fig-cap: Cars by cylinder",
+    "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "```",
+    "```{r}",
+    "#| fig-alt: A scatter",
+    "lattice::xyplot(mpg ~ wt, data = mtcars)",
+    "```",
+    "```{r}",
+    "#| fig-cap: Base bars",
+    "barplot(c(a = 1, b = 2))",
+    "```",
+    "```{r}",
+    "plot(1:10)",
+    "grid::grid.newpage()",
+    "grid::grid.rect()",
+    "```"
+  ), qmd)
+
+  out <- suppressWarnings(system2(
+    quarto, c("render", shQuote(qmd), "--quiet"),
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  status <- attr(out, "status")
+  log <- paste(out, collapse = "\n")
+  testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
+  page <- file.path(dir, "charts.html")
+  testthat::skip_if_not(file.exists(page))
+  html <- paste(readLines(page, warn = FALSE), collapse = "\n")
+  doc <- xml2::read_html(page)
+
+  charts <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
+  testthat::expect_length(charts, 4L)
+  testthat::expect_length(xml2::xml_find_all(doc, "//iframe"), 0L)
+  testthat::expect_length(xml2::xml_find_all(doc, "//script[contains(@src, 'maidr.js')]"), 1L)
+  ids <- xml2::xml_attr(xml2::xml_find_all(doc, "//*[@id]"), "id")
+  testthat::expect_false(anyDuplicated(ids) > 0L)
+  # Quarto's figure, numbered and referred to, captions the ggplot2 chart
+  # once; maidr captions the Base R one, which Quarto does not.
+  testthat::expect_match(html, "Figure&nbsp;1", fixed = TRUE)
+  testthat::expect_length(
+    xml2::xml_find_all(doc, "//figcaption[contains(., 'Cars by cylinder')]"),
+    1L
+  )
+  testthat::expect_false(grepl(">Cars by cylinder</p>", html, fixed = TRUE))
+  testthat::expect_match(html, ">Base bars</p>", fixed = TRUE)
+  testthat::expect_identical(
+    xml2::xml_attr(charts, "aria-label"),
+    c("Cars by cylinder", "A scatter", "Base bars", "Chart")
+  )
+  # The figure that is not a chart is an svg image.
+  testthat::expect_match(html, '<img src="charts_files/figure-html/[^"]+\\.svg"')
 })

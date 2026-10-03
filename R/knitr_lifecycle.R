@@ -90,6 +90,9 @@ install_knitr_integration <- function() {
     knitr::knit_hooks$set(chunk = maidr_knitr_chunk_hook(chunk))
   }
 
+  if (fresh) {
+    reset_knitr_chart_index()
+  }
   drop_stale_device_storage(include_current = fresh)
   invisible(NULL)
 }
@@ -131,6 +134,7 @@ uninstall_knitr_integration <- function() {
     }
   }
   knitr::opts_knit$delete("maidr.integrated")
+  reset_knitr_chart_index()
   invisible(NULL)
 }
 
@@ -198,6 +202,7 @@ maidr_knitr_chunk_hook <- function(previous) {
     if (is.function(previous)) {
       x <- previous(x, options)
     }
+    reset_knitr_chart_index()
     shown <- !isFALSE(options$include) &&
       any(grepl("data-maidr-knitr=", x, fixed = TRUE))
     if (shown) {
