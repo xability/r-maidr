@@ -89,6 +89,7 @@ log_plot_call_to_device <- function(
   # (and drops calls recorded before it); every later one costs a lookup.
   if (isTRUE(getOption("knitr.in.progress"))) {
     ensure_knitr_integration()
+    note_knit_device(device_id)
   }
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
@@ -188,6 +189,7 @@ mark_device_foreign_drawing <- function(device_id = grDevices::dev.cur()) {
   storage <- get_device_storage(device_id)
   storage$foreign <- TRUE
   .maidr_base_r_session$devices[[as.character(device_id)]] <- storage
+  note_knit_device(device_id)
   invisible(NULL)
 }
 

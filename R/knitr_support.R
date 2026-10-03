@@ -366,7 +366,17 @@ create_maidr_widget_internal <- function(plot = NULL) {
 #' @return The figure's Markdown or HTML
 #' @keywords internal
 maidr_plot_hook <- function(x, options, original = NULL) {
-  device_id <- grDevices::dev.cur()
+  # Every reader of the recorded calls reads the current device's, which is
+  # not the chunk's once knitr has saved the figure: see knit_chunk_device().
+  device_id <- knit_chunk_device()
+  if (device_id != grDevices::dev.cur()) {
+    previous <- grDevices::dev.cur()
+    grDevices::dev.set(device_id)
+    on.exit(
+      if (previous %in% grDevices::dev.list()) grDevices::dev.set(previous),
+      add = TRUE
+    )
+  }
 
   # Honour maidr_off(): behave exactly like the original hook. Drop anything
   # already recorded on this device first - otherwise calls captured before
@@ -457,12 +467,14 @@ call_original_plot_hook <- function(x, options, original = NULL) {
 }
 
 # Internal state for knitr integration: whether maidr_on() was called last
-# (rather than maidr_off()), and the label and count of the charts of the
-# chunk being knitted (knitr_chart_index()).
+# (rather than maidr_off()), the label and count of the charts of the chunk
+# being knitted (knitr_chart_index()), and the device it draws on
+# (knit_chunk_device()).
 .maidr_knitr_state <- new.env(parent = emptyenv())
 .maidr_knitr_state$enabled <- FALSE
 .maidr_knitr_state$chart_label <- NULL
 .maidr_knitr_state$chart_count <- 0L
+.maidr_knitr_state$device <- NULL
 
 #' Check if current knitr output format is HTML
 #'

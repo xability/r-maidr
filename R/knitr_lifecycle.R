@@ -92,6 +92,7 @@ install_knitr_integration <- function() {
 
   if (fresh) {
     reset_knitr_chart_index()
+    note_knit_device(NULL)
   }
   drop_stale_device_storage(include_current = fresh)
   invisible(NULL)
@@ -135,6 +136,7 @@ uninstall_knitr_integration <- function() {
   }
   knitr::opts_knit$delete("maidr.integrated")
   reset_knitr_chart_index()
+  note_knit_device(NULL)
   invisible(NULL)
 }
 
@@ -203,6 +205,7 @@ maidr_knitr_chunk_hook <- function(previous) {
       x <- previous(x, options)
     }
     reset_knitr_chart_index()
+    note_knit_device(NULL)
     shown <- !isFALSE(options$include) &&
       any(grepl("data-maidr-knitr=", x, fixed = TRUE))
     if (shown) {
@@ -245,6 +248,7 @@ maidr_knitr_dev_hook <- function(previous) {
       return(options)
     }
     drop_stale_device_storage()
+    note_knit_device(NULL)
     options$dev <- maidr_chunk_device(options)
     options
   }
@@ -351,6 +355,38 @@ dev_args_suit_svglite <- function(dev_args) {
     dev_args <- dev_args[["svglite"]]
   }
   all(names(dev_args) %in% names(formals(svglite::svglite)))
+}
+
+#' The device the chunk being knitted draws on
+#'
+#' The plot hook reads a chunk's Base R calls from the chunk's device, which
+#' is no longer the current one when the hook runs if another device is
+#' open: knitr saves each figure on a device of its own, and closing that
+#' one makes R's next open device current -- the first one, say a `pdf()`
+#' left open or an IDE's screen, rather than the chunk's. So the device a
+#' chunk records a call on, or draws a ggplot2 or lattice chart on, is
+#' noted, and forgotten when the chunk ends.
+#'
+#' @return The chunk's device when one was noted and is still open, the
+#'   current device otherwise
+#' @keywords internal
+knit_chunk_device <- function() {
+  device <- .maidr_knitr_state$device
+  if (!is.null(device) && device %in% grDevices::dev.list()) {
+    return(device)
+  }
+  grDevices::dev.cur()
+}
+
+#' Note the device a knitted chunk draws on
+#'
+#' @param device_id Graphics device ID; `NULL` forgets it
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+note_knit_device <- function(device_id) {
+  .maidr_knitr_state$device <- device_id
+  invisible(NULL)
 }
 
 #' Drop the Base R calls recorded on devices that are no longer open

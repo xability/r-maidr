@@ -762,6 +762,37 @@ test_that("a chunk printing a lattice or ggplot2 chart beside Base R keeps knitr
   testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 4L)
 })
 
+test_that("a chunk's Base R chart is read from its own device while another is open", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  # A device left open -- a pdf(), an IDE's screen -- is made current again
+  # when knitr closes the device it saves a figure on.
+  grDevices::pdf(NULL)
+  other <- grDevices::dev.cur()
+  withr::defer(if (other %in% grDevices::dev.list()) grDevices::dev.off(other))
+
+  page <- knit_for(c(
+    "```{r bars}",
+    "barplot(c(a = 1, b = 2))",
+    "```",
+    "```{r hist}",
+    "hist(mtcars$mpg)",
+    "```"
+  ), dir)
+
+  charts <- inline_charts(page)
+  testthat::expect_length(charts, 2L)
+  types <- vapply(charts, function(svg) {
+    data <- jsonlite::parse_json(xml2::xml_attr(svg, "data-maidr-knitr"))
+    data$subplots[[1]][[1]]$layers[[1]]$type
+  }, character(1))
+  testthat::expect_identical(types, c("bar", "hist"))
+  testthat::expect_false(maidr:::has_device_calls(other))
+  testthat::expect_identical(unname(grDevices::dev.cur()), unname(other))
+})
+
 test_that("charts written with cat() in an asis loop, and cached charts, bring maidr.js", {
   testthat::skip_on_cran()
   skip_if_no_render()
