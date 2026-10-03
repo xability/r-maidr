@@ -16,4 +16,12 @@ Character scalar, or NULL
 The whole of \code{\link[=mapping_expr]{mapping_expr()}}'s expression, on one line, so that mappings
 which differ only past the end of \code{\link[=mapping_label]{mapping_label()}}'s name still differ.
 }
+\details{
+Less the ways a category is drawn somewhere else on its own axis: a change
+of type, and a category's position offset by a number. \code{factor(cyl)} is
+\code{cyl}, \code{as.numeric(term) + 0.1} is \code{term} dodged by hand, and
+\code{as.numeric(factor(class)) - 0.3} is \code{class} nudged beside its boxes, so
+none of them is something else plotted on that axis. An offset of anything
+else -- \code{sales + 1} -- is a different value, and stays one.
+}
 \keyword{internal}

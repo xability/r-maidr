@@ -239,6 +239,8 @@ test_that("a layer with no axis title is named for its own mapping", {
     )
 
   testthat::expect_identical(maidr:::layer_axis_label(p, 1, "y", ""), "density")
+  testthat::expect_identical(maidr:::layer_axis_label(p, 1, "y", c("a", "b")), "density")
+  testthat::expect_identical(maidr:::layer_axis_label(p, 1, "y", 5), "density")
   testthat::expect_identical(
     maidr:::layer_axis_label(p, 1, "y", "Density"),
     "Density"
@@ -372,4 +374,152 @@ test_that("facet and patchwork panels read as one entry are named by the axis ti
     panel_y_labels(two_lines(sales()) + bars),
     c("Units", "Units sold")
   )
+})
+
+test_that("a point layer beside one plotting something else is named for its own", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  col_point <- ggplot2::ggplot(sales(), ggplot2::aes(month)) +
+    ggplot2::geom_col(ggplot2::aes(y = sales)) +
+    ggplot2::geom_point(ggplot2::aes(y = target))
+  testthat::expect_identical(y_labels(col_point), c("sales", "target"))
+  testthat::expect_identical(
+    y_labels(col_point + ggplot2::labs(y = "Units")),
+    c("sales", "target")
+  )
+
+  two_points <- ggplot2::ggplot(mtcars, ggplot2::aes(disp)) +
+    ggplot2::geom_point(ggplot2::aes(y = hp)) +
+    ggplot2::geom_point(ggplot2::aes(y = qsec))
+  testthat::expect_identical(y_labels(two_points), c("hp", "qsec"))
+
+  ranges <- transform(sales(), lo = sales - 1, hi = sales + 1)
+  pointrange <- ggplot2::ggplot(ranges, ggplot2::aes(month)) +
+    ggplot2::geom_col(ggplot2::aes(y = target)) +
+    ggplot2::geom_pointrange(ggplot2::aes(y = sales, ymin = lo, ymax = hi))
+  testthat::expect_identical(y_labels(pointrange), c("target", "sales"))
+})
+
+test_that("a point layer that agrees with the others keeps the labs() title", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  alone <- ggplot2::ggplot(mtcars) +
+    ggplot2::geom_point(ggplot2::aes(wt, mpg)) +
+    ggplot2::annotate("text", x = 4, y = 30, label = "heavy") +
+    ggplot2::labs(x = "Weight", y = "Miles per gallon")
+  testthat::expect_identical(
+    layer_axis_labels(alone)[[1]],
+    c(x = "Weight", y = "Miles per gallon")
+  )
+
+  with_line <- ggplot2::ggplot(sales()) +
+    ggplot2::geom_line(ggplot2::aes(month, sales, group = 1)) +
+    ggplot2::geom_point(ggplot2::aes(month, sales)) +
+    ggplot2::labs(y = "Units sold")
+  testthat::expect_identical(y_labels(with_line), c("Units sold", "Units sold"))
+})
+
+test_that("a constant in aes() names nothing, on the layer or beside it", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  strip <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg)) +
+    ggplot2::geom_histogram(bins = 10) +
+    ggplot2::geom_point(ggplot2::aes(y = 0), shape = 3) +
+    ggplot2::labs(y = "Cars")
+  testthat::expect_identical(y_labels(strip), c("Cars", "Cars"))
+
+  # The stem's y = 0 is where it starts, not something else plotted on y
+  lollipop <- ggplot2::ggplot(sales()) +
+    ggplot2::geom_segment(ggplot2::aes(x = month, xend = month, y = 0, yend = sales)) +
+    ggplot2::geom_point(ggplot2::aes(x = month, y = sales)) +
+    ggplot2::labs(y = "Units sold")
+  testthat::expect_identical(utils::tail(y_labels(lollipop), 1), "Units sold")
+
+  # A title the author removed stays removed
+  blank <- ggplot2::ggplot(ggplot2::mpg) +
+    ggplot2::geom_jitter(ggplot2::aes(x = "", y = hwy), width = 0.1) +
+    ggplot2::labs(x = NULL, y = "Highway mpg")
+  testthat::expect_false(identical(layer_axis_labels(blank)[[1]][["x"]], '""'))
+
+  for (constant in list(0, "", rlang::quo(-0.005), rlang::quo(factor(1)))) {
+    testthat::expect_null(maidr:::mapping_expr(constant))
+  }
+})
+
+test_that("an arrow drawn from a data frame does not cost a scatter its titles", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  arrow_data <- data.frame(x0 = 4.5, y0 = 30, x1 = 5.2)
+  p <- ggplot2::ggplot(mtcars) +
+    ggplot2::geom_point(ggplot2::aes(wt, mpg)) +
+    ggplot2::geom_segment(
+      data = arrow_data,
+      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y0),
+      arrow = grid::arrow()
+    ) +
+    ggplot2::labs(x = "Weight", y = "Miles per gallon")
+
+  testthat::expect_identical(
+    layer_axis_labels(p)[[1]],
+    c(x = "Weight", y = "Miles per gallon")
+  )
+})
+
+test_that("a facet panel holding points beside a different layer is named by the title", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  faceted <- rbind(
+    transform(sales(), region = "North"),
+    transform(sales(), region = "South")
+  )
+  p <- ggplot2::ggplot(faceted, ggplot2::aes(month)) +
+    ggplot2::geom_col(ggplot2::aes(y = sales)) +
+    ggplot2::geom_point(ggplot2::aes(y = target)) +
+    ggplot2::facet_wrap(~region) +
+    ggplot2::labs(y = "Units")
+
+  data <- maidr:::Ggplot2PlotOrchestrator$new(p)$generate_maidr_data()
+  labels <- unlist(lapply(data$subplots[[1]], function(cell) {
+    vapply(cell$layers, function(layer) layer$axes$y$label, character(1))
+  }))
+  testthat::expect_identical(labels, c("Units", "Units"))
+})
+
+test_that("a variable dodged or nudged by hand is still that variable", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  raincloud <- ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(class, hwy)) +
+    ggplot2::geom_boxplot(width = 0.2) +
+    ggplot2::geom_point(ggplot2::aes(x = as.numeric(factor(class)) - 0.3)) +
+    ggplot2::labs(x = "Class", y = "Highway mpg")
+  testthat::expect_identical(
+    unname(vapply(layer_axis_labels(raincloud), function(a) a[["x"]], "")),
+    c("Class", "Class")
+  )
+
+  forest <- data.frame(
+    term = factor(c("age", "bmi", "smoker")),
+    est = c(1.1, 0.9, 2), lo = c(0.9, 0.7, 1.5), hi = c(1.3, 1.1, 2.6),
+    est2 = c(1.2, 0.8, 1.8), lo2 = c(1, 0.6, 1.3), hi2 = c(1.4, 1, 2.3)
+  )
+  two_models <- ggplot2::ggplot(forest) +
+    ggplot2::geom_pointrange(ggplot2::aes(
+      x = est, y = as.numeric(term) + 0.1, xmin = lo, xmax = hi
+    )) +
+    ggplot2::geom_pointrange(ggplot2::aes(
+      x = est2, y = as.numeric(term) - 0.1, xmin = lo2, xmax = hi2
+    )) +
+    ggplot2::labs(x = "Odds ratio", y = "Term")
+  testthat::expect_identical(y_labels(two_models), c("Term", "Term"))
+
+  # An offset of a measurement is a different value, not a dodge
+  testthat::expect_false(identical(
+    maidr:::mapping_key(rlang::quo(sales + 1)),
+    maidr:::mapping_key(rlang::quo(sales))
+  ))
+
+  # Two different computations of one column are still told apart
+  week <- rlang::quo(stats::filter(cases, rep(1 / 7, 7)))
+  month <- rlang::quo(stats::filter(cases, rep(1 / 28, 28)))
+  testthat::expect_false(identical(maidr:::mapping_key(week), maidr:::mapping_key(month)))
 })

@@ -215,6 +215,11 @@ positional_axis_label <- function(plot, built = NULL, aes_name = "x",
 #' the older spellings of a computed variable (`stat(density)`, `..density..`)
 #' and the `.data` pronoun (`.data$hwy`, `.data[["hwy"]]`), wherever they sit.
 #'
+#' A mapping that names no variable -- a constant such as `aes(y = 0)`,
+#' `aes(x = "")` or `aes(x = factor(1))` -- is NULL, as if the layer had none:
+#' it places the layer rather than plotting something, and ggplot2 does not
+#' name an axis after it either.
+#'
 #' @param mapping A quosure or expression from `aes()`, or NULL
 #' @return The expression, or NULL
 #' @keywords internal
@@ -282,7 +287,11 @@ mapping_expr <- function(mapping) {
     e
   }
 
-  strip(expr)
+  expr <- strip(expr)
+  if (length(all.vars(expr)) == 0) {
+    return(NULL)
+  }
+  expr
 }
 
 #' The name ggplot2 gives a mapped expression
@@ -318,6 +327,13 @@ mapping_label <- function(mapping) {
 #' The whole of [mapping_expr()]'s expression, on one line, so that mappings
 #' which differ only past the end of [mapping_label()]'s name still differ.
 #'
+#' Less the ways a category is drawn somewhere else on its own axis: a change
+#' of type, and a category's position offset by a number. `factor(cyl)` is
+#' `cyl`, `as.numeric(term) + 0.1` is `term` dodged by hand, and
+#' `as.numeric(factor(class)) - 0.3` is `class` nudged beside its boxes, so
+#' none of them is something else plotted on that axis. An offset of anything
+#' else -- `sales + 1` -- is a different value, and stays one.
+#'
 #' @param mapping A quosure or expression from `aes()`, or NULL
 #' @return Character scalar, or NULL
 #' @keywords internal
@@ -325,6 +341,22 @@ mapping_key <- function(mapping) {
   expr <- mapping_expr(mapping)
   if (is.null(expr)) {
     return(NULL)
+  }
+  is_coercion <- function(e) {
+    rlang::is_call(e, c(
+      "as.numeric", "as.double", "as.integer",
+      "factor", "as.factor", "as.character"
+    ), n = 1)
+  }
+  if (rlang::is_call(expr, c("+", "-"), n = 2) &&
+    is.numeric(expr[[3]]) && is_coercion(expr[[2]])) {
+    expr <- expr[[2]]
+  } else if (rlang::is_call(expr, "+", n = 2) &&
+    is.numeric(expr[[2]]) && is_coercion(expr[[3]])) {
+    expr <- expr[[3]]
+  }
+  while (is_coercion(expr)) {
+    expr <- expr[[2]]
   }
   paste(deparse(expr, width.cutoff = 500L), collapse = " ")
 }
@@ -401,7 +433,9 @@ layer_axis_label <- function(plot, layer_index, aes_name, axis_label) {
   if (is.null(own)) {
     return(axis_label)
   }
-  if (!nzchar(axis_label)) {
+  # No title to keep -- removed, or not one string (`labs(y = 5)`,
+  # `labs(y = c("a", "b"))`) -- and the layer's own name is better than none.
+  if (!rlang::is_string(axis_label) || !nzchar(axis_label)) {
     return(own)
   }
 

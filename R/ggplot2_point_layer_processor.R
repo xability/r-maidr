@@ -46,6 +46,10 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
     #' (min, max, tickStep). Grid fields are only included when they can be
     #' successfully extracted from the built plot scales.
     #'
+    #' Each label is the axis title unless the layer maps that axis itself and
+    #' another layer plots something else there (see
+    #' \code{layer_axis_label()}), the rule every other layer follows.
+    #'
     #' @param plot The ggplot2 object
     #' @param built Built plot data (optional)
     #' @param panel_id Panel ID for faceted plots (optional)
@@ -78,6 +82,15 @@ Ggplot2PointLayerProcessor <- R6::R6Class(
           y_label <- rlang::as_label(plot$mapping$y)
         }
       }
+
+      # Those are the axis titles. A point layer beside one that plots
+      # something else on an axis is named for what it plots there, as every
+      # layer read through `extract_layer_axes()` is: the points of
+      # `geom_col(aes(y = sales)) + geom_point(aes(y = target))` are "target",
+      # not "sales" (#349).
+      layer_index <- self$get_layer_index()
+      x_label <- layer_axis_label(plot, layer_index, "x", x_label)
+      y_label <- layer_axis_label(plot, layer_index, "y", y_label)
 
       # Build per-axis objects (always include label)
       x_axis <- list(label = x_label)

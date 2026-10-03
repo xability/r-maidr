@@ -19,4 +19,10 @@ evaluated at (\code{after_stat(density)}, \code{stage(hwy, after_stat = density)
 the older spellings of a computed variable (\code{stat(density)}, \code{..density..})
 and the \code{.data} pronoun (\code{.data$hwy}, \code{.data[["hwy"]]}), wherever they sit.
 }
+\details{
+A mapping that names no variable -- a constant such as \code{aes(y = 0)},
+\code{aes(x = "")} or \code{aes(x = factor(1))} -- is NULL, as if the layer had none:
+it places the layer rather than plotting something, and ggplot2 does not
+name an axis after it either.
+}
 \keyword{internal}
