@@ -391,6 +391,23 @@ test_that("fig.align and the author's out.width lay the chart out", {
     maidr:::knitr_inline_chart(svg, list(out.width = "\\linewidth")),
     '<div class="maidr-knitr">', fixed = TRUE
   )
+
+  # Figures held to the end of the chunk at such a width sit in a row, which
+  # the last of them ends, as knitr's images do.
+  held <- list(fig.show = "hold", fig.align = "default", out.width = "50%", fig.num = 2L)
+  first <- maidr:::knitr_inline_chart(svg, c(held, fig.cur = 1L), figure = TRUE)
+  last <- maidr:::knitr_inline_chart(svg, c(held, fig.cur = 2L), index = 2L, figure = TRUE)
+  row <- '<div class="maidr-knitr maidr-knitr-row" style="width: 50%;">'
+  testthat::expect_match(first, row, fixed = TRUE)
+  testthat::expect_false(grepl("maidr-knitr-row-end", first, fixed = TRUE))
+  testthat::expect_match(last, row, fixed = TRUE)
+  testthat::expect_match(last, '</div>\n<div class="maidr-knitr-row-end"></div>\n```')
+  # Not when aligned, as knitr's images are blocks then, nor at full width.
+  for (change in list(list(fig.align = "center"), list(out.width = NULL))) {
+    options <- utils::modifyList(c(held, fig.cur = 1L), change)
+    out <- maidr:::knitr_inline_chart(svg, options, figure = TRUE)
+    testthat::expect_false(grepl("maidr-knitr-row", out, fixed = TRUE))
+  }
 })
 
 test_that("a chart knitr is told to hide is not written", {

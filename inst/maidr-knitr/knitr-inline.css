@@ -42,6 +42,18 @@
   margin-top: 0.5em;
 }
 
+/* The charts of figures knitr holds, at a width the author set, sit side by
+ * side as its images do. Each is a raw block of its own, so whitespace
+ * stands between them, which inline blocks would show: they float, and
+ * whatever follows them, or the end the last of them writes, starts below. */
+.maidr-knitr.maidr-knitr-row {
+  float: left;
+}
+.maidr-knitr-row + :not(.maidr-knitr-row),
+.maidr-knitr-row-end {
+  clear: both;
+}
+
 /* A visible focus (WCAG 2.4.7) that survives a page that removes every
  * outline (*:focus { outline: none !important }), and maidr.js's own
  * figure[id^="maidr-figure"] > div[tabindex="0"]:focus { outline: none

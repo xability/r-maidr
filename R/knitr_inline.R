@@ -148,7 +148,9 @@ warn_inline_fallback <- function(error) {
 #' * `fig.align` aligns the chart, and an `out.width` the author sets (not
 #'   the one knitr derives for a retina figure) sets the wrapper's width,
 #'   which the chart shrinks to; `fig.width` and `fig.height` are not read,
-#'   since maidr draws every chart at its own size.
+#'   since maidr draws every chart at its own size. The charts in place of
+#'   figures `fig.show = "hold"` holds, at such a width and not aligned,
+#'   sit side by side, as knitr's images do.
 #'
 #' `fig.cap` and `fig.alt` are evaluated by knitr only once the chunk has
 #' run, so a chart `knit_print()` writes while the chunk runs can see them
@@ -195,9 +197,9 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   hidden_caption <- if (quarto_caption && !fig_label) caption
   # knitr captions the figures it holds to the end of a chunk once, below
   # the last of them.
-  held <- figure && identical(options$fig.show, "hold") &&
-    isTRUE(options$fig.cur < options$fig.num)
-  if (quarto_caption || held) {
+  held <- figure && identical(options$fig.show, "hold")
+  last_held <- held && !isTRUE(options$fig.cur < options$fig.num)
+  if (quarto_caption || (held && !last_held)) {
     caption <- NULL
   }
 
@@ -208,19 +210,23 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   xml2::xml_attr(root, "maidr-data") <- NULL
   xml2::xml_attr(root, "data-maidr-knitr") <- json
 
-  align <- options$fig.align
-  wrapper_class <- c(
-    if (!is.null(caption)) "figure",
-    "maidr-knitr",
-    if (length(align) == 1L && align %in% c("left", "center", "right")) {
-      paste0("maidr-knitr-", align)
-    }
-  )
   # knitr sets out.width itself for a retina figure; only the author's is
   # the chart's.
   authored <- chunk_sets_option(options, "out.width") ||
     !is.null(knitr::opts_chunk$get("out.width"))
   width <- if (authored) knitr_chart_width(options$out.width, index)
+  align <- options$fig.align
+  aligned <- length(align) == 1L && align %in% c("left", "center", "right")
+  # knitr writes the figures it holds, at a width the author sets and with
+  # no alignment, as images in a row; Quarto puts each in a block of its
+  # own. Such charts float in a row, and the last of them ends it.
+  side_by_side <- held && !quarto && !is.null(width) && !aligned
+  wrapper_class <- c(
+    if (!is.null(caption)) "figure",
+    "maidr-knitr",
+    if (side_by_side) "maidr-knitr-row",
+    if (aligned) paste0("maidr-knitr-", align)
+  )
 
   html <- c(
     sprintf(
@@ -249,7 +255,8 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
         prefix, htmltools::htmlEscape(hidden_caption)
       )
     },
-    "</div>"
+    "</div>",
+    if (side_by_side && last_held) '<div class="maidr-knitr-row-end"></div>'
   )
   block <- paste(xfun::fenced_block(html, attrs = "=html"), collapse = "\n")
   if (float) {
