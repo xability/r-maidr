@@ -97,7 +97,10 @@ test_that("maidr_plot_hook shows a figure only for the one chart its tokens name
   maidr::maidr_on()
   maidr:::clear_all_device_storage()
   figures <- maidr:::.maidr_knit_figures
-  figures$objects <- list(o1 = list(plot = create_test_ggplot_bar(), device = 2L))
+  figures$objects <- list(
+    o1 = list(content = "<svg/>", device = 2L),
+    o2 = list(content = NULL, device = 2L)
+  )
   maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), 2L)
   session <- maidr:::.maidr_base_r_session
   storage <- session$devices[["2"]]
@@ -105,11 +108,12 @@ test_that("maidr_plot_hook shows a figure only for the one chart its tokens name
   session$devices[["2"]] <- storage
 
   resolve <- maidr:::resolve_figure_chart
-  testthat::expect_s3_class(resolve("o1")$plot, "ggplot")
+  testthat::expect_identical(resolve("o1")$content, "<svg/>")
   testthat::expect_identical(resolve("b1")$calls, storage$calls)
   testthat::expect_identical(resolve("b1")$device, 2L)
-  # Two charts on a page, a chart drawn over, one spanning pages, a token no
-  # chart has: none.
+  # A chart maidr could not read, two charts on a page, a chart drawn over,
+  # one spanning pages, a token no chart has: none.
+  testthat::expect_null(resolve("o2"))
   testthat::expect_null(resolve(c("o1", "b1")))
   testthat::expect_null(resolve("xo1"))
   testthat::expect_null(resolve(NA_character_))

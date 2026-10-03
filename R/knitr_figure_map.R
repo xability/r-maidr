@@ -22,6 +22,11 @@
 # anything else -- two charts on a page, a chart something else was drawn
 # over, a chart drawn across pages, a replay made by the chunk itself -- is
 # left as knitr's own figure. A wrong chart is never shown.
+#
+# A ggplot2 or lattice chart is read when it is printed, not when its figure
+# is written: knitr writes a chunk's figures once all of its code has run,
+# and a chart can refer to variables -- `aes(x, y)` on vectors outside its
+# data, a loop's index -- that the code goes on to change.
 
 .maidr_knit_figures <- new.env(parent = emptyenv())
 # Tokens reported by the pages replayed since the plot hook last ran, and the
@@ -29,15 +34,16 @@
 .maidr_knit_figures$seen <- character()
 .maidr_knit_figures$seen_page <- integer()
 # The ggplot2 and lattice charts drawn in the knit, by token: each a list of
-# the chart and the device it was drawn on.
+# the chart as maidr read it when it was printed (`NULL` when maidr could
+# not) and the device it was drawn on.
 .maidr_knit_figures$objects <- list()
 .maidr_knit_figures$counter <- 0L
 .maidr_knit_figures$session <- NULL
 # The pages the knit has started, and the count when a Base R call started.
 .maidr_knit_figures$page <- 0L
 .maidr_knit_figures$call_start_page <- 0L
-# TRUE while a marker is made, which evaluates it once, and while the plot
-# hook renders a chart, which draws charts of its own.
+# TRUE while a marker is made, which evaluates it once, and while maidr
+# reads a chart, which draws charts of its own (`knit_chart_content()`).
 .maidr_knit_figures$drawing <- FALSE
 .maidr_knit_figures$rendering <- FALSE
 # TRUE from maidr's install into a knit until a chunk runs with maidr's
@@ -49,7 +55,7 @@
 #'
 #' While knitting HTML, with maidr's plot hook the one knitr will call: a
 #' chart drawn when nothing reads its marker would only be queued for
-#' nothing. Not while the hook renders a chart.
+#' nothing. Not while maidr reads a chart.
 #'
 #' @return Logical
 #' @keywords internal
@@ -356,9 +362,11 @@ take_replayed_tokens <- function() {
 #'
 #' The chart is drawn as its library draws it, on knitr's device, where knitr
 #' records it as a figure; the plot hook then shows the chart in its place.
-#' A print that composes a page -- into a viewport, or with lattice's
-#' `split`, `more`, `position`, `newpage = FALSE` or `draw.in` -- draws a part
-#' of a page others share, and is not marked: its figure stays knitr's.
+#' It is read now, as it is drawn, and queued as read (see
+#' `knit_chart_content()`). A print that composes a page -- into a viewport,
+#' or with lattice's `split`, `more`, `position`, `newpage = FALSE` or
+#' `draw.in` -- draws a part of a page others share, and is not marked: its
+#' figure stays knitr's.
 #'
 #' @param x The chart to show, as maidr reads it
 #' @param draw A function of no arguments drawing it natively
@@ -371,10 +379,51 @@ draw_as_knit_figure <- function(x, draw, mark = TRUE) {
   drawn <- draw()
   if (mark && knit_figures_active()) {
     token <- new_knit_token("o")
-    .maidr_knit_figures$objects[[token]] <- list(plot = x, device = grDevices::dev.cur())
+    device <- grDevices::dev.cur()
     mark_knit_page(token, start_page)
+    .maidr_knit_figures$objects[[token]] <- list(
+      content = knit_chart_content(x),
+      device = device
+    )
   }
   invisible(drawn)
+}
+
+#' Read a chart for a figure of the chunk
+#'
+#' As [create_maidr_html()] reads it for a page. Called as a ggplot2 or
+#' lattice chart is printed, while the chunk's code runs: what it says is
+#' kept out of the document, which has the warnings and messages of the
+#' chart's own drawing already. A Base R chart is read from its device's
+#' recorded calls when its figure is written (`render_figure_chart()`).
+#'
+#' @param plot The ggplot2 or lattice chart, or `NULL` for Base R
+#' @return The chart's SVG, or `NULL` when maidr cannot read the chart or
+#'   its build fails
+#' @keywords internal
+#' @noRd
+knit_chart_content <- function(plot) {
+  # Charts maidr draws while it reads one are no figures of the chunk.
+  state <- .maidr_knit_figures
+  rendering <- state$rendering
+  state$rendering <- TRUE
+  on.exit(state$rendering <- rendering, add = TRUE)
+  system <- if (is.null(plot)) {
+    "base_r"
+  } else if (inherits(plot, "trellis")) {
+    "lattice"
+  } else {
+    "ggplot2"
+  }
+  tryCatch(
+    suppressWarnings(suppressMessages({
+      orchestrator <- get_global_registry()$get_adapter(system)$create_orchestrator(plot)
+      if (!orchestrator$should_fallback()) {
+        create_maidr_html(plot, shiny = TRUE, orchestrator = orchestrator)
+      }
+    })),
+    error = function(e) NULL
+  )
 }
 
 #' The chart a figure's tokens name, or `NULL` when they name no one chart
@@ -385,8 +434,8 @@ draw_as_knit_figure <- function(x, draw, mark = TRUE) {
 #' over or as spanning pages, and calls no longer recorded are none.
 #'
 #' @param tokens The figure's tokens, from `take_replayed_tokens()`
-#' @return `list(plot = <chart>)`, `list(device = <id>, calls = <entries>)`,
-#'   or `NULL`
+#' @return `list(content = <chart's SVG>)`, `list(device = <id>, calls =
+#'   <entries>)`, or `NULL`
 #' @keywords internal
 #' @noRd
 resolve_figure_chart <- function(tokens) {
@@ -396,7 +445,8 @@ resolve_figure_chart <- function(tokens) {
   objects <- intersect(tokens, names(.maidr_knit_figures$objects))
   calls <- setdiff(tokens, objects)
   if (length(objects) == 1L && length(calls) == 0L) {
-    return(list(plot = .maidr_knit_figures$objects[[objects]]$plot))
+    content <- .maidr_knit_figures$objects[[objects]]$content
+    return(if (!is.null(content)) list(content = content))
   }
   if (length(objects) > 0L) {
     return(NULL)
@@ -477,31 +527,10 @@ with_figure_calls <- function(device, calls, code) {
 #' @keywords internal
 #' @noRd
 render_figure_chart <- function(chart, options) {
-  # Charts maidr draws while it renders are no figures of the chunk.
-  .maidr_knit_figures$rendering <- TRUE
-  on.exit(.maidr_knit_figures$rendering <- FALSE, add = TRUE)
-  build <- function(plot) {
-    system <- if (is.null(plot)) {
-      "base_r"
-    } else if (inherits(plot, "trellis")) {
-      "lattice"
-    } else {
-      "ggplot2"
-    }
-    orchestrator <- get_global_registry()$get_adapter(system)$create_orchestrator(plot)
-    if (orchestrator$should_fallback()) {
-      return(NULL)
-    }
-    create_maidr_html(plot, shiny = TRUE, orchestrator = orchestrator)
+  content <- chart$content
+  if (is.null(content)) {
+    content <- with_figure_calls(chart$device, chart$calls, knit_chart_content(NULL))
   }
-  content <- tryCatch(
-    if (is.null(chart$plot)) {
-      with_figure_calls(chart$device, chart$calls, build(NULL))
-    } else {
-      build(chart$plot)
-    },
-    error = function(e) NULL
-  )
   if (is.null(content) || !maidr_chart_has_data(content)) {
     return(NULL)
   }

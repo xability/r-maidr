@@ -69,6 +69,39 @@ test_that("every chart a chunk draws is shown in place of its figure, in order",
   testthat::expect_false(anyDuplicated(ids) > 0L)
 })
 
+test_that("a printed chart is read as it was when it was printed", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+
+  # aes() on vectors outside a chart's data is evaluated when the chart is
+  # built, and knitr writes the figures once the loop is over, when y holds
+  # the last chart's values.
+  page <- knit_for(c(
+    "```{r lazy}",
+    "for (i in 1:2) {",
+    "  y <- c(i, 10 * i)",
+    "  print(ggplot2::ggplot(mapping = ggplot2::aes(c('a', 'b'), y)) + ggplot2::geom_col())",
+    "}",
+    "```",
+    # Reading the chart says nothing in the document: its warning is the
+    # one its drawing gave.
+    "```{r missing}",
+    "print(ggplot2::ggplot(data.frame(u = c(1, NA, 3), v = 1:3), ggplot2::aes(u, v)) +",
+    "  ggplot2::geom_point())",
+    "```"
+  ), dir)
+
+  values <- lapply(inline_charts(page)[1:2], function(svg) {
+    data <- jsonlite::parse_json(xml2::xml_attr(svg, "data-maidr-knitr"))
+    points <- data$subplots[[1]][[1]]$layers[[1]]$data
+    vapply(points, function(point) as.numeric(point$y), numeric(1))
+  })
+  testthat::expect_identical(values, list(c(1, 10), c(2, 20)))
+  testthat::expect_length(inline_charts(page), 3L)
+  testthat::expect_length(gregexpr("Removed 1 row", page, fixed = TRUE)[[1]], 1L)
+})
+
 test_that("fig.keep and fig.show pick the figures, and each is the chart it shows", {
   skip_if_no_figures()
   local_knitr_state()
