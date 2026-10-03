@@ -1,0 +1,98 @@
+/* maidr knitr-inline: the charts r-maidr writes inline into a knitted HTML
+ * page. Every rule is scoped to the .maidr-knitr wrapper around a chart, or
+ * to a dashboard box holding one. */
+
+.maidr-knitr {
+  margin: 0 0 1em;
+  max-width: 100%;
+}
+
+/* maidr.js builds article > figure > div[tabindex] around the svg; the host
+ * page's figure margins are not the chart's. */
+.maidr-knitr article,
+.maidr-knitr figure {
+  margin: 0;
+  padding: 0;
+}
+
+/* The chart shrinks to a narrow column and keeps its shape. */
+.maidr-knitr-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* fig.align; knitr's figures are left-aligned by default. */
+.maidr-knitr-center > .maidr-knitr-svg,
+.maidr-knitr-center figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: auto;
+  margin-right: auto;
+}
+.maidr-knitr-right > .maidr-knitr-svg,
+.maidr-knitr-right figure[id^="maidr-figure"] > [tabindex] {
+  margin-left: auto;
+}
+.maidr-knitr-center > .maidr-knitr-caption {
+  text-align: center;
+}
+.maidr-knitr-right > .maidr-knitr-caption {
+  text-align: right;
+}
+.maidr-knitr > .maidr-knitr-caption {
+  margin-top: 0.5em;
+}
+
+/* A visible focus (WCAG 2.4.7) that survives a page that removes every
+ * outline (*:focus { outline: none !important }), and maidr.js's own
+ * figure[id^="maidr-figure"] > div[tabindex="0"]:focus { outline: none
+ * !important }, which its plotly adapter adds to the page once a plotly
+ * chart is bound: this selector is more specific. The ring is drawn inside
+ * the chart, because Quarto's .cell-output-display (overflow: auto),
+ * flexdashboard's .chart-stage and reveal.js's slides (overflow: hidden)
+ * clip one drawn outside it. A light band inside the ring, the outline of
+ * the svg itself, keeps it visible on a dark plot background. */
+.maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus {
+  outline: 3px solid #1a5fb4 !important;
+  outline-offset: -3px !important;
+}
+.maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
+  outline: 2px solid #ffffff !important;
+  outline-offset: -5px !important;
+}
+
+/* The braille and review fields, and maidr's buttons, take the focus in
+ * their modes, and need a ring as much as the chart does. */
+.maidr-knitr textarea:focus,
+.maidr-knitr input:focus,
+.maidr-knitr select:focus,
+.maidr-knitr button:focus-visible,
+.maidr-knitr a:focus-visible,
+.maidr-knitr [role="button"]:focus-visible {
+  outline: 3px solid #1a5fb4 !important;
+  outline-offset: 1px !important;
+}
+
+@media (forced-colors: active) {
+  .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus,
+  .maidr-knitr textarea:focus,
+  .maidr-knitr input:focus,
+  .maidr-knitr select:focus,
+  .maidr-knitr button:focus-visible,
+  .maidr-knitr a:focus-visible,
+  .maidr-knitr [role="button"]:focus-visible {
+    outline-color: Highlight !important;
+  }
+  .maidr-knitr figure[id^="maidr-figure"] > div[tabindex="0"]:focus .maidr-knitr-svg {
+    outline: none !important;
+  }
+}
+
+/* Dashboards size their boxes to the window and hide what does not fit:
+ * flexdashboard's .chart-shim, and the fill items of a Quarto dashboard's
+ * cards. knitr-inline.js shrinks a chart to the height of such a box when
+ * it does not fit, and the box scrolls rather than clip maidr's braille and
+ * review fields below the chart. */
+.chart-shim:has(> .maidr-knitr),
+.html-fill-item:has(> .maidr-knitr) {
+  overflow: auto;
+}
