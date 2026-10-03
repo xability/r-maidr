@@ -157,6 +157,9 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   config <- NULL
   for (call in layout_calls) {
     args <- call$args
+    if (call$function_name == "par") {
+      args <- par_setting_arguments(args)
+    }
     if (
       call$function_name == "par" &&
         (!is.null(args[["mfrow"]]) || !is.null(args[["mfcol"]]))
@@ -177,8 +180,13 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
         total_panels = layout_vec[1] * layout_vec[2],
         layout_index = call$storage_index
       )
-    } else if (call$function_name == "layout") {
+    } else if (call$function_name == "layout" && length(args) > 0) {
+      # layout() takes a vector as a one-column matrix: `layout(1)` puts
+      # the device back to a single panel.
       mat <- args[[1]]
+      if (is.numeric(mat) && !is.matrix(mat)) {
+        mat <- as.matrix(mat)
+      }
       if (is.matrix(mat)) {
         config <- list(
           type = "layout",
@@ -194,6 +202,21 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   }
 
   config
+}
+
+#' The settings a recorded `par()` call made
+#'
+#' `par()` takes its settings as arguments, or as one list of them: the
+#' list an earlier `par()` call returned, as in the idiom
+#' `op <- par(mfrow = c(1, 2)); ...; par(op)`, which puts the device back
+#' to the grid it had.
+#'
+#' @param args The recorded arguments of the `par()` call
+#' @return The settings, as a named list
+#' @keywords internal
+#' @noRd
+par_setting_arguments <- function(args) {
+  if (length(args) == 1L && is.list(args[[1L]])) args[[1L]] else args
 }
 
 #' Check Whether a Panel Configuration Describes a Multi-panel Grid
