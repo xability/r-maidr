@@ -8,11 +8,13 @@
 #' are recorded until [show()] is called. lattice is reached through its own
 #' hook, `lattice.options(print.function = )`, which maidr sets once lattice's
 #' namespace is loaded; a print function set before is kept, and draws the
-#' prints maidr leaves to lattice. Calling `maidr_on()` yourself is needed
-#' in two places: after [maidr_off()], to start again, and once in the setup
-#' chunk of an R Markdown or Quarto document, where it registers the
-#' `knit_print` methods and the plot hook that turn every plot the document
-#' draws into an accessible chart. `library(maidr)` alone installs neither.
+#' prints maidr leaves to lattice.
+#'
+#' In an R Markdown or Quarto document, `library(maidr)` is enough: the
+#' first plot the document draws installs the knitr hooks that make every
+#' plot of it an accessible chart, in each render of a session. Calling
+#' `maidr_on()` yourself is needed after [maidr_off()], to start again; in a
+#' document, it installs the hooks at once.
 #'
 #' @return Invisible TRUE on success
 #' @examples
@@ -54,37 +56,11 @@ maidr_on <- function() {
     error = function(e) NULL
   )
 
-  # If knitr is available, also register knitr hooks (for RMarkdown)
+  # The knit_print methods for ggplot2 and lattice charts are registered
+  # when maidr loads. These two hide what hist() and density() return, whose
+  # charts the plot hook shows, and are registered only from here: a
+  # density(x) printed for its numbers is not hidden because maidr is loaded.
   if (requireNamespace("knitr", quietly = TRUE)) {
-    # Register knit_print method for ggplot (S3 class name)
-    registerS3method(
-      "knit_print",
-      "ggplot",
-      knit_print.ggplot,
-      envir = asNamespace("knitr")
-    )
-
-    # Also register for S7 class name used in ggplot2 v4+
-    tryCatch(
-      registerS3method(
-        "knit_print",
-        "ggplot2::ggplot",
-        knit_print.ggplot,
-        envir = asNamespace("knitr")
-      ),
-      error = function(e) NULL
-    )
-
-    # A trellis object a chunk returns is auto-printed through knit_print,
-    # which makes it accessible whether or not lattice is loaded yet.
-    registerS3method(
-      "knit_print",
-      "trellis",
-      knit_print.trellis,
-      envir = asNamespace("knitr")
-    )
-
-    # Register knit_print methods to suppress return value printing
     registerS3method(
       "knit_print",
       "histogram",
@@ -98,21 +74,14 @@ maidr_on <- function() {
       knit_print.density,
       envir = asNamespace("knitr")
     )
-
-    # Store original plot hook - but never our own hook: a second
-    # maidr_on() call would otherwise capture maidr_plot_hook as the
-    # "original", making the fallback path recurse into itself forever.
-    current_hook <- knitr::knit_hooks$get("plot")
-    if (!identical(current_hook, maidr_plot_hook)) {
-      .maidr_knitr_state$original_plot_hook <- current_hook
-    }
-
-    # Override the plot hook to intercept Base R plots
-    knitr::knit_hooks$set(plot = maidr_plot_hook)
   }
 
   # Store state
   .maidr_knitr_state$enabled <- TRUE
+
+  # The hooks belong to the knit, which puts them back when it ends: they are
+  # installed into the one running, if any.
+  ensure_knitr_integration()
 
   invisible(TRUE)
 }
@@ -123,7 +92,9 @@ maidr_on <- function() {
 #' After calling this, Base R plots display in the standard graphics window,
 #' ggplot2 objects render with the default ggplot2 method, and lattice charts
 #' print as lattice draws them: `lattice.options(print.function = )` is set
-#' back to what it was before maidr set it.
+#' back to what it was before maidr set it. In an R Markdown or Quarto
+#' document, the chunks after it are knitted as they would be without maidr,
+#' and maidr's knitr hooks are taken out until [maidr_on()].
 #'
 #' @return Invisible TRUE on success
 #' @seealso [maidr_on()] to enable MAIDR rendering
@@ -156,12 +127,9 @@ maidr_off <- function() {
     error = function(e) NULL
   )
 
-  # Reset knitr hooks if applicable
-  if (requireNamespace("knitr", quietly = TRUE)) {
-    if (!is.null(.maidr_knitr_state$original_plot_hook)) {
-      knitr::knit_hooks$set(plot = .maidr_knitr_state$original_plot_hook)
-    }
-  }
+  # Take the knitr hooks out of the running knit, or out of the session a
+  # plain knitr::knit() left them in.
+  uninstall_knitr_integration()
 
   # Update state
   .maidr_knitr_state$enabled <- FALSE
@@ -179,34 +147,38 @@ is_maidr_on <- function() {
 
 #' Custom knit_print Method for ggplot Objects
 #'
-#' Converts ggplot objects to MAIDR widgets for accessible rendering in RMarkdown.
-#' Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-#' Automatically falls back to image rendering for unsupported plot types or
-#' non-HTML output formats (PDF, EPUB).
+#' Makes a ggplot object a chunk returns an accessible MAIDR chart: in its
+#' own iframe in HTML output, and as an inline image when MAIDR cannot read
+#' the chart. In any other output format (PDF, Word, ...) the chart is drawn by
+#' ggplot2 and becomes knitr's figure.
+#'
+#' Registered for knitr when maidr loads, so `library(maidr)` is all a
+#' document needs; it installs maidr into the running knit as well.
 #'
 #' @param x A ggplot object
 #' @param options Chunk options from knitr
 #' @param ... Additional arguments (ignored)
-#' @return A knit_asis object containing the iframe HTML or inline image
+#' @return A knit_asis object holding the chart, or `NULL` (invisible) when
+#'   the chart is drawn natively
+#' @exportS3Method knitr::knit_print
 #' @keywords internal
 knit_print.ggplot <- function(x, options = list(), ...) {
-  # registerS3method() cannot be undone, so honour maidr_off() here:
-  # render with the original ggplot2 print method when disabled.
+  # Honour maidr_off(), which cannot take a registered method out: render
+  # with the original ggplot2 print method when disabled.
   if (!is_ggplot2_enabled()) {
     print_ggplot_natively(x)
     return(invisible(NULL))
   }
 
-  # Check output format - only use iframes for HTML output
+  ensure_knitr_integration()
+
   if (!is_html_output()) {
     # For PDF/EPUB/LaTeX: let knitr handle the plot natively. Use the
     # ORIGINAL ggplot2 print method: plain print(x) would dispatch to
-    # maidr's own print.ggplot override and hijack the figure out of the
-    # document.
+    # maidr's own print.ggplot override.
     print_ggplot_natively(x)
     return(invisible(NULL))
   }
-
   # Create orchestrator ONCE and reuse it
   registry <- get_global_registry()
   adapter <- registry$get_adapter("ggplot2")
@@ -222,10 +194,7 @@ knit_print.ggplot <- function(x, options = list(), ...) {
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
 
   # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
-  iframe_html <- create_knitr_iframe(content)
-
-  # Return as raw HTML
-  knitr::asis_output(iframe_html)
+  knitr::asis_output(create_knitr_iframe(content))
 }
 
 #' Custom knit_print Method for lattice (trellis) Objects
@@ -239,24 +208,32 @@ knit_print.ggplot <- function(x, options = list(), ...) {
 #' itself -- \code{print(p)}, lattice's idiom for a chart inside a loop or a
 #' function -- is drawn by lattice onto knitr's device and included as the
 #' figure knitr records, since knitr does not route an explicit print
-#' through \code{knit_print}. A Base R chart drawn later in the same chunk
-#' takes that figure's place: the plot hook hands the first figure of a
-#' chunk whose device recorded Base R calls to those calls.
+#' through \code{knit_print}. A chunk that draws Base R charts on that
+#' device as well keeps all its figures static: the plot hook cannot tell
+#' which figure the Base R calls drew.
 #'
 #' @param x A trellis object
 #' @param options Chunk options from knitr
 #' @param ... Additional arguments (ignored)
-#' @return A knit_asis object containing the iframe HTML or inline image
+#' @return A knit_asis object holding the chart, or `NULL` (invisible) when
+#'   the chart is drawn natively
+#' @exportS3Method knitr::knit_print
 #' @keywords internal
 knit_print.trellis <- function(x, options = list(), ...) {
-  # registerS3method() cannot be undone, so honour maidr_off() here, and
-  # draw with lattice itself: a plain print() would go through MAIDR's own
-  # print hook.
-  if (!is_lattice_enabled() || !is_html_output()) {
+  # Honour maidr_off(), which cannot take a registered method out, and draw
+  # with lattice itself: a plain print() would go through MAIDR's own print
+  # hook.
+  if (!is_lattice_enabled()) {
     print_trellis_natively(x)
     return(invisible(NULL))
   }
 
+  ensure_knitr_integration()
+
+  if (!is_html_output()) {
+    print_trellis_natively(x)
+    return(invisible(NULL))
+  }
   orchestrator <- get_global_registry()$get_adapter("lattice")$create_orchestrator(x)
 
   if (orchestrator$should_fallback()) {
@@ -361,36 +338,42 @@ create_maidr_widget_internal <- function(plot = NULL) {
 
 #' knitr Plot Hook for Base R Plots
 #'
-#' Intercepts Base R plot output and converts to MAIDR iframe.
-#' Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-#' Automatically falls back to image rendering for unsupported plot types or
-#' non-HTML output formats (PDF, EPUB).
-#' This replaces knitr's default plot hook when maidr_on() is called.
+#' Makes the figure of a chunk that drew Base R charts an accessible MAIDR
+#' chart, in place of the figure file knitr saved: in its own iframe in HTML
+#' output, and as an inline image when MAIDR cannot read the chart. Any other figure,
+#' and every figure of any other output format (PDF, Word, ...), is left to
+#' the hook it was installed over.
+#'
+#' A chunk's recorded calls make its first figure. A chunk that also drew a
+#' ggplot2 or lattice chart with `print()` on the same device keeps knitr's
+#' figures: which figure the calls drew cannot be told, and a wrong chart
+#' must never be shown.
 #'
 #' @param x The plot file path from knitr
 #' @param options Chunk options
-#' @return HTML string for the plot
+#' @param original The plot hook maidr's was installed over; knitr's
+#'   Markdown hook when `NULL`
+#' @return The figure's Markdown or HTML
 #' @keywords internal
-maidr_plot_hook <- function(x, options) {
+maidr_plot_hook <- function(x, options, original = NULL) {
   device_id <- grDevices::dev.cur()
 
   # Honour maidr_off(): behave exactly like the original hook. Drop anything
   # already recorded on this device first - otherwise calls captured before
   # interception was disabled survive, and a later maidr_on() folds them into
   # the next render as phantom layers.
-  if (!is_base_r_enabled()) {
+  if (!is_base_r_enabled() || device_has_foreign_drawing(device_id)) {
     clear_device_storage(device_id)
-    return(call_original_plot_hook(x, options))
+    return(call_original_plot_hook(x, options, original))
   }
 
   # Check if we have captured Base R calls
   if (has_device_calls(device_id)) {
-    # Check output format - only use iframes for HTML output
     if (!is_html_output()) {
       # For PDF/EPUB/LaTeX: use the ORIGINAL hook, not hook_plot_md -
       # markdown image syntax inside a .tex document breaks the figure
       clear_device_storage(device_id)
-      return(call_original_plot_hook(x, options))
+      return(call_original_plot_hook(x, options, original))
     }
 
     # Create orchestrator ONCE and reuse it
@@ -412,14 +395,11 @@ maidr_plot_hook <- function(x, options) {
     clear_device_storage(device_id)
 
     # For supported MAIDR plots in HTML: use full iframe with MAIDR.js
-    iframe_html <- create_knitr_iframe(content)
-
-    # Return as raw HTML
-    return(iframe_html)
+    return(create_knitr_iframe(content))
   }
 
   # Fall back to original plot hook if no Base R calls captured
-  call_original_plot_hook(x, options)
+  call_original_plot_hook(x, options, original)
 }
 
 #' Wrap a chart in its iframe for a knitted document
@@ -451,26 +431,26 @@ create_knitr_iframe <- function(content) {
   )
 }
 
-#' Delegate to the stored original knitr plot hook
+#' Delegate to the plot hook maidr's was installed over
 #'
-#' Falls back to knitr's markdown hook only when no original was stored.
+#' Falls back to knitr's markdown hook only when there is none.
 #'
 #' @param x The plot file path from knitr
 #' @param options Chunk options
+#' @param original The plot hook maidr's was installed over
 #' @return The hook's output
 #' @keywords internal
-call_original_plot_hook <- function(x, options) {
-  original_hook <- .maidr_knitr_state$original_plot_hook
-  if (!is.null(original_hook) && is.function(original_hook)) {
-    return(original_hook(x, options))
+call_original_plot_hook <- function(x, options, original = NULL) {
+  if (is.function(original)) {
+    return(original(x, options))
   }
   knitr::hook_plot_md(x, options)
 }
 
-# Internal state for knitr integration
+# Internal state for knitr integration: whether maidr_on() was called last
+# (rather than maidr_off()).
 .maidr_knitr_state <- new.env(parent = emptyenv())
 .maidr_knitr_state$enabled <- FALSE
-.maidr_knitr_state$original_plot_hook <- NULL
 
 #' Check if current knitr output format is HTML
 #'

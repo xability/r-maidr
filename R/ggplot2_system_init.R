@@ -311,6 +311,21 @@ announce_masking <- function(package) {
       error = function(e) NULL
     )
   }
+
+  # A document's own library(maidr): installed into the running knit now.
+  # A later render in this session, which loads nothing, installs it from the
+  # first plot it draws instead (see ensure_knitr_integration()).
+  if (isTRUE(getOption("knitr.in.progress"))) {
+    tryCatch(
+      ensure_knitr_integration(),
+      error = function(e) {
+        warning(
+          "maidr could not set up its knitr hooks: ", conditionMessage(e),
+          call. = FALSE
+        )
+      }
+    )
+  }
 }
 
 # Remove the quantmod onLoad hook installed in .onLoad so the package unloads
@@ -345,19 +360,21 @@ announce_masking <- function(package) {
 
 # Show startup message when package is attached via library()
 .onAttach <- function(libname, pkgname) {
-  if (!isTRUE(getOption("maidr.startup_message", TRUE))) {
-    return(invisible(NULL))
+  # Not in a document being knitted, where it would be printed into the page,
+  # and where plots do not open the viewer it describes.
+  show_message <- isTRUE(getOption("maidr.startup_message", TRUE)) &&
+    !isTRUE(getOption("knitr.in.progress"))
+  if (show_message) {
+    packageStartupMessage(
+      "maidr ", utils::packageVersion(pkgname), " loaded\n",
+      "- ggplot2 plots open in the maidr interactive viewer automatically\n",
+      "- lattice plots open in it too when printed at the console\n",
+      "- Base R plots are recorded; call show() to open the viewer\n",
+      "- Use maidr_off() to disable interception\n",
+      "- Use options(maidr.auto_show = FALSE) to disable permanently\n",
+      "- See ?maidr_off for more details"
+    )
   }
-
-  packageStartupMessage(
-    "maidr ", utils::packageVersion(pkgname), " loaded\n",
-    "- ggplot2 plots open in the maidr interactive viewer automatically\n",
-    "- lattice plots open in it too when printed at the console\n",
-    "- Base R plots are recorded; call show() to open the viewer\n",
-    "- Use maidr_off() to disable interception\n",
-    "- Use options(maidr.auto_show = FALSE) to disable permanently\n",
-    "- See ?maidr_off for more details"
-  )
 
   # maidr is normally attached at position 2, ahead of anything loaded
   # earlier, so this only fires for an explicit library(maidr, pos = ...).

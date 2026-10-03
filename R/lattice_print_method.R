@@ -121,6 +121,15 @@ restore_lattice_print_method <- function() {
 #' @return `x`, invisibly
 #' @keywords internal
 maidr_print_trellis <- function(x, ...) {
+  # A chart a document prints is drawn by lattice on the chunk's device,
+  # which is marked, so the plot hook does not take the figure for the
+  # chunk's Base R chart.
+  in_knit <- isTRUE(getOption("knitr.in.progress")) && is_lattice_enabled() &&
+    !isTRUE(.maidr_lattice_state$busy)
+  if (in_knit) {
+    ensure_knitr_integration()
+    on.exit(mark_device_foreign_drawing(), add = TRUE)
+  }
   if (!lattice_print_opens_viewer(list(...), x$plot.args)) {
     return(print_trellis_natively(x, ...))
   }

@@ -14,13 +14,14 @@ save_knitr_env <- function() {
       "maidr.auto_show", "maidr.base_r", "maidr.ggplot2", "maidr.lattice"
     ),
     patching_active = maidr:::is_patching_active(),
-    plot_hook = NULL,
-    original_plot_hook = knitr_state$original_plot_hook,
+    hooks = NULL,
+    opts_hooks = NULL,
     enabled = knitr_state$enabled
   )
 
   if (requireNamespace("knitr", quietly = TRUE)) {
-    state$plot_hook <- knitr::knit_hooks$get("plot")
+    state$hooks <- knitr::knit_hooks$get()
+    state$opts_hooks <- knitr::opts_hooks$get()
   }
 
   state
@@ -37,12 +38,12 @@ restore_knitr_env <- function(state) {
     maidr::maidr_off()
   }
 
-  if (requireNamespace("knitr", quietly = TRUE) && !is.null(state$plot_hook)) {
-    knitr::knit_hooks$set(plot = state$plot_hook)
+  if (requireNamespace("knitr", quietly = TRUE) && !is.null(state$hooks)) {
+    knitr::knit_hooks$restore(state$hooks)
+    knitr::opts_hooks$restore(state$opts_hooks)
   }
 
   knitr_state <- maidr:::.maidr_knitr_state
-  knitr_state$original_plot_hook <- state$original_plot_hook
   knitr_state$enabled <- state$enabled
   # Last, so the saved values win over whatever maidr_on()/maidr_off() set.
   options(state$options)
@@ -79,7 +80,11 @@ test_that("maidr_plot_hook clears device storage when interception is off", {
   maidr::maidr_off()
   testthat::expect_false(maidr:::is_base_r_enabled())
 
-  maidr:::maidr_plot_hook("figure-1.png", list())
+  original <- function(x, options) paste("original hook:", x)
+  testthat::expect_identical(
+    maidr:::maidr_plot_hook("figure-1.png", list(), original),
+    "original hook: figure-1.png"
+  )
 
   testthat::expect_false(maidr:::has_device_calls(device_id))
   testthat::expect_length(maidr:::get_device_calls(device_id), 0)
@@ -106,7 +111,7 @@ test_that("toggling maidr_off()/maidr_on() does not leak phantom layers", {
 
   # Chunk 2: rendered after maidr_off() - the stale barplot must not survive.
   maidr::maidr_off()
-  maidr:::maidr_plot_hook("figure-1.png", list())
+  maidr:::maidr_plot_hook("figure-1.png", list(), function(x, options) x)
 
   # Chunk 3: interception back on, a brand new plot.
   maidr::maidr_on()
@@ -255,11 +260,11 @@ test_that("a self-contained R Markdown document carries the bundle once", {
 # lattice (trellis) charts
 # ==============================================================================
 
-# A trellis object a chunk returns reaches knit_print(), for which maidr_on()
-# registers knit_print.trellis(). Each test knits a real document whose setup
-# chunk calls maidr_on(), as a document does, for the output format it
-# names. knitr puts its own options back when the knit ends, and
-# save_knitr_env() puts back what maidr_on() changed.
+# A trellis object a chunk returns reaches knit_print(), for which maidr
+# registers knit_print.trellis() when it loads. Each test knits a real
+# document whose setup chunk calls maidr_on(), as a document may, for the
+# output format it names. knitr puts its own options back when the knit
+# ends, and save_knitr_env() puts back what maidr_on() changed.
 #
 # Where lattice draws the chart itself, the figure knitr records is checked
 # against a control chunk that draws the same chart with plot.trellis(),
@@ -414,7 +419,9 @@ test_that("a trellis object a chunk prints itself is lattice's figure", {
 
   # knitr does not route an explicit print() through knit_print(), and the
   # print hook leaves a print while knitr runs to lattice, so the figure is
-  # recorded as it would be without MAIDR -- and no viewer opens.
+  # recorded as it would be without MAIDR -- and no viewer opens. It is an
+  # svg, as every figure of an HTML document maidr is knitting: knitr's
+  # default device, png, is replaced.
   opened <- 0L
   testthat::local_mocked_bindings(
     session_is_interactive = function() TRUE,
@@ -432,7 +439,7 @@ test_that("a trellis object a chunk prints itself is lattice's figure", {
   testthat::expect_identical(opened, 0L)
   testthat::expect_false(grepl("<iframe", page, fixed = TRUE))
   figures <- knitted_figures(page)
-  testthat::expect_identical(basename(figures), c("figure-printed-1.png", "figure-control-1.png"))
+  testthat::expect_identical(basename(figures), c("figure-printed-1.svg", "figure-control-1.svg"))
   testthat::expect_identical(unname(tools::md5sum(figures[1])), unname(tools::md5sum(figures[2])))
 })
 

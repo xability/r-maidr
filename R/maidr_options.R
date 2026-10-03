@@ -14,13 +14,22 @@
 #'     instead of the standard graphics device. Default: TRUE.}
 #'   \item{\code{maidr.lattice}}{Logical. Enable lattice auto-display. When
 #'     TRUE, a lattice (trellis) object printed at the console to the screen
-#'     is rendered in the MAIDR viewer, and \code{maidr_on()} makes the ones
-#'     an R Markdown or Quarto document prints accessible. A print into a
+#'     is rendered in the MAIDR viewer, and the ones an R Markdown or Quarto
+#'     document returns from a chunk are accessible charts. A print into a
 #'     file device, or one that places the chart on a shared page with
 #'     \code{split}, \code{position} or \code{more}, is drawn by lattice as
 #'     before. Default: TRUE.}
 #'   \item{\code{maidr.startup_message}}{Logical. Show startup message when
 #'     package is loaded. Default: TRUE.}
+#'   \item{\code{maidr.knitr_dev}}{Logical. In an R Markdown or Quarto
+#'     document rendered to HTML, maidr records the static figures of a chunk
+#'     with \code{svglite} rather than knitr's default \code{png}, so they are
+#'     vector images like its charts. Only that default is replaced: a device
+#'     a chunk or the document chooses is kept, as is the device of a cached
+#'     chunk. Set this to \code{FALSE} to keep \code{png} for a document whose
+#'     \code{png} is a choice: \code{dev: png} in its YAML header, or Quarto's
+#'     \code{knitr: opts_chunk: dev: png}, cannot be told from the default.
+#'     Default: TRUE.}
 #'   \item{\code{maidr.dotpad_sdk_url}}{Character. URL of a copy of the DotPad
 #'     tactile-display SDK module (\code{DotPadSDK-3.0.3.js}) that you serve
 #'     yourself. maidr.js does not bundle the SDK, whose braille engine is a

@@ -85,6 +85,11 @@ log_plot_call_to_device <- function(
     args,
     device_id = grDevices::dev.cur(),
     call_env = NULL) {
+  # The first call a document records installs maidr into the running knit
+  # (and drops calls recorded before it); every later one costs a lookup.
+  if (isTRUE(getOption("knitr.in.progress"))) {
+    ensure_knitr_integration()
+  }
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
   formula <- recorded_formula(args, call_env)
@@ -162,6 +167,40 @@ clear_device_storage <- function(device_id = grDevices::dev.cur()) {
   }
 
   invisible(NULL)
+}
+
+#' Note that a ggplot2 or lattice chart was drawn on a device
+#'
+#' In a knit, `print()` of a ggplot2 or lattice chart draws it on the
+#' chunk's device, where knitr records it as a figure. The plot hook takes
+#' a device's recorded Base R calls for the chunk's first figure, which
+#' would make the chart drawn there a Base R chart it is not, so a device
+#' marked here keeps knitr's figures (see [maidr_plot_hook()]). The mark goes
+#' with the device's calls.
+#'
+#' @param device_id Graphics device ID
+#' @return NULL (invisible)
+#' @keywords internal
+mark_device_foreign_drawing <- function(device_id = grDevices::dev.cur()) {
+  if (is.null(device_id) || is.na(device_id) || device_id <= 1) {
+    return(invisible(NULL))
+  }
+  storage <- get_device_storage(device_id)
+  storage$foreign <- TRUE
+  .maidr_base_r_session$devices[[as.character(device_id)]] <- storage
+  invisible(NULL)
+}
+
+#' Whether a ggplot2 or lattice chart was drawn on a device
+#'
+#' @param device_id Graphics device ID
+#' @return Logical
+#' @keywords internal
+device_has_foreign_drawing <- function(device_id = grDevices::dev.cur()) {
+  if (is.null(device_id) || is.na(device_id) || device_id <= 0) {
+    return(FALSE)
+  }
+  isTRUE(.maidr_base_r_session$devices[[as.character(device_id)]]$foreign)
 }
 
 #' Clear All Device Storage

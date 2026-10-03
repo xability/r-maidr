@@ -90,7 +90,8 @@ restore_ggplot2_print_method <- function() {
 #'
 #' When MAIDR interception is enabled, this renders ggplot objects in the
 #' MAIDR interactive viewer. For unsupported plots, it falls back to the
-#' original ggplot2 rendering.
+#' original ggplot2 rendering, as it does for every plot printed while knitr
+#' runs: a document's chart is knitr's figure, not a viewer's.
 #'
 #' @param x A ggplot object
 #' @param newpage Draw on a new page?
@@ -104,6 +105,17 @@ maidr_print_ggplot <- function(x, newpage = is.null(vp), vp = NULL, ...) {
   # Check if ggplot2 interception is enabled
   if (!is_ggplot2_enabled()) {
     return(draw_on_default_device(original_print(x, newpage = newpage, vp = vp, ...)))
+  }
+
+  # A chart a document prints belongs to the document: it is drawn on the
+  # chunk's device, where knitr records it as a figure, and never opens the
+  # viewer. The device is marked, so the plot hook does not take the figure
+  # for the chunk's Base R chart.
+  if (isTRUE(getOption("knitr.in.progress"))) {
+    ensure_knitr_integration()
+    original_print(x, newpage = newpage, vp = vp, ...)
+    mark_device_foreign_drawing()
+    return(invisible(x))
   }
 
   # Check if the plot is supported by MAIDR. Keep the orchestrator so the
