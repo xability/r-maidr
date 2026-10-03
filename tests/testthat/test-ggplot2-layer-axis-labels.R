@@ -373,3 +373,46 @@ test_that("facet and patchwork panels read as one entry are named by the axis ti
     c("Units", "Units sold")
   )
 })
+
+test_that("a point layer beside one plotting something else is named for its own", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  col_point <- ggplot2::ggplot(sales(), ggplot2::aes(month)) +
+    ggplot2::geom_col(ggplot2::aes(y = sales)) +
+    ggplot2::geom_point(ggplot2::aes(y = target))
+  testthat::expect_identical(y_labels(col_point), c("sales", "target"))
+  testthat::expect_identical(
+    y_labels(col_point + ggplot2::labs(y = "Units")),
+    c("sales", "target")
+  )
+
+  two_points <- ggplot2::ggplot(mtcars, ggplot2::aes(disp)) +
+    ggplot2::geom_point(ggplot2::aes(y = hp)) +
+    ggplot2::geom_point(ggplot2::aes(y = qsec))
+  testthat::expect_identical(y_labels(two_points), c("hp", "qsec"))
+
+  ranges <- transform(sales(), lo = sales - 1, hi = sales + 1)
+  pointrange <- ggplot2::ggplot(ranges, ggplot2::aes(month)) +
+    ggplot2::geom_col(ggplot2::aes(y = target)) +
+    ggplot2::geom_pointrange(ggplot2::aes(y = sales, ymin = lo, ymax = hi))
+  testthat::expect_identical(y_labels(pointrange), c("target", "sales"))
+})
+
+test_that("a point layer that agrees with the others keeps the labs() title", {
+  testthat::skip_if_not_installed("ggplot2")
+
+  alone <- ggplot2::ggplot(mtcars) +
+    ggplot2::geom_point(ggplot2::aes(wt, mpg)) +
+    ggplot2::annotate("text", x = 4, y = 30, label = "heavy") +
+    ggplot2::labs(x = "Weight", y = "Miles per gallon")
+  testthat::expect_identical(
+    layer_axis_labels(alone)[[1]],
+    c(x = "Weight", y = "Miles per gallon")
+  )
+
+  with_line <- ggplot2::ggplot(sales()) +
+    ggplot2::geom_line(ggplot2::aes(month, sales, group = 1)) +
+    ggplot2::geom_point(ggplot2::aes(month, sales)) +
+    ggplot2::labs(y = "Units sold")
+  testthat::expect_identical(y_labels(with_line), c("Units sold", "Units sold"))
+})
