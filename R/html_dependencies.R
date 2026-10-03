@@ -86,6 +86,34 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
   ))
 }
 
+#' A dependency that only writes to the document's `<head>`
+#'
+#' The DotPad SDK and locale pack settings reach maidr.js as globals, declared
+#' in a dependency's `head` (see [maidr_dotpad_config_dependency()] and
+#' [maidr_locale_config_dependency()]); there is no file to serve. Such a
+#' dependency still names a directory on disk, the bundle's, without
+#' declaring any file in it. Quarto copies every dependency of a document
+#' with `htmltools::copyDependencyToDir()`, which refuses one that names none
+#' ("is not disk-based"), so a `.qmd` showing a chart through
+#' [maidr_htmlwidget()] did not render at all. As it declares no file, none
+#' is copied for it, and every document renders it as before: its `head`
+#' alone.
+#'
+#' @param name The dependency's name
+#' @param head The markup it writes to the `<head>`
+#' @return A single htmltools::htmlDependency()
+#' @keywords internal
+maidr_head_dependency <- function(name, head) {
+  htmltools::htmlDependency(
+    name = name,
+    version = "1.0.0",
+    package = "maidr",
+    src = sprintf("htmlwidgets/lib/maidr-%s", MAIDR_VERSION),
+    all_files = FALSE,
+    head = head
+  )
+}
+
 #' Get paths to local MAIDR assets
 #'
 #' Returns the file paths to the locally bundled MAIDR JavaScript and KaTeX

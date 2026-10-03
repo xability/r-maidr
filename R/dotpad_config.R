@@ -132,13 +132,7 @@ maidr_dotpad_config_dependency <- function(config = maidr_dotpad_config()) {
     return(NULL)
   }
 
-  htmltools::htmlDependency(
-    name = "maidr-dotpad-config",
-    version = "1.0.0",
-    src = c(href = ""),
-    all_files = FALSE,
-    head = script
-  )
+  maidr_head_dependency("maidr-dotpad-config", script)
 }
 
 # ==============================================================================
