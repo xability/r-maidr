@@ -230,6 +230,33 @@ test_that("a page the chunk replays itself belongs to no figure", {
   ))
 })
 
+test_that("a page replayed by the chunk that installs maidr belongs to no figure", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+
+  # maidr_on() installs maidr into the knit again in the middle of the
+  # chunk, which knitr runs without maidr's evaluate hook.
+  page <- knit_for(c(
+    chart_setup,
+    "```{r off}",
+    "maidr::maidr_off()",
+    "```",
+    "```{r install}",
+    "maidr::maidr_on()",
+    "print(p, vp = grid::viewport(width = 0.5))",
+    "print(p + ggplot2::ggtitle('install-gg'))",
+    "invisible(dev.print(pdf, tempfile()))",
+    "```"
+  ), dir)
+
+  # The chunk's device was chosen while maidr was off: knitr's png.
+  testthat::expect_identical(
+    figure_sequence(page),
+    c("figure install-1.png", "install-gg: bar:3")
+  )
+})
+
 test_that("a chunk that stops with an error leaves nothing to the next chunk", {
   skip_if_no_figures()
   local_knitr_state()

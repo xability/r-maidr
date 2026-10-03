@@ -40,6 +40,10 @@
 # hook renders a chart, which draws charts of its own.
 .maidr_knit_figures$drawing <- FALSE
 .maidr_knit_figures$rendering <- FALSE
+# TRUE from maidr's install into a knit until a chunk runs with maidr's
+# evaluate hook: knitr looked the hook up before the chunk that installed it
+# ran, so what that chunk's code replays is not forgotten when it ends.
+.maidr_knit_figures$unguarded <- FALSE
 
 #' Whether a chart drawn now is a figure maidr matches to its chart
 #'
@@ -149,7 +153,8 @@ mark_knit_page <- function(token, start_page) {
 knit_page_replayed <- function(token, page) {
   state <- .maidr_knit_figures
   ignored <- isTRUE(state$drawing) || !knit_figures_active() ||
-    !is.character(token) || length(token) != 1L
+    !is.character(token) || length(token) != 1L ||
+    (isTRUE(state$unguarded) && chunk_code_running())
   if (ignored) {
     return(invisible(NULL))
   }
@@ -159,6 +164,25 @@ knit_page_replayed <- function(token, page) {
   state$seen <- c(state$seen, token)
   state$seen_page <- c(state$seen_page, as.integer(page)[1L])
   invisible(NULL)
+}
+
+#' Whether a knitted chunk's code is running now
+#'
+#' knitr runs a chunk's code with `evaluate::evaluate()`, and saves its
+#' figures once that has returned, so a page replayed while it runs is one
+#' the code replayed itself. Asked only in the chunk that installed maidr
+#' into the knit (`.maidr_knit_figures$unguarded`), whose code knitr started
+#' before maidr's `evaluate` hook was there to forget such pages
+#' (`maidr_knitr_evaluate_hook()`). A child document knitted from that
+#' chunk runs inside its code as well, so its figures stay knitr's.
+#'
+#' @return Logical
+#' @keywords internal
+#' @noRd
+chunk_code_running <- function() {
+  evaluate <- getExportedValue("evaluate", "evaluate")
+  frames <- seq_len(sys.nframe())
+  any(vapply(frames, function(i) identical(sys.function(i), evaluate), logical(1)))
 }
 
 #' Whether something was drawn over a chart after its marker
