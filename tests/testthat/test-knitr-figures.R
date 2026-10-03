@@ -186,6 +186,11 @@ test_that("a figure that is not one whole chart stays knitr's figure", {
     "print(lattice::barchart(c(a = 1, b = 2)), split = c(1, 1, 2, 1), more = TRUE)",
     "print(lattice::barchart(c(a = 3, b = 4)), split = c(2, 1, 2, 1))",
     "```",
+    # A plain print onto the page a `more = TRUE` print left open.
+    "```{r more}",
+    "print(lattice::barchart(c(a = 1, b = 2)), split = c(1, 1, 2, 1), more = TRUE)",
+    "print(lattice::barchart(c(a = 5, b = 6), main = 'whole page'))",
+    "```",
     # One call drawing several pages, and a chart sharing the last of them.
     "```{r pages}",
     "plot(fit, which = 1:2)",
@@ -210,7 +215,7 @@ test_that("a figure that is not one whole chart stays knitr's figure", {
 
   testthat::expect_identical(figure_sequence(page), c(
     "figure inset-1.svg", "figure note-1.svg", "figure focus-1.svg",
-    "figure basenote-1.svg", "figure split-1.svg",
+    "figure basenote-1.svg", "figure split-1.svg", "figure more-1.svg",
     "figure pages-1.svg", "figure pages-2.svg",
     "figure shared-1.svg", "figure shared-2.svg",
     "figure empty-1.svg", "figure persp-1.svg",

@@ -126,15 +126,17 @@ maidr_print_trellis <- function(x, ...) {
   # A chart a document prints is a figure of its chunk: lattice draws it on
   # the chunk's device, and knitr's plot hook shows it as the chart (see
   # draw_as_knit_figure()). A print composing a page is part of a figure,
-  # which stays knitr's.
+  # which stays knitr's, and so is one lattice draws onto the page a
+  # `more = TRUE` print left open.
   in_knit <- isTRUE(getOption("knitr.in.progress")) && is_lattice_enabled() &&
     !isTRUE(.maidr_lattice_state$busy)
   if (in_knit) {
     ensure_knitr_integration()
+    own_page <- !lattice_print_composes(list(...), x$plot.args) && !lattice_page_open()
     return(draw_as_knit_figure(
       lattice_printed_chart(x, list(...)),
       function() print_trellis_natively(x, ...),
-      mark = !lattice_print_composes(list(...), x$plot.args)
+      mark = own_page
     ))
   }
   if (!lattice_print_opens_viewer(list(...), x$plot.args)) {
