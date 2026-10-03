@@ -135,14 +135,16 @@ warn_inline_fallback <- function(error) {
 #'   description.
 #' * A caption is a `<p class="caption">` in a wrapper of class `figure`,
 #'   as knitr writes a figure, with bookdown's `(#fig:label)` before it, so
-#'   a bookdown cross-reference finds it; of the figures `fig.show = "hold"`
-#'   holds to the end of a chunk, only the last is captioned, as knitr
-#'   captions them. Markdown in it is shown as
-#'   written: the caption is inside the raw block. Quarto writes the caption
-#'   of a chart `knit_print()` returns itself -- the figcaption of a
-#'   cross-referenceable figure for a `fig-` label, a paragraph below the
-#'   chart otherwise -- so none is written for it then; only a hidden copy
-#'   of the paragraph, for the description.
+#'   a bookdown cross-reference finds it. Markdown in it is shown as
+#'   written: the caption is inside the raw block. Of the figures
+#'   `fig.show = "hold"` holds to the end of a chunk, only the last is
+#'   captioned, as knitr captions them.
+#' * Quarto writes the caption of a chart `knit_print()` returns itself --
+#'   the figcaption of a cross-referenceable figure for a `fig-` label, a
+#'   paragraph below the chart otherwise -- so none is written for it then;
+#'   only a hidden copy of the paragraph, for the description. A chart in
+#'   place of a figure of a `fig-` chunk is given to Quarto as the figure it
+#'   numbers and captions (`quarto_figure_float()`).
 #' * `fig.align` aligns the chart, and an `out.width` the author sets (not
 #'   the one knitr derives for a retina figure) sets the wrapper's width,
 #'   which the chart shrinks to; `fig.width` and `fig.height` are not read,
@@ -167,8 +169,20 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   root <- xml2::xml_root(doc)
   json <- xml2::xml_attr(root, "maidr-data")
 
+  # Quarto captions a chart knit_print() returns, and labels its caption
+  # for the chart only in a fig- float. A chart in place of a figure of a
+  # fig- chunk is made such a float (quarto_figure_float()), which Quarto
+  # numbers and captions with the figure's sub-caption, if any; any other
+  # is captioned here.
+  quarto <- !is.null(knitr::opts_knit$get("quarto.version"))
+  fig_label <- startsWith(options$label %||% "", "fig-")
+  float <- figure && quarto && fig_label
+
   captions <- knitr_chart_option(options, "fig.cap")
   caption <- pick_chart_text(captions, index)
+  if (float) {
+    caption <- pick_chart_text(options$fig.subcap, 1L) %||% caption
+  }
   alt <- pick_chart_text(knitr_chart_option(options, "fig.alt"), index)
   title <- if (is.null(alt) && is.null(caption)) knitr_chart_title(json)
   name <- alt %||% caption %||% title %||% "Chart"
@@ -176,10 +190,9 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   if (identical(description, caption)) {
     description <- NULL
   }
-  # Quarto captions a chart knit_print() returns, not one in place of a
-  # figure, and labels its caption for the chart only in a fig- float.
-  quarto_caption <- !figure && !is.null(knitr::opts_knit$get("quarto.version"))
-  hidden_caption <- if (quarto_caption && !startsWith(options$label %||% "", "fig-")) caption
+  float_caption <- if (float) caption
+  quarto_caption <- quarto && (!figure || float)
+  hidden_caption <- if (quarto_caption && !fig_label) caption
   # knitr captions the figures it holds to the end of a chunk once, below
   # the last of them.
   held <- figure && identical(options$fig.show, "hold") &&
@@ -238,7 +251,42 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
     },
     "</div>"
   )
-  paste0("\n\n", paste(xfun::fenced_block(html, attrs = "=html"), collapse = "\n"), "\n\n")
+  block <- paste(xfun::fenced_block(html, attrs = "=html"), collapse = "\n")
+  if (float) {
+    return(quarto_figure_float(block, options, index, float_caption))
+  }
+  paste0("\n\n", block, "\n\n")
+}
+
+#' A chart as the figure Quarto makes of a figure of a `fig-` chunk
+#'
+#' Quarto numbers a figure, resolves a reference to it and writes its
+#' `<figcaption>` from a div whose id is the figure's label, holding the
+#' figure and then its caption as a paragraph; its own plot hook gives an
+#' image that id. The id is the chunk's label, and `label-1`, `label-2`,
+#' ... when the chunk has several figures, as Quarto numbers them. The
+#' caption is the figure's `fig-subcap` when the chunk gives sub-captions,
+#' its `fig-cap` otherwise, and Markdown in it is read. The float is in a
+#' `.cell-output-display` div, as each figure Quarto's plot hook writes is.
+#'
+#' @param block The chart's raw HTML block
+#' @param options The figure's chunk options
+#' @param index Which of the chunk's figures this is, from 1
+#' @param caption The figure's caption, or `NULL`
+#' @return Character string of Markdown
+#' @keywords internal
+#' @noRd
+quarto_figure_float <- function(block, options, index, caption) {
+  id <- options$label
+  if (isTRUE(options$fig.num > 1L)) {
+    id <- paste0(id, "-", index)
+  }
+  paste0(
+    "\n\n::: {.cell-output-display}\n\n::: {#", id, "}\n\n",
+    block, "\n\n",
+    if (!is.null(caption)) paste0(caption, "\n\n"),
+    ":::\n\n:::\n\n"
+  )
 }
 
 #' A chunk option that knitr may not have evaluated yet

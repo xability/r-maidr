@@ -318,14 +318,28 @@ test_that("bookdown labels a captioned chart, and Quarto writes the caption itse
   testthat::expect_match(
     plain, '<span class="maidr-knitr-caption" id="m[a-z0-9]+-caption" hidden>Bars</span>'
   )
-  # A figure the plot hook replaces is not captioned by Quarto.
+  # A figure the plot hook replaces is not captioned by Quarto, unless it is
+  # given to Quarto as the figure of a fig- chunk, which it captions with
+  # the figure's sub-caption, if any, and numbers.
   figure <- maidr:::knitr_inline_chart(
-    svg, list(label = "fig-bars", fig.cap = "Bars"),
+    svg, list(label = "unnamed-chunk-2", fig.cap = "Bars"),
     figure = TRUE
   )
   testthat::expect_match(
     figure, '<p class="caption maidr-knitr-caption" id="m[a-z0-9]+-caption">Bars</p>'
   )
+  options <- list(label = "fig-bars", fig.cap = "Bars", fig.num = 1L, fig.cur = 1L)
+  figure <- maidr:::knitr_inline_chart(svg, options, figure = TRUE)
+  testthat::expect_false(grepl("maidr-knitr-caption", figure, fixed = TRUE))
+  testthat::expect_match(
+    figure, "^\\s*::: \\{\\.cell-output-display\\}\\s*::: \\{#fig-bars\\}\\s*``` ?\\{=html\\}"
+  )
+  testthat::expect_match(figure, "```\\s*Bars\\s*:::\\s*:::\\s*$")
+  options <- utils::modifyList(options, list(fig.num = 2L, fig.cur = 2L, fig.subcap = "Right"))
+  figure <- maidr:::knitr_inline_chart(svg, options, index = 2L, figure = TRUE)
+  testthat::expect_match(figure, "::: {#fig-bars-2}", fixed = TRUE)
+  testthat::expect_match(figure, 'aria-label="Right"', fixed = TRUE)
+  testthat::expect_match(figure, "```\\s*Right\\s*:::")
 })
 
 test_that("fig.align and the author's out.width lay the chart out", {
@@ -1040,6 +1054,21 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
     "plot(1:10)",
     "grid::grid.newpage()",
     "grid::grid.rect()",
+    "```",
+    "",
+    "See @fig-loop-2 and @fig-base.",
+    "",
+    "```{r}",
+    "#| label: fig-loop",
+    "#| fig-cap:",
+    "#|   - First printed",
+    "#|   - Second printed",
+    "for (v in c('gear', 'am')) print(ggplot(mtcars, aes(factor(.data[[v]]))) + geom_bar())",
+    "```",
+    "```{r}",
+    "#| label: fig-base",
+    "#| fig-cap: A Base R figure",
+    "barplot(c(a = 2, b = 1))",
     "```"
   ), qmd)
 
@@ -1056,7 +1085,7 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   doc <- xml2::read_html(page)
 
   charts <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
-  testthat::expect_length(charts, 4L)
+  testthat::expect_length(charts, 7L)
   testthat::expect_length(xml2::xml_find_all(doc, "//iframe"), 0L)
   testthat::expect_length(xml2::xml_find_all(doc, "//script[contains(@src, 'maidr.js')]"), 1L)
   ids <- xml2::xml_attr(xml2::xml_find_all(doc, "//*[@id]"), "id")
@@ -1072,8 +1101,22 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   testthat::expect_match(html, ">Base bars</p>", fixed = TRUE)
   testthat::expect_identical(
     xml2::xml_attr(charts, "aria-label"),
-    c("Cars by cylinder", "A scatter", "Base bars", "Chart")
+    c(
+      "Cars by cylinder", "A scatter", "Base bars", "Chart",
+      "First printed", "Second printed", "A Base R figure"
+    )
   )
+  # Charts in place of the figures of a fig- chunk are Quarto's figures,
+  # numbered as its own, captioned by it, and referred to.
+  testthat::expect_false(grepl("?@fig-", html, fixed = TRUE))
+  testthat::expect_match(html, 'href="#fig-loop-2"[^>]*>Figure&nbsp;3<')
+  testthat::expect_match(html, 'href="#fig-base"[^>]*>Figure&nbsp;4<')
+  for (caption in c("First printed", "Second printed", "A Base R figure")) {
+    testthat::expect_length(
+      xml2::xml_find_all(doc, sprintf("//figure[.//svg]/figcaption[contains(., '%s')]", caption)),
+      1L
+    )
+  }
   # The figure that is not a chart is an svg image.
   testthat::expect_match(html, '<img src="charts_files/figure-html/[^"]+\\.svg"')
 })
