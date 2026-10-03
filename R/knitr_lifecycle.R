@@ -201,8 +201,10 @@ maidr_knitr_plot_hook <- function(original) {
 
 #' maidr's knitr chunk hook, over the hook it replaces
 #'
-#' Runs once a chunk's output is complete, after the hook it replaces. A
-#' chunk whose output holds an inline chart declares the page dependencies
+#' Runs once a chunk's output is complete, after the hook it replaces. It
+#' numbers the bookdown labels of the charts the chunk's `knit_print()`
+#' wrote, when there are several (`number_bookdown_chart_labels()`). A chunk
+#' whose output holds an inline chart declares the page dependencies
 #' (`maidr_knitr_dependencies()`) through `knitr::knit_meta_add()`, whichever
 #' way the chart got there: a returned plot, a figure, or
 #' `cat(knit_print(p))` in a `results = "asis"` loop, which drops the meta
@@ -226,6 +228,7 @@ maidr_knitr_chunk_hook <- function(previous) {
       x <- previous(x, options)
     }
     reset_knitr_chart_index()
+    x <- number_bookdown_chart_labels(x, options)
     shown <- !isFALSE(options$include) &&
       any(grepl("data-maidr-knitr=", x, fixed = TRUE))
     if (shown) {

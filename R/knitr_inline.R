@@ -294,9 +294,11 @@ knitr_chart_title <- function(json) {
 #' `(#fig:label)` at the start of its caption; written in a raw block it is
 #' not escaped. A chart in place of a figure is labelled as knitr labels the
 #' figure: `label-1`, `label-2`, ... when the chunk has several figures shown
-#' where they are drawn (`fig.show = "asis"`), `label` otherwise. Of the
-#' charts `knit_print()` writes, the second and later are numbered, and all
-#' of them when the chunk gives several captions.
+#' where they are drawn (`fig.show = "asis"`), `label` otherwise. Several
+#' charts `knit_print()` writes, or several captions, are numbered the same
+#' way; the first of several charts is given its number once the chunk has
+#' run (`number_bookdown_chart_labels()`), since it cannot know it is one of
+#' several when it is written.
 #'
 #' @param options The chunk options
 #' @param index Which of the chunk's charts this is, from 1
@@ -316,6 +318,39 @@ bookdown_figure_label <- function(options, index, count, figure = FALSE) {
   }
   suffix <- if (numbered) paste0("-", index) else ""
   sprintf("(#%s%s%s) ", options$fig.lp %||% "fig:", options$label %||% "", suffix)
+}
+
+#' Number the first of several captioned charts `knit_print()` wrote
+#'
+#' The first is labelled `label` when it is written, and the ones after it
+#' `label-2`, `label-3`, ... (`bookdown_figure_label()`); once the chunk has
+#' run, the first of several becomes `label-1`, as knitr numbers several
+#' figures. A chunk that has figures as well is left as it is: knitr numbers
+#' those without counting the charts among them.
+#'
+#' @param x The chunk's output
+#' @param options The chunk options
+#' @return The chunk's output
+#' @keywords internal
+#' @noRd
+number_bookdown_chart_labels <- function(x, options) {
+  numbered <- isTRUE(knitr::opts_knit$get("bookdown.internal.label")) &&
+    !is.null(options$label) && identical(as.numeric(options$fig.num), 0)
+  if (!numbered) {
+    return(x)
+  }
+  label <- sprintf("(#%s%s", options$fig.lp %||% "fig:", options$label)
+  first <- sprintf('caption">%s) ', label)
+  at <- regexpr(first, x, fixed = TRUE)
+  several <- grepl(sprintf('caption">%s-2) ', label), x, fixed = TRUE)
+  for (i in which(at > 0L & several)) {
+    x[[i]] <- paste0(
+      substr(x[[i]], 1L, at[[i]] - 1L),
+      sprintf('caption">%s-1) ', label),
+      substr(x[[i]], at[[i]] + nchar(first), nchar(x[[i]]))
+    )
+  }
+  x
 }
 
 #' The CSS width a chart's wrapper takes from `out.width`

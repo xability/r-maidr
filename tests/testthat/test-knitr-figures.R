@@ -307,6 +307,14 @@ test_that("bookdown labels a chunk's charts as knitr labels its figures", {
     "```{r held, fig.cap = 'Held', fig.show = 'hold'}",
     "barplot(1:2)",
     "barplot(1:3)",
+    "```",
+    # Charts the chunk returns, written by knit_print() as the chunk runs.
+    "```{r returned, fig.cap = 'Returned'}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(gear))) + ggplot2::geom_bar()",
+    "```",
+    "```{r alone, fig.cap = 'Alone'}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(am))) + ggplot2::geom_bar()",
     "```"
   )
   labels <- function(page) {
@@ -318,10 +326,11 @@ test_that("bookdown labels a chunk's charts as knitr labels its figures", {
   maidr::maidr_off()
   figures <- knit_for(chunks, withr::local_tempdir("maidr-figures-"))
 
-  testthat::expect_length(inline_charts(charts), 5L)
+  testthat::expect_length(inline_charts(charts), 8L)
   # Held to the end of the chunk, two figures are captioned once.
   testthat::expect_identical(labels(charts), c(
-    "(#fig:loop-1) First", "(#fig:loop-2) Second", "(#fig:one) Only", "(#fig:held) Held"
+    "(#fig:loop-1) First", "(#fig:loop-2) Second", "(#fig:one) Only", "(#fig:held) Held",
+    "(#fig:returned-1) Returned", "(#fig:returned-2) Returned", "(#fig:alone) Alone"
   ))
   testthat::expect_identical(gsub(" ", "", labels(charts)), labels(figures))
 })
