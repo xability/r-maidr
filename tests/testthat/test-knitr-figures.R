@@ -285,9 +285,13 @@ test_that("the charts of one page are one figure, whatever is drawn elsewhere be
   # count the charts' markers carry differs, the page does not.
   page <- knit_for(c(
     chart_setup,
+    # dev.off() makes the next open device current, which is the chunk's
+    # only when no other is open.
     "```{r elsewhere}",
     "hist(x, main = 'elsewhere', xlim = c(0, 12))",
+    "chunk_device <- dev.cur()",
     "png(tempfile(fileext = '.png')); plot(1:3); invisible(dev.off())",
+    "invisible(dev.set(chunk_device))",
     "hist(x + 6, add = TRUE)",
     "```",
     "```{r panels}",
