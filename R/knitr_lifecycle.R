@@ -238,12 +238,18 @@ maidr_knitr_chunk_hook <- function(previous) {
 #' the chunk's device (`maidr_chunk_device()`). It does nothing in a knit
 #' maidr was not installed into: a plain `knitr::knit()` leaves it behind.
 #'
+#' flexdashboard's hook makes a `png` figure two, the second drawn for
+#' phones (`flexdashboard_phone_figures()`), and leaves any other device
+#' alone. A vector figure needs no copy for phones, so where the chunk was
+#' given knitr's default, its hook is run again on svglite instead.
+#'
 #' @param previous The `dev` option hook in place before
 #' @return An option hook
 #' @keywords internal
 maidr_knitr_dev_hook <- function(previous) {
   force(previous)
   hook <- function(options) {
+    given <- options
     if (is.function(previous)) {
       options <- previous(options)
     }
@@ -252,10 +258,33 @@ maidr_knitr_dev_hook <- function(previous) {
     }
     drop_stale_device_storage()
     note_knit_device(NULL)
+    if (flexdashboard_phone_figures(given, options)) {
+      if (identical(maidr_chunk_device(given), "svglite")) {
+        given$dev <- "svglite"
+        options <- previous(given)
+      }
+      return(options)
+    }
     options$dev <- maidr_chunk_device(options)
     options
   }
   mark_maidr_knitr_hook(hook, previous)
+}
+
+#' Whether a `dev` hook made a chunk's png figure flexdashboard's pair
+#'
+#' flexdashboard draws each `png` figure a second time, at its phone size,
+#' to an `.mb.png` file its page script swaps in on a phone held upright.
+#'
+#' @param given Chunk options before the hook ran
+#' @param options Chunk options after it
+#' @return Logical
+#' @keywords internal
+#' @noRd
+flexdashboard_phone_figures <- function(given, options) {
+  identical(given$dev, "png") &&
+    identical(options$dev, c("png", "png")) &&
+    identical(options$fig.ext, c("png", "mb.png"))
 }
 
 #' The device a chunk records and saves its figures with

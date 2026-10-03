@@ -586,6 +586,35 @@ test_that("options(maidr.knitr_dev = FALSE), other formats and maidr_off() keep 
   )
 })
 
+test_that("flexdashboard's phone copy of a default png figure gives way to svglite", {
+  testthat::skip_on_cran()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  # flexdashboard's dev hook, as of 0.6: a png figure is drawn twice, the
+  # second time at its phone size, to an .mb.png file.
+  knitr::opts_hooks$set(dev = function(options) {
+    if (identical(options$dev, "png")) {
+      options$dev <- c("png", "png")
+      options$fig.ext <- c("png", "mb.png")
+      options$fig.width <- c(options$fig.width, 3.75)
+      options$fig.height <- c(options$fig.height, 4.8)
+    }
+    options
+  })
+  draw <- "grid::grid.newpage(); grid::grid.rect()"
+
+  knit_for(c(
+    "```{r default}", draw, "```",
+    "```{r header, dev = 'png'}", draw, "```",
+    "```{r cached, cache = TRUE}", draw, "```"
+  ), dir)
+
+  testthat::expect_setequal(
+    list.files(file.path(dir, "figure")),
+    c("default-1.svg", "header-1.png", "header-1.mb.png", "cached-1.png", "cached-1.mb.png")
+  )
+})
+
 # ==============================================================================
 # Documents
 # ==============================================================================
