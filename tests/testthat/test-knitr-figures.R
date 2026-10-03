@@ -332,6 +332,32 @@ test_that("a page replayed by the chunk that installs maidr belongs to no figure
   )
 })
 
+test_that("a child document knitted by the chunk that installs maidr leaves it unguarded", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+
+  # The child's chunk runs with maidr's evaluate hook, inside the parent's
+  # code; the parent's replay after it is still the parent's own.
+  page <- knit_for(c(
+    "```{r off}",
+    "maidr::maidr_off()",
+    "```",
+    "```{r install, results = 'asis'}",
+    "maidr::maidr_on()",
+    "grid::grid.newpage(); grid::grid.text('grid only')",
+    "cat(knitr::knit_child(text = c('```{r child}', 'y <- 1', '```'), quiet = TRUE))",
+    "barplot(c(2, 9), main = 'install-bar')",
+    "invisible(dev.print(pdf, tempfile()))",
+    "```"
+  ), dir)
+
+  testthat::expect_identical(
+    figure_sequence(page),
+    c("figure install-1.png", "install-bar: bar:2")
+  )
+})
+
 test_that("a chunk that stops with an error leaves nothing to the next chunk", {
   skip_if_no_figures()
   local_knitr_state()
