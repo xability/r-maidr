@@ -402,6 +402,16 @@ test_that("fig.align and the author's out.width lay the chart out", {
   testthat::expect_false(grepl("maidr-knitr-row-end", first, fixed = TRUE))
   testthat::expect_match(last, row, fixed = TRUE)
   testthat::expect_match(last, '</div>\n<div class="maidr-knitr-row-end"></div>\n```')
+  # Captioned once, below the last; the caption of the one before it
+  # describes that chart.
+  captioned <- c(held, fig.cap = list(c("Left", "Right")))
+  first <- maidr:::knitr_inline_chart(svg, c(captioned, fig.cur = 1L), figure = TRUE)
+  testthat::expect_false(grepl('class="caption', first, fixed = TRUE))
+  testthat::expect_match(
+    first, '<span class="maidr-knitr-alt" id="m[a-z0-9]+-alt" hidden>Left</span>'
+  )
+  last <- maidr:::knitr_inline_chart(svg, c(captioned, fig.cur = 2L), index = 2L, figure = TRUE)
+  testthat::expect_match(last, '-caption">Right</p>', fixed = TRUE)
   # Not when aligned, as knitr's images are blocks then, nor at full width.
   for (change in list(list(fig.align = "center"), list(out.width = NULL))) {
     options <- utils::modifyList(c(held, fig.cur = 1L), change)

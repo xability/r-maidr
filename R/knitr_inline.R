@@ -138,7 +138,8 @@ warn_inline_fallback <- function(error) {
 #'   a bookdown cross-reference finds it. Markdown in it is shown as
 #'   written: the caption is inside the raw block. Of the figures
 #'   `fig.show = "hold"` holds to the end of a chunk, only the last is
-#'   captioned, as knitr captions them.
+#'   captioned, as knitr captions them; the caption of each other one is
+#'   kept as its description.
 #' * Quarto writes the caption of a chart `knit_print()` returns itself --
 #'   the figcaption of a cross-referenceable figure for a `fig-` label, a
 #'   paragraph below the chart otherwise -- so none is written for it then;
@@ -196,9 +197,12 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   quarto_caption <- quarto && (!figure || float)
   hidden_caption <- if (quarto_caption && !fig_label) caption
   # knitr captions the figures it holds to the end of a chunk once, below
-  # the last of them.
+  # the last of them; the caption of one before it still describes it.
   held <- figure && identical(options$fig.show, "hold")
   last_held <- held && !isTRUE(options$fig.cur < options$fig.num)
+  if (held && !last_held && !quarto_caption) {
+    description <- description %||% caption
+  }
   if (quarto_caption || (held && !last_held)) {
     caption <- NULL
   }
