@@ -1098,6 +1098,18 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
     "#| label: fig-base",
     "#| fig-cap: A Base R figure",
     "barplot(c(a = 2, b = 1))",
+    "```",
+    "",
+    "See @fig-mix-1 and @fig-mix-2.",
+    "",
+    # A chart and a figure that is no chart: Quarto numbers both.
+    "```{r}",
+    "#| label: fig-mix",
+    "#| fig-cap:",
+    "#|   - Mixed bars",
+    "#|   - Mixed surface",
+    "barplot(c(a = 3, b = 1))",
+    "persp(volcano[1:10, 1:10])",
     "```"
   ), qmd)
 
@@ -1114,7 +1126,7 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   doc <- xml2::read_html(page)
 
   charts <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
-  testthat::expect_length(charts, 7L)
+  testthat::expect_length(charts, 8L)
   testthat::expect_length(xml2::xml_find_all(doc, "//iframe"), 0L)
   testthat::expect_length(xml2::xml_find_all(doc, "//script[contains(@src, 'maidr.js')]"), 1L)
   ids <- xml2::xml_attr(xml2::xml_find_all(doc, "//*[@id]"), "id")
@@ -1132,7 +1144,7 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
     xml2::xml_attr(charts, "aria-label"),
     c(
       "Cars by cylinder", "A scatter", "Base bars", "Chart",
-      "First printed", "Second printed", "A Base R figure"
+      "First printed", "Second printed", "A Base R figure", "Mixed bars"
     )
   )
   # Charts in place of the figures of a fig- chunk are Quarto's figures,
@@ -1140,12 +1152,20 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   testthat::expect_false(grepl("?@fig-", html, fixed = TRUE))
   testthat::expect_match(html, 'href="#fig-loop-2"[^>]*>Figure&nbsp;3<')
   testthat::expect_match(html, 'href="#fig-base"[^>]*>Figure&nbsp;4<')
-  for (caption in c("First printed", "Second printed", "A Base R figure")) {
+  for (i in 1:2) {
+    testthat::expect_match(html, sprintf('href="#fig-mix-%d"[^>]*>Figure&nbsp;%d<', i, i + 4L))
+  }
+  captions <- c("First printed", "Second printed", "A Base R figure", "Mixed bars")
+  for (caption in captions) {
     testthat::expect_length(
       xml2::xml_find_all(doc, sprintf("//figure[.//svg]/figcaption[contains(., '%s')]", caption)),
       1L
     )
   }
+  testthat::expect_length(
+    xml2::xml_find_all(doc, "//figure[.//img]/figcaption[contains(., 'Mixed surface')]"),
+    1L
+  )
   # The figure that is not a chart is an svg image.
   testthat::expect_match(html, '<img src="charts_files/figure-html/[^"]+\\.svg"')
 })

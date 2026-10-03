@@ -263,11 +263,14 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
 #' Quarto numbers a figure, resolves a reference to it and writes its
 #' `<figcaption>` from a div whose id is the figure's label, holding the
 #' figure and then its caption as a paragraph; its own plot hook gives an
-#' image that id. The id is the chunk's label, and `label-1`, `label-2`,
-#' ... when the chunk has several figures, as Quarto numbers them. The
-#' caption is the figure's `fig-subcap` when the chunk gives sub-captions,
-#' its `fig-cap` otherwise, and Markdown in it is read. The float is in a
-#' `.cell-output-display` div, as each figure Quarto's plot hook writes is.
+#' image that id. The id is the one Quarto's plot hook gives the figure
+#' (`quarto_figure_id()`, in `options$maidr.figure.id`), which Quarto turns
+#' into the chunk's label, or `label-1`, `label-2`, ... once it has counted
+#' the chunk's figures. Without one, it is the label, numbered when the
+#' chunk has several figures. The caption is the figure's `fig-subcap` when
+#' the chunk gives sub-captions, its `fig-cap` otherwise, and Markdown in it
+#' is read. The float is in a `.cell-output-display` div, as each figure
+#' Quarto's plot hook writes is.
 #'
 #' @param block The chart's raw HTML block
 #' @param options The figure's chunk options
@@ -277,9 +280,12 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
 #' @keywords internal
 #' @noRd
 quarto_figure_float <- function(block, options, index, caption) {
-  id <- options$label
-  if (isTRUE(options$fig.num > 1L)) {
-    id <- paste0(id, "-", index)
+  id <- options$maidr.figure.id
+  if (is.null(id)) {
+    id <- options$label
+    if (isTRUE(options$fig.num > 1L)) {
+      id <- paste0(id, "-", index)
+    }
   }
   paste0(
     "\n\n::: {.cell-output-display}\n\n::: {#", id, "}\n\n",
@@ -287,6 +293,40 @@ quarto_figure_float <- function(block, options, index, caption) {
     if (!is.null(caption)) paste0(caption, "\n\n"),
     ":::\n\n:::\n\n"
   )
+}
+
+#' The id Quarto's plot hook gives a figure of a `fig-` chunk
+#'
+#' Quarto names the figures of a `fig-` chunk with a stand-in its chunk hook
+#' replaces once the chunk's output is complete: by the chunk's label when
+#' the output names one figure, and by `label-1`, `label-2`, ... in the
+#' order they are written when it names several -- its own figures and the
+#' outputs it makes figures of alike. A chart in place of a figure is named
+#' as Quarto's hook names that figure, so that Quarto counts it with the
+#' others; the hook is asked for the figure's Markdown, and the id read
+#' from it.
+#'
+#' @param x The figure's file
+#' @param options The figure's chunk options
+#' @param original The plot hook maidr's was installed over
+#' @return The id, or `NULL` outside a `fig-` chunk in Quarto, or when the
+#'   hook's Markdown names none
+#' @keywords internal
+#' @noRd
+quarto_figure_id <- function(x, options, original) {
+  label <- options$label %||% ""
+  if (is.null(knitr::opts_knit$get("quarto.version")) || !startsWith(label, "fig-")) {
+    return(NULL)
+  }
+  out <- tryCatch(
+    paste(call_original_plot_hook(x, options, original), collapse = ""),
+    error = function(e) ""
+  )
+  at <- regexpr(paste0("{#", label), out, fixed = TRUE)
+  if (at < 0L) {
+    return(NULL)
+  }
+  sub("[ }].*$", "", substring(out, at + 2L))
 }
 
 #' A chunk option that knitr may not have evaluated yet

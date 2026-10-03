@@ -381,6 +381,9 @@ maidr_plot_hook <- function(x, options, original = NULL) {
   shown <- length(tokens) > 0L && is_html_output() &&
     !identical(options$fig.show, "animate")
   chart <- if (shown) resolve_figure_chart(tokens)
+  if (!is.null(chart)) {
+    options$maidr.figure.id <- quarto_figure_id(x, options, original)
+  }
   out <- if (!is.null(chart)) render_figure_chart(chart, options)
   if (is.null(out)) {
     return(call_original_plot_hook(x, options, original))
