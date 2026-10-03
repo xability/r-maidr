@@ -218,6 +218,43 @@ test_that("a figure that is not one whole chart stays knitr's figure", {
   ))
 })
 
+test_that("the charts of one page are one figure, whatever is drawn elsewhere between them", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+
+  # Pages started on other devices between two charts, and a page
+  # replayPlot() puts back, are counted as pages the knit drew: the page
+  # count the charts' markers carry differs, the page does not.
+  page <- knit_for(c(
+    chart_setup,
+    "```{r elsewhere}",
+    "hist(x, main = 'elsewhere', xlim = c(0, 12))",
+    "png(tempfile(fileext = '.png')); plot(1:3); invisible(dev.off())",
+    "hist(x + 6, add = TRUE)",
+    "```",
+    "```{r panels}",
+    "par(mfrow = c(1, 2))",
+    "barplot(1:3, main = 'panel-left')",
+    "ggplot2::ggsave(tempfile(fileext = '.png'), p, width = 3, height = 3)",
+    "barplot(3:1, main = 'panel-right')",
+    "```",
+    "```{r putback}",
+    "hist(x, main = 'putback', xlim = c(0, 12))",
+    "drawn <- recordPlot()",
+    "barplot(1:2, main = 'between')",
+    "replayPlot(drawn)",
+    "hist(x + 6, add = TRUE)",
+    "```"
+  ), dir)
+
+  testthat::expect_identical(figure_sequence(page), c(
+    "elsewhere: hist:4+hist:4",
+    "panel-right: bar:3|bar:3",
+    "putback: hist:4", "between: bar:2", "putback: hist:4+hist:4"
+  ))
+})
+
 test_that("a page the chunk replays itself belongs to no figure", {
   skip_if_no_figures()
   local_knitr_state()

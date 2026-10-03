@@ -12,9 +12,9 @@
 # device's display list, made with `grDevices::recordGraphics()`, that draws
 # nothing and, each time the page is replayed, reports the chart's token
 # (`knit_page_replayed()`). knitr replays a figure's page just before it
-# calls the hook for that figure, so the tokens reported since the hook last
-# ran name the charts on the figure in hand -- whatever `fig.keep`, `fig.show`
-# or `dev` say. A ggplot2 or lattice chart printed in the knit is queued
+# calls the hook for that figure, so the tokens reported by the page
+# replayed last name the charts on the figure in hand -- whatever
+# `fig.keep`, `fig.show` or `dev` say. A ggplot2 or lattice chart printed in the knit is queued
 # under its token; a Base R call is recorded with its token as `uid`.
 #
 # The hook shows a figure as a chart only when its tokens name exactly one
@@ -29,10 +29,12 @@
 # data, a loop's index -- that the code goes on to change.
 
 .maidr_knit_figures <- new.env(parent = emptyenv())
-# Tokens reported by the pages replayed since the plot hook last ran, and the
-# page each was drawn on.
+# Tokens reported by the pages replayed since the plot hook last ran, the
+# page each was drawn on, and the tokens of every marker on the page each
+# was replayed from.
 .maidr_knit_figures$seen <- character()
 .maidr_knit_figures$seen_page <- integer()
+.maidr_knit_figures$seen_on <- character()
 # The ggplot2 and lattice charts drawn in the knit, by token: each a list of
 # the chart as maidr read it when it was printed (`NULL` when maidr could
 # not) and the device it was drawn on.
@@ -164,11 +166,16 @@ knit_page_replayed <- function(token, page) {
   if (ignored) {
     return(invisible(NULL))
   }
-  if (knit_marker_overdrawn(token)) {
+  # The display list being replayed, which recordPlot() returns while the
+  # replay runs.
+  entries <- tryCatch(grDevices::recordPlot()[[1L]], error = function(e) NULL)
+  markers <- if (is.list(entries)) vapply(entries, knit_marker_token, character(1))
+  if (knit_marker_overdrawn(token, entries, markers)) {
     token <- paste0("x", token)
   }
   state$seen <- c(state$seen, token)
   state$seen_page <- c(state$seen_page, as.integer(page)[1L])
+  state$seen_on <- c(state$seen_on, paste(markers[!is.na(markers)], collapse = " "))
   invisible(NULL)
 }
 
@@ -193,29 +200,28 @@ chunk_code_running <- function() {
 
 #' Whether something was drawn over a chart after its marker
 #'
-#' Read from the display list being replayed, which `recordPlot()` returns
-#' while the replay runs. Anything after a ggplot2 or lattice chart's marker
-#' other than another marker -- `grid.text()`, an inset printed into a
-#' viewport, `trellis.focus()` and a `panel.*()` call -- is not in the chart,
-#' and showing the chart would leave it out. After a Base R call's marker,
-#' only grid drawing counts: a Base R call maidr does not record is left out
-#' of the chart as it always was.
+#' Read from the display list being replayed. Anything after a ggplot2 or
+#' lattice chart's marker other than another marker -- `grid.text()`, an
+#' inset printed into a viewport, `trellis.focus()` and a `panel.*()` call
+#' -- is not in the chart, and showing the chart would leave it out. After a
+#' Base R call's marker, only grid drawing counts: a Base R call maidr does
+#' not record is left out of the chart as it always was.
 #'
 #' @param token The chart's token
+#' @param entries The display list's entries, `NULL` when it cannot be read
+#' @param markers The token of each entry that is a marker, `NA` for others
 #' @return Logical; `TRUE` as well when the display list cannot be read
 #' @keywords internal
 #' @noRd
-knit_marker_overdrawn <- function(token) {
-  entries <- tryCatch(grDevices::recordPlot()[[1L]], error = function(e) NULL)
+knit_marker_overdrawn <- function(token, entries, markers) {
   if (!is.list(entries)) {
     return(TRUE)
   }
-  tokens <- vapply(entries, knit_marker_token, character(1))
-  own <- which(tokens == token)
+  own <- which(markers == token)
   if (length(own) == 0L) {
     return(TRUE)
   }
-  after <- seq_along(entries) > max(own) & is.na(tokens)
+  after <- seq_along(entries) > max(own) & is.na(markers)
   if (startsWith(token, "b")) {
     after <- after & vapply(entries, is_recorded_graphics_entry, logical(1))
   }
@@ -332,15 +338,20 @@ remove_knit_page_hooks <- function() {
 forget_replayed_tokens <- function() {
   .maidr_knit_figures$seen <- character()
   .maidr_knit_figures$seen_page <- integer()
+  .maidr_knit_figures$seen_on <- character()
   invisible(NULL)
 }
 
 #' The tokens of the figure knitr has just replayed, forgotten once read
 #'
-#' A page replayed before the figure's own belongs to another figure, so
-#' only the last page's tokens are taken. A chart drawn across several pages
-#' (page `NA`) shares its last page with whatever follows it there, so a
-#' figure that replays any such marker holds no one chart.
+#' The tokens of the page replayed last, told by the markers on it: a page
+#' replayed before the figure's own belongs to another figure, and a hook
+#' set over maidr's may not have called it for that one. Every marker on
+#' the page counts, whatever page count it was made at -- a page
+#' `replayPlot()` put back, or one drawn on while another device started
+#' pages, is still one page. A chart drawn across several pages (page `NA`)
+#' shares its last page with whatever follows it there, so a figure that
+#' replays any such marker holds no one chart.
 #'
 #' @return The tokens, `NA` when the figure is no one chart, or none
 #' @keywords internal
@@ -348,14 +359,16 @@ forget_replayed_tokens <- function() {
 take_replayed_tokens <- function() {
   seen <- .maidr_knit_figures$seen
   pages <- .maidr_knit_figures$seen_page
+  replayed_on <- .maidr_knit_figures$seen_on
   forget_replayed_tokens()
   if (length(seen) == 0L) {
     return(character())
   }
-  if (anyNA(pages)) {
+  last <- replayed_on == replayed_on[[length(replayed_on)]]
+  if (anyNA(pages[last])) {
     return(NA_character_)
   }
-  unique(seen[pages == pages[[length(pages)]]])
+  unique(seen[last])
 }
 
 #' Draw a ggplot2 or lattice chart as a figure of the chunk, and queue it

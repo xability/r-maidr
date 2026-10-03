@@ -127,15 +127,25 @@ test_that("a figure takes the tokens of the page replayed last, and none spannin
 
   figures$seen <- c("b1", "b2", "b1", "o3")
   figures$seen_page <- c(4L, 4L, 4L, 5L)
+  figures$seen_on <- c("b1 b2", "b1 b2", "b1 b2", "o3")
   testthat::expect_identical(maidr:::take_replayed_tokens(), "o3")
   testthat::expect_identical(maidr:::take_replayed_tokens(), character())
 
+  # Markers made at different page counts on one page: a page replayPlot()
+  # put back, or one another device started pages beside.
   figures$seen <- c("b1", "b2", "b2")
-  figures$seen_page <- c(4L, 4L, 4L)
+  figures$seen_page <- c(4L, 6L, 6L)
+  figures$seen_on <- c("b1 b2", "b1 b2", "b1 b2")
+  testthat::expect_identical(maidr:::take_replayed_tokens(), c("b1", "b2"))
+
+  figures$seen <- c("b3", "b1", "b2")
+  figures$seen_page <- c(NA, 4L, 4L)
+  figures$seen_on <- c("b3", "b1 b2", "b1 b2")
   testthat::expect_identical(maidr:::take_replayed_tokens(), c("b1", "b2"))
 
   figures$seen <- c("b1", "b2")
   figures$seen_page <- c(NA, 4L)
+  figures$seen_on <- c("b1 b2", "b1 b2")
   testthat::expect_identical(maidr:::take_replayed_tokens(), NA_character_)
 })
 
