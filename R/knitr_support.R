@@ -17,6 +17,11 @@
 #' `maidr_on()` yourself is needed after [maidr_off()], to start again; in a
 #' document, it installs the hooks at once.
 #'
+#' A chunk cached with `cache = TRUE` brings its charts back from knitr's
+#' cache. One cached with `cache = 1` or `cache = 2` shows them only when its
+#' code runs: rendered again from the cache, its figures are knitr's static
+#' images, since the charts they were drawn from are not cached with them.
+#'
 #' @return Invisible TRUE on success
 #' @examples
 #' \donttest{

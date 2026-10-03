@@ -448,6 +448,33 @@ test_that("a cached chunk's charts come back from the cache", {
   testthat::expect_identical(figure_sequence(knit_for(chunks, dir)), expected)
 })
 
+test_that("a chunk cached with cache = 1 or 2 shows knitr's figures from the cache", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+  # Its pages come back from the cache without the charts they were drawn
+  # from: their markers name charts no longer recorded, or are not replayed.
+  chunks <- c(
+    chart_setup,
+    "```{r one, cache = 1}",
+    "barplot(1:3, main = 'cache-1')",
+    "print(p + ggplot2::ggtitle('cache-1-gg'))",
+    "```",
+    "```{r two, cache = 2}",
+    "barplot(1:2, main = 'cache-2')",
+    "```"
+  )
+
+  testthat::expect_identical(
+    figure_sequence(knit_for(chunks, dir)),
+    c("cache-1: bar:3", "cache-1-gg: bar:3", "cache-2: bar:2")
+  )
+  testthat::expect_identical(
+    figure_sequence(knit_for(chunks, dir)),
+    c("figure one-1.png", "figure one-2.png", "figure two-1.png")
+  )
+})
+
 test_that("a chunk that knits a child document keeps its own chart", {
   skip_if_no_figures()
   local_knitr_state()
