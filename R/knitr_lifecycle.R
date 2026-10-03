@@ -12,13 +12,19 @@
 # after that, each entry point costs one lookup.
 #
 # What is installed:
-# * the plot hook, which makes a chunk's Base R figure an accessible chart;
+# * the plot hook, which shows the chart a figure holds in its place (see
+#   knitr_figure_map.R for how it tells which chart that is);
+# * an `evaluate` hook, which forgets the pages a chunk replayed itself once
+#   it has run, before knitr saves its figures;
 # * a `dev` option hook, which gives the chunks of an HTML document svglite
 #   in place of knitr's default png, so its static figures are vector images;
 # * a chunk hook, which declares the page dependencies of the charts a
-#   chunk shows, where knitr's cache keeps them.
-# Each wraps the hook it replaces, which it calls first or falls back on, and
-# `maidr_off()` puts that hook back.
+#   chunk shows, where knitr's cache keeps them;
+# * R's and grid's new-page hooks, which count the pages the knit draws, and
+#   the `maidr.knit.replayed` option, through which a chart's marker reports
+#   that its page was replayed.
+# Each knitr hook wraps the hook it replaces, which it calls first or falls
+# back on, and `maidr_off()` puts that hook back.
 
 #' Whether knitr is knitting a document now
 #'
@@ -52,7 +58,8 @@ ensure_knitr_integration <- function() {
   }
   installed <- isTRUE(knitr::opts_knit$get("maidr.integrated")) &&
     is_maidr_knitr_hook(knitr::knit_hooks$get("plot")) &&
-    is_maidr_knitr_hook(knitr::knit_hooks$get("chunk"))
+    is_maidr_knitr_hook(knitr::knit_hooks$get("chunk")) &&
+    is_maidr_knitr_hook(knitr::knit_hooks$get("evaluate"))
   if (!installed) {
     install_knitr_integration()
   }
@@ -64,15 +71,17 @@ ensure_knitr_integration <- function() {
 #' Each hook is installed over the one in place, unless that one is maidr's.
 #' The plot hook is looked up when a figure is written, after its chunk has
 #' run, and the chunk hook after that, so hooks installed while a chunk runs
-#' already cover that chunk.
+#' already cover that chunk. knitr looks the `evaluate` hook up before it
+#' runs a chunk, so it covers the chunks after the one that installs it.
 #'
-#' Base R calls recorded on the chunk's device before the first install of
-#' a knit belong to no chart of it, and are dropped. A knit whose hooks are
-#' already maidr's is a child document, which put its parent's `opts_knit`
-#' back when it ended: the current device's calls are then this chunk's,
-#' and are kept. Calls on any other open device, such as the session's own,
-#' are left for the session: the plot hook reads only the device a chunk
-#' drew on (`knit_chunk_device()`).
+#' What was recorded on the chunk's device before the first install of a
+#' knit -- Base R calls, charts queued for a figure -- belongs to no chart of
+#' it, and is dropped. A knit whose hooks are already maidr's is a child
+#' document, which put its parent's `opts_knit` back when it ended: the
+#' current device's records are then this chunk's, and are kept. Calls on
+#' any other open device, such as the session's own, are left for the
+#' session: a figure is shown as a chart only for the tokens its page
+#' carries, which only a knit gives (`resolve_figure_chart()`).
 #'
 #' @return NULL (invisible)
 #' @keywords internal
@@ -92,10 +101,16 @@ install_knitr_integration <- function() {
   if (!is_maidr_knitr_hook(chunk)) {
     knitr::knit_hooks$set(chunk = maidr_knitr_chunk_hook(chunk))
   }
+  evaluate <- knitr::knit_hooks$get("evaluate")
+  if (!is_maidr_knitr_hook(evaluate)) {
+    knitr::knit_hooks$set(evaluate = maidr_knitr_evaluate_hook(evaluate))
+  }
+  set_knit_page_hooks()
+  options(maidr.knit.replayed = knit_page_replayed)
 
   if (fresh) {
     reset_knitr_chart_index()
-    note_knit_device(NULL)
+    forget_replayed_tokens()
   }
   drop_stale_device_storage(include_current = fresh)
   invisible(NULL)
@@ -116,7 +131,7 @@ uninstall_knitr_integration <- function() {
   if (!isNamespaceLoaded("knitr")) {
     return(invisible(NULL))
   }
-  for (name in c("plot", "chunk")) {
+  for (name in c("plot", "chunk", "evaluate")) {
     hook <- knitr::knit_hooks$get(name)
     if (is_maidr_knitr_hook(hook)) {
       previous <- list(attr(hook, "previous"))
@@ -138,8 +153,11 @@ uninstall_knitr_integration <- function() {
     }
   }
   knitr::opts_knit$delete("maidr.integrated")
+  remove_knit_page_hooks()
+  options(maidr.knit.replayed = NULL)
   reset_knitr_chart_index()
-  note_knit_device(NULL)
+  forget_replayed_tokens()
+  .maidr_knit_figures$objects <- list()
   invisible(NULL)
 }
 
@@ -208,7 +226,6 @@ maidr_knitr_chunk_hook <- function(previous) {
       x <- previous(x, options)
     }
     reset_knitr_chart_index()
-    note_knit_device(NULL)
     shown <- !isFALSE(options$include) &&
       any(grepl("data-maidr-knitr=", x, fixed = TRUE))
     if (shown) {
@@ -231,12 +248,15 @@ maidr_knitr_chunk_hook <- function(previous) {
 #' maidr's `dev` option hook, over the hook it replaces
 #'
 #' knitr runs it at the start of every chunk, before the chunk's device
-#' opens, after the hook it replaces (flexdashboard has one). It drops the
-#' Base R calls of devices that have closed since -- a chunk whose plot hook
-#' never ran (`fig.show = "hide"`, an error) would otherwise leave its calls
-#' to the next chunk, which knitr gives the same device number -- and picks
-#' the chunk's device (`maidr_chunk_device()`). It does nothing in a knit
-#' maidr was not installed into: a plain `knitr::knit()` leaves it behind.
+#' opens, after the hook it replaces (flexdashboard has one). It drops what
+#' was recorded on devices that have closed since, and the tokens of pages
+#' replayed for no figure -- a chunk whose plot hook never ran
+#' (`fig.show = "hide"`, an error) would otherwise leave them to the next
+#' chunk, which knitr gives the same device number -- and picks the chunk's
+#' device (`maidr_chunk_device()`). The device of a chunk that is knitting a
+#' child document is still open, and what it recorded is kept. The hook does
+#' nothing in a knit maidr was not installed into: a plain `knitr::knit()`
+#' leaves it behind.
 #'
 #' flexdashboard's hook makes a `png` figure two, the second drawn for
 #' phones (`flexdashboard_phone_figures()`), and leaves any other device
@@ -257,7 +277,7 @@ maidr_knitr_dev_hook <- function(previous) {
       return(options)
     }
     drop_stale_device_storage()
-    note_knit_device(NULL)
+    forget_replayed_tokens()
     if (flexdashboard_phone_figures(given, options)) {
       if (identical(maidr_chunk_device(given), "svglite")) {
         given$dev <- "svglite"
@@ -389,60 +409,49 @@ dev_args_suit_svglite <- function(dev_args) {
   all(names(dev_args) %in% names(formals(svglite::svglite)))
 }
 
-#' The device the chunk being knitted draws on
+#' Drop what was recorded on devices that are no longer open
 #'
-#' The plot hook reads a chunk's Base R calls from the chunk's device, which
-#' is no longer the current one when the hook runs if another device is
-#' open: knitr saves each figure on a device of its own, and closing that
-#' one makes R's next open device current -- the first one, say a `pdf()`
-#' left open or an IDE's screen, rather than the chunk's. So the device a
-#' chunk records a call on, or draws a ggplot2 or lattice chart on, is
-#' noted, and forgotten when the chunk ends.
+#' The Base R calls, and the ggplot2 and lattice charts queued for a figure
+#' (`draw_as_knit_figure()`). Calls are kept by device number, and knitr
+#' gives every chunk the same number: the layout calls a chunk recorded
+#' would govern the next chunk's charts, and a chunk's records would be kept
+#' for the whole knit.
 #'
-#' A chunk with no device noted recorded nothing, and the current device is
-#' not read in its place: it can be the session's own, holding a chart drawn
-#' at the console before the render, which would be shown for the chunk's
-#' figure.
-#'
-#' @return The chunk's device when one was noted and is still open, `NULL`
-#'   otherwise
-#' @keywords internal
-knit_chunk_device <- function() {
-  device <- .maidr_knitr_state$device
-  if (!is.null(device) && device %in% grDevices::dev.list()) {
-    return(device)
-  }
-  NULL
-}
-
-#' Note the device a knitted chunk draws on
-#'
-#' @param device_id Graphics device ID; `NULL` forgets it
-#' @return NULL (invisible)
-#' @keywords internal
-#' @noRd
-note_knit_device <- function(device_id) {
-  .maidr_knitr_state$device <- device_id
-  invisible(NULL)
-}
-
-#' Drop the Base R calls recorded on devices that are no longer open
-#'
-#' Calls are kept by device number, and knitr gives every chunk the same
-#' number: calls a chunk recorded without its plot hook running would become
-#' layers of the next chunk's chart.
-#'
-#' @param include_current Drop the current device's calls as well
+#' @param include_current Drop the current device's records as well
 #' @return NULL (invisible)
 #' @keywords internal
 drop_stale_device_storage <- function(include_current = FALSE) {
-  keys <- names(.maidr_base_r_session$devices)
-  stale <- setdiff(keys, as.character(grDevices::dev.list()))
+  open <- grDevices::dev.list()
   if (include_current) {
-    stale <- union(stale, intersect(keys, as.character(grDevices::dev.cur())))
+    open <- setdiff(open, grDevices::dev.cur())
   }
-  for (key in stale) {
+  for (key in setdiff(names(.maidr_base_r_session$devices), as.character(open))) {
     clear_device_storage(as.integer(key))
   }
+  queued <- .maidr_knit_figures$objects
+  kept <- vapply(queued, function(chart) chart$device %in% open, logical(1))
+  .maidr_knit_figures$objects <- queued[kept]
   invisible(NULL)
+}
+
+#' maidr's knitr `evaluate` hook, over the hook it replaces
+#'
+#' Runs a chunk's code with the hook it replaces, and then forgets the pages
+#' replayed while the code ran (`forget_replayed_tokens()`): knitr saves a
+#' chunk's figures, replaying each page, only once its code has run, so a
+#' page the code replayed itself -- `dev.print()`, `dev.copy()`,
+#' `replayPlot()` -- would otherwise be taken for the chunk's first figure.
+#'
+#' @param previous The `evaluate` hook in place before; knitr evaluates
+#'   with `evaluate::evaluate()` when there is none
+#' @return An `evaluate` hook
+#' @keywords internal
+maidr_knitr_evaluate_hook <- function(previous) {
+  force(previous)
+  hook <- function(...) {
+    on.exit(forget_replayed_tokens(), add = TRUE)
+    evaluate <- if (is.function(previous)) previous else getExportedValue("evaluate", "evaluate")
+    evaluate(...)
+  }
+  mark_maidr_knitr_hook(hook, previous)
 }

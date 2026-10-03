@@ -356,6 +356,12 @@ announce_masking <- function(package) {
   # lattice outlives maidr, and would otherwise keep printing through a
   # function from a namespace that is gone.
   tryCatch(restore_lattice_print_method(), error = function(e) NULL)
+
+  # And R and grid would count pages, and markers report them, into it.
+  tryCatch(remove_knit_page_hooks(), error = function(e) NULL)
+  if (identical(getOption("maidr.knit.replayed"), knit_page_replayed)) {
+    options(maidr.knit.replayed = NULL)
+  }
 }
 
 # Show startup message when package is attached via library()

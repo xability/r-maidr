@@ -211,11 +211,10 @@ knit_print.ggplot <- function(x, options = list(), ...) {
 #'
 #' Only a chart the chunk returns reaches this method. One the chunk prints
 #' itself -- \code{print(p)}, lattice's idiom for a chart inside a loop or a
-#' function -- is drawn by lattice onto knitr's device and included as the
-#' figure knitr records, since knitr does not route an explicit print
-#' through \code{knit_print}. A chunk that draws Base R charts on that
-#' device as well keeps all its figures static: the plot hook cannot tell
-#' which figure the Base R calls drew.
+#' function -- is drawn by lattice onto knitr's device, since knitr does not
+#' route an explicit print through \code{knit_print}, and the plot hook
+#' shows the figure knitr records of it as the chart, as it does a Base R
+#' chart.
 #'
 #' @param x A trellis object
 #' @param options Chunk options from knitr
@@ -345,85 +344,34 @@ create_maidr_widget_internal <- function(plot = NULL) {
   )
 }
 
-#' knitr Plot Hook for Base R Plots
+#' knitr Plot Hook
 #'
-#' Makes the figure of a chunk that drew Base R charts an accessible MAIDR
-#' chart, in place of the figure file knitr saved: inline in an HTML page,
-#' in its own iframe in other HTML output (see `knitr_chart_output()`), and
-#' as an inline image when MAIDR cannot read the chart. Any other figure,
-#' and every figure of any other output format (PDF, Word, ...), is left to
-#' the hook it was installed over.
-#'
-#' A chunk's recorded calls make its first figure; calls recorded on any
-#' other device, such as a chart drawn at the console before the render, are
-#' not read. A chunk that also drew a ggplot2 or lattice chart with
-#' `print()` on the same device keeps knitr's figures: which figure the
-#' calls drew cannot be told, and a wrong chart must never be shown.
+#' Shows the chart a figure holds in place of the figure file knitr saved:
+#' inline in an HTML page, in its own iframe in other HTML output (see
+#' `knitr_chart_output()`). The chart is the one the figure's page carries
+#' the marker of (see knitr_figure_map.R): a ggplot2 or lattice chart the
+#' chunk printed, or the Base R calls drawn on the page. Any other figure --
+#' no chart, two charts or a chart something else was drawn over, a chart
+#' maidr cannot read -- and every figure of an animation or of any other
+#' output format (PDF, Word, ...), is left to the hook maidr's was installed
+#' over, which keeps its caption and alt text. A wrong chart is never shown.
 #'
 #' @param x The plot file path from knitr
-#' @param options Chunk options
+#' @param options Chunk options, reduced to the figure's own
 #' @param original The plot hook maidr's was installed over; knitr's
 #'   Markdown hook when `NULL`
 #' @return The figure's Markdown or HTML
 #' @keywords internal
 maidr_plot_hook <- function(x, options, original = NULL) {
-  # Every reader of the recorded calls reads the current device's, which is
-  # not the chunk's once knitr has saved the figure: see knit_chunk_device().
-  # A chunk that recorded nothing has no chart to show.
-  device_id <- knit_chunk_device()
-  if (is.null(device_id)) {
+  tokens <- take_replayed_tokens()
+  shown <- length(tokens) > 0L && is_html_output() &&
+    !identical(options$fig.show, "animate")
+  chart <- if (shown) resolve_figure_chart(tokens)
+  out <- if (!is.null(chart)) render_figure_chart(chart, options)
+  if (is.null(out)) {
     return(call_original_plot_hook(x, options, original))
   }
-  if (device_id != grDevices::dev.cur()) {
-    previous <- grDevices::dev.cur()
-    grDevices::dev.set(device_id)
-    on.exit(
-      if (previous %in% grDevices::dev.list()) grDevices::dev.set(previous),
-      add = TRUE
-    )
-  }
-
-  # Honour maidr_off(): behave exactly like the original hook. Drop anything
-  # already recorded on this device first - otherwise calls captured before
-  # interception was disabled survive, and a later maidr_on() folds them into
-  # the next render as phantom layers.
-  if (!is_base_r_enabled() || device_has_foreign_drawing(device_id)) {
-    clear_device_storage(device_id)
-    return(call_original_plot_hook(x, options, original))
-  }
-
-  # Check if we have captured Base R calls
-  if (has_device_calls(device_id)) {
-    if (!is_html_output()) {
-      # For PDF/EPUB/LaTeX: use the ORIGINAL hook, not hook_plot_md -
-      # markdown image syntax inside a .tex document breaks the figure
-      clear_device_storage(device_id)
-      return(call_original_plot_hook(x, options, original))
-    }
-
-    # Create orchestrator ONCE and reuse it
-    registry <- get_global_registry()
-    adapter <- registry$get_adapter("base_r")
-    orchestrator <- adapter$create_orchestrator(NULL)
-
-    if (orchestrator$should_fallback()) {
-      # For fallback/unsupported plots in HTML: use inline image (no iframe needed)
-      img_html <- create_inline_image(plot = NULL)
-      clear_device_storage(device_id)
-      return(img_html)
-    }
-
-    # Get content using the SAME orchestrator (avoid creating another)
-    content <- create_maidr_html(plot = NULL, shiny = TRUE, orchestrator = orchestrator)
-
-    # Clear the device storage
-    clear_device_storage(device_id)
-
-    return(knitr_chart_output(content, options, figure = TRUE))
-  }
-
-  # Fall back to original plot hook if no Base R calls captured
-  call_original_plot_hook(x, options, original)
+  out
 }
 
 #' Wrap a chart in its iframe for a knitted document
@@ -472,14 +420,12 @@ call_original_plot_hook <- function(x, options, original = NULL) {
 }
 
 # Internal state for knitr integration: whether maidr_on() was called last
-# (rather than maidr_off()), the label and count of the charts of the chunk
-# being knitted (knitr_chart_index()), and the device it draws on
-# (knit_chunk_device()).
+# (rather than maidr_off()), and the label and count of the charts of the
+# chunk being knitted (knitr_chart_index()).
 .maidr_knitr_state <- new.env(parent = emptyenv())
 .maidr_knitr_state$enabled <- FALSE
 .maidr_knitr_state$chart_label <- NULL
 .maidr_knitr_state$chart_count <- 0L
-.maidr_knitr_state$device <- NULL
 
 #' Check if current knitr output format is HTML
 #'

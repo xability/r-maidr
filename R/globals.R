@@ -26,3 +26,7 @@ utils::globalVariables(c(
   "on_layout_call",
   "reset_device_state"
 ))
+
+# The names a chart's knit marker reads from the list recordGraphics() makes
+# its environment of (mark_knit_page())
+utils::globalVariables(c("maidr_token", "maidr_page"))

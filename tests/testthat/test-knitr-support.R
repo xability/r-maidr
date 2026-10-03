@@ -48,7 +48,9 @@ restore_knitr_env <- function(state) {
   # Last, so the saved values win over whatever maidr_on()/maidr_off() set.
   options(state$options)
   maidr:::clear_all_device_storage()
-  maidr:::note_knit_device(NULL)
+  figures <- maidr:::.maidr_knit_figures
+  figures$objects <- list()
+  maidr:::forget_replayed_tokens()
 
   invisible(NULL)
 }
@@ -57,45 +59,7 @@ restore_knitr_env <- function(state) {
 # maidr_plot_hook Tests
 # ==============================================================================
 
-test_that("maidr_plot_hook clears device storage when interception is off", {
-  testthat::skip_if_not_installed("knitr")
-
-  env_state <- save_knitr_env()
-  on.exit(restore_knitr_env(env_state), add = TRUE)
-
-  maidr::maidr_on()
-  maidr:::clear_all_device_storage()
-
-  grDevices::pdf(NULL)
-  device_id <- grDevices::dev.cur()
-  on.exit(
-    tryCatch(grDevices::dev.off(device_id), error = function(e) NULL),
-    add = TRUE
-  )
-
-  barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-  testthat::expect_true(maidr:::has_device_calls(device_id))
-  # A chunk that records a call notes its device; outside a knit, nothing
-  # does, so the test notes it.
-  maidr:::note_knit_device(device_id)
-
-  # Base R interception turned off while maidr's hooks stay in the knit
-  # (maidr_off() takes them out): the hook must behave like the original
-  # hook AND drop what was already recorded, rather than leaving it behind.
-  options(maidr.base_r = FALSE)
-  testthat::expect_false(maidr:::is_base_r_enabled())
-
-  original <- function(x, options) paste("original hook:", x)
-  testthat::expect_identical(
-    maidr:::maidr_plot_hook("figure-1.png", list(), original),
-    "original hook: figure-1.png"
-  )
-
-  testthat::expect_false(maidr:::has_device_calls(device_id))
-  testthat::expect_length(maidr:::get_device_calls(device_id), 0)
-})
-
-test_that("maidr_plot_hook reads no device for a chunk that recorded nothing", {
+test_that("maidr_plot_hook leaves a figure no chart marked to the hook it replaced", {
   testthat::skip_if_not_installed("knitr")
 
   env_state <- save_knitr_env()
@@ -114,7 +78,7 @@ test_that("maidr_plot_hook reads no device for a chunk that recorded nothing", {
     add = TRUE
   )
   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-  maidr:::note_knit_device(NULL)
+  testthat::expect_null(maidr:::get_device_calls(device_id)[[1]]$uid)
 
   original <- function(x, options) paste("original hook:", x)
   testthat::expect_identical(
@@ -123,6 +87,52 @@ test_that("maidr_plot_hook reads no device for a chunk that recorded nothing", {
   )
   # Left for the session, whose show() is still to come.
   testthat::expect_true(maidr:::has_device_calls(device_id))
+})
+
+test_that("maidr_plot_hook shows a figure only for the one chart its tokens name", {
+  testthat::skip_if_not_installed("knitr")
+
+  env_state <- save_knitr_env()
+  on.exit(restore_knitr_env(env_state), add = TRUE)
+  maidr::maidr_on()
+  maidr:::clear_all_device_storage()
+  figures <- maidr:::.maidr_knit_figures
+  figures$objects <- list(o1 = list(plot = create_test_ggplot_bar(), device = 2L))
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), 2L)
+  session <- maidr:::.maidr_base_r_session
+  storage <- session$devices[["2"]]
+  storage$calls[[1]]$uid <- "b1"
+  session$devices[["2"]] <- storage
+
+  resolve <- maidr:::resolve_figure_chart
+  testthat::expect_s3_class(resolve("o1")$plot, "ggplot")
+  testthat::expect_identical(resolve("b1")$calls, storage$calls)
+  testthat::expect_identical(resolve("b1")$device, 2L)
+  # Two charts on a page, a chart drawn over, one spanning pages, a token no
+  # chart has: none.
+  testthat::expect_null(resolve(c("o1", "b1")))
+  testthat::expect_null(resolve("xo1"))
+  testthat::expect_null(resolve(NA_character_))
+  testthat::expect_null(resolve(c("b1", "b2")))
+  testthat::expect_null(resolve(character()))
+})
+
+test_that("a figure takes the tokens of the page replayed last, and none spanning pages", {
+  figures <- maidr:::.maidr_knit_figures
+  on.exit(maidr:::forget_replayed_tokens(), add = TRUE)
+
+  figures$seen <- c("b1", "b2", "b1", "o3")
+  figures$seen_page <- c(4L, 4L, 4L, 5L)
+  testthat::expect_identical(maidr:::take_replayed_tokens(), "o3")
+  testthat::expect_identical(maidr:::take_replayed_tokens(), character())
+
+  figures$seen <- c("b1", "b2", "b2")
+  figures$seen_page <- c(4L, 4L, 4L)
+  testthat::expect_identical(maidr:::take_replayed_tokens(), c("b1", "b2"))
+
+  figures$seen <- c("b1", "b2")
+  figures$seen_page <- c(NA, 4L)
+  testthat::expect_identical(maidr:::take_replayed_tokens(), NA_character_)
 })
 
 test_that("the test helpers leave global patching state as they found it", {
@@ -411,7 +421,7 @@ test_that("after maidr_off() a returned trellis object is lattice's figure in HT
   testthat::expect_identical(unname(tools::md5sum(figures[1])), unname(tools::md5sum(figures[2])))
 })
 
-test_that("a trellis object a chunk prints itself is lattice's figure", {
+test_that("a trellis object a chunk prints itself is a MAIDR chart in place of its figure", {
   testthat::skip_on_cran()
   skip_if_no_lattice()
   testthat::skip_if_not_installed("knitr")
@@ -421,11 +431,11 @@ test_that("a trellis object a chunk prints itself is lattice's figure", {
   dir.create(dir)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
 
-  # knitr does not route an explicit print() through knit_print(), and the
-  # print hook leaves a print while knitr runs to lattice, so the figure is
-  # recorded as it would be without MAIDR -- and no viewer opens. It is an
-  # svg, as every figure of an HTML document maidr is knitting: knitr's
-  # default device, png, is replaced.
+  # knitr does not route an explicit print() through knit_print(): lattice
+  # draws the chart on knitr's device, where knitr records it as a figure,
+  # and the plot hook shows the chart in its place -- and no viewer opens.
+  # The control chunk's figure is an svg, as every figure of an HTML
+  # document maidr is knitting: knitr's default device, png, is replaced.
   opened <- 0L
   testthat::local_mocked_bindings(
     session_is_interactive = function() TRUE,
@@ -441,11 +451,12 @@ test_that("a trellis object a chunk prints itself is lattice's figure", {
   )
 
   testthat::expect_identical(opened, 0L)
-  testthat::expect_false(grepl("<iframe", page, fixed = TRUE))
-  testthat::expect_false(grepl("data-maidr-knitr", page, fixed = TRUE))
+  expect_inline_scatter(page)
   figures <- knitted_figures(page)
-  testthat::expect_identical(basename(figures), c("figure-printed-1.svg", "figure-control-1.svg"))
-  testthat::expect_identical(unname(tools::md5sum(figures[1])), unname(tools::md5sum(figures[2])))
+  testthat::expect_identical(basename(figures), "figure-control-1.svg")
+  # Drawn as lattice draws it, as the figure no hook replaced.
+  printed <- file.path(dirname(figures), "figure-printed-1.svg")
+  testthat::expect_identical(unname(tools::md5sum(printed)), unname(tools::md5sum(figures)))
 })
 
 test_that("a trellis object the reading does not cover is an inline picture of it", {

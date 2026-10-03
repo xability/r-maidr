@@ -89,7 +89,6 @@ log_plot_call_to_device <- function(
   # (and drops calls recorded before it); every later one costs a lookup.
   if (isTRUE(getOption("knitr.in.progress"))) {
     ensure_knitr_integration()
-    note_knit_device(device_id)
   }
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
@@ -113,6 +112,15 @@ log_plot_call_to_device <- function(
     formula = formula,
     formula_frame = recorded_formula_frame(args, call_env, formula)
   )
+  # In a knit, a call that draws leaves a marker on its page, by which the
+  # plot hook knows the figure it is on (see knitr_figure_map.R). A layout
+  # call draws nothing, and governs the pages after it instead.
+  marked <- class_level %in% c("HIGH", "LOW") &&
+    identical(as.integer(device_id), as.integer(grDevices::dev.cur())) &&
+    knit_figures_active()
+  if (marked) {
+    call_entry$uid <- new_knit_token("b")
+  }
 
   storage$calls <- append(storage$calls, list(call_entry))
   storage$metadata$call_count <- length(storage$calls)
@@ -125,6 +133,10 @@ log_plot_call_to_device <- function(
     on_high_level_call(device_id, call_index)
   } else if (class_level == "LAYOUT") {
     on_layout_call(device_id, function_name, args)
+  }
+
+  if (marked) {
+    mark_knit_page(call_entry$uid, .maidr_knit_figures$call_start_page)
   }
 
   invisible(NULL)
@@ -168,41 +180,6 @@ clear_device_storage <- function(device_id = grDevices::dev.cur()) {
   }
 
   invisible(NULL)
-}
-
-#' Note that a ggplot2 or lattice chart was drawn on a device
-#'
-#' In a knit, `print()` of a ggplot2 or lattice chart draws it on the
-#' chunk's device, where knitr records it as a figure. The plot hook takes
-#' a device's recorded Base R calls for the chunk's first figure, which
-#' would make the chart drawn there a Base R chart it is not, so a device
-#' marked here keeps knitr's figures (see [maidr_plot_hook()]). The mark goes
-#' with the device's calls.
-#'
-#' @param device_id Graphics device ID
-#' @return NULL (invisible)
-#' @keywords internal
-mark_device_foreign_drawing <- function(device_id = grDevices::dev.cur()) {
-  if (is.null(device_id) || is.na(device_id) || device_id <= 1) {
-    return(invisible(NULL))
-  }
-  storage <- get_device_storage(device_id)
-  storage$foreign <- TRUE
-  .maidr_base_r_session$devices[[as.character(device_id)]] <- storage
-  note_knit_device(device_id)
-  invisible(NULL)
-}
-
-#' Whether a ggplot2 or lattice chart was drawn on a device
-#'
-#' @param device_id Graphics device ID
-#' @return Logical
-#' @keywords internal
-device_has_foreign_drawing <- function(device_id = grDevices::dev.cur()) {
-  if (is.null(device_id) || is.na(device_id) || device_id <= 0) {
-    return(FALSE)
-  }
-  isTRUE(.maidr_base_r_session$devices[[as.character(device_id)]]$foreign)
 }
 
 #' Clear All Device Storage

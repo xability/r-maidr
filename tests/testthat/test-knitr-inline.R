@@ -10,81 +10,10 @@
 # Helpers
 # ==============================================================================
 
-#' Put back what a test changes in maidr's and knitr's global state
-#'
-#' Interception is switched on and off by maidr_on()/maidr_off(), which also
-#' install and remove the Base R wrappers; knitr's hooks are put back as they
-#' were, since a plain knitr::knit() leaves its option hooks behind.
-local_knitr_state <- function(env = parent.frame()) {
-  patching <- maidr:::is_patching_active()
-  saved <- options("maidr.auto_show", "maidr.base_r", "maidr.ggplot2", "maidr.lattice")
-  hooks <- knitr::knit_hooks$get()
-  opts_hooks <- knitr::opts_hooks$get()
-  enabled <- maidr:::.maidr_knitr_state$enabled
-  withr::defer(
-    {
-      if (patching) maidr::maidr_on() else maidr::maidr_off()
-      knitr::knit_hooks$restore(hooks)
-      knitr::opts_hooks$restore(opts_hooks)
-      knitr::knit_meta(clean = TRUE)
-      state <- maidr:::.maidr_knitr_state
-      state$enabled <- enabled
-      options(saved)
-      maidr:::clear_all_device_storage()
-    },
-    envir = env
-  )
-  maidr::maidr_on()
-  invisible(NULL)
-}
-
-#' Knit Markdown text as R Markdown would for a pandoc output format
-#'
-#' knitr::knit() sets up its Markdown hooks only when every hook is still its
-#' default, so the knit starts from the defaults, as a document does in a
-#' new session. The setup chunk names the output format, as R Markdown does,
-#' and installs maidr into the knit as `library(maidr)` does when it loads
-#' maidr; maidr is already loaded here.
-#'
-#' @param chunks Lines of the document after its setup chunk
-#' @param dir Where knitr writes figures (and the cache)
-#' @param to The pandoc output format
-#' @return The knitted Markdown, as one string
-knit_for <- function(chunks, dir, to = "html") {
-  hooks <- knitr::knit_hooks$get()
-  knitr::knit_hooks$restore()
-  on.exit(knitr::knit_hooks$restore(hooks), add = TRUE)
-  maidr:::clear_all_device_storage()
-  document <- c(
-    "```{r setup, include = FALSE}",
-    sprintf("knitr::opts_knit$set(rmarkdown.pandoc.to = %s)", deparse(to)),
-    sprintf(
-      "knitr::opts_chunk$set(fig.path = %s, cache.path = %s)",
-      deparse(file.path(dir, "figure", "")), deparse(file.path(dir, "cache", ""))
-    ),
-    "maidr:::ensure_knitr_integration()",
-    "```",
-    "",
-    chunks
-  )
-  old <- setwd(dir)
-  on.exit(setwd(old), add = TRUE)
-  paste(knitr::knit(text = document, quiet = TRUE, envir = new.env()), collapse = "\n")
-}
-
 #' The figure files a knit wrote, by chunk label, as file extensions
 figure_types <- function(dir) {
   files <- list.files(file.path(dir, "figure"))
   stats::setNames(tools::file_ext(files), sub("-[0-9]+\\.[a-z]+$", "", files))
-}
-
-#' The inline charts of a page: each svg, as its own xml2 document
-inline_charts <- function(html) {
-  doc <- xml2::read_html(html, encoding = "UTF-8")
-  lapply(
-    xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]"),
-    function(svg) xml2::read_xml(as.character(svg), options = c("HUGE", "NOBLANKS"))
-  )
 }
 
 #' The strings under every `selectors` or `selector` key of parsed maidr-data
@@ -467,27 +396,40 @@ test_that("maidr installs into a knit over the hooks it finds, and maidr_off() p
     "```{r, results = 'asis'}",
     "mine <- function(x, options) 'mine'",
     "knitr::knit_hooks$set(plot = mine)",
+    "cat('UNMARKED', maidr:::knit_figures_active(), '\\n')",
     "maidr:::ensure_knitr_integration()",
     "plot <- knitr::knit_hooks$get('plot')",
     "dev <- knitr::opts_hooks$get('dev')",
     "cat('WRAPPED', maidr:::is_maidr_knitr_hook(plot), identical(attr(plot, 'previous'), mine),",
     "  identical(attr(attr(dev, 'previous'), 'test'), \"the document's\"),",
     "  maidr:::is_maidr_knitr_hook(knitr::knit_hooks$get('chunk')), '\\n')",
+    "set <- function(hook, f) any(vapply(getHook(hook), identical, NA, f))",
+    "pages <- function() c(",
+    "  set('before.plot.new', maidr:::knit_before_plot_new),",
+    "  set('before.grid.newpage', maidr:::knit_before_grid_newpage),",
+    "  is.function(getOption('maidr.knit.replayed')))",
+    "evaluate <- function() maidr:::is_maidr_knitr_hook(knitr::knit_hooks$get('evaluate'))",
+    "cat('MARKERS', evaluate(), pages(), '\\n')",
     "maidr:::ensure_knitr_integration()",
     "cat('ONCE', identical(knitr::knit_hooks$get('plot'), plot), '\\n')",
     "maidr::maidr_off()",
     "cat('OFF', identical(knitr::knit_hooks$get('plot'), mine),",
     "  identical(attr(knitr::opts_hooks$get('dev'), 'test'), \"the document's\"),",
     "  maidr:::is_maidr_knitr_hook(knitr::knit_hooks$get('chunk')),",
-    "  is.null(knitr::opts_knit$get('maidr.integrated')), '\\n')",
+    "  is.null(knitr::opts_knit$get('maidr.integrated')),",
+    "  evaluate(), pages(), '\\n')",
     "maidr::maidr_on()",
     "cat('ON', maidr:::is_maidr_knitr_hook(knitr::knit_hooks$get('plot')), '\\n')",
     "```"
   ), dir)
 
+  # A chart drawn while a plot hook of the document's is knitr's leaves no
+  # marker that nothing would read.
+  testthat::expect_match(page, "UNMARKED FALSE", fixed = TRUE)
   testthat::expect_match(page, "WRAPPED TRUE TRUE TRUE TRUE", fixed = TRUE)
+  testthat::expect_match(page, "MARKERS TRUE TRUE TRUE TRUE", fixed = TRUE)
   testthat::expect_match(page, "ONCE TRUE", fixed = TRUE)
-  testthat::expect_match(page, "OFF TRUE TRUE FALSE TRUE", fixed = TRUE)
+  testthat::expect_match(page, "OFF TRUE TRUE FALSE TRUE FALSE FALSE FALSE FALSE", fixed = TRUE)
   testthat::expect_match(page, "ON TRUE", fixed = TRUE)
 })
 
@@ -620,10 +562,10 @@ test_that("flexdashboard's phone copy of a default png figure gives way to svgli
 # ==============================================================================
 
 # One document with charts of every system, several to a chunk, a chart
-# printed with print(), and a chunk that draws a ggplot2 chart and a Base R
-# one on the same device. Its setup chunk only attaches maidr, which these
-# tests have loaded already: maidr installs itself into the knit from the
-# first chart.
+# printed with print(), and a chunk that prints a ggplot2 chart and draws a
+# Base R one on the same device. Its setup chunk only attaches maidr, which
+# these tests have loaded already: maidr installs itself into the knit from
+# the first chart.
 several_charts_rmd <- function(dir, self_contained) {
   rmd <- file.path(dir, "charts.Rmd")
   writeLines(c(
@@ -682,7 +624,7 @@ expect_several_charts <- function(out) {
   testthat::expect_length(xml2::xml_find_all(doc, "//iframe"), 0L)
 
   charts <- inline_charts(out)
-  testthat::expect_length(charts, 7L)
+  testthat::expect_length(charts, 10L)
   prefixes <- vapply(charts, expect_own_selectors, character(1))
   testthat::expect_false(anyDuplicated(prefixes) > 0L)
   ids <- xml2::xml_attr(xml2::xml_find_all(doc, "//*[@id]"), "id")
@@ -692,7 +634,10 @@ expect_several_charts <- function(out) {
     data <- jsonlite::parse_json(xml2::xml_attr(svg, "data-maidr-knitr"))
     data$subplots[[1]][[1]]$layers[[1]]$type
   }, character(1))
-  testthat::expect_identical(types, c("bar", "point", "bar", "point", "bar", "bar", "hist"))
+  testthat::expect_identical(
+    types,
+    c("bar", "point", "bar", "point", "bar", "bar", "hist", "bar", "bar", "point")
+  )
   names <- vapply(charts, function(svg) xml2::xml_attr(svg, "aria-label"), character(1))
   testthat::expect_identical(
     names[c(1, 2, 6)],
@@ -712,11 +657,8 @@ expect_several_charts <- function(out) {
     1L
   )
   # The printed chart, and both figures of the chunk that mixes a printed
-  # chart with a Base R one, are knitr's own figures: svg images.
-  images <- xml2::xml_attr(xml2::xml_find_all(doc, "//img"), "src")
-  testthat::expect_length(images, 3L)
-  static <- "printed-1\\.svg$|mixed-[12]\\.svg$|^data:image/svg\\+xml"
-  testthat::expect_true(all(grepl(static, images)))
+  # chart with a Base R one, are charts in place of knitr's figures.
+  testthat::expect_length(xml2::xml_find_all(doc, "//img"), 0L)
   invisible(html)
 }
 
@@ -759,7 +701,7 @@ test_that("only library(maidr) shows an R Markdown page's charts inline, on ever
   testthat::expect_identical(opened, 0L)
 })
 
-test_that("a chunk printing a lattice or ggplot2 chart beside Base R keeps knitr's figures", {
+test_that("a chunk printing a lattice or ggplot2 chart beside Base R shows each chart", {
   testthat::skip_on_cran()
   skip_if_no_render()
   testthat::skip_if_not_installed("lattice")
@@ -772,7 +714,7 @@ test_that("a chunk printing a lattice or ggplot2 chart beside Base R keeps knitr
     "barplot(c(a = 1, b = 2))",
     "```",
     "```{r ggplot}",
-    "barplot(c(a = 1, b = 2))",
+    "barplot(c(a = 1, b = 2, c = 3, d = 4))",
     "print(ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar())",
     "```",
     "```{r alone}",
@@ -780,15 +722,12 @@ test_that("a chunk printing a lattice or ggplot2 chart beside Base R keeps knitr
     "```"
   ), dir)
 
-  # The Base R calls of a chunk make its first figure, which here is the
-  # lattice chart or would be the barplot beside a ggplot2 chart drawn after
-  # it: neither chunk can be told apart, so both keep their figures.
-  testthat::expect_identical(lengths(regmatches(page, gregexpr("data-maidr-knitr=", page))), 1L)
+  # Each figure is the chart drawn on its page, in the order drawn.
   testthat::expect_identical(
-    sort(names(figure_types(dir))),
-    c("alone", "ggplot", "ggplot", "lattice", "lattice")
+    chart_summaries(page),
+    c("point:32", "bar:2", "bar:4", "bar:3", "bar:2")
   )
-  testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 4L)
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 0L)
 })
 
 test_that("a chunk's Base R chart is read from its own device while another is open", {
@@ -1015,10 +954,10 @@ test_that("library(maidr) in a document sets up the knit quietly, and every late
   log <- paste(out, collapse = "\n")
   testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
   testthat::expect_false(any(grepl("BROWSER-OPENED", out, fixed = TRUE)), info = log)
-  # Three charts inline, no frame, maidr.js once, no startup message in the
-  # page, and the two printed charts as figures.
-  testthat::expect_true("RESULT first 3 0 1 0 2 " %in% out, info = log)
-  testthat::expect_true("RESULT second 3 0 1 0 2 " %in% out, info = log)
+  # Five charts inline, the two printed ones among them, no frame, maidr.js
+  # once, no startup message in the page, and no figure left.
+  testthat::expect_true("RESULT first 5 0 1 0 0 " %in% out, info = log)
+  testthat::expect_true("RESULT second 5 0 1 0 0 " %in% out, info = log)
 })
 
 test_that("a chart left on the session's device before a render is no chunk's chart", {

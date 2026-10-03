@@ -87,7 +87,8 @@ knitr_chart_output <- function(content, options = list(), figure = FALSE) {
   # The chunk hook that adds the page's dependencies has to be in place by
   # the end of this chunk.
   ensure_knitr_integration()
-  index <- knitr_chart_index(options)
+  # A figure is numbered by knitr, which has picked its caption already.
+  index <- if (figure) options$fig.cur %||% 1L else knitr_chart_index(options)
   tryCatch(
     knitr_inline_chart(content, options, index, figure = figure),
     error = function(e) {
@@ -134,7 +135,9 @@ warn_inline_fallback <- function(error) {
 #'   description.
 #' * A caption is a `<p class="caption">` in a wrapper of class `figure`,
 #'   as knitr writes a figure, with bookdown's `(#fig:label)` before it, so
-#'   a bookdown cross-reference finds it. Markdown in it is shown as
+#'   a bookdown cross-reference finds it; of the figures `fig.show = "hold"`
+#'   holds to the end of a chunk, only the last is captioned, as knitr
+#'   captions them. Markdown in it is shown as
 #'   written: the caption is inside the raw block. Quarto writes the caption
 #'   of a chart `knit_print()` returns itself -- the figcaption of a
 #'   cross-referenceable figure for a `fig-` label, a paragraph below the
@@ -149,7 +152,7 @@ warn_inline_fallback <- function(error) {
 #' run, so a chart `knit_print()` writes while the chunk runs can see them
 #' as unevaluated expressions; such an option is evaluated here. Of several
 #' captions, the chunk's `index`-th chart takes the `index`-th, as knitr's
-#' figures do.
+#' figures do; a figure's options hold its own caption alone already.
 #'
 #' @param svg The chart's SVG, from `create_maidr_html(shiny = TRUE)`
 #' @param options The chunk options
@@ -177,7 +180,11 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   # figure, and labels its caption for the chart only in a fig- float.
   quarto_caption <- !figure && !is.null(knitr::opts_knit$get("quarto.version"))
   hidden_caption <- if (quarto_caption && !startsWith(options$label %||% "", "fig-")) caption
-  if (quarto_caption) {
+  # knitr captions the figures it holds to the end of a chunk once, below
+  # the last of them.
+  held <- figure && identical(options$fig.show, "hold") &&
+    isTRUE(options$fig.cur < options$fig.num)
+  if (quarto_caption || held) {
     caption <- NULL
   }
 
@@ -219,7 +226,7 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
       sprintf(
         '<p class="caption maidr-knitr-caption" id="%scaption">%s%s</p>',
         prefix,
-        bookdown_figure_label(options, index, length(captions)),
+        bookdown_figure_label(options, index, length(captions), figure),
         htmltools::htmlEscape(caption)
       )
     },
@@ -285,20 +292,29 @@ knitr_chart_title <- function(json) {
 #'
 #' bookdown numbers a figure, and resolves a reference to it, by the
 #' `(#fig:label)` at the start of its caption; written in a raw block it is
-#' not escaped. A chunk with several charts, or several captions, numbers
-#' them `label-1`, `label-2`, ... as knitr numbers its figures.
+#' not escaped. A chart in place of a figure is labelled as knitr labels the
+#' figure: `label-1`, `label-2`, ... when the chunk has several figures shown
+#' where they are drawn (`fig.show = "asis"`), `label` otherwise. Of the
+#' charts `knit_print()` writes, the second and later are numbered, and all
+#' of them when the chunk gives several captions.
 #'
 #' @param options The chunk options
 #' @param index Which of the chunk's charts this is, from 1
 #' @param count How many captions the chunk gives
+#' @param figure Whether the chart is in place of a figure
 #' @return The label and a space, or `""` outside bookdown
 #' @keywords internal
 #' @noRd
-bookdown_figure_label <- function(options, index, count) {
+bookdown_figure_label <- function(options, index, count, figure = FALSE) {
   if (!isTRUE(knitr::opts_knit$get("bookdown.internal.label"))) {
     return("")
   }
-  suffix <- if (index > 1L || count > 1L) paste0("-", index) else ""
+  numbered <- if (figure) {
+    isTRUE(options$fig.num > 1L) && identical(options$fig.show, "asis")
+  } else {
+    index > 1L || count > 1L
+  }
+  suffix <- if (numbered) paste0("-", index) else ""
   sprintf("(#%s%s%s) ", options$fig.lp %||% "fig:", options$label %||% "", suffix)
 }
 
