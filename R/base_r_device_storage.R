@@ -149,7 +149,11 @@ log_plot_call_to_device <- function(
     # resolved it later would read whatever the names are bound to *then* --
     # see `recorded_formula_frame()` for the measurement (#254).
     formula = formula,
-    formula_frame = recorded_formula_frame(args, call_env, formula)
+    formula_frame = recorded_formula_frame(args, call_env, formula),
+    # The page R drew the call on, by which a chart is read from the page
+    # R's device shows (`last_page_calls()`). Recorded once the call has
+    # drawn, so a plot that started a page is on it.
+    page = base_r_device_page(device_id)
   )
   # In a knit, a call that draws leaves a marker on its page, by which the
   # plot hook knows the figure it is on (see knitr_figure_map.R). A layout

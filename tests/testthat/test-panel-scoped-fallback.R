@@ -310,9 +310,10 @@ test_that("an unsupported HIGH-level plot falls back as a whole figure", {
   testthat::expect_length(orchestrator$fallback_panels(), 0)
 })
 
-test_that("an overlay drawn before the layout call falls back as a whole", {
-  # The group has no slot in the exported grid, so there is no panel to
-  # scope the fallback to.
+test_that("an overlay drawn before the layout call stays on its own page", {
+  # The plot it is drawn over is on the page before the grid, which R's
+  # device no longer shows, so it is in neither the grid nor its fallback:
+  # both panels of the grid R shows are read.
   orchestrator <- build_orchestrator(function() {
     plot(1:5, 1:5)
     segments(1, 1, 5, 5)
@@ -323,8 +324,12 @@ test_that("an overlay drawn before the layout call falls back as a whole", {
   })
   on.exit(maidr:::clear_all_device_storage(), add = TRUE)
 
-  testthat::expect_true(orchestrator$should_fallback())
+  testthat::expect_false(orchestrator$has_unsupported_layers())
+  testthat::expect_false(orchestrator$should_fallback())
   testthat::expect_length(orchestrator$fallback_panels(), 0)
+  grid <- orchestrator$get_combined_data()
+  testthat::expect_length(grid[[1]][[1]]$layers, 1)
+  testthat::expect_length(grid[[1]][[2]]$layers, 1)
 })
 
 test_that("disabling fallback keeps every panel's data", {

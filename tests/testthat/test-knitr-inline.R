@@ -1311,13 +1311,17 @@ test_that("a render leaves nothing of its knit to the session's own charts", {
     "  grDevices::graphics.off()",
     "}",
     "rmarkdown::render('done.Rmd', quiet = TRUE)",
-    "cat('HOOKS', length(getHook('before.plot.new')), length(getHook('before.grid.newpage')),",
+    # maidr's own page count stays while maidr is loaded; the knit's goes.
+    "knit_hooks <- function(name) {",
+    "  sum(!vapply(getHook(name), identical, NA, maidr:::note_base_r_plot_new))",
+    "}",
+    "cat('HOOKS', knit_hooks('before.plot.new'), knit_hooks('before.grid.newpage'),",
     "  is.null(getOption('maidr.knit.replayed')), '\\n')",
     "console('done')",
     "try(rmarkdown::render('failed.Rmd', quiet = TRUE), silent = TRUE)",
     "console('failed')",
     "knitr::knit('done.Rmd', output = 'done.md', quiet = TRUE)",
-    "cat('KNIT', is.null(knitr::opts_hooks$get('dev')), length(getHook('before.plot.new')), '\\n')",
+    "cat('KNIT', is.null(knitr::opts_hooks$get('dev')), knit_hooks('before.plot.new'), '\\n')",
     "console('knit')"
   ), script)
 

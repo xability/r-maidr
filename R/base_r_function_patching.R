@@ -178,6 +178,9 @@ ensure_maidr_device <- function() {
   # Every recording wrapper calls this before it draws: in a knit, the call's
   # marker tells from the page count whether it drew several pages.
   note_knit_call_start()
+  # The page the call draws on is counted (see base_r_page_tracking.R),
+  # even where something took out the hook `.onLoad()` set.
+  set_base_r_page_hook()
   if (grDevices::dev.cur() == 1) {
     # No device open - create temp PDF to prevent default window
     open_maidr_temp_device()

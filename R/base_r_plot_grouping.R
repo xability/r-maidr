@@ -1,6 +1,7 @@
 #' Base R Plot Grouping
 #'
 #' This module groups plot calls into logical units:
+#' - Only the calls on the page R's device shows are grouped
 #' - Each HIGH-level call starts a new plot group
 #' - Subsequent LOW-level calls are associated with the current plot group
 #' - LAYOUT calls affect multi-panel configuration
@@ -10,14 +11,17 @@ NULL
 
 #' Group Device Calls into Plot Units
 #'
-#' Groups all calls from a device into logical plot units.
+#' Groups the calls a device shows into logical plot units: those drawn on
+#' its last page, with every layout call (`last_page_calls()`). R's device
+#' shows only the page drawn last, so a plot that started a page of its own
+#' -- the second of `hist(a); hist(b)` -- leaves the plots before it out.
 #' Each group contains one HIGH-level call and its associated LOW-level calls.
 #'
 #' @param device_id Graphics device ID
 #' @return List of plot groups, each containing HIGH and LOW calls
 #' @keywords internal
 group_device_calls <- function(device_id = grDevices::dev.cur()) {
-  all_calls <- get_device_calls(device_id)
+  all_calls <- last_page_calls(get_device_calls(device_id))
 
   if (length(all_calls) == 0) {
     return(list())

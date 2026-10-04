@@ -177,7 +177,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       registry <- get_global_registry()
       private$.adapter <- registry$get_adapter("base_r")
 
-      private$.plot_calls <- get_device_calls(device_id)
+      # The calls on the page R's device shows: the last. A plot that started
+      # a page of its own leaves those before it out of the chart's data,
+      # titles and drawing, and out of the size it is drawn at.
+      private$.plot_calls <- last_page_calls(get_device_calls(device_id))
 
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
@@ -952,66 +955,52 @@ BaseRPlotOrchestrator <- R6::R6Class(
           }
         )
       } else {
-        # Single panel case - original logic
-        grob_list <- list()
-
-        for (i in seq_along(private$.plot_groups)) {
-          group <- private$.plot_groups[[i]]
-          high_call <- group$high_call
-          low_calls <- group$low_calls
-
-          # Use ORIGINAL (unwrapped) functions to prevent logging new calls
-          plot_func <- function() {
-            private$set_recorded_margins(group)
+        # A single panel: the page R shows holds one plot, and the plots
+        # drawn over it -- after `par(new = TRUE)`, or with `add = TRUE` --
+        # which R drew on the same page and are drawn on it here too, each
+        # with `par(new = TRUE)` as R drew it. Plots on the pages before are
+        # not among the groups (`last_page_calls()`).
+        groups <- private$.plot_groups
+        page_func <- function() {
+          margins <- list()
+          for (i in seq_along(groups)) {
+            group <- groups[[i]]
+            margins <- private$set_recorded_margins(group, margins)
+            if (i > 1) {
+              graphics::par(new = TRUE)
+            }
+            # ORIGINAL (unwrapped) functions, so nothing new is recorded
             replay_plot_call(
-              high_call$function_name,
-              high_call$args,
-              high_call$call_env,
-              high_call$arg_text
+              group$high_call$function_name,
+              group$high_call$args,
+              group$high_call$call_env,
+              group$high_call$arg_text
             )
-
-            if (length(low_calls) > 0) {
-              for (low_call in low_calls) {
-                replay_plot_call(
-                  low_call$function_name,
-                  low_call$args,
-                  low_call$call_env,
-                  low_call$arg_text
-                )
-              }
+            for (low_call in group$low_calls) {
+              replay_plot_call(
+                low_call$function_name,
+                low_call$args,
+                low_call$call_env,
+                low_call$arg_text
+              )
             }
           }
+        }
 
-          # Only the first drawing is shown (below), so only it settles the
-          # canvas, enlarging it or stopping as above. A later one -- a
-          # chart drawn over it on the same device -- that does not fit is
-          # left without a grob, as one that fails for another reason is.
-          tryCatch(
-            {
-              grob <- if (i == 1) {
-                private$drawing_grob(plot_func)
-              } else {
-                base_r_drawing_grob(plot_func, private$.canvas)
-              }
-              grob_list[[i]] <- grob
-            },
-            error = function(e) {
-              if (i == 1 && inherits(e, "maidr_chart_draw_error")) {
-                stop(e)
-              }
-              grob_list[[i]] <- NULL
+        # The drawing settles the canvas, enlarging it or stopping as
+        # above; one that fails for another reason leaves no drawing.
+        grob <- tryCatch(
+          private$drawing_grob(page_func),
+          error = function(e) {
+            if (inherits(e, "maidr_chart_draw_error")) {
+              stop(e)
             }
-          )
-        }
-
-        private$.grob_list <- grob_list
-
-        if (length(grob_list) > 0 && !is.null(grob_list[[1]])) {
-          private$.cached_gtable <- grob_list[[1]]
-          return(grob_list[[1]])
-        }
-
-        NULL
+            NULL
+          }
+        )
+        private$.grob_list <- if (is.null(grob)) list() else list(grob)
+        private$.cached_gtable <- grob
+        grob
       }
     },
     #' @description The size the chart is drawn at
@@ -1065,23 +1054,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
         self$get_gtable()
       }
 
-      panel_config <- detect_panel_configuration(private$.device_id)
-      is_multipanel <- is_multipanel_config(panel_config)
-
-      if (is_multipanel) {
-        # For multipanel, all layers share the same composite grob
-        # The processors will use group_index to find their specific elements
-        if (length(private$.grob_list) > 0) {
-          return(private$.grob_list[[1]])
-        }
-      } else {
-        # For single panel, return the grob for this layer's group
-        layer_info <- private$.layers[[layer_index]]
-        group_index <- layer_info$group_index
-
-        if (group_index <= length(private$.grob_list)) {
-          return(private$.grob_list[[group_index]])
-        }
+      # Every layer shares the drawing of the page: the processors find their
+      # own elements in it by their group's number (`group_index`).
+      if (length(private$.grob_list) > 0) {
+        return(private$.grob_list[[1]])
       }
 
       NULL

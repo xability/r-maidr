@@ -36,6 +36,23 @@
 #'       auto-detects internet availability and uses the CDN when online,
 #'       as the Shiny path does.
 #'   }
+#' @section Base R charts:
+#' A Base R chart is read from the plotting calls recorded on the current
+#' device, and is the page that device shows: the last one. R draws a
+#' high-level plot on a new page when it moves past the last panel of the
+#' page it is on -- every plot on a page of one panel, the fifth under
+#' `par(mfrow = c(2, 2))`, the first after `par(mfrow = )`, `par(mfcol = )`
+#' or `layout()` sets a page up again -- and `plot.new()` and `frame()`
+#' move on a panel as a plot does. So after `hist(a); hist(b)` the chart
+#' is the histogram of `b` alone, and after five plots under
+#' `par(mfrow = c(2, 2))` it is the fifth, in the first panel of a 2 x 2
+#' grid. A plot drawn after `par(new = TRUE)`, or with `add = TRUE`, is
+#' drawn on the page with the plot before it, and `lines()`, `points()`,
+#' `abline()`, `text()`, `legend()`, `title()`, `axis()` and the other
+#' low-level calls add to the plot they are drawn on. Nothing drawn on an
+#' earlier page reaches the chart: not its data, its titles or the size it
+#' is drawn at. Each figure of an R Markdown or Quarto document is read
+#' the same way, from the calls on its own page.
 #' @section Chart size:
 #' A chart is drawn at a size in inches, as [ggplot2::ggsave()] and knitr's
 #' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
@@ -490,6 +507,7 @@ warn_panel_fallback <- function(orchestrator) {
 #'   single positive number no larger than 50, or `NULL` (the default) for
 #'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
 #'   its default. See \strong{Chart size}.
+#' @inheritSection show Base R charts
 #' @inheritSection show Chart size
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)

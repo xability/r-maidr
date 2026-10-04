@@ -608,12 +608,12 @@ BaseRAdapter <- R6::R6Class(
         # polyline plus a points grob, so the line reading holds.
         #
         # curve(add = TRUE) is excluded for a different reason: `curve` is
-        # a HIGH-level function, so it opens its own plot group, and a
-        # single-panel figure exports only the FIRST group's grob. An
-        # overlay typed as "line" would therefore emit data for a curve
-        # that is absent from the exported SVG, with a selector pointing
-        # at a grob that group never drew. Overlays stay on the static
-        # fallback until they are grouped with the plot they add to.
+        # a HIGH-level function, so it opens its own plot group, but it
+        # starts no plot, and the exported SVG names its polyline after the
+        # plot it is drawn over ("graphics-plot-1-lines-1"), not after its
+        # group. An overlay typed as "line" would therefore emit a selector
+        # pointing at a grob its group never drew. Overlays stay on the
+        # static fallback until they are grouped with the plot they add to.
         "curve" = {
           curve_type <- args[["type"]]
           overlays_existing <- "add" %in% names(args) &&

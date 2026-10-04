@@ -386,6 +386,21 @@
   named "[" in the data, and `barplot()` stopped at the call itself with
   "object 'mu' not found". The call is now recorded as the expression it
   stands for, which R draws the same (#353).
+* A Base R chart is the page R's device shows: the last one. After
+  `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram alone,
+  on a page of its own, but `show()` and `save_html()` made one chart of
+  every plot drawn on the device: both histograms' data in one subplot,
+  under a drawing of the first, so a reader heard data that was not on the
+  chart, and saw a chart R no longer showed. The same happened whenever a
+  plot started a new page, as `plot(x)` and then `heatmap(m)`, or a fifth
+  plot under `par(mfrow = c(2, 2))` after a reset to one panel. maidr now
+  reads the page each call was drawn on from R itself, so the chart is the
+  last page, with all the panels of a `par(mfrow)`, `par(mfcol)` or
+  `layout()` grid on it, and a plot drawn after `par(new = TRUE)` is drawn
+  over the plot before it, as R draws it, where maidr drew the first alone.
+  `plot.new()` and `frame()` start a page as they do in R, and nothing
+  drawn on an earlier page -- its data, titles, `lines()` or `legend()`,
+  or a size it would need -- reaches the chart (#PR).
 
 ## Documentation
 

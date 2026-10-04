@@ -55,6 +55,26 @@ writes one self-contained file instead, which needs internet access
 whenever it is viewed and loads the latest published MAIDR.js from
 jsDelivr rather than the copy bundled with this package.
 }
+\section{Base R charts}{
+
+A Base R chart is read from the plotting calls recorded on the current
+device, and is the page that device shows: the last one. R draws a
+high-level plot on a new page when it moves past the last panel of the
+page it is on -- every plot on a page of one panel, the fifth under
+\code{par(mfrow = c(2, 2))}, the first after \code{par(mfrow = )}, \code{par(mfcol = )}
+or \code{layout()} sets a page up again -- and \code{plot.new()} and \code{frame()}
+move on a panel as a plot does. So after \verb{hist(a); hist(b)} the chart
+is the histogram of \code{b} alone, and after five plots under
+\code{par(mfrow = c(2, 2))} it is the fifth, in the first panel of a 2 x 2
+grid. A plot drawn after \code{par(new = TRUE)}, or with \code{add = TRUE}, is
+drawn on the page with the plot before it, and \code{lines()}, \code{points()},
+\code{abline()}, \code{text()}, \code{legend()}, \code{title()}, \code{axis()} and the other
+low-level calls add to the plot they are drawn on. Nothing drawn on an
+earlier page reaches the chart: not its data, its titles or the size it
+is drawn at. Each figure of an R Markdown or Quarto document is read
+the same way, from the calls on its own page.
+}
+
 \section{Chart size}{
 
 A chart is drawn at a size in inches, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} and knitr's

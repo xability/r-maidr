@@ -135,12 +135,13 @@ create_fallback_image <- function(plot = NULL, format = "png",
 #' @param device_id The device ID to get calls from
 #' @keywords internal
 replay_base_r_plot <- function(device_id) {
-  # Every recorded call, in the order it was made. The grouped view keeps
-  # the HIGH and LOW calls and drops the LAYOUT ones, so a multi-panel
-  # figure's picture was replayed without its `par(mfrow = )` or
-  # `layout()` and came out as one panel drawn over another.
-  all_calls <- get_device_calls(device_id)
-  high_calls <- get_device_calls_by_class(device_id, "HIGH")
+  # Every recorded call on the page R's device shows, with every layout
+  # call, in the order it was made (`last_page_calls()`). The grouped view
+  # keeps the HIGH and LOW calls and drops the LAYOUT ones, so a
+  # multi-panel figure's picture was replayed without its `par(mfrow = )`
+  # or `layout()` and came out as one panel drawn over another.
+  all_calls <- last_page_calls(get_device_calls(device_id))
+  high_calls <- Filter(function(call) identical(call$class_level, "HIGH"), all_calls)
 
   if (length(high_calls) == 0) {
     stop("No Base R plot calls found to replay")

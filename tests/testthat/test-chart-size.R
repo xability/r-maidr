@@ -720,32 +720,37 @@ test_that("a Base R chart too small for a size no one asked for is drawn larger,
   }
 })
 
-test_that("only the drawing a Base R chart shows settles its size", {
+test_that("only the page a Base R chart shows settles its size", {
   skip_if_no_render()
-  # Of two charts drawn one over the other on a device, maidr shows the
-  # first. A heatmap with wide margins, which R cannot draw at 7 x 5 in,
-  # drawn after it neither enlarges the chart nor stops it.
+  # Of two charts drawn one after the other on a device of one panel, R
+  # shows the second, on a page of its own, and so does maidr. A heatmap
+  # with wide margins, which R cannot draw at 7 x 5 in, settles the size
+  # when it is shown, and says nothing of the chart drawn after it.
   m <- matrix(1:20, 4)
   heat <- function() heatmap(m, margins = c(25, 25))
   # R warns as well as stops, of the plot it then has not started.
   testthat::expect_false(is.na(suppressWarnings(native_error(heat, c(7, 5)))))
-  scatter_first <- function() {
+  heat_last <- function() {
     plot(1:5)
     heat()
   }
-  for (size in list(NULL, c(7, 5))) {
-    drawn <- with_messages(render_sized(scatter_first, size))
-    testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 5)))
-    testthat::expect_length(drawn$said, 0L)
-  }
-  # Shown first, the heatmap is drawn larger.
+  drawn <- with_messages(render_sized(heat_last, NULL))
+  testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 7)))
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_error(
+    suppressWarnings(render_sized(heat_last, c(7, 5))),
+    class = "maidr_chart_draw_error"
+  )
+  # Drawn before the chart shown, the heatmap neither enlarges it nor stops it.
   heat_first <- function() {
     heat()
     plot(1:5)
   }
-  drawn <- with_messages(render_sized(heat_first, NULL))
-  testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 7)))
-  testthat::expect_length(drawn$said, 1L)
+  for (size in list(NULL, c(7, 5))) {
+    drawn <- with_messages(render_sized(heat_first, size))
+    testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 5)))
+    testthat::expect_length(drawn$said, 0L)
+  }
 })
 
 test_that("a size asked for that a Base R chart is too small for still stops", {

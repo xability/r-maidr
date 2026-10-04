@@ -13,7 +13,10 @@ group_device_calls(device_id = grDevices::dev.cur())
 List of plot groups, each containing HIGH and LOW calls
 }
 \description{
-Groups all calls from a device into logical plot units.
+Groups the calls a device shows into logical plot units: those drawn on
+its last page, with every layout call (\code{last_page_calls()}). R's device
+shows only the page drawn last, so a plot that started a page of its own
+-- the second of \verb{hist(a); hist(b)} -- leaves the plots before it out.
 Each group contains one HIGH-level call and its associated LOW-level calls.
 }
 \keyword{internal}
