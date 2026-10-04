@@ -270,6 +270,20 @@
   saved, are read as the resets they are: a chart drawn after one is read
   as a single panel. maidr kept the grid set before the reset, and described
   the chart as one panel of a grid whose other panel was empty (#352).
+* A Base R chart is titled the way R titles it. `hist(mtcars$mpg)` writes
+  "mtcars$mpg" under its x axis and "Histogram of mtcars$mpg" above it, and
+  the chart maidr drew, in `show()`, `save_html()`, a knitted document and
+  the static image a chart falls back to, wrote the values instead,
+  "c(21, 21, 22.8, 21.4, ...)" for as long as the data ran: maidr draws the
+  chart again from the values it recorded, and R names these titles after
+  how an argument was written. The same went for every chart R titles that
+  way: `plot(x, y)`, `plot()` of a vector, a time series, a table or a
+  function, `image()`, `persp()`, `matplot()`, `mosaicplot()`,
+  `sunflowerplot()`, `spineplot()`, `cdplot()`, `qqplot()`, `acf()`,
+  `pacf()`, `ccf()`, `interaction.plot()`, `cpgram()`, `monthplot()`,
+  `lag.plot()` and `symbols()`. The chart is still drawn from the recorded
+  values, so each chart a loop draws, or one drawn from `rnorm()`, shows the
+  data it was drawn with (#PR).
 
 ## Documentation
 

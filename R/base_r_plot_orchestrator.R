@@ -855,7 +855,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
             replay_plot_call(
               group$high_call$function_name,
               group$high_call$args,
-              group$high_call$call_env
+              group$high_call$call_env,
+              group$high_call$arg_text
             )
 
             if (length(group$low_calls) > 0) {
@@ -863,7 +864,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
                 replay_plot_call(
                   low_call$function_name,
                   low_call$args,
-                  low_call$call_env
+                  low_call$call_env,
+                  low_call$arg_text
                 )
               }
             }
@@ -899,7 +901,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
             replay_plot_call(
               high_call$function_name,
               high_call$args,
-              high_call$call_env
+              high_call$call_env,
+              high_call$arg_text
             )
 
             if (length(low_calls) > 0) {
@@ -907,7 +910,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
                 replay_plot_call(
                   low_call$function_name,
                   low_call$args,
-                  low_call$call_env
+                  low_call$call_env,
+                  low_call$arg_text
                 )
               }
             }

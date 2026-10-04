@@ -77,6 +77,9 @@ record_chartseries_name <- function(args, call_expr) {
 #' @param device_id Graphics device ID
 #' @param call_env Optional environment for replaying unevaluated (NSE)
 #'   arguments recorded in \code{args}
+#' @param arg_text Optional text each argument in \code{args} was written
+#'   as, from \code{written_arg_text()}, which the replay titles the chart
+#'   after
 #' @return NULL (invisible)
 #' @keywords internal
 log_plot_call_to_device <- function(
@@ -84,7 +87,8 @@ log_plot_call_to_device <- function(
     call_expr,
     args,
     device_id = grDevices::dev.cur(),
-    call_env = NULL) {
+    call_env = NULL,
+    arg_text = NULL) {
   # The first call a document records installs maidr into the running knit
   # (and drops calls recorded before it); every later one costs a lookup.
   if (isTRUE(getOption("knitr.in.progress"))) {
@@ -105,6 +109,7 @@ log_plot_call_to_device <- function(
     timestamp = Sys.time(),
     device_id = device_id,
     call_env = call_env,
+    arg_text = arg_text,
     # Resolved now rather than at render time. A formula is the one recorded
     # argument that is a reference rather than a value, so a reader that
     # resolved it later would read whatever the names are bound to *then* --
