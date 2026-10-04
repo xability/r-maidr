@@ -210,7 +210,8 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
     replay_plot_call(
       call_entry$function_name,
       call_entry$args,
-      call_entry$call_env
+      call_entry$call_env,
+      call_entry$arg_text
     )
   }
   # A par() setting every parameter, as par(oldpar) does with a list saved
@@ -228,13 +229,21 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 #' the call is rebuilt and evaluated in the environment captured at record
 #' time so those expressions resolve exactly as they did originally.
 #'
+#' Otherwise the recorded values are drawn, each argument `arg_text` names
+#' passed under a symbol spelled as it was written (see
+#' `call_with_written_args()`), so a title R derives from that text comes
+#' out as it did in the user's own call.
+#'
 #' @param function_name Name of the recorded function
 #' @param args Recorded argument list (values and/or expressions)
 #' @param call_env Environment captured when NSE arguments could not be
 #'   forced at record time, or NULL when all args are plain values
+#' @param arg_text The text each argument was written as, NA where its
+#'   value is replayed as it is, from `written_arg_text()`; or NULL
 #' @return The result of the replayed call (invisibly)
 #' @keywords internal
-replay_plot_call <- function(function_name, args, call_env = NULL) {
+replay_plot_call <- function(function_name, args, call_env = NULL,
+                             arg_text = NULL) {
   orig_fn <- get_original_function(function_name)
   args <- clean_maidr_args(args)
 
@@ -244,7 +253,91 @@ replay_plot_call <- function(function_name, args, call_env = NULL) {
     return(invisible(eval(replay_call, envir = call_env)))
   }
 
-  invisible(do.call(orig_fn, args))
+  invisible(call_with_written_args(orig_fn, args, arg_text))
+}
+
+#' Call a function on recorded values, passed under the names they were
+#' written as
+#'
+#' `deparse1(substitute(x))` of a symbol is the symbol's name, whatever
+#' characters it holds, so binding the recorded value of `hist(mtcars$mpg)`
+#' to a symbol named "mtcars$mpg" and passing that symbol gives `hist()` the
+#' value that was recorded and the title it gave the user's call. Nothing
+#' the user wrote is evaluated again: a loop variable, or `rnorm(10)`, is
+#' read as the value it had when the chart was drawn.
+#'
+#' Two arguments written alike but holding different values, as in
+#' `plot(rnorm(5), rnorm(5))`, cannot share a name in one environment. The
+#' later one is bound in an environment of its own, and reaches `fn`
+#' through the `...` of a function that environment encloses: `...` hands
+#' an argument on as it was written, so `substitute()` gives "rnorm(5)" for
+#' both axes and each draws its own values. Only such an argument goes that
+#' way, since a function that rebuilds its call with `match.call()` sees it
+#' as `..1`; and only one passed by name, since the `...` comes after every
+#' other argument. An unnamed one is passed as its value.
+#'
+#' @param fn The function to call
+#' @param args Recorded argument list, as `replay_plot_call()` passes it
+#' @param arg_text The text each argument was written as, or NA; one entry
+#'   per recorded argument, which maidr's own `.maidr_` entries only ever
+#'   follow; or NULL
+#' @return What `fn` returns
+#' @keywords internal
+call_with_written_args <- function(fn, args, arg_text) {
+  free_for <- function(env, name, value) {
+    !exists(name, envir = env, inherits = FALSE) ||
+      identical(get(name, envir = env, inherits = FALSE), value)
+  }
+
+  env <- new.env(parent = environment())
+  # The arguments written like an earlier one but holding another value:
+  # each layer an environment binding at most one value to each name, and
+  # the arguments it passes on by name.
+  layers <- list()
+  arg_names <- names(args) %||% character(length(args))
+  forwarded <- logical(length(args))
+
+  for (i in seq_along(arg_text)) {
+    name <- arg_text[[i]]
+    if (is.na(name) || i > length(args)) {
+      next
+    }
+    value <- args[[i]]
+    if (free_for(env, name, value)) {
+      assign(name, value, envir = env)
+      args[i] <- list(as.name(name))
+      next
+    }
+    if (!nzchar(arg_names[i])) {
+      next
+    }
+    at <- Position(function(layer) free_for(layer$env, name, value), layers)
+    if (is.na(at)) {
+      at <- length(layers) + 1L
+      layers[[at]] <- list(env = new.env(parent = env), args = list())
+    }
+    assign(name, value, envir = layers[[at]]$env)
+    layers[[at]]$args[[arg_names[i]]] <- as.name(name)
+    forwarded[i] <- TRUE
+  }
+
+  if (length(layers) == 0) {
+    return(do.call(fn, args, envir = env))
+  }
+
+  # `fn(<the other arguments>, ...)`, called through one function per
+  # layer, each enclosed by its layer's environment and adding the layer's
+  # arguments to the `...` it hands on.
+  caller <- function(...) NULL
+  body(caller) <- as.call(c(list(fn), args[!forwarded], list(quote(...))))
+  environment(caller) <- env
+  for (layer in layers) {
+    inner <- caller
+    caller <- function(...) NULL
+    body(caller) <- as.call(c(list(inner), layer$args, list(quote(...))))
+    environment(caller) <- layer$env
+  }
+  caller()
 }
 
 #' Find the environment a name is bound in
@@ -816,7 +909,8 @@ create_function_wrapper <- function(function_name, original_function) {
         # instead of re-deriving the match by hand. Only on this path: the
         # NSE branch above holds unevaluated expressions, and resolving the
         # dispatched method would have to force them.
-        args_list <- match_recorded_args(FNAME, ORIG, args_list)
+        target <- dispatched_definition(FNAME, ORIG, args_list)
+        args_list <- match_recorded_args(FNAME, ORIG, args_list, target)
       }
 
       # Computation-only calls (hist(x, plot = FALSE), boxplot(x,
@@ -835,10 +929,21 @@ create_function_wrapper <- function(function_name, original_function) {
         return(as_drawn(result))
       }
 
+      # The values alone no longer say how they were written, which is what
+      # `hist()`, `plot()` and others title the chart after; see
+      # written_arg_text(). The NSE branch replays the expressions themselves.
+      arg_text <- NULL
+      if (is.null(call_env)) {
+        arg_text <- written_arg_text(
+          FNAME, target, args_list, as.list(substitute(list(...)))[-1L]
+        )
+      }
+
       device_id <- grDevices::dev.cur()
       log_plot_call_to_device(
         FNAME, this_call, args_list, device_id,
-        call_env = call_env
+        call_env = call_env,
+        arg_text = arg_text
       )
 
       # NOTE: auto-show is deliberately NOT scheduled here. show() ends the
@@ -1079,7 +1184,8 @@ create_barplot_wrapper <- function(original_function) {
       )
     } else {
       args <- match_recorded_args("barplot", original_function, args)
-      patched_args <- apply_barplot_patches(args)
+      # As recorded, so a plotmath title survives `do.call()` here too.
+      patched_args <- calls_as_expressions(apply_barplot_patches(args))
 
       result <- do.call(original_function, patched_args)
 

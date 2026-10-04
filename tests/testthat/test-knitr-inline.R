@@ -1444,7 +1444,8 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   testthat::expect_identical(
     unname(chart_names(page)),
     c(
-      "Cars by cylinder", "A scatter", "Base bars", "Scatter plot",
+      "Cars by cylinder", "A scatter", "Base bars",
+      "Scatter plot of 1:10 by Index",
       "First printed", "Second printed", "A Base R figure",
       "Mixed bars", "Mixed returned"
     )

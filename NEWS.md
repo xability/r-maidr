@@ -342,6 +342,39 @@
   saved, are read as the resets they are: a chart drawn after one is read
   as a single panel. maidr kept the grid set before the reset, and described
   the chart as one panel of a grid whose other panel was empty (#352).
+* A Base R chart is titled the way R titles it. `hist(mtcars$mpg)` writes
+  "mtcars$mpg" under its x axis and "Histogram of mtcars$mpg" above it, and
+  the chart maidr drew, in `show()`, `save_html()`, a knitted document and
+  the static image a chart falls back to, wrote the values instead,
+  "c(21, 21, 22.8, 21.4, ...)" for as long as the data ran: maidr draws the
+  chart again from the values it recorded, and R names these titles after
+  how an argument was written. The same went for the other charts R titles
+  that way, among them `plot(x, y)`, `plot()` of a vector, a time series or
+  a table, `image()`, `persp()`, `matplot()`, `mosaicplot()`,
+  `sunflowerplot()`, `spineplot()`, `cdplot()`, `qqplot()`, `acf()`,
+  `pacf()`, `ccf()`, `interaction.plot()`, `cpgram()`, `monthplot()`,
+  `lag.plot()` and `symbols()`, and for two arguments written alike, as in
+  `plot(rnorm(100), rnorm(100))`. The chart is still drawn from the
+  recorded values, so each chart a loop draws, or one drawn from `rnorm()`,
+  shows the data it was drawn with. An argument written longer than R lets
+  a name be (10,000 bytes), or written as `..1`, is still titled with its
+  values (#353).
+* The data a screen reader reads names a Base R chart's axes, and a
+  histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
+  as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,
+  y)` with no axis names at all, because the recorded values no longer said
+  how the arguments were written. The call now keeps that text, so a
+  histogram is read as "Histogram of mtcars$mpg" over "mtcars$mpg",
+  `plot(v)` as "Index" against "v", and the lines and density curves drawn
+  over either chart name the same axes. A title the call gives, or blanks
+  with `main = NULL`, still wins (#353).
+* A Base R chart titled with a plotmath call, `main = bquote(mu == .(n))`
+  or `xlab = quote(x[i])`, keeps its drawing and its data. maidr handed the
+  recorded call on to be evaluated, so the chart maidr exported had nothing
+  drawn on it, a box plot or Q-Q plot was read with no data, an axis was
+  named "[" in the data, and `barplot()` stopped at the call itself with
+  "object 'mu' not found". The call is now recorded as the expression it
+  stands for, which R draws the same (#353).
 
 ## Documentation
 

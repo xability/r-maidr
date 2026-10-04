@@ -67,6 +67,37 @@ record_chartseries_name <- function(args, call_expr) {
   args
 }
 
+#' Recorded values that are calls, as the expressions they stand for
+#'
+#' A plotmath title is a call: `main = bquote(mu == .(n))` hands the chart
+#' the call `mu == 3`, and `xlab = quote(x[i])` the call `x[i]`. Everything
+#' that reads a recorded call passes its values on through `do.call()` --
+#' the replay that draws maidr's chart, and the processors that compute
+#' what `boxplot()` or `qqnorm()` drew -- and `do.call()` evaluates a call
+#' it is handed, so each of them stopped looking up `mu`: the exported
+#' chart was drawn with nothing on it, and a box plot or Q-Q plot was read
+#' with no data. gridGraphics, which turns the replay into maidr's SVG,
+#' stops on a title that is a call as well.
+#'
+#' An expression vector holding the call is drawn as the same plotmath by
+#' R and by gridGraphics, is not evaluated by `do.call()`, and reads as its
+#' text. A formula is a call too, and stays one: it is read as a formula,
+#' and evaluating one gives the formula back.
+#'
+#' @param args Recorded argument list of evaluated values
+#' @return `args`, each call or symbol in it replaced by an expression
+#'   vector holding it
+#' @keywords internal
+calls_as_expressions <- function(args) {
+  for (i in seq_along(args)) {
+    value <- args[[i]]
+    if (is.name(value) || (is.call(value) && !inherits(value, "formula"))) {
+      args[i] <- list(as.expression(value))
+    }
+  }
+  args
+}
+
 #' Log Plot Call to Device Storage
 #'
 #' Records a plot call in the device-specific storage.
@@ -77,6 +108,9 @@ record_chartseries_name <- function(args, call_expr) {
 #' @param device_id Graphics device ID
 #' @param call_env Optional environment for replaying unevaluated (NSE)
 #'   arguments recorded in \code{args}
+#' @param arg_text Optional text each argument in \code{args} was written
+#'   as, from \code{written_arg_text()}, which the replay titles the chart
+#'   after
 #' @return NULL (invisible)
 #' @keywords internal
 log_plot_call_to_device <- function(
@@ -84,7 +118,8 @@ log_plot_call_to_device <- function(
     call_expr,
     args,
     device_id = grDevices::dev.cur(),
-    call_env = NULL) {
+    call_env = NULL,
+    arg_text = NULL) {
   # The first call a document records installs maidr into the running knit
   # (and drops calls recorded before it); every later one costs a lookup.
   if (isTRUE(getOption("knitr.in.progress"))) {
@@ -92,6 +127,9 @@ log_plot_call_to_device <- function(
   }
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
+  if (is.null(call_env)) {
+    args <- calls_as_expressions(args)
+  }
   formula <- recorded_formula(args, call_env)
   if (identical(function_name, "chartSeries")) {
     args <- record_chartseries_name(args, call_expr)
@@ -105,6 +143,7 @@ log_plot_call_to_device <- function(
     timestamp = Sys.time(),
     device_id = device_id,
     call_env = call_env,
+    arg_text = arg_text,
     # Resolved now rather than at render time. A formula is the one recorded
     # argument that is a reference rather than a value, so a reader that
     # resolved it later would read whatever the names are bound to *then* --

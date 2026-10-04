@@ -169,16 +169,14 @@ test_that("the caller's own labels win over the defaults", {
 })
 
 
-test_that("qqplot invents no labels, because its defaults are expressions", {
-  # `qqplot`'s are `deparse1(substitute(x))` -- the caller's expression --
-  # which is gone by the time the wrapper has recorded evaluated values.
-  # Reconstructing one would name the axis after whatever variable this
-  # test happened to use. The point processor already declines to guess for
-  # the same reason, and the renderer's generic covers it.
+test_that("qqplot names its axes after its samples as they were written", {
+  # `qqplot`'s defaults are `deparse1(substitute(x))` and `y` -- the
+  # caller's expressions -- which the recorded call keeps beside the values,
+  # so they are the titles the chart draws rather than a guess.
   layer <- qq_layers(function() qqplot(SAMPLE, OTHER))[[1]]
 
-  testthat::expect_null(layer$axes$x$label)
-  testthat::expect_null(layer$axes$y$label)
+  testthat::expect_equal(layer$axes$x$label, "SAMPLE")
+  testthat::expect_equal(layer$axes$y$label, "OTHER")
 })
 
 

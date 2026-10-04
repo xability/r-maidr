@@ -106,8 +106,20 @@ test_that("an author's own bar chart labels win", {
 # Histograms
 # ==============================================================================
 
-test_that("a histogram names its bins and repeats hist()'s own y title", {
-  axes <- label_axes(function() hist(c(1, 2, 2, 3, 3, 3, 4, 5)))
+test_that("a histogram names its x axis as hist() writes it and repeats its y title", {
+  # hist() titles the x axis after how `x` was written, and the recorded
+  # call keeps that text beside the values.
+  values <- c(1, 2, 2, 3, 3, 3, 4, 5)
+  axes <- label_axes(function() hist(values))
+
+  testthat::expect_equal(axes[[1]]$x$label, "values")
+  testthat::expect_equal(axes[[1]]$y$label, "Frequency")
+})
+
+test_that("a histogram whose argument was written as no expression names its bins", {
+  # do.call() writes the values themselves into the call, so there is no
+  # text to name the axis after, and x says what it certainly holds.
+  axes <- label_axes(function() do.call(hist, list(c(1, 2, 2, 3, 3, 3, 4, 5))))
 
   testthat::expect_equal(axes[[1]]$x$label, "Bin")
   testthat::expect_equal(axes[[1]]$y$label, "Frequency")
@@ -188,22 +200,50 @@ test_that("an author's own box plot labels win over the formula's", {
 })
 
 # ==============================================================================
-# Charts that cannot honestly name their axes
+# Charts plot() titles after how their arguments were written
 # ==============================================================================
 
-test_that("a scatter plot emits no label and keeps its navigation grid", {
+test_that("a scatter plot names its axes as plot() writes them and keeps its grid", {
   axes <- label_axes(function() plot(1:10, (1:10)^2))
 
-  testthat::expect_null(axes[[1]]$x$label)
-  testthat::expect_null(axes[[1]]$y$label)
+  testthat::expect_equal(axes[[1]]$x$label, "1:10")
+  testthat::expect_equal(axes[[1]]$y$label, "(1:10)^2")
   testthat::expect_equal(axes[[1]]$x$max, 10)
   testthat::expect_equal(axes[[1]]$y$max, 100)
 })
 
-test_that("a line plot emits an empty axes object rather than blank labels", {
-  axes <- label_axes(function() plot(1:10, (1:10)^2, type = "l"))
+test_that("a scatter plot of one vector is titled Index against it, as plot() does", {
+  axes <- label_axes(function() plot(mtcars$mpg))
+
+  testthat::expect_equal(axes[[1]]$x$label, "Index")
+  testthat::expect_equal(axes[[1]]$y$label, "mtcars$mpg")
+})
+
+test_that("a line plot, and the lines drawn over it, name the axes plot() wrote", {
+  axes <- label_axes(function() {
+    plot(1:10, (1:10)^2, type = "l")
+    lines(1:10, (1:10)^1.5)
+  })
+
+  for (layer_axes in axes) {
+    testthat::expect_equal(layer_axes$x$label, "1:10")
+    testthat::expect_equal(layer_axes$y$label, "(1:10)^2")
+  }
+})
+
+test_that("a line plot written with no expressions emits an empty axes object", {
+  # do.call() writes the values themselves into the call: plot() titles
+  # the axes with them deparsed, which is no name, so none is emitted.
+  axes <- label_axes(function() do.call(plot, list(1:10, (1:10)^2, type = "l")))
 
   testthat::expect_length(axes[[1]], 0)
+})
+
+test_that("a plot() method of a class is not titled as plot.default() would", {
+  axes <- label_axes(function() plot(AirPassengers))
+
+  testthat::expect_null(axes[[1]]$x$label)
+  testthat::expect_null(axes[[1]]$y$label)
 })
 
 test_that("an author's own scatter plot labels are still announced", {
