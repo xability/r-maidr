@@ -934,9 +934,17 @@ create_function_wrapper <- function(function_name, original_function) {
       # written_arg_text(). The NSE branch replays the expressions themselves.
       arg_text <- NULL
       if (is.null(call_env)) {
-        arg_text <- written_arg_text(
-          FNAME, target, args_list, as.list(substitute(list(...)))[-1L]
-        )
+        written <- as.list(substitute(list(...)))[-1L]
+        arg_text <- written_arg_text(FNAME, target, args_list, written)
+        # `plot()` of a function draws it with `curve()`, out of the
+        # wrappers' sight; see plot_function_values().
+        if (identical(target, graphics::plot.function)) {
+          drawn <- plot_function_values(
+            target, args_list, arg_text, written, result$value
+          )
+          args_list <- drawn$args
+          arg_text <- drawn$arg_text
+        }
       }
 
       device_id <- grDevices::dev.cur()
@@ -1145,6 +1153,60 @@ curve_default_labels <- function(recorded_args) {
   }
 
   list(x = xname, y = paste(deparse(expr), collapse = ""))
+}
+
+#' Keep the points `plot()` drew a function at
+#'
+#' `plot(f)` dispatches to `graphics::plot.function()`, which draws `f` by
+#' calling `curve()`. That call is made from inside graphics, where the
+#' `curve()` wrapper never sees it, so only the `plot()` call is recorded,
+#' and its first argument is the function rather than any coordinates. Read
+#' as the data of a scatter, `plot(sin, -pi, pi)` stopped the save with
+#' "object of type 'builtin' is not subsettable", and `plot(sin)` was
+#' announced as a scatter with no points.
+#'
+#' `plot.function()` returns what `curve()` returned, the x and y it drew,
+#' so they are kept as the `curve()` wrapper keeps its own
+#' (`curve_recorded_values()`), and `detect_layer_type()` reads the call
+#' as it reads `curve()`.
+#'
+#' The axis titles are `plot.function()`'s. The x axis is `xname`, which it
+#' hands on to `curve()`. The y axis is the first line of the function as
+#' written, `deparse(substitute(x))[1L]`: "sin" for `plot(sin)`, where
+#' `curve(sin)` writes "sin(x)". The replay draws maidr's chart under the
+#' name `arg_text` gives the function, which `written_label()` makes the
+#' whole text on one line, so that entry is set to the same first line: a
+#' function written over several lines is titled as R titled it, in the
+#' drawing and in the data.
+#'
+#' @param target `graphics::plot.function()`, which the call dispatched to
+#' @param args Recorded argument list, as `match_recorded_args()` names it
+#' @param arg_text The text each argument was written as, from
+#'   `written_arg_text()`
+#' @param written The expressions the arguments were written as
+#' @param value The value `plot()` returned
+#' @return List with `args`, holding the points under `.maidr_curve_data`
+#'   when `value` is what `curve()` returns, and `arg_text`
+#' @keywords internal
+plot_function_values <- function(target, args, arg_text, written, value) {
+  values <- curve_recorded_values(args, value)
+  if (is.null(values)) {
+    return(list(args = args, arg_text = arg_text))
+  }
+
+  # `xname` is read as `curve()` reads it; the y title is not `curve()`'s.
+  values$labels$y <- NULL
+  at <- match("x", matched_arg_formals("plot", target, args))
+  if (!is.na(at) && at <= length(written)) {
+    title <- deparse(written[[at]])[1L]
+    values$labels$y <- title
+    if (!is.na(arg_text[at])) {
+      arg_text[at] <- title
+    }
+  }
+
+  args$.maidr_curve_data <- values
+  list(args = args, arg_text = arg_text)
 }
 
 #' Create enhanced wrapper for barplot with sorting logic
