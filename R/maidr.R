@@ -53,8 +53,13 @@
 #' `title()`, `axis()` and the other low-level calls add to the plot they
 #' are drawn on. Nothing drawn on an
 #' earlier page reaches the chart: not its data, its titles or the size it
-#' is drawn at. Each figure of an R Markdown or Quarto document is read
-#' the same way, from the calls on its own page.
+#' is drawn at. A page that holds no plot maidr recorded -- one R started
+#' with `plot.new()` or `frame()`, with a plot maidr does not record, or
+#' with one drawn while [maidr_off()] was in effect, even with `lines()` or
+#' `text()` drawn on it since -- is not read as the plot before it: `show()`
+#' and `save_html()` stop, and say so. Each figure
+#' of an R Markdown or Quarto document is read the same way, from the calls
+#' on its own page.
 #' @section Chart size:
 #' A chart is drawn at a size in inches, as [ggplot2::ggsave()] and knitr's
 #' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
@@ -187,9 +192,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
   is_base_r <- is.null(plot)
 
   if (is_base_r) {
-    if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(device_id)
   }
 
   orchestrator <- NULL
@@ -556,9 +559,7 @@ save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
   is_base_r <- is.null(plot)
 
   if (is_base_r) {
-    if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(device_id)
   }
 
   html_doc <- create_maidr_html(

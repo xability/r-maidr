@@ -261,7 +261,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # The calls on the page R's device shows: the last. A plot that started
       # a page of its own leaves those before it out of the chart's data,
       # titles and drawing, and out of the size it is drawn at.
-      private$.plot_calls <- last_page_calls(get_device_calls(device_id))
+      private$.plot_calls <- shown_device_calls(device_id)
 
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups

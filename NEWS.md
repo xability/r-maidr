@@ -403,7 +403,12 @@
   empty, where maidr moved the next plot into it; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
-  page was drawn while `maidr_off()` was in effect (#PR).
+  page was drawn while `maidr_off()` was in effect. A page that holds no
+  plot maidr recorded, as after `hist(x); plot.new()`,
+  `hist(x); plot.new(); text(0.5, 0.5, "note")` or
+  `hist(x); smoothScatter(y)`, is no longer exported as the histogram
+  before it, or as a chart with nothing on it: `show()` and `save_html()`
+  stop and say the page holds no plot maidr recorded (#PR).
 
 ## Documentation
 

@@ -89,8 +89,13 @@ stays empty. \code{lines()}, \code{points()}, \code{abline()}, \code{text()}, \c
 \code{title()}, \code{axis()} and the other low-level calls add to the plot they
 are drawn on. Nothing drawn on an
 earlier page reaches the chart: not its data, its titles or the size it
-is drawn at. Each figure of an R Markdown or Quarto document is read
-the same way, from the calls on its own page.
+is drawn at. A page that holds no plot maidr recorded -- one R started
+with \code{plot.new()} or \code{frame()}, with a plot maidr does not record, or
+with one drawn while \code{\link[=maidr_off]{maidr_off()}} was in effect, even with \code{lines()} or
+\code{text()} drawn on it since -- is not read as the plot before it: \code{show()}
+and \code{save_html()} stop, and say so. Each figure
+of an R Markdown or Quarto document is read the same way, from the calls
+on its own page.
 }
 
 \section{Chart size}{

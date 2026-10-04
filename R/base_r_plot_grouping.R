@@ -21,7 +21,7 @@ NULL
 #' @return List of plot groups, each containing HIGH and LOW calls
 #' @keywords internal
 group_device_calls <- function(device_id = grDevices::dev.cur()) {
-  all_calls <- last_page_calls(get_device_calls(device_id))
+  all_calls <- shown_device_calls(device_id)
 
   if (length(all_calls) == 0) {
     return(list())

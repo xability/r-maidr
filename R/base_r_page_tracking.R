@@ -116,16 +116,21 @@ remove_base_r_page_hook <- function() {
 
 #' The recorded calls on the page R shows
 #'
-#' The calls drawn on the last page any of them was drawn on, and every
-#' layout call: `par()` and `layout()` draw nothing, and what they set holds
-#' on every page after them. A call recorded without a page, by code that
-#' records calls itself, is kept.
+#' The calls drawn on the page R's device is on, and every layout call:
+#' `par()` and `layout()` draw nothing, and what they set holds on every
+#' page after them. A call recorded without a page, by code that records
+#' calls itself, is kept. A page R started since the last call maidr
+#' recorded -- with `plot.new()`, a plot maidr does not record, or one drawn
+#' while `maidr_off()` was in effect -- holds none of the calls recorded
+#' before it, and they are all left out.
 #'
 #' @param calls Recorded call entries, in the order they were recorded
+#' @param page The page R's device is on (`base_r_device_position()`);
+#'   `NULL` for the last page any call was drawn on
 #' @return The entries R's device shows, in the same order
 #' @keywords internal
 #' @noRd
-last_page_calls <- function(calls) {
+last_page_calls <- function(calls, page = NULL) {
   pages <- vapply(
     calls,
     function(entry) {
@@ -140,7 +145,47 @@ last_page_calls <- function(calls) {
   if (all(is.na(pages))) {
     return(calls)
   }
-  calls[is.na(pages) | pages == max(pages, na.rm = TRUE)]
+  shown <- max(c(page, pages), na.rm = TRUE)
+  calls[is.na(pages) | pages == shown]
+}
+
+#' The recorded calls a device shows
+#'
+#' Those on the page it is on (`last_page_calls()`).
+#'
+#' @param device_id Graphics device ID
+#' @return The entries, in the order they were recorded
+#' @keywords internal
+#' @noRd
+shown_device_calls <- function(device_id = grDevices::dev.cur()) {
+  last_page_calls(get_device_calls(device_id), base_r_device_position(device_id)$page)
+}
+
+#' Whether the page a device shows holds no plot maidr recorded
+#'
+#' Something was drawn on the device, but no plot maidr recorded is on the
+#' page R shows: R started that page with `plot.new()` or `frame()`, with a
+#' plot maidr does not record, or with one drawn while `maidr_off()` was in
+#' effect, and anything recorded on it since is a low-level call that
+#' started no plot, such as `lines()` or `text()`. A device holding only
+#' layout calls has drawn nothing, and is not such a device.
+#'
+#' @param device_id Graphics device ID
+#' @return Logical
+#' @keywords internal
+#' @noRd
+base_r_page_without_plot <- function(device_id = grDevices::dev.cur()) {
+  drawn <- vapply(
+    get_device_calls(device_id),
+    function(call) call$class_level %in% c("HIGH", "LOW"),
+    logical(1)
+  )
+  plots <- vapply(
+    shown_device_calls(device_id),
+    function(call) identical(call$class_level, "HIGH") || isTRUE(call$new_plot),
+    logical(1)
+  )
+  any(drawn) && !any(plots)
 }
 
 #' Start following a recorded call as it draws
@@ -187,4 +232,37 @@ end_base_r_call <- function(device_id = grDevices::dev.cur()) {
     end_figure = at$figure,
     end_plot = at$plot
   )
+}
+
+#' Stop unless the page a device shows holds a Base R plot maidr recorded
+#'
+#' For `show()`, `save_html()` and `maidr_widget()` asked for the Base R
+#' chart. Nothing recorded at all says so as before
+#' (`no_base_r_plots_message()`). A page holding no plot maidr recorded
+#' (`base_r_page_without_plot()`) says that instead. The plots maidr
+#' recorded before it are on pages R no longer shows, and maidr can neither
+#' read nor draw the page R does show: what started it was not recorded.
+#'
+#' @param device_id Graphics device ID
+#' @return NULL (invisible), or stops
+#' @keywords internal
+#' @noRd
+check_base_r_page_recorded <- function(device_id = grDevices::dev.cur()) {
+  if (!is_patching_active() || !has_device_calls(device_id)) {
+    stop(no_base_r_plots_message(), call. = FALSE)
+  }
+  if (base_r_page_without_plot(device_id)) {
+    stop(
+      paste0(
+        "The page R's device shows holds no Base R plot maidr recorded, ",
+        "so maidr cannot read it. R started that page with plot.new() or ",
+        "frame(), with a plot maidr does not record, or with a plot drawn ",
+        "while maidr_off() was in effect, and any plot maidr recorded is on ",
+        "an earlier page, which R no longer shows. Draw the chart with ",
+        "maidr on, from a plot such as plot() or hist(), to read it."
+      ),
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
 }

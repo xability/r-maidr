@@ -443,21 +443,68 @@ test_that("each recorded plot carries the page, panel and plot number R drew it 
   testthat::expect_identical(diff(pages), c(0L, 0L, 0L, 1L))
 })
 
-test_that("a page drawn while recording was off still starts a page", {
-  skip_if_no_render()
-  # R's device shows the second histogram and the line over it. maidr did
-  # not record the histogram, but the page it started is not the first
-  # histogram's, so nothing of that one is read.
-  chart <- last_page_export(function() {
+test_that("a page that holds no recorded plot is not read as the plot before it", {
+  # R's device shows a blank page, a plot maidr does not record, or one
+  # drawn while recording was off, and at most a low-level call over it.
+  # The histogram before it is not on that page, and is not the chart;
+  # what is on it maidr cannot read, or draw: what started it was not
+  # recorded. So maidr says so rather than export another page, or nothing.
+  started <- list(
+    "plot.new()" = function() graphics::plot.new(),
+    "frame()" = function() graphics::frame(),
+    "ts.plot()" = function() stats::ts.plot(datasets::ldeaths),
+    "smoothScatter()" = function() graphics::smoothScatter(mtcars$wt, mtcars$mpg),
+    "maidr_off()" = function() {
+      maidr_off()
+      on.exit(maidr_on(), add = TRUE)
+      hist(mtcars$hp)
+    },
+    "maidr_off(), then abline()" = function() {
+      maidr_off()
+      on.exit(maidr_on(), add = TRUE)
+      hist(mtcars$hp)
+      maidr_on()
+      abline(v = 100)
+    },
+    "plot.new(), then text()" = function() {
+      graphics::plot.new()
+      text(0.5, 0.5, "Only text")
+    }
+  )
+  for (name in names(started)) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    clear_base_r_device(device_id)
     hist(mtcars$mpg)
-    maidr_off()
-    on.exit(maidr_on(), add = TRUE)
-    hist(mtcars$hp)
-    maidr_on()
-    abline(v = 100)
-  })
-  testthat::expect_length(last_page_cells(chart)[[1]], 0L)
-  testthat::expect_false(any(grepl("mpg", chart$strings, fixed = TRUE)))
+    started[[name]]()
+    for (export in list(
+      function() save_html(file = tempfile(fileext = ".html")),
+      function() show(),
+      function() maidr:::maidr_widget(NULL)
+    )) {
+      testthat::expect_error(export(), "holds no Base R plot maidr recorded", label = name)
+    }
+    clear_base_r_device(device_id)
+    grDevices::dev.off(device_id)
+  }
+
+  # As on a device that never held a plot.
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  graphics::plot.new()
+  text(0.5, 0.5, "Only text")
+  testthat::expect_error(
+    save_html(file = tempfile(fileext = ".html")),
+    "holds no Base R plot maidr recorded"
+  )
 })
 
 test_that("the size a chart is drawn at is settled by its own page", {
@@ -502,6 +549,12 @@ test_that("only the calls on the last page are read", {
   testthat::expect_identical(
     vapply(kept, function(call) call$function_name, character(1)),
     c("par", "par", "hist", "abline")
+  )
+
+  # On a page R started after them, only the layout calls are.
+  testthat::expect_identical(
+    vapply(maidr:::last_page_calls(calls, page = 3L), function(call) call$function_name, ""),
+    c("par", "par")
   )
 
   # Calls recorded without a page, as code that records calls itself does,

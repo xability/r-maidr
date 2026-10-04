@@ -140,7 +140,7 @@ replay_base_r_plot <- function(device_id) {
   # keeps the HIGH and LOW calls and drops the LAYOUT ones, so a
   # multi-panel figure's picture was replayed without its `par(mfrow = )`
   # or `layout()` and came out as one panel drawn over another.
-  all_calls <- last_page_calls(get_device_calls(device_id))
+  all_calls <- shown_device_calls(device_id)
   high_calls <- Filter(function(call) identical(call$class_level, "HIGH"), all_calls)
 
   if (length(high_calls) == 0) {
