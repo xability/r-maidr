@@ -378,6 +378,23 @@ test_that("each recorded plot carries the page, panel and plot number R drew it 
   testthat::expect_identical(diff(pages), c(0L, 0L, 0L, 1L))
 })
 
+test_that("a page drawn while recording was off still starts a page", {
+  skip_if_no_render()
+  # R's device shows the second histogram and the line over it. maidr did
+  # not record the histogram, but the page it started is not the first
+  # histogram's, so nothing of that one is read.
+  chart <- last_page_export(function() {
+    hist(mtcars$mpg)
+    maidr_off()
+    on.exit(maidr_on(), add = TRUE)
+    hist(mtcars$hp)
+    maidr_on()
+    abline(v = 100)
+  })
+  testthat::expect_length(last_page_cells(chart)[[1]], 0L)
+  testthat::expect_false(any(grepl("mpg", chart$strings, fixed = TRUE)))
+})
+
 test_that("the size a chart is drawn at is settled by its own page", {
   # A six-row grid does not fit maidr's own 7 x 5 in and is drawn larger,
   # with a message. Drawn on the page before, it says nothing about the

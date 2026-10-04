@@ -24,7 +24,9 @@
 
 .maidr_base_r_pages <- new.env(parent = emptyenv())
 # Where R is on each device, by device number: the pages it has started
-# while maidr recorded, and the panel and the plot it is on in the last.
+# since maidr was loaded, and the panel and the plot it is on in the last.
+# Counted while recording is off too: a page drawn then is no less the page
+# R shows, and a call recorded after it is on it.
 # Only the order of the pages matters: a device's count runs on when its
 # calls are cleared, or when a device of the same number replaces it.
 .maidr_base_r_pages$at <- list()
@@ -36,8 +38,8 @@
 #' Where R is drawing, on a device
 #'
 #' @param device_id Graphics device ID
-#' @return A list: `page`, the pages R has started on the device while
-#'   maidr recorded; `figure`, the panel of the last page it is in, and
+#' @return A list: `page`, the pages R has started on the device since
+#'   maidr was loaded; `figure`, the panel of the last page it is in, and
 #'   `plot`, the plots started on that page. Each 0 for none.
 #' @keywords internal
 #' @noRd
@@ -59,7 +61,7 @@ note_base_r_plot_new <- function() {
   tryCatch(
     {
       device <- grDevices::dev.cur()
-      if (device != 1L && is_patching_enabled()) {
+      if (device != 1L) {
         key <- as.character(device)
         at <- base_r_device_position(device)
         if (isTRUE(graphics::par("page"))) {

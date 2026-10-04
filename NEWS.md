@@ -402,7 +402,8 @@
   `plot.new()` and `frame()` take a panel as they do in R, which stays
   empty, where maidr moved the next plot into it; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
-  would need -- reaches the chart (#PR).
+  would need -- reaches the chart, even when the plot that started the new
+  page was drawn while `maidr_off()` was in effect (#PR).
 
 ## Documentation
 
