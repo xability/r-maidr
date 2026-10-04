@@ -99,6 +99,59 @@
   }
 }
 
+/* maidr opens its dialogs inside the chart. knitr-inline.js sets, on each
+ * chart's wrapper, the zoom that undoes a zoom of the page around it (a
+ * slide deck's), and the one that gives their text its own size back on a
+ * page whose root font size is smaller than 16px (Bootstrap 3); the paper is
+ * kept within the window at that zoom, as MUI keeps it at none. */
+.maidr-knitr .MuiDialog-root {
+  zoom: var(--maidr-knitr-unzoom, 1);
+}
+.maidr-knitr .MuiDialog-paper {
+  zoom: var(--maidr-knitr-zoom, 1);
+  max-width: min(600px, calc((100vw - 64px) / var(--maidr-knitr-zoom, 1)));
+  max-height: calc((100vh - 64px) / var(--maidr-knitr-zoom, 1));
+}
+
+/* A reveal.js slide, and the slides around it, set a perspective, which
+ * makes the slide the box a fixed dialog is placed in rather than the
+ * window: a slide taller than the window put the dialog's buttons out of
+ * view. Not while one of a chart's dialogs is open on it. */
+.reveal .slides:has(.maidr-knitr .MuiDialog-root),
+.reveal .slides section:has(.maidr-knitr .MuiDialog-root) {
+  perspective: none !important;
+}
+
+/* A slide's centred text, and a host's rules for headings -- a slide deck's
+ * heading sizes, capitals and colours, a book's sizes -- would restyle the
+ * dialogs' headings: they are given back the type MUI's default theme,
+ * which maidr.js uses, gives them. */
+.maidr-knitr [role="dialog"] {
+  text-align: start;
+}
+.maidr-knitr [role="dialog"] :is(h1, h2, h3, h4, h5, h6) {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif !important;
+  color: inherit !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+  word-wrap: normal !important;
+}
+.maidr-knitr [role="dialog"] .MuiTypography-h6 {
+  font-size: 1.25rem !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.0075em !important;
+}
+.maidr-knitr [role="dialog"] .MuiTypography-subtitle1 {
+  font-size: 1rem !important;
+  line-height: 1.75 !important;
+  letter-spacing: 0.00938em !important;
+}
+.maidr-knitr [role="dialog"] .MuiTypography-subtitle2 {
+  font-size: 0.875rem !important;
+  line-height: 1.57 !important;
+  letter-spacing: 0.00714em !important;
+}
+
 /* Dashboards size their boxes to the window and hide what does not fit:
  * flexdashboard's .chart-shim, and the fill items of a Quarto dashboard's
  * cards. knitr-inline.js shrinks a chart to the height of such a box when

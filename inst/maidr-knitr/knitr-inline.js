@@ -86,6 +86,9 @@
     for (var i = 0; i < charts.length; i++) {
       var svg = charts[i];
       var wrapper = svg.parentNode;
+      if (wrapper && wrapper.classList && wrapper.classList.contains('maidr-knitr')) {
+        sizeDialogs(wrapper);
+      }
       var json = svg.getAttribute(PENDING);
       svg.removeAttribute(PENDING);
       svg.setAttribute('maidr-data', json);
@@ -127,6 +130,31 @@
   function describeAll() {
     var plots = document.querySelectorAll(PLOT);
     for (var i = 0; i < plots.length; i++) describe(plots[i]);
+  }
+
+  // --- maidr's dialogs -------------------------------------------------------
+
+  // maidr opens its dialogs inside the chart, so they take the page's sizes:
+  // their text is in rem, which a Bootstrap 3 page (html_document's default
+  // theme, bookdown's gitbook) makes 10px rather than 16px, and a slide deck
+  // that zooms its slides (reveal.js on a large window) zooms them past the
+  // window. Each chart's wrapper carries the zoom that undoes the page's, and
+  // the one that gives the dialogs' text its own size back, for the
+  // stylesheet to apply.
+  function sizeDialogs(wrapper) {
+    var root = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    var host = 1;
+    for (var node = wrapper.parentElement; node; node = node.parentElement) {
+      var z = parseFloat(getComputedStyle(node).zoom);
+      if (z > 0) host *= z;
+    }
+    wrapper.style.setProperty('--maidr-knitr-unzoom', String(1 / host));
+    wrapper.style.setProperty('--maidr-knitr-zoom', String(root > 0 && root < 16 ? 16 / root : 1));
+  }
+
+  function sizeAllDialogs() {
+    var wrappers = document.querySelectorAll('.maidr-knitr');
+    for (var i = 0; i < wrappers.length; i++) sizeDialogs(wrappers[i]);
   }
 
   // --- Dashboards ----------------------------------------------------------
@@ -339,6 +367,9 @@
   document.addEventListener('focusin', function (event) {
     var target = event.target;
     if (target && target.matches && target.matches(PLOT)) describe(target);
+    // The page may have zoomed since (a deck resized to its window).
+    var wrapper = target && target.closest && target.closest('.maidr-knitr');
+    if (wrapper) sizeDialogs(wrapper);
   }, true);
 
   function onReady() {
@@ -354,6 +385,7 @@
       shimHosts();
       describeAll();
       fitCharts();
+      sizeAllDialogs();
     });
   }
 
