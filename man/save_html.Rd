@@ -69,7 +69,10 @@ is the histogram of \code{b} alone, and after five plots under
 grid. Each plot of a grid is in the panel R drew it in: a plot drawn
 after \code{par(new = TRUE)}, or with \code{add = TRUE}, is drawn in the panel of
 the plot before it, and a panel \code{plot.new()} or \code{frame()} passed over
-stays empty. \code{lines()}, \code{points()}, \code{abline()}, \code{text()}, \code{legend()},
+stays empty. A plot drawn in a region of the page \code{par(fig = )} gave it,
+as an inset is, or in a screen of \code{split.screen()}, is drawn in that
+region, and read with the plot before it. \code{lines()}, \code{points()},
+\code{abline()}, \code{text()}, \code{legend()},
 \code{title()}, \code{axis()} and the other low-level calls add to the plot they
 are drawn on. Nothing drawn on an
 earlier page reaches the chart: not its data, its titles or the size it

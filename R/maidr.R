@@ -49,7 +49,10 @@
 #' grid. Each plot of a grid is in the panel R drew it in: a plot drawn
 #' after `par(new = TRUE)`, or with `add = TRUE`, is drawn in the panel of
 #' the plot before it, and a panel `plot.new()` or `frame()` passed over
-#' stays empty. `lines()`, `points()`, `abline()`, `text()`, `legend()`,
+#' stays empty. A plot drawn in a region of the page `par(fig = )` gave it,
+#' as an inset is, or in a screen of `split.screen()`, is drawn in that
+#' region, and read with the plot before it. `lines()`, `points()`,
+#' `abline()`, `text()`, `legend()`,
 #' `title()`, `axis()` and the other low-level calls add to the plot they
 #' are drawn on. Nothing drawn on an
 #' earlier page reaches the chart: not its data, its titles or the size it

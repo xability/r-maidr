@@ -21,6 +21,13 @@
 # (`compute_panel_slots()`). Simulating R's rule from the recorded calls
 # instead would have to know what each function does to the page, and
 # would miss the calls that are not recorded at all.
+#
+# Once it has started a plot, R says where it put it, and the `plot.new`
+# hook reads it: `par("mfg")`, the cell of the grid, which `par(mfg = )`
+# can move a plot to out of turn, and `par("fig")`, the region of the page,
+# which `par(fig = )` sets for an inset and `screen()` for a screen of
+# `split.screen()`, outside any grid. A plot is drawn again where R drew it
+# from them (`replay_page()`).
 
 .maidr_base_r_pages <- new.env(parent = emptyenv())
 # Where R is on each device, by device number: the pages it has started
@@ -96,18 +103,62 @@ note_base_r_plot_new <- function() {
   invisible(NULL)
 }
 
+#' Note where R put the plot it started: the `plot.new` hook
+#'
+#' Called by `plot.new()` once the plot is started; see the top of this
+#' file. The cell (`par("mfg")`: its row and column, and the grid's rows
+#' and columns) and the region of the page (`par("fig")`) are kept with the
+#' plot's place, and with that of each recorded call this plot is the
+#' first of on its page.
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+note_base_r_plot_started <- function() {
+  tryCatch(
+    {
+      device <- grDevices::dev.cur()
+      key <- as.character(device)
+      at <- .maidr_base_r_pages$at[[key]]
+      if (device != 1L && !is.null(at)) {
+        before <- at[c("page", "plot")]
+        at$cell <- as.integer(graphics::par("mfg"))
+        at$fig <- graphics::par("fig")
+        .maidr_base_r_pages$at[[key]] <- at
+        drawing <- .maidr_base_r_pages$calls[[key]]
+        for (i in seq_along(drawing)) {
+          if (identical(drawing[[i]]$first[c("page", "plot")], before)) {
+            drawing[[i]]$first <- at
+          }
+        }
+        .maidr_base_r_pages$calls[[key]] <- drawing
+      }
+    },
+    error = function(e) NULL
+  )
+  invisible(NULL)
+}
+
+# The hooks that follow the plots R starts, by the hook R calls each from.
+base_r_page_hooks <- function() {
+  list(before.plot.new = note_base_r_plot_new, plot.new = note_base_r_plot_started)
+}
+
 #' Follow the plots R starts, from now on
 #'
-#' Set when maidr is loaded, and again, where something took it out, before
-#' each recorded call draws (`ensure_maidr_device()`); `.onUnload()` removes
-#' it (`remove_base_r_page_hook()`).
+#' Set when maidr is loaded, and again, where something took them out,
+#' before each recorded call draws (`ensure_maidr_device()`); `.onUnload()`
+#' removes them (`remove_base_r_page_hook()`).
 #'
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
 set_base_r_page_hook <- function() {
-  if (!any(vapply(getHook("before.plot.new"), identical, logical(1), note_base_r_plot_new))) {
-    setHook("before.plot.new", note_base_r_plot_new)
+  hooks <- base_r_page_hooks()
+  for (name in names(hooks)) {
+    if (!any(vapply(getHook(name), identical, logical(1), hooks[[name]]))) {
+      setHook(name, hooks[[name]])
+    }
   }
   invisible(NULL)
 }
@@ -118,10 +169,13 @@ set_base_r_page_hook <- function() {
 #' @keywords internal
 #' @noRd
 remove_base_r_page_hook <- function() {
-  hooks <- getHook("before.plot.new")
-  keep <- !vapply(hooks, identical, logical(1), note_base_r_plot_new)
-  if (!all(keep)) {
-    setHook("before.plot.new", hooks[keep], action = "replace")
+  hooks <- base_r_page_hooks()
+  for (name in names(hooks)) {
+    set <- getHook(name)
+    keep <- !vapply(set, identical, logical(1), hooks[[name]])
+    if (!all(keep)) {
+      setHook(name, set[keep], action = "replace")
+    }
   }
   invisible(NULL)
 }
@@ -234,7 +288,8 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #' @param device_id The device it drew on
 #' @param depth The number of the wrapper's frame, as `begin_base_r_call()`
 #'   was given it
-#' @return A list: `page`, `figure`, `plot`, `new_plot`, whether the call
+#' @return A list: `page`, `figure`, `plot`, `cell` and `fig`, where R put
+#'   that plot (`note_base_r_plot_started()`), `new_plot`, whether the call
 #'   started a plot, and `end_figure` and `end_plot`, the panel and plot R
 #'   was on when the call was done; `id`, the number the call is known by,
 #'   `outer`, the number of the recorded call that made it while drawing,
@@ -260,6 +315,8 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     page = at$page,
     figure = first$figure,
     plot = first$plot,
+    cell = first$cell,
+    fig = first$fig,
     new_plot = started,
     end_figure = at$figure,
     end_plot = at$plot,

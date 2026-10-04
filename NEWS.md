@@ -399,6 +399,8 @@
   `layout()` grid on it, each plot in the panel R drew it in. A plot drawn
   after `par(new = TRUE)` is drawn over the plot before it, in its panel,
   where maidr drew the first alone or gave the second a panel of its own;
+  an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of
+  `split.screen()`, is drawn in the region of the page R gave it;
   `plot.new()` and `frame()` take a panel as they do in R, which stays
   empty, where maidr moved the next plot into it; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it

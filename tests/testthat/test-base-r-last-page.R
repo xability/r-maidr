@@ -398,6 +398,36 @@ test_that("a plot after one that drew several panels is in the panel R drew it i
   testthat::expect_true("fifth" %in% chart$strings)
 })
 
+test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave it", {
+  skip_if_no_render()
+
+  # An inset, which was drawn over the whole of the plot it sits in.
+  inset <- quote({
+    plot(1:10, main = "Main")
+    par(fig = c(0.55, 0.95, 0.15, 0.55), new = TRUE)
+    hist(mtcars$mpg, main = "Inset")
+  })
+  chart <- last_page_export(function() eval(inset))
+  testthat::expect_identical(cell_titles(chart), list(c("Main", "Inset")))
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings, r_last_page_strings(inset))
+  expect_drawn_where_r_draws(chart, inset, c("Main", "Inset"))
+
+  # The screens of split.screen(), one beside the other.
+  screens <- quote({
+    split.screen(c(1, 2))
+    screen(1)
+    plot(1:3, main = "S1")
+    screen(2)
+    hist(mtcars$mpg, main = "S2")
+    close.screen(all.screens = TRUE)
+  })
+  chart <- last_page_export(function() eval(screens))
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings, r_last_page_strings(screens))
+  expect_drawn_where_r_draws(chart, screens, c("S1", "S2"))
+})
+
 test_that("a call made by another as it draws is read and drawn once, where R drew it", {
   skip_if_no_render()
 

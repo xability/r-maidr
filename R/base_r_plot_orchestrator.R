@@ -112,10 +112,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
     # numbered it (`numbers`, from `plot_numbers()`): the plots R started
     # between two groups are started again, a panel `plot.new()` or
     # `frame()` passed over with `plot.new()`, and a plot drawn in the panel
-    # of the one before it after `par(new = TRUE)`, as R drew it. A group
-    # that starts no plot, as an `add = TRUE` call does, draws where it is.
-    # The recorded calls are replayed with the ORIGINAL (unwrapped)
-    # functions, so nothing new is recorded.
+    # of the one before it after `par(new = TRUE)`, as R drew it. A plot
+    # `par(fig = )` or `screen()` placed outside the grid is drawn in the
+    # same region of the page (`place_replayed_plot()`). A group that
+    # starts no plot, as an `add = TRUE` call does, draws where it is. The
+    # recorded calls are replayed with the ORIGINAL (unwrapped) functions,
+    # so nothing new is recorded.
     replay_page = function(slots, numbers) {
       margins <- list()
       figure <- 0L
@@ -144,7 +146,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
             }
             start_replayed_plot(stays)
           }
-          start_replayed_plot(slot <= figure, start = FALSE)
+          place_replayed_plot(high, slot, figure)
           figure <- slot
           plots <- numbers[[i]]
         }
@@ -1244,6 +1246,44 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' Send the plot a recorded call starts where R put it, as it is drawn again
+#'
+#' In the panel of the plot before it (`slot`, the panel R drew it in, is
+#' at most `figure`, the one the drawing is in), or in the next. A plot R
+#' drew in a region `par(fig = )` or `screen()` set, outside any grid, is
+#' drawn in that region: R gives it a cell of a grid of one, in a region
+#' that is not the whole page.
+#'
+#' @param high The recorded call, with the `cell` and `fig` R put its plot
+#'   in (`end_base_r_call()`)
+#' @param slot,figure The panel R drew the plot in, and the one the drawing
+#'   is in, each 0 for none
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+place_replayed_plot <- function(high, slot, figure) {
+  if (is_figure_region(high)) {
+    graphics::par(fig = high$fig)
+  }
+  start_replayed_plot(slot <= figure, start = FALSE)
+  invisible(NULL)
+}
+
+#' Whether R drew a recorded call's plot in a region of the page it was given
+#'
+#' `par(fig = )`, and `screen()` with it, give the plot drawn next a region
+#' of the page outside any grid: R reports the cell of a grid of one, and a
+#' region that is not the whole page.
+#'
+#' @param high The recorded call
+#' @return Logical
+#' @keywords internal
+#' @noRd
+is_figure_region <- function(high) {
+  length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
+    length(high$fig) == 4L && isTRUE(max(abs(high$fig - c(0, 1, 0, 1))) > 1e-6)
+}
 
 #' Say whether the next plot of a drawing stays in the panel of the last
 #'
