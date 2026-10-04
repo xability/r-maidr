@@ -276,14 +276,17 @@
   the static image a chart falls back to, wrote the values instead,
   "c(21, 21, 22.8, 21.4, ...)" for as long as the data ran: maidr draws the
   chart again from the values it recorded, and R names these titles after
-  how an argument was written. The same went for every chart R titles that
-  way: `plot(x, y)`, `plot()` of a vector, a time series, a table or a
-  function, `image()`, `persp()`, `matplot()`, `mosaicplot()`,
+  how an argument was written. The same went for the other charts R titles
+  that way, among them `plot(x, y)`, `plot()` of a vector, a time series or
+  a table, `image()`, `persp()`, `matplot()`, `mosaicplot()`,
   `sunflowerplot()`, `spineplot()`, `cdplot()`, `qqplot()`, `acf()`,
   `pacf()`, `ccf()`, `interaction.plot()`, `cpgram()`, `monthplot()`,
-  `lag.plot()` and `symbols()`. The chart is still drawn from the recorded
-  values, so each chart a loop draws, or one drawn from `rnorm()`, shows the
-  data it was drawn with (#PR).
+  `lag.plot()` and `symbols()`, and for two arguments written alike, as in
+  `plot(rnorm(100), rnorm(100))`. The chart is still drawn from the
+  recorded values, so each chart a loop draws, or one drawn from `rnorm()`,
+  shows the data it was drawn with. An argument written longer than R lets
+  a name be (10,000 bytes), or written as `..1`, is still titled with its
+  values (#PR).
 * The data a screen reader reads names a Base R chart's axes, and a
   histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
   as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,
