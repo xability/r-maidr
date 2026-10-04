@@ -61,6 +61,7 @@ const charts = [
   { name: 'Base line chart', announces: /\b81\b/ },
   { name: 'Wide bar chart', announces: /\bwide1\b.*\b101\b/, size: [10, 4] },
   { name: 'Tall bar chart', announces: /\btall1\b.*\b111\b/, size: [5, 8] },
+  { name: 'Base grid chart', announces: /\b121\b/, subplots: true, size: [10, 4] },
   { name: 'Hidden tab chart', announces: /\bhid1\b.*\b91\b/ },
 ].map(chart => ({ size: [7, 5], ...chart }));
 
