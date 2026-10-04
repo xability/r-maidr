@@ -391,9 +391,9 @@
   over the points R drew, wherever the function is written among the
   arguments, as in `plot(main = "Sine", sin, -pi, pi)`. `save_html()` and
   `show()` stopped with "object of type 'builtin' is not subsettable" (or
-  'closure'), a knitted chunk showed a picture of it, and `plot(sin)` with
-  no range, or with only `from`, `to` or `xlim`, was read as a scatter with
-  no points. Its axes are named as R names them, "x" and the first line of
+  'closure' or 'special'), a knitted chunk showed a picture of it, and
+  `plot(sin)` with no range, or with only `from`, `to` or `xlim`, was read
+  as a scatter with no points. Its axes are named as R names them, "x" and the first line of
   the function as written, "sin". Drawn over another chart with `add =
   TRUE`, or as points with `type = "p"`, it is shown as a picture of the
   chart, as `curve()` is. `plot()` of a time series, a one-way table or a
