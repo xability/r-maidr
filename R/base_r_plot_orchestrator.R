@@ -54,14 +54,18 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       canvas <- private$.canvas
       private$.canvas <- base_r_page_that_fits(draw, canvas)
+      no_room <- if (base_r_cells_too_large(e$reason)) {
+        "its layout() cells sized with lcm() do not fit"
+      } else {
+        "its margins and text leave the plot no room"
+      }
       # Classed as the candlestick's is (`chart_canvas_size()`), so that a
       # knitted chart says it too (`knit_chart_content()`).
       rlang::inform(
         paste0(
           "maidr: this Base R chart is drawn at ", format_inches(private$.canvas),
-          " rather than ", format_inches(canvas), ", where its margins and ",
-          "text leave the plot no room. Give it a size of its own to draw ",
-          "it at another."
+          " rather than ", format_inches(canvas), ", where ", no_room, ". ",
+          "Give it a size of its own to draw it at another."
         ),
         class = "maidr_chart_size_message"
       )
@@ -1278,14 +1282,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #' a chart's margins and text the same room in inches on any page, so a
 #' page too small for them -- 6 x 1.5 in for a `barplot()`, 4 x 3 in for a
 #' 2 x 2 `par(mfrow)` -- leaves the plot none and R stops with "figure
-#' margins too large". The device the author drew on may have had the room,
-#' and maidr draws the chart again at a size of its own. An empty chart in
-#' its place would not say so, and a picture is drawn at the same size, so
-#' neither is made. A drawing is taken to have failed for its size when it
-#' fits the largest page a chart is drawn on, [MAIDR_MAX_CHART_SIZE] on each
-#' side; any other failure is raised as R raised it, for the caller to
-#' handle as before. A size no one asked for is the orchestrator's to
-#' enlarge ([base_r_page_that_fits()]).
+#' margins too large". The cells a `layout()` call sizes with `lcm()` keep
+#' their size on any page too, and R stops with "figure region too large"
+#' on a page smaller than they are. The device the author drew on may have
+#' had the room, and maidr draws the chart again at a size of its own. An
+#' empty chart in its place would not say so, and a picture is drawn at the
+#' same size, so neither is made. A drawing is taken to have failed for its
+#' size when it fits the largest page a chart is drawn on,
+#' [MAIDR_MAX_CHART_SIZE] on each side; any other failure is raised as R
+#' raised it, for the caller to handle as before. A size no one asked for is
+#' the orchestrator's to enlarge ([base_r_page_that_fits()]).
 #'
 #' @param draw A function of no arguments that draws the chart
 #' @param size The chart's canvas, from [chart_canvas_size()]
@@ -1332,19 +1338,47 @@ base_r_drawing_grob <- function(draw, size) {
 #' @param size The size, a named numeric vector, `width` and `height`, in
 #'   inches
 #' @return A condition of class `maidr_chart_draw_error`, naming the size and
-#'   R's reason
+#'   R's reason, which it keeps as `reason`
 #' @keywords internal
 #' @noRd
 base_r_too_small <- function(e, size) {
+  reason <- conditionMessage(e)
+  taken <- if (base_r_cells_too_large(reason)) {
+    paste(
+      "layout() cells sized with lcm() take the same room at every size, and",
+      "at this size they do not fit on the page"
+    )
+  } else {
+    paste(
+      "margins and text take the same room at every size, and at this size",
+      "they leave the plot none"
+    )
+  }
   errorCondition(
     paste0(
       "maidr could not draw this chart at ", format_inches(size), ": ",
-      conditionMessage(e), ". A Base R chart's margins and text take the ",
-      "same room at every size, and at this size they leave the plot none: ",
-      "give the chart a larger size."
+      reason, ". A Base R chart's ", taken, ": give the chart a larger size."
     ),
-    class = "maidr_chart_draw_error"
+    class = "maidr_chart_draw_error",
+    reason = reason
   )
+}
+
+#' Whether R stopped drawing a Base R chart because its cells of a fixed size
+#' do not fit on the page
+#'
+#' R says "figure region too large" when the cells a `layout()` call sizes in
+#' centimetres, with `lcm()`, are larger than the page -- a `filled.contour()`
+#' sizes its key so -- and "figure margins too large" when the margins and
+#' text leave a plot no room.
+#'
+#' @param reason R's error message
+#' @return Logical
+#' @keywords internal
+#' @noRd
+base_r_cells_too_large <- function(reason) {
+  too_large <- "figure region too large"
+  isTRUE(reason %in% c(too_large, gettext(too_large, domain = "graphics")))
 }
 
 #' A Base R drawing with the graphical parameters ggplotify draws it with

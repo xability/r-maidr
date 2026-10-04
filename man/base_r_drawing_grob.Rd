@@ -39,13 +39,15 @@ A chart too small to draw stops, with an error of class
 a chart's margins and text the same room in inches on any page, so a
 page too small for them -- 6 x 1.5 in for a \code{barplot()}, 4 x 3 in for a
 2 x 2 \code{par(mfrow)} -- leaves the plot none and R stops with "figure
-margins too large". The device the author drew on may have had the room,
-and maidr draws the chart again at a size of its own. An empty chart in
-its place would not say so, and a picture is drawn at the same size, so
-neither is made. A drawing is taken to have failed for its size when it
-fits the largest page a chart is drawn on, \link{MAIDR_MAX_CHART_SIZE} on each
-side; any other failure is raised as R raised it, for the caller to
-handle as before. A size no one asked for is the orchestrator's to
-enlarge (\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}).
+margins too large". The cells a \code{layout()} call sizes with \code{lcm()} keep
+their size on any page too, and R stops with "figure region too large"
+on a page smaller than they are. The device the author drew on may have
+had the room, and maidr draws the chart again at a size of its own. An
+empty chart in its place would not say so, and a picture is drawn at the
+same size, so neither is made. A drawing is taken to have failed for its
+size when it fits the largest page a chart is drawn on,
+\link{MAIDR_MAX_CHART_SIZE} on each side; any other failure is raised as R
+raised it, for the caller to handle as before. A size no one asked for is
+the orchestrator's to enlarge (\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}).
 }
 \keyword{internal}

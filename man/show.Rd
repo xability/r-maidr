@@ -99,10 +99,12 @@ enlarged, with a message naming the size the chart is drawn at. A side
 larger than 50 in is refused, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} refuses one: the
 size is in inches, not the pixels \code{\link[=maidr_output]{maidr_output()}} takes.
 
-A Base R chart's margins and text take the same room at every size, so
-a chart can be too small for them -- R itself stops with "figure margins
-too large" at such a size. maidr draws the chart with the margins and
-text size its \code{par()} calls set, so it fits where R draws it with them.
+A Base R chart's margins and text take the same room at every size, as
+do the cells a \code{layout()} call sizes with \code{lcm()}, so a chart can be too
+small for them -- R itself stops with "figure margins too large", or for
+those cells "figure region too large", at such a size. maidr draws the
+chart with the margins and text size its \code{par()} calls set, so it fits
+where R draws it with them.
 Asked for a size too small, maidr stops too, with an error naming the
 size, rather than show an empty chart: draw it larger. With no size
 asked for, a chart too small for 7 x 5 in, such as a \code{par(mfrow)} grid

@@ -1081,6 +1081,44 @@ test_that("a Base R layout() page is held to its size by the room R gives its pl
   expect_drawn_at(short_first, c(7, 11))
   testthat::expect_identical(smallest_page(in_a_row, 1), c(9, 5))
   expect_drawn_at(in_a_row, c(9, 5))
+
+  # Columns 10 cm wide each, more than 7 in together: R stops because the
+  # cells do not fit on the page, which the error and the message say,
+  # where both blamed the margins and text.
+  wide_cells <- layout_page(matrix(1:2, 1), widths = lcm(c(10, 10)))
+  testthat::expect_identical(native_error(wide_cells, c(7, 5)), "figure region too large")
+  said <- testthat::expect_error(
+    render_sized(wide_cells, c(7, 5)),
+    class = "maidr_chart_draw_error"
+  )
+  testthat::expect_identical(
+    conditionMessage(said),
+    paste(
+      "maidr could not draw this chart at 7 x 5 in: figure region too large.",
+      "A Base R chart's layout() cells sized with lcm() take the same room at",
+      "every size, and at this size they do not fit on the page: give the chart",
+      "a larger size."
+    )
+  )
+  testthat::expect_identical(smallest_page(wide_cells, 1), c(8, 5))
+  drawn <- with_messages(render_sized(wide_cells, NULL))
+  testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(8, 5)))
+  testthat::expect_identical(
+    drawn$said,
+    paste(
+      "maidr: this Base R chart is drawn at 8 x 5 in rather than 7 x 5 in, where",
+      "its layout() cells sized with lcm() do not fit. Give it a size of its own",
+      "to draw it at another."
+    )
+  )
+  # A single such cell wider than the page, drawn without the grid.
+  one_wide_cell <- layout_page(matrix(1), widths = lcm(25), heights = lcm(10))
+  testthat::expect_error(
+    render_sized(one_wide_cell, c(7, 5)),
+    "figure region too large. A Base R chart's layout() cells sized with lcm()",
+    fixed = TRUE,
+    class = "maidr_chart_draw_error"
+  )
 })
 
 test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of it", {
