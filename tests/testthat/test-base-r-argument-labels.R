@@ -257,15 +257,32 @@ test_that("an argument the chart is not titled after is passed as its value", {
   testthat::expect_true(all(is.na(calls[[2]]$arg_text)))
 })
 
-test_that("two arguments written alike keep their own values", {
-  # Both are titled "rnorm(5)" by R, and one name can hold one value: the
-  # second is drawn as its value rather than as the first's.
+test_that("two arguments written alike keep their own values and R's titles", {
+  # Both are titled "rnorm(5)" by R, and one name in one environment can
+  # hold one value: the second reaches the chart through `...` from an
+  # environment of its own.
   calls <- recorded_calls(function() {
     set.seed(1)
     plot(rnorm(5), rnorm(5))
   })
   entry <- calls[[1]]
   testthat::expect_identical(entry$arg_text, c("rnorm(5)", "rnorm(5)"))
+
+  for (call in list(
+    quote(plot(rnorm(100), rnorm(100))),
+    quote(plot(y = rnorm(5), x = rnorm(5))),
+    quote(qqplot(rnorm(20), rnorm(20))),
+    quote(symbols(runif(5), runif(5), circles = runif(5)))
+  )) {
+    set.seed(7)
+    replayed <- replayed_strings(call, environment())
+    set.seed(7)
+    testthat::expect_identical(
+      replayed,
+      native_strings(call, environment()),
+      label = deparse1(call)
+    )
+  }
 
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)

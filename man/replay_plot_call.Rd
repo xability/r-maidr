@@ -30,7 +30,7 @@ time so those expressions resolve exactly as they did originally.
 \details{
 Otherwise the recorded values are drawn, each argument \code{arg_text} names
 passed under a symbol spelled as it was written (see
-\code{bind_written_args()}), so a title R derives from that text comes out as
-it did in the user's own call.
+\code{call_with_written_args()}), so a title R derives from that text comes
+out as it did in the user's own call.
 }
 \keyword{internal}

@@ -232,8 +232,8 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 #'
 #' Otherwise the recorded values are drawn, each argument `arg_text` names
 #' passed under a symbol spelled as it was written (see
-#' `bind_written_args()`), so a title R derives from that text comes out as
-#' it did in the user's own call.
+#' `call_with_written_args()`), so a title R derives from that text comes
+#' out as it did in the user's own call.
 #'
 #' @param function_name Name of the recorded function
 #' @param args Recorded argument list (values and/or expressions)
@@ -254,12 +254,11 @@ replay_plot_call <- function(function_name, args, call_env = NULL,
     return(invisible(eval(replay_call, envir = call_env)))
   }
 
-  replay_env <- new.env(parent = environment())
-  args <- bind_written_args(args, arg_text, replay_env)
-  invisible(do.call(orig_fn, args, envir = replay_env))
+  invisible(call_with_written_args(orig_fn, args, arg_text))
 }
 
-#' Pass recorded values under the names they were written as
+#' Call a function on recorded values, passed under the names they were
+#' written as
 #'
 #' `deparse1(substitute(x))` of a symbol is the symbol's name, whatever
 #' characters it holds, so binding the recorded value of `hist(mtcars$mpg)`
@@ -269,33 +268,77 @@ replay_plot_call <- function(function_name, args, call_env = NULL,
 #' read as the value it had when the chart was drawn.
 #'
 #' Two arguments written alike but holding different values, as in
-#' `plot(rnorm(5), rnorm(5))`, cannot share one name: the first keeps it and
-#' the second is passed as its value.
+#' `plot(rnorm(5), rnorm(5))`, cannot share a name in one environment. The
+#' later one is bound in an environment of its own, and reaches `fn`
+#' through the `...` of a function that environment encloses: `...` hands
+#' an argument on as it was written, so `substitute()` gives "rnorm(5)" for
+#' both axes and each draws its own values. Only such an argument goes that
+#' way, since a function that rebuilds its call with `match.call()` sees it
+#' as `..1`; and only one passed by name, since the `...` comes after every
+#' other argument. An unnamed one is passed as its value.
 #'
+#' @param fn The function to call
 #' @param args Recorded argument list, as `replay_plot_call()` passes it
 #' @param arg_text The text each argument was written as, or NA; one entry
 #'   per recorded argument, which maidr's own `.maidr_` entries only ever
-#'   follow
-#' @param env The environment the call is evaluated in, which receives the
-#'   bindings
-#' @return `args`, with symbols in place of the values `env` now holds
+#'   follow; or NULL
+#' @return What `fn` returns
 #' @keywords internal
-bind_written_args <- function(args, arg_text, env) {
+call_with_written_args <- function(fn, args, arg_text) {
+  free_for <- function(env, name, value) {
+    !exists(name, envir = env, inherits = FALSE) ||
+      identical(get(name, envir = env, inherits = FALSE), value)
+  }
+
+  env <- new.env(parent = environment())
+  # The arguments written like an earlier one but holding another value:
+  # each layer an environment binding at most one value to each name, and
+  # the arguments it passes on by name.
+  layers <- list()
+  arg_names <- names(args) %||% character(length(args))
+  forwarded <- logical(length(args))
+
   for (i in seq_along(arg_text)) {
     name <- arg_text[[i]]
     if (is.na(name) || i > length(args)) {
       next
     }
     value <- args[[i]]
-    taken <- exists(name, envir = env, inherits = FALSE) &&
-      !identical(get(name, envir = env, inherits = FALSE), value)
-    if (taken) {
+    if (free_for(env, name, value)) {
+      assign(name, value, envir = env)
+      args[i] <- list(as.name(name))
       next
     }
-    assign(name, value, envir = env)
-    args[i] <- list(as.name(name))
+    if (!nzchar(arg_names[i])) {
+      next
+    }
+    at <- Position(function(layer) free_for(layer$env, name, value), layers)
+    if (is.na(at)) {
+      at <- length(layers) + 1L
+      layers[[at]] <- list(env = new.env(parent = env), args = list())
+    }
+    assign(name, value, envir = layers[[at]]$env)
+    layers[[at]]$args[[arg_names[i]]] <- as.name(name)
+    forwarded[i] <- TRUE
   }
-  args
+
+  if (length(layers) == 0) {
+    return(do.call(fn, args, envir = env))
+  }
+
+  # `fn(<the other arguments>, ...)`, called through one function per
+  # layer, each enclosed by its layer's environment and adding the layer's
+  # arguments to the `...` it hands on.
+  caller <- function(...) NULL
+  body(caller) <- as.call(c(list(fn), args[!forwarded], list(quote(...))))
+  environment(caller) <- env
+  for (layer in layers) {
+    inner <- caller
+    caller <- function(...) NULL
+    body(caller) <- as.call(c(list(inner), layer$args, list(quote(...))))
+    environment(caller) <- layer$env
+  }
+  caller()
 }
 
 #' Find the environment a name is bound in
