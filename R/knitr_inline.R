@@ -120,9 +120,14 @@ warn_inline_fallback <- function(error) {
 #' `.maidr-knitr` wrapper:
 #'
 #' * The svg is a named image until maidr.js has mounted the chart, and stays
-#'   one when it never does: `role="img"` and an `aria-label` from `fig.alt`,
-#'   else `fig.cap`, else the chart's title, else "Chart". `knitr-inline.js`
-#'   removes both once maidr's own focusable element is around the chart.
+#'   one when it never does: `role="img"`, named by `fig.alt`, else
+#'   `fig.cap`, else the chart's title, else its kind and axes ("Bar chart of
+#'   n by kind"). The name is the element that holds the text, through
+#'   `aria-labelledby`, rather than a copy in `aria-label`: bookdown resolves
+#'   a text reference, `(ref:label)`, in the whole page, attributes included,
+#'   and the HTML it writes would end the attribute. `knitr-inline.js`
+#'   removes the role and the name once maidr's own focusable element is
+#'   around the chart.
 #' * The maidr-data JSON is in `data-maidr-knitr`, for `knitr-inline.js` to
 #'   hand to maidr.js; see that script for why it is not in `maidr-data`.
 #' * The alt text (or the title, when there is no caption either) is kept
@@ -175,7 +180,6 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   }
   alt <- pick_chart_text(options$fig.alt, index)
   title <- if (is.null(alt) && is.null(caption)) knitr_chart_title(json)
-  name <- alt %||% caption %||% title %||% "Chart"
   description <- alt %||% title
   if (identical(description, caption)) {
     description <- NULL
@@ -195,7 +199,13 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   classes <- c(stats::na.omit(xml2::xml_attr(root, "class")), "maidr-knitr-svg")
   xml2::xml_attr(root, "class") <- paste(classes, collapse = " ")
   xml2::xml_attr(root, "role") <- "img"
-  xml2::xml_attr(root, "aria-label") <- name
+  if (!is.null(description)) {
+    xml2::xml_attr(root, "aria-labelledby") <- paste0(prefix, "alt")
+  } else if (!is.null(caption)) {
+    xml2::xml_attr(root, "aria-labelledby") <- paste0(prefix, "caption")
+  } else {
+    xml2::xml_attr(root, "aria-label") <- alt %||% float_caption %||% knitr_chart_kind(json)
+  }
   xml2::xml_attr(root, "maidr-data") <- NULL
   xml2::xml_attr(root, "data-maidr-knitr") <- json
 
@@ -347,6 +357,43 @@ pick_chart_text <- function(value, index) {
 knitr_chart_title <- function(json) {
   title <- tryCatch(jsonlite::parse_json(json)$title, error = function(e) NULL)
   pick_chart_text(if (is.character(title)) title, 1L)
+}
+
+#' A name for a chart with no alt text, caption or title
+#'
+#' Its kind, from the type of its first layer, and what it plots against
+#' what when both axes are labelled: "Bar chart of n by kind".
+#'
+#' @param json The maidr-data JSON
+#' @return One string; "Chart" when the JSON cannot be read
+#' @keywords internal
+#' @noRd
+knitr_chart_kind <- function(json) {
+  layer <- tryCatch(
+    jsonlite::parse_json(json)$subplots[[1L]][[1L]]$layers[[1L]],
+    error = function(e) NULL
+  )
+  type <- if (is.character(layer$type) && length(layer$type) == 1L) layer$type else ""
+  kinds <- c(
+    hist = "Histogram", point = "Scatter plot", heat = "Heat map", box = "Box plot",
+    smooth = "Smoothed line", violin_box = "Violin plot", violin_kde = "Violin plot",
+    word_cloud = "Word cloud", treemap = "Treemap", contour = "Contour plot"
+  )
+  kind <- if (type %in% names(kinds)) {
+    kinds[[type]]
+  } else if (nzchar(type)) {
+    words <- gsub("_", " ", type, fixed = TRUE)
+    paste0(toupper(substr(words, 1L, 1L)), substring(words, 2L), " chart")
+  } else {
+    "Chart"
+  }
+  label <- function(axis) {
+    text <- if (is.list(axis)) axis$label else axis
+    if (is.character(text) && length(text) == 1L && nzchar(trimws(text))) text
+  }
+  x <- label(layer$axes$x)
+  y <- label(layer$axes$y)
+  if (is.null(x) || is.null(y)) kind else sprintf("%s of %s by %s", kind, y, x)
 }
 
 #' bookdown's label for a captioned chart

@@ -148,7 +148,7 @@ test_that("fig.keep and fig.show pick the figures, and each is the chart it show
     # The hidden chunk's grid is not this chunk's.
     "after-hide: point:5"
   ))
-  testthat::expect_lt(regexpr("## hold-text", page), regexpr('aria-label="hold-bar"', page))
+  testthat::expect_lt(regexpr("## hold-text", page), regexpr("hidden>hold-bar</span>", page))
   # An animation is knitr's, made of its figures.
   testthat::expect_match(page, "ANIMATION", fixed = TRUE)
 })
@@ -176,10 +176,10 @@ test_that("a chart a chunk returns is one of its figures, as it is without maidr
     "p + ggplot2::ggtitle('results-hidden')",
     "```"
   )
-  # Each chart's name, and each figure's alt text or Markdown caption.
+  # Each figure's alt text or Markdown caption.
   names <- function(page) {
-    found <- regmatches(page, gregexpr('(aria-label|alt)="[^"]*"|!\\[[^]]*\\]', page))[[1]]
-    gsub('^(aria-label="|alt="|!\\[)|("|\\])$', "", found)
+    found <- regmatches(page, gregexpr('alt="[^"]*"|!\\[[^]]*\\]', page))[[1]]
+    gsub('^(alt="|!\\[)|("|\\])$', "", found)
   }
 
   charts <- knit_for(chunks, withr::local_tempdir("maidr-figures-"))
@@ -192,7 +192,7 @@ test_that("a chart a chunk returns is one of its figures, as it is without maidr
     "kept: bar:2",
     "results-hidden: bar:3"
   ))
-  testthat::expect_lt(regexpr("## held-text", charts), regexpr('aria-label="Held first"', charts))
+  testthat::expect_lt(regexpr("## held-text", charts), regexpr("hidden>Held first</span>", charts))
   # Each chart takes the alt text or caption its figure takes; one with
   # neither is named by its title.
   testthat::expect_identical(
@@ -200,7 +200,7 @@ test_that("a chart a chunk returns is one of its figures, as it is without maidr
     c("Drawn bars", "Returned bars", "Held first", "Held second", "", "")
   )
   testthat::expect_identical(
-    names(charts),
+    unname(chart_names(charts)),
     c("Drawn bars", "Returned bars", "Held first", "Held second", "kept", "results-hidden")
   )
 })

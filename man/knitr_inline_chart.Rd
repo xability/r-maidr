@@ -27,9 +27,14 @@ lines around it, so pandoc reads it as a block of its own) inside a
 \details{
 \itemize{
 \item The svg is a named image until maidr.js has mounted the chart, and stays
-one when it never does: \code{role="img"} and an \code{aria-label} from \code{fig.alt},
-else \code{fig.cap}, else the chart's title, else "Chart". \code{knitr-inline.js}
-removes both once maidr's own focusable element is around the chart.
+one when it never does: \code{role="img"}, named by \code{fig.alt}, else
+\code{fig.cap}, else the chart's title, else its kind and axes ("Bar chart of
+n by kind"). The name is the element that holds the text, through
+\code{aria-labelledby}, rather than a copy in \code{aria-label}: bookdown resolves
+a text reference, \code{(ref:label)}, in the whole page, attributes included,
+and the HTML it writes would end the attribute. \code{knitr-inline.js}
+removes the role and the name once maidr's own focusable element is
+around the chart.
 \item The maidr-data JSON is in \code{data-maidr-knitr}, for \code{knitr-inline.js} to
 hand to maidr.js; see that script for why it is not in \code{maidr-data}.
 \item The alt text (or the title, when there is no caption either) is kept

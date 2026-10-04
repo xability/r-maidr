@@ -254,7 +254,7 @@ test_that("an inline chart is a named svg in a raw block, its data set aside", {
   wrapper <- xml2::xml_find_first(page, "//div[@class = 'maidr-knitr']")
   svg <- xml2::read_xml(as.character(xml2::xml_find_first(wrapper, "./svg")))
   testthat::expect_identical(xml2::xml_attr(svg, "role"), "img")
-  testthat::expect_identical(xml2::xml_attr(svg, "aria-label"), "Three bars")
+  testthat::expect_identical(unname(chart_names(out)), "Three bars")
   testthat::expect_identical(xml2::xml_attr(svg, "class"), "maidr-knitr-svg")
   testthat::expect_true(is.na(xml2::xml_attr(svg, "maidr-data")))
   testthat::expect_false(grepl("maidr-data=", out, fixed = TRUE))
@@ -266,15 +266,16 @@ test_that("an inline chart is a named svg in a raw block, its data set aside", {
   testthat::expect_identical(xml2::xml_text(alt), "Three bars")
   testthat::expect_identical(xml2::xml_attr(alt, "hidden"), "")
   testthat::expect_match(xml2::xml_attr(alt, "id"), "^m[a-z0-9]+-alt$")
+  testthat::expect_identical(xml2::xml_attr(svg, "aria-labelledby"), xml2::xml_attr(alt, "id"))
 })
 
-test_that("a chart is named by fig.alt, then fig.cap, then its title, then 'Chart'", {
+test_that("a chart is named by fig.alt, then fig.cap, then its title, then its kind", {
   skip_if_no_render()
-  name_of <- function(out) regmatches(out, regexpr('aria-label="[^"]*"', out))
+  name_of <- function(out) unname(chart_names(out))
   titled <- bar_chart_svg("Title")
 
   both <- maidr:::knitr_inline_chart(titled, list(fig.alt = "Alt", fig.cap = "Cap"))
-  testthat::expect_identical(name_of(both), 'aria-label="Alt"')
+  testthat::expect_identical(name_of(both), "Alt")
   testthat::expect_match(
     both, '<span class="maidr-knitr-alt" id="m[a-z0-9]+-alt" hidden>Alt</span>'
   )
@@ -284,12 +285,17 @@ test_that("a chart is named by fig.alt, then fig.cap, then its title, then 'Char
   testthat::expect_match(both, '<div class="figure maidr-knitr">', fixed = TRUE)
 
   captioned <- maidr:::knitr_inline_chart(titled, list(fig.cap = "Cap"))
-  testthat::expect_identical(name_of(captioned), 'aria-label="Cap"')
+  testthat::expect_identical(name_of(captioned), "Cap")
   # The caption is already the description.
   testthat::expect_false(grepl("maidr-knitr-alt", captioned, fixed = TRUE))
 
   untitled <- maidr:::knitr_inline_chart(bar_chart_svg(), list())
-  testthat::expect_identical(name_of(untitled), 'aria-label="Chart"')
+  testthat::expect_identical(name_of(untitled), "Bar chart of y by x")
+  testthat::expect_identical(maidr:::knitr_chart_kind("{}"), "Chart")
+  testthat::expect_identical(
+    maidr:::knitr_chart_kind('{"subplots":[[{"layers":[{"type":"stacked_bar"}]}]]}'),
+    "Stacked bar chart"
+  )
   testthat::expect_false(grepl("maidr-knitr-alt", untitled, fixed = TRUE))
   testthat::expect_false(grepl("maidr-knitr-caption", untitled, fixed = TRUE))
 })
@@ -300,14 +306,24 @@ test_that("a caption is picked for its figure and escaped", {
 
   # The chunk's second figure takes the second caption.
   second <- maidr:::knitr_inline_chart(svg, list(fig.cap = c("First", "Second")), index = 2L)
-  testthat::expect_match(second, 'aria-label="Second"', fixed = TRUE)
+  testthat::expect_identical(unname(chart_names(second)), "Second")
 
   escaped <- maidr:::knitr_inline_chart(svg, list(fig.cap = "if a<b & c then &copy; done"))
   testthat::expect_match(escaped, ">if a&lt;b &amp; c then &amp;copy; done</p>", fixed = TRUE)
-  testthat::expect_match(
-    escaped, 'aria-label="if a&lt;b &amp; c then &amp;copy; done"',
-    fixed = TRUE
-  )
+  testthat::expect_identical(unname(chart_names(escaped)), "if a<b & c then &copy; done")
+})
+
+test_that("a chart's name is never written into an attribute bookdown rewrites", {
+  skip_if_no_render()
+  svg <- bar_chart_svg()
+  # bookdown replaces a text reference with its HTML across the whole page,
+  # attributes included: the svg names the elements that hold the text.
+  for (options in list(list(fig.cap = "(ref:cap)"), list(fig.alt = "(ref:alt)"))) {
+    out <- maidr:::knitr_inline_chart(svg, options)
+    start <- regmatches(out, regexpr("<svg[^>]*>", out))
+    testthat::expect_false(grepl("(ref:", start, fixed = TRUE))
+    testthat::expect_match(start, 'aria-labelledby="m[a-z0-9]+-(alt|caption)"')
+  }
 })
 
 test_that("bookdown labels a captioned chart, and Quarto writes the caption itself", {
@@ -745,9 +761,8 @@ expect_several_charts <- function(out) {
     types,
     c("bar", "point", "bar", "point", "bar", "bar", "hist", "bar", "bar", "point")
   )
-  names <- vapply(charts, function(svg) xml2::xml_attr(svg, "aria-label"), character(1))
   testthat::expect_identical(
-    names[c(1, 2, 6)],
+    unname(chart_names(out)[c(1, 2, 6)]),
     c("Cars by cylinder", "Weight and mileage", "Three bars")
   )
   testthat::expect_match(html, ">Cars by cylinder</p>", fixed = TRUE)
@@ -866,6 +881,36 @@ test_that("a chunk's Base R chart is read from its own device while another is o
   testthat::expect_identical(types, c("bar", "hist"))
   testthat::expect_false(maidr:::has_device_calls(other))
   testthat::expect_identical(unname(grDevices::dev.cur()), unname(other))
+})
+
+test_that("a bookdown text reference with markup in a chart's caption leaves the chart whole", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("bookdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-textref-")
+  writeLines(c(
+    "---", "title: refs", "output:", "  bookdown::html_document2:",
+    "    self_contained: false", "---",
+    "```{r, include = FALSE}", "library(maidr)", "maidr_on()", "```",
+    "(ref:cap) A caption with *emphasis*, $x^2$ and [a link](https://example.org).",
+    "",
+    "```{r bars, fig.cap = '(ref:cap)'}", "barplot(c(a = 1, b = 2))", "```"
+  ), file.path(dir, "refs.Rmd"))
+
+  page <- rmarkdown::render(file.path(dir, "refs.Rmd"), quiet = TRUE, envir = new.env())
+  doc <- xml2::read_html(page)
+  svg <- xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]")
+  testthat::expect_length(svg, 1L)
+  # The chart keeps its data and its name, which is the caption bookdown
+  # numbered and wrote as HTML.
+  testthat::expect_true(jsonlite::validate(xml2::xml_attr(svg, "data-maidr-knitr")))
+  name <- chart_names(page)
+  testthat::expect_match(name, "^Figure 1: +A caption with emphasis, .*and a link[.]$")
+  caption <- xml2::xml_find_first(doc, "//p[contains(@class, 'maidr-knitr-caption')]")
+  testthat::expect_length(xml2::xml_find_all(caption, ".//em | .//a"), 2L)
 })
 
 test_that("a document rendered from a chunk shows its charts, as does the chunk", {
@@ -1344,9 +1389,9 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   # Quarto's spelling of out.width sizes the chart.
   testthat::expect_match(html, '<div class="figure maidr-knitr" style="width: 50%;">', fixed = TRUE)
   testthat::expect_identical(
-    xml2::xml_attr(charts, "aria-label"),
+    unname(chart_names(page)),
     c(
-      "Cars by cylinder", "A scatter", "Base bars", "Chart",
+      "Cars by cylinder", "A scatter", "Base bars", "Scatter plot",
       "First printed", "Second printed", "A Base R figure",
       "Mixed bars", "Mixed returned"
     )

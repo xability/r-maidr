@@ -53,6 +53,7 @@
     if (svg.isConnected && svg.closest('figure[id^="maidr-figure"] > [tabindex]')) {
       svg.removeAttribute('role');
       svg.removeAttribute('aria-label');
+      svg.removeAttribute('aria-labelledby');
       describeAll();
       if (wrapper) fitChart(wrapper);
       return;

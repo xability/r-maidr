@@ -112,3 +112,21 @@ figure_sequence <- function(page) {
     paste0(if (is.character(data$title)) data$title else "", ": ", summaries[[chart]])
   }, character(1), USE.NAMES = FALSE)
 }
+
+#' The name each inline chart of a page has until maidr.js mounts it
+#'
+#' Its `aria-label`, or the text of the elements its `aria-labelledby` names.
+chart_names <- function(page) {
+  doc <- xml2::read_html(page, encoding = "UTF-8")
+  vapply(xml2::xml_find_all(doc, "//svg[@data-maidr-knitr]"), function(svg) {
+    label <- xml2::xml_attr(svg, "aria-label")
+    if (!is.na(label)) {
+      return(label)
+    }
+    ids <- strsplit(xml2::xml_attr(svg, "aria-labelledby"), " ", fixed = TRUE)[[1]]
+    texts <- vapply(ids, function(id) {
+      xml2::xml_text(xml2::xml_find_first(doc, sprintf("//*[@id = '%s']", id)))
+    }, character(1))
+    paste(texts, collapse = " ")
+  }, character(1))
+}

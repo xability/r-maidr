@@ -61,10 +61,20 @@ const check = (ok, what) => {
 };
 
 // The names the charts carry until maidr.js binds them, read from the file:
-// the order they are on the page in.
+// the order they are on the page in. A chart is named by the text of the
+// elements its aria-labelledby names, or by its aria-label.
+const textOf = id => {
+  const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const element = new RegExp(`\\bid="${escaped}"[^>]*>([^<]*)<`).exec(html);
+  return element ? element[1] : '';
+};
 const names = Array.from(html.matchAll(/<svg\b[^>]*\bmaidr-knitr-svg\b[^>]*>/g), match => {
   const label = /\baria-label="([^"]*)"/.exec(match[0]);
-  return label ? label[1] : '';
+  const labelledBy = /\baria-labelledby="([^"]*)"/.exec(match[0]);
+  if (label) {
+    return label[1];
+  }
+  return labelledBy ? labelledBy[1].split(/\s+/).map(textOf).join(' ') : '';
 });
 check(
   JSON.stringify(names) === JSON.stringify(charts.map(chart => chart.name)),
