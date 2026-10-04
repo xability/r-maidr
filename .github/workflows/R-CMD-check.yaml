@@ -87,9 +87,13 @@ jobs:
         with:
           use-public-rspm: true
 
+      # bookdown, xaringan and gifski are not in Suggests; only the tests that
+      # render an EPUB book, a xaringan deck, a bookdown text reference and a
+      # gifski animation use them, and those skip without them.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           needs: check
+          extra-packages: any::bookdown, any::xaringan, any::gifski
           cache-version: 2
 
       - name: Run the tests from the source tree

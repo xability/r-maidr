@@ -565,6 +565,25 @@ test_that("maidr installs into a knit over the hooks it finds, and maidr_off() p
   testthat::expect_match(page, "ON TRUE", fixed = TRUE)
 })
 
+test_that(".onUnload takes out the knitr hooks, page hooks and option a knit left", {
+  local_knitr_state()
+  original <- knitr::knit_hooks$get("plot")
+  # What a knit that stopped with an error leaves: it never reached the end
+  # of the knit, where maidr takes these out itself.
+  knitr::knit_hooks$set(plot = maidr:::maidr_knitr_plot_hook(original))
+  maidr:::set_knit_page_hooks()
+  withr::local_options(maidr.knit.replayed = maidr:::knit_page_replayed)
+
+  maidr:::.onUnload("lib")
+
+  testthat::expect_identical(knitr::knit_hooks$get("plot"), original)
+  testthat::expect_null(getOption("maidr.knit.replayed"))
+  hooks <- maidr:::knit_page_hooks()
+  for (name in names(hooks)) {
+    testthat::expect_false(any(vapply(getHook(name), identical, NA, hooks[[name]])))
+  }
+})
+
 test_that("a knit takes its hooks out, and one left by a failed knit does nothing later", {
   local_knitr_state()
   dir <- withr::local_tempdir("maidr-knit-")
