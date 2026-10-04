@@ -962,6 +962,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Use ORIGINAL (unwrapped) functions to prevent logging new calls
           plot_func <- function() {
+            # A layout() of one cell still places its plot: `lcm()` sizes or
+            # `respect` leave the cell less than the page.
+            laid_out <- identical(panel_config$type, "layout") &&
+              isTRUE(group$high_call_index > panel_config$layout_index)
+            if (laid_out) {
+              do.call(graphics::layout, c(list(panel_config$matrix), panel_config$sizes))
+            }
             private$set_recorded_margins(group)
             replay_plot_call(
               high_call$function_name,

@@ -943,6 +943,10 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
     ),
     # A third plot starts a second page, whose first cell is the narrow one.
     second_page = layout_page(matrix(1:2, 1), widths = c(1, 3), plots = 3),
+    # One cell, which a size in centimetres, or the shape kept, makes less
+    # than the page.
+    one_cell = layout_page(matrix(1), widths = lcm(8), heights = lcm(8)),
+    one_cell_respect = layout_page(matrix(1), widths = 2, heights = 1, respect = TRUE),
     matrix_by_name = function() {
       layout(widths = c(3, 1), mat = matrix(1:2, 1))
       for (i in 1:2) plot(1:5)
