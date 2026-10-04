@@ -87,6 +87,7 @@
       var svg = charts[i];
       var wrapper = svg.parentNode;
       if (wrapper && wrapper.classList && wrapper.classList.contains('maidr-knitr')) {
+        keepSlashFromPage(wrapper);
         sizeDialogs(wrapper);
       }
       var json = svg.getAttribute(PENDING);
@@ -155,6 +156,21 @@
   function sizeAllDialogs() {
     var wrappers = document.querySelectorAll('.maidr-knitr');
     for (var i = 0; i < wrappers.length; i++) sizeDialogs(wrappers[i]);
+  }
+
+  // pkgdown takes / for its search box from anywhere on the page, and stops
+  // it being typed: a / typed into maidr's own fields (the command palette,
+  // the chat) is kept from the page. maidr's handlers, below the wrapper,
+  // still see it.
+  function keepSlashFromPage(wrapper) {
+    if (wrapper.__maidrKnitrSlash) return;
+    wrapper.__maidrKnitrSlash = true;
+    wrapper.addEventListener('keydown', function (event) {
+      var target = event.target;
+      var editable = target && (target.isContentEditable ||
+        (target.matches && target.matches('input, textarea, select')));
+      if (event.key === '/' && editable) event.stopPropagation();
+    });
   }
 
   // --- Dashboards ----------------------------------------------------------
@@ -317,8 +333,10 @@
   }
 
   // pkgdown moves the focus to its search box on /, which maidr reads as
-  // "reset speed". The box cannot take the focus while it is disabled, for
-  // the one task in which pkgdown's handler runs.
+  // "reset speed" on the chart itself. The box cannot take the focus while
+  // it is disabled, for the one task in which pkgdown's handler runs. (A /
+  // typed into one of maidr's fields never reaches pkgdown: see
+  // keepSlashFromPage().)
   function shimPkgdownSearch(event) {
     if (event.key !== '/') return;
     var search = document.getElementById('search-input');
