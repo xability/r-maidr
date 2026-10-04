@@ -978,14 +978,21 @@ BaseRPlotOrchestrator <- R6::R6Class(
             }
           }
 
+          # Only the first drawing is shown (below), so only it settles the
+          # canvas, enlarging it or stopping as above. A later one -- a
+          # chart drawn over it on the same device -- that does not fit is
+          # left without a grob, as one that fails for another reason is.
           tryCatch(
             {
-              grob <- private$drawing_grob(plot_func)
+              grob <- if (i == 1) {
+                private$drawing_grob(plot_func)
+              } else {
+                base_r_drawing_grob(plot_func, private$.canvas)
+              }
               grob_list[[i]] <- grob
             },
             error = function(e) {
-              # As above, a chart too small to draw stops.
-              if (inherits(e, "maidr_chart_draw_error")) {
+              if (i == 1 && inherits(e, "maidr_chart_draw_error")) {
                 stop(e)
               }
               grob_list[[i]] <- NULL
