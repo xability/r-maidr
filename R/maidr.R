@@ -75,7 +75,8 @@
 #' small too, it is drawn on the smallest larger page that leaves each of
 #' its plots a sixth of an inch, 12 px, each way, each side grown in whole
 #' inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in for
-#' twelve columns. A message names the size it is drawn at.
+#' twelve columns. A message names the size it is drawn at. The picture of a
+#' Base R chart maidr cannot read is held to its size in the same way.
 #'
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
@@ -311,9 +312,16 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
     adapter <- registry$get_adapter(system_name)
     orchestrator <- adapter$create_orchestrator(plot, width = width, height = height)
   }
-  # A picture in place of the chart is drawn at the chart's size.
-  size <- orchestrator$canvas_size()
-  fallback_html <- function() {
+  # A picture in place of the chart is drawn at the chart's size. A Base R
+  # chart's is held to it as the chart is, which can enlarge it or stop
+  # (`picture_size()`); only the Base R orchestrator has that member.
+  picture_size <- function() {
+    if (is.function(orchestrator$picture_size)) {
+      return(orchestrator$picture_size())
+    }
+    orchestrator$canvas_size()
+  }
+  fallback_html <- function(size = picture_size()) {
     create_fallback_html(
       plot,
       shiny = shiny,
@@ -325,6 +333,9 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   # Check if we should fall back to image rendering
   if (orchestrator$should_fallback()) {
+    # Settled before the warning that a picture is drawn: a size too small
+    # to draw the picture at stops instead.
+    size <- picture_size()
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot contains unsupported elements. ",
@@ -332,7 +343,7 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
         call. = FALSE
       )
     }
-    return(fallback_html())
+    return(fallback_html(size))
   }
 
   warn_panel_fallback(orchestrator)

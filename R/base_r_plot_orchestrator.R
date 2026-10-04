@@ -29,35 +29,41 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .canvas = NULL,
     .size_asked = TRUE,
 
-    # A drawing as a grob on the chart's canvas (`base_r_drawing_grob()`).
-    #
-    # A canvas no one asked for that the drawing is too small for is
-    # enlarged to a page it fits (`base_r_page_that_fits()`), with a message
-    # naming the size: a `par(mfrow)` grid of five rows, which does not fit
-    # maidr's own 7 x 5 in, was drawn before maidr drew a chart at its size,
-    # and still is. A size asked for is not changed, and stops.
+    # A drawing as a grob on the chart's canvas (`base_r_drawing_grob()`),
+    # the canvas enlarged first where the drawing is too small for one no one
+    # asked for (`enlarge_canvas()`).
     drawing_grob = function(draw) {
       tryCatch(
         base_r_drawing_grob(draw, private$.canvas),
         maidr_chart_draw_error = function(e) {
-          if (private$.size_asked) {
-            stop(e)
-          }
-          canvas <- private$.canvas
-          private$.canvas <- base_r_page_that_fits(draw, canvas)
-          # Classed as the candlestick's is (`chart_canvas_size()`), so that
-          # a knitted chart says it too (`knit_chart_content()`).
-          rlang::inform(
-            paste0(
-              "maidr: this Base R chart is drawn at ", format_inches(private$.canvas),
-              " rather than ", format_inches(canvas), ", where its margins and ",
-              "text leave the plot no room. Give it a size of its own to draw ",
-              "it at another."
-            ),
-            class = "maidr_chart_size_message"
-          )
+          private$enlarge_canvas(draw, e)
           base_r_drawing_grob(draw, private$.canvas)
         }
+      )
+    },
+
+    # Settle the canvas for a drawing too small for it, which stopped with
+    # `e`, a `maidr_chart_draw_error`. A canvas no one asked for is enlarged
+    # to a page the drawing fits (`base_r_page_that_fits()`), with a message
+    # naming the size: a `par(mfrow)` grid of five rows, which does not fit
+    # maidr's own 7 x 5 in, was drawn before maidr drew a chart at its size,
+    # and still is. A size asked for is not changed, and stops.
+    enlarge_canvas = function(draw, e) {
+      if (private$.size_asked) {
+        stop(e)
+      }
+      canvas <- private$.canvas
+      private$.canvas <- base_r_page_that_fits(draw, canvas)
+      # Classed as the candlestick's is (`chart_canvas_size()`), so that a
+      # knitted chart says it too (`knit_chart_content()`).
+      rlang::inform(
+        paste0(
+          "maidr: this Base R chart is drawn at ", format_inches(private$.canvas),
+          " rather than ", format_inches(canvas), ", where its margins and ",
+          "text leave the plot no room. Give it a size of its own to draw ",
+          "it at another."
+        ),
+        class = "maidr_chart_size_message"
       )
     },
 
@@ -1002,6 +1008,40 @@ BaseRPlotOrchestrator <- R6::R6Class(
     canvas_size = function() {
       private$.canvas
     },
+    #' @description The size a picture of the chart is drawn at, in place of
+    #'   a chart maidr cannot read or export
+    #'
+    #' The picture draws every recorded call again, as R drew them, and is
+    #' held to the chart's size as the chart is: too small for a size asked
+    #' for, it stops; too small for one no one asked for, it is drawn larger,
+    #' with a message naming the size. A picture R cannot draw at any size
+    #' is drawn at the chart's, as before: it shows what R draws of it.
+    #' @return A named numeric vector, `width` and `height`, in inches
+    picture_size = function() {
+      draw <- function() {
+        for (call in private$.plot_calls) {
+          replay_plot_call(call$function_name, call$args, call$call_env)
+        }
+      }
+      canvas <- private$.canvas
+      failure <- tryCatch(
+        {
+          suppressWarnings(grid::grid.grabExpr(
+            draw(),
+            warn = 0,
+            width = canvas[["width"]],
+            height = canvas[["height"]]
+          ))
+          NULL
+        },
+        error = function(e) e
+      )
+      largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
+      if (!is.null(failure) && base_r_draws_at(draw, largest)) {
+        private$enlarge_canvas(draw, base_r_too_small(failure, canvas))
+      }
+      private$.canvas
+    },
     #' @description The grob a layer's processor searches for its selectors
     #' @param layer_index Index of the layer
     #' @return A grob, or NULL
@@ -1255,15 +1295,7 @@ base_r_drawing_grob <- function(draw, size) {
     if (!base_r_draws_at(draw, largest)) {
       stop(e)
     }
-    stop(errorCondition(
-      paste0(
-        "maidr could not draw this chart at ", format_inches(size), ": ",
-        conditionMessage(e), ". A Base R chart's margins and text take the ",
-        "same room at every size, and at this size they leave the plot none: ",
-        "give the chart a larger size."
-      ),
-      class = "maidr_chart_draw_error"
-    ))
+    stop(base_r_too_small(e, size))
   }
 
   echoed <- tryCatch(
@@ -1274,6 +1306,27 @@ base_r_drawing_grob <- function(draw, size) {
     return(tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw))
   }
   thin_axis_labels(echoed, size)
+}
+
+#' The error a Base R chart too small to draw at a size stops with
+#'
+#' @param e R's error drawing it at that size
+#' @param size The size, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return A condition of class `maidr_chart_draw_error`, naming the size and
+#'   R's reason
+#' @keywords internal
+#' @noRd
+base_r_too_small <- function(e, size) {
+  errorCondition(
+    paste0(
+      "maidr could not draw this chart at ", format_inches(size), ": ",
+      conditionMessage(e), ". A Base R chart's margins and text take the ",
+      "same room at every size, and at this size they leave the plot none: ",
+      "give the chart a larger size."
+    ),
+    class = "maidr_chart_draw_error"
+  )
 }
 
 #' A Base R drawing with the graphical parameters ggplotify draws it with

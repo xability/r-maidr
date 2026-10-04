@@ -95,7 +95,8 @@ Base R chart out on before it drew one at its size. Where that is too
 small too, it is drawn on the smallest larger page that leaves each of
 its plots a sixth of an inch, 12 px, each way, each side grown in whole
 inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in for
-twelve columns. A message names the size it is drawn at.
+twelve columns. A message names the size it is drawn at. The picture of a
+Base R chart maidr cannot read is held to its size in the same way.
 }
 
 \examples{

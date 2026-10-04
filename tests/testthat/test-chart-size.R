@@ -987,6 +987,71 @@ test_that("a chart shown as a picture is drawn at the size asked for", {
   testthat::expect_equal(embedded_png_size(html), c(4, 3) * 150)
 })
 
+test_that("a Base R chart shown as a picture is held to its size as its chart is", {
+  skip_if_no_render()
+  # maidr does not read persp(), so the chart is a picture, drawn by R from
+  # every recorded call. R cannot draw five of them in a column at 7 x 5 in,
+  # and the picture was left blank, warning once a panel.
+  five <- function() {
+    par(mfrow = c(5, 1))
+    for (i in 1:5) persp(volcano)
+  }
+  testthat::expect_false(is.na(native_error(five, c(7, 5))))
+  grDevices::pdf(NULL, width = 50, height = 50)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  maidr:::clear_device_storage(device)
+  on.exit(maidr:::clear_device_storage(device), add = TRUE)
+  file <- withr::local_tempfile(fileext = ".html")
+  saved <- function(...) {
+    warned <- character()
+    drawn <- withCallingHandlers(
+      with_messages(save_html(file = file, ...)),
+      warning = function(w) {
+        warned <<- c(warned, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    )
+    testthat::expect_identical(
+      warned,
+      paste(
+        "Plot contains unsupported elements. Rendering as static image instead of",
+        "interactive MAIDR plot."
+      )
+    )
+    list(
+      said = drawn$said,
+      picture = embedded_png_size(paste(readLines(file, warn = FALSE), collapse = "\n"))
+    )
+  }
+
+  # With no size asked for, it is drawn larger, as its chart would be, and
+  # says so once.
+  five()
+  drawn <- saved()
+  testthat::expect_equal(drawn$picture, c(7, 7) * 150)
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_match(drawn$said, "drawn at 7 x 7 in rather than 7 x 5 in", fixed = TRUE)
+
+  # A size asked for stops, naming it, rather than draw a blank picture.
+  five()
+  unlink(file)
+  testthat::expect_error(
+    save_html(file = file, width = 7, height = 5),
+    "maidr could not draw this chart at 7 x 5 in: figure margins too large.",
+    fixed = TRUE,
+    class = "maidr_chart_draw_error"
+  )
+  testthat::expect_false(file.exists(file))
+  maidr:::clear_device_storage(device)
+
+  # A picture R draws at the size is drawn there, saying nothing.
+  persp(volcano)
+  drawn <- saved()
+  testthat::expect_equal(drawn$picture, c(7, 5) * 150)
+  testthat::expect_length(drawn$said, 0L)
+})
+
 # ==============================================================================
 # knitr: the chunk's fig.width and fig.height
 # ==============================================================================

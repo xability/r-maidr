@@ -30,7 +30,8 @@
   error says the size is in inches, not the pixels `maidr_output()` takes.
   A Base R chart too small for its margins and text at a size asked for,
   which R cannot draw at that size either ("figure margins too large"), is
-  an error naming the size and R's reason rather than an empty chart (#PR).
+  an error naming the size and R's reason rather than an empty chart, or a
+  blank picture of a chart maidr cannot read (#PR).
 * A Base R chart too small for a size no one asked for -- maidr's own
   7 x 5 in, or in a document the figure size every chunk that sets none is
   drawn at -- is drawn larger, with a message naming the size. It is drawn
@@ -39,7 +40,8 @@
   too small too, it is drawn on the smallest larger page that leaves each
   of its plots a sixth of an inch, 12 px, each way, each side grown in
   whole inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in
-  for twelve columns (#PR).
+  for twelve columns. The picture of a chart maidr cannot read, such as a
+  grid of `persp()` plots, is drawn larger in the same way (#PR).
 * The size changes how a chart is laid out and nothing a reader hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A

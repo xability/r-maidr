@@ -30,6 +30,7 @@ the results into a comprehensive interactive plot.
     \item \href{#method-BaseRPlotOrchestrator-get_plot_calls}{\code{BaseRPlotOrchestrator$get_plot_calls()}}
     \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
     \item \href{#method-BaseRPlotOrchestrator-canvas_size}{\code{BaseRPlotOrchestrator$canvas_size()}}
+    \item \href{#method-BaseRPlotOrchestrator-picture_size}{\code{BaseRPlotOrchestrator$picture_size()}}
     \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
     \item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
     \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
@@ -349,6 +350,28 @@ chart is too small for R to draw at a size asked for (see
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$canvas_size()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A named numeric vector, \code{width} and \code{height}, in inches
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-picture_size"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-picture_size}{}}}
+\subsection{\code{BaseRPlotOrchestrator$picture_size()}}{
+  The size a picture of the chart is drawn at, in place of
+a chart maidr cannot read or export
+
+The picture draws every recorded call again, as R drew them, and is
+held to the chart's size as the chart is: too small for a size asked
+for, it stops; too small for one no one asked for, it is drawn larger,
+with a message naming the size. A picture R cannot draw at any size
+is drawn at the chart's, as before: it shows what R draws of it.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$picture_size()}
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
