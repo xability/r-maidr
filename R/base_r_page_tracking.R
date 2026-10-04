@@ -30,10 +30,16 @@
 # Only the order of the pages matters: a device's count runs on when its
 # calls are cleared, or when a device of the same number replaces it.
 .maidr_base_r_pages$at <- list()
-# Where the plot a recorded call started first on its last page is, while
-# the call is drawing (`begin_base_r_call()`), by device number: an empty
-# list until it starts one.
+# The recorded calls drawing on each device (`begin_base_r_call()`), by
+# device number, the one drawing now last: a recorded call can make
+# another, as `plot(x, panel.first = grid())` does, or a method an author
+# wrote for `plot()` of their own class that calls `plot()` and `lines()`.
+# Each keeps where the plot it started first on its last page is, and
+# whether it started a plot itself rather than through a call it made.
 .maidr_base_r_pages$calls <- list()
+# The number the next recorded call is known by, while it draws and once
+# it is recorded (`standalone_calls()`).
+.maidr_base_r_pages$next_id <- 1L
 
 #' Where R is drawing, on a device
 #'
@@ -73,9 +79,15 @@ note_base_r_plot_new <- function() {
           at$plot <- at$plot + 1L
         }
         .maidr_base_r_pages$at[[key]] <- at
-        call <- .maidr_base_r_pages$calls[[key]]
-        if (!is.null(call) && !identical(call$page, at$page)) {
-          .maidr_base_r_pages$calls[[key]] <- at
+        drawing <- .maidr_base_r_pages$calls[[key]]
+        for (i in seq_along(drawing)) {
+          if (!identical(drawing[[i]]$first$page, at$page)) {
+            drawing[[i]]$first <- at
+          }
+        }
+        if (length(drawing) > 0L) {
+          drawing[[length(drawing)]]$own_plot <- TRUE
+          .maidr_base_r_pages$calls[[key]] <- drawing
         }
       }
     },
@@ -151,14 +163,17 @@ last_page_calls <- function(calls, page = NULL) {
 
 #' The recorded calls a device shows
 #'
-#' Those on the page it is on (`last_page_calls()`).
+#' Those on the page it is on (`last_page_calls()`), each drawing once
+#' (`standalone_calls()`).
 #'
 #' @param device_id Graphics device ID
 #' @return The entries, in the order they were recorded
 #' @keywords internal
 #' @noRd
 shown_device_calls <- function(device_id = grDevices::dev.cur()) {
-  last_page_calls(get_device_calls(device_id), base_r_device_position(device_id)$page)
+  standalone_calls(
+    last_page_calls(get_device_calls(device_id), base_r_device_position(device_id)$page)
+  )
 }
 
 #' Whether the page a device shows holds no plot maidr recorded
@@ -191,13 +206,22 @@ base_r_page_without_plot <- function(device_id = grDevices::dev.cur()) {
 #' Start following a recorded call as it draws
 #'
 #' Called by every recording wrapper before it draws (`ensure_maidr_device()`).
+#' A call that made it while drawing still draws; one in a frame as deep as
+#' this or deeper is done, without having been recorded -- it stopped with an
+#' error, or drew nothing, as `hist(x, plot = FALSE)` does -- and is no
+#' longer followed.
 #'
 #' @param device_id The device it draws on
+#' @param depth The number of the wrapper's frame (`sys.parent()` in it)
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-begin_base_r_call <- function(device_id = grDevices::dev.cur()) {
-  .maidr_base_r_pages$calls[[as.character(device_id)]] <- list()
+begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
+  key <- as.character(device_id)
+  drawing <- Filter(function(call) call$depth < depth, .maidr_base_r_pages$calls[[key]])
+  id <- .maidr_base_r_pages$next_id
+  .maidr_base_r_pages$next_id <- id + 1L
+  .maidr_base_r_pages$calls[[key]] <- c(drawing, list(list(depth = depth, id = id)))
   invisible(NULL)
 }
 
@@ -208,30 +232,75 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur()) {
 #' plot drawn with `add = TRUE` -- the panel and plot it drew on.
 #'
 #' @param device_id The device it drew on
+#' @param depth The number of the wrapper's frame, as `begin_base_r_call()`
+#'   was given it
 #' @return A list: `page`, `figure`, `plot`, `new_plot`, whether the call
 #'   started a plot, and `end_figure` and `end_plot`, the panel and plot R
-#'   was on when the call was done. Only `page` for a call no recording
-#'   wrapper drew, recorded by code that records calls itself.
+#'   was on when the call was done; `id`, the number the call is known by,
+#'   `outer`, the number of the recorded call that made it while drawing,
+#'   if one did, and `own_plot`, whether it started a plot itself (see
+#'   `standalone_calls()`). Only `page` for a call no recording wrapper
+#'   drew, recorded by code that records calls itself.
 #' @keywords internal
 #' @noRd
-end_base_r_call <- function(device_id = grDevices::dev.cur()) {
+end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   key <- as.character(device_id)
   at <- base_r_device_position(device_id)
-  call <- .maidr_base_r_pages$calls[[key]]
-  .maidr_base_r_pages$calls[[key]] <- NULL
-  if (is.null(call)) {
+  drawing <- .maidr_base_r_pages$calls[[key]]
+  depths <- vapply(drawing, function(call) call$depth, integer(1))
+  this <- match(depth, depths)
+  if (is.na(this)) {
     return(list(page = at$page))
   }
-  started <- !is.null(call$page)
-  first <- if (started) call else at
+  call <- drawing[[this]]
+  .maidr_base_r_pages$calls[[key]] <- drawing[seq_len(this - 1L)]
+  started <- !is.null(call$first)
+  first <- if (started) call$first else at
   list(
     page = at$page,
     figure = first$figure,
     plot = first$plot,
     new_plot = started,
     end_figure = at$figure,
-    end_plot = at$plot
+    end_plot = at$plot,
+    id = call$id,
+    outer = if (this > 1L) drawing[[this - 1L]]$id,
+    own_plot = isTRUE(call$own_plot)
   )
+}
+
+#' The recorded calls that stand for a drawing, each once
+#'
+#' A recorded call made by another as it drew -- `grid()` given as
+#' `plot(x, panel.first = grid())`, or the `plot()` and `lines()` an
+#' author's own method for `plot()` calls -- is recorded as it finishes,
+#' before the call that made it. Read as a call of its own, it took the
+#' place of the plot before it, and was drawn twice, once by the call that
+#' made it. So where the call that made it started a plot itself, that call
+#' stands for the drawing, and those it made are left out: drawn again, it
+#' makes them again. Where it started none, as the method that only calls
+#' `plot()` and `lines()` does, the calls it made stand for it, and it is
+#' left out: what it drew is theirs. Layout calls are kept.
+#'
+#' @param calls Recorded call entries, in the order they were recorded
+#' @return The entries that stand, in the same order
+#' @keywords internal
+#' @noRd
+standalone_calls <- function(calls) {
+  ids <- vapply(calls, function(call) call$id %||% NA_integer_, integer(1))
+  outers <- vapply(calls, function(call) call$outer %||% NA_integer_, integer(1))
+  made <- !is.na(ids) & ids %in% outers
+  stands <- function(i) {
+    if (identical(calls[[i]]$class_level, "LAYOUT")) {
+      return(TRUE)
+    }
+    if (made[[i]] && !isTRUE(calls[[i]]$own_plot)) {
+      return(FALSE)
+    }
+    outer <- if (is.na(outers[[i]])) NA_integer_ else match(outers[[i]], ids)
+    is.na(outer) || !stands(outer)
+  }
+  calls[vapply(seq_along(calls), stands, logical(1))]
 }
 
 #' Stop unless the page a device shows holds a Base R plot maidr recorded

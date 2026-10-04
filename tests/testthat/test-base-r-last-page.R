@@ -110,7 +110,9 @@ expect_drawn_where_r_draws <- function(chart, call, strings, env = parent.frame(
     drawn <- chart$text_at[chart$text_at$string == string, c("x", "y")]
     r <- reference[reference$string == string, c("x", "y")]
     testthat::expect_identical(nrow(drawn), nrow(r), label = string)
-    testthat::expect_lt(max(abs(as.matrix(drawn) - as.matrix(r))), 0.5, label = string)
+    if (nrow(drawn) == nrow(r)) {
+      testthat::expect_lt(max(abs(as.matrix(drawn) - as.matrix(r))), 0.5, label = string)
+    }
   }
 }
 
@@ -394,6 +396,64 @@ test_that("a plot after one that drew several panels is in the panel R drew it i
   testthat::expect_match(selector_ids(hist_layer[[1]]), "^graphics-plot-5-rect")
   expect_selectors_drawn(chart)
   testthat::expect_true("fifth" %in% chart$strings)
+})
+
+test_that("a call made by another as it draws is read and drawn once, where R drew it", {
+  skip_if_no_render()
+
+  # `grid()` is recorded as `plot()` draws it, before `plot()` is: it kept
+  # neither plot in its panel, and the third was drawn over the first.
+  call <- quote({
+    par(mfrow = c(2, 2))
+    plot(1:3, panel.first = grid(), main = "first")
+    plot.new()
+    plot(3:1, panel.first = grid(), main = "third")
+  })
+  chart <- last_page_export(function() eval(call))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list("first", character(0), "third", character(0))
+  )
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, call, c("first", "third"))
+
+  # A method of an author's own that draws with `plot()` and `lines()`: the
+  # two calls it makes are its plot, in the panel R drew them in. It cannot
+  # be registered for this test alone, so its class is the test's own.
+  registerS3method(
+    "plot",
+    "maidr_last_page_drawing",
+    function(x, ...) {
+      plot(x$a, x$b, main = "custom")
+      lines(x$a, x$b)
+    },
+    envir = baseenv()
+  )
+  drawing <- structure(list(a = 1:5, b = c(2, 4, 3, 5, 1)), class = "maidr_last_page_drawing")
+  call <- quote({
+    par(mfrow = c(1, 3))
+    barplot(c(3, 1, 2), main = "bars")
+    plot(drawing)
+    hist(mtcars$mpg, main = "third")
+  })
+  chart <- last_page_export(function() eval(call))
+  testthat::expect_identical(
+    lapply(last_page_cells(chart), function(layers) {
+      vapply(layers, function(layer) layer$type, character(1))
+    }),
+    list("bar", c("point", "line"), "hist")
+  )
+  expect_drawn_where_r_draws(chart, call, c("bars", "custom", "third"))
+
+  # On a page of its own it is drawn once, and read once.
+  single <- quote(plot(drawing))
+  chart <- last_page_export(function() eval(single))
+  testthat::expect_identical(
+    vapply(last_page_cells(chart)[[1]], function(layer) layer$type, character(1)),
+    c("point", "line")
+  )
+  testthat::expect_identical(sum(chart$strings == "custom"), 1L)
+  expect_selectors_drawn(chart)
 })
 
 test_that("each recorded plot carries the page, panel and plot number R drew it at", {

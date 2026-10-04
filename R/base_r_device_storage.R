@@ -154,8 +154,10 @@ log_plot_call_to_device <- function(
   # Where R drew the call: the page, by which a chart is read from the page
   # R's device shows (`last_page_calls()`), and the panel and number of its
   # plot on that page (`end_base_r_call()`). Recorded once the call has
-  # drawn, so a plot that started a page is on it.
-  call_entry <- c(call_entry, end_base_r_call(device_id))
+  # drawn, so a plot that started a page is on it. The wrapper that drew
+  # it calls this, and is known by its frame.
+  wrapper <- sys.parent()
+  call_entry <- c(call_entry, end_base_r_call(device_id, wrapper))
   # In a knit, a call that draws leaves a marker on its page, by which the
   # plot hook knows the figure it is on (see knitr_figure_map.R). A layout
   # call draws nothing, and governs the pages after it instead.
