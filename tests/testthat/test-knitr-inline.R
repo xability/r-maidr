@@ -1336,6 +1336,8 @@ test_that("a render leaves nothing of its knit to the session's own charts", {
 test_that("Quarto shows the charts inline, captions them and resolves a reference to one", {
   testthat::skip_on_cran()
   skip_if_no_render()
+  # Quarto runs R chunks through rmarkdown.
+  testthat::skip_if_not_installed("rmarkdown")
   testthat::skip_if_not_installed("lattice")
   testthat::skip_if_not_installed("withr")
   quarto <- Sys.which("quarto")

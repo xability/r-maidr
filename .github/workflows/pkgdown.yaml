@@ -57,6 +57,30 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      # The example articles are Quarto documents of maidr charts, each of
+      # which the page shows inline. An article whose charts fell back to
+      # static images or to iframes -- a maidr that failed to set the
+      # document up, or the wrong maidr loaded by Quarto's R -- still
+      # builds, so this fails the build when one has no inline chart or
+      # holds an iframe.
+      - name: Fail on an example article without inline charts
+        run: |
+          status=0
+          for page in docs/articles/examples-*.html; do
+            if [ ! -e "$page" ]; then
+              echo "::error::no example article was built" >&2
+              exit 1
+            fi
+            charts=$(grep -o 'data-maidr-knitr=' "$page" | wc -l)
+            frames=$(grep -o '<iframe' "$page" | wc -l)
+            echo "$page: $charts inline chart(s), $frames iframe(s)"
+            if [ "$charts" -eq 0 ] || [ "$frames" -gt 0 ]; then
+              echo "::error file=$page::an example article should show inline maidr charts and no iframe" >&2
+              status=1
+            fi
+          done
+          exit "$status"
+
       # Canonical links, og:url, noindex on 404.html and internal reference
       # topics, descriptions for the pages pkgdown leaves without one, and a
       # sitemap without the noindexed pages. pkgdown has no hook for any of
