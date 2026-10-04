@@ -11,27 +11,27 @@
   page. The SVG is 72 pixels to the inch. Every chart used to be drawn at
   7 x 5 in whatever was asked, and a `width` given to `show()` or
   `save_html()` was silently ignored, except by the static picture of a
-  chart maidr could not read. Unset, the size is still 7 x 5 in (#PR).
+  chart maidr could not read. Unset, the size is still 7 x 5 in (#355).
 * In R Markdown and Quarto a chart is drawn at its chunk's `fig.width` and
   `fig.height`, so `fig.asp`, `fig.dim`, YAML `fig_width` and `fig_height`
   and Quarto's `fig-width` and `fig-height` set it too. `html_document`
   and Quarto's HTML draw figures at 7 x 5 in, so their charts keep the size
   they had. A format with a figure size of its own now draws its charts
   at it: `html_vignette` at 3 x 3 in, where a Base R chart shows fewer tick
-  labels, ioslides at 7.5 x 4.5 in, slidy at 8 x 6 in (#PR).
+  labels, ioslides at 7.5 x 4.5 in, slidy at 8 x 6 in (#355).
 * A candlestick chart is still never drawn smaller than 12 x 6 in, and a
   smaller size asked for is enlarged with a message naming the size used.
   In a document that is a size the chunk sets itself, and the message is
   among the chunk's own for a ggplot2 chart and on the console for Base
   R's `chartSeries()`; drawn larger than the document's figure size, a
-  candlestick chart says nothing, as before (#PR).
+  candlestick chart says nothing, as before (#355).
 * A size that is not one positive number is an error naming the argument,
   and so is one over 50 in, which `ggplot2::ggsave()` refuses too: the
   error says the size is in inches, not the pixels `maidr_output()` takes.
   A Base R chart too small for its margins and text at a size asked for,
   which R cannot draw at that size either ("figure margins too large"), is
   an error naming the size and R's reason rather than an empty chart, or a
-  blank picture of a chart maidr cannot read (#PR).
+  blank picture of a chart maidr cannot read (#355).
 * A Base R chart too small for a size no one asked for -- maidr's own
   7 x 5 in, or in a document the figure size every chunk that sets none is
   drawn at -- is drawn larger, with a message naming the size. It is drawn
@@ -41,20 +41,20 @@
   of its plots a sixth of an inch, 12 px, each way, each side grown in
   whole inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in
   for twelve columns. The picture of a chart maidr cannot read, such as a
-  grid of `persp()` plots, is drawn larger in the same way (#PR).
+  grid of `persp()` plots, is drawn larger in the same way (#355).
 * The size changes how a chart is laid out and nothing a reader hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A
   lattice chart conditioned on one variable with no `layout =` gets the
   columns lattice gives a page of its shape, and its subplot grid, the
   order a reader moves through its panels in, with them: two panels are
-  1 x 2 at 7 x 5 in and 2 x 1 at 5 x 8 in (#PR).
+  1 x 2 at 7 x 5 in and 2 x 1 at 5 x 8 in (#355).
 * `show(as_widget = TRUE)` no longer passes `width` and `height` on to the
   widget as its CSS size, which it did through `...` without saying so:
   they are the size the chart is drawn at, in inches, as everywhere in
   `show()`. A CSS size such as `"300px"` is now an error that says so. Set
   the widget's own size on the widget `show()` returns,
-  `widget$width <- "300px"` (#PR).
+  `widget$width <- "300px"` (#355).
 
 ### R Markdown and Quarto
 
@@ -313,19 +313,19 @@
   7 x 5 in: a legend's lines ran into one another and the title sat half
   as far below the top edge as R puts it. The drawing is now made on a page
   of the chart's own size, with the graphical parameters `as.grob()` sets,
-  so at 7 x 7 in it is the drawing `as.grob()` made (#PR).
+  so at 7 x 7 in it is the drawing `as.grob()` made (#355).
 * A Base R chart is drawn with the margins and text size its `par()` calls
   set -- `mar`, `mai`, `oma`, `omi`, `mex` and `cex` -- where maidr drew it
   with R's own. A chart given small margins, as `par(mfrow = c(5, 1), mar =
   c(1, 2, 1, 1))` gives a grid R draws at 7 x 5 in, was drawn with larger
   ones and its plots squeezed, and at a size asked for it was called too
-  small to draw, though R drew it there (#PR).
+  small to draw, though R drew it there (#355).
 * A Base R chart's axes show the tick labels R shows. R's `axis()` leaves
   out a label that would run into the one before it, but the drawing maidr
   makes of a Base R chart kept every label, so they ran together on a
   small chart or in the panels of a `par(mfrow)` grid: 10, 12 and 14 on a
   short y axis where R shows 10 and 14. The labels R leaves out are now
-  left out too, measured as R measures them at the chart's size (#PR).
+  left out too, measured as R measures them at the chart's size (#355).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written
