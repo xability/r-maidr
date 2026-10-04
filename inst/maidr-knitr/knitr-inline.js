@@ -182,13 +182,25 @@
     svg.style.maxHeight = Math.max(height, 96) + 'px';
   }
 
+  // A box is fitted in the frame after it resized: fitting it in the
+  // observer's callback would resize the box it observes in the same frame,
+  // which the browser reports as an error.
+  function fitLater(wrapper) {
+    if (wrapper.__maidrKnitrFit) return;
+    wrapper.__maidrKnitrFit = true;
+    requestAnimationFrame(function () {
+      wrapper.__maidrKnitrFit = false;
+      fitChart(wrapper);
+    });
+  }
+
   function fitCharts() {
     var wrappers = document.querySelectorAll(FITTED);
     if (!wrappers.length) return;
     var observer = window.ResizeObserver && new ResizeObserver(function (entries) {
       for (var i = 0; i < entries.length; i++) {
         var wrapper = entries[i].target.querySelector(':scope > .maidr-knitr');
-        if (wrapper) fitChart(wrapper);
+        if (wrapper) fitLater(wrapper);
       }
     });
     for (var i = 0; i < wrappers.length; i++) {
