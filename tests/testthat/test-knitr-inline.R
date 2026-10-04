@@ -420,6 +420,27 @@ test_that("fig.align and the author's out.width lay the chart out", {
   }
 })
 
+test_that("an out.width the chunk sets, in either spelling, is its chart's width", {
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  page <- knit_for(c(
+    "```{r dashed}", "#| out-width: 50%", "barplot(c(a = 1))", "```",
+    "```{r dotted}", "#| out.width: 40%", "barplot(c(a = 1))", "```",
+    "```{r header, out.width = '30%'}", "barplot(c(a = 1))", "```",
+    "```{r none}", "barplot(c(a = 1))", "```"
+  ), dir)
+  testthat::expect_identical(
+    regmatches(page, gregexpr('<div class="maidr-knitr"[^>]*>', page))[[1]],
+    c(
+      '<div class="maidr-knitr" style="width: 50%;">',
+      '<div class="maidr-knitr" style="width: 40%;">',
+      '<div class="maidr-knitr" style="width: 30%;">',
+      '<div class="maidr-knitr">'
+    )
+  )
+})
+
 test_that("a chart knitr is told to hide is not written", {
   testthat::expect_identical(maidr:::knitr_chart_output("<svg/>", list(fig.show = "hide")), "")
 })
@@ -1274,6 +1295,7 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
     "```",
     "```{r}",
     "#| fig-cap: Base bars",
+    "#| out-width: 50%",
     "barplot(c(a = 1, b = 2))",
     "```",
     "```{r}",
@@ -1340,6 +1362,8 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   )
   testthat::expect_false(grepl(">Cars by cylinder</p>", html, fixed = TRUE))
   testthat::expect_match(html, ">Base bars</p>", fixed = TRUE)
+  # Quarto's spelling of out.width sizes the chart.
+  testthat::expect_match(html, '<div class="figure maidr-knitr" style="width: 50%;">', fixed = TRUE)
   testthat::expect_identical(
     xml2::xml_attr(charts, "aria-label"),
     c(

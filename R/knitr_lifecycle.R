@@ -375,16 +375,17 @@ maidr_chunk_device <- function(options) {
 #'
 #' In its header or a `#|` line, which knitr keeps with the chunk's code, or
 #' through an `opts.label` template; not from the document's defaults.
+#' knitr keeps a `#|` option under the name it is written with, and takes
+#' `out-width`, Quarto's spelling, for `out.width`.
 #'
 #' @param options Chunk options
-#' @param name The option's name
+#' @param name The option's name, with dots
 #' @return Logical
 #' @keywords internal
 #' @noRd
 chunk_sets_option <- function(options, name) {
-  sets <- function(label) {
-    name %in% names(attr(knitr::knit_code$get(label), "chunk_opts"))
-  }
+  named <- function(x) name %in% gsub("-", ".", names(x), fixed = TRUE)
+  sets <- function(label) named(attr(knitr::knit_code$get(label), "chunk_opts"))
   if (!is.null(options$label) && sets(options$label)) {
     return(TRUE)
   }
@@ -393,7 +394,7 @@ chunk_sets_option <- function(options, name) {
     return(FALSE)
   }
   any(vapply(templates, function(label) {
-    !is.null(knitr::opts_template$get(label)[[name]]) || sets(label)
+    named(Filter(Negate(is.null), knitr::opts_template$get(label))) || sets(label)
   }, logical(1)))
 }
 
