@@ -100,7 +100,9 @@ jobs:
   # when no mark changes colour. The area family (`<polygon>` marks, read
   # since maidr.js 4.10.0, xability/maidr#1273) is driven the same way. It
   # runs on the pull request that changes a processor and on the dispatch a
-  # bundle refresh sends.
+  # bundle refresh sends. The same browser then uses the charts of a knitted
+  # R Markdown page, which shows them inline and loads maidr.js once for all
+  # of them.
   highlight-smoke:
     runs-on: ubuntu-latest
     name: highlight in a browser
@@ -110,6 +112,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -148,3 +152,13 @@ jobs:
 
       - name: Show a chart on a page the way webR does
         run: node .github/scripts/webr-embed-smoke.mjs webr
+
+      # A knitted page's charts are inline: the page's own svgs, ids
+      # prefixed apart, bound by one maidr.js. Tests read what the knit
+      # writes; this renders a page with charts of every system, several to
+      # a chunk and one in a hidden tab, and uses each from the keyboard.
+      - name: Render an R Markdown page of inline charts
+        run: Rscript .github/scripts/knitr-smoke.R knitr
+
+      - name: Use every chart of the page from the keyboard
+        run: node .github/scripts/knitr-smoke.mjs knitr
