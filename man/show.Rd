@@ -105,11 +105,13 @@ too large" at such a size. maidr draws the chart with the margins and
 text size its \code{par()} calls set, so it fits where R draws it with them.
 Asked for a size too small, maidr stops too, with an error naming the
 size, rather than show an empty chart: draw it larger. With no size
-asked for, a chart too small for 7 x 5 in, such as
-a \code{par(mfrow)} grid of five rows or more, is drawn on the 7 x 7 in page
-maidr laid every Base R chart out on before it drew one at its size, or
-on the smallest larger page, in whole inches, where that is too small
-too; a message names the size it is drawn at.
+asked for, a chart too small for 7 x 5 in, such as a \code{par(mfrow)} grid
+of five rows or more, is drawn on the 7 x 7 in page maidr laid every
+Base R chart out on before it drew one at its size. Where that is too
+small too, it is drawn on the smallest larger page that leaves each of
+its plots a sixth of an inch, 12 px, each way, each side grown in whole
+inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in for
+twelve columns. A message names the size it is drawn at.
 }
 
 \examples{

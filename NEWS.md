@@ -35,9 +35,11 @@
   7 x 5 in, or in a document the figure size every chunk that sets none is
   drawn at -- is drawn larger, with a message naming the size. It is drawn
   on the 7 x 7 in page maidr laid every Base R chart out on before it drew
-  one at its size, as a `par(mfrow)` grid of five rows was, or on the
-  smallest larger page in whole inches where that is too small too: 7 x 8
-  in for six rows (#PR).
+  one at its size, as a `par(mfrow)` grid of five rows was. Where that is
+  too small too, it is drawn on the smallest larger page that leaves each
+  of its plots a sixth of an inch, 12 px, each way, each side grown in
+  whole inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in
+  for twelve columns (#PR).
 * The size changes how a chart is laid out and nothing a reader hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A

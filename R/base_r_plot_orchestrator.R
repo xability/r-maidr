@@ -1306,17 +1306,43 @@ ggplotify_drawing <- function(draw) {
 #' @keywords internal
 #' @noRd
 base_r_draws_at <- function(draw, size) {
+  !is.na(base_r_plot_room(draw, size))
+}
+
+#' The room R gives the plots of a Base R drawing on a page of a size
+#'
+#' Drawn as [base_r_drawing_grob()] draws it, but not echoed, the size of
+#' each plot as R lays it out is read as the plot is started, and when the
+#' drawing is done: the last covers a plot R starts without `plot.new()`,
+#' as `persp()` does.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The page, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return The shorter side of the smallest plot, in inches, or `NA` when R
+#'   cannot draw the drawing on the page
+#' @keywords internal
+#' @noRd
+base_r_plot_room <- function(draw, size) {
+  rooms <- numeric()
+  measure <- function() rooms <<- c(rooms, min(graphics::par("pin")))
+  hooks <- getHook("plot.new")
+  setHook("plot.new", measure)
+  on.exit(setHook("plot.new", hooks, "replace"), add = TRUE)
   tryCatch(
     {
       suppressWarnings(grid::grid.grabExpr(
-        ggplotify_drawing(draw)(),
+        {
+          ggplotify_drawing(draw)()
+          measure()
+        },
         warn = 0,
         width = size[["width"]],
         height = size[["height"]]
       ))
-      TRUE
+      min(rooms)
     },
-    error = function(e) FALSE
+    error = function(e) NA_real_
   )
 }
 
@@ -1328,11 +1354,16 @@ base_r_draws_at <- function(draw, size) {
 #' a `par(mfrow)` grid of five rows -- was drawn. Such a chart still is, on
 #' that page, or on one as large as the canvas on a side where the canvas
 #' is larger. A chart too large for that page as well, as a grid of six
-#' rows is, is drawn on the smallest larger page in whole inches: each side
-#' grows an inch at a time to the least that leaves the plot room while the
-#' other side has all it could want, and then both together for as long as
-#' the chart still does not fit, as a layout that keeps its panels' shape
-#' (`respect = TRUE`) may need.
+#' rows is, is drawn on the smallest page larger than the canvas that gives
+#' each of its plots at least a sixth of an inch, 12 px, each way: about
+#' what a five-row grid's plots have on the 7 x 7 in page, and enough to be
+#' seen, where the least R draws on leaves a plot a pixel high. Each side is
+#' the canvas's own or a whole number of inches: it grows an inch at a time
+#' to the least that gives the plots their room while the other side has
+#' all it could want, and then both together for as long as the chart still
+#' does not fit, as a layout that keeps its panels' shape (`respect = TRUE`)
+#' may need. A chart no page gives that room, a grid of forty rows, is drawn
+#' on the smallest page R draws it on.
 #'
 #' Called once the chart has failed for its size, with a
 #' `maidr_chart_draw_error`: it then fits the largest page a chart is drawn
@@ -1344,26 +1375,29 @@ base_r_draws_at <- function(draw, size) {
 #' @return The page, a named numeric vector, `width` and `height`, in inches
 #' @keywords internal
 base_r_page_that_fits <- function(draw, size) {
-  fits <- function(page) base_r_draws_at(draw, page)
+  fits <- function(page) isTRUE(base_r_plot_room(draw, page) >= 1 / 6)
   page <- pmax(size, c(width = 7, height = 7))
   if (fits(page)) {
     return(page)
   }
 
-  room <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
+  largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
+  if (!fits(largest)) {
+    fits <- function(page) base_r_draws_at(draw, page)
+  }
   least <- function(side) {
-    trial <- room
-    for (value in seq(page[[side]], room[[side]])) {
+    trial <- largest
+    for (value in c(size[[side]], seq(floor(size[[side]]) + 1, largest[[side]]))) {
       trial[[side]] <- value
       if (fits(trial)) {
         return(value)
       }
     }
-    room[[side]]
+    largest[[side]]
   }
   page <- c(width = least("width"), height = least("height"))
-  while (!fits(page) && any(page < room)) {
-    page <- pmin(page + 1, room)
+  while (!fits(page) && any(page < largest)) {
+    page <- pmin(floor(page) + 1, largest)
   }
   page
 }

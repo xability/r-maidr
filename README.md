@@ -164,8 +164,8 @@ less (in a document, by the chunk's own options), maidr says in a message
 the size it used. A Base R chart too small for its margins and text at the
 size you ask for is an error naming the size. With no size asked for, one
 too small for 7 x 5 in, such as a `par(mfrow)` grid of five rows, is drawn
-larger, at 7 x 7 in or the smallest larger size it fits, and a message
-names the size.
+larger, at 7 x 7 in or the smallest larger size that leaves each of its
+plots room to be seen, and a message names the size.
 
 ### R Markdown and Quarto
 

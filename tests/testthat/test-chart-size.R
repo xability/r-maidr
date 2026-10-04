@@ -99,7 +99,7 @@ render_sized <- function(chart, size) {
   }
   # Room for the tallest grid drawn here: the device a chart is drawn on is
   # not the size maidr draws it at.
-  grDevices::pdf(NULL, width = 20, height = 20)
+  grDevices::pdf(NULL, width = 50, height = 50)
   device <- grDevices::dev.cur()
   # A device number is used again once its device is closed, and what an
   # earlier test recorded under it would be read as part of this chart.
@@ -146,6 +146,19 @@ native_error <- function(draw, size) {
     },
     error = conditionMessage
   )
+}
+
+#' The size of each plot R draws, in pixels, as R lays them out at a size,
+#' or NULL when R cannot draw the chart at that size
+native_plots <- function(draw, size) {
+  plots <- list()
+  hooks <- getHook("plot.new")
+  setHook("plot.new", function() plots[[length(plots) + 1L]] <<- graphics::par("pin") * 72)
+  on.exit(setHook("plot.new", hooks, "replace"), add = TRUE)
+  if (!is.na(native_error(draw, size))) {
+    return(NULL)
+  }
+  plots
 }
 
 #' A function drawing a `par(mfrow)` grid of Base R plots
@@ -543,15 +556,6 @@ test_that("a Base R chart too small for its margins stops, naming the size and R
 
 test_that("a Base R chart is drawn with the margins its par() calls set", {
   skip_if_no_render()
-  # The size of each plot R draws, in pixels, as R lays them out at a size.
-  native_plots <- function(draw, size) {
-    plots <- list()
-    hooks <- getHook("plot.new")
-    setHook("plot.new", function() plots[[length(plots) + 1L]] <<- graphics::par("pin") * 72)
-    on.exit(setHook("plot.new", hooks, "replace"), add = TRUE)
-    testthat::expect_true(is.na(native_error(draw, size)))
-    plots
-  }
   # The size of each plot's box in a chart's SVG, in pixels.
   drawn_plots <- function(markup) {
     box <- '<polygon id="graphics-plot-[0-9]+-box-[^>]*>'
@@ -635,23 +639,23 @@ test_that("a Base R chart too small for a size no one asked for is drawn larger,
   testthat::expect_length(asked$said, 0L)
   testthat::expect_identical(size_free_schema(drawn$value), size_free_schema(asked$value))
 
-  # One that page is too small for too is drawn on the smallest larger page
-  # in whole inches R draws it on, grown only on the side it needs.
+  # One that page is too small for too is drawn on the smallest page larger
+  # than 7 x 5 in, in whole inches, on which R gives each of its plots a
+  # sixth of an inch, 12 px, each way, grown only on the side it needs.
+  # The least page R draws a grid of six rows on, 7 x 8 in, leaves each
+  # plot 8.6 px high; of nine rows, 0.6 px.
   smallest <- function(draw, side) {
-    page <- c(7, 7)
-    while (!is.na(native_error(draw, page))) {
+    page <- c(7, 5)
+    repeat {
+      plots <- native_plots(draw, page)
+      if (!is.null(plots) && min(unlist(plots)) >= 12) {
+        return(page)
+      }
       page[side] <- page[side] + 1
     }
-    page
   }
-  for (case in list(
-    list(draw = grid_of(6), side = 2),
-    list(draw = grid_of(9), side = 2),
-    list(draw = grid_of(1, 12), side = 1)
-  )) {
-    page <- smallest(case$draw, case$side)
-    testthat::expect_gt(page[case$side], 7)
-    drawn <- with_messages(render_sized(case$draw, NULL))
+  expect_drawn_at <- function(draw, page) {
+    drawn <- with_messages(render_sized(draw, NULL))
     testthat::expect_identical(svg_size(drawn$value), svg_size_for(page))
     testthat::expect_length(drawn$said, 1L)
     testthat::expect_match(
@@ -660,6 +664,24 @@ test_that("a Base R chart too small for a size no one asked for is drawn larger,
       fixed = TRUE
     )
   }
+  for (case in list(
+    list(draw = grid_of(6), side = 2),
+    list(draw = grid_of(9), side = 2),
+    list(draw = grid_of(1, 12), side = 1)
+  )) {
+    page <- smallest(case$draw, case$side)
+    testthat::expect_gt(page[case$side], 7)
+    expect_drawn_at(case$draw, page)
+  }
+  # A grid no page up to the largest gives that room is drawn on the
+  # smallest page R draws it on.
+  forty <- grid_of(40)
+  page <- c(7, 5)
+  while (!is.na(native_error(forty, page))) {
+    page[2] <- page[2] + 1
+  }
+  testthat::expect_lt(min(unlist(native_plots(forty, c(7, 50)))), 12)
+  expect_drawn_at(forty, page)
 
   # The same through every entry point that takes no size, each saying it
   # once.
@@ -1100,7 +1122,7 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
   # sets. maidr draws a Base R chart again with the margins of the par()
   # calls it recorded, and a par() called by name, as graphics::par(), is
   # not recorded: it draws these with R's own margins, which six panels do
-  # not fit on a page 7 in high or less. They need 8.
+  # not fit on a page 7 in high or less, and are drawn on one 9 in high.
   unrecorded <- c(
     "par(mfrow = c(6, 1))", "graphics::par(mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)"
   )
@@ -1127,12 +1149,12 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
     grep("^maidr: this Base R chart", knitted$said, value = TRUE),
     c(
       paste(
-        "maidr: this Base R chart is drawn at 7 x 8 in rather than 7 x 7 in, where",
+        "maidr: this Base R chart is drawn at 7 x 9 in rather than 7 x 7 in, where",
         "its margins and text leave the plot no room. Give it a size of its own to",
         "draw it at another.\n"
       ),
       paste(
-        "maidr: this Base R chart is drawn at 7 x 8 in rather than 7 x 6 in, where",
+        "maidr: this Base R chart is drawn at 7 x 9 in rather than 7 x 6 in, where",
         "its margins and text leave the plot no room. Give it a size of its own to",
         "draw it at another.\n"
       )
@@ -1141,7 +1163,7 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
   # The chunk that sets its margins with par() is drawn at its own size.
   testthat::expect_identical(
     lapply(inline_svg_roots(knitted$value), svg_size),
-    list(svg_size_for(c(7, 8)), svg_size_for(c(7, 8)), svg_size_for(c(7, 6.5)))
+    list(svg_size_for(c(7, 9)), svg_size_for(c(7, 9)), svg_size_for(c(7, 6.5)))
   )
   # A size the chunk asked for is not changed: its figure stays knitr's
   # picture, and the warning says why.

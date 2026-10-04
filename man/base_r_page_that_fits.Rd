@@ -21,11 +21,16 @@ Before maidr drew a Base R chart at its size it laid every one out on the
 a \code{par(mfrow)} grid of five rows -- was drawn. Such a chart still is, on
 that page, or on one as large as the canvas on a side where the canvas
 is larger. A chart too large for that page as well, as a grid of six
-rows is, is drawn on the smallest larger page in whole inches: each side
-grows an inch at a time to the least that leaves the plot room while the
-other side has all it could want, and then both together for as long as
-the chart still does not fit, as a layout that keeps its panels' shape
-(\code{respect = TRUE}) may need.
+rows is, is drawn on the smallest page larger than the canvas that gives
+each of its plots at least a sixth of an inch, 12 px, each way: about
+what a five-row grid's plots have on the 7 x 7 in page, and enough to be
+seen, where the least R draws on leaves a plot a pixel high. Each side is
+the canvas's own or a whole number of inches: it grows an inch at a time
+to the least that gives the plots their room while the other side has
+all it could want, and then both together for as long as the chart still
+does not fit, as a layout that keeps its panels' shape (\code{respect = TRUE})
+may need. A chart no page gives that room, a grid of forty rows, is drawn
+on the smallest page R draws it on.
 }
 \details{
 Called once the chart has failed for its size, with a
