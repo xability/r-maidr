@@ -43,14 +43,34 @@ last_page_export <- function(draw) {
   list(
     strings = last_page_strings(document),
     ids = xml2::xml_attr(xml2::xml_find_all(document, "//*[@id]"), "id"),
-    schema = schema_from(html)
+    schema = schema_from(html),
+    text_at = maidr_text_at(document)
   )
 }
 
-# The strings R draws on the page its device shows for `call`, each
-# function maidr wraps bound to its original so the call never passes
-# through a wrapper.
-r_last_page_strings <- function(call, env = parent.frame()) {
+# Where maidr's SVG draws each string: its anchor, in px from the left and
+# the bottom of the page. The drawing places each text with a translate()
+# two levels up, in a frame whose y counts up from the bottom.
+maidr_text_at <- function(document) {
+  texts <- xml2::xml_find_all(document, "//*[local-name()='text']")
+  moves <- vapply(
+    texts,
+    function(text) xml2::xml_attr(xml2::xml_parent(xml2::xml_parent(text)), "transform"),
+    character(1)
+  )
+  moves[is.na(moves)] <- ""
+  at <- regmatches(moves, regexec("translate\\(([-0-9.]+), *([-0-9.]+)\\)", moves))
+  data.frame(
+    string = trimws(xml2::xml_text(texts)),
+    x = vapply(at, function(m) as.numeric(m[2]), numeric(1)),
+    y = vapply(at, function(m) as.numeric(m[3]), numeric(1))
+  )
+}
+
+# What R draws on the page its device shows for `call`, as an svglite
+# document at 7 x 5 in, each function maidr wraps bound to its original so
+# the call never passes through a wrapper.
+r_last_page_document <- function(call, env) {
   testthat::skip_if_not_installed("svglite")
   old <- options(maidr.base_r = FALSE)
   on.exit(options(old), add = TRUE)
@@ -64,7 +84,34 @@ r_last_page_strings <- function(call, env = parent.frame()) {
   )
   svglite::svglite(file, width = 7, height = 5)
   tryCatch(eval(call, reference), finally = grDevices::dev.off())
-  last_page_strings(xml2::read_xml(file))
+  xml2::read_xml(file)
+}
+
+# The strings R draws on the page its device shows for `call`.
+r_last_page_strings <- function(call, env = parent.frame()) {
+  last_page_strings(r_last_page_document(call, env))
+}
+
+# Where R draws each string of `call`'s last page, as `maidr_text_at()`
+# reads maidr's: svglite counts y down from the top of the 360 px page.
+r_last_page_text_at <- function(call, env = parent.frame()) {
+  texts <- xml2::xml_find_all(r_last_page_document(call, env), "//*[local-name()='text']")
+  data.frame(
+    string = trimws(xml2::xml_text(texts)),
+    x = as.numeric(xml2::xml_attr(texts, "x")),
+    y = 360 - as.numeric(xml2::xml_attr(texts, "y"))
+  )
+}
+
+# `strings` are drawn where R draws them, each to within half a pixel.
+expect_drawn_where_r_draws <- function(chart, call, strings, env = parent.frame()) {
+  reference <- r_last_page_text_at(call, env)
+  for (string in strings) {
+    drawn <- chart$text_at[chart$text_at$string == string, c("x", "y")]
+    r <- reference[reference$string == string, c("x", "y")]
+    testthat::expect_identical(nrow(drawn), nrow(r), label = string)
+    testthat::expect_lt(max(abs(as.matrix(drawn) - as.matrix(r))), 0.5, label = string)
+  }
 }
 
 # The layers of every cell of an exported chart, row by row.
@@ -284,6 +331,24 @@ test_that("a plot drawn after par(new = TRUE) shares the panel of the one before
   )
   expect_selectors_drawn(chart)
   testthat::expect_setequal(chart$strings, r_last_page_strings(call))
+  # Each where R draws it: `c` in the second panel, not over `b`.
+  expect_drawn_where_r_draws(chart, call, c("a", "b", "c"))
+
+  # An overlay in the first of four panels leaves the next plots in theirs.
+  grid <- quote({
+    par(mfrow = c(2, 2))
+    plot(1:5, main = "P1")
+    par(new = TRUE)
+    plot(5:1, axes = FALSE, xlab = "", ylab = "", type = "l")
+    plot(c(2, 1, 3), main = "P2")
+    barplot(c(a = 1, b = 3), main = "P3")
+  })
+  chart <- last_page_export(function() eval(grid))
+  testthat::expect_identical(
+    vapply(last_page_cells(chart), length, integer(1)),
+    c(2L, 1L, 1L, 0L)
+  )
+  expect_drawn_where_r_draws(chart, grid, c("P1", "P2", "P3"))
 })
 
 test_that("a panel plot.new() or frame() passes over stays empty", {

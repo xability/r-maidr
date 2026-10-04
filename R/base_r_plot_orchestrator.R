@@ -138,16 +138,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
           # one's was still ahead, and was drawn over the last panel once
           # it was not.
           for (k in seq_len(max(numbers[[i]] - plots - 1L, 0L))) {
-            if (figure > 0L && figure >= slot - 1L) {
-              graphics::par(new = TRUE)
-            } else {
+            stays <- figure > 0L && figure >= slot - 1L
+            if (!stays) {
               figure <- figure + 1L
             }
-            graphics::plot.new()
+            start_replayed_plot(stays)
           }
-          if (slot <= figure) {
-            graphics::par(new = TRUE)
-          }
+          start_replayed_plot(slot <= figure, start = FALSE)
           figure <- slot
           plots <- numbers[[i]]
         }
@@ -1247,6 +1244,29 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' Say whether the next plot of a drawing stays in the panel of the last
+#'
+#' `par(new = )` is set either way, never left as it was. R clears it once a
+#' plot draws anything, but gridGraphics, which echoes the drawing as grobs
+#' (`base_r_drawing_grob()`), follows only `par()` and `plot.new()`: after
+#' one plot drawn with `par(new = TRUE)` it kept every later plot in that
+#' plot's panel, so after `par(new = TRUE); plot(b); plot(c)` in a grid `c`
+#' was drawn over `b`, where R draws it in the next panel.
+#'
+#' @param stays Whether the plot stays in the panel of the plot before it
+#' @param start Whether to start the plot here, with `plot.new()`, or leave
+#'   it to the recorded call that draws it
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+start_replayed_plot <- function(stays, start = TRUE) {
+  graphics::par(new = stays)
+  if (start) {
+    graphics::plot.new()
+  }
+  invisible(NULL)
+}
 
 #' A Base R drawing as a grob, laid out on a page of the chart's size
 #'
