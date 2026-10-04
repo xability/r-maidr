@@ -632,6 +632,25 @@ test_that("the widget's fig_width and fig_height size the chart, and width its f
   widget <- maidr::show(p, as_widget = TRUE, use_cdn = FALSE, width = 5, height = 8)
   frame <- unescape_markup(widget$x$iframe_content)
   testthat::expect_identical(svg_size(frame), svg_size_for(c(5, 8)))
+
+  # Its `width` once reached the widget as a CSS size; one given so is told
+  # how to size the widget now, which works.
+  testthat::expect_error(
+    maidr::show(p, as_widget = TRUE, width = "300px"),
+    "not a CSS size. Size the widget that `show(as_widget = TRUE)` returns",
+    fixed = TRUE
+  )
+  testthat::expect_error(
+    maidr::show(p, as_widget = TRUE, fig_width = 3),
+    "show() takes the size to draw the chart at as `width` and `height`.",
+    fixed = TRUE
+  )
+  widget$width <- "300px"
+  testthat::expect_match(
+    as.character(htmltools::as.tags(widget)),
+    'style="width:300px;',
+    fixed = TRUE
+  )
 })
 
 test_that("render_maidr() draws its chart at fig_width x fig_height, a Base R one too", {

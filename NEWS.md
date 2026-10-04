@@ -36,6 +36,12 @@
   lattice chart conditioned on one variable with no `layout =` gets the
   columns lattice gives a page of its shape, and its subplot grid with them
   (#PR).
+* `show(as_widget = TRUE)` no longer passes `width` and `height` on to the
+  widget as its CSS size, which it did through `...` without saying so:
+  they are the size the chart is drawn at, in inches, as everywhere in
+  `show()`. A CSS size such as `"300px"` is now an error that says so. Set
+  the widget's own size on the widget `show()` returns,
+  `widget$width <- "300px"` (#PR).
 
 ### R Markdown and Quarto
 

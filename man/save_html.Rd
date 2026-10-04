@@ -34,9 +34,10 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 
 \item{width, height}{The size to draw the chart at, in inches: each a
 single positive number no larger than 50, or \code{NULL} (the default) for
-7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes its default. With
-\code{as_widget = TRUE} they size the chart in the widget, not the widget.
-See \strong{Chart size}.}
+7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
+its default. With \code{as_widget = TRUE} they size the chart in the widget,
+not the widget, whose own CSS size is set on the widget returned:
+\code{widget$width <- "300px"}. See \strong{Chart size}.}
 
 \item{...}{Additional arguments passed to internal functions}
 }

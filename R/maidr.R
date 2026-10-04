@@ -67,9 +67,10 @@
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
 #' @param width,height The size to draw the chart at, in inches: each a
 #'   single positive number no larger than 50, or `NULL` (the default) for
-#'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes its default. With
-#'   `as_widget = TRUE` they size the chart in the widget, not the widget.
-#'   See \strong{Chart size}.
+#'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
+#'   its default. With `as_widget = TRUE` they size the chart in the widget,
+#'   not the widget, whose own CSS size is set on the widget returned:
+#'   `widget$width <- "300px"`. See \strong{Chart size}.
 #' @param ... Additional arguments passed to internal functions
 #' @return Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
 #' @examples
@@ -130,6 +131,21 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
     return(methods::show(plot))
   }
 
+  # `width` and `height` are the chart's size. With `as_widget = TRUE` they
+  # used to reach the widget through `...` as its CSS size, and `fig_width`
+  # and `fig_height` there would reach it twice: each mistake is told what
+  # to do instead.
+  if (is.character(width) || is.character(height)) {
+    stop(
+      "`width` and `height` are the size to draw the chart at, in inches, not ",
+      "a CSS size. Size the widget that `show(as_widget = TRUE)` returns with ",
+      "its own: `widget$width <- \"300px\"`.",
+      call. = FALSE
+    )
+  }
+  if (any(c("fig_width", "fig_height") %in% names(match.call(expand.dots = FALSE)$...))) {
+    stop("show() takes the size to draw the chart at as `width` and `height`.", call. = FALSE)
+  }
   check_chart_size(width, "width")
   check_chart_size(height, "height")
 
