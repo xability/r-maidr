@@ -37,6 +37,8 @@
 .maidr_knit_figures$seen <- character()
 .maidr_knit_figures$seen_page <- integer()
 .maidr_knit_figures$seen_on <- character()
+# What the display list being replayed holds (`knit_replay()`).
+.maidr_knit_figures$replay <- NULL
 # The ggplot2 and lattice charts drawn in the knit, by token: each a list of
 # the chart as maidr read it when it was printed (`NULL` when maidr could
 # not) and the device it was drawn on.
@@ -167,17 +169,65 @@ knit_page_replayed <- function(token, page) {
   if (ignored) {
     return(invisible(NULL))
   }
-  # The display list being replayed, which recordPlot() returns while the
-  # replay runs.
-  entries <- tryCatch(grDevices::recordPlot()[[1L]], error = function(e) NULL)
-  markers <- if (is.list(entries)) vapply(entries, knit_marker_token, character(1))
-  if (knit_marker_overdrawn(token, entries, markers)) {
+  replay <- knit_replay(token)
+  if (knit_marker_overdrawn(token, replay)) {
     token <- paste0("x", token)
   }
   state$seen <- c(state$seen, token)
   state$seen_page <- c(state$seen_page, as.integer(page)[1L])
-  state$seen_on <- c(state$seen_on, paste(markers[!is.na(markers)], collapse = " "))
+  state$seen_on <- c(state$seen_on, replay$on)
   invisible(NULL)
+}
+
+#' What the display list being replayed holds
+#'
+#' Read from the display list, which `recordPlot()` returns while the replay
+#' runs, once per replay: every marker of a page calls back as the page is
+#' replayed, in the order of the display list, and reading it for each
+#' would take a time that grows with the square of the page's calls. The
+#' reading is reused while each marker that calls back is the next one on
+#' the list read; any other is the first of another replay.
+#'
+#' @param token The token of the marker calling back
+#' @return A list: `markers`, the token of each entry that is a marker and
+#'   `NA` for others (`NULL` when the display list cannot be read);
+#'   `positions`, the entries that are markers, and `at`, which of them
+#'   called back last; `on`, the page's tokens as one string; and
+#'   `last_drawn` and `last_grid`, the last entry that is no marker, and the
+#'   last of those drawn with grid, `0` for none
+#' @keywords internal
+#' @noRd
+knit_replay <- function(token) {
+  state <- .maidr_knit_figures
+  replay <- state$replay
+  if (!is.null(replay)) {
+    at <- replay$at + 1L
+    if (at <= length(replay$positions) &&
+          identical(replay$markers[[replay$positions[[at]]]], token)) {
+      replay$at <- at
+      state$replay <- replay
+      return(replay)
+    }
+  }
+  entries <- tryCatch(grDevices::recordPlot()[[1L]], error = function(e) NULL)
+  replay <- if (is.list(entries)) {
+    markers <- vapply(entries, knit_marker_token, character(1))
+    positions <- which(!is.na(markers))
+    drawn <- which(is.na(markers))
+    grid <- drawn[vapply(entries[drawn], is_recorded_graphics_entry, logical(1))]
+    list(
+      markers = markers,
+      positions = positions,
+      at = match(token, markers[positions], nomatch = length(positions)),
+      on = paste(markers[positions], collapse = " "),
+      last_drawn = max(c(0L, drawn)),
+      last_grid = max(c(0L, grid))
+    )
+  } else {
+    list(markers = NULL, positions = integer(), at = 0L, on = "")
+  }
+  state$replay <- replay
+  replay
 }
 
 #' The chunk evaluation a call is made from
@@ -270,24 +320,20 @@ prune_installing_chunks <- function() {
 #' not record is left out of the chart as it always was.
 #'
 #' @param token The chart's token
-#' @param entries The display list's entries, `NULL` when it cannot be read
-#' @param markers The token of each entry that is a marker, `NA` for others
+#' @param replay The display list being replayed, from `knit_replay()`
 #' @return Logical; `TRUE` as well when the display list cannot be read
 #' @keywords internal
 #' @noRd
-knit_marker_overdrawn <- function(token, entries, markers) {
-  if (!is.list(entries)) {
+knit_marker_overdrawn <- function(token, replay) {
+  if (is.null(replay$markers)) {
     return(TRUE)
   }
-  own <- which(markers == token)
+  own <- which(replay$markers == token)
   if (length(own) == 0L) {
     return(TRUE)
   }
-  after <- seq_along(entries) > max(own) & is.na(markers)
-  if (startsWith(token, "b")) {
-    after <- after & vapply(entries, is_recorded_graphics_entry, logical(1))
-  }
-  any(after)
+  last <- if (startsWith(token, "b")) replay$last_grid else replay$last_drawn
+  last > max(own)
 }
 
 #' The token of a display list entry that is a chart's marker
@@ -401,6 +447,7 @@ forget_replayed_tokens <- function() {
   .maidr_knit_figures$seen <- character()
   .maidr_knit_figures$seen_page <- integer()
   .maidr_knit_figures$seen_on <- character()
+  .maidr_knit_figures$replay <- NULL
   invisible(NULL)
 }
 
