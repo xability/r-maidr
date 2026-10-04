@@ -729,20 +729,48 @@ test_that("a knitted candlestick chart enlarged past its chunk's size says so in
   local_knitr_state()
   dir <- withr::local_tempdir("maidr-knit-")
   page <- knit_for(c(
-    "```{r candles, fig.width = 8, fig.height = 4}",
+    "```{r data}",
     "ohlc <- data.frame(",
     "  date = as.Date('2023-01-02') + 0:3, open = c(100, 105, 110, 108),",
     "  high = c(115, 108, 112, 110), low = c(95, 102, 105, 100), close = c(110, 103, 111, 108)",
     ")",
-    "ggplot2::ggplot(",
+    "candles <- ggplot2::ggplot(",
     "  ohlc, ggplot2::aes(date, open = open, high = high, low = low, close = close)",
     ") +",
     "  tidyquant::geom_candlestick()",
+    "```",
+    "",
+    "```{r unset}",
+    "candles",
+    "```",
+    "",
+    "```{r asked, fig.width = 8, fig.height = 4}",
+    "candles",
+    "```",
+    "",
+    "```{r document-size}",
+    "knitr::opts_chunk$set(fig.width = 6, fig.asp = 0.5)",
+    "```",
+    "",
+    "```{r document}",
+    "candles",
     "```"
   ), dir)
-  said <- "drawn at 12 x 6 in rather than the 8 x 4 in asked for"
-  testthat::expect_match(page, said, fixed = TRUE)
-  testthat::expect_identical(lapply(inline_svg_roots(page), svg_size), list(svg_size_for(c(12, 6))))
+  # Only the chunk that asked for a size of its own is told: the document's
+  # figure size, knitr's 7 x 7 in here and then one opts_chunk$set() sets,
+  # is every chart's, and a candlestick chart is drawn larger than it
+  # without a word, as it was before maidr read the chunk's size.
+  said <- regmatches(page, gregexpr("maidr: this candlestick chart is drawn at [^:]*", page))[[1]]
+  testthat::expect_identical(
+    said,
+    "maidr: this candlestick chart is drawn at 12 x 6 in rather than the 8 x 4 in asked for"
+  )
+  # Each still at least 12 x 6 in, and as tall as knitr's 7 in where that
+  # is taller.
+  testthat::expect_identical(
+    lapply(inline_svg_roots(page), svg_size),
+    list(svg_size_for(c(12, 7)), svg_size_for(c(12, 6)), svg_size_for(c(12, 6)))
+  )
 })
 
 test_that("R Markdown and Quarto draw their charts at the figure size they set", {

@@ -51,8 +51,13 @@ and Quarto's \code{fig-width} and \code{fig-height}. Its SVG is 72 pixels to the
 inch. \code{html_document} and Quarto's HTML formats draw figures at 7 x 5 in,
 maidr's own size outside a document; a format with a figure size of its
 own, such as ioslides, draws its charts at that size. A candlestick chart
-is drawn at least 12 x 6 in, and a chunk that asks for less is told so in
-a message (see \code{\link[=show]{show()}}). The size is the room the chart is laid out in,
+is drawn at least 12 x 6 in. A chunk that sets a smaller size of its own
+is told so in a message (see \code{\link[=show]{show()}}): among the chunk's messages for a
+ggplot2 chart, and on the console for a Base R \code{chartSeries()} chart,
+which maidr reads once the chunk has run. The document's figure size,
+which the format, its YAML or \code{knitr::opts_chunk$set()} sets for every
+chunk, was not asked of a candlestick chart, which is drawn larger than
+it without a message. The size is the room the chart is laid out in,
 not what a reader hears: its data, titles and axes are the same at every
 size. Nor is it the width the chart is shown at, which \code{out.width} sets:
 a chart shrinks to fit a page narrower than itself, keeping its shape.

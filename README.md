@@ -156,7 +156,8 @@ In R Markdown and Quarto the chunk's `fig.width` and `fig.height` set it.
 Nothing else does: not the device a Base R chart was drawn on, nor the
 window or Shiny output a chart is shown in, which shrinks a wider chart to
 fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for
-less, maidr says in a message the size it used.
+less (in a document, by the chunk's own options), maidr says in a message
+the size it used.
 
 ### R Markdown and Quarto
 

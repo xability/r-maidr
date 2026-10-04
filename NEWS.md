@@ -19,7 +19,11 @@
   unchanged; a format with a figure size of its own, such as ioslides
   (7.5 x 4.5 in), now draws its charts at it. A candlestick chart is still
   never drawn smaller than 12 x 6 in, and a smaller size asked for is
-  enlarged with a message naming the size used, in a document too. A size
+  enlarged with a message naming the size used. In a document that is a
+  size the chunk sets itself, and the message is among the chunk's own for
+  a ggplot2 chart and on the console for Base R's `chartSeries()`; drawn
+  larger than the document's figure size, a candlestick chart says nothing,
+  as before. A size
   that is not one positive number is an error naming the argument. A Base
   R chart too small for its margins and text, which R cannot draw at that
   size either ("figure margins too large"), is an error naming the size
