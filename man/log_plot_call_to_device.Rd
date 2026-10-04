@@ -9,7 +9,8 @@ log_plot_call_to_device(
   call_expr,
   args,
   device_id = grDevices::dev.cur(),
-  call_env = NULL
+  call_env = NULL,
+  arg_text = NULL
 )
 }
 \arguments{
@@ -23,6 +24,10 @@ log_plot_call_to_device(
 
 \item{call_env}{Optional environment for replaying unevaluated (NSE)
 arguments recorded in \code{args}}
+
+\item{arg_text}{Optional text each argument in \code{args} was written
+as, from \code{written_arg_text()}, which the replay titles the chart
+after}
 }
 \value{
 NULL (invisible)

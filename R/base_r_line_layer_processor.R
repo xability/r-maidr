@@ -243,9 +243,10 @@ BaseRLineLayerProcessor <- R6::R6Class(
         group <- layer_info$group
         if (!is.null(group) && !is.null(group$high_call)) {
           high_args <- group$high_call$args
+          written <- written_axis_titles(group$high_call)
           return(build_axes(
-            x = recorded_axis_label(high_args, "xlab"),
-            y = recorded_axis_label(high_args, "ylab")
+            x = recorded_axis_label(high_args, "xlab", written$x),
+            y = recorded_axis_label(high_args, "ylab", written$y)
           ))
         }
       }
@@ -258,15 +259,17 @@ BaseRLineLayerProcessor <- R6::R6Class(
       # recorded alongside the drawn points. An explicit xlab/ylab still
       # wins, exactly as it does inside curve().
       #
-      # Nothing else here carries a default: a line drawn by plot() or
-      # matplot() runs over whatever the caller measured, and the recorded
-      # arguments are evaluated values that no longer name it. The renderer's
-      # generic is the honest answer, so no label is emitted.
+      # A line drawn by plot() is titled after how its arguments were
+      # written, which the recorded call keeps (`written_axis_titles()`).
+      # Nothing else here carries a default: a line drawn by matplot() runs
+      # over whatever the caller measured, and the renderer's generic is the
+      # honest answer, so no label is emitted.
       curve_labels <- args$.maidr_curve_data$labels
+      written <- written_axis_titles(plot_call)
 
       build_axes(
-        x = recorded_axis_label(args, "xlab", curve_labels$x),
-        y = recorded_axis_label(args, "ylab", curve_labels$y)
+        x = recorded_axis_label(args, "xlab", curve_labels$x %||% written$x),
+        y = recorded_axis_label(args, "ylab", curve_labels$y %||% written$y)
       )
     },
     #' @description The endpoints of an `abline()` call across the axis the HIGH-level call set up

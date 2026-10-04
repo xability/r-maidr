@@ -84,18 +84,51 @@ usable_xy_coords <- function(coords) {
 #' @param function_name Name of the recorded function
 #' @param definition The original (unwrapped) function that was called
 #' @param args Recorded argument list of evaluated values
+#' @param target The definition the call dispatched to, when the caller has
+#'   resolved it already
 #' @return `args` with the names R matched, in the recorded order
 #' @keywords internal
-match_recorded_args <- function(function_name, definition, args) {
+match_recorded_args <- function(function_name, definition, args,
+                                target = dispatched_definition(function_name, definition, args)) {
   if (is.null(args) || length(args) == 0 || !is.function(definition)) {
     return(args)
   }
 
-  target <- dispatched_definition(function_name, definition, args)
   if (is.null(target) || is.null(formals(target))) {
     return(args)
   }
 
+  matched <- matched_arg_formals(function_name, target, args)
+  if (is.null(matched)) {
+    return(args)
+  }
+
+  arg_names <- names(args)
+  if (is.null(arg_names)) {
+    arg_names <- rep("", length(args))
+  }
+  dispatch_formal <- names(formals(target))[1L]
+  renamed <- nzchar(matched) & matched != dispatch_formal
+  arg_names[renamed] <- matched[renamed]
+
+  names(args) <- arg_names
+  args
+}
+
+#' The formal R matched each recorded argument to
+#'
+#' Shared by `match_recorded_args()`, which names the arguments by it, and
+#' `written_arg_text()`, which finds the arguments a chart is titled after.
+#'
+#' @param function_name Name of the recorded function
+#' @param target The definition the call dispatched to, from
+#'   `dispatched_definition()`
+#' @param args Recorded argument list
+#' @return Character vector with one entry per argument: the formal it was
+#'   matched to, or the name it carries inside `...` ("" when it has none).
+#'   NULL when the call cannot be matched.
+#' @keywords internal
+matched_arg_formals <- function(function_name, target, args) {
   arg_names <- names(args)
   if (is.null(arg_names)) {
     arg_names <- rep("", length(args))
@@ -114,23 +147,18 @@ match_recorded_args <- function(function_name, definition, args) {
     error = function(e) NULL
   )
   if (is.null(matched)) {
-    return(args)
+    return(NULL)
   }
 
   matched_args <- as.list(matched)[-1L]
   matched_names <- names(matched_args)
   if (is.null(matched_names)) {
-    return(args)
+    return(NULL)
   }
-
-  dispatch_formal <- names(formals(target))[1L]
 
   for (i in seq_along(matched_args)) {
     entry <- matched_args[[i]]
-    if (!is.name(entry) || !nzchar(matched_names[i])) {
-      next
-    }
-    if (identical(matched_names[i], dispatch_formal)) {
+    if (!is.name(entry)) {
       next
     }
     slot <- match(as.character(entry), slots)
@@ -140,8 +168,7 @@ match_recorded_args <- function(function_name, definition, args) {
     arg_names[slot] <- matched_names[i]
   }
 
-  names(args) <- arg_names
-  args
+  arg_names
 }
 
 #' Resolve the definition R dispatched a recorded call to
@@ -186,6 +213,138 @@ dispatched_definition <- function(function_name, definition, args) {
   }
 
   definition
+}
+
+#' The text of each recorded argument a chart names a title after
+#'
+#' Many Base R charts title themselves after how an argument was written:
+#' `hist(mtcars$mpg)` writes "mtcars$mpg" under its x axis and "Histogram of
+#' mtcars$mpg" above it, from `deparse1(substitute(x))`. The recorded call
+#' keeps the argument's value, and a replay of the value hands
+#' `substitute()` the numbers themselves, so maidr's chart was titled with
+#' the data printed end to end.
+#'
+#' What is kept here is the text, for the arguments the dispatched function
+#' reads with `substitute()` and for no other: `replay_plot_call()` passes
+#' the value under a name spelled that way, and an argument a function
+#' evaluates as an expression elsewhere -- `monthplot()` does so with its
+#' `...` -- keeps being passed as the value it was.
+#'
+#' @param function_name Name of the recorded function
+#' @param target The definition the call dispatched to, from
+#'   `dispatched_definition()`
+#' @param args Recorded argument list of evaluated values, as
+#'   `match_recorded_args()` names it
+#' @param written The expressions the arguments were written as, in the same
+#'   order: `as.list(substitute(list(...)))[-1L]` in the wrapper
+#' @return Character vector with one entry per argument: the text to replay
+#'   it under, or NA to replay its value. Named, when any entry has text,
+#'   by the formal each argument was matched to, which `written_arg()`
+#'   reads.
+#' @keywords internal
+written_arg_text <- function(function_name, target, args, written) {
+  text <- rep(NA_character_, length(args))
+  if (length(args) == 0 || length(written) != length(args) || !is.function(target)) {
+    return(text)
+  }
+
+  labelled <- substituted_formals(target)
+  if (length(labelled) == 0) {
+    return(text)
+  }
+  matched <- matched_arg_formals(function_name, target, args)
+  if (is.null(matched)) {
+    return(text)
+  }
+
+  for (i in which(matched %in% labelled)) {
+    text[i] <- written_label(written[[i]])
+  }
+  names(text) <- matched
+  text
+}
+
+#' The formals a function reads with `substitute()`
+#'
+#' Found in its code rather than listed, so a method maidr has not been told
+#' about is read the same way: `substitute(x)` in the body or in a default,
+#' such as `qqplot()`'s `xlab = deparse1(substitute(x))`.
+#'
+#' Each function is read once and remembered: the walk takes about 2 ms over
+#' `hist.default()`, which a loop of `hist()` calls would otherwise pay on
+#' every call. The functions read are the recorded ones and the methods
+#' they dispatch to, a few dozen at most, and `identical()` recognises the
+#' same function by its address before comparing anything.
+#'
+#' @param definition A function
+#' @return Character vector of formal names
+#' @keywords internal
+substituted_formals <- function(definition) {
+  for (read in .maidr_substituted_formals$read) {
+    if (identical(read$definition, definition)) {
+      return(read$formals)
+    }
+  }
+  found <- read_substituted_formals(definition)
+  .maidr_substituted_formals$read <- c(
+    .maidr_substituted_formals$read,
+    list(list(definition = definition, formals = found))
+  )
+  found
+}
+
+.maidr_substituted_formals <- new.env(parent = emptyenv())
+
+#' Walk a function's code for the formals it reads with `substitute()`
+#'
+#' @param definition A function
+#' @return Character vector of formal names
+#' @keywords internal
+read_substituted_formals <- function(definition) {
+  code <- c(as.list(formals(definition)), list(body(definition)))
+  # `all.names()` is cheap where the walk below is not, and most recorded
+  # calls -- text(), abline(), legend() -- never substitute.
+  if (!"substitute" %in% unlist(lapply(code, all.names))) {
+    return(character(0))
+  }
+
+  found <- character(0)
+  visit <- function(code) {
+    if (!is.call(code)) {
+      return(NULL)
+    }
+    names_formal <- identical(code[[1L]], quote(substitute)) &&
+      length(code) == 2L && is.name(code[[2L]])
+    if (names_formal) {
+      found <<- c(found, as.character(code[[2L]]))
+    }
+    lapply(as.list(code)[-1L], visit)
+    NULL
+  }
+  lapply(code, visit)
+
+  intersect(found, names(formals(definition)))
+}
+
+#' The text an argument was written as, when a symbol can carry it
+#'
+#' `deparse1()`, as nearly every Base R chart deparses its arguments. NA for
+#' a constant, whose value deparses to what was written anyway; for text
+#' longer than R allows a symbol's name (10,000 bytes); and for `...` and
+#' `..1`, which R reads as the dots of the frame they are evaluated in.
+#'
+#' @param expr The expression an argument was written as
+#' @return A string, or NA
+#' @keywords internal
+written_label <- function(expr) {
+  if (!is.call(expr) && !is.name(expr)) {
+    return(NA_character_)
+  }
+  text <- tryCatch(deparse1(expr), error = function(e) NA_character_)
+  usable <- !is.na(text) && nzchar(text) &&
+    nchar(text, type = "bytes") <= 10000L &&
+    !grepl("^(\\.\\.\\.|\\.\\.[0-9]+)$", text)
+  if (usable) text else NA_character_
 }
 
 #' The two-way contingency table a recorded call was handed, when it is one

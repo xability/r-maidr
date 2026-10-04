@@ -202,22 +202,23 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
     },
     #' @description Extract the axis titles for this layer
     #'
-    #' `hist()` derives both titles inside the call and so records neither:
-    #' the x title is `deparse(substitute(x))`, which is gone by the time the
-    #' evaluated arguments reach us, and the y title is "Frequency" or
-    #' "Density" depending on what the bars measure. The y default therefore
-    #' repeats hist()'s own choice -- resolved by the same rule that decides
-    #' which values extract_data() emits, so the noun always names the number
-    #' being announced -- while x says only what the axis certainly holds:
-    #' the bins.
+    #' `hist()` derives both titles inside the call and so records neither.
+    #' The x title is `deparse1(substitute(x))`, how `x` was written, which
+    #' the recorded call keeps beside the values (`written_axis_titles()`);
+    #' when it kept none, x says only what the axis certainly holds: the
+    #' bins. The y title is "Frequency" or "Density" depending on what the
+    #' bars measure, so the default repeats hist()'s own choice -- resolved by
+    #' the same rule that decides which values extract_data() emits, so the
+    #' noun always names the number being announced.
     #'
     #' @param layer_info Layer information
     #' @return Canonical axes list
     extract_axis_titles = function(layer_info) {
       args <- layer_info$plot_call$args
+      written <- written_axis_titles(layer_info$plot_call)
 
       build_axes(
-        x = recorded_axis_label(args, "xlab", "Bin"),
+        x = recorded_axis_label(args, "xlab", written$x %||% "Bin"),
         y = recorded_axis_label(args, "ylab", self$frequency_label(args))
       )
     },
@@ -234,7 +235,12 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
 
       if (self$is_frequency(args, hist_obj)) "Frequency" else "Density"
     },
-    #' @description The main title of the recorded call, or an empty string
+    #' @description The main title of the recorded call, or the one hist()
+    #' writes
+    #'
+    #' `hist(x)` titles itself "Histogram of" how `x` was written unless the
+    #' call gives a `main`, `NULL` and `""` included.
+    #'
     #' @param layer_info Layer information with the recorded call
     #' @return Character string
     extract_main_title = function(layer_info) {
@@ -244,10 +250,12 @@ BaseRHistogramLayerProcessor <- R6::R6Class(
 
       plot_call <- layer_info$plot_call
       args <- plot_call$args
+      xname <- written_arg(plot_call, "x")
+      if ("main" %in% names(args) || is.null(xname)) {
+        return(recorded_main_title(args))
+      }
 
-      main_title <- recorded_main_title(args)
-
-      main_title
+      paste("Histogram of", xname)
     }
   )
 )

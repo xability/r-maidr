@@ -4,7 +4,7 @@
 \alias{replay_plot_call}
 \title{Replay a recorded plot call with the original (unwrapped) function}
 \usage{
-replay_plot_call(function_name, args, call_env = NULL)
+replay_plot_call(function_name, args, call_env = NULL, arg_text = NULL)
 }
 \arguments{
 \item{function_name}{Name of the recorded function}
@@ -13,6 +13,9 @@ replay_plot_call(function_name, args, call_env = NULL)
 
 \item{call_env}{Environment captured when NSE arguments could not be
 forced at record time, or NULL when all args are plain values}
+
+\item{arg_text}{The text each argument was written as, NA where its
+value is replayed as it is, from \code{written_arg_text()}; or NULL}
 }
 \value{
 The result of the replayed call (invisibly)
@@ -23,5 +26,11 @@ recorded args contain unevaluated expressions (from non-standard
 evaluation, e.g. \code{curve(sin(x))} or \code{plot(y ~ x, subset = g == 1)}),
 the call is rebuilt and evaluated in the environment captured at record
 time so those expressions resolve exactly as they did originally.
+}
+\details{
+Otherwise the recorded values are drawn, each argument \code{arg_text} names
+passed under a symbol spelled as it was written (see
+\code{call_with_written_args()}), so a title R derives from that text comes
+out as it did in the user's own call.
 }
 \keyword{internal}
