@@ -520,8 +520,8 @@ draw_as_knit_figure <- function(x, draw, mark = TRUE) {
 #' recorded calls when its figure is written (`render_figure_chart()`).
 #'
 #' @param plot The ggplot2 or lattice chart, or `NULL` for Base R
-#' @return The chart's SVG, or `NULL` when maidr cannot read the chart or
-#'   its build fails
+#' @return The chart's SVG; `NULL` when maidr cannot read the chart; or the
+#'   error its build stopped with
 #' @keywords internal
 #' @noRd
 knit_chart_content <- function(plot) {
@@ -544,7 +544,7 @@ knit_chart_content <- function(plot) {
         create_maidr_html(plot, shiny = TRUE, orchestrator = orchestrator)
       }
     })),
-    error = function(e) NULL
+    error = function(e) e
   )
 }
 
@@ -641,7 +641,8 @@ with_figure_calls <- function(device, calls, code) {
 #'
 #' Inline, or in an iframe outside a page (`knitr_chart_output()`). A chart
 #' maidr cannot read, whose build fails, or whose layers hold no data at all
-#' is left as knitr's own figure, which keeps its caption and alt text.
+#' is left as knitr's own figure, which keeps its caption and alt text. A
+#' build that fails says so, once per document (`warn_chart_unread()`).
 #'
 #' @param chart From `resolve_figure_chart()`
 #' @param options The figure's chunk options
@@ -653,10 +654,37 @@ render_figure_chart <- function(chart, options) {
   if (is.null(content)) {
     content <- with_figure_calls(chart$device, chart$calls, knit_chart_content(NULL))
   }
+  if (inherits(content, "error")) {
+    warn_chart_unread(content, options)
+    return(NULL)
+  }
   if (is.null(content) || !maidr_chart_has_data(content)) {
     return(NULL)
   }
   knitr_chart_output(content, options, figure = TRUE)
+}
+
+#' Warn, once per document, that a chart's build failed
+#'
+#' Its figure stays knitr's static image. A chart maidr declines to read
+#' (`should_fallback()`) is left so without a word: it is not a failure.
+#'
+#' @param error The condition the build stopped with
+#' @param options The figure's chunk options
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+warn_chart_unread <- function(error, options) {
+  if (isTRUE(knitr::opts_knit$get("maidr.unread_warned"))) {
+    return(invisible(NULL))
+  }
+  knitr::opts_knit$set(maidr.unread_warned = TRUE)
+  warning(
+    "maidr: a chart in chunk '", options$label %||% "", "' could not be ",
+    "made accessible and is shown as a static image: ", conditionMessage(error),
+    call. = FALSE
+  )
+  invisible(NULL)
 }
 
 #' Whether a chart's maidr-data holds any data

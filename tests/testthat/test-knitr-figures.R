@@ -414,6 +414,37 @@ test_that("a child document knitted by the chunk that installs maidr leaves it u
   )
 })
 
+test_that("a chart whose build fails is knitr's figure, with one warning", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+  testthat::local_mocked_bindings(
+    create_maidr_html = function(...) stop("the build broke"),
+    .package = "maidr"
+  )
+  warnings <- character()
+  page <- withCallingHandlers(
+    knit_for(c(
+      chart_setup,
+      "```{r base}", "barplot(1:3)", "```",
+      "```{r printed}", "print(p)", "```"
+    ), dir),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  testthat::expect_identical(figure_sequence(page), c("figure base-1.svg", "figure printed-1.svg"))
+  testthat::expect_identical(
+    warnings,
+    paste0(
+      "maidr: a chart in chunk 'base' could not be made accessible and is shown ",
+      "as a static image: the build broke"
+    )
+  )
+})
+
 test_that("a chunk that stops with an error leaves nothing to the next chunk", {
   skip_if_no_figures()
   local_knitr_state()
