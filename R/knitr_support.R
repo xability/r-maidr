@@ -270,7 +270,7 @@ knit_print.trellis <- function(x, options = list(), ...) {
     return(invisible(NULL))
   }
   if (!missing(options) && knit_print_draws_figure(...)) {
-    own_page <- !lattice_print_composes(list(), x$plot.args) && !lattice_page_open()
+    own_page <- lattice_print_owns_page(list(), x$plot.args)
     draw_as_knit_figure(x, function() print_trellis_natively(x), mark = own_page)
     return(invisible(NULL))
   }
@@ -447,10 +447,11 @@ maidr_plot_hook <- function(x, options, original = NULL) {
   shown <- length(tokens) > 0L && is_html_output() &&
     !identical(options$fig.show, "animate")
   chart <- if (shown) resolve_figure_chart(tokens)
+  out <- NULL
   if (!is.null(chart)) {
     options$maidr.figure.id <- quarto_figure_id(x, options, original)
+    out <- render_figure_chart(chart, options)
   }
-  out <- if (!is.null(chart)) render_figure_chart(chart, options)
   if (is.null(out)) {
     return(call_original_plot_hook(x, options, original))
   }

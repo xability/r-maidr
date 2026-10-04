@@ -97,6 +97,19 @@ test_that("every id, and every reference to one, gets the prefix", {
   expect_identical(got$subplots[[1]][[1]]$selector, "#mtest-pts\\.1")
 })
 
+test_that("an ARIA reference list names the chart's own ids by their prefix", {
+  svg <- paste0(
+    '<svg xmlns="http://www.w3.org/2000/svg" maidr-data=\'{"id":"plot-1"}\'>',
+    '<title id="t1">Title</title><desc id="d1">Description</desc>',
+    '<g aria-labelledby="t1 elsewhere" aria-describedby="  d1 t1 "/>',
+    "</svg>"
+  )
+  doc <- xml2::read_xml(maidr:::inline_prefix_svg_ids(svg, prefix))
+  g <- xml2::xml_find_first(doc, "//*[local-name() = 'g']")
+  expect_identical(xml2::xml_attr(g, "aria-labelledby"), "mtest-t1 elsewhere")
+  expect_identical(xml2::xml_attr(g, "aria-describedby"), "mtest-d1 mtest-t1")
+})
+
 test_that("text, data and references to other documents are left alone", {
   json <- fixture_json("#g\\.rect\\.2\\.1 rect")
   out <- maidr:::inline_prefix_svg_ids(fixture_svg(json), prefix)

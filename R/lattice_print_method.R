@@ -132,7 +132,7 @@ maidr_print_trellis <- function(x, ...) {
     !isTRUE(.maidr_lattice_state$busy)
   if (in_knit) {
     ensure_knitr_integration()
-    own_page <- !lattice_print_composes(list(...), x$plot.args) && !lattice_page_open()
+    own_page <- lattice_print_owns_page(list(...), x$plot.args)
     return(draw_as_knit_figure(
       lattice_printed_chart(x, list(...)),
       function() print_trellis_natively(x, ...),
@@ -226,6 +226,21 @@ lattice_print_composes <- function(args, stored = NULL) {
     isTRUE(args[["more"]]) ||
     identical(args[["newpage"]], FALSE) ||
     !is.null(args[["draw.in"]])
+}
+
+#' Whether a print of a trellis object in a knit draws a page of its own
+#'
+#' Neither composing a page (`lattice_print_composes()`) nor drawn onto the
+#' page a `more = TRUE` print left open (`lattice_page_open()`): only then is
+#' the page's figure the chart's.
+#'
+#' @param args The arguments `print()` was given besides the object.
+#' @param stored The object's `plot.args`.
+#' @return Logical
+#' @keywords internal
+#' @noRd
+lattice_print_owns_page <- function(args, stored = NULL) {
+  !lattice_print_composes(args, stored) && !lattice_page_open()
 }
 
 #' The chart a print of a trellis object shows

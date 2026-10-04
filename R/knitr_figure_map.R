@@ -391,19 +391,28 @@ knit_before_grid_newpage <- function() {
   invisible(NULL)
 }
 
+#' The hooks that count the pages of a knit, by the name each is set under
+#'
+#' @return A named list of functions
+#' @keywords internal
+#' @noRd
+knit_page_hooks <- function() {
+  list(
+    before.plot.new = knit_before_plot_new,
+    before.grid.newpage = knit_before_grid_newpage
+  )
+}
+
 #' Count the pages of a knit, from now on
 #'
-#' Each hook is set once; [maidr_off()] removes them
+#' Each hook is set once; [maidr_off()] and the end of the knit remove them
 #' (`remove_knit_page_hooks()`).
 #'
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
 set_knit_page_hooks <- function() {
-  hooks <- list(
-    before.plot.new = knit_before_plot_new,
-    before.grid.newpage = knit_before_grid_newpage
-  )
+  hooks <- knit_page_hooks()
   for (name in names(hooks)) {
     if (!any(vapply(getHook(name), identical, logical(1), hooks[[name]]))) {
       setHook(name, hooks[[name]])
@@ -418,10 +427,7 @@ set_knit_page_hooks <- function() {
 #' @keywords internal
 #' @noRd
 remove_knit_page_hooks <- function() {
-  hooks <- list(
-    before.plot.new = knit_before_plot_new,
-    before.grid.newpage = knit_before_grid_newpage
-  )
+  hooks <- knit_page_hooks()
   for (name in names(hooks)) {
     set <- getHook(name)
     keep <- !vapply(set, identical, logical(1), hooks[[name]])

@@ -31,7 +31,7 @@
 #' @return Logical
 #' @keywords internal
 inline_output_ok <- function() {
-  if (!isTRUE(getOption("knitr.in.progress")) || is.null(knitr::pandoc_to())) {
+  if (!knit_in_progress() || is.null(knitr::pandoc_to())) {
     return(FALSE)
   }
   # knitr folds every markdown_* variant into "markdown", and epub3 into

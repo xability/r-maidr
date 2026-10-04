@@ -129,11 +129,15 @@ test_that("save_html() and the widgets keep their bundle as it was", {
 
 test_that("charts are inline only in HTML that pandoc writes as a page", {
   ok_for <- function(to, args = NULL, knitting = TRUE) {
-    knitr::opts_knit$set(rmarkdown.pandoc.to = to, rmarkdown.pandoc.args = args)
+    knitr::opts_knit$set(
+      rmarkdown.pandoc.to = to, rmarkdown.pandoc.args = args, out.format = "markdown"
+    )
     withr::local_options(knitr.in.progress = if (knitting) TRUE)
     maidr:::inline_output_ok()
   }
-  withr::defer(knitr::opts_knit$delete(c("rmarkdown.pandoc.to", "rmarkdown.pandoc.args")))
+  withr::defer(knitr::opts_knit$delete(
+    c("rmarkdown.pandoc.to", "rmarkdown.pandoc.args", "out.format")
+  ))
   rmd <- function(...) file.path("/library/rmarkdown/rmd", ...)
 
   for (to in c("html", "html4", "html5", "revealjs", "slidy", "s5", "slideous")) {
