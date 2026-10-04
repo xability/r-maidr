@@ -31,6 +31,9 @@ or Quarto's \verb{fig-format:} other than its default \code{retina}, which is
 \item a cached chunk: the device is part of the chunk's cache key, which knitr
 computes before the chunk can load maidr, so switching it would miss the
 cache on every render;
+\item a chunk whose figures are made something else of, as bitmaps: an
+animation (\code{fig.show = "animate"}, which gifski takes only as png and
+maidr never shows as a chart), \code{crop}, or a \code{fig.process} function;
 \item a chunk of another engine: Python saves its figures in the format
 \code{dev} names;
 \item \code{options(maidr.knitr_dev = FALSE)}, for a document whose \code{png} is a

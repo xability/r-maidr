@@ -554,6 +554,9 @@ test_that("knitr's default png becomes svglite in HTML, and every other choice i
     "```{r cached, cache = TRUE}", draw, "```",
     "```{r cairo, dev.args = list(type = 'cairo')}", draw, "```",
     "```{r ext, fig.ext = 'png'}", draw, "```",
+    "```{r animate, fig.show = 'animate', animation.hook = function(x, options) ''}",
+    "for (i in 1:2) barplot(c(a = i, b = 2))", "```",
+    "```{r process, fig.process = function(x) x}", draw, "```",
     "```{maidrdev engine}", "x", "```",
     "```{r}", "knitr::opts_chunk$set(dev = 'jpeg')", "```",
     "```{r document}", draw, "```"
@@ -561,11 +564,15 @@ test_that("knitr's default png becomes svglite in HTML, and every other choice i
 
   testthat::expect_identical(
     figure_types(dir)[
-      c("default", "header", "pipe", "template", "cached", "cairo", "ext", "document")
+      c(
+        "default", "header", "pipe", "template", "cached", "cairo", "ext", "animate",
+        "process", "document"
+      )
     ],
     c(
       default = "svg", header = "png", pipe = "png", template = "png",
-      cached = "png", cairo = "png", ext = "png", document = "jpeg"
+      cached = "png", cairo = "png", ext = "png", animate = "png", process = "png",
+      document = "jpeg"
     )
   )
   testthat::expect_match(page, "DEV=png", fixed = TRUE)
@@ -601,6 +608,31 @@ test_that("options(maidr.knitr_dev = FALSE), other formats and maidr_off() keep 
     figure_types(off)[c("before", "after", "again")],
     c(before = "svg", after = "png", again = "svg")
   )
+})
+
+test_that("an animation knitr makes with gifski keeps its png frames", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("gifski")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-anim-")
+  rmd <- file.path(dir, "anim.Rmd")
+  writeLines(c(
+    "---", "title: anim", "output:", "  html_document:", "    self_contained: false", "---",
+    # maidr is loaded already: maidr_on() installs it into the knit, as
+    # library(maidr) does in a session of its own, before the next chunk.
+    "```{r}", "library(maidr)", "maidr_on()", "```",
+    "```{r anim, fig.show = 'animate', animation.hook = 'gifski'}",
+    "for (i in 1:3) barplot(c(a = i, b = 4 - i))",
+    "```"
+  ), rmd)
+
+  out <- rmarkdown::render(rmd, quiet = TRUE, envir = new.env())
+  html <- paste(readLines(out, warn = FALSE), collapse = "\n")
+  testthat::expect_match(html, '<img src="anim_files/figure-html/anim-[^"]*[.]gif"')
+  testthat::expect_false(grepl("data-maidr-knitr=", html, fixed = TRUE))
 })
 
 test_that("flexdashboard's phone copy of a default png figure gives way to svglite", {

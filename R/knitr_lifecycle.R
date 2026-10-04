@@ -336,6 +336,9 @@ flexdashboard_phone_figures <- function(given, options) {
 #' * a cached chunk: the device is part of the chunk's cache key, which knitr
 #'   computes before the chunk can load maidr, so switching it would miss the
 #'   cache on every render;
+#' * a chunk whose figures are made something else of, as bitmaps: an
+#'   animation (`fig.show = "animate"`, which gifski takes only as png and
+#'   maidr never shows as a chart), `crop`, or a `fig.process` function;
 #' * a chunk of another engine: Python saves its figures in the format
 #'   `dev` names;
 #' * `options(maidr.knitr_dev = FALSE)`, for a document whose `png` is a
@@ -356,6 +359,9 @@ maidr_chunk_device <- function(options) {
     chunk_sets_option(options, "dev") ||
     !is.null(options$fig.ext) ||
     chunk_is_cached(options) ||
+    identical(options$fig.show, "animate") ||
+    isTRUE(options$crop) ||
+    !is.null(options$fig.process) ||
     (!is.null(knitr::opts_knit$get("quarto.version")) &&
        !identical(as.numeric(options$fig.retina), 2)) ||
     !dev_args_suit_svglite(options$dev.args) ||
