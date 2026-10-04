@@ -138,8 +138,11 @@ strip.
 A chart is drawn at 7 x 5 inches unless you give it a size, in inches as
 `ggplot2::ggsave()` takes one, and its SVG is 72 pixels to the inch. The
 size is the room the chart is laid out in; the data, titles and axis labels
-a reader hears are the same at every size. A side over 50 in is refused,
-as `ggsave()` refuses one, since it is most likely pixels.
+a reader hears are the same at every size. Only a lattice chart conditioned
+on one variable with no `layout =` changes for a reader: lattice arranges
+its panels for the shape of the page, and the order a reader moves through
+them follows, so give it `layout =` to keep one. A side over 50 in is
+refused, as `ggsave()` refuses one, since it is most likely pixels.
 
 ``` r
 show(p, width = 10, height = 4)
@@ -198,10 +201,11 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
 - **Size.** A chart is drawn at its chunk's `fig.width` and `fig.height`
   (or `fig.asp`, `fig.dim`, R Markdown's `fig_width`/`fig_height` and
   Quarto's `fig-width`/`fig-height`), in inches, as knitr draws figures:
-  7 x 5 in in `html_document` and Quarto's HTML. `out.width` still sets
-  the width a chart is shown at, and a chart wider than the page shrinks to
-  fit it. The size changes the layout only; what a reader hears is the same
-  at every size. See [Chart size](#chart-size).
+  7 x 5 in in `html_document` and Quarto's HTML, but 3 x 3 in in
+  `html_vignette`, small enough that a Base R chart shows fewer tick labels
+  unless a chunk sets a larger size. `out.width` still sets the width a
+  chart is shown at, and a chart wider than the page shrinks to fit it.
+  See [Chart size](#chart-size) for what the size changes.
 - **Cache and animations.** A chunk cached with `cache = TRUE` brings its
   charts back; one cached with `cache = 1` or `cache = 2` shows knitr's
   static figures when it is rendered again from the cache.

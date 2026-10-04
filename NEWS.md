@@ -8,34 +8,36 @@
   `fig.width` take one: `show()` and `save_html()` take `width` and
   `height`, and `render_maidr()` takes `fig_width` and `fig_height`, while
   `maidr_output()`'s `width` and `height` still size the output on the
-  page. In R Markdown and Quarto a chart is drawn at its chunk's
-  `fig.width` and `fig.height`, so `fig.asp`, `fig.dim`, YAML `fig_width`
-  and `fig_height` and Quarto's `fig-width` and `fig-height` set it too.
-  The SVG is 72 pixels to the inch. Every chart used to be drawn at 7 x 5
-  in whatever was asked, and a `width` given to `show()` or `save_html()`
-  was silently ignored, except by the static picture of a chart maidr could
-  not read. Unset, the size is still 7 x 5 in, which is also the figure
-  size of `html_document` and Quarto's HTML, so their documents are
-  unchanged; a format with a figure size of its own, such as ioslides
-  (7.5 x 4.5 in), now draws its charts at it. A candlestick chart is still
-  never drawn smaller than 12 x 6 in, and a smaller size asked for is
-  enlarged with a message naming the size used. In a document that is a
-  size the chunk sets itself, and the message is among the chunk's own for
-  a ggplot2 chart and on the console for Base R's `chartSeries()`; drawn
-  larger than the document's figure size, a candlestick chart says nothing,
-  as before. A size that is not one positive number is an error naming the
-  argument, and so is one over 50 in, which `ggplot2::ggsave()` refuses
-  too: the error says the size is in inches, not the pixels
-  `maidr_output()` takes. A Base R chart too small for its margins and
-  text, which R cannot draw at that size either ("figure margins too
-  large"), is an error naming the size and R's reason rather than an empty
-  chart. The size changes how a chart is laid out and nothing a reader
-  hears: the
+  page. The SVG is 72 pixels to the inch. Every chart used to be drawn at
+  7 x 5 in whatever was asked, and a `width` given to `show()` or
+  `save_html()` was silently ignored, except by the static picture of a
+  chart maidr could not read. Unset, the size is still 7 x 5 in (#PR).
+* In R Markdown and Quarto a chart is drawn at its chunk's `fig.width` and
+  `fig.height`, so `fig.asp`, `fig.dim`, YAML `fig_width` and `fig_height`
+  and Quarto's `fig-width` and `fig-height` set it too. `html_document`
+  and Quarto's HTML draw figures at 7 x 5 in, so their documents are
+  unchanged. A format with a figure size of its own now draws its charts
+  at it: `html_vignette` at 3 x 3 in, where a Base R chart shows fewer tick
+  labels, ioslides at 7.5 x 4.5 in, slidy at 8 x 6 in (#PR).
+* A candlestick chart is still never drawn smaller than 12 x 6 in, and a
+  smaller size asked for is enlarged with a message naming the size used.
+  In a document that is a size the chunk sets itself, and the message is
+  among the chunk's own for a ggplot2 chart and on the console for Base
+  R's `chartSeries()`; drawn larger than the document's figure size, a
+  candlestick chart says nothing, as before (#PR).
+* A size that is not one positive number is an error naming the argument,
+  and so is one over 50 in, which `ggplot2::ggsave()` refuses too: the
+  error says the size is in inches, not the pixels `maidr_output()` takes.
+  A Base R chart too small for its margins and text, which R cannot draw at
+  that size either ("figure margins too large"), is an error naming the
+  size and R's reason rather than an empty chart (#PR).
+* The size changes how a chart is laid out and nothing a reader hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A
   lattice chart conditioned on one variable with no `layout =` gets the
-  columns lattice gives a page of its shape, and its subplot grid with them
-  (#PR).
+  columns lattice gives a page of its shape, and its subplot grid, the
+  order a reader moves through its panels in, with them: two panels are
+  1 x 2 at 7 x 5 in and 2 x 1 at 5 x 8 in (#PR).
 * `show(as_widget = TRUE)` no longer passes `width` and `height` on to the
   widget as its CSS size, which it did through `...` without saying so:
   they are the size the chart is drawn at, in inches, as everywhere in

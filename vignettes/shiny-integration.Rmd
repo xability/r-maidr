@@ -344,7 +344,8 @@ maidr_output("plot2", height = "auto")
 chart in it is drawn at the size `render_maidr()` gives it, in inches:
 `fig_width` and `fig_height`, 7 x 5 unless you set them. A chart wider than
 its output shrinks to fit, keeping its shape; nothing sizes it to the output
-for you. The data a reader hears is the same at every size.
+for you. The data a reader hears is the same at every size; `?show` says
+what the size does change.
 
 ```{r size-example}
 output$wide_plot <- render_maidr(

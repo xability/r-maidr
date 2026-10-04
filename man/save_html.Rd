@@ -35,9 +35,7 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 \item{width, height}{The size to draw the chart at, in inches: each a
 single positive number no larger than 50, or \code{NULL} (the default) for
 7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
-its default. With \code{as_widget = TRUE} they size the chart in the widget,
-not the widget, whose own CSS size is set on the widget returned:
-\code{widget$width <- "300px"}. See \strong{Chart size}.}
+its default. See \strong{Chart size}.}
 
 \item{...}{Additional arguments passed to internal functions}
 }
@@ -65,8 +63,13 @@ the inch: a 10 x 4 in chart is 720 pixels wide and 288 high. The size is
 the room the chart is laid out in -- how far apart its ticks and labels
 are, how lattice arranges its panels, where Base R puts its titles -- and
 not what maidr reads out: the data, titles and axis labels a reader
-hears are the same at every size. It is set by \code{width} and \code{height}
-here and in \code{\link[=save_html]{save_html()}}, by \code{fig_width} and \code{fig_height} in
+hears are the same at every size. Only how a reader moves between panels
+can change: lattice arranges the panels of a chart conditioned on one
+variable with no \verb{layout =} for the shape of the page, 1 x 2 at 7 x 5 in
+and 2 x 1 at 5 x 8 in for two panels, and the subplot grid a reader
+moves through follows; give \verb{layout =} to keep it. The size is set by
+\code{width} and \code{height} in \code{\link[=show]{show()}} and \code{\link[=save_html]{save_html()}}, by \code{fig_width} and
+\code{fig_height} in
 \code{\link[=render_maidr]{render_maidr()}}, and by the chunk's \code{fig.width} and \code{fig.height} in an
 R Markdown or Quarto document (see \code{\link[=maidr_on]{maidr_on()}}). Nothing else sets it:
 not the size of the device a chart was drawn on, nor the size of the

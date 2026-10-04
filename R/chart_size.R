@@ -4,9 +4,12 @@
 #' and knitr's `fig.width` measure one, and exported at 72 pixels to the inch:
 #' a 7 x 5 in chart is an SVG 504 px wide and 360 px high. The size sets the
 #' room the chart is laid out in -- how far apart its ticks and labels are,
-#' how much text fits beside a panel -- and nothing a reader hears: the data,
-#' axes and titles maidr announces are the same at every size. A page still
-#' shrinks a chart wider than itself to fit.
+#' how much text fits beside a panel -- and not what a reader hears: the
+#' data, axes and titles maidr announces are the same at every size. The one
+#' thing it changes for a reader is the grid of a lattice chart conditioned
+#' on one variable with no `layout =`, whose panels lattice arranges for the
+#' page's shape, and so the order a reader moves through them in. A page
+#' still shrinks a chart wider than itself to fit.
 #'
 #' @noRd
 NULL
