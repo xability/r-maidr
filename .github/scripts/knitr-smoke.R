@@ -23,8 +23,11 @@
 #   * a grid drawing maidr does not read, which stays knitr's own figure.
 #
 # Every chart's values are its own, so an announcement names the chart it
-# came from. The page is self-contained: maidr.js is embedded once, and no
-# file beside it is needed.
+# came from. The page sets its paragraphs in a size of its own, as an author
+# may, with a rule that also reaches the paragraphs of maidr's dialogs; the
+# rest of a dialog's text is not the page's to size. The page is
+# self-contained: maidr.js is embedded once, and no file beside it is
+# needed.
 #
 #     Rscript .github/scripts/knitr-smoke.R <out-dir>
 
@@ -48,6 +51,10 @@ writeLines(c(
   "library(maidr)",
   "library(ggplot2)",
   "library(lattice)",
+  "```",
+  "",
+  "```{css, echo = FALSE}",
+  ".main-container p { font-size: 18px; }",
   "```",
   "",
   "## ggplot2",
