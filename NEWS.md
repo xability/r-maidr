@@ -2,13 +2,70 @@
 
 ## New Features
 
+### R Markdown and Quarto
+
+* `library(maidr)` is all an R Markdown or Quarto document needs: every plot
+  it draws, with 'ggplot2', 'lattice' or Base R, becomes an accessible chart,
+  without `maidr_on()` in a setup chunk (#PR). maidr installs its 'knitr'
+  hooks into the knit when the document loads it, or at the first chart the
+  document draws, and does so again in every render of a session, so a
+  second `rmarkdown::render()`, and `R CMD build`, which renders every
+  vignette in one process, get charts too. `maidr_on()` still works, and
+  `maidr_off()` in a chunk knits the chunks after it as they would be
+  without maidr. maidr's startup message is no longer written into a
+  document.
+* In HTML output a chart is now part of the page, an `<svg>` in a raw HTML
+  block, where it used to be an iframe that loaded maidr.js for itself. The
+  page loads maidr.js once however many charts it has, from its `_files`
+  folder or embedded in a `self_contained` / `embed-resources` page, where a
+  document rendered offline used to carry a copy of the bundle in every
+  chart's frame. Every id of a chart is given a prefix of its own, so charts
+  sharing a page never reach into one another. This covers `html_document`
+  and the formats built on it, 'bookdown', Quarto (HTML, reveal.js,
+  dashboards and websites), 'revealjs', ioslides, slidy and
+  'flexdashboard'. Before maidr.js has loaded, and if it never does, a chart
+  is an image named by `fig.alt`, `fig.cap` or its title; once it has,
+  `fig.alt` and the caption describe it. An HTML fragment, EPUB,
+  'xaringan', 'pagedown' and `.Rhtml` keep each chart in an iframe of its
+  own, as does a chart that cannot be shown inline, with a warning.
+* In HTML output 'knitr' records a chunk's figures with 'svglite' instead of
+  its default png, so the figures that stay images are vector images too.
+  Only the default is replaced: a device a chunk names, a document device
+  other than png and the device of a cached chunk are kept.
+  `options(maidr.knitr_dev = FALSE)` keeps png for every chunk, for a
+  document whose `dev: png` is a choice, which cannot be told from the
+  default; see `?"maidr-options"`. A 'flexdashboard' gets SVG figures too,
+  with no separate copy for phones.
+* A chunk can draw several charts. A ggplot2 or lattice chart printed with
+  `print()`, in a loop or a function, used to stay a static image, and the
+  Base R charts of a chunk all became its first figure. Now each chart takes
+  the place of its own figure, so `fig.cap`, `fig.alt`, `fig.keep`,
+  `fig.show`, the `fig:label-1`, `fig:label-2` labels of 'bookdown' and
+  Quarto's `@fig-` references apply to it as they apply to the figure, and
+  charts held with `fig.show = "hold"` at an `out.width` sit side by side,
+  as knitr's images do. A chart a chunk returns is one of its figures too,
+  numbered and captioned with the others, and `results = "hide"` no longer
+  drops it. A figure that is not one chart maidr can read -- two charts on
+  one page, a chart something was drawn over, a grid drawing, a chart type
+  maidr does not read -- stays knitr's image rather than risk showing the
+  wrong chart. A chunk cached with `cache = TRUE` brings its charts back;
+  one cached with `cache = 1` or `cache = 2` brings back static figures.
+* The keys of the page around a chart no longer act while the chart has the
+  focus. A chart in a frame had its keys to itself; inline, the arrow keys,
+  Space and the other shortcuts of a reveal.js deck, the gitbook format of
+  'bookdown', a Quarto website's search, an ioslides or slidy deck, a
+  'flexdashboard' storyboard and the `/` search key of a 'pkgdown' site
+  would have acted on the keys maidr reads. Tab moves into a chart and
+  Shift+Tab out of it, after which the page's keys work again. The focus
+  ring stays visible on a page whose CSS removes outlines, and in forced
+  colours.
+
 ### lattice
 
 * Charts drawn by 'lattice' are now read (#333). `show()`, `save_html()`,
-  `show(as_widget = TRUE)`, `render_maidr()` in Shiny and, after
-  `maidr_on()`, R Markdown and Quarto take a trellis object, and printing
-  one at the console opens it in the maidr viewer, as printing a ggplot2
-  object does. Every lattice reading is experimental: none has been
+  `show(as_widget = TRUE)`, `render_maidr()` in Shiny, and R Markdown and
+  Quarto take a trellis object, and printing one at the console opens it in
+  the maidr viewer, as printing a ggplot2 object does. Every lattice reading is experimental: none has been
   through a user study, and each may change without a deprecation period.
   'lattice' is now in Suggests, as is 'latticeExtra', which only the tests
   use.
@@ -70,12 +127,12 @@
   console while a Base R chart waits for `show()` goes on a screen, with
   the theme set by `trellis.par.set()`, not onto the hidden device maidr
   records that chart on. In R Markdown and Quarto a chart the chunk returns
-  is made accessible, while one the chunk draws with `print(p)` stays a
-  static image. `options(maidr.lattice = FALSE)` leaves lattice printing
-  alone, and setting it back to `TRUE` takes effect at the next print; see
-  `?"maidr-options"`. Saving, showing or knitting a chart leaves lattice's
-  own record of the chart it drew last -- the one `trellis.focus()` and
-  `trellis.last.object()` act on -- as it was.
+  and one it draws with `print(p)` are both made accessible, each in place
+  of its own figure. `options(maidr.lattice = FALSE)` leaves lattice
+  printing alone, and setting it back to `TRUE` takes effect at the next
+  print; see `?"maidr-options"`. Saving, showing or knitting a chart leaves
+  lattice's own record of the chart it drew last -- the one
+  `trellis.focus()` and `trellis.last.object()` act on -- as it was.
 
 ### webR
 
@@ -121,6 +178,28 @@
 
 ## Bug Fixes
 
+### R Markdown and Quarto
+
+* A Quarto document holding a chart made with `maidr_htmlwidget()` renders
+  again. Quarto copies every dependency of a page from disk, and stopped
+  with "Dependency maidr-locale-config 1.0.0 is not disk-based", or the same
+  of `maidr-dotpad-config` when a DotPad SDK location is set. The two
+  dependencies, which only write to the page's `<head>`, now name the
+  bundle's directory without declaring any file in it (#PR).
+* A Base R chart in an R Markdown or Quarto document is read from the
+  chunk's own graphics device. maidr read whichever device was current when
+  'knitr' wrote the figure, which is the chunk's only when no other device
+  is open: with a `pdf()` left open, or the IDE's screen when the document
+  is rendered from the console, a chunk's Base R chart came out as a static
+  image, and a chart drawn at the console and never shown could be shown in
+  place of the figure of a chunk that drew no Base R chart (#PR).
+* In Markdown output (`github_document`, `md_document`, a plain
+  `knitr::knit()` of an `.Rmd`) a chart is drawn by its library as one of
+  knitr's figures. It used to be an iframe, which GitHub drops, and online
+  'rmarkdown' stopped the render, refusing the HTML dependency the frame
+  brought ("Functions that produce HTML output found in document targeting
+  ...") (#PR).
+
 ### ggplot2
 
 * A layer that maps x or y in its own `aes()` is read under the axis title,
@@ -155,9 +234,17 @@
   uses, so nothing appeared, and a later `show()` opened an empty scatter
   plot. The call now passes straight to the package's own `plot()` method
   (#333).
+* `layout(1)`, and `par(op)` with the settings `op <- par(mfrow = ...)`
+  saved, are read as the resets they are: a chart drawn after one is read
+  as a single panel. maidr kept the grid set before the reset, and described
+  the chart as one panel of a grid whose other panel was empty (#PR).
 
 ## Documentation
 
+* The README gains an "R Markdown and Quarto" section, and it, the
+  getting-started vignette, `?maidr_on` and the examples say that
+  `library(maidr)` is enough in a document; the example articles no longer
+  call `maidr_on()` (#PR).
 * A new examples article, "lattice Chart Examples", shows every lattice
   reading on a small chart, each marked **[experimental]**, and is listed
   under "Experimental plot families" on the examples hub and in the
