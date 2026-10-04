@@ -14,8 +14,7 @@ A string, or NA
 }
 \description{
 \code{deparse1()}, as nearly every Base R chart deparses its arguments. NA for
-a constant, whose value deparses to what was written anyway; for text
-longer than R allows a symbol's name (10,000 bytes); and for \code{...} and
-\code{..1}, which R reads as the dots of the frame they are evaluated in.
+a constant, whose value deparses to what was written anyway, and for a
+text no symbol can carry (\code{symbol_text()}).
 }
 \keyword{internal}

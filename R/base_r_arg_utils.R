@@ -342,9 +342,8 @@ read_substituted_formals <- function(definition) {
 #' The text an argument was written as, when a symbol can carry it
 #'
 #' `deparse1()`, as nearly every Base R chart deparses its arguments. NA for
-#' a constant, whose value deparses to what was written anyway; for text
-#' longer than R allows a symbol's name (10,000 bytes); and for `...` and
-#' `..1`, which R reads as the dots of the frame they are evaluated in.
+#' a constant, whose value deparses to what was written anyway, and for a
+#' text no symbol can carry (`symbol_text()`).
 #'
 #' @param expr The expression an argument was written as
 #' @return A string, or NA
@@ -353,7 +352,19 @@ written_label <- function(expr) {
   if (!is.call(expr) && !is.name(expr)) {
     return(NA_character_)
   }
-  text <- tryCatch(deparse1(expr), error = function(e) NA_character_)
+  symbol_text(tryCatch(deparse1(expr), error = function(e) NA_character_))
+}
+
+#' A text, when a symbol replayed under it would carry it
+#'
+#' NA for an empty text; for one longer than R allows a symbol's name
+#' (10,000 bytes); and for `...` and `..1`, which R reads as the dots of the
+#' frame they are evaluated in.
+#'
+#' @param text A string, or NA
+#' @return `text`, or NA
+#' @keywords internal
+symbol_text <- function(text) {
   usable <- !is.na(text) && nzchar(text) &&
     nchar(text, type = "bytes") <= 10000L &&
     !grepl("^(\\.\\.\\.|\\.\\.[0-9]+)$", text)

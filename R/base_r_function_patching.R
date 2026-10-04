@@ -1170,14 +1170,22 @@ curve_default_labels <- function(recorded_args) {
 #' (`curve_recorded_values()`), and `detect_layer_type()` reads the call
 #' as it reads `curve()`.
 #'
+#' The replay that draws maidr's chart is given, in place of the function,
+#' one that returns those same y values (`drawn_values_function()`): `curve()`
+#' evaluates it at the x it drew at, so maidr draws what R drew and what is
+#' announced. Called again, the function itself would be evaluated against
+#' whatever its free variables hold by then: after
+#' `for (k in 1:2) plot(function(x) sin(k * x), 0, pi)` both panels were drawn
+#' as `sin(2 * x)`, and once `k` was removed the chart was drawn blank.
+#'
 #' The axis titles are `plot.function()`'s. The x axis is `xname`, which it
 #' hands on to `curve()`. The y axis is the first line of the function as
 #' written, `deparse(substitute(x))[1L]`: "sin" for `plot(sin)`, where
-#' `curve(sin)` writes "sin(x)". The replay draws maidr's chart under the
-#' name `arg_text` gives the function, which `written_label()` makes the
-#' whole text on one line, so that entry is set to the same first line: a
-#' function written over several lines is titled as R titled it, in the
-#' drawing and in the data.
+#' `curve(sin)` writes "sin(x)". The replay passes the function under a
+#' symbol named by its `arg_text` entry, so that entry is set to the same
+#' first line: a function written over several lines is titled as R titled
+#' it, in the drawing and in the data, and so is one handed over as a
+#' value, as `do.call()` does.
 #'
 #' @param target `graphics::plot.function()`, which the call dispatched to
 #' @param args Recorded argument list, as `match_recorded_args()` names it
@@ -1186,7 +1194,8 @@ curve_default_labels <- function(recorded_args) {
 #' @param written The expressions the arguments were written as
 #' @param value The value `plot()` returned
 #' @return List with `args`, holding the points under `.maidr_curve_data`
-#'   when `value` is what `curve()` returns, and `arg_text`
+#'   and the function that returns them in place of the one plotted when
+#'   `value` is what `curve()` returns, and `arg_text`
 #' @keywords internal
 plot_function_values <- function(target, args, arg_text, written, value) {
   values <- curve_recorded_values(args, value)
@@ -1200,13 +1209,26 @@ plot_function_values <- function(target, args, arg_text, written, value) {
   if (!is.na(at) && at <= length(written)) {
     title <- deparse(written[[at]])[1L]
     values$labels$y <- title
-    if (!is.na(arg_text[at])) {
-      arg_text[at] <- title
-    }
+    arg_text[at] <- symbol_text(title)
+    args[[at]] <- drawn_values_function(values$y)
   }
 
   args$.maidr_curve_data <- values
   list(args = args, arg_text = arg_text)
+}
+
+#' A function that returns the values a plotted function was drawn at
+#'
+#' Stands in for the function in a recorded `plot(f)` call; see
+#' `plot_function_values()`. Its environment holds those values alone, not
+#' the frame it was made in.
+#'
+#' @param y The y values `curve()` drew
+#' @return A function of `x` returning `y`
+#' @keywords internal
+drawn_values_function <- function(y) {
+  force(y)
+  function(x) y
 }
 
 #' Create enhanced wrapper for barplot with sorting logic

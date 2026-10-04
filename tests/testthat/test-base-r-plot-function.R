@@ -292,6 +292,56 @@ test_that("a function written over several lines is titled with its first, as R 
   pf_expect_line(layer, pf_native_points(function(x) x^2 + 1, -1, 1))
 })
 
+test_that("plot(f) is drawn from the values R drew, whatever its variables hold by the save", {
+  # maidr's chart is drawn by replaying the call when it is saved. Replayed
+  # with the function itself, the function was evaluated again against what
+  # its free variables held by then, while the data announced kept the
+  # values R drew: both panels of the loop were drawn as sin(2 * x), the
+  # second chart as sin(3 * x), and the third, with `k` gone, blank.
+  looped_call <- quote({
+    par(mfrow = c(1, 2))
+    for (k in 1:2) plot(function(x) sin(k * x), 0, pi)
+  })
+  looped <- pf_exported(looped_call)
+  testthat::expect_identical(looped$strings, pf_native_strings(looped_call))
+  pf_expect_line(pf_layer(looped$schema, 1, 1), pf_native_points(function(x) sin(x), 0, pi))
+  pf_expect_line(
+    pf_layer(looped$schema, 1, 2), pf_native_points(function(x) sin(2 * x), 0, pi),
+    group = 2
+  )
+
+  drawn_call <- quote({
+    k <- 1
+    f <- function(x) sin(k * x)
+    plot(f, 0, pi)
+  })
+  native <- pf_native_strings(drawn_call)
+  changed <- pf_exported(quote({
+    k <- 1
+    f <- function(x) sin(k * x)
+    plot(f, 0, pi)
+    k <- 3
+  }))
+  testthat::expect_identical(changed$strings, native)
+
+  removed <- pf_exported(quote({
+    k <- 1
+    f <- function(x) sin(k * x)
+    plot(f, 0, pi)
+    rm(k)
+  }))
+  testthat::expect_identical(removed$strings, native)
+  testthat::expect_true(grepl("<polyline", removed$html, fixed = TRUE))
+  testthat::expect_identical(removed$warnings, character(0))
+  pf_expect_line(pf_layer(removed$schema), pf_native_points(function(x) sin(x), 0, pi))
+
+  # Handed over as a value, the function is titled as R titles it.
+  handed_call <- quote(do.call(plot, list(sin, -pi, pi)))
+  handed <- pf_exported(handed_call)
+  testthat::expect_identical(handed$strings, pf_native_strings(handed_call))
+  testthat::expect_identical(pf_layer(handed$schema)$axes$y$label, ".Primitive(\"sin\")")
+})
+
 test_that("plot(f, add = TRUE) over a chart is shown as its picture, as curve(add = TRUE) is", {
   # The function is drawn over the chart before it, and the chart exported
   # is the first drawing alone: read as a chart, the function would be

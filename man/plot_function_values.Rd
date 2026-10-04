@@ -20,7 +20,8 @@ plot_function_values(target, args, arg_text, written, value)
 }
 \value{
 List with \code{args}, holding the points under \code{.maidr_curve_data}
-when \code{value} is what \code{curve()} returns, and \code{arg_text}
+and the function that returns them in place of the one plotted when
+\code{value} is what \code{curve()} returns, and \code{arg_text}
 }
 \description{
 \code{plot(f)} dispatches to \code{graphics::plot.function()}, which draws \code{f} by
@@ -37,13 +38,21 @@ so they are kept as the \code{curve()} wrapper keeps its own
 (\code{curve_recorded_values()}), and \code{detect_layer_type()} reads the call
 as it reads \code{curve()}.
 
+The replay that draws maidr's chart is given, in place of the function,
+one that returns those same y values (\code{drawn_values_function()}): \code{curve()}
+evaluates it at the x it drew at, so maidr draws what R drew and what is
+announced. Called again, the function itself would be evaluated against
+whatever its free variables hold by then: after
+\code{for (k in 1:2) plot(function(x) sin(k * x), 0, pi)} both panels were drawn
+as \code{sin(2 * x)}, and once \code{k} was removed the chart was drawn blank.
+
 The axis titles are \code{plot.function()}'s. The x axis is \code{xname}, which it
 hands on to \code{curve()}. The y axis is the first line of the function as
 written, \code{deparse(substitute(x))[1L]}: "sin" for \code{plot(sin)}, where
-\code{curve(sin)} writes "sin(x)". The replay draws maidr's chart under the
-name \code{arg_text} gives the function, which \code{written_label()} makes the
-whole text on one line, so that entry is set to the same first line: a
-function written over several lines is titled as R titled it, in the
-drawing and in the data.
+\code{curve(sin)} writes "sin(x)". The replay passes the function under a
+symbol named by its \code{arg_text} entry, so that entry is set to the same
+first line: a function written over several lines is titled as R titled
+it, in the drawing and in the data, and so is one handed over as a
+value, as \code{do.call()} does.
 }
 \keyword{internal}
