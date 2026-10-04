@@ -12,10 +12,21 @@
 #'
 #' In an R Markdown or Quarto document, `library(maidr)` is enough: the
 #' first plot the document draws installs the knitr hooks that make every
-#' plot of it an accessible chart, in each render of a session. In HTML
-#' output the charts are part of the page, which loads maidr.js once. Calling
+#' plot of it an accessible chart, in each render of a session. Calling
 #' `maidr_on()` yourself is needed after [maidr_off()], to start again; in a
 #' document, it installs the hooks at once.
+#'
+#' In HTML output the charts are part of the page, which loads maidr.js once
+#' for all of them, and the static figures of a chunk are recorded with
+#' svglite rather than knitr's default png (`maidr.knitr_dev` in
+#' [maidr-options] turns that off). A chunk can draw several charts --
+#' `print(p)` in a loop, several Base R charts -- and each takes the place of
+#' its own figure; a figure maidr cannot read as one chart stays knitr's
+#' image. HTML that cannot hold a chart in the page, such as an HTML
+#' fragment, EPUB or xaringan, shows each chart in a frame of its own. In
+#' PDF, Word or Markdown output the plots are knitr's figures, as without
+#' maidr. A chart a document draws never opens the viewer; an explicit
+#' [show()] still does.
 #'
 #' A chunk cached with `cache = TRUE` brings its charts back from knitr's
 #' cache. One cached with `cache = 1` or `cache = 2` shows them only when its
@@ -432,7 +443,9 @@ maidr_plot_hook <- function(x, options, original = NULL) {
 
 #' Wrap a chart in its iframe for a knitted document
 #'
-#' Online, the frame loads maidr.js from the CDN, and the document is given
+#' For HTML output that cannot show a chart inline (see
+#' `knitr_chart_output()`), and for a chart that could not be. Online, the
+#' frame loads maidr.js from the CDN, and the document is given
 #' its own copy of the bundle ([maidr_page_bundle_dependency()]) for the frame
 #' to fall back on. The frame's document sits in a `srcdoc` attribute, where
 #' R Markdown's `self_contained` and Quarto's `embed-resources` cannot reach
@@ -521,9 +534,9 @@ is_html_output <- function() {
 
 #' Create inline image HTML for non-iframe rendering
 #'
-#' Creates a simple img tag for fallback/non-HTML output.
-#' Used when we don't need iframe isolation (unsupported plots in HTML,
-#' or any plot in PDF/EPUB output).
+#' Creates a simple img tag for a chart MAIDR cannot read, when the chunk's
+#' code asks `knit_print()` for it itself (see [knit_print.ggplot()]); a
+#' chart knitr prints for a chunk stays knitr's own figure instead.
 #'
 #' @param plot A ggplot object or NULL for Base R
 #' @param width Width for the image container

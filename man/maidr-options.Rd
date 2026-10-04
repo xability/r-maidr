@@ -19,13 +19,28 @@ When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
 instead of the standard graphics device. Default: TRUE.}
 \item{\code{maidr.lattice}}{Logical. Enable lattice auto-display. When
 TRUE, a lattice (trellis) object printed at the console to the screen
-is rendered in the MAIDR viewer, and \code{maidr_on()} makes the ones
-an R Markdown or Quarto document prints accessible. A print into a
-file device, or one that places the chart on a shared page with
-\code{split}, \code{position} or \code{more}, is drawn by lattice as
-before. Default: TRUE.}
+is rendered in the MAIDR viewer, and the ones an R Markdown or Quarto
+document draws, returned from a chunk or printed in it, are accessible
+charts. A print into a file device, or one that places the chart on a
+shared page with \code{split}, \code{position} or \code{more}, is
+drawn by lattice as before. Default: TRUE.}
 \item{\code{maidr.startup_message}}{Logical. Show startup message when
 package is loaded. Default: TRUE.}
+\item{\code{maidr.knitr_dev}}{Logical. In an R Markdown or Quarto
+document rendered to HTML, maidr records the static figures of a chunk
+with \code{svglite} rather than knitr's default \code{png}, so they are
+vector images like its charts. Only that default is replaced: a device
+a chunk names (\code{dev = "png"} in its header or a \code{#|} line)
+is kept, as is a document device other than \code{png}, the device of
+a cached chunk, and that of a chunk in another language than R. The
+switch starts with the chunk after the one that installs maidr into
+the document: the chunk that loads maidr, or, in a session that loaded
+it before the render, the first one that draws a chart or calls
+\code{maidr_on()}. Set this to \code{FALSE}, before the render or in
+the setup chunk, to keep \code{png} for every chunk: a document whose
+\code{png} is a choice, \code{dev: png} in its YAML header or Quarto's
+\code{knitr: opts_chunk: dev: png}, cannot be told from the default.
+Charts are inline either way. Default: TRUE.}
 \item{\code{maidr.dotpad_sdk_url}}{Character. URL of a copy of the DotPad
 tactile-display SDK module (\code{DotPadSDK-3.0.3.js}) that you serve
 yourself. maidr.js does not bundle the SDK, whose braille engine is a
@@ -84,6 +99,9 @@ options(maidr.auto_show = FALSE)
 # Suppress startup message
 options(maidr.startup_message = FALSE)
 
+# Keep knitr's png for the static figures of an R Markdown or Quarto page
+options(maidr.knitr_dev = FALSE)
+
 # Serve the DotPad SDK from your own server instead of jsDelivr
 options(
   maidr.dotpad_sdk_url = "https://example.org/vendor/DotPadSDK-3.0.3.js",
@@ -111,10 +129,10 @@ The other way to keep a DotPad off the network is to download the SDK
 once with \code{\link{maidr_download_dotpad_sdk}()}: \code{show()} and
 \code{save_html()} then copy it into \code{lib/dotpad-sdk-<version>/} beside
 every \code{use_cdn = FALSE} document and declare the globals with that
-relative path. A configured URL wins over a downloaded copy. The widget,
-knitr and Shiny paths render their charts in \code{srcdoc} frames, where a
-relative path has nothing to resolve against, so they use only the URL
-options.
+relative path. A configured URL wins over a downloaded copy. The widget
+and Shiny paths render their charts in \code{srcdoc} frames, where a
+relative path has nothing to resolve against, and a knitted document does
+not carry the downloaded copy, so they use only the URL options.
 }
 
 \section{Languages other than English}{
@@ -137,12 +155,15 @@ English when they are not. A page that declares
 \section{Which MAIDR.js the CDN serves}{
 
 Documents that load MAIDR.js from the jsDelivr CDN -- \code{show()} and
-\code{save_html()} with \code{use_cdn = TRUE}, and the widget, knitr and
-Shiny paths when they find the machine online -- load the latest
-published MAIDR.js, as the Python binding does. Documents rendered with
+\code{save_html()} with \code{use_cdn = TRUE}, and the widget and Shiny
+paths when they find the machine online -- load the latest published
+MAIDR.js, as the Python binding does. Documents rendered with
 \code{use_cdn = FALSE} load the copy bundled with this package, and reach
 the network only for the two things described above: a DotPad's SDK and
-a language other than English.
+a language other than English. So does a knitted R Markdown or Quarto
+page, which loads the bundled copy once for all its charts; only the
+charts kept in frames of their own, in outputs such as an HTML fragment,
+EPUB or xaringan, load the CDN copy when the machine is online.
 
 The first CDN document in an R session asks which version is the latest:
 jsDelivr's data API

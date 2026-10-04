@@ -14,7 +14,7 @@
 #'   \item \code{\link{show}}: Display an interactive MAIDR plot in the browser or RStudio Viewer
 #'   \item \code{\link{save_html}}: Save a plot as a standalone HTML file
 #'   \item \code{\link{run_example}}: Run interactive example plots
-#'   \item \code{\link{maidr_on}}: Enable automatic MAIDR interception in RMarkdown
+#'   \item \code{\link{maidr_on}}: Turn automatic MAIDR interception back on
 #'   \item \code{\link{maidr_off}}: Disable automatic MAIDR interception
 #'   \item \code{\link{render_maidr}}: Render MAIDR plots in Shiny applications
 #'   \item \code{\link{maidr_output}}: Create MAIDR output container for Shiny UI
@@ -101,7 +101,8 @@
 #' The package integrates seamlessly with:
 #' \itemize{
 #'   \item \strong{RStudio}: Direct display in the Viewer pane
-#'   \item \strong{RMarkdown/Quarto}: Automatic rendering with \code{maidr_on()}
+#'   \item \strong{R Markdown/Quarto}: \code{library(maidr)} in the document
+#'     makes its plots accessible charts, inline in an HTML page
 #'   \item \strong{Shiny}: Interactive plots in Shiny apps via \code{render_maidr()}
 #'   \item \strong{Standalone HTML}: Export plots for sharing with \code{save_html()}
 #' }

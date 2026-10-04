@@ -21,6 +21,8 @@ Invisible ggplot object
 \description{
 When MAIDR interception is enabled, this renders ggplot objects in the
 MAIDR interactive viewer. For unsupported plots, it falls back to the
-original ggplot2 rendering.
+original ggplot2 rendering, as it does for every plot printed while knitr
+runs: a document's chart is a figure of its chunk, not a viewer's, which
+knitr's plot hook shows as the chart (see \code{draw_as_knit_figure()}).
 }
 \keyword{internal}

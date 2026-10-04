@@ -22,7 +22,7 @@ no network request)
 \item \code{NULL} (default): Use the bundled files, so the viewer
 works offline. With \code{as_widget = TRUE} the widget instead
 auto-detects internet availability and uses the CDN when online,
-as the knitr and Shiny paths do.
+as the Shiny path does.
 }}
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}

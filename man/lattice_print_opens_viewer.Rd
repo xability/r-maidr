@@ -29,8 +29,9 @@ idiom for arranging several;
 \item a print onto a device that is not a screen: a file the user opened with
 \code{pdf()} or \code{png()} expects the chart in the file, and \code{grid.grabExpr()}
 or \code{ggplotify::as.grob()} expect it on their own off-screen device;
-\item a print while knitr is running, which is \code{knit_print.trellis()}'s to
-make accessible, or inside a Shiny render, which is \code{render_maidr()}'s;
+\item a print while knitr is running, which draws a figure of the chunk
+that knitr's plot hook makes accessible, or inside a Shiny render,
+which is \code{render_maidr()}'s;
 \item a print outside an interactive session, where there is no viewer to open;
 \item a print MAIDR makes while it renders, and any print after \code{maidr_off()}
 or under \code{options(maidr.lattice = FALSE)}.

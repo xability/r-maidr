@@ -11,6 +11,13 @@ TRUE if rendering to HTML, FALSE otherwise
 }
 \description{
 Detects whether the current RMarkdown document is being rendered to HTML
-format (html_document, bookdown, etc.) vs non-HTML formats (pdf, epub, etc.)
+format (html_document, bookdown, etc.) vs non-HTML formats (pdf, etc.)
+}
+\details{
+Markdown output (\code{github_document}, \code{md_document}, \code{knitr::knit()} of an
+\code{.Rmd}), which knitr also counts as HTML, is not: GitHub and most Markdown
+viewers drop an iframe, and rmarkdown refuses the dependency a frame
+brings, so a chart in one was either lost or stopped the render. Its
+charts are drawn as their libraries draw them, as knitr's figures.
 }
 \keyword{internal}

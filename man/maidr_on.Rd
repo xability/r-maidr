@@ -19,11 +19,30 @@ or lattice object opens it in the MAIDR viewer, and Base R plotting calls
 are recorded until \code{\link[=show]{show()}} is called. lattice is reached through its own
 hook, \code{lattice.options(print.function = )}, which maidr sets once lattice's
 namespace is loaded; a print function set before is kept, and draws the
-prints maidr leaves to lattice. Calling \code{maidr_on()} yourself is needed
-in two places: after \code{\link[=maidr_off]{maidr_off()}}, to start again, and once in the setup
-chunk of an R Markdown or Quarto document, where it registers the
-\code{knit_print} methods and the plot hook that turn every plot the document
-draws into an accessible chart. \code{library(maidr)} alone installs neither.
+prints maidr leaves to lattice.
+
+In an R Markdown or Quarto document, \code{library(maidr)} is enough: the
+first plot the document draws installs the knitr hooks that make every
+plot of it an accessible chart, in each render of a session. Calling
+\code{maidr_on()} yourself is needed after \code{\link[=maidr_off]{maidr_off()}}, to start again; in a
+document, it installs the hooks at once.
+
+In HTML output the charts are part of the page, which loads maidr.js once
+for all of them, and the static figures of a chunk are recorded with
+svglite rather than knitr's default png (\code{maidr.knitr_dev} in
+\link{maidr-options} turns that off). A chunk can draw several charts --
+\code{print(p)} in a loop, several Base R charts -- and each takes the place of
+its own figure; a figure maidr cannot read as one chart stays knitr's
+image. HTML that cannot hold a chart in the page, such as an HTML
+fragment, EPUB or xaringan, shows each chart in a frame of its own. In
+PDF, Word or Markdown output the plots are knitr's figures, as without
+maidr. A chart a document draws never opens the viewer; an explicit
+\code{\link[=show]{show()}} still does.
+
+A chunk cached with \code{cache = TRUE} brings its charts back from knitr's
+cache. One cached with \code{cache = 1} or \code{cache = 2} shows them only when its
+code runs: rendered again from the cache, its figures are knitr's static
+images, since the charts they were drawn from are not cached with them.
 }
 \examples{
 \donttest{

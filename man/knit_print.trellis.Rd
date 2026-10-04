@@ -4,7 +4,7 @@
 \alias{knit_print.trellis}
 \title{Custom knit_print Method for lattice (trellis) Objects}
 \usage{
-knit_print.trellis(x, options = list(), ...)
+\method{knit_print}{trellis}(x, options = list(), ...)
 }
 \arguments{
 \item{x}{A trellis object}
@@ -14,21 +14,24 @@ knit_print.trellis(x, options = list(), ...)
 \item{...}{Additional arguments (ignored)}
 }
 \value{
-A knit_asis object containing the iframe HTML or inline image
+A knit_asis object holding the chart, or \code{NULL} (invisible) when
+the chart is drawn natively
 }
 \description{
 Converts a trellis object a chunk returns to an accessible MAIDR chart,
-as \code{knit_print.ggplot()} does for a ggplot object: in its own iframe
-in HTML output, as an inline image when the chart cannot be read, and as
-lattice draws it in any other output format.
+as \code{knit_print.ggplot()} does for a ggplot object: inline in an HTML
+page, in its own iframe in other HTML output, and as lattice draws it in
+any other output format. A chart knitr prints for a chunk is one of the
+chunk's figures, drawn by lattice, and the chart is shown in its place --
+unless lattice draws it onto a page a \code{print(more = TRUE)} left open,
+whose figure stays knitr's. One the chunk's code asks \code{knit_print()}
+for itself is returned as the chart's Markdown, or as an inline image
+when the chart cannot be read.
 }
 \details{
-Only a chart the chunk returns reaches this method. One the chunk prints
-itself -- \code{print(p)}, lattice's idiom for a chart inside a loop or a
-function -- is drawn by lattice onto knitr's device and included as the
-figure knitr records, since knitr does not route an explicit print
-through \code{knit_print}. A Base R chart drawn later in the same chunk
-takes that figure's place: the plot hook hands the first figure of a
-chunk whose device recorded Base R calls to those calls.
+A chart the chunk prints itself -- \code{print(p)}, lattice's idiom for a
+chart inside a loop or a function -- does not reach this method, since
+knitr does not route an explicit print through \code{knit_print}; it is
+a figure of the chunk all the same.
 }
 \keyword{internal}

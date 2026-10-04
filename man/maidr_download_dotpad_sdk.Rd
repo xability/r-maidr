@@ -42,11 +42,11 @@ next to every \code{use_cdn = FALSE} document and tell maidr.js where it is, so
 a reader connects a DotPad without the network. A file already present and
 correct is left alone, so a second call costs nothing.
 
-A page served from somewhere else -- an intranet host, or a knitr document,
-whose charts live in \code{srcdoc} frames with no base URL for a relative path
-to resolve against -- names its copy by URL instead, through the options
-\code{maidr.dotpad_sdk_url} and \code{maidr.dotpad_asset_base_url}; see
-\link{maidr-options}. A configured URL wins over a downloaded copy.
+A page served from somewhere else -- an intranet host, or a knitted
+document, which does not carry the downloaded copy -- names its copy by
+URL instead, through the options \code{maidr.dotpad_sdk_url} and
+\code{maidr.dotpad_asset_base_url}; see \link{maidr-options}. A configured URL wins
+over a downloaded copy.
 }
 \examples{
 \dontrun{
