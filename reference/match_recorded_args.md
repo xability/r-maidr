@@ -10,7 +10,12 @@ assigned, once, for every processor.
 ## Usage
 
 ``` r
-match_recorded_args(function_name, definition, args)
+match_recorded_args(
+  function_name,
+  definition,
+  args,
+  target = dispatched_definition(function_name, definition, args)
+)
 ```
 
 ## Arguments
@@ -26,6 +31,11 @@ match_recorded_args(function_name, definition, args)
 - args:
 
   Recorded argument list of evaluated values
+
+- target:
+
+  The definition the call dispatched to, when the caller has resolved it
+  already
 
 ## Value
 

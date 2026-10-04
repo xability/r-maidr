@@ -123,7 +123,7 @@ pairing positionally. Nothing is sorted.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-02">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -300,11 +300,10 @@ empty and the chart on the fallback rather than shipping half of it.</p><div cla
 whenever the caller does not, and <code>datax = TRUE</code> swaps them along with
 the axes – both are constants in the function's own signature, so
 they are the labels the chart really carries rather than a guess.</p>
-<p><code><a href="base-r-wrappers.html">qqplot()</a></code> has no such defaults: its are <code>deparse1(substitute(x))</code>,
-the caller's expression, which is gone by the time the wrapper has
-recorded evaluated values. So a <code><a href="base-r-wrappers.html">qqplot()</a></code> the caller did not label is
-left unlabelled for the renderer's generic, on the same reasoning the
-point processor already states – a guessed noun is worse than none.</p>
+<p><code><a href="base-r-wrappers.html">qqplot()</a></code> has no such constants: its are <code>deparse1(substitute(x))</code>
+and <code>deparse1(substitute(y))</code>, how the caller wrote the two samples,
+which the recorded call keeps beside the values
+(<code><a href="written_axis_titles.html">written_axis_titles()</a></code>).</p>
 <p>The grid is computed from the drawn pairs, not from the recorded
 arguments: those are the samples, and on <code>qqnorm</code> one of the two axes
 is not a sample at all.</p><div class="section">

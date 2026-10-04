@@ -33,7 +33,7 @@ and selector generation logic.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -306,14 +306,14 @@ default is freq = TRUE only for equidistant breaks.</p><div class="section">
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-extract_axis_titles"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-extract-axis-titles-"><code>BaseRHistogramLayerProcessor$extract_axis_titles()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-extract-axis-titles-"></a></h3>
 <p>Extract the axis titles for this layer</p>
-<p><code><a href="base-r-wrappers.html">hist()</a></code> derives both titles inside the call and so records neither:
-the x title is <code>deparse(substitute(x))</code>, which is gone by the time the
-evaluated arguments reach us, and the y title is "Frequency" or
-"Density" depending on what the bars measure. The y default therefore
-repeats hist()'s own choice – resolved by the same rule that decides
-which values extract_data() emits, so the noun always names the number
-being announced – while x says only what the axis certainly holds:
-the bins.</p><div class="section">
+<p><code><a href="base-r-wrappers.html">hist()</a></code> derives both titles inside the call and so records neither.
+The x title is <code>deparse1(substitute(x))</code>, how <code>x</code> was written, which
+the recorded call keeps beside the values (<code><a href="written_axis_titles.html">written_axis_titles()</a></code>);
+when it kept none, x says only what the axis certainly holds: the
+bins. The y title is "Frequency" or "Density" depending on what the
+bars measure, so the default repeats hist()'s own choice – resolved by
+the same rule that decides which values extract_data() emits, so the
+noun always names the number being announced.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_axis_titles</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
@@ -351,7 +351,10 @@ the bins.</p><div class="section">
 
 <p></p><hr><a id="method-BaseRHistogramLayerProcessor-extract_main_title"></a><div class="section">
 <h3 id="baserhistogramlayerprocessor-extract-main-title-"><code>BaseRHistogramLayerProcessor$extract_main_title()</code><a class="anchor" aria-label="anchor" href="#baserhistogramlayerprocessor-extract-main-title-"></a></h3>
-<p>The main title of the recorded call, or an empty string</p><div class="section">
+<p>The main title of the recorded call, or the one hist()
+writes</p>
+<p><code>hist(x)</code> titles itself "Histogram of" how <code>x</code> was written unless the
+call gives a <code>main</code>, <code>NULL</code> and <code>""</code> included.</p><div class="section">
 <h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRHistogramLayerProcessor</span><span class="op">$</span><span class="fu">extract_main_title</span><span class="op">(</span><span class="va">layer_info</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">

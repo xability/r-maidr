@@ -148,13 +148,10 @@ constants in the function's own signature, so they are the labels the
 chart really carries rather than a guess.
 
 [`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) has no
-such defaults: its are `deparse1(substitute(x))`, the caller's
-expression, which is gone by the time the wrapper has recorded evaluated
-values. So a
-[`qqplot()`](https://r.maidr.ai/reference/base-r-wrappers.md) the caller
-did not label is left unlabelled for the renderer's generic, on the same
-reasoning the point processor already states – a guessed noun is worse
-than none.
+such constants: its are `deparse1(substitute(x))` and
+`deparse1(substitute(y))`, how the caller wrote the two samples, which
+the recorded call keeps beside the values
+([`written_axis_titles()`](https://r.maidr.ai/reference/written_axis_titles.md)).
 
 The grid is computed from the drawn pairs, not from the recorded
 arguments: those are the samples, and on `qqnorm` one of the two axes is

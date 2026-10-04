@@ -37,7 +37,7 @@ the names R itself assigned, once, for every processor.'><meta property="og:imag
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-09">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -100,7 +100,12 @@ the names R itself assigned, once, for every processor.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">match_recorded_args</span><span class="op">(</span><span class="va">function_name</span>, <span class="va">definition</span>, <span class="va">args</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">match_recorded_args</span><span class="op">(</span></span>
+<span>  <span class="va">function_name</span>,</span>
+<span>  <span class="va">definition</span>,</span>
+<span>  <span class="va">args</span>,</span>
+<span>  target <span class="op">=</span> <span class="fu"><a href="dispatched_definition.html">dispatched_definition</a></span><span class="op">(</span><span class="va">function_name</span>, <span class="va">definition</span>, <span class="va">args</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -117,6 +122,11 @@ the names R itself assigned, once, for every processor.</p>
 
 <dt id="arg-args">args<a class="anchor" aria-label="anchor" href="#arg-args"></a></dt>
 <dd><p>Recorded argument list of evaluated values</p></dd>
+
+
+<dt id="arg-target">target<a class="anchor" aria-label="anchor" href="#arg-target"></a></dt>
+<dd><p>The definition the call dispatched to, when the caller has
+resolved it already</p></dd>
 
 </dl></div>
     <div class="section level2">

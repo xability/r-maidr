@@ -251,13 +251,15 @@ A selector string, or an empty string when no grob matches
 Extract the axis titles for this layer
 
 [`hist()`](https://r.maidr.ai/reference/base-r-wrappers.md) derives both
-titles inside the call and so records neither: the x title is
-`deparse(substitute(x))`, which is gone by the time the evaluated
-arguments reach us, and the y title is "Frequency" or "Density"
-depending on what the bars measure. The y default therefore repeats
-hist()'s own choice – resolved by the same rule that decides which
-values extract_data() emits, so the noun always names the number being
-announced – while x says only what the axis certainly holds: the bins.
+titles inside the call and so records neither. The x title is
+`deparse1(substitute(x))`, how `x` was written, which the recorded call
+keeps beside the values
+([`written_axis_titles()`](https://r.maidr.ai/reference/written_axis_titles.md));
+when it kept none, x says only what the axis certainly holds: the bins.
+The y title is "Frequency" or "Density" depending on what the bars
+measure, so the default repeats hist()'s own choice – resolved by the
+same rule that decides which values extract_data() emits, so the noun
+always names the number being announced.
 
 #### Usage
 
@@ -297,7 +299,10 @@ The title hist() itself would print above the counted axis
 
 ### `BaseRHistogramLayerProcessor$extract_main_title()`
 
-The main title of the recorded call, or an empty string
+The main title of the recorded call, or the one hist() writes
+
+`hist(x)` titles itself "Histogram of" how `x` was written unless the
+call gives a `main`, `NULL` and `""` included.
 
 #### Usage
 

@@ -42,7 +42,7 @@ time so those expressions resolve exactly as they did originally.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-08-09">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -105,7 +105,7 @@ time so those expressions resolve exactly as they did originally.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replay_plot_call</span><span class="op">(</span><span class="va">function_name</span>, <span class="va">args</span>, call_env <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replay_plot_call</span><span class="op">(</span><span class="va">function_name</span>, <span class="va">args</span>, call_env <span class="op">=</span> <span class="cn">NULL</span>, arg_text <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -124,10 +124,22 @@ time so those expressions resolve exactly as they did originally.</p>
 <dd><p>Environment captured when NSE arguments could not be
 forced at record time, or NULL when all args are plain values</p></dd>
 
+
+<dt id="arg-arg-text">arg_text<a class="anchor" aria-label="anchor" href="#arg-arg-text"></a></dt>
+<dd><p>The text each argument was written as, NA where its
+value is replayed as it is, from <code><a href="written_arg_text.html">written_arg_text()</a></code>; or NULL</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The result of the replayed call (invisibly)</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Otherwise the recorded values are drawn, each argument <code>arg_text</code> names
+passed under a symbol spelled as it was written (see
+<code><a href="call_with_written_args.html">call_with_written_args()</a></code>), so a title R derives from that text comes
+out as it did in the user's own call.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

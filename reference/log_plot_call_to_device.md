@@ -10,7 +10,8 @@ log_plot_call_to_device(
   call_expr,
   args,
   device_id = grDevices::dev.cur(),
-  call_env = NULL
+  call_env = NULL,
+  arg_text = NULL
 )
 ```
 
@@ -36,6 +37,12 @@ log_plot_call_to_device(
 
   Optional environment for replaying unevaluated (NSE) arguments
   recorded in `args`
+
+- arg_text:
+
+  Optional text each argument in `args` was written as, from
+  [`written_arg_text()`](https://r.maidr.ai/reference/written_arg_text.md),
+  which the replay titles the chart after
 
 ## Value
 
