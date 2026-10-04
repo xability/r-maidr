@@ -6,7 +6,7 @@
 
 * `library(maidr)` is all an R Markdown or Quarto document needs: every plot
   it draws, with 'ggplot2', 'lattice' or Base R, becomes an accessible chart,
-  without `maidr_on()` in a setup chunk (#PR). maidr installs its 'knitr'
+  without `maidr_on()` in a setup chunk (#352). maidr installs its 'knitr'
   hooks into the knit when the document loads it, or at the first chart the
   document draws, and does so again in every render of a session, so a
   second `rmarkdown::render()`, and `R CMD build`, which renders every
@@ -205,20 +205,20 @@
   with "Dependency maidr-locale-config 1.0.0 is not disk-based", or the same
   of `maidr-dotpad-config` when a DotPad SDK location is set. The two
   dependencies, which only write to the page's `<head>`, now name the
-  bundle's directory without declaring any file in it (#PR).
+  bundle's directory without declaring any file in it (#352).
 * A Base R chart in an R Markdown or Quarto document is read from the
   chunk's own graphics device. maidr read whichever device was current when
   'knitr' wrote the figure, which is the chunk's only when no other device
   is open: with a `pdf()` left open, or the IDE's screen when the document
   is rendered from the console, a chunk's Base R chart came out as a static
   image, and a chart drawn at the console and never shown could be shown in
-  place of the figure of a chunk that drew no Base R chart (#PR).
+  place of the figure of a chunk that drew no Base R chart (#352).
 * In Markdown output (`github_document`, `md_document`, a plain
   `knitr::knit()` of an `.Rmd`) a chart is drawn by its library as one of
   knitr's figures. It used to be an iframe, which GitHub drops, and online
   'rmarkdown' stopped the render, refusing the HTML dependency the frame
   brought ("Functions that produce HTML output found in document targeting
-  ...") (#PR).
+  ...") (#352).
 
 ### ggplot2
 
@@ -257,14 +257,14 @@
 * `layout(1)`, and `par(op)` with the settings `op <- par(mfrow = ...)`
   saved, are read as the resets they are: a chart drawn after one is read
   as a single panel. maidr kept the grid set before the reset, and described
-  the chart as one panel of a grid whose other panel was empty (#PR).
+  the chart as one panel of a grid whose other panel was empty (#352).
 
 ## Documentation
 
 * The README gains an "R Markdown and Quarto" section, and it, the
   getting-started vignette, `?maidr_on` and the examples say that
   `library(maidr)` is enough in a document; the example articles no longer
-  call `maidr_on()` (#PR).
+  call `maidr_on()` (#352).
 * A new examples article, "lattice Chart Examples", shows every lattice
   reading on a small chart, each marked **[experimental]**, and is listed
   under "Experimental plot families" on the examples hub and in the
