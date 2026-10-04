@@ -8,14 +8,20 @@
   `fig.width` take one: `show()` and `save_html()` take `width` and
   `height`, and `render_maidr()` takes `fig_width` and `fig_height`, while
   `maidr_output()`'s `width` and `height` still size the output on the
-  page. The SVG is 72 pixels to the inch. Every chart used to be drawn at
-  7 x 5 in whatever was asked, and a `width` given to `show()` or
-  `save_html()` was silently ignored, except by the static picture of a
-  chart maidr could not read. Unset, the size is still 7 x 5 in. A
-  candlestick chart is still never drawn smaller than 12 x 6 in, and a
-  smaller size asked for is enlarged with a message naming the size used.
-  A size that is not one positive number is an error naming the argument.
-  The size changes how a chart is laid out and nothing a reader hears: the
+  page. In R Markdown and Quarto a chart is drawn at its chunk's
+  `fig.width` and `fig.height`, so `fig.asp`, `fig.dim`, YAML `fig_width`
+  and `fig_height` and Quarto's `fig-width` and `fig-height` set it too.
+  The SVG is 72 pixels to the inch. Every chart used to be drawn at 7 x 5
+  in whatever was asked, and a `width` given to `show()` or `save_html()`
+  was silently ignored, except by the static picture of a chart maidr could
+  not read. Unset, the size is still 7 x 5 in, which is also the figure
+  size of `html_document` and Quarto's HTML, so their documents are
+  unchanged; a format with a figure size of its own, such as ioslides
+  (7.5 x 4.5 in), now draws its charts at it. A candlestick chart is still
+  never drawn smaller than 12 x 6 in, and a smaller size asked for is
+  enlarged with a message naming the size used, in a document too. A size
+  that is not one positive number is an error naming the argument. The
+  size changes how a chart is laid out and nothing a reader hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A
   lattice chart conditioned on one variable with no `layout =` gets the
@@ -85,9 +91,8 @@
   maidr does not read -- stays knitr's image rather than risk showing the
   wrong chart. A chunk cached with `cache = TRUE` brings its charts back;
   one cached with `cache = 1` or `cache = 2` brings back static figures,
-  and `fig.show = "animate"` stays knitr's animation. A chart is drawn at
-  maidr's own size, which `out.width` changes and `fig.width` and
-  `fig.height` do not. In R Markdown and bookdown a chart's caption is
+  and `fig.show = "animate"` stays knitr's animation. In R Markdown and
+  bookdown a chart's caption is
   plain text, Markdown, maths and `\@ref()` in it shown as written; a
   bookdown text reference, `fig.cap = "(ref:label)"`, brings them in.
 * The keys of the page around a chart no longer act while the chart has the

@@ -44,9 +44,21 @@ without maidr. A chart a document returns or prints never opens the
 viewer; an explicit \code{\link[=show]{show()}} still does, during the render, and puts
 nothing in the page.
 
-A chart is drawn at maidr's own size and shrinks to the page: \code{out.width}
-sizes it, and \code{fig.width}, \code{fig.height}, \code{fig.asp} and \code{dpi} are not
-read. Its caption, in R Markdown and bookdown, is plain text: Markdown,
+A chart is drawn at its chunk's \code{fig.width} and \code{fig.height}, in inches,
+as knitr draws the chunk's figures: \code{fig.asp} and \code{fig.dim} set them as
+they do for a figure, and so do R Markdown's \code{fig_width} and \code{fig_height}
+and Quarto's \code{fig-width} and \code{fig-height}. Its SVG is 72 pixels to the
+inch. \code{html_document} and Quarto's HTML formats draw figures at 7 x 5 in,
+maidr's own size outside a document; a format with a figure size of its
+own, such as ioslides, draws its charts at that size. A candlestick chart
+is drawn at least 12 x 6 in, and a chunk that asks for less is told so in
+a message (see \code{\link[=show]{show()}}). The size is the room the chart is laid out in,
+not what a reader hears: its data, titles and axes are the same at every
+size. Nor is it the width the chart is shown at, which \code{out.width} sets:
+a chart shrinks to fit a page narrower than itself, keeping its shape.
+\code{dpi} is not read.
+
+A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 maths and \verb{\\@ref()} in \code{fig.cap} are shown as written, and a bookdown text
 reference (\code{fig.cap = "(ref:label)"}) brings them in. \code{fig.show = "animate"} stays knitr's animation.
 

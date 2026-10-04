@@ -33,9 +33,21 @@
 #' viewer; an explicit [show()] still does, during the render, and puts
 #' nothing in the page.
 #'
-#' A chart is drawn at maidr's own size and shrinks to the page: `out.width`
-#' sizes it, and `fig.width`, `fig.height`, `fig.asp` and `dpi` are not
-#' read. Its caption, in R Markdown and bookdown, is plain text: Markdown,
+#' A chart is drawn at its chunk's `fig.width` and `fig.height`, in inches,
+#' as knitr draws the chunk's figures: `fig.asp` and `fig.dim` set them as
+#' they do for a figure, and so do R Markdown's `fig_width` and `fig_height`
+#' and Quarto's `fig-width` and `fig-height`. Its SVG is 72 pixels to the
+#' inch. `html_document` and Quarto's HTML formats draw figures at 7 x 5 in,
+#' maidr's own size outside a document; a format with a figure size of its
+#' own, such as ioslides, draws its charts at that size. A candlestick chart
+#' is drawn at least 12 x 6 in, and a chunk that asks for less is told so in
+#' a message (see [show()]). The size is the room the chart is laid out in,
+#' not what a reader hears: its data, titles and axes are the same at every
+#' size. Nor is it the width the chart is shown at, which `out.width` sets:
+#' a chart shrinks to fit a page narrower than itself, keeping its shape.
+#' `dpi` is not read.
+#'
+#' A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 #' maths and `\@ref()` in `fig.cap` are shown as written, and a bookdown text
 #' reference (`fig.cap = "(ref:label)"`) brings them in. `fig.show =
 #' "animate"` stays knitr's animation.
@@ -232,13 +244,14 @@ knit_print.ggplot <- function(x, options = list(), ...) {
   }
 
   # Create orchestrator ONCE and reuse it
+  size <- knitr_chart_size(options)
   registry <- get_global_registry()
   adapter <- registry$get_adapter("ggplot2")
-  orchestrator <- adapter$create_orchestrator(x)
+  orchestrator <- adapter$create_orchestrator(x, width = size$width, height = size$height)
 
   if (orchestrator$should_fallback()) {
     # For fallback/unsupported plots in HTML: use inline image (no iframe needed)
-    img_html <- create_inline_image(x)
+    img_html <- create_inline_image(x, size = orchestrator$canvas_size())
     return(knitr::asis_output(img_html))
   }
 
@@ -296,15 +309,49 @@ knit_print.trellis <- function(x, options = list(), ...) {
     return(knitr::asis_output(""))
   }
 
-  orchestrator <- get_global_registry()$get_adapter("lattice")$create_orchestrator(x)
+  size <- knitr_chart_size(options)
+  orchestrator <- get_global_registry()$get_adapter("lattice")$create_orchestrator(
+    x,
+    width = size$width,
+    height = size$height
+  )
 
   if (orchestrator$should_fallback()) {
-    img_html <- create_inline_image(x)
+    img_html <- create_inline_image(x, size = orchestrator$canvas_size())
     return(knitr::asis_output(img_html))
   }
 
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
   knitr_chart_asis(knitr_chart_output(content, options))
+}
+
+#' The size a chart in a knitted document is drawn at
+#'
+#' Its chunk's figure size, `fig.width` by `fig.height` in inches, which is
+#' the size knitr opens the chunk's device at: knitr has folded `fig.asp` and
+#' `fig.dim` into them, and R Markdown's `fig_width` and `fig_height` and
+#' Quarto's `fig-width` and `fig-height` arrive as them. As knitr does, only
+#' the first of each is read. Options that carry neither -- a chart a
+#' chunk's code asks `knit_print()` for itself -- are the chunk's own.
+#'
+#' @param options Chunk options
+#' @return A list: `width` and `height`, each in inches, or `NULL` when no
+#'   chunk sets it
+#' @keywords internal
+#' @noRd
+knitr_chart_size <- function(options) {
+  read <- function(name) {
+    value <- options[[name]]
+    if (is.null(value) && knit_in_progress()) {
+      value <- knitr::opts_current$get(name)
+    }
+    if (length(value) > 1L) value[[1L]] else value
+  }
+  width <- read("fig.width")
+  height <- read("fig.height")
+  check_chart_size(width, "fig.width")
+  check_chart_size(height, "fig.height")
+  list(width = width, height = height)
 }
 
 #' A chart `knit_print()` returns, as knitr's `asis` output
@@ -580,11 +627,19 @@ is_html_output <- function() {
 #' @param plot A ggplot object or NULL for Base R
 #' @param width Width for the image container
 #' @param height Height for the image container
+#' @param size The size to draw the image at, in inches: a named numeric
+#'   vector, `width` and `height`, as [chart_canvas_size()] gives one
 #' @return Character string of HTML with img tag
 #' @keywords internal
-create_inline_image <- function(plot = NULL, width = "100%", height = "auto") {
+create_inline_image <- function(plot = NULL, width = "100%", height = "auto",
+                                size = MAIDR_CHART_SIZE) {
   # The format the caller configured through `maidr_set_fallback()`.
-  img_data <- create_fallback_image(plot, format = get_fallback_format())
+  img_data <- create_fallback_image(
+    plot,
+    format = get_fallback_format(),
+    width = size[["width"]],
+    height = size[["height"]]
+  )
 
   # Create simple inline image HTML
   img_html <- sprintf(

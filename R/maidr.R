@@ -44,10 +44,12 @@
 #' are, how lattice arranges its panels, where Base R puts its titles -- and
 #' not what maidr reads out: the data, titles and axis labels a reader
 #' hears are the same at every size. It is set by `width` and `height`
-#' here and in [save_html()], and by `fig_width` and `fig_height` in
-#' [render_maidr()]. Nothing else sets it: not the size of the device a
-#' chart was drawn on, nor the size of the window, viewer or Shiny output
-#' it is shown in, which shrinks a chart wider than itself to fit.
+#' here and in [save_html()], by `fig_width` and `fig_height` in
+#' [render_maidr()], and by the chunk's `fig.width` and `fig.height` in an
+#' R Markdown or Quarto document (see [maidr_on()]). Nothing else sets it:
+#' not the size of the device a chart was drawn on, nor the size of the
+#' window, viewer or Shiny output it is shown in, which shrinks a chart
+#' wider than itself to fit.
 #'
 #' Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
 #' never drawn smaller than that: quantmod's `chartSeries()` needs the room

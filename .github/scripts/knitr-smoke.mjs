@@ -10,12 +10,17 @@
 //   * every chart is bound by maidr.js, in the order the document draws
 //     them, and no id is used twice before anything has the focus;
 //   * the figure maidr does not read is knitr's own svglite image;
+//   * every chart is drawn at its chunk's fig.width and fig.height: its svg
+//     is that many inches at 72 pixels each, in its width, height and
+//     viewBox, nothing it draws reaches outside its viewBox, and the tick
+//     labels of each axis stand apart;
 //   * for each chart in turn -- its tab opened first when it is hidden --
 //     one Tab from the last tab stop before it lands on the chart, and that
 //     stop is outside the chart, and is the chart before it when one comes
 //     just before, so no stray tab stop sits between them; Right Arrow
 //     announces that chart's own first value, inside the chart, and draws
-//     its highlight inside that chart's own svg, and Shift+Tab leaves it;
+//     its highlight inside that chart's own svg and viewBox, and Shift+Tab
+//     leaves it;
 //   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
 //     root font size is 10px, shows its text at its own size, within the
 //     window.
@@ -44,7 +49,8 @@ const html = readFileSync(file, 'utf8');
 // The charts of knitr-smoke.R, in the order it draws them, and the first
 // value each announces: a value no other chart on the page has. A chart of
 // several subplots opens on the subplot chooser, and wants Enter before
-// Right Arrow reads a value.
+// Right Arrow reads a value. `size` is the chunk's fig.width and fig.height,
+// html_document's 7 x 5 unless the chunk sets them.
 const charts = [
   { name: 'GG bar chart', announces: /\balpha\b.*\b11\b/ },
   { name: 'GG facet chart', announces: /\b21\b/, subplots: true },
@@ -53,8 +59,10 @@ const charts = [
   { name: 'Lattice bar chart', announces: /\blat1\b.*\b61\b/ },
   { name: 'Base bar chart', announces: /\bbase1\b.*\b71\b/ },
   { name: 'Base line chart', announces: /\b81\b/ },
+  { name: 'Wide bar chart', announces: /\bwide1\b.*\b101\b/, size: [10, 4] },
+  { name: 'Tall bar chart', announces: /\btall1\b.*\b111\b/, size: [5, 8] },
   { name: 'Hidden tab chart', announces: /\bhid1\b.*\b91\b/ },
-];
+].map(chart => ({ size: [7, 5], ...chart }));
 
 const settle = 400;
 const failures = [];
@@ -107,6 +115,21 @@ await page.addInitScript(() => {
       live = value;
     },
   });
+});
+
+// A box on the page, in the user units of the svg it is drawn in: the page
+// may show a chart smaller than its own size.
+await page.addInitScript(() => {
+  window.__maidrSmokeUserBox = (svg, box) => {
+    const page = svg.getBoundingClientRect();
+    const scale = page.width / svg.viewBox.baseVal.width;
+    return {
+      left: (box.left - page.left) / scale,
+      top: (box.top - page.top) / scale,
+      right: (box.right - page.left) / scale,
+      bottom: (box.bottom - page.top) / scale,
+    };
+  };
 });
 
 await page.goto('file://' + file, { waitUntil: 'load' });
@@ -206,17 +229,106 @@ const focus = i => page.evaluate(i => {
   return { onChart: Boolean(plot) && active === plot, inChart: wrapper.contains(active) };
 }, i);
 
+// Chart i's size, what it draws outside its viewBox, and the tick labels of
+// an axis that overlap one another. A shape's box is cut to the clip path
+// it is drawn under, as the shape is. A tick label is a text of an axis
+// group: ggplot2's axis-l/b/t/r, Base R's -axis-labels-, lattice's
+// .ticklabels.; inline ids carry the chart's prefix before them.
+const geometry = i => page.evaluate(i => {
+  const toUser = window.__maidrSmokeUserBox;
+  const svg = document.querySelectorAll('.maidr-knitr')[i].querySelector('svg');
+  const view = svg.viewBox.baseVal;
+  const clipOf = element => {
+    let box = null;
+    for (let at = element; at && at !== svg; at = at.parentElement) {
+      const url = at.getAttribute('clip-path');
+      const clip = url && document.getElementById(url.replace(/^url\(#?|\)$/g, ''));
+      const shape = clip && clip.querySelector('rect, path, polygon');
+      if (shape) {
+        const c = toUser(svg, shape.getBoundingClientRect());
+        box = box ? {
+          left: Math.max(box.left, c.left), top: Math.max(box.top, c.top),
+          right: Math.min(box.right, c.right), bottom: Math.min(box.bottom, c.bottom),
+        } : c;
+      }
+    }
+    return box;
+  };
+  const outside = [];
+  const shapes = svg.querySelectorAll('rect, circle, ellipse, line, polyline, polygon, path, text, use, image');
+  for (const shape of shapes) {
+    if (shape.closest('defs, clipPath, symbol, mask, pattern')) {
+      continue;
+    }
+    const drawn = shape.getBoundingClientRect();
+    if (drawn.width === 0 && drawn.height === 0) {
+      continue;
+    }
+    let box = toUser(svg, drawn);
+    const clip = clipOf(shape);
+    if (clip) {
+      box = {
+        left: Math.max(box.left, clip.left), top: Math.max(box.top, clip.top),
+        right: Math.min(box.right, clip.right), bottom: Math.min(box.bottom, clip.bottom),
+      };
+    }
+    if (box.right <= box.left || box.bottom <= box.top) {
+      continue;
+    }
+    if (box.left < -1 || box.top < -1 || box.right > view.width + 1 || box.bottom > view.height + 1) {
+      outside.push(`${shape.tagName} ${shape.id || shape.textContent}`);
+    }
+  }
+  const axis = /(^|-)(axis-[lbrt](-\d+-\d+)?\.[\d-]+\.\d+|graphics-plot-\d+-[a-z]+-axis-labels-\d+\.\d+|maidr\.ticklabels\.[a-z]+\.panel\.\d+\.\d+\.\d+)$/;
+  const labels = new Map();
+  for (const text of svg.querySelectorAll('text')) {
+    let group = text.parentElement;
+    while (group && group !== svg && !axis.test(group.id)) {
+      group = group.parentElement;
+    }
+    if (!group || group === svg || !text.textContent.trim()) {
+      continue;
+    }
+    labels.set(group, [...(labels.get(group) || []), text]);
+  }
+  const overlaps = [];
+  for (const texts of labels.values()) {
+    const boxes = texts.map(text => toUser(svg, text.getBoundingClientRect()));
+    for (let a = 0; a < boxes.length; a++) {
+      for (let b = a + 1; b < boxes.length; b++) {
+        const across = Math.min(boxes[a].right, boxes[b].right) - Math.max(boxes[a].left, boxes[b].left);
+        const down = Math.min(boxes[a].bottom, boxes[b].bottom) - Math.max(boxes[a].top, boxes[b].top);
+        if (across > 0.5 && down > 0.5) {
+          overlaps.push(`"${texts[a].textContent}" and "${texts[b].textContent}"`);
+        }
+      }
+    }
+  }
+  return {
+    size: [svg.getAttribute('width'), svg.getAttribute('height'), svg.getAttribute('viewBox')],
+    outside,
+    axes: labels.size,
+    overlaps,
+  };
+}, i);
+
 // What chart i says and shows after a key press.
 const reading = i => page.evaluate(i => {
+  const toUser = window.__maidrSmokeUserBox;
   const wrapper = document.querySelectorAll('.maidr-knitr')[i];
   const svg = wrapper.querySelector('svg');
   const text = document.querySelector('#maidr-text-container');
   const owned = Array.from(document.querySelectorAll('[data-maidr-owned]'));
+  const view = svg.viewBox.baseVal;
+  const inView = element => {
+    const box = toUser(svg, element.getBoundingClientRect());
+    return box.left >= -1 && box.top >= -1 && box.right <= view.width + 1 && box.bottom <= view.height + 1;
+  };
   return {
     text: text ? text.textContent.trim() : '',
     textInChart: Boolean(text) && wrapper.contains(text),
     owned: owned.length,
-    ownedInChart: owned.filter(element => svg && svg.contains(element)).length,
+    ownedInChart: owned.filter(element => svg && svg.contains(element) && inView(element)).length,
   };
 }, i);
 
@@ -230,6 +342,21 @@ for (const [i, chart] of charts.entries()) {
   check(
     before.found && !before.inChart && before.afterChart,
     `${chart.name}: the tab stop before it is outside it, and is the chart before it when one comes just before (${before.what})`,
+  );
+
+  const drawn = await geometry(i);
+  const [width, height] = chart.size.map(inches => inches * 72);
+  check(
+    JSON.stringify(drawn.size) === JSON.stringify([`${width}px`, `${height}px`, `0 0 ${width} ${height}`]),
+    `${chart.name}: drawn at its chunk's ${chart.size.join(' x ')} in (${drawn.size.join(', ')})`,
+  );
+  check(
+    drawn.outside.length === 0,
+    `${chart.name}: draws nothing outside its viewBox${drawn.outside.length ? ': ' + drawn.outside.slice(0, 5).join(', ') : ''}`,
+  );
+  check(
+    drawn.axes > 0 && drawn.overlaps.length === 0,
+    `${chart.name}: the tick labels of its ${drawn.axes} axes stand apart${drawn.overlaps.length ? ': ' + drawn.overlaps.slice(0, 5).join(', ') : ''}`,
   );
 
   await page.keyboard.press('Tab');
@@ -253,7 +380,7 @@ for (const [i, chart] of charts.entries()) {
   );
   check(
     seen.owned > 0 && seen.owned === seen.ownedInChart,
-    `${chart.name}: the highlight is drawn inside its own svg (${seen.ownedInChart} of ${seen.owned} clone(s))`,
+    `${chart.name}: the highlight is drawn inside its own svg and viewBox (${seen.ownedInChart} of ${seen.owned} clone(s))`,
   );
 
   await page.keyboard.press('Shift+Tab');

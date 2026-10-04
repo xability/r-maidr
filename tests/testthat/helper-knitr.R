@@ -134,3 +134,19 @@ chart_names <- function(page) {
     paste(texts, collapse = " ")
   }, character(1))
 }
+
+#' How a session started for a test loads this maidr
+#'
+#' The source tree when the tests run from it, the installed package under
+#' R CMD check.
+maidr_loader <- function() {
+  root <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
+  from_source <- requireNamespace("pkgload", quietly = TRUE) &&
+    file.exists(file.path(root, "DESCRIPTION")) &&
+    file.exists(file.path(root, "R", "maidr.R"))
+  if (from_source) {
+    sprintf("pkgload::load_all(%s, quiet = TRUE)", deparse(root))
+  } else {
+    "library(maidr)"
+  }
+}

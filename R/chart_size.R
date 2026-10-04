@@ -85,8 +85,8 @@ chart_canvas_size <- function(width = NULL, height = NULL, candlestick = FALSE) 
   }
   used <- pmax(asked, MAIDR_CANDLESTICK_SIZE)
   if (any(used != asked)) {
-    # Classed, so that it can be told from the rest of what a chart's build
-    # says.
+    # Classed, so that a knitted chart can say it where the rest of what its
+    # build says is kept out of the document (see `knit_chart_content()`).
     rlang::inform(
       paste0(
         "maidr: this candlestick chart is drawn at ", format_inches(used),

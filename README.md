@@ -152,7 +152,8 @@ show(width = 6, height = 4)
 output$plot <- render_maidr(p, fig_width = 10, fig_height = 4)
 ```
 
-Nothing else sets it: not the device a Base R chart was drawn on, nor the
+In R Markdown and Quarto the chunk's `fig.width` and `fig.height` set it.
+Nothing else does: not the device a Base R chart was drawn on, nor the
 window or Shiny output a chart is shown in, which shrinks a wider chart to
 fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for
 less, maidr says in a message the size it used.
@@ -192,12 +193,17 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   written. A bookdown text reference, `fig.cap = "(ref:label)"`, brings
   them in, as Quarto does for the caption of a chart in a `fig-` chunk,
   which it writes itself.
-- **Size, cache and animations.** Charts are drawn at maidr's own size and
-  shrink to the page; size one with `out.width`, since `fig.width`,
-  `fig.height`, `fig.asp` and `dpi` are not read. A chunk cached with
-  `cache = TRUE` brings its charts back; one cached with `cache = 1` or
-  `cache = 2` shows knitr's static figures when it is rendered again from
-  the cache. `fig.show = "animate"` stays knitr's animation.
+- **Size.** A chart is drawn at its chunk's `fig.width` and `fig.height`
+  (or `fig.asp`, `fig.dim`, R Markdown's `fig_width`/`fig_height` and
+  Quarto's `fig-width`/`fig-height`), in inches, as knitr draws figures:
+  7 x 5 in in `html_document` and Quarto's HTML. `out.width` still sets
+  the width a chart is shown at, and a chart wider than the page shrinks to
+  fit it. The size changes the layout only; what a reader hears is the same
+  at every size. See [Chart size](#chart-size).
+- **Cache and animations.** A chunk cached with `cache = TRUE` brings its
+  charts back; one cached with `cache = 1` or `cache = 2` shows knitr's
+  static figures when it is rendered again from the cache.
+  `fig.show = "animate"` stays knitr's animation.
 - **Static figures are SVG.** In HTML output maidr records a chunk's
   figures with svglite instead of knitr's default png, so the ones that stay
   images are vector images too. A device a chunk names (`dev = "png"`), a

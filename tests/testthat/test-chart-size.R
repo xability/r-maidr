@@ -1,11 +1,14 @@
 # The size a chart is drawn at: R/chart_size.R, and the entry points that
 # take one -- show() and save_html() (`width`, `height`), render_maidr() and
-# the widget (`fig_width`, `fig_height`).
+# the widget (`fig_width`, `fig_height`), and a knitted chunk's `fig.width`
+# and `fig.height`.
 #
 # A chart is drawn on a canvas measured in inches and exported at 72 pixels
 # to the inch. The canvas is the room the chart is laid out in and nothing a
 # reader hears, so every kind of chart here is drawn at four sizes and its
-# maidr-data compared across them.
+# maidr-data compared across them. The browser's side -- nothing drawn
+# outside the viewBox, tick labels apart, the highlight on the first mark --
+# is checked by .github/scripts/knitr-smoke.mjs.
 
 # ==============================================================================
 # Helpers
@@ -141,6 +144,36 @@ draw_chartseries <- function() {
     order.by = as.Date("2023-01-02") + 0:9
   )
   maidr::chartSeries(ohlc, type = "candlesticks", theme = "white", name = "CANDLES", TA = NULL)
+}
+
+#' The root `<svg>` element of every inline chart of a knitted page
+#'
+#' A self-contained page carries knitr-inline.js, whose comments name such an
+#' element too; a chart's has a size.
+inline_svg_roots <- function(page) {
+  roots <- regmatches(page, gregexpr("<svg[^>]*>", page))[[1]]
+  roots[grepl("data-maidr-knitr=", roots, fixed = TRUE) & grepl("\\swidth=", roots)]
+}
+
+#' Render an R Markdown document in an R session of its own
+#'
+#' As an author does: maidr is loaded by the document, which knits it in a
+#' session of its own.
+#'
+#' @return The HTML file it rendered
+render_in_session <- function(rmd) {
+  script <- tempfile(fileext = ".R")
+  on.exit(unlink(script), add = TRUE)
+  writeLines(c(
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    sprintf("rmarkdown::render(%s, quiet = TRUE)", deparse(rmd))
+  ), script)
+  out <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"), script,
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  testthat::expect_null(attr(out, "status"), info = paste(out, collapse = "\n"))
+  sub("\\.Rmd$", ".html", rmd)
 }
 
 #' The PNG a page embeds, as its width and height in pixels
@@ -527,4 +560,162 @@ test_that("a chart shown as a picture is drawn at the size asked for", {
   suppressWarnings(save_html(p, file, width = 4, height = 3))
   html <- paste(readLines(file, warn = FALSE), collapse = "\n")
   testthat::expect_equal(embedded_png_size(html), c(4, 3) * 150)
+})
+
+# ==============================================================================
+# knitr: the chunk's fig.width and fig.height
+# ==============================================================================
+
+test_that("a knitted chart is drawn at its chunk's fig.width and fig.height", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  skip_if_no_lattice()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+
+  page <- knit_for(c(
+    "```{r gg, fig.width = 10, fig.height = 4}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "```",
+    "",
+    "```{r loop, fig.width = 5, fig.height = 8}",
+    "for (i in 1:2) print(ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point())",
+    "```",
+    "",
+    "```{r lat, fig.width = 6, fig.asp = 0.5}",
+    "lattice::xyplot(mpg ~ wt, data = mtcars)",
+    "```",
+    "",
+    "```{r base, fig.dim = c(4, 3)}",
+    "barplot(c(3, 5, 7), names.arg = c('x', 'y', 'z'))",
+    "```",
+    "",
+    "```{r asked, fig.width = 9, fig.height = 3, results = 'asis'}",
+    "scatter <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()",
+    "cat(knitr::knit_print(scatter))",
+    "```",
+    "",
+    "```{r unset}",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) + ggplot2::geom_point()",
+    "```"
+  ), dir)
+
+  testthat::expect_identical(lapply(inline_svg_roots(page), svg_size), list(
+    svg_size_for(c(10, 4)),
+    svg_size_for(c(5, 8)),
+    svg_size_for(c(5, 8)),
+    svg_size_for(c(6, 3)),
+    svg_size_for(c(4, 3)),
+    svg_size_for(c(9, 3)),
+    # knitr::knit()'s own default; R Markdown's html_document and Quarto
+    # set 7 x 5.
+    svg_size_for(c(7, 7))
+  ))
+})
+
+test_that("a knitted chart in an iframe is drawn at its chunk's figure size", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  testthat::local_mocked_bindings(maidr_internet_available = function() FALSE, .package = "maidr")
+  hooks <- knitr::knit_hooks$get()
+  knitr::knit_hooks$restore()
+  on.exit(knitr::knit_hooks$restore(hooks), add = TRUE)
+  withr::local_dir(dir)
+
+  writeLines(c(
+    "<html><body>",
+    "<!--begin.rcode chart, fig.width = 10, fig.height = 4",
+    "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "end.rcode-->",
+    "</body></html>"
+  ), "chart.Rhtml")
+  out <- knitr::knit("chart.Rhtml", quiet = TRUE, envir = new.env())
+  page <- paste(readLines(out), collapse = "\n")
+  testthat::expect_match(page, "<iframe", fixed = TRUE)
+  testthat::expect_identical(svg_size(unescape_markup(page)), svg_size_for(c(10, 4)))
+})
+
+test_that("a knitted candlestick chart enlarged past its chunk's size says so in the document", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("tidyquant")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  page <- knit_for(c(
+    "```{r candles, fig.width = 8, fig.height = 4}",
+    "ohlc <- data.frame(",
+    "  date = as.Date('2023-01-02') + 0:3, open = c(100, 105, 110, 108),",
+    "  high = c(115, 108, 112, 110), low = c(95, 102, 105, 100), close = c(110, 103, 111, 108)",
+    ")",
+    "ggplot2::ggplot(",
+    "  ohlc, ggplot2::aes(date, open = open, high = high, low = low, close = close)",
+    ") +",
+    "  tidyquant::geom_candlestick()",
+    "```"
+  ), dir)
+  said <- "drawn at 12 x 6 in rather than the 8 x 4 in asked for"
+  testthat::expect_match(page, said, fixed = TRUE)
+  testthat::expect_identical(lapply(inline_svg_roots(page), svg_size), list(svg_size_for(c(12, 6))))
+})
+
+test_that("R Markdown and Quarto draw their charts at the figure size they set", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  dir <- withr::local_tempdir("maidr-sized-")
+  chunks <- c(
+    "```{r}", maidr_loader(), "library(ggplot2)", "```",
+    "```{r}", "ggplot(mtcars, aes(wt, mpg)) + geom_point()", "```",
+    "```{r, fig.width = 10, fig.height = 4}",
+    "ggplot(mtcars, aes(factor(cyl))) + geom_bar()",
+    "```",
+    "```{r, fig.width = 5, fig.asp = 1.6}", "barplot(c(a = 1, b = 2))", "```"
+  )
+  page_sizes <- function(file) {
+    lapply(inline_svg_roots(paste(readLines(file, warn = FALSE), collapse = "\n")), svg_size)
+  }
+
+  # html_document's own figure size is maidr's, 7 x 5 in.
+  rmd <- file.path(dir, "plain.Rmd")
+  writeLines(c("---", "title: plain", "output: html_document", "---", chunks), rmd)
+  html <- render_in_session(rmd)
+  testthat::expect_identical(
+    page_sizes(html),
+    list(svg_size_for(c(7, 5)), svg_size_for(c(10, 4)), svg_size_for(c(5, 8)))
+  )
+
+  # One set in the YAML is every chunk's that sets none.
+  rmd <- file.path(dir, "yaml.Rmd")
+  writeLines(c(
+    "---", "title: yaml", "output:", "  html_document:",
+    "    fig_width: 6", "    fig_height: 4", "---", chunks
+  ), rmd)
+  testthat::expect_identical(
+    page_sizes(render_in_session(rmd)),
+    list(svg_size_for(c(6, 4)), svg_size_for(c(10, 4)), svg_size_for(c(5, 8)))
+  )
+
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  qmd <- file.path(dir, "sized.qmd")
+  writeLines(c(
+    "---", "title: sized", "format: html", "---",
+    "```{r}", "#| message: false",
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    maidr_loader(), "library(ggplot2)", "```",
+    "```{r}", "ggplot(mtcars, aes(wt, mpg)) + geom_point()", "```",
+    "```{r}", "#| fig-width: 10", "#| fig-height: 4",
+    "lattice::xyplot(mpg ~ wt, data = mtcars)", "```",
+    "```{r}", "#| fig-width: 5", "#| fig-height: 8", "barplot(c(a = 1, b = 2))", "```"
+  ), qmd)
+  status <- system2(quarto, c("render", shQuote(qmd), "--quiet"), stdout = TRUE, stderr = TRUE)
+  testthat::expect_null(attr(status, "status"), info = paste(status, collapse = "\n"))
+  testthat::expect_identical(
+    page_sizes(file.path(dir, "sized.html")),
+    list(svg_size_for(c(7, 5)), svg_size_for(c(10, 4)), svg_size_for(c(5, 8)))
+  )
 })
