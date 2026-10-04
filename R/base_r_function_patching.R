@@ -185,6 +185,8 @@ ensure_maidr_device <- function() {
     # No device open - create temp PDF to prevent default window
     open_maidr_temp_device()
   }
+  # And the panel and number of the plot it starts (`end_base_r_call()`).
+  begin_base_r_call(grDevices::dev.cur())
   grDevices::dev.cur()
 }
 

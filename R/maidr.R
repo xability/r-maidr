@@ -46,10 +46,12 @@
 #' move on a panel as a plot does. So after `hist(a); hist(b)` the chart
 #' is the histogram of `b` alone, and after five plots under
 #' `par(mfrow = c(2, 2))` it is the fifth, in the first panel of a 2 x 2
-#' grid. A plot drawn after `par(new = TRUE)`, or with `add = TRUE`, is
-#' drawn on the page with the plot before it, and `lines()`, `points()`,
-#' `abline()`, `text()`, `legend()`, `title()`, `axis()` and the other
-#' low-level calls add to the plot they are drawn on. Nothing drawn on an
+#' grid. Each plot of a grid is in the panel R drew it in: a plot drawn
+#' after `par(new = TRUE)`, or with `add = TRUE`, is drawn in the panel of
+#' the plot before it, and a panel `plot.new()` or `frame()` passed over
+#' stays empty. `lines()`, `points()`, `abline()`, `text()`, `legend()`,
+#' `title()`, `axis()` and the other low-level calls add to the plot they
+#' are drawn on. Nothing drawn on an
 #' earlier page reaches the chart: not its data, its titles or the size it
 #' is drawn at. Each figure of an R Markdown or Quarto document is read
 #' the same way, from the calls on its own page.

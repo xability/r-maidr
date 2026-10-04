@@ -396,11 +396,13 @@
   plot under `par(mfrow = c(2, 2))` after a reset to one panel. maidr now
   reads the page each call was drawn on from R itself, so the chart is the
   last page, with all the panels of a `par(mfrow)`, `par(mfcol)` or
-  `layout()` grid on it, and a plot drawn after `par(new = TRUE)` is drawn
-  over the plot before it, as R draws it, where maidr drew the first alone.
-  `plot.new()` and `frame()` start a page as they do in R, and nothing
-  drawn on an earlier page -- its data, titles, `lines()` or `legend()`,
-  or a size it would need -- reaches the chart (#PR).
+  `layout()` grid on it, each plot in the panel R drew it in. A plot drawn
+  after `par(new = TRUE)` is drawn over the plot before it, in its panel,
+  where maidr drew the first alone or gave the second a panel of its own;
+  `plot.new()` and `frame()` take a panel as they do in R, which stays
+  empty, where maidr moved the next plot into it; and nothing drawn on an
+  earlier page -- its data, titles, `lines()` or `legend()`, or a size it
+  would need -- reaches the chart (#PR).
 
 ## Documentation
 

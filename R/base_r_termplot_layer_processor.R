@@ -22,10 +22,9 @@
 #'     mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
 #'
 #' So with `n` terms and `k` cells the page carries the **last**
-#' `((n - 1) %% k) + 1` of them, which is the rule
-#' [compute_panel_slots()] already applies to whole plot groups -- the same
-#' arithmetic, one level down. A reading that announced all `n` terms would
-#' name curves that are not on the page.
+#' `((n - 1) %% k) + 1` of them, which is the rule R's device shows whole
+#' plots by, and maidr reads them by -- one level down. A reading that
+#' announced all `n` terms would name curves that are not on the page.
 #'
 #' The `par` call is recorded as LAYOUT rather than as a layer, so it does not
 #' reach the processor with the rest of the call. It is read off the device
@@ -184,7 +183,7 @@ BaseRTermplotLayerProcessor <- R6::R6Class(
     # The tail of the curves that the visible page carries.
     #
     # See the file header: `k` cells hold the last `((n - 1) %% k) + 1` of
-    # `n` terms, which is `compute_panel_slots()`'s rule one level down.
+    # `n` terms, which is the rule for whole plots one level down.
     on_the_page = function(drawn, layer_info) {
       count <- length(drawn)
       if (count < 2) {

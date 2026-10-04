@@ -283,8 +283,12 @@ is_multipanel_config <- function(panel_config) {
 
 #' Compute Panel Slot for Each Plot Group
 #'
-#' Maps plot groups to panel slots (1-based, in drawing order) for a
-#' multi-panel configuration:
+#' Maps plot groups to panel slots (1-based) for a multi-panel
+#' configuration: the panel R drew each group's plot in, as its call was
+#' recorded. A plot drawn after `par(new = TRUE)` shares the panel of the
+#' plot before it, and a panel `plot.new()` or `frame()` passed over is left
+#' empty. Groups recorded without their panel, by code that records calls
+#' itself, take one each in drawing order:
 #' \itemize{
 #'   \item Groups drawn BEFORE the layout call are not part of the grid
 #'     (the next high-level plot starts a fresh page), so they get NA.
@@ -323,6 +327,16 @@ compute_panel_slots <- function(plot_groups, panel_config) {
   }
 
   total <- max(1L, as.integer(panel_config$total_panels))
+
+  # The panel R drew each in, where every one was recorded with it.
+  figures <- lapply(plot_groups[eligible], function(g) g$high_call$figure)
+  if (!any(vapply(figures, is.null, logical(1)))) {
+    figures <- as.integer(unlist(figures))
+    figures[figures < 1L | figures > total] <- NA_integer_
+    slots[eligible] <- figures
+    return(slots)
+  }
+
   last_page_start <- ((n_eligible - 1L) %/% total) * total + 1L
   visible <- eligible[seq.int(last_page_start, n_eligible)]
   slots[visible] <- seq_along(visible)

@@ -245,6 +245,139 @@ test_that("a plot drawn after par(new = TRUE) is drawn on the page with the one 
   testthat::expect_setequal(chart$strings, r_last_page_strings(call))
 })
 
+# The layers of each cell of an exported chart, as their titles.
+cell_titles <- function(chart) {
+  lapply(last_page_cells(chart), function(layers) {
+    vapply(layers, function(layer) layer$title, character(1))
+  })
+}
+
+# Every selector of every layer names an element the drawing has.
+expect_selectors_drawn <- function(chart) {
+  for (layers in last_page_cells(chart)) {
+    for (layer in layers) {
+      ids <- selector_ids(layer)
+      testthat::expect_length(ids, 1L)
+      testthat::expect_true(any(startsWith(chart$ids, ids)), label = ids)
+    }
+  }
+}
+
+test_that("a plot drawn after par(new = TRUE) shares the panel of the one before", {
+  skip_if_no_render()
+  call <- quote({
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "a")
+    par(new = TRUE)
+    plot(3:1, main = "b")
+    plot(4:6, main = "c")
+  })
+  chart <- last_page_export(function() eval(call))
+
+  testthat::expect_identical(cell_titles(chart), list(c("a", "b"), "c"))
+  testthat::expect_identical(
+    lapply(last_page_cells(chart), function(layers) unlist(lapply(layers, selector_ids))),
+    list(
+      c("graphics-plot-1-points-1.1", "graphics-plot-2-points-1.1"),
+      "graphics-plot-3-points-1.1"
+    )
+  )
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings, r_last_page_strings(call))
+})
+
+test_that("a panel plot.new() or frame() passes over stays empty", {
+  skip_if_no_render()
+  call <- quote({
+    par(mfrow = c(1, 2))
+    plot.new()
+    plot(1:3, main = "right")
+  })
+  chart <- last_page_export(function() eval(call))
+  testthat::expect_identical(cell_titles(chart), list(character(0), "right"))
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings, r_last_page_strings(call))
+
+  laid_out <- quote({
+    layout(matrix(1:3, 1))
+    plot(1:3, main = "first")
+    frame()
+    plot(3:1, main = "third")
+  })
+  chart <- last_page_export(function() eval(laid_out))
+  testthat::expect_identical(cell_titles(chart), list("first", character(0), "third"))
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings, r_last_page_strings(laid_out))
+})
+
+test_that("a plot after one that drew several panels is in the panel R drew it in", {
+  skip_if_no_render()
+  call <- quote({
+    par(mfrow = c(2, 3))
+    plot(stats::lm(mpg ~ wt, data = mtcars), which = 1:4)
+    hist(mtcars$mpg, main = "fifth")
+  })
+  chart <- last_page_export(function() eval(call))
+
+  # The histogram is the fifth panel, in reading order the second row's
+  # second cell, and the fifth plot of the drawing.
+  hist_layer <- chart$schema$subplots[[2]][[2]]$layers
+  testthat::expect_identical(
+    vapply(hist_layer, function(layer) layer$title, character(1)),
+    "fifth"
+  )
+  testthat::expect_match(selector_ids(hist_layer[[1]]), "^graphics-plot-5-rect")
+  expect_selectors_drawn(chart)
+  testthat::expect_true("fifth" %in% chart$strings)
+})
+
+test_that("each recorded plot carries the page, panel and plot number R drew it at", {
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  # R's own answer, read after each plot: the panel it is drawing in.
+  seen <- new.env()
+  seen$panels <- integer()
+  panel_now <- function() {
+    mfg <- graphics::par("mfg")
+    seen$panels <- c(seen$panels, as.integer((mfg[1] - 1L) * mfg[4] + mfg[2]))
+  }
+  par(mfrow = c(2, 2))
+  plot(1:3)
+  panel_now()
+  par(new = TRUE)
+  plot(3:1)
+  panel_now()
+  plot.new()
+  frame()
+  hist(mtcars$mpg)
+  panel_now()
+  hist(mtcars$hp, add = TRUE)
+  panel_now()
+  plot(1:3)
+  panel_now()
+
+  high <- Filter(
+    function(entry) identical(entry$class_level, "HIGH"),
+    maidr:::get_device_calls(device_id)
+  )
+  testthat::expect_identical(vapply(high, function(e) e$figure, integer(1)), seen$panels)
+  testthat::expect_identical(vapply(high, function(e) e$plot, integer(1)), c(1L, 2L, 5L, 5L, 1L))
+  testthat::expect_identical(
+    vapply(high, function(e) e$new_plot, logical(1)),
+    c(TRUE, TRUE, TRUE, FALSE, TRUE)
+  )
+  pages <- vapply(high, function(e) e$page, integer(1))
+  testthat::expect_identical(diff(pages), c(0L, 0L, 0L, 1L))
+})
+
 test_that("the size a chart is drawn at is settled by its own page", {
   # A six-row grid does not fit maidr's own 7 x 5 in and is drawn larger,
   # with a message. Drawn on the page before, it says nothing about the
