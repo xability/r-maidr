@@ -1262,9 +1262,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #' page of the canvas's size, the drawing is the one R draws at that size.
 #'
 #' The grob names, which every selector is written against, are those
-#' `as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as drawn,
-#' as `as.grob()` does. An echoed drawing keeps only the tick labels R draws
-#' ([thin_axis_labels()]).
+#' `as.grob()` gives. The drawing is recorded and echoed with its titles,
+#' margin texts and axis labels as R drew them (`base_r_echoable_recording()`),
+#' and keeps only the tick labels R draws ([thin_axis_labels()]). A drawing
+#' gridGraphics cannot echo is grabbed as drawn, as `as.grob()` does.
 #'
 #' A chart too small to draw stops, with an error of class
 #' `maidr_chart_draw_error` that names the size and R's reason. Base R gives
@@ -1309,14 +1310,42 @@ base_r_drawing_grob <- function(draw, size) {
     stop(base_r_too_small(e, size))
   }
 
-  echoed <- tryCatch(
-    grab(gridGraphics::grid.echo(draw_as_ggplotify_does)),
-    error = function(e) NULL
-  )
+  echo <- function() {
+    recording <- base_r_recorded_drawing(draw_as_ggplotify_does, size)
+    gridGraphics::grid.echo(base_r_echoable_recording(recording, size))
+  }
+  echoed <- tryCatch(grab(echo()), error = function(e) NULL)
   if (is.null(echoed)) {
     return(tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw))
   }
   thin_axis_labels(echoed, size)
+}
+
+#' A Base R drawing, recorded on a page of a size
+#'
+#' Drawn on an off-screen page as [gridGraphics::grid.echo()] draws a
+#' function, and recorded there, so that its display list can be echoed.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The page, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return The drawing, from [grDevices::recordPlot()]
+#' @keywords internal
+#' @noRd
+base_r_recorded_drawing <- function(draw, size) {
+  current <- grDevices::dev.cur()
+  grDevices::pdf(NULL, width = size[["width"]], height = size[["height"]])
+  device <- grDevices::dev.cur()
+  on.exit(
+    {
+      grDevices::dev.off(device)
+      if (current > 1) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  grDevices::dev.control("enable")
+  draw()
+  grDevices::recordPlot()
 }
 
 #' The error a Base R chart too small to draw at a size stops with
@@ -1477,7 +1506,9 @@ base_r_page_that_fits <- function(draw, size) {
 #' panels of a 2 x 2 `par(mfrow)` at 10 x 4 in. Each axis's labels are
 #' measured as R measures them, in inches along the axis on a page of the
 #' chart's size, and the ones R leaves out are taken out of the text grob.
-#' Labels that are expressions are all kept, as R draws them all.
+#' Labels that are expressions are all kept, as R draws them all. A missing
+#' label, which gridGraphics draws as "NA", is taken out: R draws none and
+#' gives it no room.
 #'
 #' @param drawing The gTree [base_r_drawing_grob()] echoed
 #' @param size The chart's canvas, from [chart_canvas_size()]
@@ -1559,6 +1590,9 @@ axis_labels_kept <- function(labels, horizontal) {
   keep <- logical(length(at))
   last <- -Inf
   for (i in order(at)) {
+    if (is.na(labels$label[[i]])) {
+      next
+    }
     if (at[[i]] - extent[[i]] / 2 - last >= gap) {
       keep[[i]] <- TRUE
       last <- at[[i]] + extent[[i]] / 2

@@ -386,6 +386,14 @@
   named "[" in the data, and `barplot()` stopped at the call itself with
   "object 'mu' not found". The call is now recorded as the expression it
   stands for, which R draws the same (#353).
+* A Base R chart whose title or axis title is not one string is drawn as R
+  draws it. `i <- 3; plot(1:5, main = i)` and `barplot(c(1, 2, 3), xlab =
+  2024)` were exported with nothing drawn on them, and nothing said so: the
+  drawing maidr makes of a Base R chart again stopped on a `main`, `sub`,
+  `xlab` or `ylab` given as a number, a logical, several values or a list
+  such as `list("Title", font = 2)`, and on `axis(labels = NA)`, and it drew
+  a missing `mtext()` text or tick label as "NA". Each is now drawn as R
+  draws it, several values a line apart (#PR).
 
 ## Documentation
 

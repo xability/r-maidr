@@ -30,9 +30,10 @@ page of the canvas's size, the drawing is the one R draws at that size.
 }
 \details{
 The grob names, which every selector is written against, are those
-\code{as.grob()} gives. A drawing gridGraphics cannot echo is grabbed as drawn,
-as \code{as.grob()} does. An echoed drawing keeps only the tick labels R draws
-(\code{\link[=thin_axis_labels]{thin_axis_labels()}}).
+\code{as.grob()} gives. The drawing is recorded and echoed with its titles,
+margin texts and axis labels as R drew them (\code{base_r_echoable_recording()}),
+and keeps only the tick labels R draws (\code{\link[=thin_axis_labels]{thin_axis_labels()}}). A drawing
+gridGraphics cannot echo is grabbed as drawn, as \code{as.grob()} does.
 
 A chart too small to draw stops, with an error of class
 \code{maidr_chart_draw_error} that names the size and R's reason. Base R gives
