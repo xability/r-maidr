@@ -11,9 +11,14 @@
 //     them, and no id is used twice before anything has the focus;
 //   * the figure maidr does not read is knitr's own svglite image;
 //   * for each chart in turn -- its tab opened first when it is hidden --
-//     Tab from the element before it lands on the chart, Right Arrow
+//     one Tab from the last tab stop before it lands on the chart, and that
+//     stop is outside the chart, and is the chart before it when one comes
+//     just before, so no stray tab stop sits between them; Right Arrow
 //     announces that chart's own first value, inside the chart, and draws
-//     its highlight inside that chart's own svg, and Shift+Tab leaves it.
+//     its highlight inside that chart's own svg, and Shift+Tab leaves it;
+//   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
+//     root font size is 10px, shows its text at its own size, within the
+//     window.
 //
 // A chart whose ids clashed with another's, or that was bound to another's
 // data, announces or highlights the wrong chart; a page that loaded the
@@ -148,8 +153,11 @@ check(
 );
 
 // Show chart i -- open the tab that hides it -- and put the focus on the
-// element before it, so that the next Tab is the one a reader presses.
+// last tab stop before its plot, so that the next Tab is the one a reader
+// presses: the stops in document order (none has a positive tabindex),
+// leaving out what is hidden, disabled or inert. Says what that stop is.
 const approach = i => page.evaluate(i => {
+  const plotOf = wrapper => wrapper.querySelector('figure[id^="maidr-figure"] > [tabindex="0"]');
   const wrapper = document.querySelectorAll('.maidr-knitr')[i];
   for (let element = wrapper.parentElement; element; element = element.parentElement) {
     if (element.id && element.getClientRects().length === 0) {
@@ -160,18 +168,34 @@ const approach = i => page.evaluate(i => {
     }
   }
   wrapper.scrollIntoView({ block: 'center' });
-  let before = wrapper.previousElementSibling || wrapper.parentElement;
-  while (before && before.getClientRects().length === 0) {
-    before = before.parentElement;
+  const stops = Array.from(
+    document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'),
+  ).filter(element => element.tabIndex >= 0 && !element.disabled
+    && element.getClientRects().length > 0 && !element.closest('[inert]'));
+  const at = stops.indexOf(plotOf(wrapper));
+  const before = at > 0 ? stops[at - 1] : null;
+  const previous = wrapper.previousElementSibling;
+  const chartBefore = previous && previous.matches('.maidr-knitr') ? plotOf(previous) : null;
+  // The page's start when no stop comes before: the body, focused for once.
+  const target = before || document.body;
+  const tabindex = target.getAttribute('tabindex');
+  if (!before) {
+    target.setAttribute('tabindex', '-1');
   }
-  const tabindex = before.getAttribute('tabindex');
-  before.setAttribute('tabindex', '-1');
-  before.focus({ preventScroll: true });
-  if (tabindex === null) {
-    before.removeAttribute('tabindex');
-  } else {
-    before.setAttribute('tabindex', tabindex);
+  target.focus({ preventScroll: true });
+  if (!before) {
+    if (tabindex === null) {
+      target.removeAttribute('tabindex');
+    } else {
+      target.setAttribute('tabindex', tabindex);
+    }
   }
+  return {
+    found: at >= 0,
+    inChart: Boolean(before) && wrapper.contains(before),
+    afterChart: chartBefore === null || before === chartBefore,
+    what: before ? `${before.tagName.toLowerCase()}${before.closest('.maidr-knitr') ? ' in a chart' : ''}` : 'the page start',
+  };
 }, i);
 
 // Where the focus is, relative to chart i.
@@ -201,17 +225,17 @@ for (const [i, chart] of charts.entries()) {
     check(false, `${chart.name}: not on the page`);
     continue;
   }
-  await approach(i);
+  const before = await approach(i);
   await page.waitForTimeout(settle);
+  check(
+    before.found && !before.inChart && before.afterChart,
+    `${chart.name}: the tab stop before it is outside it, and is the chart before it when one comes just before (${before.what})`,
+  );
 
-  let presses = 0;
-  while (!(await focus(i)).onChart && presses < 5) {
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(100);
-    presses += 1;
-  }
+  await page.keyboard.press('Tab');
+  await page.waitForTimeout(100);
   const reached = (await focus(i)).onChart;
-  check(reached, `${chart.name}: Tab from the element before it reaches the chart (${presses} press(es))`);
+  check(reached, `${chart.name}: one Tab from the stop before it reaches the chart`);
   if (!reached) {
     continue;
   }
@@ -236,6 +260,39 @@ for (const [i, chart] of charts.entries()) {
   await page.waitForTimeout(settle);
   check(!(await focus(i)).inChart, `${chart.name}: Shift+Tab leaves the chart`);
 }
+
+// maidr's help, from the first chart. Its text is sized in rem, which this
+// Bootstrap 3 page makes 10px rather than 16px; knitr-inline.js zooms it
+// back. A line of 14px text is about 16px high; one of 8.75px, 10px.
+await page.evaluate(() => {
+  document.querySelector('.maidr-knitr figure[id^="maidr-figure"] > [tabindex="0"]').focus();
+});
+await page.keyboard.press('Control+Slash');
+await page.waitForTimeout(settle * 2);
+const help = await page.evaluate(() => {
+  const paper = document.querySelector('.maidr-knitr .MuiDialog-paper');
+  if (!paper) {
+    return null;
+  }
+  const text = Array.from(paper.querySelectorAll('td, p, li')).find(e => e.textContent.trim());
+  const range = document.createRange();
+  range.selectNodeContents(text);
+  const box = paper.getBoundingClientRect();
+  return {
+    root: getComputedStyle(document.documentElement).fontSize,
+    line: Math.round(range.getClientRects()[0].height),
+    top: Math.round(box.top),
+    bottom: Math.round(box.bottom),
+    height: window.innerHeight,
+  };
+});
+check(
+  help !== null && help.line >= 14 && help.top >= 0 && help.bottom <= help.height,
+  'maidr\'s help shows its text at its own size, within the window'
+    + (help ? ` (root ${help.root}, a line ${help.line}px high, ${help.top}-${help.bottom} of ${help.height})` : ': not opened'),
+);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(settle);
 
 check(errors.length === 0, `no page errors${errors.length ? ': ' + errors.join(' | ') : ''}`);
 
