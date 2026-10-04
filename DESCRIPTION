@@ -52,6 +52,7 @@ Suggests:
     goodpractice,
     cyclocomp,
     knitr,
+    xfun (>= 0.43),
     rmarkdown,
     quarto,
     patchwork,
