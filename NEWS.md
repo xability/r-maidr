@@ -347,10 +347,13 @@
   sizes, a `respect` matrix, cells that span several rows or columns and
   empty cells, and shows the tick labels R shows at its size. A size asked
   for now stops when R cannot draw the page at it, and a size no one asked
-  for is enlarged until every plot, the smallest included, has room. A
-  matrix written by name after another argument, as in `layout(widths =
-  c(3, 1), mat = m)`, is read as the matrix, where maidr read the widths as
-  one (#PR).
+  for is enlarged until every plot, the smallest included, has room. The
+  matrix is the argument R takes for it, written by name after the sizes,
+  as in `layout(widths = c(3, 1), mat = m)`, or without a name after a size
+  written with one, as in `layout(widths = c(3, 1), m)`. maidr took the
+  widths for the matrix: it warned that it could not draw the page, drew
+  none of it, and read the plots in a grid of the wrong shape, one of them
+  missing (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written

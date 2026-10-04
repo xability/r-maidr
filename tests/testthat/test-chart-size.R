@@ -950,6 +950,15 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
     matrix_by_name = function() {
       layout(widths = c(3, 1), mat = matrix(1:2, 1))
       for (i in 1:2) plot(1:5)
+    },
+    # Sizes written by position, as ?layout writes them, and a matrix
+    # written without its name after a size written with one, which maidr
+    # took for the matrix.
+    positional = layout_page(matrix(1:2, 1), c(3, 1)),
+    positional_all = layout_page(matrix(c(2, 0, 1, 3), 2, byrow = TRUE), c(3, 1), c(1, 3), TRUE),
+    matrix_unnamed_last = function() {
+      layout(widths = c(3, 1), matrix(1:2, 1))
+      for (i in 1:2) plot(1:5)
     }
   )
   for (name in names(pages)) {
@@ -1008,12 +1017,26 @@ test_that("a Base R layout() page is read the same whatever room it gives its pl
   testthat::expect_identical(cells(sized), list(c("Panel 3", "")))
   testthat::expect_identical(sized, read(layout_page(matrix(1:2, 1), plots = 3)))
 
-  # The matrix is the one the call names `mat`, wherever it is written.
-  by_name <- function() {
-    layout(widths = c(1, 3), mat = matrix(1:2, 1))
+  # The matrix is the argument R takes for `mat`: one written by that name
+  # after the sizes, or without a name after a size written with one.
+  plots <- function() {
     for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
   }
+  by_name <- function() {
+    layout(widths = c(1, 3), mat = matrix(1:2, 1))
+    plots()
+  }
   testthat::expect_identical(read(by_name), read(layout_page(matrix(1:2, 1))))
+  unnamed_after_widths <- function() {
+    layout(widths = c(1, 3), matrix(1:2, 1))
+    plots()
+  }
+  testthat::expect_identical(read(unnamed_after_widths), read(layout_page(matrix(1:2, 1))))
+  unnamed_after_heights <- function() {
+    layout(heights = c(1, 3), matrix(1:2, 2))
+    plots()
+  }
+  testthat::expect_identical(read(unnamed_after_heights), read(layout_page(matrix(1:2, 2))))
 })
 
 test_that("a Base R layout() page is held to its size by the room R gives its plots", {

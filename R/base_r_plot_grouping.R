@@ -181,9 +181,8 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
         layout_index = call$storage_index
       )
     } else if (call$function_name == "layout" && length(args) > 0) {
-      # The recorded arguments carry the names R matched them to, all but
-      # a `mat` written first without one.
-      mat <- if (!is.null(args[["mat"]])) args[["mat"]] else args[[1]]
+      args <- layout_arguments(args)
+      mat <- args[["mat"]] %||% args[[1]]
       # layout() takes a vector as a one-column matrix: `layout(1)` puts
       # the device back to a single panel.
       if (is.numeric(mat) && !is.matrix(mat)) {
@@ -207,6 +206,27 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   }
 
   config
+}
+
+#' A recorded `layout()` call's arguments, each named as R matched it
+#'
+#' The recording names an argument written without its name only when it is
+#' not the first of `layout()`'s own, `mat` (see [match_recorded_args()]): the
+#' matrix of `layout(widths = c(3, 1), m)` keeps no name, and its widths come
+#' first. Matched here against `layout()` itself, the matrix is `mat` and the
+#' sizes `widths`, `heights` and `respect`, however each was written.
+#'
+#' @param args The recorded arguments
+#' @return `args` named by the arguments of `layout()` R matched them to, or
+#'   as recorded when they cannot be matched
+#' @keywords internal
+#' @noRd
+layout_arguments <- function(args) {
+  matched <- matched_arg_formals("layout", graphics::layout, args)
+  if (!is.null(matched)) {
+    names(args) <- matched
+  }
+  args
 }
 
 #' The settings a recorded `par()` call made
