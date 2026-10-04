@@ -54,7 +54,11 @@ knit_for <- function(chunks, dir, to = "html") {
     sprintf("knitr::opts_knit$set(rmarkdown.pandoc.to = %s)", deparse(to)),
     sprintf(
       "knitr::opts_chunk$set(fig.path = %s, cache.path = %s)",
-      deparse(file.path(dir, "figure", "")), deparse(file.path(dir, "cache", ""))
+      # paste0(), not file.path(dir, "figure", ""): on Windows file.path()
+      # drops the trailing separator, and knitr then writes "figure<label>"
+      # beside the directory instead of into it.
+      deparse(paste0(file.path(dir, "figure"), "/")),
+      deparse(paste0(file.path(dir, "cache"), "/"))
     ),
     "maidr:::ensure_knitr_integration()",
     "```",
