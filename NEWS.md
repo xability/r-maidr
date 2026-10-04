@@ -284,6 +284,13 @@
   `lag.plot()` and `symbols()`. The chart is still drawn from the recorded
   values, so each chart a loop draws, or one drawn from `rnorm()`, shows the
   data it was drawn with (#PR).
+* A Base R chart titled with a plotmath call, `main = bquote(mu == .(n))`
+  or `xlab = quote(x[i])`, keeps its drawing and its data. maidr handed the
+  recorded call on to be evaluated, so the chart maidr exported had nothing
+  drawn on it, a box plot or Q-Q plot was read with no data, an axis was
+  named "[" in the data, and `barplot()` stopped at the call itself with
+  "object 'mu' not found". The call is now recorded as the expression it
+  stands for, which R draws the same (#PR).
 
 ## Documentation
 

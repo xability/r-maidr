@@ -1141,7 +1141,8 @@ create_barplot_wrapper <- function(original_function) {
       )
     } else {
       args <- match_recorded_args("barplot", original_function, args)
-      patched_args <- apply_barplot_patches(args)
+      # As recorded, so a plotmath title survives `do.call()` here too.
+      patched_args <- calls_as_expressions(apply_barplot_patches(args))
 
       result <- do.call(original_function, patched_args)
 

@@ -82,8 +82,10 @@ BaseRQqLayerProcessor <- R6::R6Class(
         return(NULL)
       }
       # An unevaluated argument is not a sample. The point processor guards
-      # the same way before handing anything to xy.coords().
-      if (any(vapply(args, is.language, logical(1)))) {
+      # the same way before handing anything to xy.coords(). Only the
+      # samples: a plotmath title is an expression too.
+      samples <- resolve_xy_args(args)
+      if (is.language(samples$x) || is.language(samples$y)) {
         return(NULL)
       }
 
