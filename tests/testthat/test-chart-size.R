@@ -795,8 +795,10 @@ test_that("a Base R chart keeps the tick labels R draws at its size, and only th
     grDevices::pdf(file, width = size[1], height = size[2], compress = FALSE)
     draw()
     grDevices::dev.off()
-    shown <- grep("T[jJ]$", readLines(file, warn = FALSE), value = TRUE)
-    sort(vapply(regmatches(shown, gregexpr("\\(([^)]*)\\)", shown)), function(parts) {
+    # The file's streams are binary; its text lines are ASCII.
+    shown <- grep("T[jJ]$", readLines(file, warn = FALSE), value = TRUE, useBytes = TRUE)
+    strings <- regmatches(shown, gregexpr("\\(([^)]*)\\)", shown, useBytes = TRUE))
+    sort(vapply(strings, function(parts) {
       paste(substr(parts, 2L, nchar(parts) - 1L), collapse = "")
     }, character(1)))
   }
