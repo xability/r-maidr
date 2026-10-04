@@ -1145,7 +1145,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #'
 #' The grob names, which every selector is written against, are those
 #' `as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as drawn,
-#' as `as.grob()` does.
+#' as `as.grob()` does. An echoed drawing keeps only the tick labels R draws
+#' ([thin_axis_labels()]).
 #'
 #' A chart too small to draw stops, with an error of class
 #' `maidr_chart_draw_error` that names the size and R's reason. Base R gives
@@ -1205,10 +1206,113 @@ base_r_drawing_grob <- function(draw, size) {
     ))
   }
 
-  tryCatch(
+  echoed <- tryCatch(
     grab(gridGraphics::grid.echo(draw_as_ggplotify_does)),
-    error = function(e) {
-      tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw)
-    }
+    error = function(e) NULL
   )
+  if (is.null(echoed)) {
+    return(tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw))
+  }
+  thin_axis_labels(echoed, size)
+}
+
+#' Keep only the tick labels R draws on each axis of an echoed drawing
+#'
+#' R's `axis()` draws a tick label only when it clears the last label drawn
+#' by a gap: an "m" wide for labels along the axis, a quarter of an "m" high
+#' for labels across it (`gap.axis`, whose default this is). Labels that
+#' would collide are left out, which is how the y axis of a short panel goes
+#' from 10, 12, 14 to 10, 14. gridGraphics echoes every label, so they ran
+#' into each other wherever R thins them: a Base R chart at 4 x 3 in, or the
+#' panels of a 2 x 2 `par(mfrow)` at 10 x 4 in. Each axis's labels are
+#' measured as R measures them, in inches along the axis on a page of the
+#' chart's size, and the ones R leaves out are taken out of the text grob.
+#' Labels that are expressions are all kept, as R draws them all.
+#'
+#' @param drawing The gTree [base_r_drawing_grob()] echoed
+#' @param size The chart's canvas, from [chart_canvas_size()]
+#' @return The gTree, its axis-label text grobs holding only the labels R
+#'   draws
+#' @keywords internal
+thin_axis_labels <- function(drawing, size) {
+  pattern <- "-(bottom|left|top|right)-axis-labels-[0-9]+$"
+  names <- grep(pattern, grid::grid.ls(drawing, print = FALSE)$name, value = TRUE)
+  if (length(names) == 0L || is.null(drawing$childrenvp)) {
+    return(drawing)
+  }
+
+  # The viewports the labels are placed in, on a page of the chart's size.
+  current <- grDevices::dev.cur()
+  grDevices::pdf(NULL, width = size[["width"]], height = size[["height"]])
+  on.exit(
+    {
+      grDevices::dev.off()
+      if (current > 1) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  grid::grid.newpage()
+  grid::pushViewport(drawing$childrenvp)
+  grid::upViewport(0)
+
+  for (name in names) {
+    labels <- grid::getGrob(drawing, name)
+    if (is.null(labels$vp) || !is.character(labels$label)) {
+      next
+    }
+    side <- sub(paste0("^.*", pattern), "\\1", name)
+    keep <- axis_labels_kept(labels, horizontal = side %in% c("bottom", "top"))
+    if (all(keep)) {
+      next
+    }
+    for (field in c("label", "x", "y", "hjust", "vjust")) {
+      if (length(labels[[field]]) == length(keep)) {
+        labels[[field]] <- labels[[field]][keep]
+      }
+    }
+    drawing <- grid::setGrob(drawing, name, labels)
+  }
+  drawing
+}
+
+#' Which of an axis's tick labels R draws
+#'
+#' Called with the labels' viewports pushed on the current device; see
+#' [thin_axis_labels()].
+#'
+#' @param labels An echoed axis-label text grob
+#' @param horizontal Whether the axis runs across the page (sides 1 and 3)
+#' @return A logical vector, one value per label
+#' @keywords internal
+axis_labels_kept <- function(labels, horizontal) {
+  grid::downViewport(labels$vp)
+  on.exit(grid::upViewport(0), add = TRUE)
+  at <- if (horizontal) {
+    grid::convertX(labels$x, "in", valueOnly = TRUE)
+  } else {
+    grid::convertY(labels$y, "in", valueOnly = TRUE)
+  }
+  at <- rep_len(at, length(labels$label))
+
+  # A label along its axis takes its width there, one across it its height.
+  along <- (labels$rot %% 180 == 0) == horizontal
+  grid::pushViewport(grid::viewport(gp = labels$gp))
+  if (along) {
+    extent <- grid::convertWidth(grid::stringWidth(labels$label), "in", valueOnly = TRUE)
+    gap <- grid::convertWidth(grid::stringWidth("m"), "in", valueOnly = TRUE)
+  } else {
+    extent <- grid::convertHeight(grid::stringHeight(labels$label), "in", valueOnly = TRUE)
+    gap <- 0.25 * grid::convertHeight(grid::stringHeight("m"), "in", valueOnly = TRUE)
+  }
+  grid::popViewport()
+
+  keep <- logical(length(at))
+  last <- -Inf
+  for (i in order(at)) {
+    if (at[[i]] - extent[[i]] / 2 - last >= gap) {
+      keep[[i]] <- TRUE
+      last <- at[[i]] + extent[[i]] / 2
+    }
+  }
+  keep
 }

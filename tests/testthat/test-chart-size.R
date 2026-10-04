@@ -506,6 +506,55 @@ test_that("a Base R chart too small for its margins stops, naming the size and R
   )
 })
 
+test_that("a Base R chart keeps the tick labels R draws at its size, and only those", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # R's axis() leaves out a tick label that would come too close to the last
+  # one it drew; gridGraphics echoed them all, and they ran into each other.
+  # What R draws is read from its own pdf device, whose font metrics are the
+  # ones maidr measures with: each text it shows, as a string.
+  drawn_by_r <- function(draw, size) {
+    file <- withr::local_tempfile(fileext = ".pdf")
+    grDevices::pdf(file, width = size[1], height = size[2], compress = FALSE)
+    draw()
+    grDevices::dev.off()
+    shown <- grep("T[jJ]$", readLines(file, warn = FALSE), value = TRUE)
+    sort(vapply(regmatches(shown, gregexpr("\\(([^)]*)\\)", shown)), function(parts) {
+      paste(substr(parts, 2L, nchar(parts) - 1L), collapse = "")
+    }, character(1)))
+  }
+  drawn_by_maidr <- function(draw, size) {
+    svg <- paste(as.character(render_sized(draw, size)), collapse = "")
+    shown <- regmatches(svg, gregexpr("<text[^>]*>[^<]*</text>", svg))[[1]]
+    sort(unescape_markup(gsub("<[^>]+>", "", shown)))
+  }
+  numbers <- c(11, 12, 13, 14)
+  reversed <- function() plot(1:10, xlim = c(10, 1), main = "Reversed", xlab = "x", ylab = "y")
+  # Short panels, whose y axes R thins at 7 x 5 in and more at 10 x 4.
+  grid_of_four <- function() {
+    par(mfrow = c(2, 2))
+    for (i in 1:4) {
+      plot(1:10, seq(10, 14, length.out = 10), main = letters[i], xlab = "x", ylab = "y")
+    }
+  }
+  charts <- list(
+    list(function() barplot(numbers, names.arg = c("a", "b", "c", "d"), main = "Bars"), c(4, 3)),
+    list(function() barplot(numbers * 1000, las = 1, main = "Across"), c(4, 3)),
+    list(function() image(matrix(1:12, 3, 4), main = "Cells"), c(4, 3)),
+    list(reversed, c(4, 3)),
+    list(grid_of_four, c(10, 4)),
+    list(grid_of_four, c(7, 5))
+  )
+  for (chart in charts) {
+    drawing <- deparse(body(chart[[1]]))[1]
+    testthat::expect_identical(
+      drawn_by_maidr(chart[[1]], chart[[2]]),
+      drawn_by_r(chart[[1]], chart[[2]]),
+      label = sprintf("%s at %g x %g in", drawing, chart[[2]][1], chart[[2]][2])
+    )
+  }
+})
+
 test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of it", {
   testthat::skip_on_cran()
   # base_r_drawing_grob() is ggplotify::as.grob() with the page sized; at

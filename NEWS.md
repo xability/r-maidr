@@ -301,6 +301,12 @@
   as far below the top edge as R puts it. The drawing is now made on a page
   of the chart's own size, with the graphical parameters `as.grob()` sets,
   so at 7 x 7 in it is the drawing `as.grob()` made (#PR).
+* A Base R chart's axes show the tick labels R shows. R's `axis()` leaves
+  out a label that would run into the one before it, but the drawing maidr
+  makes of a Base R chart kept every label, so they ran together on a
+  small chart or in the panels of a `par(mfrow)` grid: 10, 12 and 14 on a
+  short y axis where R shows 10 and 14. The labels R leaves out are now
+  left out too, measured as R measures them at the chart's size (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written
