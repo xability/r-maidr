@@ -139,16 +139,23 @@ mark_knit_page <- function(token, start_page) {
   }
   state$drawing <- TRUE
   on.exit(state$drawing <- FALSE, add = TRUE)
-  grDevices::recordGraphics(
-    {
-      replayed <- getOption("maidr.knit.replayed")
-      if (is.function(replayed)) replayed(maidr_token, maidr_page)
-    },
+  # recordGraphics() records its first argument unevaluated; do.call() hands
+  # it the expression itself.
+  do.call(grDevices::recordGraphics, list(
+    knit_marker_expression,
     list(maidr_token = token, maidr_page = page),
     baseenv()
-  )
+  ))
   invisible(NULL)
 }
+
+# The expression every marker records (`mark_knit_page()`). It is kept out of
+# any function body so that it holds only base R whatever rewrites those
+# bodies, as covr's instrumentation does.
+knit_marker_expression <- quote({
+  replayed <- getOption("maidr.knit.replayed")
+  if (is.function(replayed)) replayed(maidr_token, maidr_page)
+})
 
 #' Note a chart whose page is being replayed
 #'
