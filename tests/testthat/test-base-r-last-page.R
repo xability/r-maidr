@@ -353,6 +353,36 @@ test_that("a plot drawn after par(new = TRUE) shares the panel of the one before
   expect_drawn_where_r_draws(chart, grid, c("P1", "P2", "P3"))
 })
 
+test_that("a plot that lays out its own page after a grid is the chart alone", {
+  skip_if_no_render()
+
+  # heatmap() sets up a layout of its own, on a page of its own. The grid
+  # before it was still read as the page's, with an empty panel beside the
+  # heatmap that is not on R's page.
+  call <- quote({
+    par(mfrow = c(1, 2))
+    plot(1:3)
+    heatmap(as.matrix(mtcars[1:6, 1:4]))
+  })
+  chart <- last_page_export(function() eval(call))
+  testthat::expect_length(chart$schema$subplots, 1L)
+  testthat::expect_length(chart$schema$subplots[[1]], 1L)
+  testthat::expect_identical(
+    vapply(last_page_cells(chart)[[1]], function(layer) layer$type, character(1)),
+    "heat"
+  )
+  # The drawing, which draws some labels empty, has R's.
+  testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(call))
+
+  # A plot after it is in the grid again, as R puts it there.
+  after <- last_page_export(function() {
+    par(mfrow = c(1, 2))
+    heatmap(as.matrix(mtcars[1:6, 1:4]))
+    plot(1:3, main = "after")
+  })
+  testthat::expect_identical(cell_titles(after), list("after", character(0)))
+})
+
 test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
   skip_if_no_render()
 
