@@ -19,7 +19,8 @@ A function to match against, or NULL when none can be resolved
 \description{
 \code{hist} is the motivating case from #98: the generic is \code{hist(x, ...)}, so
 matching against it leaves a positional \code{breaks} inside the dots. The
-method carries the formals that matter, and picking it by the first
-argument's class is the same choice \code{UseMethod()} made when the call ran.
+method carries the formals that matter, and picking it by the class of
+the argument matched to the generic's first formal is the same choice
+\code{UseMethod()} made when the call ran.
 }
 \keyword{internal}

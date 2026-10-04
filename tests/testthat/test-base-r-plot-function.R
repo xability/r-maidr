@@ -225,6 +225,33 @@ test_that("type, the axis titles, the main title and xname are taken as R takes 
   testthat::expect_true(any(grepl("Rendering as static image", pointed$warnings, fixed = TRUE)))
 })
 
+test_that("the function is found wherever it is written among the arguments", {
+  # plot() dispatches on its first formal, `x`, whichever argument that is.
+  # The method was taken from the first argument written, so these went
+  # to plot.default(): the function read as the points again, and `pi` in
+  # the first call named the `type`.
+  generic <- maidr:::get_original_function("plot")
+  testthat::expect_identical(
+    maidr:::dispatched_definition("plot", generic, list(main = "Sine", sin, -pi, pi)),
+    graphics::plot.function
+  )
+
+  cases <- list(
+    list(call = quote(plot(main = "Sine", sin, -pi, pi)), points = pf_native_points(sin, -pi, pi)),
+    list(call = quote(plot(from = 0, to = 2, x = sin)), points = pf_native_points(sin, 0, 2)),
+    list(call = quote(plot(xlim = c(0, 2), sin)), points = pf_native_points(sin, xlim = c(0, 2)))
+  )
+  for (case in cases) {
+    label <- deparse1(case$call)
+    chart <- pf_exported(case$call)
+    layer <- pf_layer(chart$schema)
+    pf_expect_line(layer, case$points, label = label)
+    testthat::expect_identical(layer$axes$y$label, "sin", label = label)
+    testthat::expect_identical(chart$strings, pf_native_strings(case$call), label = label)
+  }
+  testthat::expect_identical(pf_layer(pf_exported(cases[[1]]$call)$schema)$title, "Sine")
+})
+
 test_that("a function written over several lines is titled with its first, as R draws it", {
   call <- quote(plot(function(x) {
     y <- x^2
