@@ -22,8 +22,9 @@
 //     its highlight inside that chart's own svg and viewBox, and Shift+Tab
 //     leaves it;
 //   * maidr's help, opened from a chart on this Bootstrap 3 page, whose
-//     root font size is 10px, shows its text at its own size, within the
-//     window.
+//     root font size is 10px, shows its text and its title at their own
+//     sizes, neither shrunk by the page nor enlarged twice, nor sized by
+//     the page's rule for its paragraphs, within the window.
 //
 // A chart whose ids clashed with another's, or that was bound to another's
 // data, announces or highlights the wrong chart; a page that loaded the
@@ -390,8 +391,14 @@ for (const [i, chart] of charts.entries()) {
 }
 
 // maidr's help, from the first chart. Its text is sized in rem, which this
-// Bootstrap 3 page makes 10px rather than 16px; knitr-inline.js zooms it
-// back. A line of 14px text is about 16px high; one of 8.75px, 10px.
+// Bootstrap 3 page makes 10px rather than 16px, until maidr.js or
+// knitr-inline.js gives it back its size. Its button's text, which
+// knitr-inline.js neither measures nor sets a font size on, is then shown at
+// 14px and its title at 20px, as on a page that leaves its root alone: not
+// 8.75px and 12.5px, nor, given back by both, 22.4px under a 20px title,
+// nor, measured off the page's 18px paragraphs, 8.75px under a 25.7px
+// title. The size a text is shown at is its font size times the zoom it is
+// under.
 await page.evaluate(() => {
   document.querySelector('.maidr-knitr figure[id^="maidr-figure"] > [tabindex="0"]').focus();
 });
@@ -402,22 +409,25 @@ const help = await page.evaluate(() => {
   if (!paper) {
     return null;
   }
-  const text = Array.from(paper.querySelectorAll('td, p, li')).find(e => e.textContent.trim());
-  const range = document.createRange();
-  range.selectNodeContents(text);
+  const shown = selector => {
+    const text = paper.querySelector(selector);
+    return text ? Math.round(parseFloat(getComputedStyle(text).fontSize) * text.currentCSSZoom * 10) / 10 : null;
+  };
   const box = paper.getBoundingClientRect();
   return {
     root: getComputedStyle(document.documentElement).fontSize,
-    line: Math.round(range.getClientRects()[0].height),
+    button: shown('.MuiButton-root'),
+    title: shown('.MuiDialogTitle-root'),
     top: Math.round(box.top),
     bottom: Math.round(box.bottom),
     height: window.innerHeight,
   };
 });
 check(
-  help !== null && help.line >= 14 && help.top >= 0 && help.bottom <= help.height,
+  help !== null && Math.abs(help.button - 14) <= 0.5 && Math.abs(help.title - 20) <= 0.5
+    && help.top >= 0 && help.bottom <= help.height,
   'maidr\'s help shows its text at its own size, within the window'
-    + (help ? ` (root ${help.root}, a line ${help.line}px high, ${help.top}-${help.bottom} of ${help.height})` : ': not opened'),
+    + (help ? ` (root ${help.root}, button ${help.button}px, title ${help.title}px, ${help.top}-${help.bottom} of ${help.height})` : ': not opened'),
 );
 await page.keyboard.press('Escape');
 await page.waitForTimeout(settle);
