@@ -219,6 +219,17 @@
   'rmarkdown' stopped the render, refusing the HTML dependency the frame
   brought ("Functions that produce HTML output found in document targeting
   ...") (#352).
+* maidr's dialogs, opened from a chart a knitted page shows inline (new in
+  this version, above), are enlarged only by as much as maidr.js left their
+  text short of the size it has on a page that leaves its root font size
+  alone, which follows the reader's default font size. On a page whose root
+  is smaller -- `html_document`'s default theme, the gitbook format of
+  'bookdown', 'flexdashboard' -- they were zoomed by 16px divided by the
+  root's size (1.6 on a 10px root), whatever size maidr.js had given their
+  text and whatever the reader's default, so a maidr.js that sizes its
+  dialogs for such a page itself would have shown 22.4px body text under a
+  20px title. With the bundled maidr.js 4.13.0 their body text is still
+  14px under a 20px title at a browser's default font size (#354).
 
 ### ggplot2
 

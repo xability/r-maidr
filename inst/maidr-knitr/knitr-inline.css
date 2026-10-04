@@ -101,9 +101,11 @@
 
 /* maidr opens its dialogs inside the chart. knitr-inline.js sets, on each
  * chart's wrapper, the zoom that undoes a zoom of the page around it (a
- * slide deck's), and the one that gives their text its own size back on a
- * page whose root font size is smaller than 16px (Bootstrap 3); the paper is
- * kept within the window at that zoom, as MUI keeps it at none. */
+ * slide deck's), and the one that gives their text its own size back when
+ * it came out smaller than on a page that leaves its root font size alone
+ * -- on a page whose root is smaller than the reader's default font size
+ * (Bootstrap 3's 10px), unless maidr.js sized it for that page itself; the
+ * paper is kept within the window at that zoom, as MUI keeps it at none. */
 .maidr-knitr .MuiDialog-root {
   zoom: var(--maidr-knitr-unzoom, 1);
 }
@@ -124,8 +126,10 @@
 
 /* A slide's centred text, and a host's rules for headings -- a slide deck's
  * heading sizes, capitals and colours, a book's sizes -- would restyle the
- * dialogs' headings: they are given back the type MUI's default theme,
- * which maidr.js uses, gives them. */
+ * dialogs' headings: they are given back the type MUI's default theme gives
+ * them, in its rem: the size knitr-inline.js measured one at for the
+ * dialog's text, which is the page's own rem unless maidr.js sized its text
+ * for the page itself. */
 .maidr-knitr [role="dialog"] {
   text-align: start;
 }
@@ -137,17 +141,17 @@
   word-wrap: normal !important;
 }
 .maidr-knitr [role="dialog"] .MuiTypography-h6 {
-  font-size: 1.25rem !important;
+  font-size: calc(1.25 * var(--maidr-knitr-rem, 1rem)) !important;
   line-height: 1.6 !important;
   letter-spacing: 0.0075em !important;
 }
 .maidr-knitr [role="dialog"] .MuiTypography-subtitle1 {
-  font-size: 1rem !important;
+  font-size: var(--maidr-knitr-rem, 1rem) !important;
   line-height: 1.75 !important;
   letter-spacing: 0.00938em !important;
 }
 .maidr-knitr [role="dialog"] .MuiTypography-subtitle2 {
-  font-size: 0.875rem !important;
+  font-size: calc(0.875 * var(--maidr-knitr-rem, 1rem)) !important;
   line-height: 1.57 !important;
   letter-spacing: 0.00714em !important;
 }
