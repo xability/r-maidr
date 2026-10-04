@@ -60,7 +60,10 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     #' @param plot The ggplot2 object
     #' @param width,height The size to draw the chart at, in inches, or `NULL`
     #'   for maidr's own; see [chart_canvas_size()]
-    initialize = function(plot, width = NULL, height = NULL) {
+    #' @param asked Whether that size was asked for, by default when either
+    #'   side is given; see [chart_canvas_size()]
+    initialize = function(plot, width = NULL, height = NULL,
+                          asked = !is.null(width) || !is.null(height)) {
       private$.plot <- plot
 
       # The jitter recovery memoises per layer, and a layer is not enough to
@@ -96,7 +99,7 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
       candlestick <- length(collect_candlestick_layers(
         list(subplots = private$.combined_data)
       )) > 0L
-      private$.canvas <- chart_canvas_size(width, height, candlestick = candlestick)
+      private$.canvas <- chart_canvas_size(width, height, candlestick = candlestick, asked = asked)
     },
     #' @description The size the chart is drawn at
     #' @return A named numeric vector, `width` and `height`, in inches

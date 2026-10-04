@@ -189,7 +189,12 @@ leaving the layer classified the way it was before pie support.
   Create an orchestrator for this system (ggplot2)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2Adapter$create_orchestrator(plot_object, width = NULL, height = NULL)}
+    \preformatted{Ggplot2Adapter$create_orchestrator(
+  plot_object,
+  width = NULL,
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -198,6 +203,8 @@ leaving the layer classified the way it was before pie support.
       \item{\code{plot_object}}{The ggplot2 plot object to process}
       \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
 for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }

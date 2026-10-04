@@ -695,14 +695,17 @@ Ggplot2Adapter <- R6::R6Class(
     #' @param plot_object The ggplot2 plot object to process
     #' @param width,height The size to draw the chart at, in inches, or `NULL`
     #'   for maidr's own; see [chart_canvas_size()]
+    #' @param asked Whether that size was asked for, by default when either
+    #'   side is given; see [chart_canvas_size()]
     #' @return PlotOrchestrator instance
-    create_orchestrator = function(plot_object, width = NULL, height = NULL) {
+    create_orchestrator = function(plot_object, width = NULL, height = NULL,
+                                   asked = !is.null(width) || !is.null(height)) {
       if (!self$can_handle(plot_object)) {
         stop("Plot object is not a ggplot2 object")
       }
 
       # Use the existing PlotOrchestrator for ggplot2
-      Ggplot2PlotOrchestrator$new(plot_object, width = width, height = height)
+      Ggplot2PlotOrchestrator$new(plot_object, width = width, height = height, asked = asked)
     },
 
     #' @description Get the system name

@@ -63,6 +63,14 @@ document's figure size, which the format, its YAML or
 \code{knitr::opts_chunk$set()} sets for every chunk, was not asked of a
 candlestick chart, which is drawn larger than it without a message.
 
+A Base R chart R draws in its chunk can still be too small for its size
+in maidr, which draws it again from its recorded calls without the
+margins a chunk sets with \code{par(mar = )}. Too small for the document's
+figure size, it is drawn larger, as one too small for 7 x 5 in is outside
+a document (see \code{\link[=show]{show()}}), and a message on the console names the size.
+Too small for a size its chunk sets of its own, it stays knitr's picture,
+with a warning naming the size.
+
 The size is the room the chart is laid out in, not what a reader hears:
 its data, titles and axes are the same at every size, though a lattice
 chart conditioned on one variable with no \verb{layout =} arranges its panels,

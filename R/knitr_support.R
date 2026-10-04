@@ -52,6 +52,14 @@
 #' `knitr::opts_chunk$set()` sets for every chunk, was not asked of a
 #' candlestick chart, which is drawn larger than it without a message.
 #'
+#' A Base R chart R draws in its chunk can still be too small for its size
+#' in maidr, which draws it again from its recorded calls without the
+#' margins a chunk sets with `par(mar = )`. Too small for the document's
+#' figure size, it is drawn larger, as one too small for 7 x 5 in is outside
+#' a document (see [show()]), and a message on the console names the size.
+#' Too small for a size its chunk sets of its own, it stays knitr's picture,
+#' with a warning naming the size.
+#'
 #' The size is the room the chart is laid out in, not what a reader hears:
 #' its data, titles and axes are the same at every size, though a lattice
 #' chart conditioned on one variable with no `layout =` arranges its panels,
@@ -341,7 +349,7 @@ knit_print.trellis <- function(x, options = list(), ...) {
 #' The chunk asked for its size when the size is not the document's own:
 #' `opts_chunk`'s, which the format, its YAML and `opts_chunk$set()` set for
 #' every chunk, with its `fig.dim` and `fig.asp` folded in as knitr folds a
-#' chunk's. Outside a knit, a size given is asked for.
+#' chunk's. Outside a knit, a size given is asked for and none is not.
 #'
 #' @param options Chunk options
 #' @return A list: `width` and `height`, each in inches, or `NULL` when no
@@ -362,7 +370,7 @@ knitr_chart_size <- function(options) {
   check_chart_size(width, "fig.width")
   check_chart_size(height, "fig.height")
 
-  asked <- TRUE
+  asked <- !is.null(width) || !is.null(height)
   if (knit_in_progress()) {
     document <- knitr::opts_chunk$get()
     document_width <- first(document$fig.width)
@@ -380,11 +388,14 @@ knitr_chart_size <- function(options) {
 
 #' The orchestrator for a chart in a knitted document, at its chunk's size
 #'
-#' Made at `knitr_chart_size()`. A candlestick chart drawn larger than that
-#' says so (`chart_canvas_size()`) only when the chunk asked for the size:
-#' the document's own figure size is every chart's and was not asked of
-#' this one, so a candlestick chunk that sets none is drawn at 12 x 6 in
-#' without a word, as before maidr read a chunk's size.
+#' Made at `knitr_chart_size()`, and told whether the chunk asked for that
+#' size: the document's own figure size is every chart's and was not asked
+#' of this one. A candlestick chart drawn larger than a size not asked for
+#' says nothing (`chart_canvas_size()`), so a candlestick chunk that sets
+#' none is drawn at 12 x 6 in without a word, as before maidr read a chunk's
+#' size. A Base R chart too small to draw at such a size is drawn larger,
+#' with a message naming the size, where one at a size the chunk asked for
+#' stops (`base_r_page_that_fits()`).
 #'
 #' @param plot The ggplot2 or lattice chart, or `NULL` for Base R
 #' @param system The adapter's name: "ggplot2", "lattice" or "base_r"
@@ -394,19 +405,11 @@ knitr_chart_size <- function(options) {
 #' @noRd
 knitr_chart_orchestrator <- function(plot, system, options) {
   size <- knitr_chart_size(options)
-  create <- function() {
-    get_global_registry()$get_adapter(system)$create_orchestrator(
-      plot,
-      width = size$width,
-      height = size$height
-    )
-  }
-  if (size$asked) {
-    return(create())
-  }
-  withCallingHandlers(
-    create(),
-    maidr_chart_size_message = function(m) invokeRestart("muffleMessage")
+  get_global_registry()$get_adapter(system)$create_orchestrator(
+    plot,
+    width = size$width,
+    height = size$height,
+    asked = size$asked
   )
 }
 

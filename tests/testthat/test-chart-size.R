@@ -92,11 +92,14 @@ size_free_schema <- function(markup) {
 #'
 #' @param chart A ggplot2 or lattice chart, or a function drawing Base R
 #'   calls, which are drawn on a device of their own
+#' @param size The width and height asked for, or `NULL` for none
 render_sized <- function(chart, size) {
   if (!is.function(chart)) {
     return(maidr:::create_maidr_html(chart, shiny = TRUE, width = size[1], height = size[2]))
   }
-  grDevices::pdf(NULL)
+  # Room for the tallest grid drawn here: the device a chart is drawn on is
+  # not the size maidr draws it at.
+  grDevices::pdf(NULL, width = 20, height = 20)
   device <- grDevices::dev.cur()
   # A device number is used again once its device is closed, and what an
   # earlier test recorded under it would be read as part of this chart.
@@ -130,6 +133,41 @@ expect_sized_alike <- function(name, chart, minimum = c(0, 0)) {
     )
     testthat::expect_identical(size_free_schema(rendered[[i]]), reference, label = label)
   }
+}
+
+#' R's own error drawing a Base R chart at a size, or NA when R draws it
+native_error <- function(draw, size) {
+  grDevices::pdf(NULL, width = size[1], height = size[2])
+  on.exit(grDevices::dev.off(), add = TRUE)
+  tryCatch(
+    {
+      draw()
+      NA_character_
+    },
+    error = conditionMessage
+  )
+}
+
+#' A function drawing a `par(mfrow)` grid of Base R plots
+grid_of <- function(rows, cols = 1) {
+  function() {
+    par(mfrow = c(rows, cols))
+    for (i in seq_len(rows * cols)) plot(1:5, main = paste("Panel", i))
+  }
+}
+
+#' The value of some code, and the messages it gave, which are kept off the
+#' console
+with_messages <- function(code) {
+  said <- character()
+  value <- withCallingHandlers(
+    code,
+    message = function(m) {
+      said <<- c(said, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  list(value = value, said = said)
 }
 
 #' A Base R chartSeries() chart of ten days, as maidr reads it
@@ -258,6 +296,14 @@ test_that("a side not asked for is maidr's own, and a candlestick is at least 12
   testthat::expect_message(
     testthat::expect_identical(size(20, candlestick = TRUE), c(width = 20, height = 6)),
     NA
+  )
+  # A size not asked for -- a knitted document's figure size -- is enlarged
+  # without a word.
+  testthat::expect_silent(
+    testthat::expect_identical(
+      size(4, 3, candlestick = TRUE, asked = FALSE),
+      c(width = 12, height = 6)
+    )
   )
 })
 
@@ -432,17 +478,6 @@ test_that("a Base R chart too small for its margins stops, naming the size and R
   # the chart was drawn on did not. Each case here stops in R at its size;
   # maidr answered with an empty chart, for several panels after the same
   # warning a few times over.
-  native_error <- function(draw, size) {
-    grDevices::pdf(NULL, width = size[1], height = size[2])
-    on.exit(grDevices::dev.off(), add = TRUE)
-    tryCatch(
-      {
-        draw()
-        NA_character_
-      },
-      error = conditionMessage
-    )
-  }
   too_small <- list(
     list(draw = function() barplot(c(a = 1, b = 2, c = 3)), size = c(6, 1.5)),
     list(draw = function() hist(mtcars$mpg), size = c(1.2, 4)),
@@ -503,6 +538,130 @@ test_that("a Base R chart too small for its margins stops, naming the size and R
   testthat::expect_identical(
     size_free_schema(render_sized(three, c(6, 1.5))),
     size_free_schema(render_sized(three, c(7, 5)))
+  )
+})
+
+test_that("a Base R chart too small for a size no one asked for is drawn larger, saying so once", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # maidr laid every Base R chart out on a 7 x 7 in page before it drew one
+  # at its size, so a grid of five rows, which R cannot draw at maidr's own
+  # 7 x 5 in, was drawn. With no size asked for it still is, on that page.
+  five <- grid_of(5)
+  testthat::expect_false(is.na(native_error(five, c(7, 5))))
+  testthat::expect_true(is.na(native_error(five, c(7, 7))))
+  drawn <- NULL
+  testthat::expect_no_warning(drawn <- with_messages(render_sized(five, NULL)))
+  testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 7)))
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_match(
+    drawn$said,
+    paste(
+      "maidr: this Base R chart is drawn at 7 x 7 in rather than 7 x 5 in, where",
+      "its margins and text leave the plot no room. Give it a size of its own"
+    ),
+    fixed = TRUE
+  )
+  # The chart asked for at 7 x 7 in, which says nothing.
+  asked <- with_messages(render_sized(five, c(7, 7)))
+  testthat::expect_length(asked$said, 0L)
+  testthat::expect_identical(size_free_schema(drawn$value), size_free_schema(asked$value))
+
+  # One that page is too small for too is drawn on the smallest larger page
+  # in whole inches R draws it on, grown only on the side it needs.
+  smallest <- function(draw, side) {
+    page <- c(7, 7)
+    while (!is.na(native_error(draw, page))) {
+      page[side] <- page[side] + 1
+    }
+    page
+  }
+  for (case in list(
+    list(draw = grid_of(6), side = 2),
+    list(draw = grid_of(9), side = 2),
+    list(draw = grid_of(1, 12), side = 1)
+  )) {
+    page <- smallest(case$draw, case$side)
+    testthat::expect_gt(page[case$side], 7)
+    drawn <- with_messages(render_sized(case$draw, NULL))
+    testthat::expect_identical(svg_size(drawn$value), svg_size_for(page))
+    testthat::expect_length(drawn$said, 1L)
+    testthat::expect_match(
+      drawn$said,
+      sprintf("drawn at %g x %g in rather than 7 x 5 in", page[1], page[2]),
+      fixed = TRUE
+    )
+  }
+
+  # The same through every entry point that takes no size, each saying it
+  # once.
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  maidr:::clear_device_storage(device)
+  on.exit(maidr:::clear_device_storage(device), add = TRUE)
+  shown <- NULL
+  testthat::local_mocked_bindings(
+    display_html = function(html_doc) shown <<- html_doc,
+    maidr_internet_available = function() FALSE,
+    .package = "maidr"
+  )
+  file <- withr::local_tempfile(fileext = ".html")
+  entry_points <- list(
+    save_html = function() {
+      save_html(file = file)
+      readLines(file, warn = FALSE)
+    },
+    show = function() {
+      maidr::show()
+      shown
+    },
+    shiny = function() maidr::show(shiny = TRUE),
+    widget = function() {
+      widget <- maidr::show(as_widget = TRUE, use_cdn = FALSE)
+      unescape_markup(widget$x$iframe_content)
+    }
+  )
+  for (name in names(entry_points)) {
+    five()
+    drawn <- with_messages(entry_points[[name]]())
+    testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 7)), label = name)
+    testthat::expect_length(drawn$said, 1L)
+  }
+})
+
+test_that("a size asked for that a Base R chart is too small for still stops", {
+  skip_if_no_render()
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  maidr:::clear_device_storage(device)
+  on.exit(maidr:::clear_device_storage(device), add = TRUE)
+  five <- grid_of(5)
+  file <- withr::local_tempfile(fileext = ".html")
+
+  # maidr's own size, asked for, is not enlarged: the author is told why it
+  # cannot be drawn there.
+  five()
+  testthat::expect_no_message(
+    testthat::expect_error(
+      save_html(file = file, width = 7, height = 5),
+      "maidr could not draw this chart at 7 x 5 in: figure margins too large.",
+      fixed = TRUE,
+      class = "maidr_chart_draw_error"
+    )
+  )
+  testthat::expect_false(file.exists(file))
+  # Nor is one side asked for, the other maidr's own.
+  testthat::expect_error(
+    maidr::show(shiny = TRUE, height = 5),
+    "maidr could not draw this chart at 7 x 5 in",
+    class = "maidr_chart_draw_error"
+  )
+  testthat::expect_error(
+    maidr::show(shiny = TRUE, width = 6),
+    "maidr could not draw this chart at 6 x 5 in",
+    class = "maidr_chart_draw_error"
   )
 })
 
@@ -862,6 +1021,63 @@ test_that("a knitted candlestick chart enlarged past its chunk's size says so in
     lapply(inline_svg_roots(page), svg_size),
     list(svg_size_for(c(12, 7)), svg_size_for(c(12, 6)), svg_size_for(c(12, 6)))
   )
+})
+
+test_that("a knitted Base R chart is drawn larger than the document's size, not its chunk's", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  # R draws these six panels in their chunk, with the margins the chunk
+  # sets. maidr draws a Base R grid again with R's own margins (the chunk's
+  # par(mar = ) is not among the calls it replays), which six panels do not
+  # fit on a page 7 in high or less: they need 8.
+  grid <- c("par(mfrow = c(6, 1), mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)")
+  warned <- character()
+  knitted <- withCallingHandlers(
+    with_messages(knit_for(c(
+      "```{r unset}", grid, "```", "",
+      "```{r document-size}", "knitr::opts_chunk$set(fig.height = 6)", "```", "",
+      "```{r document}", grid, "```", "",
+      "```{r asked, fig.height = 6.5}", grid, "```"
+    ), dir)),
+    warning = function(w) {
+      warned <<- c(warned, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  # The document's figure size, knitr's 7 x 7 in and then the 7 x 6 in
+  # opts_chunk$set() sets, was not asked of the chart: it is drawn larger,
+  # and says so, once each.
+  testthat::expect_identical(
+    grep("^maidr: this Base R chart", knitted$said, value = TRUE),
+    c(
+      paste(
+        "maidr: this Base R chart is drawn at 7 x 8 in rather than 7 x 7 in, where",
+        "its margins and text leave the plot no room. Give it a size of its own to",
+        "draw it at another.\n"
+      ),
+      paste(
+        "maidr: this Base R chart is drawn at 7 x 8 in rather than 7 x 6 in, where",
+        "its margins and text leave the plot no room. Give it a size of its own to",
+        "draw it at another.\n"
+      )
+    )
+  )
+  testthat::expect_identical(
+    lapply(inline_svg_roots(knitted$value), svg_size),
+    list(svg_size_for(c(7, 8)), svg_size_for(c(7, 8)))
+  )
+  # A size the chunk asked for is not changed: its figure stays knitr's
+  # picture, and the warning says why.
+  testthat::expect_length(warned, 1L)
+  testthat::expect_match(
+    warned,
+    "a chart in chunk 'asked' could not be made accessible",
+    fixed = TRUE
+  )
+  testthat::expect_match(warned, "maidr could not draw this chart at 7 x 6.5 in", fixed = TRUE)
 })
 
 test_that("R Markdown and Quarto draw their charts at the figure size they set", {

@@ -46,7 +46,12 @@ the results into a comprehensive interactive plot.
   Create an orchestrator for a ggplot2 object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2PlotOrchestrator$new(plot, width = NULL, height = NULL)}
+    \preformatted{Ggplot2PlotOrchestrator$new(
+  plot,
+  width = NULL,
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -55,6 +60,8 @@ the results into a comprehensive interactive plot.
       \item{\code{plot}}{The ggplot2 object}
       \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
 for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }

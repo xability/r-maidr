@@ -51,7 +51,8 @@ the results into a comprehensive interactive plot.
     \preformatted{BaseRPlotOrchestrator$new(
   device_id = grDevices::dev.cur(),
   width = NULL,
-  height = NULL
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
 )}
     \if{html}{\out{</div>}}
   }
@@ -61,6 +62,10 @@ the results into a comprehensive interactive plot.
       \item{\code{device_id}}{Graphics device ID}
       \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
 for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given. A chart too small for a size not asked for is drawn
+larger (\code{base_r_page_that_fits()}); one too small for a size asked
+for stops.}
     }
     \if{html}{\out{</div>}}
   }
@@ -330,7 +335,9 @@ HIGH-level calls
   }
   \subsection{Returns}{
     A gtable, or NULL when nothing was recorded. Stops when the
-chart is too small for R to draw (see \code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}).
+chart is too small for R to draw at a size asked for (see
+\code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}); one not asked for is enlarged to fit
+(\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}).
   }
 }
 

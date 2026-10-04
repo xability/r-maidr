@@ -76,7 +76,12 @@ have its own adapter implementation.
   Abstract method to create an orchestrator for this system
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{SystemAdapter$create_orchestrator(plot_object, width = NULL, height = NULL)}
+    \preformatted{SystemAdapter$create_orchestrator(
+  plot_object,
+  width = NULL,
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -85,6 +90,8 @@ have its own adapter implementation.
       \item{\code{plot_object}}{The plot object to process}
       \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
 for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }

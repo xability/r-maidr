@@ -41,7 +41,12 @@ chart is. A chart laid out over several pages is read from its first.
   Create an orchestrator for a trellis object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LatticePlotOrchestrator$new(plot, width = NULL, height = NULL)}
+    \preformatted{LatticePlotOrchestrator$new(
+  plot,
+  width = NULL,
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
@@ -50,6 +55,8 @@ chart is. A chart laid out over several pages is read from its first.
       \item{\code{plot}}{The trellis object}
       \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
 for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }

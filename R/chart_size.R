@@ -90,29 +90,37 @@ format_chart_size_value <- function(value) {
 #' The size asked for, each side that was not asked for taken from
 #' [MAIDR_CHART_SIZE], or from [MAIDR_CANDLESTICK_SIZE] for a candlestick
 #' chart. A candlestick chart smaller than [MAIDR_CANDLESTICK_SIZE] on either
-#' side is drawn at that size on that side instead, and a message (of class
-#' `maidr_chart_size_message`) names the size it is drawn at: a size asked
-#' for is never changed silently.
+#' side is drawn at that size on that side instead. When that size was asked
+#' for, a message (of class `maidr_chart_size_message`) names the size it is
+#' drawn at: a size asked for is never changed silently. One that was not --
+#' a knitted document's figure size, which every chunk that sets none is
+#' drawn at -- is enlarged without a word, as before maidr read a chunk's
+#' size. A Base R chart too small for a size no one asked for is enlarged
+#' too, and says so ([base_r_page_that_fits()]).
 #'
-#' @param width,height The size asked for in inches, or `NULL` for none.
+#' @param width,height The size in inches, or `NULL` for none.
 #'   Checked by the caller, with [check_chart_size()].
 #' @param candlestick Whether the chart holds a candlestick layer.
+#' @param asked Whether `width` and `height` were asked for: by default when
+#'   either is given. A knitted chunk's are asked for only when they are not
+#'   the document's own (`knitr_chart_size()`).
 #' @return A named numeric vector, `width` and `height`, in inches.
 #' @keywords internal
-chart_canvas_size <- function(width = NULL, height = NULL, candlestick = FALSE) {
+chart_canvas_size <- function(width = NULL, height = NULL, candlestick = FALSE,
+                              asked = !is.null(width) || !is.null(height)) {
   default <- if (candlestick) MAIDR_CANDLESTICK_SIZE else MAIDR_CHART_SIZE
-  asked <- c(width = width %||% default[["width"]], height = height %||% default[["height"]])
+  size <- c(width = width %||% default[["width"]], height = height %||% default[["height"]])
   if (!candlestick) {
-    return(asked)
+    return(size)
   }
-  used <- pmax(asked, MAIDR_CANDLESTICK_SIZE)
-  if (any(used != asked)) {
+  used <- pmax(size, MAIDR_CANDLESTICK_SIZE)
+  if (asked && any(used != size)) {
     # Classed, so that a knitted chart can say it where the rest of what its
     # build says is kept out of the document (see `knit_chart_content()`).
     rlang::inform(
       paste0(
         "maidr: this candlestick chart is drawn at ", format_inches(used),
-        " rather than the ", format_inches(asked), " asked for: a candlestick ",
+        " rather than the ", format_inches(size), " asked for: a candlestick ",
         "chart is drawn at least ", format_inches(MAIDR_CANDLESTICK_SIZE),
         " so that its date labels fit."
       ),

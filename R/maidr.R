@@ -65,8 +65,13 @@
 #'
 #' A Base R chart's margins and text take the same room at every size, so
 #' a chart can be too small for them -- R itself stops with "figure margins
-#' too large" at such a size. maidr then stops too, with an error naming the
-#' size, rather than show an empty chart: draw it larger.
+#' too large" at such a size. Asked for such a size, maidr stops too, with
+#' an error naming the size, rather than show an empty chart: draw it
+#' larger. With no size asked for, a chart too small for 7 x 5 in, such as
+#' a `par(mfrow)` grid of five rows or more, is drawn on the 7 x 7 in page
+#' maidr laid every Base R chart out on before it drew one at its size, or
+#' on the smallest larger page, in whole inches, where that is too small
+#' too; a message names the size it is drawn at.
 #'
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser

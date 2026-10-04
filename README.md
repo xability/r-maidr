@@ -161,7 +161,11 @@ Nothing else does: not the device a Base R chart was drawn on, nor the
 window or Shiny output a chart is shown in, which shrinks a wider chart to
 fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for
 less (in a document, by the chunk's own options), maidr says in a message
-the size it used.
+the size it used. A Base R chart too small for its margins and text at the
+size you ask for is an error naming the size. With no size asked for, one
+too small for 7 x 5 in, such as a `par(mfrow)` grid of five rows, is drawn
+larger, at 7 x 7 in or the smallest larger size it fits, and a message
+names the size.
 
 ### R Markdown and Quarto
 

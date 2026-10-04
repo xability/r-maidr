@@ -579,9 +579,12 @@ LatticePlotOrchestrator <- R6::R6Class(
     #' @param plot The trellis object
     #' @param width,height The size to draw the chart at, in inches, or `NULL`
     #'   for maidr's own; see [chart_canvas_size()]
-    initialize = function(plot, width = NULL, height = NULL) {
+    #' @param asked Whether that size was asked for, by default when either
+    #'   side is given; see [chart_canvas_size()]
+    initialize = function(plot, width = NULL, height = NULL,
+                          asked = !is.null(width) || !is.null(height)) {
       private$.plot <- plot
-      private$.canvas <- chart_canvas_size(width, height)
+      private$.canvas <- chart_canvas_size(width, height, asked = asked)
       private$.adapter <- get_global_registry()$get_adapter("lattice")
 
       private$.unsupported <- lattice_static_check(plot)
