@@ -20,7 +20,10 @@
   (7.5 x 4.5 in), now draws its charts at it. A candlestick chart is still
   never drawn smaller than 12 x 6 in, and a smaller size asked for is
   enlarged with a message naming the size used, in a document too. A size
-  that is not one positive number is an error naming the argument. The
+  that is not one positive number is an error naming the argument. A Base
+  R chart too small for its margins and text, which R cannot draw at that
+  size either ("figure margins too large"), is an error naming the size
+  and R's reason rather than an empty chart. The
   size changes how a chart is laid out and nothing a reader hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A

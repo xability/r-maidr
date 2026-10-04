@@ -38,5 +38,9 @@ should be given instead.
 
 \code{maidr_set_fallback(enabled = FALSE)} is the caller asking for the failure
 rather than the picture, so the error is re-raised untouched there.
+
+A chart too small to draw at its size (a \code{maidr_chart_draw_error}
+from \code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}) is re-raised too: its picture is drawn at
+the same size and would fail the same way.
 }
 \keyword{internal}

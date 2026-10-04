@@ -770,7 +770,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
       private$.plot_calls
     },
     #' @description The gtable of the replayed drawing, built once and cached
-    #' @return A gtable, or NULL when nothing was recorded
+    #' @return A gtable, or NULL when nothing was recorded. Stops when the
+    #'   chart is too small for R to draw (see [base_r_drawing_grob()]).
     get_gtable = function() {
       if (length(private$.plot_groups) == 0) {
         return(NULL)
@@ -806,8 +807,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
         panel_slots <- compute_panel_slots(private$.plot_groups, panel_config)
 
         composite_func <- function() {
+          # Restored with care, as in `base_r_drawing_grob()`: on a page too
+          # small for the margins, restoring would fail too and hide why.
           oldpar <- graphics::par(no.readonly = TRUE)
-          on.exit(graphics::par(oldpar), add = TRUE)
+          on.exit(try(graphics::par(oldpar), silent = TRUE), add = TRUE)
           if (panel_config$type == "mfrow") {
             graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "mfcol") {
@@ -865,6 +868,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
             return(composite_grob)
           },
           error = function(e) {
+            # A chart too small to draw stops, naming its size
+            # (`base_r_drawing_grob()`).
+            if (inherits(e, "maidr_chart_draw_error")) {
+              stop(e)
+            }
             warning("Failed to create multipanel grob: ", e$message)
             NULL
           }
@@ -903,6 +911,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
               grob_list[[i]] <- grob
             },
             error = function(e) {
+              # As above, a chart too small to draw stops.
+              if (inherits(e, "maidr_chart_draw_error")) {
+                stop(e)
+              }
               grob_list[[i]] <- NULL
             }
           )
@@ -1135,29 +1147,68 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #' `as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as drawn,
 #' as `as.grob()` does.
 #'
+#' A chart too small to draw stops, with an error of class
+#' `maidr_chart_draw_error` that names the size and R's reason. Base R gives
+#' a chart's margins and text the same room in inches on any page, so a
+#' page too small for them -- 6 x 1.5 in for a `barplot()`, 4 x 3 in for a
+#' 2 x 2 `par(mfrow)` -- leaves the plot none and R stops with "figure
+#' margins too large". The device the author drew on may have had the room,
+#' and maidr draws the chart again at a size of its own. An empty chart in
+#' its place would not say so, and a picture is drawn at the same size, so
+#' neither is made. A drawing is taken to have failed for its size when it
+#' fits a page four times as wide and high; any other failure is raised as
+#' R raised it, for the caller to handle as before.
+#'
 #' @param draw A function of no arguments that draws the chart
 #' @param size The chart's canvas, from [chart_canvas_size()]
 #' @return A gTree
 #' @keywords internal
 base_r_drawing_grob <- function(draw, size) {
+  # Restored as ggplotify restores them. On a page too small for the
+  # margins R reports a negative plot size ("pin") that it then refuses to
+  # be given back, and that refusal would hide why the drawing failed.
   old_par <- graphics::par(no.readonly = TRUE)
-  on.exit(suppressWarnings(graphics::par(old_par)), add = TRUE)
+  on.exit(try(suppressWarnings(graphics::par(old_par)), silent = TRUE), add = TRUE)
 
   draw_as_ggplotify_does <- function() {
     graphics::par(xpd = NA, bg = "transparent", mgp = c(2, 1, 0))
     draw()
   }
-  grab <- function(expr) {
+  grab <- function(expr, page = size) {
     grid::grid.grabExpr(
       expr,
       warn = 0,
-      width = size[["width"]],
-      height = size[["height"]]
+      width = page[["width"]],
+      height = page[["height"]]
     )
+  }
+
+  cannot_draw <- function(e) {
+    fits_larger <- tryCatch(
+      {
+        grab(draw_as_ggplotify_does(), page = size * 4)
+        TRUE
+      },
+      error = function(e) FALSE
+    )
+    if (!fits_larger) {
+      stop(e)
+    }
+    stop(errorCondition(
+      paste0(
+        "maidr could not draw this chart at ", format_inches(size), ": ",
+        conditionMessage(e), ". A Base R chart's margins and text take the ",
+        "same room at every size, and at this size they leave the plot none: ",
+        "give the chart a larger size."
+      ),
+      class = "maidr_chart_draw_error"
+    ))
   }
 
   tryCatch(
     grab(gridGraphics::grid.echo(draw_as_ggplotify_does)),
-    error = function(e) grab(draw_as_ggplotify_does())
+    error = function(e) {
+      tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw)
+    }
   )
 }

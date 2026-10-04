@@ -76,6 +76,11 @@ Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
 never drawn smaller than that: quantmod's \code{chartSeries()} needs the room
 for its title, date range and date labels. A smaller size asked for is
 enlarged, with a message naming the size the chart is drawn at.
+
+A Base R chart's margins and text take the same room at every size, so
+a chart can be too small for them -- R itself stops with "figure margins
+too large" at such a size. maidr then stops too, with an error naming the
+size, rather than show an empty chart: draw it larger.
 }
 
 \examples{

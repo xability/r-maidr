@@ -56,6 +56,11 @@
 #' for its title, date range and date labels. A smaller size asked for is
 #' enlarged, with a message naming the size the chart is drawn at.
 #'
+#' A Base R chart's margins and text take the same room at every size, so
+#' a chart can be too small for them -- R itself stops with "figure margins
+#' too large" at such a size. maidr then stops too, with an error naming the
+#' size, rather than show an empty chart: draw it larger.
+#'
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
 #' @param width,height The size to draw the chart at, in inches: each a
@@ -343,6 +348,10 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 #' `maidr_set_fallback(enabled = FALSE)` is the caller asking for the failure
 #' rather than the picture, so the error is re-raised untouched there.
 #'
+#' A chart too small to draw at its size (a `maidr_chart_draw_error`
+#' from [base_r_drawing_grob()]) is re-raised too: its picture is drawn at
+#' the same size and would fail the same way.
+#'
 #' @param orchestrator The orchestrator for the plot being rendered.
 #' @return The SVG content, drawn at the orchestrator's `canvas_size()`, or
 #'   `NULL` when the build failed and fallback is enabled.
@@ -363,6 +372,9 @@ build_interactive_svg <- function(orchestrator) {
   }
 
   tryCatch(build(), error = function(e) {
+    if (inherits(e, "maidr_chart_draw_error")) {
+      stop(e)
+    }
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot could not be rendered interactively (",

@@ -397,6 +397,88 @@ test_that("a Base R chart is laid out on a page of the size it is drawn at", {
   testthat::expect_true(all(distances > 0))
 })
 
+test_that("a Base R chart too small for its margins stops, naming the size and R's reason", {
+  skip_if_no_render()
+  # Base R gives a chart's margins and text the same room in inches on any
+  # page, and R stops when a page leaves the plot none. maidr draws the
+  # chart again at the size asked for, so it meets this where the device
+  # the chart was drawn on did not. Each case here stops in R at its size;
+  # maidr answered with an empty chart, for several panels after the same
+  # warning a few times over.
+  native_error <- function(draw, size) {
+    grDevices::pdf(NULL, width = size[1], height = size[2])
+    on.exit(grDevices::dev.off(), add = TRUE)
+    tryCatch(
+      {
+        draw()
+        NA_character_
+      },
+      error = conditionMessage
+    )
+  }
+  too_small <- list(
+    list(draw = function() barplot(c(a = 1, b = 2, c = 3)), size = c(6, 1.5)),
+    list(draw = function() hist(mtcars$mpg), size = c(1.2, 4)),
+    list(
+      draw = function() {
+        par(mfrow = c(2, 2))
+        for (i in 1:4) plot(1:5)
+      },
+      size = c(4, 3)
+    ),
+    list(
+      draw = function() {
+        par(mfcol = c(2, 1))
+        barplot(c(a = 1, b = 2))
+        plot(1:5)
+      },
+      size = c(6, 1.5)
+    )
+  )
+  for (case in too_small) {
+    reason <- native_error(case$draw, case$size)
+    testthat::expect_false(is.na(reason))
+    said <- NULL
+    testthat::expect_no_warning(
+      said <- testthat::expect_error(
+        render_sized(case$draw, case$size),
+        class = "maidr_chart_draw_error"
+      )
+    )
+    expected <- sprintf(
+      "maidr could not draw this chart at %g x %g in: %s.",
+      case$size[1], case$size[2], reason
+    )
+    testthat::expect_match(conditionMessage(said), expected, fixed = TRUE)
+  }
+
+  # Not a picture in its place either, which is drawn at the same size.
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  maidr:::clear_device_storage(device)
+  on.exit(maidr:::clear_device_storage(device), add = TRUE)
+  barplot(c(a = 1, b = 2, c = 3))
+  file <- withr::local_tempfile(fileext = ".html")
+  testthat::expect_error(
+    save_html(file = file, width = 6, height = 1.5),
+    class = "maidr_chart_draw_error"
+  )
+  testthat::expect_false(file.exists(file))
+
+  # A chart R draws at the size is drawn: three panels in a row leave each
+  # smaller margins, which fit 6 x 1.5 in.
+  three <- function() {
+    layout(matrix(1:3, 1))
+    for (i in 1:3) plot(1:5)
+  }
+  testthat::expect_true(is.na(native_error(three, c(6, 1.5))))
+  testthat::expect_identical(
+    size_free_schema(render_sized(three, c(6, 1.5))),
+    size_free_schema(render_sized(three, c(7, 5)))
+  )
+})
+
 test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of it", {
   testthat::skip_on_cran()
   # base_r_drawing_grob() is ggplotify::as.grob() with the page sized; at

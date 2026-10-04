@@ -329,7 +329,8 @@ HIGH-level calls
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    A gtable, or NULL when nothing was recorded
+    A gtable, or NULL when nothing was recorded. Stops when the
+chart is too small for R to draw (see \code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}).
   }
 }
 
