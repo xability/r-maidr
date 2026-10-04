@@ -181,11 +181,42 @@ test_that("the exported chart is titled as R titles it and holds the same counts
   testthat::expect_true("mtcars$mpg" %in% chart$strings)
   testthat::expect_false(any(grepl("c(21, 21", chart$strings, fixed = TRUE)))
 
-  bars <- chart$schema$subplots[[1]][[1]]$layers[[1]]$data
+  layer <- chart$schema$subplots[[1]][[1]]$layers[[1]]
   testthat::expect_equal(
-    vapply(bars, function(bar) bar$y, numeric(1)),
+    vapply(layer$data, function(bar) bar$y, numeric(1)),
     graphics::hist(mtcars$mpg, plot = FALSE)$counts
   )
+
+  # And the data a screen reader reads names the chart the same way.
+  testthat::expect_identical(layer$title, "Histogram of mtcars$mpg")
+  testthat::expect_identical(layer$axes$x$label, "mtcars$mpg")
+})
+
+test_that("a title the call gives, or takes away, wins in the data too", {
+  skip_if_no_render()
+
+  given <- exported_chart(function() hist(mtcars$mpg, xlab = "Miles", main = "Fuel"))
+  layer <- given$schema$subplots[[1]][[1]]$layers[[1]]
+  testthat::expect_identical(layer$title, "Fuel")
+  testthat::expect_identical(layer$axes$x$label, "Miles")
+
+  untitled <- exported_chart(function() hist(mtcars$mpg, main = NULL))
+  layer <- untitled$schema$subplots[[1]][[1]]$layers[[1]]
+  testthat::expect_false(isTRUE(nzchar(layer$title)))
+  testthat::expect_identical(layer$axes$x$label, "mtcars$mpg")
+})
+
+test_that("plot() and qqplot() axes are named in the data as they are drawn", {
+  skip_if_no_render()
+
+  axes_of <- function(draw) exported_chart(draw)$schema$subplots[[1]][[1]]$layers[[1]]$axes
+  scatter <- axes_of(function() plot(mtcars$wt, mtcars$mpg))
+  single <- axes_of(function() plot(mtcars$mpg))
+  quantiles <- axes_of(function() qqplot(mtcars$mpg, mtcars$hp))
+
+  testthat::expect_identical(c(scatter$x$label, scatter$y$label), c("mtcars$wt", "mtcars$mpg"))
+  testthat::expect_identical(c(single$x$label, single$y$label), c("Index", "mtcars$mpg"))
+  testthat::expect_identical(c(quantiles$x$label, quantiles$y$label), c("mtcars$mpg", "mtcars$hp"))
 })
 
 test_that("each chart a loop draws keeps its own data and R's title", {
@@ -208,11 +239,12 @@ test_that("each chart a loop draws keeps its own data and R's title", {
   panels <- unlist(chart$schema$subplots, recursive = FALSE)
   testthat::expect_length(panels, 2)
   for (i in 1:2) {
-    bars <- panels[[i]]$layers[[1]]$data
+    layer <- panels[[i]]$layers[[1]]
     testthat::expect_equal(
-      vapply(bars, function(bar) bar$y, numeric(1)),
+      vapply(layer$data, function(bar) bar$y, numeric(1)),
       graphics::hist(df[[i]], plot = FALSE)$counts
     )
+    testthat::expect_identical(layer$title, "Histogram of df[[v]]")
   }
 })
 
@@ -230,7 +262,7 @@ test_that("the recorded value is drawn, never the expression evaluated again", {
 
   calls <- recorded_calls(function() hist(mtcars$mpg))
   testthat::expect_identical(calls[[1]]$args[[1]], mtcars$mpg)
-  testthat::expect_identical(calls[[1]]$arg_text, "mtcars$mpg")
+  testthat::expect_identical(calls[[1]]$arg_text, c(x = "mtcars$mpg"))
 })
 
 test_that("a title the call gives explicitly still wins", {
@@ -247,7 +279,7 @@ test_that("an argument the chart is not titled after is passed as its value", {
   # symbol bound only for the replay could not be found.
   ttl <- "Passengers"
   calls <- recorded_calls(function() monthplot(AirPassengers, main = ttl))
-  testthat::expect_identical(calls[[1]]$arg_text, c("AirPassengers", NA))
+  testthat::expect_identical(calls[[1]]$arg_text, c(x = "AirPassengers", main = NA))
   expect_drawn_as_r_draws(quote(monthplot(AirPassengers, main = ttl)))
 
   calls <- recorded_calls(function() {
@@ -266,7 +298,7 @@ test_that("two arguments written alike keep their own values and R's titles", {
     plot(rnorm(5), rnorm(5))
   })
   entry <- calls[[1]]
-  testthat::expect_identical(entry$arg_text, c("rnorm(5)", "rnorm(5)"))
+  testthat::expect_identical(entry$arg_text, c(x = "rnorm(5)", y = "rnorm(5)"))
 
   for (call in list(
     quote(plot(rnorm(100), rnorm(100))),

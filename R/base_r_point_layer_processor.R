@@ -176,15 +176,15 @@ BaseRPointLayerProcessor <- R6::R6Class(
       plot_call <- layer_info$plot_call
       args <- plot_call$args
 
-      # No default title: a scatter plot's axes hold whatever the caller
-      # measured, and the call carries no name for it. plot() prints the
-      # deparsed arguments, but those are lost once the wrapper records
-      # evaluated values -- and reconstructing them would misname every
-      # single-argument form, which plot() labels "Index" against the data,
-      # or by the column names of a matrix or data frame. A guessed noun is
-      # worse than none, so the axis is left for the renderer's generic.
-      x_axis <- build_axis_config(label = recorded_axis_label(args, "xlab"))
-      y_axis <- build_axis_config(label = recorded_axis_label(args, "ylab"))
+      # The titles plot() and qqplot() draw from how their arguments were
+      # written, which the recorded call keeps beside the values: plot(v)
+      # is titled "Index" against `v`, a matrix by its column names, as
+      # xy.coords() decides. Any other call carries no name for what its
+      # axes measured, and a guessed noun is worse than none, so the axis
+      # is left for the renderer's generic.
+      written <- written_axis_titles(plot_call)
+      x_axis <- build_axis_config(label = recorded_axis_label(args, "xlab", written$x))
+      y_axis <- build_axis_config(label = recorded_axis_label(args, "ylab", written$y))
 
       # `plot(y ~ x, data = d)` labels its axes with the two variable names,
       # which the recorded frame still carries.

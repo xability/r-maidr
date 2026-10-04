@@ -234,14 +234,14 @@ default is freq = TRUE only for equidistant breaks.
 \subsection{\code{BaseRHistogramLayerProcessor$extract_axis_titles()}}{
   Extract the axis titles for this layer
 
-\code{hist()} derives both titles inside the call and so records neither:
-the x title is \code{deparse(substitute(x))}, which is gone by the time the
-evaluated arguments reach us, and the y title is "Frequency" or
-"Density" depending on what the bars measure. The y default therefore
-repeats hist()'s own choice -- resolved by the same rule that decides
-which values extract_data() emits, so the noun always names the number
-being announced -- while x says only what the axis certainly holds:
-the bins.
+\code{hist()} derives both titles inside the call and so records neither.
+The x title is \code{deparse1(substitute(x))}, how \code{x} was written, which
+the recorded call keeps beside the values (\code{written_axis_titles()});
+when it kept none, x says only what the axis certainly holds: the
+bins. The y title is "Frequency" or "Density" depending on what the
+bars measure, so the default repeats hist()'s own choice -- resolved by
+the same rule that decides which values extract_data() emits, so the
+noun always names the number being announced.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$extract_axis_titles(layer_info)}
@@ -285,7 +285,11 @@ the bins.
 \if{html}{\out{<a id="method-BaseRHistogramLayerProcessor-extract_main_title"></a>}}
 \if{latex}{\out{\hypertarget{method-BaseRHistogramLayerProcessor-extract_main_title}{}}}
 \subsection{\code{BaseRHistogramLayerProcessor$extract_main_title()}}{
-  The main title of the recorded call, or an empty string
+  The main title of the recorded call, or the one hist()
+writes
+
+\code{hist(x)} titles itself "Histogram of" how \code{x} was written unless the
+call gives a \code{main}, \code{NULL} and \code{""} included.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRHistogramLayerProcessor$extract_main_title(layer_info)}

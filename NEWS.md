@@ -284,6 +284,15 @@
   `lag.plot()` and `symbols()`. The chart is still drawn from the recorded
   values, so each chart a loop draws, or one drawn from `rnorm()`, shows the
   data it was drawn with (#PR).
+* The data a screen reader reads names a Base R chart's axes, and a
+  histogram's title, as the chart draws them. `hist(mtcars$mpg)` was read
+  as a histogram over "Bin" with no title, and `plot(x, y)` and `qqplot(x,
+  y)` with no axis names at all, because the recorded values no longer said
+  how the arguments were written. The call now keeps that text, so a
+  histogram is read as "Histogram of mtcars$mpg" over "mtcars$mpg",
+  `plot(v)` as "Index" against "v", and the lines and density curves drawn
+  over either chart name the same axes. A title the call gives, or blanks
+  with `main = NULL`, still wins (#PR).
 * A Base R chart titled with a plotmath call, `main = bquote(mu == .(n))`
   or `xlab = quote(x[i])`, keeps its drawing and its data. maidr handed the
   recorded call on to be evaluated, so the chart maidr exported had nothing

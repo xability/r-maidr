@@ -147,11 +147,10 @@ whenever the caller does not, and \code{datax = TRUE} swaps them along with
 the axes -- both are constants in the function's own signature, so
 they are the labels the chart really carries rather than a guess.
 
-\code{qqplot()} has no such defaults: its are \code{deparse1(substitute(x))},
-the caller's expression, which is gone by the time the wrapper has
-recorded evaluated values. So a \code{qqplot()} the caller did not label is
-left unlabelled for the renderer's generic, on the same reasoning the
-point processor already states -- a guessed noun is worse than none.
+\code{qqplot()} has no such constants: its are \code{deparse1(substitute(x))}
+and \code{deparse1(substitute(y))}, how the caller wrote the two samples,
+which the recorded call keeps beside the values
+(\code{written_axis_titles()}).
 
 The grid is computed from the drawn pairs, not from the recorded
 arguments: those are the samples, and on \code{qqnorm} one of the two axes

@@ -172,8 +172,9 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
       group <- layer_info$group
       if (!is.null(group) && !is.null(group$high_call)) {
         high_args <- group$high_call$args
+        written <- written_axis_titles(group$high_call)
         return(build_axes(
-          x = recorded_axis_label(high_args, "xlab"),
+          x = recorded_axis_label(high_args, "xlab", written$x),
           y = recorded_axis_label(high_args, "ylab", y_default)
         ))
       }

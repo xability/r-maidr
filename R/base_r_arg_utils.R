@@ -238,7 +238,9 @@ dispatched_definition <- function(function_name, definition, args) {
 #' @param written The expressions the arguments were written as, in the same
 #'   order: `as.list(substitute(list(...)))[-1L]` in the wrapper
 #' @return Character vector with one entry per argument: the text to replay
-#'   it under, or NA to replay its value
+#'   it under, or NA to replay its value. Named, when any entry has text,
+#'   by the formal each argument was matched to, which `written_arg()`
+#'   reads.
 #' @keywords internal
 written_arg_text <- function(function_name, target, args, written) {
   text <- rep(NA_character_, length(args))
@@ -258,6 +260,7 @@ written_arg_text <- function(function_name, target, args, written) {
   for (i in which(matched %in% labelled)) {
     text[i] <- written_label(written[[i]])
   }
+  names(text) <- matched
   text
 }
 

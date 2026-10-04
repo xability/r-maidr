@@ -20,7 +20,9 @@ order: \code{as.list(substitute(list(...)))[-1L]} in the wrapper}
 }
 \value{
 Character vector with one entry per argument: the text to replay
-it under, or NA to replay its value
+it under, or NA to replay its value. Named, when any entry has text,
+by the formal each argument was matched to, which \code{written_arg()}
+reads.
 }
 \description{
 Many Base R charts title themselves after how an argument was written:
