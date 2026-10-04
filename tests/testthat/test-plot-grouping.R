@@ -341,7 +341,7 @@ test_that("detect_panel_configuration ignores par without layout args", {
   setup_clean_grouping()
 })
 
-test_that("detect_panel_configuration ignores layout with non-matrix", {
+test_that("detect_panel_configuration reads a layout() vector as one column", {
   setup_clean_grouping()
 
   device_id <- grDevices::dev.cur()
@@ -349,7 +349,54 @@ test_that("detect_panel_configuration ignores layout with non-matrix", {
 
   config <- maidr:::detect_panel_configuration(device_id)
 
-  testthat::expect_null(config)
+  # As layout() itself reads it: three rows of one panel each.
+  testthat::expect_equal(config$type, "layout")
+  testthat::expect_equal(c(config$nrows, config$ncols), c(3, 1))
+  testthat::expect_equal(config$total_panels, 3)
+
+  setup_clean_grouping()
+})
+
+test_that("detect_panel_configuration sees layout(1) put the device back to one panel", {
+  setup_clean_grouping()
+
+  device_id <- grDevices::dev.cur()
+  maidr:::log_plot_call_to_device("layout", NULL, list(matrix(1:2, 1)), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:2), device_id)
+  maidr:::log_plot_call_to_device("layout", NULL, list(1), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:5), device_id)
+
+  config <- maidr:::detect_panel_configuration(device_id)
+
+  testthat::expect_equal(c(config$nrows, config$ncols), c(1, 1))
+  testthat::expect_false(maidr:::is_multipanel_config(config))
+
+  setup_clean_grouping()
+})
+
+test_that("detect_panel_configuration reads the list par() is given back", {
+  setup_clean_grouping()
+
+  device_id <- grDevices::dev.cur()
+  # par(op), with the list par(mfrow = c(1, 2)) returned, puts the grid back.
+  maidr:::log_plot_call_to_device("par", NULL, list(mfrow = c(1, 2)), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(3:1), device_id)
+  maidr:::log_plot_call_to_device("par", NULL, list(list(mfrow = c(1, 1))), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:4), device_id)
+
+  config <- maidr:::detect_panel_configuration(device_id)
+  testthat::expect_equal(config$type, "mfrow")
+  testthat::expect_false(maidr:::is_multipanel_config(config))
+
+  # And a grid set from a list, as par(list(mfcol = ...)) sets it.
+  setup_clean_grouping()
+  maidr:::log_plot_call_to_device("par", NULL, list(list(mfcol = c(2, 1))), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), device_id)
+  config <- maidr:::detect_panel_configuration(device_id)
+  testthat::expect_equal(config$type, "mfcol")
+  testthat::expect_equal(c(config$nrows, config$ncols), c(2, 1))
 
   setup_clean_grouping()
 })

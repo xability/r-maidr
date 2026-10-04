@@ -19,6 +19,8 @@ is drawn natively}
 Renders a printed trellis object in the MAIDR viewer when the print is a
 reader asking to see a chart, and draws it the way lattice would have
 otherwise. See \code{\link[=lattice_print_opens_viewer]{lattice_print_opens_viewer()}} for which prints those are.
+While knitr runs, the chart is drawn as a figure of the chunk, which
+knitr's plot hook shows as the chart.
 An unsupported chart is drawn natively. One that is read but cannot be
 exported opens in the viewer as a static image, with a warning, as it does
 from \code{show()}: \code{\link[=build_interactive_svg]{build_interactive_svg()}} turns the failure into the

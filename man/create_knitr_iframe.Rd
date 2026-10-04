@@ -13,7 +13,9 @@ create_knitr_iframe(content)
 Character string of iframe HTML
 }
 \description{
-Online, the frame loads maidr.js from the CDN, and the document is given
+For HTML output that cannot show a chart inline (see
+\code{knitr_chart_output()}), and for a chart that could not be. Online, the
+frame loads maidr.js from the CDN, and the document is given
 its own copy of the bundle (\code{\link[=maidr_page_bundle_dependency]{maidr_page_bundle_dependency()}}) for the frame
 to fall back on. The frame's document sits in a \code{srcdoc} attribute, where
 R Markdown's \code{self_contained} and Quarto's \code{embed-resources} cannot reach

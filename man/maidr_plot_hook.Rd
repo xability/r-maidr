@@ -2,23 +2,30 @@
 % Please edit documentation in R/knitr_support.R
 \name{maidr_plot_hook}
 \alias{maidr_plot_hook}
-\title{knitr Plot Hook for Base R Plots}
+\title{knitr Plot Hook}
 \usage{
-maidr_plot_hook(x, options)
+maidr_plot_hook(x, options, original = NULL)
 }
 \arguments{
 \item{x}{The plot file path from knitr}
 
-\item{options}{Chunk options}
+\item{options}{Chunk options, reduced to the figure's own}
+
+\item{original}{The plot hook maidr's was installed over; knitr's
+Markdown hook when \code{NULL}}
 }
 \value{
-HTML string for the plot
+The figure's Markdown or HTML
 }
 \description{
-Intercepts Base R plot output and converts to MAIDR iframe.
-Uses iframe-based isolation to ensure each plot has its own MAIDR.js context.
-Automatically falls back to image rendering for unsupported plot types or
-non-HTML output formats (PDF, EPUB).
-This replaces knitr's default plot hook when maidr_on() is called.
+Shows the chart a figure holds in place of the figure file knitr saved:
+inline in an HTML page, in its own iframe in other HTML output (see
+\code{knitr_chart_output()}). The chart is the one the figure's page carries
+the marker of (see knitr_figure_map.R): a ggplot2 or lattice chart the
+chunk printed, or the Base R calls drawn on the page. Any other figure --
+no chart, two charts or a chart something else was drawn over, a chart
+maidr cannot read -- and every figure of an animation or of any other
+output format (PDF, Word, ...), is left to the hook maidr's was installed
+over, which keeps its caption and alt text. A wrong chart is never shown.
 }
 \keyword{internal}

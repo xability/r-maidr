@@ -10,12 +10,14 @@ maidr_page_bundle_dependency()
 A single htmltools::htmlDependency()
 }
 \description{
-The knitr paths put each chart in a \code{srcdoc} iframe whose \verb{<script>} loads
-maidr.js from the CDN. That document lives in an attribute, where neither
-pandoc's \code{--embed-resources} (R Markdown's \code{self_contained}, Quarto's
-\code{embed-resources}) nor anything else that rewrites a page's resources can
-see it, so a self-contained document still needed the network to make its
-charts accessible, and offline they were plain pictures.
+The widget, and a knitted document in the HTML output that cannot show its
+charts inline (see \code{knitr_chart_output()}), put each chart in a \code{srcdoc}
+iframe whose \verb{<script>} loads maidr.js from the CDN. That document lives
+in an attribute, where neither pandoc's \code{--embed-resources} (R Markdown's
+\code{self_contained}, Quarto's \code{embed-resources}) nor anything else that
+rewrites a page's resources can see it, so a self-contained document
+still needed the network to make its charts accessible, and offline they
+were plain pictures.
 }
 \details{
 This dependency gives the document one copy of the bundle that the tooling

@@ -118,9 +118,9 @@ maidr_js_string_literal <- function(x) {
 #' The DotPad SDK globals as an htmltools dependency
 #'
 #' For the paths that assemble their document from dependencies rather than
-#' a template: `show()`, `save_html()` and the knitr widget. The globals ride
-#' in the dependency's `head`, and the dependency is listed ahead of the
-#' `maidr` one so the head lands before the bundle's `<script>`.
+#' a template: `show()`, `save_html()`, the widgets and knitted documents.
+#' The globals ride in the dependency's `head`, and the dependency is listed
+#' ahead of the `maidr` one so the head lands before the bundle's `<script>`.
 #'
 #' @param config The settings, as returned by [maidr_dotpad_config()]
 #' @return An `htmltools::htmlDependency()`, or `NULL` when nothing is
@@ -132,13 +132,7 @@ maidr_dotpad_config_dependency <- function(config = maidr_dotpad_config()) {
     return(NULL)
   }
 
-  htmltools::htmlDependency(
-    name = "maidr-dotpad-config",
-    version = "1.0.0",
-    src = c(href = ""),
-    all_files = FALSE,
-    head = script
-  )
+  maidr_head_dependency("maidr-dotpad-config", script)
 }
 
 # ==============================================================================
@@ -446,11 +440,11 @@ maidr_dotpad_file_mismatch <- function(path, expected) {
 #' a reader connects a DotPad without the network. A file already present and
 #' correct is left alone, so a second call costs nothing.
 #'
-#' A page served from somewhere else -- an intranet host, or a knitr document,
-#' whose charts live in `srcdoc` frames with no base URL for a relative path
-#' to resolve against -- names its copy by URL instead, through the options
-#' `maidr.dotpad_sdk_url` and `maidr.dotpad_asset_base_url`; see
-#' [maidr-options]. A configured URL wins over a downloaded copy.
+#' A page served from somewhere else -- an intranet host, or a knitted
+#' document, which does not carry the downloaded copy -- names its copy by
+#' URL instead, through the options `maidr.dotpad_sdk_url` and
+#' `maidr.dotpad_asset_base_url`; see [maidr-options]. A configured URL wins
+#' over a downloaded copy.
 #'
 #' @param dir Where to write. Defaults to the option `maidr.dotpad_sdk_dir`,
 #'   the environment variable `MAIDR_DOTPAD_SDK_DIR`, or a per-user cache

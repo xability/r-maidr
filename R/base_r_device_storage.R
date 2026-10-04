@@ -85,6 +85,11 @@ log_plot_call_to_device <- function(
     args,
     device_id = grDevices::dev.cur(),
     call_env = NULL) {
+  # The first call a document records installs maidr into the running knit
+  # (and drops calls recorded before it); every later one costs a lookup.
+  if (isTRUE(getOption("knitr.in.progress"))) {
+    ensure_knitr_integration()
+  }
   class_level <- classify_function(function_name)
   storage <- get_device_storage(device_id)
   formula <- recorded_formula(args, call_env)
@@ -107,6 +112,15 @@ log_plot_call_to_device <- function(
     formula = formula,
     formula_frame = recorded_formula_frame(args, call_env, formula)
   )
+  # In a knit, a call that draws leaves a marker on its page, by which the
+  # plot hook knows the figure it is on (see knitr_figure_map.R). A layout
+  # call draws nothing, and governs the pages after it instead.
+  marked <- class_level %in% c("HIGH", "LOW") &&
+    identical(as.integer(device_id), as.integer(grDevices::dev.cur())) &&
+    knit_figures_active()
+  if (marked) {
+    call_entry$uid <- new_knit_token("b")
+  }
 
   storage$calls <- append(storage$calls, list(call_entry))
   storage$metadata$call_count <- length(storage$calls)
@@ -119,6 +133,10 @@ log_plot_call_to_device <- function(
     on_high_level_call(device_id, call_index)
   } else if (class_level == "LAYOUT") {
     on_layout_call(device_id, function_name, args)
+  }
+
+  if (marked) {
+    mark_knit_page(call_entry$uid, .maidr_knit_figures$call_start_page)
   }
 
   invisible(NULL)

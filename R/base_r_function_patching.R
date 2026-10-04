@@ -113,6 +113,10 @@ open_maidr_temp_device <- function() {
   # x-axis tick labels (month/year) to overlap on export.
   grDevices::pdf(temp_file, width = 7, height = 5)
   device_id <- grDevices::dev.cur()
+  # A device just opened has drawn nothing. What is kept under its number
+  # was recorded on a device that had it before, such as the last chunk of
+  # a knit that stopped with an error.
+  clear_device_storage(device_id)
 
   .maidr_patching_env$.temp_device_file <- temp_file
   .maidr_patching_env$.temp_device_id <- device_id
@@ -172,6 +176,9 @@ close_maidr_temp_device <- function() {
 #' @return The current device ID after ensuring one is open
 #' @keywords internal
 ensure_maidr_device <- function() {
+  # Every recording wrapper calls this before it draws: in a knit, the call's
+  # marker tells from the page count whether it drew several pages.
+  note_knit_call_start()
   if (grDevices::dev.cur() == 1) {
     # No device open - create temp PDF to prevent default window
     open_maidr_temp_device()

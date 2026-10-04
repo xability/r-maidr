@@ -86,6 +86,99 @@ maidr_html_dependencies <- function(use_cdn = NULL) {
   ))
 }
 
+#' A dependency that only writes to the document's `<head>`
+#'
+#' The DotPad SDK and locale pack settings reach maidr.js as globals, declared
+#' in a dependency's `head` (see [maidr_dotpad_config_dependency()] and
+#' [maidr_locale_config_dependency()]); there is no file to serve. Such a
+#' dependency still names a directory on disk, the bundle's, without
+#' declaring any file in it. Quarto copies every dependency of a document
+#' with `htmltools::copyDependencyToDir()`, which refuses one that names none
+#' ("is not disk-based"), so a `.qmd` showing a chart through
+#' [maidr_htmlwidget()] did not render at all. As it declares no file, none
+#' is copied for it, and every document renders it as before: its `head`
+#' alone.
+#'
+#' @param name The dependency's name
+#' @param head The markup it writes to the `<head>`
+#' @return A single htmltools::htmlDependency()
+#' @keywords internal
+maidr_head_dependency <- function(name, head) {
+  htmltools::htmlDependency(
+    name = name,
+    version = "1.0.0",
+    package = "maidr",
+    src = sprintf("htmlwidgets/lib/maidr-%s", MAIDR_VERSION),
+    all_files = FALSE,
+    head = head
+  )
+}
+
+#' The page dependencies of the charts a knitted document shows inline
+#'
+#' A knitted HTML page shows its charts inline (see `knitr_inline_chart()`)
+#' and loads `maidr.js` once for all of them. These are the dependencies it
+#' declares for that: those of [maidr_html_dependencies()] for the bundled
+#' copy, the bundle's own changed in two ways, and one more:
+#'
+#' * `maidr.js` is loaded with `defer`. In the iframes a document used before,
+#'   the bundle never held up the page around them; in the page's `<head>`,
+#'   1.9 MB of script would hold up its first paint until it had loaded.
+#'   That holds for a page that links the bundle from its `_files` folder: a
+#'   self-contained page (`self_contained`, `embed-resources`) has the
+#'   bundle inlined in its `<head>`, where `defer` does nothing.
+#' * `maidr-math.css`, which `maidr.js` fetches from beside itself, is declared
+#'   as an attachment, so every renderer copies it with the bundle: bookdown
+#'   copies only the files a page references, and left a book's charts with
+#'   no stylesheet for the maths in AI chat responses. A self-contained page
+#'   drops the attachment, and has no URL to resolve it against either.
+#' * `maidr-knitr` (`maidr_knitr_dependency()`) binds the charts and keeps the
+#'   host page's keyboard shortcuts out of them.
+#'
+#' The `maidr` dependency of [save_html()], [show()] and the widgets is not
+#' changed.
+#'
+#' @return A list of htmlDependency objects: the configuration dependencies
+#'   of [maidr_html_dependencies()], the bundle, and `maidr-knitr`
+#' @keywords internal
+maidr_knitr_dependencies <- function() {
+  deps <- maidr_html_dependencies(use_cdn = FALSE)
+  bundle <- vapply(deps, function(dep) identical(dep$name, "maidr"), logical(1))
+  deps[bundle] <- list(htmltools::htmlDependency(
+    name = "maidr",
+    version = MAIDR_VERSION,
+    package = "maidr",
+    src = sprintf("htmlwidgets/lib/maidr-%s", MAIDR_VERSION),
+    script = list(list(src = "maidr.js", defer = NA)),
+    attachment = c(math = "maidr-math.css"),
+    all_files = FALSE
+  ))
+  c(deps, list(maidr_knitr_dependency()))
+}
+
+#' The script and stylesheet of charts a knitted document shows inline
+#'
+#' `knitr-inline.js` hands each chart to `maidr.js`, gives it a description,
+#' and keeps the shortcuts of slide decks, books and sites from firing while
+#' a chart has the focus; `knitr-inline.css` lays the charts out and draws
+#' their focus ring. The stylesheet is not named `maidr-*.css`: `maidr.js`
+#' takes a stylesheet of that name for its own when it looks for
+#' `maidr-math.css`.
+#'
+#' @return A single htmltools::htmlDependency()
+#' @keywords internal
+maidr_knitr_dependency <- function() {
+  htmltools::htmlDependency(
+    name = "maidr-knitr",
+    version = as.character(utils::packageVersion("maidr")),
+    package = "maidr",
+    src = "maidr-knitr",
+    script = "knitr-inline.js",
+    stylesheet = "knitr-inline.css",
+    all_files = FALSE
+  )
+}
+
 #' Get paths to local MAIDR assets
 #'
 #' Returns the file paths to the locally bundled MAIDR JavaScript and KaTeX
@@ -199,12 +292,14 @@ MAIDR_PAGE_MATH_CSS_TYPE <- "text/x-maidr-math-css"
 
 #' The bundle a knitted document carries for its charts
 #'
-#' The knitr paths put each chart in a `srcdoc` iframe whose `<script>` loads
-#' maidr.js from the CDN. That document lives in an attribute, where neither
-#' pandoc's `--embed-resources` (R Markdown's `self_contained`, Quarto's
-#' `embed-resources`) nor anything else that rewrites a page's resources can
-#' see it, so a self-contained document still needed the network to make its
-#' charts accessible, and offline they were plain pictures.
+#' The widget, and a knitted document in the HTML output that cannot show its
+#' charts inline (see `knitr_chart_output()`), put each chart in a `srcdoc`
+#' iframe whose `<script>` loads maidr.js from the CDN. That document lives
+#' in an attribute, where neither pandoc's `--embed-resources` (R Markdown's
+#' `self_contained`, Quarto's `embed-resources`) nor anything else that
+#' rewrites a page's resources can see it, so a self-contained document
+#' still needed the network to make its charts accessible, and offline they
+#' were plain pictures.
 #'
 #' This dependency gives the document one copy of the bundle that the tooling
 #' does see: linked from the `_files` folder, or embedded into the page when

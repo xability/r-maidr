@@ -109,6 +109,8 @@ restore_lattice_print_method <- function() {
 #' Renders a printed trellis object in the MAIDR viewer when the print is a
 #' reader asking to see a chart, and draws it the way lattice would have
 #' otherwise. See [lattice_print_opens_viewer()] for which prints those are.
+#' While knitr runs, the chart is drawn as a figure of the chunk, which
+#' knitr's plot hook shows as the chart.
 #' An unsupported chart is drawn natively. One that is read but cannot be
 #' exported opens in the viewer as a static image, with a warning, as it does
 #' from `show()`: [build_interactive_svg()] turns the failure into the
@@ -121,6 +123,22 @@ restore_lattice_print_method <- function() {
 #' @return `x`, invisibly
 #' @keywords internal
 maidr_print_trellis <- function(x, ...) {
+  # A chart a document prints is a figure of its chunk: lattice draws it on
+  # the chunk's device, and knitr's plot hook shows it as the chart (see
+  # draw_as_knit_figure()). A print composing a page is part of a figure,
+  # which stays knitr's, and so is one lattice draws onto the page a
+  # `more = TRUE` print left open.
+  in_knit <- isTRUE(getOption("knitr.in.progress")) && is_lattice_enabled() &&
+    !isTRUE(.maidr_lattice_state$busy)
+  if (in_knit) {
+    ensure_knitr_integration()
+    own_page <- lattice_print_owns_page(list(...), x$plot.args)
+    return(draw_as_knit_figure(
+      lattice_printed_chart(x, list(...)),
+      function() print_trellis_natively(x, ...),
+      mark = own_page
+    ))
+  }
   if (!lattice_print_opens_viewer(list(...), x$plot.args)) {
     return(print_trellis_natively(x, ...))
   }
@@ -129,13 +147,7 @@ maidr_print_trellis <- function(x, ...) {
   .maidr_lattice_state$busy <- TRUE
   on.exit(.maidr_lattice_state$busy <- FALSE, add = TRUE)
 
-  # The packets a print asks for -- `?packet.panel.default`'s way to print a
-  # later page -- are the ones read, as `plot.trellis()` would draw them.
-  shown <- x
-  packet_panel <- lattice_print_arguments(list(...))[["packet.panel"]]
-  if (!is.null(packet_panel)) {
-    shown$plot.args[["packet.panel"]] <- packet_panel
-  }
+  shown <- lattice_printed_chart(x, list(...))
 
   orchestrator <- tryCatch(
     get_global_registry()$get_adapter("lattice")$create_orchestrator(shown),
@@ -174,8 +186,9 @@ maidr_print_trellis <- function(x, ...) {
 #' * a print onto a device that is not a screen: a file the user opened with
 #'   `pdf()` or `png()` expects the chart in the file, and `grid.grabExpr()`
 #'   or `ggplotify::as.grob()` expect it on their own off-screen device;
-#' * a print while knitr is running, which is `knit_print.trellis()`'s to
-#'   make accessible, or inside a Shiny render, which is `render_maidr()`'s;
+#' * a print while knitr is running, which draws a figure of the chunk
+#'   that knitr's plot hook makes accessible, or inside a Shiny render,
+#'   which is `render_maidr()`'s;
 #' * a print outside an interactive session, where there is no viewer to open;
 #' * a print MAIDR makes while it renders, and any print after `maidr_off()`
 #'   or under `options(maidr.lattice = FALSE)`.
@@ -186,23 +199,66 @@ maidr_print_trellis <- function(x, ...) {
 #' @return `TRUE` when the print should open the viewer.
 #' @keywords internal
 lattice_print_opens_viewer <- function(args, stored = NULL) {
-  # A print lattice will refuse is lattice's to refuse, with its own error.
-  args <- lattice_drawing_arguments(args, stored)
-  if (is.null(args)) {
-    return(FALSE)
-  }
-
-  composing <- !is.null(args[["position"]]) ||
-    !is.null(args[["split"]]) ||
-    isTRUE(args[["more"]]) ||
-    identical(args[["newpage"]], FALSE) ||
-    !is.null(args[["draw.in"]])
-
-  !composing &&
+  !lattice_print_composes(args, stored) &&
     !isTRUE(.maidr_lattice_state$busy) &&
     is_lattice_enabled() &&
     drawn_at_console() &&
     screen_device_is_current()
+}
+
+#' Whether a print of a trellis object composes a page
+#'
+#' Places the chart on a page other charts share -- `split`, `more = TRUE`,
+#' `position`, `newpage = FALSE`, `draw.in`, by name, partial name or place,
+#' or carried in the chart's `plot.args` -- which is lattice's own idiom for
+#' arranging several. A print lattice will refuse counts too: it is
+#' lattice's to refuse, with its own error.
+#'
+#' @param args The arguments `print()` was given besides the object.
+#' @param stored The object's `plot.args`.
+#' @return `TRUE` for a print that composes a page, or that lattice refuses.
+#' @keywords internal
+lattice_print_composes <- function(args, stored = NULL) {
+  args <- lattice_drawing_arguments(args, stored)
+  is.null(args) ||
+    !is.null(args[["position"]]) ||
+    !is.null(args[["split"]]) ||
+    isTRUE(args[["more"]]) ||
+    identical(args[["newpage"]], FALSE) ||
+    !is.null(args[["draw.in"]])
+}
+
+#' Whether a print of a trellis object in a knit draws a page of its own
+#'
+#' Neither composing a page (`lattice_print_composes()`) nor drawn onto the
+#' page a `more = TRUE` print left open (`lattice_page_open()`): only then is
+#' the page's figure the chart's.
+#'
+#' @param args The arguments `print()` was given besides the object.
+#' @param stored The object's `plot.args`.
+#' @return Logical
+#' @keywords internal
+#' @noRd
+lattice_print_owns_page <- function(args, stored = NULL) {
+  !lattice_print_composes(args, stored) && !lattice_page_open()
+}
+
+#' The chart a print of a trellis object shows
+#'
+#' The packets a print asks for -- `?packet.panel.default`'s way to print a
+#' later page -- are the ones read, as `plot.trellis()` would draw them.
+#'
+#' @param x A trellis object
+#' @param args The arguments `print()` was given besides the object.
+#' @return `x`, with the print's `packet.panel` in its `plot.args`
+#' @keywords internal
+#' @noRd
+lattice_printed_chart <- function(x, args) {
+  packet_panel <- lattice_print_arguments(args)[["packet.panel"]]
+  if (!is.null(packet_panel)) {
+    x$plot.args[["packet.panel"]] <- packet_panel
+  }
+  x
 }
 
 #' Whether a chart drawn now is drawn at the console

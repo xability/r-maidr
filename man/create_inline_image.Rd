@@ -17,8 +17,8 @@ create_inline_image(plot = NULL, width = "100\%", height = "auto")
 Character string of HTML with img tag
 }
 \description{
-Creates a simple img tag for fallback/non-HTML output.
-Used when we don't need iframe isolation (unsupported plots in HTML,
-or any plot in PDF/EPUB output).
+Creates a simple img tag for a chart MAIDR cannot read, when the chunk's
+code asks \code{knit_print()} for it itself (see \code{\link[=knit_print.ggplot]{knit_print.ggplot()}}); a
+chart knitr prints for a chunk stays knitr's own figure instead.
 }
 \keyword{internal}

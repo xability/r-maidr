@@ -72,3 +72,21 @@ test_that("reading the message leaves maidr.startup_message as it found it", {
 # Note: that Base R auto-display is genuinely unwired -- schedule_auto_show()
 # has no caller in the plotting path -- is already pinned by
 # test-pr48-regressions.R, which inspects the wrapper sources directly.
+
+test_that("no startup message is printed into a document being knitted", {
+  previous <- options(knitr.in.progress = TRUE)
+  on.exit(options(previous), add = TRUE)
+
+  # The page would carry it, and it describes a viewer a document's plots
+  # do not open.
+  testthat::expect_identical(startup_message(), "")
+})
+
+test_that("maidr.startup_message = FALSE silences the masking advice too", {
+  testthat::local_mocked_bindings(
+    packages_masking_maidr = function() "quantmod",
+    .package = "maidr"
+  )
+  testthat::expect_identical(startup_message(enabled = FALSE), "")
+  testthat::expect_match(startup_message(), "'quantmod' is attached ahead of 'maidr'", fixed = TRUE)
+})

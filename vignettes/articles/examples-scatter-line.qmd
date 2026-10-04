@@ -10,7 +10,6 @@ execute:
 ```{r setup, include = FALSE}
 library(maidr)
 library(ggplot2)
-maidr_on()
 set.seed(42)
 ```
 

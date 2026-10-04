@@ -2,19 +2,21 @@
 % Please edit documentation in R/knitr_support.R
 \name{call_original_plot_hook}
 \alias{call_original_plot_hook}
-\title{Delegate to the stored original knitr plot hook}
+\title{Delegate to the plot hook maidr's was installed over}
 \usage{
-call_original_plot_hook(x, options)
+call_original_plot_hook(x, options, original = NULL)
 }
 \arguments{
 \item{x}{The plot file path from knitr}
 
 \item{options}{Chunk options}
+
+\item{original}{The plot hook maidr's was installed over}
 }
 \value{
 The hook's output
 }
 \description{
-Falls back to knitr's markdown hook only when no original was stored.
+Falls back to knitr's markdown hook only when there is none.
 }
 \keyword{internal}

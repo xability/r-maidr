@@ -245,3 +245,187 @@ test_that("the widget declares nothing on every page but its binding", {
   )
   testthat::expect_identical(names, "maidr-binding")
 })
+
+# ==============================================================================
+# Dependencies the document tooling copies
+# ==============================================================================
+
+# Quarto copies every dependency of a document with
+# htmltools::copyDependencyToDir() at its default `mustWork = TRUE`, which
+# stops at one with no directory on disk. The DotPad and locale settings were
+# such dependencies, so no .qmd showing a maidr_htmlwidget() chart rendered:
+# "Dependency maidr-locale-config 1.0.0 is not disk-based". R Markdown and
+# save_html() copy with `mustWork = FALSE` and so never noticed. Each setting
+# below adds or drops one of those dependencies.
+page_settings <- list(
+  "nothing configured" = list(),
+  "a DotPad SDK" = list(
+    maidr.dotpad_sdk_url = "/vendor/DotPadSDK-3.0.3.js",
+    maidr.dotpad_asset_base_url = "/vendor/lib/"
+  ),
+  "a locale pack location" = list(maidr.locale_base_url = "https://example.org/maidr/"),
+  "no locale packs" = list(maidr.locale_base_url = ""),
+  "both, named" = list(
+    maidr.dotpad_sdk_url = "/vendor/DotPadSDK-3.0.3.js",
+    maidr.locale_base_url = "https://example.org/maidr/"
+  )
+)
+
+# Only the settings asked for, whatever the session running the tests has.
+local_page_settings <- function(settings, env = parent.frame()) {
+  withr::local_envvar(
+    MAIDR_DOTPAD_SDK_URL = NA,
+    MAIDR_DOTPAD_ASSET_BASE_URL = NA,
+    MAIDR_LOCALE_BASE_URL = NA,
+    .local_envir = env
+  )
+  withr::local_options(
+    maidr.dotpad_sdk_url = NULL,
+    maidr.dotpad_asset_base_url = NULL,
+    maidr.locale_base_url = NULL,
+    .local_envir = env
+  )
+  withr::local_options(settings, .local_envir = env)
+}
+
+head_only <- function(deps) {
+  Filter(function(dep) !identical(dep$name, "maidr"), deps)
+}
+
+test_that("every dependency of a bundled document can be copied as Quarto copies it", {
+  for (setting in names(page_settings)) {
+    local({
+      local_page_settings(page_settings[[setting]])
+      deps <- maidr:::maidr_html_dependencies(use_cdn = FALSE)
+      lib <- withr::local_tempdir()
+
+      testthat::expect_no_error(
+        copied <- lapply(deps, htmltools::copyDependencyToDir, outputDir = lib)
+      )
+
+      # The bundle is copied; the settings have no file, so nothing is
+      # copied for them, and each still renders as its `head` alone.
+      testthat::expect_identical(
+        list.files(lib),
+        sprintf("maidr-%s", maidr:::MAIDR_VERSION),
+        info = setting
+      )
+      for (dep in head_only(copied)) {
+        testthat::expect_identical(
+          as.character(htmltools::renderDependencies(list(dep), "file")),
+          dep$head,
+          info = setting
+        )
+      }
+
+      # In the order Quarto writes them: the declarations ahead of the bundle.
+      rendered <- as.character(htmltools::renderDependencies(copied, "file"))
+      bundle_at <- regexpr("maidr.js", rendered, fixed = TRUE)
+      testthat::expect_true(bundle_at > 0, info = setting)
+      for (dep in head_only(deps)) {
+        declared_at <- regexpr(dep$head, rendered, fixed = TRUE)
+        testthat::expect_true(declared_at > 0 && declared_at < bundle_at, info = setting)
+      }
+    })
+  }
+})
+
+test_that("the settings render as their head alone wherever the bundle comes from", {
+  # What show(), save_html() and the widgets write is unchanged by giving the
+  # settings a directory: htmltools renders a dependency without files as its
+  # `head`, from either kind of source.
+  local_page_settings(page_settings[["both, named"]])
+  for (use_cdn in list(FALSE, TRUE)) {
+    settings <- head_only(maidr:::maidr_html_dependencies(use_cdn = use_cdn))
+    testthat::expect_identical(
+      vapply(settings, function(dep) dep$name, character(1)),
+      c("maidr-dotpad-config", "maidr-locale-config")
+    )
+    for (dep in settings) {
+      testthat::expect_null(dep$script)
+      testthat::expect_null(dep$stylesheet)
+      testthat::expect_null(dep$attachment)
+      testthat::expect_false(dep$all_files)
+      testthat::expect_identical(
+        as.character(htmltools::renderDependencies(list(dep))),
+        dep$head
+      )
+    }
+  }
+})
+
+test_that("a Quarto document showing a maidr_htmlwidget() chart renders", {
+  testthat::skip_on_cran()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("plotly")
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+
+  # Quarto knits in an R session of its own, which has to load this maidr:
+  # the source tree when the tests run from it, the installed package under
+  # R CMD check.
+  root <- normalizePath(testthat::test_path("..", ".."), mustWork = FALSE)
+  from_source <- requireNamespace("pkgload", quietly = TRUE) &&
+    file.exists(file.path(root, "DESCRIPTION")) &&
+    file.exists(file.path(root, "R", "maidr.R"))
+  loader <- if (from_source) {
+    sprintf("pkgload::load_all(%s, quiet = TRUE)", deparse(root))
+  } else {
+    "library(maidr)"
+  }
+
+  local_page_settings(list())
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  dir <- withr::local_tempdir("maidr-qmd-")
+  qmd <- file.path(dir, "chart.qmd")
+  writeLines(c(
+    "---",
+    "title: chart",
+    "format: html",
+    "---",
+    "```{r}",
+    "#| echo: false",
+    "#| message: false",
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    loader,
+    "options(maidr.dotpad_sdk_url = '/vendor/DotPadSDK-3.0.3.js')",
+    "p <- plotly::plot_ly(x = c('a', 'b'), y = c(3, 1), type = 'bar')",
+    "maidr::maidr_htmlwidget(p)",
+    "```"
+  ), qmd)
+
+  out <- suppressWarnings(system2(
+    quarto,
+    c("render", shQuote(qmd), "--quiet"),
+    stdout = TRUE,
+    stderr = TRUE,
+    timeout = 300
+  ))
+  status <- attr(out, "status")
+  testthat::expect_identical(
+    if (is.null(status)) 0L else status,
+    0L,
+    info = paste(out, collapse = "\n")
+  )
+
+  page <- file.path(dir, "chart.html")
+  html <- if (file.exists(page)) {
+    paste(readLines(page, warn = FALSE), collapse = "\n")
+  } else {
+    ""
+  }
+  bundle_at <- regexpr(
+    sprintf('<script src="chart_files/libs/maidr-%s/maidr.js">', maidr:::MAIDR_VERSION),
+    html,
+    fixed = TRUE
+  )
+  dotpad_at <- regexpr("window.MAIDR_DOTPAD_SDK_URL = ", html, fixed = TRUE)
+  locale_at <- regexpr("window.maidrLocaleBaseUrl = ", html, fixed = TRUE)
+  testthat::expect_true(bundle_at > 0)
+  testthat::expect_true(dotpad_at > 0 && dotpad_at < bundle_at)
+  testthat::expect_true(locale_at > 0 && locale_at < bundle_at)
+
+  libs <- list.files(file.path(dir, "chart_files", "libs"))
+  testthat::expect_true(sprintf("maidr-%s", maidr:::MAIDR_VERSION) %in% libs)
+  testthat::expect_false(any(grepl("-config-", libs, fixed = TRUE)))
+})

@@ -94,11 +94,5 @@ maidr_locale_config_dependency <- function(use_cdn = FALSE) {
     return(NULL)
   }
 
-  htmltools::htmlDependency(
-    name = "maidr-locale-config",
-    version = "1.0.0",
-    src = c(href = ""),
-    all_files = FALSE,
-    head = script
-  )
+  maidr_head_dependency("maidr-locale-config", script)
 }

@@ -15,8 +15,8 @@ configured
 }
 \description{
 For the paths that assemble their document from dependencies rather than
-a template: \code{show()}, \code{save_html()} and the knitr widget. The globals ride
-in the dependency's \code{head}, and the dependency is listed ahead of the
-\code{maidr} one so the head lands before the bundle's \verb{<script>}.
+a template: \code{show()}, \code{save_html()}, the widgets and knitted documents.
+The globals ride in the dependency's \code{head}, and the dependency is listed
+ahead of the \code{maidr} one so the head lands before the bundle's \verb{<script>}.
 }
 \keyword{internal}
