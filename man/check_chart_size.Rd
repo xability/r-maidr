@@ -12,8 +12,8 @@ check_chart_size(value, arg)
 \item{arg}{The argument's name, as the caller gave it.}
 }
 \value{
-\code{value}, invisibly. Stops unless it is \code{NULL} or one positive,
-finite number.
+\code{value}, invisibly. Stops unless it is \code{NULL} or one positive
+number no larger than \link{MAIDR_MAX_CHART_SIZE}.
 }
 \description{
 Check a requested chart width or height

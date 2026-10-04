@@ -30,8 +30,8 @@ NULL
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
 #' @param fig_width,fig_height The size to draw the chart at, in inches, as
 #'   \code{width} and \code{height} set it in \code{show()}: each a single
-#'   positive number, or \code{NULL} (the default) for 7 x 5 in, 12 x 6 in
-#'   for a candlestick chart. Not the widget's size, which \code{width} and
+#'   positive number no larger than 50, or \code{NULL} (the default) for
+#'   7 x 5 in, 12 x 6 in for a candlestick chart. Not the widget's size, which \code{width} and
 #'   \code{height} set; a chart wider than the widget shrinks to fit it.
 #' @param ... Additional arguments passed to create_maidr_html()
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML

@@ -23,12 +23,14 @@
   size the chunk sets itself, and the message is among the chunk's own for
   a ggplot2 chart and on the console for Base R's `chartSeries()`; drawn
   larger than the document's figure size, a candlestick chart says nothing,
-  as before. A size
-  that is not one positive number is an error naming the argument. A Base
-  R chart too small for its margins and text, which R cannot draw at that
-  size either ("figure margins too large"), is an error naming the size
-  and R's reason rather than an empty chart. The
-  size changes how a chart is laid out and nothing a reader hears: the
+  as before. A size that is not one positive number is an error naming the
+  argument, and so is one over 50 in, which `ggplot2::ggsave()` refuses
+  too: the error says the size is in inches, not the pixels
+  `maidr_output()` takes. A Base R chart too small for its margins and
+  text, which R cannot draw at that size either ("figure margins too
+  large"), is an error naming the size and R's reason rather than an empty
+  chart. The size changes how a chart is laid out and nothing a reader
+  hears: the
   data, titles and axis labels are the same at every size, apart from the
   page coordinates a violin's density curve carries for its highlight. A
   lattice chart conditioned on one variable with no `layout =` gets the

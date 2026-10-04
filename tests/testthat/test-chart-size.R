@@ -210,6 +210,29 @@ test_that("a size is NULL or one positive number of inches, named when it is not
   testthat::expect_error(maidr:::check_chart_size(c(4, 5), "width"), "not numeric of length 2\\.$")
 })
 
+test_that("a size over 50 in is refused, as ggsave() refuses one, saying it is not pixels", {
+  testthat::expect_silent(maidr:::check_chart_size(50, "width"))
+  testthat::expect_error(
+    maidr:::check_chart_size(800, "width"),
+    paste(
+      "`width` is 800 inches, larger than the 50 a chart can be. A chart's size",
+      "is in inches, not pixels: 800 pixels would be 11.11 in, at 72 pixels to the inch."
+    ),
+    fixed = TRUE
+  )
+  testthat::expect_error(
+    maidr:::check_chart_size(50.5, "fig_height"),
+    "`fig_height` is 50.5 inches"
+  )
+
+  skip_if_no_render()
+  p <- create_test_ggplot_bar()
+  file <- withr::local_tempfile(fileext = ".html")
+  testthat::expect_error(save_html(p, file, width = 800, height = 600), "`width` is 800 inches")
+  testthat::expect_false(file.exists(file))
+  testthat::expect_error(maidr:::maidr_widget(p, fig_height = 400), "`fig_height` is 400 inches")
+})
+
 test_that("a side not asked for is maidr's own, and a candlestick is at least 12 x 6 in", {
   size <- maidr:::chart_canvas_size
   testthat::expect_identical(size(), c(width = 7, height = 5))

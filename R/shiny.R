@@ -42,8 +42,8 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #' @param quoted Is expr a quoted expression
 #' @param fig_width,fig_height The size to draw the chart at, in inches, as
 #'   \code{width} and \code{height} set it in \code{\link{show}()}: each a
-#'   single positive number, or \code{NULL} (the default) for 7 x 5 in,
-#'   12 x 6 in for a candlestick chart. They are not the size of the output
+#'   single positive number no larger than 50, or \code{NULL} (the default)
+#'   for 7 x 5 in, 12 x 6 in for a candlestick chart. They are not the size of the output
 #'   on the page, which \code{\link{maidr_output}()}'s \code{width} and
 #'   \code{height} set: a chart wider than its output shrinks to fit it.
 #'   Nothing sizes the chart to its output; the size is the one given here.

@@ -25,12 +25,22 @@ MAIDR_CHART_SIZE <- c(width = 7, height = 5)
 #' @keywords internal
 MAIDR_CANDLESTICK_SIZE <- c(width = 12, height = 6)
 
+#' The largest a chart is drawn, on either side, in inches
+#'
+#' As [ggplot2::ggsave()] refuses a larger size: one given in pixels by
+#' mistake -- `maidr_output()` and the widget take pixels -- would draw a
+#' chart hundreds of inches across, which nobody who cannot see it would
+#' notice.
+#'
+#' @keywords internal
+MAIDR_MAX_CHART_SIZE <- 50
+
 #' Check a requested chart width or height
 #'
 #' @param value The value given: `NULL`, or a size in inches.
 #' @param arg The argument's name, as the caller gave it.
-#' @return `value`, invisibly. Stops unless it is `NULL` or one positive,
-#'   finite number.
+#' @return `value`, invisibly. Stops unless it is `NULL` or one positive
+#'   number no larger than [MAIDR_MAX_CHART_SIZE].
 #' @keywords internal
 check_chart_size <- function(value, arg) {
   ok <- is.null(value) ||
@@ -39,6 +49,15 @@ check_chart_size <- function(value, arg) {
     stop(
       "`", arg, "` must be NULL or a single positive number of inches, not ",
       format_chart_size_value(value), ".",
+      call. = FALSE
+    )
+  }
+  if (!is.null(value) && value > MAIDR_MAX_CHART_SIZE) {
+    stop(
+      "`", arg, "` is ", format(value), " inches, larger than the ",
+      MAIDR_MAX_CHART_SIZE, " a chart can be. A chart's size is in inches, ",
+      "not pixels: ", format(value), " pixels would be ",
+      format(round(value / 72, 2)), " in, at 72 pixels to the inch.",
       call. = FALSE
     )
   }

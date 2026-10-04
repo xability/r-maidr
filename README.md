@@ -138,7 +138,8 @@ strip.
 A chart is drawn at 7 x 5 inches unless you give it a size, in inches as
 `ggplot2::ggsave()` takes one, and its SVG is 72 pixels to the inch. The
 size is the room the chart is laid out in; the data, titles and axis labels
-a reader hears are the same at every size.
+a reader hears are the same at every size. A side over 50 in is refused,
+as `ggsave()` refuses one, since it is most likely pixels.
 
 ``` r
 show(p, width = 10, height = 4)

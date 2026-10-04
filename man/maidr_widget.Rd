@@ -40,8 +40,8 @@ an unset \code{use_cdn} loads from the CDN on a machine that is online.}
 
 \item{fig_width, fig_height}{The size to draw the chart at, in inches, as
 \code{width} and \code{height} set it in \code{show()}: each a single
-positive number, or \code{NULL} (the default) for 7 x 5 in, 12 x 6 in
-for a candlestick chart. Not the widget's size, which \code{width} and
+positive number no larger than 50, or \code{NULL} (the default) for
+7 x 5 in, 12 x 6 in for a candlestick chart. Not the widget's size, which \code{width} and
 \code{height} set; a chart wider than the widget shrinks to fit it.}
 
 \item{...}{Additional arguments passed to create_maidr_html()}

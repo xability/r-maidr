@@ -33,8 +33,8 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 }}
 
 \item{width, height}{The size to draw the chart at, in inches: each a
-single positive number, or \code{NULL} (the default) for 7 x 5 in, 12 x 6 in
-for a candlestick chart. A side not given takes its default. With
+single positive number no larger than 50, or \code{NULL} (the default) for
+7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes its default. With
 \code{as_widget = TRUE} they size the chart in the widget, not the widget.
 See \strong{Chart size}.}
 
@@ -75,7 +75,9 @@ wider than itself to fit.
 Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
 never drawn smaller than that: quantmod's \code{chartSeries()} needs the room
 for its title, date range and date labels. A smaller size asked for is
-enlarged, with a message naming the size the chart is drawn at.
+enlarged, with a message naming the size the chart is drawn at. A side
+larger than 50 in is refused, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} refuses one: the
+size is in inches, not the pixels \code{\link[=maidr_output]{maidr_output()}} takes.
 
 A Base R chart's margins and text take the same room at every size, so
 a chart can be too small for them -- R itself stops with "figure margins
