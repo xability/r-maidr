@@ -119,7 +119,7 @@ install_knitr_integration <- function() {
   if (fresh) {
     reset_knitr_chart_index()
     forget_replayed_tokens()
-    .maidr_knit_figures$unguarded <- TRUE
+    guard_installing_chunk()
   }
   drop_stale_device_storage(include_current = fresh)
   invisible(NULL)
@@ -167,6 +167,7 @@ uninstall_knitr_integration <- function() {
   reset_knitr_chart_index()
   forget_replayed_tokens()
   .maidr_knit_figures$objects <- list()
+  .maidr_knit_figures$guards <- list()
   invisible(NULL)
 }
 
@@ -460,10 +461,8 @@ drop_stale_device_storage <- function(include_current = FALSE) {
 #' page the code replayed itself -- `dev.print()`, `dev.copy()`,
 #' `replayPlot()` -- would otherwise be taken for the chunk's first figure.
 #' knitr looks the hook up before a chunk runs, so the chunk that installed
-#' it is not run with it; until a chunk is, the markers tell such a replay
-#' from knitr's by the code running (`chunk_code_running()`). A chunk of a
-#' child document that chunk knits runs inside its code, and does not end
-#' that.
+#' it is not run with it, and is guarded instead (`guard_installing_chunk()`);
+#' the hook forgets the guard of such a chunk once it has run.
 #'
 #' @param previous The `evaluate` hook in place before; knitr evaluates
 #'   with `evaluate::evaluate()` when there is none
@@ -472,9 +471,7 @@ drop_stale_device_storage <- function(include_current = FALSE) {
 maidr_knitr_evaluate_hook <- function(previous) {
   force(previous)
   hook <- function(...) {
-    if (!chunk_code_running()) {
-      .maidr_knit_figures$unguarded <- FALSE
-    }
+    prune_installing_chunks()
     on.exit(forget_replayed_tokens(), add = TRUE)
     evaluate <- if (is.function(previous)) previous else getExportedValue("evaluate", "evaluate")
     evaluate(...)

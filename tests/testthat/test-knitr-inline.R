@@ -868,6 +868,72 @@ test_that("a chunk's Base R chart is read from its own device while another is o
   testthat::expect_identical(unname(grDevices::dev.cur()), unname(other))
 })
 
+test_that("a document rendered from a chunk shows its charts, as does the chunk", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-nested-")
+  header <- c(
+    "---", "title: nested", "output:", "  html_document:", "    self_contained: false", "---"
+  )
+  # The inner document installs maidr into its own knit from inside the
+  # outer chunk's code: its figures are its own, not pages that code replays.
+  writeLines(c(
+    header,
+    "```{r}", "library(maidr); maidr_on()", "barplot(c(in1 = 1, in2 = 2))", "```",
+    "```{r second}", "barplot(c(in3 = 1, in4 = 2))", "```"
+  ), file.path(dir, "inner.Rmd"))
+  writeLines(c(
+    header,
+    "```{r}", "library(maidr); maidr_on()", "```",
+    "```{r o1}",
+    "barplot(c(o1 = 5, o2 = 6))",
+    "invisible(rmarkdown::render('inner.Rmd', quiet = TRUE, envir = new.env()))",
+    "```",
+    "```{r o2}", "plot(1:3, c(9, 8, 7))", "```"
+  ), file.path(dir, "outer.Rmd"))
+
+  outer <- rmarkdown::render(file.path(dir, "outer.Rmd"), quiet = TRUE, envir = new.env())
+  for (page in c(file.path(dir, "inner.html"), outer)) {
+    doc <- xml2::read_html(page)
+    testthat::expect_length(inline_charts(page), 2L)
+    testthat::expect_length(xml2::xml_find_all(doc, "//img"), 0L)
+  }
+})
+
+test_that("charts first drawn in a child document are charts in every render", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-children-")
+  for (child in c("ca", "cb")) {
+    writeLines(
+      c(sprintf("```{r %s}", child), sprintf("barplot(c(%s = 1, z = 2))", child), "```"),
+      file.path(dir, paste0(child, ".Rmd"))
+    )
+  }
+  # maidr is loaded already, as in a second render of a session: the first
+  # child's barplot installs it, inside the code of the chunk knitting it.
+  writeLines(c(
+    "---", "title: parent", "output:", "  html_document:", "    self_contained: false", "---",
+    "```{r setup}", "library(maidr)", "```",
+    "```{r kids, results = 'asis'}",
+    "for (f in c('ca.Rmd', 'cb.Rmd')) cat(knitr::knit_child(f, quiet = TRUE))",
+    "```",
+    "```{r after}", "barplot(c(p1 = 5, p2 = 6))", "```"
+  ), file.path(dir, "parent.Rmd"))
+
+  for (i in 1:2) {
+    page <- rmarkdown::render(file.path(dir, "parent.Rmd"), quiet = TRUE, envir = new.env())
+    testthat::expect_identical(chart_summaries(page), rep("bar:2", 3L), info = paste("render", i))
+    testthat::expect_length(xml2::xml_find_all(xml2::read_html(page), "//img"), 0L)
+  }
+})
+
 test_that("charts written with cat() in an asis loop, and cached charts, bring maidr.js", {
   testthat::skip_on_cran()
   skip_if_no_render()

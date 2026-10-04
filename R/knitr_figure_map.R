@@ -50,10 +50,9 @@
 # reads a chart, which draws charts of its own (`knit_chart_content()`).
 .maidr_knit_figures$drawing <- FALSE
 .maidr_knit_figures$rendering <- FALSE
-# TRUE from maidr's install into a knit until a chunk runs with maidr's
-# evaluate hook: knitr looked the hook up before the chunk that installed it
-# ran, so what that chunk's code replays is not forgotten when it ends.
-.maidr_knit_figures$unguarded <- FALSE
+# The evaluations of the chunks that installed maidr into a knit, which
+# knitr runs without maidr's evaluate hook (`guard_installing_chunk()`).
+.maidr_knit_figures$guards <- list()
 
 #' Whether a chart drawn now is a figure maidr matches to its chart
 #'
@@ -164,7 +163,7 @@ knit_page_replayed <- function(token, page) {
   state <- .maidr_knit_figures
   ignored <- isTRUE(state$drawing) || !knit_figures_active() ||
     !is.character(token) || length(token) != 1L ||
-    (isTRUE(state$unguarded) && chunk_code_running())
+    replayed_by_installing_chunk()
   if (ignored) {
     return(invisible(NULL))
   }
@@ -181,23 +180,84 @@ knit_page_replayed <- function(token, page) {
   invisible(NULL)
 }
 
-#' Whether a knitted chunk's code is running now
+#' The chunk evaluation a call is made from
 #'
 #' knitr runs a chunk's code with `evaluate::evaluate()`, and saves its
-#' figures once that has returned, so a page replayed while it runs is one
-#' the code replayed itself. Asked only in the chunk that installed maidr
-#' into the knit (`.maidr_knit_figures$unguarded`), whose code knitr started
-#' before maidr's `evaluate` hook was there to forget such pages
-#' (`maidr_knitr_evaluate_hook()`). A child document knitted from that
-#' chunk runs inside its code as well, so its figures stay knitr's.
+#' figures once that has returned. The innermost evaluation is the chunk
+#' whose code is running, unless a knit -- a child document, or a document
+#' rendered from that code -- was started inside it since: that knit's own
+#' figures, and its chunks' code, are not the chunk's.
+#'
+#' @return The environment of the innermost `evaluate::evaluate()` frame,
+#'   or `NULL` when a knit is running inside it, or no chunk's code is
+#'   running
+#' @keywords internal
+#' @noRd
+running_chunk_evaluation <- function() {
+  evaluate <- getExportedValue("evaluate", "evaluate")
+  knit <- knitr::knit
+  for (i in rev(seq_len(sys.nframe() - 1L))) {
+    fun <- sys.function(i)
+    if (identical(fun, evaluate)) {
+      return(sys.frame(i))
+    }
+    if (identical(fun, knit)) {
+      return(NULL)
+    }
+  }
+  NULL
+}
+
+#' Guard the chunk that installs maidr into a knit
+#'
+#' knitr looks its `evaluate` hook up before it runs a chunk, so the chunk
+#' whose code installs maidr is run without maidr's hook, which forgets the
+#' pages a chunk's code replays itself (`maidr_knitr_evaluate_hook()`). The
+#' pages replayed while that chunk's own code runs are ignored instead
+#' (`replayed_by_installing_chunk()`): its evaluation is kept until it has
+#' returned. A child document, or a document rendered from the chunk's code,
+#' runs in a knit of its own, and its figures are not the chunk's.
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+guard_installing_chunk <- function() {
+  evaluation <- running_chunk_evaluation()
+  if (!is.null(evaluation)) {
+    .maidr_knit_figures$guards <- c(.maidr_knit_figures$guards, list(evaluation))
+  }
+  invisible(NULL)
+}
+
+#' Whether a page is replayed by the code of a chunk that installed maidr
 #'
 #' @return Logical
 #' @keywords internal
 #' @noRd
-chunk_code_running <- function() {
-  evaluate <- getExportedValue("evaluate", "evaluate")
-  frames <- seq_len(sys.nframe())
-  any(vapply(frames, function(i) identical(sys.function(i), evaluate), logical(1)))
+replayed_by_installing_chunk <- function() {
+  guards <- .maidr_knit_figures$guards
+  if (length(guards) == 0L) {
+    return(FALSE)
+  }
+  evaluation <- running_chunk_evaluation()
+  !is.null(evaluation) && any(vapply(guards, identical, logical(1), evaluation))
+}
+
+#' Forget the guards of installing chunks that have run
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+prune_installing_chunks <- function() {
+  guards <- .maidr_knit_figures$guards
+  if (length(guards) > 0L) {
+    frames <- sys.frames()
+    running <- vapply(guards, function(guard) {
+      any(vapply(frames, identical, logical(1), guard))
+    }, logical(1))
+    .maidr_knit_figures$guards <- guards[running]
+  }
+  invisible(NULL)
 }
 
 #' Whether something was drawn over a chart after its marker

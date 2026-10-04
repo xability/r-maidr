@@ -20,9 +20,7 @@ chunk's figures, replaying each page, only once its code has run, so a
 page the code replayed itself -- \code{dev.print()}, \code{dev.copy()},
 \code{replayPlot()} -- would otherwise be taken for the chunk's first figure.
 knitr looks the hook up before a chunk runs, so the chunk that installed
-it is not run with it; until a chunk is, the markers tell such a replay
-from knitr's by the code running (\code{chunk_code_running()}). A chunk of a
-child document that chunk knits runs inside its code, and does not end
-that.
+it is not run with it, and is guarded instead (\code{guard_installing_chunk()});
+the hook forgets the guard of such a chunk once it has run.
 }
 \keyword{internal}
