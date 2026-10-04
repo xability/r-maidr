@@ -227,7 +227,7 @@ knit_print.ggplot <- function(x, options = list(), ...) {
   # Get content using the SAME orchestrator (avoid creating another)
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
 
-  knitr::asis_output(knitr_chart_output(content, options))
+  knitr_chart_asis(knitr_chart_output(content, options))
 }
 
 #' Custom knit_print Method for lattice (trellis) Objects
@@ -286,7 +286,23 @@ knit_print.trellis <- function(x, options = list(), ...) {
   }
 
   content <- create_maidr_html(x, shiny = TRUE, orchestrator = orchestrator)
-  knitr::asis_output(knitr_chart_output(content, options))
+  knitr_chart_asis(knitr_chart_output(content, options))
+}
+
+#' A chart `knit_print()` returns, as knitr's `asis` output
+#'
+#' An inline chart carries the page's dependencies with it: no chunk hook
+#' runs for the value of inline code (`` `r p` ``), which knitr adds the
+#' meta of an `asis` value for all the same. A chunk's charts declare them
+#' through maidr's chunk hook as well (`maidr_knitr_chunk_hook()`).
+#'
+#' @param out The chart's output, from `knitr_chart_output()`
+#' @return A `knit_asis` object
+#' @keywords internal
+#' @noRd
+knitr_chart_asis <- function(out) {
+  inline <- any(grepl("data-maidr-knitr=", out, fixed = TRUE))
+  knitr::asis_output(out, meta = if (inline) maidr_knitr_dependencies())
 }
 
 #' Whether a chart knitr prints for a chunk is drawn as one of its figures

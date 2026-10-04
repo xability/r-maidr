@@ -973,6 +973,17 @@ test_that("charts written with cat() in an asis loop, and cached charts, bring m
   second <- knit_for(cached, dir)
   testthat::expect_identical(lengths(regmatches(second, gregexpr("data-maidr-knitr=", second))), 2L)
   testthat::expect_true(bundle_declared())
+
+  # The value of inline code, for which no chunk hook runs.
+  inline <- knit_for(c(
+    "```{r made, include = FALSE}",
+    "p <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
+    "```",
+    "",
+    "A chart: `r p` and text after it."
+  ), dir)
+  testthat::expect_identical(lengths(regmatches(inline, gregexpr("data-maidr-knitr=", inline))), 1L)
+  testthat::expect_true(bundle_declared())
 })
 
 test_that("a PDF document's charts are what they are without maidr", {
