@@ -239,11 +239,36 @@ test_that("a line plot written with no expressions emits an empty axes object", 
   testthat::expect_length(axes[[1]], 0)
 })
 
-test_that("a plot() method of a class is not titled as plot.default() would", {
+test_that("a plot() method of a class is titled as the method titles it", {
+  # plot.ts() titles one series "Time" against its name, as R draws it.
   axes <- label_axes(function() plot(AirPassengers))
 
-  testthat::expect_null(axes[[1]]$x$label)
-  testthat::expect_null(axes[[1]]$y$label)
+  testthat::expect_equal(axes[[1]]$x$label, "Time")
+  testthat::expect_equal(axes[[1]]$y$label, "AirPassengers")
+})
+
+test_that("a time series, a one-way table and a two-column data frame are titled as R draws them", {
+  # Written after another argument as well as first. plot() dispatches on
+  # the series, the table or the frame wherever it is written, and their
+  # methods' titles were read only when such a call was taken for
+  # plot.default(), from the first argument written.
+  cases <- list(
+    list(quote(plot(type = "l", AirPassengers)), "Time", "AirPassengers"),
+    list(quote(plot(main = "Nile", Nile)), "Time", "Nile"),
+    list(quote(plot(EuStockMarkets[, "DAX", drop = FALSE])), "Time", "DAX"),
+    list(quote(plot(table(cyl = mtcars$cyl))), "cyl", "table(cyl = mtcars$cyl)"),
+    list(quote(plot(main = "T", table(c(1, 1, 2, 3, 3, 3)))), NULL, "table(c(1, 1, 2, 3, 3, 3))"),
+    list(quote(plot(xlab = "v", table(c(1, 1, 2, 3, 3, 3)))), "v", "table(c(1, 1, 2, 3, 3, 3))"),
+    list(quote(plot(mtcars[, c("wt", "mpg")])), "wt", "mpg"),
+    list(quote(plot(main = "DF", mtcars[, c("wt", "mpg")])), "wt", "mpg")
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    axes <- label_axes(function() eval(call))
+    testthat::expect_identical(axes[[1]]$x$label, case[[2]], label = deparse1(call))
+    testthat::expect_identical(axes[[1]]$y$label, case[[3]], label = deparse1(call))
+  }
 })
 
 test_that("an author's own scatter plot labels are still announced", {
