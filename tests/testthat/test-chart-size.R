@@ -177,11 +177,15 @@ render_in_session <- function(rmd) {
 }
 
 #' The PNG a page embeds, as its width and height in pixels
+#'
+#' Read from the PNG's header: its IHDR chunk, after the 8-byte signature and
+#' the chunk's length and type, holds the width and then the height, each a
+#' 4-byte big-endian integer.
 embedded_png_size <- function(html) {
   uri <- regmatches(html, regexpr("data:image/png;base64,[A-Za-z0-9+/=]+", html))
   raw <- base64enc::base64decode(sub("^data:image/png;base64,", "", uri))
-  dims <- dim(png::readPNG(raw))
-  c(dims[2], dims[1])
+  testthat::expect_identical(rawToChar(raw[13:16]), "IHDR")
+  readBin(raw[17:24], "integer", n = 2L, size = 4L, endian = "big")
 }
 
 # ==============================================================================
@@ -631,7 +635,6 @@ test_that("render_maidr() draws its chart at fig_width x fig_height, a Base R on
 
 test_that("a chart shown as a picture is drawn at the size asked for", {
   skip_if_no_render()
-  testthat::skip_if_not_installed("png")
   # A text layer maidr does not read.
   p <- ggplot2::ggplot(data.frame(x = 1:3, y = 1:3), ggplot2::aes(x, y, label = x)) +
     ggplot2::geom_text()
