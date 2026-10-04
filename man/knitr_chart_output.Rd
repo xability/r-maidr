@@ -19,10 +19,10 @@ Character string: Markdown holding a raw HTML block, or the
 iframe's HTML
 }
 \description{
-Inline where \code{inline_output_ok()} allows it, in its own iframe in any
-other HTML (\code{\link[=create_knitr_iframe]{create_knitr_iframe()}}), and nothing under
-\code{fig.show = "hide"}. A chart that cannot be shown inline -- an id the
-prefixing cannot scope, or any other error -- is shown in an iframe
-instead, with one warning per document: a failure never stops the knit.
+Inline where \code{inline_output_ok()} allows it, and in its own iframe in any
+other HTML (\code{\link[=create_knitr_iframe]{create_knitr_iframe()}}). A chart that cannot be shown inline
+-- an id the prefixing cannot scope, or any other error -- is shown in an
+iframe instead, with one warning per document: a failure never stops the
+knit.
 }
 \keyword{internal}

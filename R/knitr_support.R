@@ -505,12 +505,9 @@ call_original_plot_hook <- function(x, options, original = NULL) {
 }
 
 # Internal state for knitr integration: whether maidr_on() was called last
-# (rather than maidr_off()), and the label and count of the charts of the
-# chunk being knitted (knitr_chart_index()).
+# (rather than maidr_off()).
 .maidr_knitr_state <- new.env(parent = emptyenv())
 .maidr_knitr_state$enabled <- FALSE
-.maidr_knitr_state$chart_label <- NULL
-.maidr_knitr_state$chart_count <- 0L
 
 #' Check if current knitr output format is HTML
 #'

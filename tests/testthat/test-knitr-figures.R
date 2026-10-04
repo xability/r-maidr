@@ -550,7 +550,7 @@ test_that("bookdown labels a chunk's charts as knitr labels its figures", {
     "barplot(1:2)",
     "barplot(1:3)",
     "```",
-    # Charts the chunk returns, written by knit_print() as the chunk runs.
+    # Charts the chunk returns, each one of its figures as well.
     "```{r returned, fig.cap = 'Returned'}",
     "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()",
     "ggplot2::ggplot(mtcars, ggplot2::aes(factor(gear))) + ggplot2::geom_bar()",

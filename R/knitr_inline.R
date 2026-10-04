@@ -64,11 +64,11 @@ knitr_pandoc_template <- function() {
 
 #' The output of one chart in a knitted document
 #'
-#' Inline where `inline_output_ok()` allows it, in its own iframe in any
-#' other HTML ([create_knitr_iframe()]), and nothing under
-#' `fig.show = "hide"`. A chart that cannot be shown inline -- an id the
-#' prefixing cannot scope, or any other error -- is shown in an iframe
-#' instead, with one warning per document: a failure never stops the knit.
+#' Inline where `inline_output_ok()` allows it, and in its own iframe in any
+#' other HTML ([create_knitr_iframe()]). A chart that cannot be shown inline
+#' -- an id the prefixing cannot scope, or any other error -- is shown in an
+#' iframe instead, with one warning per document: a failure never stops the
+#' knit.
 #'
 #' @param content The chart's SVG, from `create_maidr_html(shiny = TRUE)`
 #' @param options The chunk options
@@ -78,17 +78,13 @@ knitr_pandoc_template <- function() {
 #'   iframe's HTML
 #' @keywords internal
 knitr_chart_output <- function(content, options = list(), figure = FALSE) {
-  if (identical(options$fig.show, "hide")) {
-    return("")
-  }
   if (!inline_output_ok()) {
     return(create_knitr_iframe(content))
   }
   # The chunk hook that adds the page's dependencies has to be in place by
   # the end of this chunk.
   ensure_knitr_integration()
-  # A figure is numbered by knitr, which has picked its caption already.
-  index <- if (figure) options$fig.cur %||% 1L else knitr_chart_index(options)
+  index <- options$fig.cur %||% 1L
   tryCatch(
     knitr_inline_chart(content, options, index, figure = figure),
     error = function(e) {
@@ -140,12 +136,9 @@ warn_inline_fallback <- function(error) {
 #'   `fig.show = "hold"` holds to the end of a chunk, only the last is
 #'   captioned, as knitr captions them; the caption of each other one is
 #'   kept as its description.
-#' * Quarto writes the caption of a chart `knit_print()` returns itself --
-#'   the figcaption of a cross-referenceable figure for a `fig-` label, a
-#'   paragraph below the chart otherwise -- so none is written for it then;
-#'   only a hidden copy of the paragraph, for the description. A chart in
-#'   place of a figure of a `fig-` chunk is given to Quarto as the figure it
-#'   numbers and captions (`quarto_figure_float()`).
+#' * A chart in place of a figure of a `fig-` chunk in Quarto is given to
+#'   Quarto as the figure it numbers and captions (`quarto_figure_float()`);
+#'   every other chart is captioned here.
 #' * `fig.align` aligns the chart, and an `out.width` the author sets (not
 #'   the one knitr derives for a retina figure) sets the wrapper's width,
 #'   which the chart shrinks to; `fig.width` and `fig.height` are not read,
@@ -153,15 +146,13 @@ warn_inline_fallback <- function(error) {
 #'   figures `fig.show = "hold"` holds, at such a width and not aligned,
 #'   sit side by side, as knitr's images do.
 #'
-#' `fig.cap` and `fig.alt` are evaluated by knitr only once the chunk has
-#' run, so a chart `knit_print()` writes while the chunk runs can see them
-#' as unevaluated expressions; such an option is evaluated here. Of several
-#' captions, the chunk's `index`-th chart takes the `index`-th, as knitr's
-#' figures do; a figure's options hold its own caption alone already.
+#' A figure's options hold its own caption and alt text alone; of several,
+#' as a chart `knit_print()` is asked for with a chunk's options may see,
+#' the `index`-th is taken.
 #'
 #' @param svg The chart's SVG, from `create_maidr_html(shiny = TRUE)`
 #' @param options The chunk options
-#' @param index Which of the chunk's charts this one is, from 1
+#' @param index Which of the chunk's figures this one is, from 1
 #' @param figure `TRUE` for a chart the plot hook writes in place of a
 #'   figure, `FALSE` for one `knit_print()` returns
 #' @return Character string of Markdown
@@ -172,38 +163,32 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
   root <- xml2::xml_root(doc)
   json <- xml2::xml_attr(root, "maidr-data")
 
-  # Quarto captions a chart knit_print() returns, and labels its caption
-  # for the chart only in a fig- float. A chart in place of a figure of a
-  # fig- chunk is made such a float (quarto_figure_float()), which Quarto
-  # numbers and captions with the figure's sub-caption, if any; any other
-  # is captioned here.
+  # A chart in place of a figure of a fig- chunk is made the float Quarto
+  # numbers and captions (quarto_figure_float()), with the figure's
+  # sub-caption, if any; any other is captioned here.
   quarto <- !is.null(knitr::opts_knit$get("quarto.version"))
-  fig_label <- startsWith(options$label %||% "", "fig-")
-  float <- figure && quarto && fig_label
+  float <- figure && quarto && startsWith(options$label %||% "", "fig-")
 
-  captions <- knitr_chart_option(options, "fig.cap")
-  caption <- pick_chart_text(captions, index)
+  caption <- pick_chart_text(options$fig.cap, index)
   if (float) {
     caption <- pick_chart_text(options$fig.subcap, 1L) %||% caption
   }
-  alt <- pick_chart_text(knitr_chart_option(options, "fig.alt"), index)
+  alt <- pick_chart_text(options$fig.alt, index)
   title <- if (is.null(alt) && is.null(caption)) knitr_chart_title(json)
   name <- alt %||% caption %||% title %||% "Chart"
-  description <- alt %||% (if (is.null(caption)) title)
+  description <- alt %||% title
   if (identical(description, caption)) {
     description <- NULL
   }
   float_caption <- if (float) caption
-  quarto_caption <- quarto && (!figure || float)
-  hidden_caption <- if (quarto_caption && !fig_label) caption
   # knitr captions the figures it holds to the end of a chunk once, below
   # the last of them; the caption of one before it still describes it.
   held <- figure && identical(options$fig.show, "hold")
   last_held <- held && !isTRUE(options$fig.cur < options$fig.num)
-  if (held && !last_held && !quarto_caption) {
+  if (held && !last_held && !float) {
     description <- description %||% caption
   }
-  if (quarto_caption || (held && !last_held)) {
+  if (float || (held && !last_held)) {
     caption <- NULL
   }
 
@@ -249,14 +234,8 @@ knitr_inline_chart <- function(svg, options = list(), index = 1L, figure = FALSE
       sprintf(
         '<p class="caption maidr-knitr-caption" id="%scaption">%s%s</p>',
         prefix,
-        bookdown_figure_label(options, index, length(captions), figure),
+        bookdown_figure_label(options, index),
         htmltools::htmlEscape(caption)
-      )
-    },
-    if (!is.null(hidden_caption)) {
-      sprintf(
-        '<span class="maidr-knitr-caption" id="%scaption" hidden>%s</span>',
-        prefix, htmltools::htmlEscape(hidden_caption)
       )
     },
     "</div>",
@@ -340,27 +319,10 @@ quarto_figure_id <- function(x, options, original) {
   sub("[ }].*$", "", substring(out, at + 2L))
 }
 
-#' A chunk option that knitr may not have evaluated yet
-#'
-#' @param options The chunk options
-#' @param name The option's name
-#' @return The option's value, evaluated in knitr's environment when it is
-#'   still an expression; `NULL` when it cannot be evaluated yet, because it
-#'   refers to something the chunk has not made yet.
-#' @keywords internal
-#' @noRd
-knitr_chart_option <- function(options, name) {
-  value <- options[[name]]
-  if (is.language(value)) {
-    value <- tryCatch(eval(value, knitr::knit_global()), error = function(e) NULL)
-  }
-  value
-}
-
 #' The text one chart takes from a chunk option
 #'
-#' @param value The option's value, as `knitr_chart_option()` returns it
-#' @param index Which of the chunk's charts this is, from 1
+#' @param value The option's value
+#' @param index Which of the chunk's figures this is, from 1
 #' @return One string, or `NULL` for none
 #' @keywords internal
 #' @noRd
@@ -393,63 +355,21 @@ knitr_chart_title <- function(json) {
 #' `(#fig:label)` at the start of its caption; written in a raw block it is
 #' not escaped. A chart in place of a figure is labelled as knitr labels the
 #' figure: `label-1`, `label-2`, ... when the chunk has several figures shown
-#' where they are drawn (`fig.show = "asis"`), `label` otherwise. Several
-#' charts `knit_print()` writes, or several captions, are numbered the same
-#' way; the first of several charts is given its number once the chunk has
-#' run (`number_bookdown_chart_labels()`), since it cannot know it is one of
-#' several when it is written.
+#' where they are drawn (`fig.show = "asis"`), `label` otherwise. A chart
+#' written for no chunk label, as inline code's is, has none.
 #'
 #' @param options The chunk options
-#' @param index Which of the chunk's charts this is, from 1
-#' @param count How many captions the chunk gives
-#' @param figure Whether the chart is in place of a figure
+#' @param index Which of the chunk's figures this is, from 1
 #' @return The label and a space, or `""` outside bookdown
 #' @keywords internal
 #' @noRd
-bookdown_figure_label <- function(options, index, count, figure = FALSE) {
-  if (!isTRUE(knitr::opts_knit$get("bookdown.internal.label"))) {
+bookdown_figure_label <- function(options, index) {
+  if (!isTRUE(knitr::opts_knit$get("bookdown.internal.label")) || is.null(options$label)) {
     return("")
   }
-  numbered <- if (figure) {
-    isTRUE(options$fig.num > 1L) && identical(options$fig.show, "asis")
-  } else {
-    index > 1L || count > 1L
-  }
+  numbered <- isTRUE(options$fig.num > 1L) && identical(options$fig.show, "asis")
   suffix <- if (numbered) paste0("-", index) else ""
-  sprintf("(#%s%s%s) ", options$fig.lp %||% "fig:", options$label %||% "", suffix)
-}
-
-#' Number the first of several captioned charts `knit_print()` wrote
-#'
-#' The first is labelled `label` when it is written, and the ones after it
-#' `label-2`, `label-3`, ... (`bookdown_figure_label()`); once the chunk has
-#' run, the first of several becomes `label-1`, as knitr numbers several
-#' figures. A chunk that has figures as well is left as it is: knitr numbers
-#' those without counting the charts among them.
-#'
-#' @param x The chunk's output
-#' @param options The chunk options
-#' @return The chunk's output
-#' @keywords internal
-#' @noRd
-number_bookdown_chart_labels <- function(x, options) {
-  numbered <- isTRUE(knitr::opts_knit$get("bookdown.internal.label")) &&
-    !is.null(options$label) && identical(as.numeric(options$fig.num), 0)
-  if (!numbered) {
-    return(x)
-  }
-  label <- sprintf("(#%s%s", options$fig.lp %||% "fig:", options$label)
-  first <- sprintf('caption">%s) ', label)
-  at <- regexpr(first, x, fixed = TRUE)
-  several <- grepl(sprintf('caption">%s-2) ', label), x, fixed = TRUE)
-  for (i in which(at > 0L & several)) {
-    x[[i]] <- paste0(
-      substr(x[[i]], 1L, at[[i]] - 1L),
-      sprintf('caption">%s-1) ', label),
-      substr(x[[i]], at[[i]] + nchar(first), nchar(x[[i]]))
-    )
-  }
-  x
+  sprintf("(#%s%s%s) ", options$fig.lp %||% "fig:", options$label, suffix)
 }
 
 #' The CSS width a chart's wrapper takes from `out.width`
@@ -474,36 +394,4 @@ knitr_chart_width <- function(out_width, index) {
   }
   units <- "px|%|em|rem|ex|ch|vw|vh|vmin|vmax|cm|mm|in|pt|pc"
   if (grepl(sprintf("^[0-9]*\\.?[0-9]+(%s)$", units), width)) width else NULL
-}
-
-#' Count the charts of the chunk being knitted
-#'
-#' The counter starts again at each chunk: it is reset when a chunk ends
-#' (by maidr's chunk hook) and when a chunk with another label shows a
-#' chart.
-#'
-#' @param options The chunk options
-#' @return Which of the chunk's charts this one is, from 1
-#' @keywords internal
-#' @noRd
-knitr_chart_index <- function(options) {
-  label <- options$label %||% ""
-  state <- .maidr_knitr_state
-  if (!identical(state$chart_label, label)) {
-    state$chart_label <- label
-    state$chart_count <- 0L
-  }
-  state$chart_count <- state$chart_count + 1L
-  state$chart_count
-}
-
-#' Start counting a chunk's charts again
-#'
-#' @return NULL (invisible)
-#' @keywords internal
-#' @noRd
-reset_knitr_chart_index <- function() {
-  .maidr_knitr_state$chart_label <- NULL
-  .maidr_knitr_state$chart_count <- 0L
-  invisible(NULL)
 }

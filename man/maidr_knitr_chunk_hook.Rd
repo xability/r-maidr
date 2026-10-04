@@ -13,14 +13,12 @@ maidr_knitr_chunk_hook(previous)
 A chunk hook
 }
 \description{
-Runs once a chunk's output is complete, after the hook it replaces. It
-numbers the bookdown labels of the charts the chunk's \code{knit_print()}
-wrote, when there are several (\code{number_bookdown_chart_labels()}). A chunk
-whose output holds an inline chart declares the page dependencies
+Runs once a chunk's output is complete, after the hook it replaces. A
+chunk whose output holds an inline chart declares the page dependencies
 (\code{maidr_knitr_dependencies()}) through \code{knitr::knit_meta_add()}, whichever
-way the chart got there: a returned plot, a figure, or
-\code{cat(knit_print(p))} in a \code{results = "asis"} loop, which drops the meta
-a \code{knit_asis} object carries.
+way the chart got there: a figure, or \code{cat(knit_print(p))} in a
+\code{results = "asis"} loop, which drops the meta a \code{knit_asis} object
+carries.
 }
 \details{
 A chunk cached with \code{cache = TRUE} is not run again, and only what knitr

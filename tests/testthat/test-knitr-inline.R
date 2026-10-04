@@ -290,26 +290,12 @@ test_that("a chart is named by fig.alt, then fig.cap, then its title, then 'Char
   testthat::expect_false(grepl("maidr-knitr-caption", untitled, fixed = TRUE))
 })
 
-test_that("a caption knitr has not evaluated yet is evaluated, picked and escaped", {
+test_that("a caption is picked for its figure and escaped", {
   skip_if_no_render()
   svg <- bar_chart_svg()
-  env <- knitr::knit_global()
-  assign("maidr_test_group", "group A", envir = env)
-  withr::defer(rm("maidr_test_group", envir = env))
 
-  # knit_print() sees fig.cap before knitr evaluates it, after the chunk.
-  lazy <- maidr:::knitr_inline_chart(
-    svg, list(fig.cap = quote(paste("Bars for", maidr_test_group)))
-  )
-  testthat::expect_match(lazy, 'aria-label="Bars for group A"', fixed = TRUE)
-  testthat::expect_match(lazy, ">Bars for group A</p>", fixed = TRUE)
-
-  # One that refers to what the chunk has not made yet is no caption.
-  later <- maidr:::knitr_inline_chart(svg, list(fig.cap = quote(not_made_yet)))
-  testthat::expect_match(later, 'aria-label="Chart"', fixed = TRUE)
-
-  # The chunk's second chart takes the second caption.
-  second <- maidr:::knitr_inline_chart(svg, list(fig.cap = quote(c("First", "Second"))), index = 2L)
+  # The chunk's second figure takes the second caption.
+  second <- maidr:::knitr_inline_chart(svg, list(fig.cap = c("First", "Second")), index = 2L)
   testthat::expect_match(second, 'aria-label="Second"', fixed = TRUE)
 
   escaped <- maidr:::knitr_inline_chart(svg, list(fig.cap = "if a<b & c then &copy; done"))
@@ -329,24 +315,17 @@ test_that("bookdown labels a captioned chart, and Quarto writes the caption itse
   one <- maidr:::knitr_inline_chart(svg, list(label = "bars", fig.cap = "Bars", fig.lp = "fig:"))
   testthat::expect_match(one, '<div class="figure maidr-knitr">', fixed = TRUE)
   testthat::expect_match(one, '-caption">(#fig:bars) Bars</p>', fixed = TRUE)
-  two <- maidr:::knitr_inline_chart(
-    svg, list(label = "bars", fig.cap = c("A", "B"), fig.lp = "fig:"),
-    index = 2L
+  options <- list(
+    label = "bars", fig.cap = "B", fig.lp = "fig:", fig.show = "asis", fig.num = 2L, fig.cur = 2L
   )
+  two <- maidr:::knitr_inline_chart(svg, options, index = 2L, figure = TRUE)
   testthat::expect_match(two, '-caption">(#fig:bars-2) B</p>', fixed = TRUE)
+  # A chart written for no chunk, as inline code's is, has no label.
+  unlabelled <- maidr:::knitr_inline_chart(svg, list(fig.cap = "Bars"))
+  testthat::expect_match(unlabelled, '-caption">Bars</p>', fixed = TRUE)
   knitr::opts_knit$delete("bookdown.internal.label")
 
   knitr::opts_knit$set(quarto.version = "1.7.32")
-  float <- maidr:::knitr_inline_chart(svg, list(label = "fig-bars", fig.cap = "Bars"))
-  testthat::expect_false(grepl("maidr-knitr-caption", float, fixed = TRUE))
-  testthat::expect_match(float, '<div class="maidr-knitr">', fixed = TRUE)
-  testthat::expect_match(float, 'aria-label="Bars"', fixed = TRUE)
-  # Outside a fig- float Quarto's caption is a plain paragraph: a hidden copy
-  # describes the chart.
-  plain <- maidr:::knitr_inline_chart(svg, list(label = "unnamed-chunk-1", fig.cap = "Bars"))
-  testthat::expect_match(
-    plain, '<span class="maidr-knitr-caption" id="m[a-z0-9]+-caption" hidden>Bars</span>'
-  )
   # A figure the plot hook replaces is not captioned by Quarto, unless it is
   # given to Quarto as the figure of a fig- chunk, which it captions with
   # the figure's sub-caption, if any, and numbers.
@@ -439,10 +418,6 @@ test_that("an out.width the chunk sets, in either spelling, is its chart's width
       '<div class="maidr-knitr">'
     )
   )
-})
-
-test_that("a chart knitr is told to hide is not written", {
-  testthat::expect_identical(maidr:::knitr_chart_output("<svg/>", list(fig.show = "hide")), "")
 })
 
 test_that("a chart that cannot be shown inline goes in an iframe, with one warning", {

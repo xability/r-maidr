@@ -117,7 +117,6 @@ install_knitr_integration <- function() {
   options(maidr.knit.replayed = knit_page_replayed)
 
   if (fresh) {
-    reset_knitr_chart_index()
     forget_replayed_tokens()
     guard_installing_chunk()
   }
@@ -164,7 +163,6 @@ uninstall_knitr_integration <- function() {
   knitr::opts_knit$delete("maidr.integrated")
   remove_knit_page_hooks()
   options(maidr.knit.replayed = NULL)
-  reset_knitr_chart_index()
   forget_replayed_tokens()
   .maidr_knit_figures$objects <- list()
   .maidr_knit_figures$guards <- list()
@@ -211,14 +209,12 @@ maidr_knitr_plot_hook <- function(original) {
 
 #' maidr's knitr chunk hook, over the hook it replaces
 #'
-#' Runs once a chunk's output is complete, after the hook it replaces. It
-#' numbers the bookdown labels of the charts the chunk's `knit_print()`
-#' wrote, when there are several (`number_bookdown_chart_labels()`). A chunk
-#' whose output holds an inline chart declares the page dependencies
+#' Runs once a chunk's output is complete, after the hook it replaces. A
+#' chunk whose output holds an inline chart declares the page dependencies
 #' (`maidr_knitr_dependencies()`) through `knitr::knit_meta_add()`, whichever
-#' way the chart got there: a returned plot, a figure, or
-#' `cat(knit_print(p))` in a `results = "asis"` loop, which drops the meta
-#' a `knit_asis` object carries.
+#' way the chart got there: a figure, or `cat(knit_print(p))` in a
+#' `results = "asis"` loop, which drops the meta a `knit_asis` object
+#' carries.
 #'
 #' A chunk cached with `cache = TRUE` is not run again, and only what knitr
 #' cached of it comes back: its output, and the meta its `knit_asis` output
@@ -237,8 +233,6 @@ maidr_knitr_chunk_hook <- function(previous) {
     if (is.function(previous)) {
       x <- previous(x, options)
     }
-    reset_knitr_chart_index()
-    x <- number_bookdown_chart_labels(x, options)
     shown <- !isFALSE(options$include) &&
       any(grepl("data-maidr-knitr=", x, fixed = TRUE))
     if (shown) {

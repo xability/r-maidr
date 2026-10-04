@@ -11,7 +11,7 @@ knitr_inline_chart(svg, options = list(), index = 1L, figure = FALSE)
 
 \item{options}{The chunk options}
 
-\item{index}{Which of the chunk's charts this one is, from 1}
+\item{index}{Which of the chunk's figures this one is, from 1}
 
 \item{figure}{\code{TRUE} for a chart the plot hook writes in place of a
 figure, \code{FALSE} for one \code{knit_print()} returns}
@@ -43,12 +43,9 @@ written: the caption is inside the raw block. Of the figures
 \code{fig.show = "hold"} holds to the end of a chunk, only the last is
 captioned, as knitr captions them; the caption of each other one is
 kept as its description.
-\item Quarto writes the caption of a chart \code{knit_print()} returns itself --
-the figcaption of a cross-referenceable figure for a \verb{fig-} label, a
-paragraph below the chart otherwise -- so none is written for it then;
-only a hidden copy of the paragraph, for the description. A chart in
-place of a figure of a \verb{fig-} chunk is given to Quarto as the figure it
-numbers and captions (\code{quarto_figure_float()}).
+\item A chart in place of a figure of a \verb{fig-} chunk in Quarto is given to
+Quarto as the figure it numbers and captions (\code{quarto_figure_float()});
+every other chart is captioned here.
 \item \code{fig.align} aligns the chart, and an \code{out.width} the author sets (not
 the one knitr derives for a retina figure) sets the wrapper's width,
 which the chart shrinks to; \code{fig.width} and \code{fig.height} are not read,
@@ -57,10 +54,8 @@ figures \code{fig.show = "hold"} holds, at such a width and not aligned,
 sit side by side, as knitr's images do.
 }
 
-\code{fig.cap} and \code{fig.alt} are evaluated by knitr only once the chunk has
-run, so a chart \code{knit_print()} writes while the chunk runs can see them
-as unevaluated expressions; such an option is evaluated here. Of several
-captions, the chunk's \code{index}-th chart takes the \code{index}-th, as knitr's
-figures do; a figure's options hold its own caption alone already.
+A figure's options hold its own caption and alt text alone; of several,
+as a chart \code{knit_print()} is asked for with a chunk's options may see,
+the \code{index}-th is taken.
 }
 \keyword{internal}
