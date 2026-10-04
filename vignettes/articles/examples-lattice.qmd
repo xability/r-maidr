@@ -10,7 +10,6 @@ execute:
 ```{r setup, include = FALSE}
 library(maidr)
 library(lattice)
-maidr_on()
 set.seed(42)
 ```
 
@@ -28,13 +27,13 @@ and Base R: none has been through a user study, and each may change without a
 deprecation period. The [examples hub](examples.html) lists every other plot
 family.
 
-> **Note:** Each chunk below ends with the chart itself, which is how knitr
-> hands a lattice chart to maidr. A chart that a chunk draws with `print(p)`,
-> lattice's idiom inside a loop or a function, stays a static image; draw it
-> in a chunk of its own, or after the chunk's Base R charts, since a Base R
-> chart later in the same chunk takes its place. At the
-> console, printing a lattice chart opens it in the maidr viewer; see "How
-> maidr hooks into your session" in the
+> **Note:** Each chunk below ends with the chart itself. A chart a chunk
+> draws with `print(p)`, lattice's idiom inside a loop or a function, is an
+> accessible chart too, in place of its own figure, so a loop can print
+> several. A print that shares its page with other charts (`split`,
+> `position`, `more = TRUE`) stays lattice's static figure. At the console,
+> printing a lattice chart opens it in the maidr viewer; see "How maidr
+> hooks into your session" in the
 > [getting-started vignette](getting-started.html).
 
 ## Bar Chart [experimental]

@@ -133,6 +133,52 @@ A conditioned chart, such as `xyplot(mpg ~ wt | factor(cyl), mtcars)`, is
 read one panel at a time: each panel is a subplot of its own, named after its
 strip.
 
+### R Markdown and Quarto
+
+`library(maidr)` in a setup chunk is all a document needs. Every plot it
+draws, with ggplot2, lattice or Base R, becomes an accessible chart:
+
+```` markdown
+```{r setup, include = FALSE}
+library(maidr)
+library(ggplot2)
+```
+
+```{r cars, fig.cap = "Cars by cylinder count"}
+ggplot(mtcars, aes(factor(cyl))) + geom_bar()
+```
+````
+
+- **Charts are part of the page.** In HTML output (`html_document`,
+  bookdown, Quarto, reveal.js, ioslides, slidy, flexdashboard and Quarto
+  dashboards) each chart is an `<svg>` in the page, not an iframe, and the
+  page loads maidr.js once however many charts it has: from the document's
+  `_files` folder, or embedded in it when the document is `self_contained`
+  or uses `embed-resources`. **Tab** moves into a chart and **Shift+Tab**
+  out of it. While a chart has the focus, its keys go to the chart, not to
+  the slide deck, book or website around it.
+- **Several charts in a chunk.** A chunk can return a chart, `print()`
+  several in a loop, or draw several Base R charts. Each takes the place of
+  its own figure, with that figure's caption, alt text and number, so
+  `fig.cap`, `fig.alt`, bookdown's `\@ref(fig:label)` and Quarto's `@fig-`
+  references work as they do for images. A figure that is not one chart
+  maidr can read, such as a grid drawing or a chart something else was drawn
+  over, stays knitr's image.
+- **Static figures are SVG.** In HTML output maidr records a chunk's
+  figures with svglite instead of knitr's default png, so the ones that stay
+  images are vector images too. A device a chunk names (`dev = "png"`), a
+  document device other than png, and the device of a cached chunk are
+  kept. To keep png for every chunk, set `options(maidr.knitr_dev = FALSE)`
+  before rendering or in the setup chunk.
+- **Other outputs.** In PDF, Word and Markdown output (`github_document`),
+  plots are knitr's figures, as without maidr. HTML that cannot hold a chart
+  in the page, such as an HTML fragment, EPUB or xaringan, keeps each chart
+  in an iframe of its own. A chart a document draws never opens the viewer.
+- **Turning it off.** `maidr_off()` in a chunk knits the chunks after it as
+  they would be without maidr, and `maidr_on()` turns maidr back on.
+  Documents that call `maidr_on()` in their setup chunk keep working; the
+  call is no longer needed there.
+
 ## How maidr hooks into your session
 
 - **Console.** `library(maidr)` is all it takes. Printing a ggplot2 object,
@@ -147,12 +193,11 @@ strip.
   such as `pdf()` or `png()`, and `plot(p)`, which lattice does not route
   through that option, are drawn by lattice as before, and so is a chart
   maidr cannot read.
-- **R Markdown and Quarto.** Call `maidr_on()` once in a setup chunk. It
-  installs the knitr hooks that turn every plot the document draws into an
-  accessible chart; `library(maidr)` alone does not install them. A lattice
-  chart has to be the value a chunk returns: one the chunk draws with
-  `print(p)`, as in a loop, stays a static image, and is lost to a Base R
-  chart drawn after it in the same chunk.
+- **R Markdown and Quarto.** `library(maidr)` in a setup chunk is enough.
+  Every plot the document draws becomes an accessible chart in place of its
+  figure, including charts printed with `print(p)` in a loop and several
+  Base R charts in one chunk; see
+  [R Markdown and Quarto](#r-markdown-and-quarto).
 - **Shiny.** Put `maidr_output()` in the UI and `render_maidr()` in the
   server, with its expression returning the ggplot2 or lattice chart rather
   than printing it; see `vignette("shiny-integration", package = "maidr")`.
@@ -377,12 +422,15 @@ By default, `show()` and `save_html()` use the bundled maidr.js library, so
 the result works offline. `save_html()` writes the library to a `lib/` folder
 beside the file, and the two have to be shared together: zip the folder that
 holds both, or copy both. An `.html` sent on its own loads no maidr.js and
-shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps
-auto-detect internet availability and use the CDN when online. A knitted R
-Markdown or Quarto document rendered online, and any page holding a widget,
-also carries its own copy of maidr.js, which its charts fall back on when the
-CDN cannot be reached, so a `self_contained` / `embed-resources` document
-works offline too. Use the
+shows a plain, inaccessible chart. A knitted R Markdown or Quarto page loads
+the bundled maidr.js once for all its charts, from its `_files` folder or
+embedded in it when it is `self_contained` / uses `embed-resources`, so it
+works offline wherever it was rendered. Widgets, Shiny apps, and the few
+knitted outputs that keep a chart in an iframe (an HTML fragment, EPUB,
+xaringan) auto-detect internet availability and use the CDN when online. A
+page holding a widget rendered online also carries its own copy of maidr.js,
+which its charts fall back on when the CDN cannot be reached, so a
+`self_contained` / `embed-resources` page works offline too. Use the
 `use_cdn` parameter for explicit control:
 
 ``` r
@@ -438,9 +486,9 @@ maidr_download_dotpad_sdk()          # ~14 MB, once, into a per-user cache
 save_html(p, "plot.html", use_cdn = FALSE)   # lib/dotpad-sdk-<version>/ beside it
 ```
 
-A page served from elsewhere, or a knitr document (whose charts live in
-`srcdoc` frames with no base URL), names its copy by URL instead, through
-options or the environment variables of the same names:
+A page served from elsewhere, or a knitted R Markdown or Quarto document,
+which does not carry the downloaded copy, names its copy by URL instead,
+through options or the environment variables of the same names:
 
 ``` r
 options(
