@@ -88,17 +88,30 @@ BaseRPlotOrchestrator <- R6::R6Class(
     # as it started it, counting every plot started on the page -- one drawn
     # over the plot before it after `par(new = TRUE)`, and a panel
     # `plot.new()` or `frame()` passed over -- as `replay_page()` starts
-    # them again. A group R did not number, one that starts no plot as an
-    # `add = TRUE` call does or one recorded by code that records calls
-    # itself, has its panel's (`panel_slots`), and on a page of one panel
+    # them again. A group that started no plot, as an `add = TRUE` call
+    # does, has its elements named after the plot it is drawn over, among
+    # that plot's own, which its processors would find in its place: it has
+    # a number no plot on the page has, and its selectors name nothing. A
+    # group recorded by code that records calls itself, which R did not
+    # number, has its panel's (`panel_slots`), and on a page of one panel
     # its place among the groups.
     plot_numbers = function(panel_slots = NULL) {
+      groups <- private$.plot_groups
+      drawn <- unlist(lapply(groups, function(group) {
+        lapply(c(list(group$high_call), group$low_calls), function(call) {
+          c(call$plot, call$end_plot)
+        })
+      }))
+      last <- as.integer(max(c(0L, drawn)))
       vapply(
-        seq_along(private$.plot_groups),
+        seq_along(groups),
         function(i) {
-          high <- private$.plot_groups[[i]]$high_call
+          high <- groups[[i]]$high_call
           if (isTRUE(high$new_plot) && is.numeric(high$plot)) {
             return(as.integer(high$plot))
+          }
+          if (isFALSE(high$new_plot)) {
+            return(last + i)
           }
           slot <- if (is.null(panel_slots)) NA_integer_ else panel_slots[[i]]
           as.integer(if (is.na(slot)) i else slot)

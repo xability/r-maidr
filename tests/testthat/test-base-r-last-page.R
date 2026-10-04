@@ -353,6 +353,38 @@ test_that("a plot drawn after par(new = TRUE) shares the panel of the one before
   expect_drawn_where_r_draws(chart, grid, c("P1", "P2", "P3"))
 })
 
+test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
+  skip_if_no_render()
+
+  # Its bars are named after the plot they are drawn over, and its layer
+  # addressed that plot's own bars, which it then highlighted; or, on a
+  # page of one panel, those of a plot drawn after it with par(new = TRUE).
+  names_drawn <- function(chart, layer) {
+    vapply(selector_ids(layer), function(id) any(startsWith(chart$ids, id)), logical(1))
+  }
+  grid <- last_page_export(function() {
+    par(mfrow = c(1, 2))
+    barplot(c(5, 3, 4), ylim = c(0, 6))
+    barplot(c(2, 1, 3), add = TRUE, col = "red")
+    plot(1:5)
+  })
+  layers <- last_page_cells(grid)[[1]]
+  testthat::expect_length(layers, 2L)
+  testthat::expect_true(all(names_drawn(grid, layers[[1]])))
+  testthat::expect_false(any(names_drawn(grid, layers[[2]])))
+
+  single <- last_page_export(function() {
+    barplot(c(5, 3, 4), ylim = c(0, 6))
+    barplot(c(2, 1, 3), add = TRUE, col = "red")
+    par(new = TRUE)
+    barplot(c(1, 1, 1), ylim = c(0, 6), axes = FALSE)
+  })
+  layers <- last_page_cells(single)[[1]]
+  testthat::expect_length(layers, 3L)
+  testthat::expect_false(any(names_drawn(single, layers[[2]])))
+  testthat::expect_true(all(names_drawn(single, layers[[3]])))
+})
+
 test_that("a panel plot.new() or frame() passes over stays empty", {
   skip_if_no_render()
   call <- quote({
