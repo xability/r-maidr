@@ -4,12 +4,13 @@
 \alias{written_arg_text}
 \title{The text of each recorded argument a chart names a title after}
 \usage{
-written_arg_text(function_name, definition, args, written)
+written_arg_text(function_name, target, args, written)
 }
 \arguments{
 \item{function_name}{Name of the recorded function}
 
-\item{definition}{The original (unwrapped) function that was called}
+\item{target}{The definition the call dispatched to, from
+\code{dispatched_definition()}}
 
 \item{args}{Recorded argument list of evaluated values, as
 \code{match_recorded_args()} names it}

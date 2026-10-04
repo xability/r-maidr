@@ -4,7 +4,12 @@
 \alias{match_recorded_args}
 \title{Name a recorded call's arguments the way R matched them}
 \usage{
-match_recorded_args(function_name, definition, args)
+match_recorded_args(
+  function_name,
+  definition,
+  args,
+  target = dispatched_definition(function_name, definition, args)
+)
 }
 \arguments{
 \item{function_name}{Name of the recorded function}
@@ -12,6 +17,9 @@ match_recorded_args(function_name, definition, args)
 \item{definition}{The original (unwrapped) function that was called}
 
 \item{args}{Recorded argument list of evaluated values}
+
+\item{target}{The definition the call dispatched to, when the caller has
+resolved it already}
 }
 \value{
 \code{args} with the names R matched, in the recorded order

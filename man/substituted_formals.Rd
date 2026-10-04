@@ -17,4 +17,11 @@ Found in its code rather than listed, so a method maidr has not been told
 about is read the same way: \code{substitute(x)} in the body or in a default,
 such as \code{qqplot()}'s \code{xlab = deparse1(substitute(x))}.
 }
+\details{
+Each function is read once and remembered: the walk takes about 2 ms over
+\code{hist.default()}, which a loop of \code{hist()} calls would otherwise pay on
+every call. The functions read are the recorded ones and the methods
+they dispatch to, a few dozen at most, and \code{identical()} recognises the
+same function by its address before comparing anything.
+}
 \keyword{internal}

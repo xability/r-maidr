@@ -867,7 +867,8 @@ create_function_wrapper <- function(function_name, original_function) {
         # instead of re-deriving the match by hand. Only on this path: the
         # NSE branch above holds unevaluated expressions, and resolving the
         # dispatched method would have to force them.
-        args_list <- match_recorded_args(FNAME, ORIG, args_list)
+        target <- dispatched_definition(FNAME, ORIG, args_list)
+        args_list <- match_recorded_args(FNAME, ORIG, args_list, target)
       }
 
       # Computation-only calls (hist(x, plot = FALSE), boxplot(x,
@@ -892,7 +893,7 @@ create_function_wrapper <- function(function_name, original_function) {
       arg_text <- NULL
       if (is.null(call_env)) {
         arg_text <- written_arg_text(
-          FNAME, ORIG, args_list, as.list(substitute(list(...)))[-1L]
+          FNAME, target, args_list, as.list(substitute(list(...)))[-1L]
         )
       }
 

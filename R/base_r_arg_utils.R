@@ -84,14 +84,16 @@ usable_xy_coords <- function(coords) {
 #' @param function_name Name of the recorded function
 #' @param definition The original (unwrapped) function that was called
 #' @param args Recorded argument list of evaluated values
+#' @param target The definition the call dispatched to, when the caller has
+#'   resolved it already
 #' @return `args` with the names R matched, in the recorded order
 #' @keywords internal
-match_recorded_args <- function(function_name, definition, args) {
+match_recorded_args <- function(function_name, definition, args,
+                                target = dispatched_definition(function_name, definition, args)) {
   if (is.null(args) || length(args) == 0 || !is.function(definition)) {
     return(args)
   }
 
-  target <- dispatched_definition(function_name, definition, args)
   if (is.null(target) || is.null(formals(target))) {
     return(args)
   }
@@ -229,7 +231,8 @@ dispatched_definition <- function(function_name, definition, args) {
 #' `...` -- keeps being passed as the value it was.
 #'
 #' @param function_name Name of the recorded function
-#' @param definition The original (unwrapped) function that was called
+#' @param target The definition the call dispatched to, from
+#'   `dispatched_definition()`
 #' @param args Recorded argument list of evaluated values, as
 #'   `match_recorded_args()` names it
 #' @param written The expressions the arguments were written as, in the same
@@ -237,16 +240,12 @@ dispatched_definition <- function(function_name, definition, args) {
 #' @return Character vector with one entry per argument: the text to replay
 #'   it under, or NA to replay its value
 #' @keywords internal
-written_arg_text <- function(function_name, definition, args, written) {
+written_arg_text <- function(function_name, target, args, written) {
   text <- rep(NA_character_, length(args))
-  if (length(written) != length(args) || !is.function(definition)) {
+  if (length(args) == 0 || length(written) != length(args) || !is.function(target)) {
     return(text)
   }
 
-  target <- dispatched_definition(function_name, definition, args)
-  if (is.null(target)) {
-    return(text)
-  }
   labelled <- substituted_formals(target)
   if (length(labelled) == 0) {
     return(text)
@@ -268,10 +267,37 @@ written_arg_text <- function(function_name, definition, args, written) {
 #' about is read the same way: `substitute(x)` in the body or in a default,
 #' such as `qqplot()`'s `xlab = deparse1(substitute(x))`.
 #'
+#' Each function is read once and remembered: the walk takes about 2 ms over
+#' `hist.default()`, which a loop of `hist()` calls would otherwise pay on
+#' every call. The functions read are the recorded ones and the methods
+#' they dispatch to, a few dozen at most, and `identical()` recognises the
+#' same function by its address before comparing anything.
+#'
 #' @param definition A function
 #' @return Character vector of formal names
 #' @keywords internal
 substituted_formals <- function(definition) {
+  for (read in .maidr_substituted_formals$read) {
+    if (identical(read$definition, definition)) {
+      return(read$formals)
+    }
+  }
+  found <- read_substituted_formals(definition)
+  .maidr_substituted_formals$read <- c(
+    .maidr_substituted_formals$read,
+    list(list(definition = definition, formals = found))
+  )
+  found
+}
+
+.maidr_substituted_formals <- new.env(parent = emptyenv())
+
+#' Walk a function's code for the formals it reads with `substitute()`
+#'
+#' @param definition A function
+#' @return Character vector of formal names
+#' @keywords internal
+read_substituted_formals <- function(definition) {
   code <- c(as.list(formals(definition)), list(body(definition)))
   # `all.names()` is cheap where the walk below is not, and most recorded
   # calls -- text(), abline(), legend() -- never substitute.

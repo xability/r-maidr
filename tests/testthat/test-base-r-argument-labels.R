@@ -335,3 +335,17 @@ test_that("the formals a function reads with substitute() are found in its code"
     character(0)
   )
 })
+
+test_that("a function's code is read for substitute() once", {
+  # Walking hist.default() takes milliseconds, and a loop of hist() calls
+  # would pay it on every call.
+  definition <- function(x) deparse1(substitute(x))
+  testthat::expect_identical(maidr:::substituted_formals(definition), "x")
+
+  testthat::local_mocked_bindings(
+    read_substituted_formals = function(definition) stop("read again")
+  )
+  testthat::expect_identical(maidr:::substituted_formals(definition), "x")
+  other <- function(y) deparse1(substitute(y))
+  testthat::expect_error(maidr:::substituted_formals(other), "read again")
+})
