@@ -81,3 +81,12 @@ test_that("no startup message is printed into a document being knitted", {
   # do not open.
   testthat::expect_identical(startup_message(), "")
 })
+
+test_that("maidr.startup_message = FALSE silences the masking advice too", {
+  testthat::local_mocked_bindings(
+    packages_masking_maidr = function() "quantmod",
+    .package = "maidr"
+  )
+  testthat::expect_identical(startup_message(enabled = FALSE), "")
+  testthat::expect_match(startup_message(), "'quantmod' is attached ahead of 'maidr'", fixed = TRUE)
+})

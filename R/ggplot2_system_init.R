@@ -370,11 +370,13 @@ announce_masking <- function(package) {
 
 # Show startup message when package is attached via library()
 .onAttach <- function(libname, pkgname) {
+  if (!isTRUE(getOption("maidr.startup_message", TRUE))) {
+    return(invisible(NULL))
+  }
+
   # Not in a document being knitted, where it would be printed into the page,
   # and where plots do not open the viewer it describes.
-  show_message <- isTRUE(getOption("maidr.startup_message", TRUE)) &&
-    !isTRUE(getOption("knitr.in.progress"))
-  if (show_message) {
+  if (!isTRUE(getOption("knitr.in.progress"))) {
     packageStartupMessage(
       "maidr ", utils::packageVersion(pkgname), " loaded\n",
       "- ggplot2 plots open in the maidr interactive viewer automatically\n",
