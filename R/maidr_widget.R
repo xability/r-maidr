@@ -28,10 +28,19 @@ NULL
 #' @param width The width of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param height The height of the widget in pixels or CSS units (default: NULL for auto-sizing)
 #' @param element_id A unique identifier for the widget (default: NULL for auto-generated)
+#' @param fig_width,fig_height The size to draw the chart at, in inches, as
+#'   \code{width} and \code{height} set it in \code{show()}: each a single
+#'   positive number no larger than 50, or \code{NULL} (the default) for
+#'   7 x 5 in, 12 x 6 in for a candlestick chart. Not the widget's size, which \code{width} and
+#'   \code{height} set; a chart wider than the widget shrinks to fit it.
 #' @param ... Additional arguments passed to create_maidr_html()
 #' @return An htmlwidget object that can be displayed in RStudio, Shiny, or saved as HTML
 #' @keywords internal
-maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, element_id = NULL, ...) {
+maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, element_id = NULL,
+                         fig_width = NULL, fig_height = NULL, ...) {
+  check_chart_size(fig_width, "fig_width")
+  check_chart_size(fig_height, "fig_height")
+
   # NULL means Base R auto-detection (recorded plot calls), mirroring show()
   if (is.null(plot)) {
     if (!is_patching_active() || !has_device_calls(grDevices::dev.cur())) {
@@ -44,7 +53,14 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
     )
   }
 
-  svg_content <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)
+  svg_content <- create_maidr_html(
+    plot,
+    use_cdn = use_cdn,
+    shiny = TRUE,
+    width = fig_width,
+    height = fig_height,
+    ...
+  )
 
   # Create iframe HTML with embedded MAIDR.js
 

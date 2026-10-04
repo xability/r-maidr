@@ -9,6 +9,8 @@ create_maidr_html(
   use_cdn = NULL,
   shiny = FALSE,
   orchestrator = NULL,
+  width = NULL,
+  height = NULL,
   ...
 )
 }
@@ -20,9 +22,14 @@ create_maidr_html(
 
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}
 
-\item{orchestrator}{Optional pre-created orchestrator to reuse (avoids double creation)}
+\item{orchestrator}{Optional pre-created orchestrator to reuse (avoids double
+creation). The chart is drawn at the size it was created with, and
+\code{width} and \code{height} are not read.}
 
-\item{...}{Additional arguments passed to internal functions}
+\item{width, height}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}. Checked by the caller.}
+
+\item{...}{Additional arguments passed to \code{\link[=create_fallback_html]{create_fallback_html()}}}
 }
 \value{
 An htmltools HTML document object or SVG content

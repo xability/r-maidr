@@ -52,12 +52,18 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
     .layout = NULL,
     .gtable = NULL,
     .adapter = NULL,
-    .format_config = NULL
+    .format_config = NULL,
+    .canvas = NULL
   ),
   public = list(
     #' @description Create an orchestrator for a ggplot2 object
     #' @param plot The ggplot2 object
-    initialize = function(plot) {
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
+    #' @param asked Whether that size was asked for, by default when either
+    #'   side is given; see [chart_canvas_size()]
+    initialize = function(plot, width = NULL, height = NULL,
+                          asked = !is.null(width) || !is.null(height)) {
       private$.plot <- plot
 
       # The jitter recovery memoises per layer, and a layer is not enough to
@@ -86,6 +92,19 @@ Ggplot2PlotOrchestrator <- R6::R6Class(
         self$create_layer_processors()
         self$process_layers()
       }
+
+      # A ggplot2 gtable is laid out when it is drawn, so the size is only
+      # the export's; it is settled here, where the layers say whether the
+      # chart is a candlestick.
+      candlestick <- length(collect_candlestick_layers(
+        list(subplots = private$.combined_data)
+      )) > 0L
+      private$.canvas <- chart_canvas_size(width, height, candlestick = candlestick, asked = asked)
+    },
+    #' @description The size the chart is drawn at
+    #' @return A named numeric vector, `width` and `height`, in inches
+    canvas_size = function() {
+      private$.canvas
     },
     #' @description Turn each layer of the plot into a layer entry with its detected type
     detect_layers = function() {

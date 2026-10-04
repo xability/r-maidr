@@ -4,16 +4,14 @@
 \alias{build_interactive_svg}
 \title{Build the Interactive SVG, or Answer NULL When It Cannot Be Built}
 \usage{
-build_interactive_svg(orchestrator, ...)
+build_interactive_svg(orchestrator)
 }
 \arguments{
 \item{orchestrator}{The orchestrator for the plot being rendered.}
-
-\item{...}{Passed through to \code{create_enhanced_svg()}.}
 }
 \value{
-The SVG content, or \code{NULL} when the build failed and fallback is
-enabled.
+The SVG content, drawn at the orchestrator's \code{canvas_size()}, or
+\code{NULL} when the build failed and fallback is enabled.
 }
 \description{
 \code{should_fallback()} answers whether the recorded layers are ones maidr can
@@ -40,5 +38,9 @@ should be given instead.
 
 \code{maidr_set_fallback(enabled = FALSE)} is the caller asking for the failure
 rather than the picture, so the error is re-raised untouched there.
+
+A chart too small to draw at its size (a \code{maidr_chart_draw_error}
+from \code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}) is re-raised too: its picture is drawn at
+the same size and would fail the same way.
 }
 \keyword{internal}

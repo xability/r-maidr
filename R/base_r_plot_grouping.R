@@ -219,6 +219,53 @@ par_setting_arguments <- function(args) {
   if (length(args) == 1L && is.list(args[[1L]])) args[[1L]] else args
 }
 
+#' The margins a recorded plot was drawn with
+#'
+#' Base R gives a plot the room its figure has less its margins, and the
+#' margins are what `par()` set before the plot was drawn: `mar` or `mai`,
+#' `oma` or `omi`, and the height of a margin's line, which `mex` and `cex`
+#' scale. A chart drawn again with R's own margins can be too small for them
+#' at a size R drew it at with the author's -- a `par(mfrow = c(5, 1), mar =
+#' c(1, 2, 1, 1))` grid at 7 x 5 in -- so they are set again before each
+#' plot is.
+#'
+#' The settings are those the `par()` calls recorded before the plot left in
+#' place, in the order they were last set, as `mar` and `mai` set the same
+#' margins. Setting up a grid, with `par(mfrow = )`, `par(mfcol = )` or
+#' `layout()`, puts `cex` and `mex` back to the grid's own, as R does.
+#'
+#' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
+#' @param before The position in the recording of the plot's HIGH-level call
+#' @return The settings, as a named list for `par()`
+#' @keywords internal
+#' @noRd
+par_margin_settings <- function(layout_calls, before) {
+  margins <- c("mar", "mai", "oma", "omi", "mex", "cex")
+  settings <- list()
+  for (call in layout_calls) {
+    if (call$storage_index > before) {
+      break
+    }
+    if (call$function_name == "layout") {
+      settings[c("cex", "mex")] <- NULL
+    }
+    if (call$function_name != "par") {
+      next
+    }
+    args <- par_setting_arguments(call$args)
+    for (name in names(args)) {
+      if (name %in% c("mfrow", "mfcol")) {
+        settings[c("cex", "mex")] <- NULL
+      } else if (name %in% margins && is.numeric(args[[name]])) {
+        # Moved to the end: the last of `mar` and `mai` set wins.
+        settings[[name]] <- NULL
+        settings[[name]] <- args[[name]]
+      }
+    }
+  }
+  settings
+}
+
 #' Check Whether a Panel Configuration Describes a Multi-panel Grid
 #'
 #' @param panel_config Panel configuration from detect_panel_configuration()

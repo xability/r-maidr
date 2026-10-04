@@ -4,7 +4,12 @@
 \alias{create_inline_image}
 \title{Create inline image HTML for non-iframe rendering}
 \usage{
-create_inline_image(plot = NULL, width = "100\%", height = "auto")
+create_inline_image(
+  plot = NULL,
+  width = "100\%",
+  height = "auto",
+  size = MAIDR_CHART_SIZE
+)
 }
 \arguments{
 \item{plot}{A ggplot object or NULL for Base R}
@@ -12,6 +17,9 @@ create_inline_image(plot = NULL, width = "100\%", height = "auto")
 \item{width}{Width for the image container}
 
 \item{height}{Height for the image container}
+
+\item{size}{The size to draw the image at, in inches: a named numeric
+vector, \code{width} and \code{height}, as \code{\link[=chart_canvas_size]{chart_canvas_size()}} gives one}
 }
 \value{
 Character string of HTML with img tag

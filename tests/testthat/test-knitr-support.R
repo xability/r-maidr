@@ -529,11 +529,12 @@ test_that("a trellis object the reading does not cover is an inline picture when
   )[[1]]
   testthat::expect_length(images, 1L)
 
-  # lattice's own drawing of the chart, on the device and at the size the
-  # picture is made with.
+  # lattice's own drawing of the chart, on the device the picture is made
+  # with and at the chunk's figure size, which knitr::knit() leaves at its
+  # own 7 x 7 in.
   file <- tempfile(fileext = ".png")
   on.exit(unlink(file), add = TRUE)
-  grDevices::png(file, width = 7 * 150, height = 5 * 150, res = 150)
+  grDevices::png(file, width = 7 * 150, height = 7 * 150, res = 150)
   device <- grDevices::dev.cur()
   tryCatch(
     utils::getS3method("plot", "trellis")(lattice::cloud(mpg ~ wt * hp, data = mtcars)),

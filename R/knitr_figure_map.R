@@ -517,7 +517,7 @@ draw_as_knit_figure <- function(x, draw, mark = TRUE) {
     device <- grDevices::dev.cur()
     mark_knit_page(token, start_page)
     .maidr_knit_figures$objects[[token]] <- list(
-      content = knit_chart_content(x),
+      content = knit_chart_content(x, knitr::opts_current$get()),
       device = device
     )
   }
@@ -526,18 +526,22 @@ draw_as_knit_figure <- function(x, draw, mark = TRUE) {
 
 #' Read a chart for a figure of the chunk
 #'
-#' As [create_maidr_html()] reads it for a page. Called as a ggplot2 or
-#' lattice chart is printed, while the chunk's code runs: what it says is
-#' kept out of the document, which has the warnings and messages of the
-#' chart's own drawing already. A Base R chart is read from its device's
-#' recorded calls when its figure is written (`render_figure_chart()`).
+#' As [create_maidr_html()] reads it for a page, at the chunk's figure size
+#' (`knitr_chart_orchestrator()`). Called as a ggplot2 or lattice chart is
+#' printed, while the chunk's code runs: what it says is kept out of the
+#' document, which has the warnings and messages of the chart's own drawing
+#' already. The one exception is maidr's message that it drew the chart
+#' larger than the chunk asked for (`chart_canvas_size()`), which is the
+#' author's to see. A Base R chart is read from its device's recorded calls when its
+#' figure is written (`render_figure_chart()`).
 #'
 #' @param plot The ggplot2 or lattice chart, or `NULL` for Base R
+#' @param options The chunk options
 #' @return The chart's SVG; `NULL` when maidr cannot read the chart; or the
 #'   error its build stopped with
 #' @keywords internal
 #' @noRd
-knit_chart_content <- function(plot) {
+knit_chart_content <- function(plot, options) {
   # Charts maidr draws while it reads one are no figures of the chunk.
   state <- .maidr_knit_figures
   rendering <- state$rendering
@@ -550,15 +554,23 @@ knit_chart_content <- function(plot) {
   } else {
     "ggplot2"
   }
-  tryCatch(
-    suppressWarnings(suppressMessages({
-      orchestrator <- get_global_registry()$get_adapter(system)$create_orchestrator(plot)
-      if (!orchestrator$should_fallback()) {
-        create_maidr_html(plot, shiny = TRUE, orchestrator = orchestrator)
-      }
-    })),
+  resized <- character()
+  content <- tryCatch(
+    suppressWarnings(suppressMessages(withCallingHandlers(
+      {
+        orchestrator <- knitr_chart_orchestrator(plot, system, options)
+        if (!orchestrator$should_fallback()) {
+          create_maidr_html(plot, shiny = TRUE, orchestrator = orchestrator)
+        }
+      },
+      maidr_chart_size_message = function(m) resized <<- c(resized, conditionMessage(m))
+    ))),
     error = function(e) e
   )
+  for (said in resized) {
+    message(said)
+  }
+  content
 }
 
 #' The chart a figure's tokens name, or `NULL` when they name no one chart
@@ -665,7 +677,7 @@ with_figure_calls <- function(device, calls, code) {
 render_figure_chart <- function(chart, options) {
   content <- chart$content
   if (is.null(content)) {
-    content <- with_figure_calls(chart$device, chart$calls, knit_chart_content(NULL))
+    content <- with_figure_calls(chart$device, chart$calls, knit_chart_content(NULL, options))
   }
   if (inherits(content, "error")) {
     warn_chart_unread(content, options)

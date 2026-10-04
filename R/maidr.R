@@ -36,8 +36,56 @@
 #'       auto-detects internet availability and uses the CDN when online,
 #'       as the Shiny path does.
 #'   }
+#' @section Chart size:
+#' A chart is drawn at a size in inches, as [ggplot2::ggsave()] and knitr's
+#' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
+#' the inch: a 10 x 4 in chart is 720 pixels wide and 288 high. The size is
+#' the room the chart is laid out in -- how far apart its ticks and labels
+#' are, how lattice arranges its panels, where Base R puts its titles -- and
+#' not what maidr reads out: the data, titles and axis labels a reader
+#' hears are the same at every size. Only how a reader moves between panels
+#' can change: lattice arranges the panels of a chart conditioned on one
+#' variable with no `layout =` for the shape of the page, 1 x 2 at 7 x 5 in
+#' and 2 x 1 at 5 x 8 in for two panels, and the subplot grid a reader
+#' moves through follows; give `layout =` to keep it. The size is set by
+#' `width` and `height` in [show()] and [save_html()], by `fig_width` and
+#' `fig_height` in
+#' [render_maidr()], and by the chunk's `fig.width` and `fig.height` in an
+#' R Markdown or Quarto document (see [maidr_on()]). Nothing else sets it:
+#' not the size of the device a chart was drawn on, nor the size of the
+#' window, viewer or Shiny output it is shown in, which shrinks a chart
+#' wider than itself to fit.
+#'
+#' Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
+#' never drawn smaller than that: quantmod's `chartSeries()` needs the room
+#' for its title, date range and date labels. A smaller size asked for is
+#' enlarged, with a message naming the size the chart is drawn at. A side
+#' larger than 50 in is refused, as [ggplot2::ggsave()] refuses one: the
+#' size is in inches, not the pixels [maidr_output()] takes.
+#'
+#' A Base R chart's margins and text take the same room at every size, so
+#' a chart can be too small for them -- R itself stops with "figure margins
+#' too large" at such a size. maidr draws the chart with the margins and
+#' text size its `par()` calls set, so it fits where R draws it with them.
+#' Asked for a size too small, maidr stops too, with an error naming the
+#' size, rather than show an empty chart: draw it larger. With no size
+#' asked for, a chart too small for 7 x 5 in, such as a `par(mfrow)` grid
+#' of five rows or more, is drawn on the 7 x 7 in page maidr laid every
+#' Base R chart out on before it drew one at its size. Where that is too
+#' small too, it is drawn on the smallest larger page that leaves each of
+#' its plots a sixth of an inch, 12 px, each way, each side grown in whole
+#' inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in for
+#' twelve columns. A message names the size it is drawn at. The picture of a
+#' Base R chart maidr cannot read is held to its size in the same way.
+#'
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
 #' @param as_widget If TRUE, returns an htmlwidget object instead of opening in browser
+#' @param width,height The size to draw the chart at, in inches: each a
+#'   single positive number no larger than 50, or `NULL` (the default) for
+#'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
+#'   its default. With `as_widget = TRUE` they size the chart in the widget,
+#'   not the widget, whose own CSS size is set on the widget returned:
+#'   `widget$width <- "300px"`. See \strong{Chart size}.
 #' @param ... Additional arguments passed to internal functions
 #' @return Invisible NULL. The plot is displayed in RStudio Viewer or browser as a side effect.
 #' @examples
@@ -47,6 +95,9 @@
 #'   geom_bar(stat = "identity")
 #' \donttest{
 #' maidr::show(p)
+#'
+#' # The same chart, 10 inches wide and 4 high
+#' maidr::show(p, width = 10, height = 4)
 #' }
 #'
 #' # ggplot2 violin plot
@@ -67,12 +118,13 @@
 #' # Base R example (requires interactive session for function patching)
 #' if (interactive()) {
 #'   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-#'   maidr::show()
+#'   maidr::show(width = 6, height = 4)
 #' }
 #' @importFrom R6 R6Class
 #' @importFrom ggplotify as.grob
 #' @export
-show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...) {
+show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
+                 width = NULL, height = NULL, ...) {
   # Attaching maidr masks methods::show(). An object that is not a ggplot2
   # plot -- an S4 object, a vector -- is that generic's to print, so it is
   # handed over rather than failed on (#320). Decided on the object rather
@@ -94,6 +146,24 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
     return(methods::show(plot))
   }
 
+  # `width` and `height` are the chart's size. With `as_widget = TRUE` they
+  # used to reach the widget through `...` as its CSS size, and `fig_width`
+  # and `fig_height` there would reach it twice: each mistake is told what
+  # to do instead.
+  if (is.character(width) || is.character(height)) {
+    stop(
+      "`width` and `height` are the size to draw the chart at, in inches, not ",
+      "a CSS size. Size the widget that `show(as_widget = TRUE)` returns with ",
+      "its own: `widget$width <- \"300px\"`.",
+      call. = FALSE
+    )
+  }
+  if (any(c("fig_width", "fig_height") %in% names(match.call(expand.dots = FALSE)$...))) {
+    stop("show() takes the size to draw the chart at as `width` and `height`.", call. = FALSE)
+  }
+  check_chart_size(width, "width")
+  check_chart_size(height, "height")
+
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
 
@@ -110,7 +180,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
     registry <- get_global_registry()
     system_name <- registry$detect_system(plot)
     adapter <- registry$get_adapter(system_name)
-    orchestrator <- adapter$create_orchestrator(plot)
+    orchestrator <- adapter$create_orchestrator(plot, width = width, height = height)
 
     if (orchestrator$should_fallback()) {
       if (is_fallback_warning_enabled()) {
@@ -156,7 +226,13 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
   }
 
   if (as_widget) {
-    result <- maidr_widget(plot, use_cdn = use_cdn, ...)
+    result <- maidr_widget(
+      plot,
+      use_cdn = use_cdn,
+      fig_width = width,
+      fig_height = height,
+      ...
+    )
     if (is_base_r) {
       clear_device_storage(device_id)
       close_maidr_temp_device()
@@ -165,7 +241,14 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
   }
 
   if (shiny) {
-    result <- create_maidr_html(plot, use_cdn = use_cdn, shiny = TRUE, ...)
+    result <- create_maidr_html(
+      plot,
+      use_cdn = use_cdn,
+      shiny = TRUE,
+      width = width,
+      height = height,
+      ...
+    )
     if (is_base_r) {
       clear_device_storage(device_id)
       close_maidr_temp_device()
@@ -174,7 +257,8 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, 
   }
 
   # Reuse the orchestrator from the fallback check above: creating a new
-  # one would re-run the entire layer-processing pipeline.
+  # one would re-run the entire layer-processing pipeline. It was made at
+  # the size asked for.
   html_doc <- create_maidr_html(
     plot,
     use_cdn = use_cdn,
@@ -211,21 +295,47 @@ is_maidr_plot_object <- function(x) {
 #' @param use_cdn Logical. If `TRUE`, use CDN. If `FALSE` or `NULL`
 #'   (default), use bundled files; see [maidr_html_dependencies()].
 #' @param shiny If TRUE, returns just the SVG content instead of full HTML document
-#' @param orchestrator Optional pre-created orchestrator to reuse (avoids double creation)
-#' @param ... Additional arguments passed to internal functions
+#' @param orchestrator Optional pre-created orchestrator to reuse (avoids double
+#'   creation). The chart is drawn at the size it was created with, and
+#'   `width` and `height` are not read.
+#' @param width,height The size to draw the chart at, in inches, or `NULL`
+#'   for maidr's own; see [chart_canvas_size()]. Checked by the caller.
+#' @param ... Additional arguments passed to [create_fallback_html()]
 #' @return An htmltools HTML document object or SVG content
 #' @keywords internal
-create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator = NULL, ...) {
+create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator = NULL,
+                              width = NULL, height = NULL, ...) {
   # Use provided orchestrator or create a new one
   if (is.null(orchestrator)) {
     registry <- get_global_registry()
     system_name <- registry$detect_system(plot)
     adapter <- registry$get_adapter(system_name)
-    orchestrator <- adapter$create_orchestrator(plot)
+    orchestrator <- adapter$create_orchestrator(plot, width = width, height = height)
+  }
+  # A picture in place of the chart is drawn at the chart's size. A Base R
+  # chart's is held to it as the chart is, which can enlarge it or stop
+  # (`picture_size()`); only the Base R orchestrator has that member.
+  picture_size <- function() {
+    if (is.function(orchestrator$picture_size)) {
+      return(orchestrator$picture_size())
+    }
+    orchestrator$canvas_size()
+  }
+  fallback_html <- function(size = picture_size()) {
+    create_fallback_html(
+      plot,
+      shiny = shiny,
+      width = size[["width"]],
+      height = size[["height"]],
+      ...
+    )
   }
 
   # Check if we should fall back to image rendering
   if (orchestrator$should_fallback()) {
+    # Settled before the warning that a picture is drawn: a size too small
+    # to draw the picture at stops instead.
+    size <- picture_size()
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot contains unsupported elements. ",
@@ -233,18 +343,18 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
         call. = FALSE
       )
     }
-    return(create_fallback_html(plot, shiny = shiny, ...))
+    return(fallback_html(size))
   }
 
   warn_panel_fallback(orchestrator)
 
-  svg_content <- build_interactive_svg(orchestrator, ...)
+  svg_content <- build_interactive_svg(orchestrator)
 
   # `build_interactive_svg()` answers NULL for a plot that could not be built,
   # which is the same outcome as the gate above reaching a chart it cannot
   # read: a picture rather than nothing.
   if (is.null(svg_content)) {
-    return(create_fallback_html(plot, shiny = shiny, ...))
+    return(fallback_html())
   }
 
   if (shiny) {
@@ -281,19 +391,23 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 #' `maidr_set_fallback(enabled = FALSE)` is the caller asking for the failure
 #' rather than the picture, so the error is re-raised untouched there.
 #'
+#' A chart too small to draw at its size (a `maidr_chart_draw_error`
+#' from [base_r_drawing_grob()]) is re-raised too: its picture is drawn at
+#' the same size and would fail the same way.
+#'
 #' @param orchestrator The orchestrator for the plot being rendered.
-#' @param ... Passed through to `create_enhanced_svg()`.
-#' @return The SVG content, or `NULL` when the build failed and fallback is
-#'   enabled.
+#' @return The SVG content, drawn at the orchestrator's `canvas_size()`, or
+#'   `NULL` when the build failed and fallback is enabled.
 #' @keywords internal
-build_interactive_svg <- function(orchestrator, ...) {
+build_interactive_svg <- function(orchestrator) {
   build <- function() {
     gt <- orchestrator$get_gtable()
 
     # All plot types now use the unified orchestrator data generation
     maidr_data <- orchestrator$generate_maidr_data()
 
-    create_enhanced_svg(gt, maidr_data, ...)
+    size <- orchestrator$canvas_size()
+    create_enhanced_svg(gt, maidr_data, width = size[["width"]], height = size[["height"]])
   }
 
   if (!is_fallback_enabled()) {
@@ -301,6 +415,9 @@ build_interactive_svg <- function(orchestrator, ...) {
   }
 
   tryCatch(build(), error = function(e) {
+    if (inherits(e, "maidr_chart_draw_error")) {
+      stop(e)
+    }
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot could not be rendered interactively (",
@@ -369,6 +486,11 @@ warn_panel_fallback <- function(orchestrator) {
 #'       The MAIDR.js library is written to a \code{lib/} folder beside
 #'       \code{file}, which has to travel with it.
 #'   }
+#' @param width,height The size to draw the chart at, in inches: each a
+#'   single positive number no larger than 50, or `NULL` (the default) for
+#'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
+#'   its default. See \strong{Chart size}.
+#' @inheritSection show Chart size
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)
 #' @examples
@@ -378,6 +500,9 @@ warn_panel_fallback <- function(orchestrator) {
 #'   geom_bar(stat = "identity")
 #' \donttest{
 #' maidr::save_html(p, tempfile(fileext = ".html"))
+#'
+#' # The same chart, 10 inches wide and 4 high
+#' maidr::save_html(p, tempfile(fileext = ".html"), width = 10, height = 4)
 #' }
 #'
 #' # ggplot2 violin plot
@@ -402,7 +527,11 @@ warn_panel_fallback <- function(orchestrator) {
 #'   maidr::save_html(file = tempfile(fileext = ".html"))
 #' }
 #' @export
-save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL, ...) {
+save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
+                      width = NULL, height = NULL, ...) {
+  check_chart_size(width, "width")
+  check_chart_size(height, "height")
+
   device_id <- grDevices::dev.cur()
   is_base_r <- is.null(plot)
 
@@ -412,7 +541,13 @@ save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL, ...) {
     }
   }
 
-  html_doc <- create_maidr_html(plot, use_cdn = use_cdn, ...)
+  html_doc <- create_maidr_html(
+    plot,
+    use_cdn = use_cdn,
+    width = width,
+    height = height,
+    ...
+  )
 
   if (is_base_r) {
     clear_device_storage(device_id)

@@ -275,13 +275,22 @@ a stack.
   Create an orchestrator for this system (Base R)
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRAdapter$create_orchestrator(plot_object = NULL)}
+    \preformatted{BaseRAdapter$create_orchestrator(
+  plot_object = NULL,
+  width = NULL,
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot_object}}{The plot object to process (NULL for Base R)}
+      \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }

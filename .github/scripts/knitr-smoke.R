@@ -18,6 +18,11 @@
 #   * two ggplot2 charts printed with print() in a loop, in one chunk;
 #   * a lattice bar chart;
 #   * two Base R charts in one chunk, a bar plot and a line;
+#   * a ggplot2 bar chart in a chunk of `fig.width = 10, fig.height = 4`,
+#     a Base R bar plot in one of `fig.width = 5, fig.height = 8`, and a
+#     Base R 2 x 2 `par(mfrow)` grid in one of `fig.width = 10,
+#     fig.height = 4`, whose short panels R thins the tick labels of: the
+#     others are at html_document's own 7 x 5 in;
 #   * a ggplot2 bar chart in the second tab of a {.tabset}, hidden when the
 #     page loads;
 #   * a grid drawing maidr does not read, which stays knitr's own figure.
@@ -94,6 +99,26 @@ writeLines(c(
   "barplot(c(71, 72, 73), names.arg = c(\"base1\", \"base2\", \"base3\"),",
   "  main = \"Base bar chart\")",
   "plot(1:3, c(81, 82, 83), type = \"l\", main = \"Base line chart\")",
+  "```",
+  "",
+  "## Sizes",
+  "",
+  "```{r sized-wide, fig.width = 10, fig.height = 4}",
+  "wide <- data.frame(span = c(\"wide1\", \"wide2\", \"wide3\"), n = c(101, 102, 103))",
+  "ggplot(wide, aes(span, n)) + geom_col() + labs(title = \"Wide bar chart\")",
+  "```",
+  "",
+  "```{r sized-tall, fig.width = 5, fig.height = 8}",
+  "barplot(c(111, 112, 113), names.arg = c(\"tall1\", \"tall2\", \"tall3\"),",
+  "  main = \"Tall bar chart\")",
+  "```",
+  "",
+  "```{r sized-grid, fig.width = 10, fig.height = 4}",
+  "par(mfrow = c(2, 2))",
+  "for (i in 1:4) {",
+  "  plot(1:10, seq(121, 125, length.out = 10) + 10 * (i - 1),",
+  "    main = \"Base grid chart\", xlab = \"step\", ylab = \"level\")",
+  "}",
   "```",
   "",
   "## Tabs {.tabset}",

@@ -4,7 +4,14 @@
 \alias{save_html}
 \title{Save Interactive Plot as HTML File}
 \usage{
-save_html(plot = NULL, file = "plot.html", use_cdn = NULL, ...)
+save_html(
+  plot = NULL,
+  file = "plot.html",
+  use_cdn = NULL,
+  width = NULL,
+  height = NULL,
+  ...
+)
 }
 \arguments{
 \item{plot}{A ggplot2 object, a lattice (trellis) object, or NULL for Base R
@@ -25,6 +32,11 @@ The MAIDR.js library is written to a \code{lib/} folder beside
 \code{file}, which has to travel with it.
 }}
 
+\item{width, height}{The size to draw the chart at, in inches: each a
+single positive number no larger than 50, or \code{NULL} (the default) for
+7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
+its default. See \strong{Chart size}.}
+
 \item{...}{Additional arguments passed to internal functions}
 }
 \value{
@@ -43,6 +55,50 @@ writes one self-contained file instead, which needs internet access
 whenever it is viewed and loads the latest published MAIDR.js from
 jsDelivr rather than the copy bundled with this package.
 }
+\section{Chart size}{
+
+A chart is drawn at a size in inches, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} and knitr's
+\code{fig.width} and \code{fig.height} size a figure, and its SVG is 72 pixels to
+the inch: a 10 x 4 in chart is 720 pixels wide and 288 high. The size is
+the room the chart is laid out in -- how far apart its ticks and labels
+are, how lattice arranges its panels, where Base R puts its titles -- and
+not what maidr reads out: the data, titles and axis labels a reader
+hears are the same at every size. Only how a reader moves between panels
+can change: lattice arranges the panels of a chart conditioned on one
+variable with no \verb{layout =} for the shape of the page, 1 x 2 at 7 x 5 in
+and 2 x 1 at 5 x 8 in for two panels, and the subplot grid a reader
+moves through follows; give \verb{layout =} to keep it. The size is set by
+\code{width} and \code{height} in \code{\link[=show]{show()}} and \code{\link[=save_html]{save_html()}}, by \code{fig_width} and
+\code{fig_height} in
+\code{\link[=render_maidr]{render_maidr()}}, and by the chunk's \code{fig.width} and \code{fig.height} in an
+R Markdown or Quarto document (see \code{\link[=maidr_on]{maidr_on()}}). Nothing else sets it:
+not the size of the device a chart was drawn on, nor the size of the
+window, viewer or Shiny output it is shown in, which shrinks a chart
+wider than itself to fit.
+
+Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
+never drawn smaller than that: quantmod's \code{chartSeries()} needs the room
+for its title, date range and date labels. A smaller size asked for is
+enlarged, with a message naming the size the chart is drawn at. A side
+larger than 50 in is refused, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} refuses one: the
+size is in inches, not the pixels \code{\link[=maidr_output]{maidr_output()}} takes.
+
+A Base R chart's margins and text take the same room at every size, so
+a chart can be too small for them -- R itself stops with "figure margins
+too large" at such a size. maidr draws the chart with the margins and
+text size its \code{par()} calls set, so it fits where R draws it with them.
+Asked for a size too small, maidr stops too, with an error naming the
+size, rather than show an empty chart: draw it larger. With no size
+asked for, a chart too small for 7 x 5 in, such as a \code{par(mfrow)} grid
+of five rows or more, is drawn on the 7 x 7 in page maidr laid every
+Base R chart out on before it drew one at its size. Where that is too
+small too, it is drawn on the smallest larger page that leaves each of
+its plots a sixth of an inch, 12 px, each way, each side grown in whole
+inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in for
+twelve columns. A message names the size it is drawn at. The picture of a
+Base R chart maidr cannot read is held to its size in the same way.
+}
+
 \examples{
 # ggplot2 bar chart
 library(ggplot2)
@@ -50,6 +106,9 @@ p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 \donttest{
 maidr::save_html(p, tempfile(fileext = ".html"))
+
+# The same chart, 10 inches wide and 4 high
+maidr::save_html(p, tempfile(fileext = ".html"), width = 10, height = 4)
 }
 
 # ggplot2 violin plot

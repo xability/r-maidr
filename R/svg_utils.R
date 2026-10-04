@@ -32,37 +32,27 @@ generate_unique_id <- function() {
 }
 
 #' Create enhanced SVG with maidr data
+#'
+#' The chart is drawn on an svglite page of the size [chart_canvas_size()]
+#' gives, at 72 pixels to the inch: the SVG's `width`, `height` and `viewBox`
+#' are that size.
+#'
 #' @param gt A gtable object
 #' @param maidr_data The maidr-data structure
-#' @param ... Additional arguments
+#' @param width,height The size to draw the chart at, in inches, or `NULL`
+#'   for maidr's own. A chart with a candlestick layer is drawn at least
+#'   12 x 6 in, which keeps quantmod `chartSeries()`'s title, its bracketed
+#'   date range and its date labels inside the SVG (quantmod issue #129).
 #' @return Character vector of SVG content
 #' @keywords internal
-create_enhanced_svg <- function(gt, maidr_data, ...) {
+create_enhanced_svg <- function(gt, maidr_data, width = NULL, height = NULL) {
   # Save current device
   current_dev <- grDevices::dev.cur()
 
-  # Device dimensions
-  # Default: 7x5 (existing aspect ratio used by all other plot types).
-  # Candlestick (chartSeries) needs a wider canvas (10x5) to keep
-  # chartSeries' centered title and right-side bracketed date range
-  # within the SVG viewBox. quantmod centers the title at ~10% of
-  # canvas width and the date bracket at ~91%; at 9 in (648 px) long
-  # titles still clipped on the left and the bracket extended ~44 px
-  # past the right edge. Bumping to 10 in (720 px) clears both for
-  # realistic ticker/title lengths. (See quantmod GH issue #129 for
-  # the underlying upstream layout limitation.)
-  # We widen ONLY when a candlestick layer is present in maidr_data,
-  # leaving all other plot types' visual aspect ratio unchanged.
   has_candlestick <- length(collect_candlestick_layers(maidr_data)) > 0L
-  # Candlestick needs a larger canvas (12x6 in -> 864x432 px) so that
-  # chartSeries' right-side date-range header and bottom date labels
-  # fit inside the SVG viewBox. This MUST match the gt_width/gt_height
-  # used in base_r_plot_orchestrator.R; otherwise the export draws content
-  # sized for 864x432 into a 720x360 viewBox, producing a background rect
-  # at (-180,-90) with size 1080x540 and right-axis labels only ~47 px
-  # from the right edge. See quantmod GH issue #129.
-  dev_width  <- if (has_candlestick) 12 else 7  # inches (was 10)
-  dev_height <- if (has_candlestick)  6 else 5  # inches (was 5)
+  size <- chart_canvas_size(width, height, candlestick = has_candlestick)
+  dev_width <- size[["width"]]
+  dev_height <- size[["height"]]
 
   # Draw on the svglite page the SVG is exported from, so everything
   # measured below (the violin coordinates) is measured on the layout the
@@ -1680,9 +1670,8 @@ maidr_responsive_dependency <- function() {
     # portion. `overflow: visible` un-clips those rectangles and causes
     # the volume bars to spill far below the chart panel. Label fitting
     # for chartSeries date-range header and bottom date labels is handled
-    # instead by enlarging the device canvas (see gt_width/gt_height in
-    # base_r_plot_orchestrator.R and dev_width/dev_height in
-    # create_enhanced_svg() below).
+    # instead by enlarging the device canvas (see MAIDR_CANDLESTICK_SIZE in
+    # chart_size.R).
     '  }',
     '</style>',
     sep = "\n"

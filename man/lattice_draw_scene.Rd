@@ -4,12 +4,14 @@
 \alias{lattice_draw_scene}
 \title{Draw a trellis object off-screen and keep what the reading needs}
 \usage{
-lattice_draw_scene(plot, prefix = LATTICE_PREFIX)
+lattice_draw_scene(plot, prefix = LATTICE_PREFIX, size = MAIDR_CHART_SIZE)
 }
 \arguments{
 \item{plot}{A trellis object, as \code{\link[=lattice_prepare]{lattice_prepare()}} returns it}
 
 \item{prefix}{The grob-name prefix}
+
+\item{size}{The chart's canvas, from \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
 }
 \value{
 A list: \code{grob}, the drawn chart; \code{packets}, the packet matrix
@@ -43,5 +45,11 @@ drawing, which no device shows: it is put back afterwards, so
 \code{trellis.focus()} and \code{print(more = TRUE)} carry on with the reader's own
 chart. A print the console hook opens the viewer for is the exception: it
 is the reader's own chart.
+
+The off-screen page is the size of the chart's canvas. lattice reads the
+page it draws on to lay a conditioned chart's panels out -- with no
+\verb{layout =}, a chart of one conditioning variable gets as many columns as
+the page's shape suits -- so drawn on a page of another shape, the grob
+would keep that page's columns, squeezed or stretched onto the canvas.
 }
 \keyword{internal}

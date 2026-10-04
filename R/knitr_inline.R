@@ -145,8 +145,9 @@ warn_inline_fallback <- function(error) {
 #'   every other chart is captioned here.
 #' * `fig.align` aligns the chart, and an `out.width` the author sets (not
 #'   the one knitr derives for a retina figure) sets the wrapper's width,
-#'   which the chart shrinks to; `fig.width` and `fig.height` are not read,
-#'   since maidr draws every chart at its own size. The charts in place of
+#'   which the chart shrinks to. The chart itself was drawn at the chunk's
+#'   `fig.width` and `fig.height` (`knitr_chart_size()`), which set the room
+#'   it is laid out in, not the width it is shown at. The charts in place of
 #'   figures `fig.show = "hold"` holds, at such a width and not aligned,
 #'   sit side by side, as knitr's images do.
 #'

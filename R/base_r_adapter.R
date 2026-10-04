@@ -1005,14 +1005,24 @@ BaseRAdapter <- R6::R6Class(
 
     #' @description Create an orchestrator for this system (Base R)
     #' @param plot_object The plot object to process (NULL for Base R)
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
+    #' @param asked Whether that size was asked for, by default when either
+    #'   side is given; see [chart_canvas_size()]
     #' @return PlotOrchestrator instance
-    create_orchestrator = function(plot_object = NULL) {
+    create_orchestrator = function(plot_object = NULL, width = NULL, height = NULL,
+                                   asked = !is.null(width) || !is.null(height)) {
       if (!self$can_handle(plot_object)) {
         stop("Base R plotting system is not active or no plot calls recorded")
       }
 
       device_id <- grDevices::dev.cur()
-      BaseRPlotOrchestrator$new(device_id = device_id)
+      BaseRPlotOrchestrator$new(
+        device_id = device_id,
+        width = width,
+        height = height,
+        asked = asked
+      )
     },
 
     #' @description Get the system name

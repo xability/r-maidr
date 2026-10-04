@@ -11,6 +11,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
   private = list(
     .plot_calls = list(),
     .plot_groups = list(),
+    .layout_calls = list(),
     .device_id = NULL,
     .layers = list(),
     .layer_processors = list(),
@@ -25,6 +26,61 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .fallback_mode = "none",
     .fallback_groups = integer(0),
     .fallback_panels = integer(0),
+    .canvas = NULL,
+    .size_asked = TRUE,
+
+    # A drawing as a grob on the chart's canvas (`base_r_drawing_grob()`),
+    # the canvas enlarged first where the drawing is too small for one no one
+    # asked for (`enlarge_canvas()`).
+    drawing_grob = function(draw) {
+      tryCatch(
+        base_r_drawing_grob(draw, private$.canvas),
+        maidr_chart_draw_error = function(e) {
+          private$enlarge_canvas(draw, e)
+          base_r_drawing_grob(draw, private$.canvas)
+        }
+      )
+    },
+
+    # Settle the canvas for a drawing too small for it, which stopped with
+    # `e`, a `maidr_chart_draw_error`. A canvas no one asked for is enlarged
+    # to a page the drawing fits (`base_r_page_that_fits()`), with a message
+    # naming the size: a `par(mfrow)` grid of five rows, which does not fit
+    # maidr's own 7 x 5 in, was drawn before maidr drew a chart at its size,
+    # and still is. A size asked for is not changed, and stops.
+    enlarge_canvas = function(draw, e) {
+      if (private$.size_asked) {
+        stop(e)
+      }
+      canvas <- private$.canvas
+      private$.canvas <- base_r_page_that_fits(draw, canvas)
+      # Classed as the candlestick's is (`chart_canvas_size()`), so that a
+      # knitted chart says it too (`knit_chart_content()`).
+      rlang::inform(
+        paste0(
+          "maidr: this Base R chart is drawn at ", format_inches(private$.canvas),
+          " rather than ", format_inches(canvas), ", where its margins and ",
+          "text leave the plot no room. Give it a size of its own to draw ",
+          "it at another."
+        ),
+        class = "maidr_chart_size_message"
+      )
+    },
+
+    # Set the margins the author's `par()` calls gave a plot group's plot,
+    # before the group is drawn again (`par_margin_settings()`), and answer
+    # them. Only those that differ from `set`, the ones the page's last plot
+    # was drawn with, are set: setting the outer margins starts a new page,
+    # in R as here, and a grid's later plots would each have a page of
+    # their own.
+    set_recorded_margins = function(group, set = list()) {
+      settings <- par_margin_settings(private$.layout_calls, group$high_call_index)
+      changed <- settings[!mapply(identical, settings, set[names(settings)])]
+      if (length(changed) > 0) {
+        graphics::par(changed)
+      }
+      settings
+    },
 
     # The one result that declares its own subplot grid, or NULL.
     #
@@ -109,7 +165,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
   public = list(
     #' @description Create an orchestrator for the calls recorded on a device
     #' @param device_id Graphics device ID
-    initialize = function(device_id = grDevices::dev.cur()) {
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
+    #' @param asked Whether that size was asked for, by default when either
+    #'   side is given. A chart too small for a size not asked for is drawn
+    #'   larger (`base_r_page_that_fits()`); one too small for a size asked
+    #'   for stops.
+    initialize = function(device_id = grDevices::dev.cur(), width = NULL, height = NULL,
+                          asked = !is.null(width) || !is.null(height)) {
       private$.device_id <- device_id
       registry <- get_global_registry()
       private$.adapter <- registry$get_adapter("base_r")
@@ -118,6 +181,24 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
+      private$.layout_calls <- grouped$layout_calls
+
+      # Settled before anything is drawn: the recorded calls are drawn again
+      # at this size (see `get_gtable()`), which enlarges it only for a
+      # drawing that does not fit a size no one asked for. A chartSeries()
+      # chart is held to the candlestick minimum, whose layout it is.
+      has_chartseries <- any(vapply(
+        private$.plot_groups,
+        function(g) identical(g$high_call$function_name, "chartSeries"),
+        logical(1)
+      ))
+      private$.size_asked <- asked
+      private$.canvas <- chart_canvas_size(
+        width,
+        height,
+        candlestick = has_chartseries,
+        asked = asked
+      )
 
       self$detect_layers()
       self$resolve_fallback_scope()
@@ -757,7 +838,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       private$.plot_calls
     },
     #' @description The gtable of the replayed drawing, built once and cached
-    #' @return A gtable, or NULL when nothing was recorded
+    #' @return A gtable, or NULL when nothing was recorded. Stops when the
+    #'   chart is too small for R to draw at a size asked for (see
+    #'   [base_r_drawing_grob()]); one not asked for is enlarged to fit
+    #'   ([base_r_page_that_fits()]).
     get_gtable = function() {
       if (length(private$.plot_groups) == 0) {
         return(NULL)
@@ -771,41 +855,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
 
       # Suppress native R graphics window by using a null PDF device
-      # This ensures only the HTML output is displayed.
-      # chartSeries (candlestick) needs a wider canvas (10x5) because its
-      # title + bracketed date range and 2-row month/year tick labels
-      # require ~10 in to render without clipping/overlap. quantmod
-      # centers the title at ~10% of canvas width and the date bracket at
-      # ~91%; at 9 in long titles still clipped on the left and the
-      # bracket extended past the right edge. Bumping to 10 in clears
-      # both for realistic ticker/title lengths. (See quantmod GH issue
-      # #129 for the underlying upstream layout limitation.) We widen
-      # ONLY when a chartSeries call is present, leaving all other plot
-      # types' visual aspect ratio (7x5) unchanged.
-      has_chartseries <- any(vapply(
-        private$.plot_groups,
-        function(g) identical(g$high_call$function_name, "chartSeries"),
-        logical(1)
-      ))
-      # Enlarge BOTH dimensions for chartSeries plots so the
-      # right-side date-range header (e.g. "[2024-01-12/2024-01-15]")
-      # and the bottom x-axis date labels (e.g. "Jan 12 / 2024")
-      # fit inside the gridSVG viewBox. With 10x5 in (720x360 px),
-      # short-timeseries chartSeries layouts overhung by ~18px right
-      # and ~22px bottom -- clipped by SVG root's default
-      # overflow:hidden. Bumping to 12x6 in (864x432 px) gives the
-      # internal layout 144 more px horizontally and 72 more px
-      # vertically, comfortably absorbing both overhangs. We CANNOT
-      # work around this with CSS `overflow: visible` because
-      # chartSeries also draws volume <rect>s with intentionally-
-      # negative y coordinates that rely on root clipping. We widen
-      # ONLY when a chartSeries call is present, leaving all other
-      # plot types' visual aspect ratio (7x5) unchanged.
-      gt_width  <- if (has_chartseries) 12 else 7
-      gt_height <- if (has_chartseries)  6 else 5
+      # This ensures only the HTML output is displayed. The drawing itself is
+      # made on a page of the chart's size (`base_r_drawing_grob()`).
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
-      grDevices::pdf(null_pdf, width = gt_width, height = gt_height)
+      canvas <- private$.canvas
+      grDevices::pdf(null_pdf, width = canvas[["width"]], height = canvas[["height"]])
       on.exit(
         {
           grDevices::dev.off()
@@ -822,8 +877,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
         panel_slots <- compute_panel_slots(private$.plot_groups, panel_config)
 
         composite_func <- function() {
+          # Restored with care, as in `base_r_drawing_grob()`: on a page too
+          # small for the margins, restoring would fail too and hide why.
           oldpar <- graphics::par(no.readonly = TRUE)
-          on.exit(graphics::par(oldpar), add = TRUE)
+          on.exit(try(graphics::par(oldpar), silent = TRUE), add = TRUE)
           if (panel_config$type == "mfrow") {
             graphics::par(mfrow = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "mfcol") {
@@ -842,6 +899,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
           # functions to prevent logging new calls during replay. Groups
           # with an NA slot (drawn before the layout call, or on an
           # earlier page) are excluded so the SVG matches the data grid.
+          margins <- list()
           for (i in seq_along(private$.plot_groups)) {
             if (is.na(panel_slots[i])) {
               next
@@ -852,6 +910,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
               message("DEBUG: Replaying group ", i, " - ", group$high_call$function_name)
             }
 
+            margins <- private$set_recorded_margins(group, margins)
             replay_plot_call(
               group$high_call$function_name,
               group$high_call$args,
@@ -874,7 +933,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         tryCatch(
           {
-            composite_grob <- ggplotify::as.grob(composite_func)
+            composite_grob <- private$drawing_grob(composite_func)
 
             # Also store individual grobs for reference
             private$.grob_list <- list(composite_grob)
@@ -883,6 +942,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
             return(composite_grob)
           },
           error = function(e) {
+            # A chart too small to draw at a size asked for stops, naming
+            # its size (`base_r_drawing_grob()`).
+            if (inherits(e, "maidr_chart_draw_error")) {
+              stop(e)
+            }
             warning("Failed to create multipanel grob: ", e$message)
             NULL
           }
@@ -898,6 +962,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Use ORIGINAL (unwrapped) functions to prevent logging new calls
           plot_func <- function() {
+            private$set_recorded_margins(group)
             replay_plot_call(
               high_call$function_name,
               high_call$args,
@@ -917,12 +982,23 @@ BaseRPlotOrchestrator <- R6::R6Class(
             }
           }
 
+          # Only the first drawing is shown (below), so only it settles the
+          # canvas, enlarging it or stopping as above. A later one -- a
+          # chart drawn over it on the same device -- that does not fit is
+          # left without a grob, as one that fails for another reason is.
           tryCatch(
             {
-              grob <- ggplotify::as.grob(plot_func)
+              grob <- if (i == 1) {
+                private$drawing_grob(plot_func)
+              } else {
+                base_r_drawing_grob(plot_func, private$.canvas)
+              }
               grob_list[[i]] <- grob
             },
             error = function(e) {
+              if (i == 1 && inherits(e, "maidr_chart_draw_error")) {
+                stop(e)
+              }
               grob_list[[i]] <- NULL
             }
           )
@@ -937,6 +1013,45 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         NULL
       }
+    },
+    #' @description The size the chart is drawn at
+    #' @return A named numeric vector, `width` and `height`, in inches
+    canvas_size = function() {
+      private$.canvas
+    },
+    #' @description The size a picture of the chart is drawn at, in place of
+    #'   a chart maidr cannot read or export
+    #'
+    #' The picture draws every recorded call again, as R drew them, and is
+    #' held to the chart's size as the chart is: too small for a size asked
+    #' for, it stops; too small for one no one asked for, it is drawn larger,
+    #' with a message naming the size. A picture R cannot draw at any size
+    #' is drawn at the chart's, as before: it shows what R draws of it.
+    #' @return A named numeric vector, `width` and `height`, in inches
+    picture_size = function() {
+      draw <- function() {
+        for (call in private$.plot_calls) {
+          replay_plot_call(call$function_name, call$args, call$call_env)
+        }
+      }
+      canvas <- private$.canvas
+      failure <- tryCatch(
+        {
+          suppressWarnings(grid::grid.grabExpr(
+            draw(),
+            warn = 0,
+            width = canvas[["width"]],
+            height = canvas[["height"]]
+          ))
+          NULL
+        },
+        error = function(e) e
+      )
+      largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
+      if (!is.null(failure) && base_r_draws_at(draw, largest)) {
+        private$enlarge_canvas(draw, base_r_too_small(failure, canvas))
+      }
+      private$.canvas
     },
     #' @description The grob a layer's processor searches for its selectors
     #' @param layer_index Index of the layer
@@ -1130,3 +1245,324 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' A Base R drawing as a grob, laid out on a page of the chart's size
+#'
+#' What [ggplotify::as.grob()] makes of a drawing function -- the base
+#' graphics echoed as grid grobs by gridGraphics, drawn with the graphical
+#' parameters it sets (`xpd = NA`, a transparent background, axis titles two
+#' lines out) -- with the page the drawing is made on sized as the chart's
+#' canvas. `as.grob()` makes every drawing on a 7 x 7 in page of its own,
+#' whatever device is open, and the echo keeps what base graphics laid out
+#' on that page: margins, the lines of text around a plot and a legend's box
+#' are fixed in inches. Drawn on a canvas of another shape they no longer
+#' fit -- measured at 4 x 3 in, the title was cut off at the top of the SVG,
+#' the axis titles were lost and a legend's text ran out of its box, and
+#' even maidr's own 7 x 5 in squeezed a legend's lines together. Made on a
+#' page of the canvas's size, the drawing is the one R draws at that size.
+#'
+#' The grob names, which every selector is written against, are those
+#' `as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as drawn,
+#' as `as.grob()` does. An echoed drawing keeps only the tick labels R draws
+#' ([thin_axis_labels()]).
+#'
+#' A chart too small to draw stops, with an error of class
+#' `maidr_chart_draw_error` that names the size and R's reason. Base R gives
+#' a chart's margins and text the same room in inches on any page, so a
+#' page too small for them -- 6 x 1.5 in for a `barplot()`, 4 x 3 in for a
+#' 2 x 2 `par(mfrow)` -- leaves the plot none and R stops with "figure
+#' margins too large". The device the author drew on may have had the room,
+#' and maidr draws the chart again at a size of its own. An empty chart in
+#' its place would not say so, and a picture is drawn at the same size, so
+#' neither is made. A drawing is taken to have failed for its size when it
+#' fits the largest page a chart is drawn on, [MAIDR_MAX_CHART_SIZE] on each
+#' side; any other failure is raised as R raised it, for the caller to
+#' handle as before. A size no one asked for is the orchestrator's to
+#' enlarge ([base_r_page_that_fits()]).
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The chart's canvas, from [chart_canvas_size()]
+#' @return A gTree
+#' @keywords internal
+base_r_drawing_grob <- function(draw, size) {
+  # Restored as ggplotify restores them. On a page too small for the
+  # margins R reports a negative plot size ("pin") that it then refuses to
+  # be given back, and that refusal would hide why the drawing failed.
+  old_par <- graphics::par(no.readonly = TRUE)
+  on.exit(try(suppressWarnings(graphics::par(old_par)), silent = TRUE), add = TRUE)
+
+  draw_as_ggplotify_does <- ggplotify_drawing(draw)
+  grab <- function(expr) {
+    grid::grid.grabExpr(
+      expr,
+      warn = 0,
+      width = size[["width"]],
+      height = size[["height"]]
+    )
+  }
+
+  cannot_draw <- function(e) {
+    largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
+    if (!base_r_draws_at(draw, largest)) {
+      stop(e)
+    }
+    stop(base_r_too_small(e, size))
+  }
+
+  echoed <- tryCatch(
+    grab(gridGraphics::grid.echo(draw_as_ggplotify_does)),
+    error = function(e) NULL
+  )
+  if (is.null(echoed)) {
+    return(tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw))
+  }
+  thin_axis_labels(echoed, size)
+}
+
+#' The error a Base R chart too small to draw at a size stops with
+#'
+#' @param e R's error drawing it at that size
+#' @param size The size, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return A condition of class `maidr_chart_draw_error`, naming the size and
+#'   R's reason
+#' @keywords internal
+#' @noRd
+base_r_too_small <- function(e, size) {
+  errorCondition(
+    paste0(
+      "maidr could not draw this chart at ", format_inches(size), ": ",
+      conditionMessage(e), ". A Base R chart's margins and text take the ",
+      "same room at every size, and at this size they leave the plot none: ",
+      "give the chart a larger size."
+    ),
+    class = "maidr_chart_draw_error"
+  )
+}
+
+#' A Base R drawing with the graphical parameters ggplotify draws it with
+#'
+#' `xpd = NA`, a transparent background and axis titles two lines out, as
+#' [ggplotify::as.grob()] sets them before it draws.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @return A function of no arguments
+#' @keywords internal
+#' @noRd
+ggplotify_drawing <- function(draw) {
+  function() {
+    graphics::par(xpd = NA, bg = "transparent", mgp = c(2, 1, 0))
+    draw()
+  }
+}
+
+#' Whether R can draw a Base R drawing on a page of a size
+#'
+#' Drawn as [base_r_drawing_grob()] draws it, but not echoed: R stops
+#' drawing a chart whose margins and text leave its plot no room on the
+#' page, which is all this asks. What the drawing warns of is said when the
+#' chart is drawn.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The page, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return Logical
+#' @keywords internal
+#' @noRd
+base_r_draws_at <- function(draw, size) {
+  !is.na(base_r_plot_room(draw, size))
+}
+
+#' The room R gives the plots of a Base R drawing on a page of a size
+#'
+#' Drawn as [base_r_drawing_grob()] draws it, but not echoed, the size of
+#' each plot as R lays it out is read as the plot is started, and when the
+#' drawing is done: the last covers a plot R starts without `plot.new()`,
+#' as `persp()` does.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The page, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return The shorter side of the smallest plot, in inches, or `NA` when R
+#'   cannot draw the drawing on the page
+#' @keywords internal
+#' @noRd
+base_r_plot_room <- function(draw, size) {
+  rooms <- numeric()
+  measure <- function() rooms <<- c(rooms, min(graphics::par("pin")))
+  hooks <- getHook("plot.new")
+  setHook("plot.new", measure)
+  on.exit(setHook("plot.new", hooks, "replace"), add = TRUE)
+  tryCatch(
+    {
+      suppressWarnings(grid::grid.grabExpr(
+        {
+          ggplotify_drawing(draw)()
+          measure()
+        },
+        warn = 0,
+        width = size[["width"]],
+        height = size[["height"]]
+      ))
+      min(rooms)
+    },
+    error = function(e) NA_real_
+  )
+}
+
+#' The page a Base R chart too small for a size no one asked for is drawn on
+#'
+#' Before maidr drew a Base R chart at its size it laid every one out on the
+#' 7 x 7 in page [ggplotify::as.grob()] draws on (see
+#' [base_r_drawing_grob()]), so a chart too tall for maidr's own 7 x 5 in --
+#' a `par(mfrow)` grid of five rows -- was drawn. Such a chart still is, on
+#' that page, or on one as large as the canvas on a side where the canvas
+#' is larger. A chart too large for that page as well, as a grid of six
+#' rows is, is drawn on the smallest page larger than the canvas that gives
+#' each of its plots at least a sixth of an inch, 12 px, each way: about
+#' what a five-row grid's plots have on the 7 x 7 in page, and enough to be
+#' seen, where the least R draws on leaves a plot a pixel high. Each side is
+#' the canvas's own or a whole number of inches: it grows an inch at a time
+#' to the least that gives the plots their room while the other side has
+#' all it could want, and then both together for as long as the chart still
+#' does not fit, as a layout that keeps its panels' shape (`respect = TRUE`)
+#' may need. A chart no page gives that room, a grid of forty rows, is drawn
+#' on the smallest page R draws it on.
+#'
+#' Called once the chart has failed for its size, with a
+#' `maidr_chart_draw_error`: it then fits the largest page a chart is drawn
+#' on, [MAIDR_MAX_CHART_SIZE] on each side, which is as large as this grows
+#' the page.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The canvas it is too small for, from [chart_canvas_size()]
+#' @return The page, a named numeric vector, `width` and `height`, in inches
+#' @keywords internal
+base_r_page_that_fits <- function(draw, size) {
+  fits <- function(page) isTRUE(base_r_plot_room(draw, page) >= 1 / 6)
+  page <- pmax(size, c(width = 7, height = 7))
+  if (fits(page)) {
+    return(page)
+  }
+
+  largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
+  if (!fits(largest)) {
+    fits <- function(page) base_r_draws_at(draw, page)
+  }
+  least <- function(side) {
+    trial <- largest
+    for (value in c(size[[side]], seq(floor(size[[side]]) + 1, largest[[side]]))) {
+      trial[[side]] <- value
+      if (fits(trial)) {
+        return(value)
+      }
+    }
+    largest[[side]]
+  }
+  page <- c(width = least("width"), height = least("height"))
+  while (!fits(page) && any(page < largest)) {
+    page <- pmin(floor(page) + 1, largest)
+  }
+  page
+}
+
+#' Keep only the tick labels R draws on each axis of an echoed drawing
+#'
+#' R's `axis()` draws a tick label only when it clears the last label drawn
+#' by a gap: an "m" wide for labels along the axis, a quarter of an "m" high
+#' for labels across it (`gap.axis`, whose default this is). Labels that
+#' would collide are left out, which is how the y axis of a short panel goes
+#' from 10, 12, 14 to 10, 14. gridGraphics echoes every label, so they ran
+#' into each other wherever R thins them: a Base R chart at 4 x 3 in, or the
+#' panels of a 2 x 2 `par(mfrow)` at 10 x 4 in. Each axis's labels are
+#' measured as R measures them, in inches along the axis on a page of the
+#' chart's size, and the ones R leaves out are taken out of the text grob.
+#' Labels that are expressions are all kept, as R draws them all.
+#'
+#' @param drawing The gTree [base_r_drawing_grob()] echoed
+#' @param size The chart's canvas, from [chart_canvas_size()]
+#' @return The gTree, its axis-label text grobs holding only the labels R
+#'   draws
+#' @keywords internal
+thin_axis_labels <- function(drawing, size) {
+  pattern <- "-(bottom|left|top|right)-axis-labels-[0-9]+$"
+  names <- grep(pattern, grid::grid.ls(drawing, print = FALSE)$name, value = TRUE)
+  if (length(names) == 0L || is.null(drawing$childrenvp)) {
+    return(drawing)
+  }
+
+  # The viewports the labels are placed in, on a page of the chart's size.
+  current <- grDevices::dev.cur()
+  grDevices::pdf(NULL, width = size[["width"]], height = size[["height"]])
+  on.exit(
+    {
+      grDevices::dev.off()
+      if (current > 1) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  grid::grid.newpage()
+  grid::pushViewport(drawing$childrenvp)
+  grid::upViewport(0)
+
+  for (name in names) {
+    labels <- grid::getGrob(drawing, name)
+    if (is.null(labels$vp) || !is.character(labels$label)) {
+      next
+    }
+    side <- sub(paste0("^.*", pattern), "\\1", name)
+    keep <- axis_labels_kept(labels, horizontal = side %in% c("bottom", "top"))
+    if (all(keep)) {
+      next
+    }
+    for (field in c("label", "x", "y", "hjust", "vjust")) {
+      if (length(labels[[field]]) == length(keep)) {
+        labels[[field]] <- labels[[field]][keep]
+      }
+    }
+    drawing <- grid::setGrob(drawing, name, labels)
+  }
+  drawing
+}
+
+#' Which of an axis's tick labels R draws
+#'
+#' Called with the labels' viewports pushed on the current device; see
+#' [thin_axis_labels()].
+#'
+#' @param labels An echoed axis-label text grob
+#' @param horizontal Whether the axis runs across the page (sides 1 and 3)
+#' @return A logical vector, one value per label
+#' @keywords internal
+axis_labels_kept <- function(labels, horizontal) {
+  grid::downViewport(labels$vp)
+  on.exit(grid::upViewport(0), add = TRUE)
+  at <- if (horizontal) {
+    grid::convertX(labels$x, "in", valueOnly = TRUE)
+  } else {
+    grid::convertY(labels$y, "in", valueOnly = TRUE)
+  }
+  at <- rep_len(at, length(labels$label))
+
+  # A label along its axis takes its width there, one across it its height.
+  along <- (labels$rot %% 180 == 0) == horizontal
+  grid::pushViewport(grid::viewport(gp = labels$gp))
+  if (along) {
+    extent <- grid::convertWidth(grid::stringWidth(labels$label), "in", valueOnly = TRUE)
+    gap <- grid::convertWidth(grid::stringWidth("m"), "in", valueOnly = TRUE)
+  } else {
+    extent <- grid::convertHeight(grid::stringHeight(labels$label), "in", valueOnly = TRUE)
+    gap <- 0.25 * grid::convertHeight(grid::stringHeight("m"), "in", valueOnly = TRUE)
+  }
+  grid::popViewport()
+
+  keep <- logical(length(at))
+  last <- -Inf
+  for (i in order(at)) {
+    if (at[[i]] - extent[[i]] / 2 - last >= gap) {
+      keep[[i]] <- TRUE
+      last <- at[[i]] + extent[[i]] / 2
+    }
+  }
+  keep
+}

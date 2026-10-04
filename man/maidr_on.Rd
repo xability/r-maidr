@@ -44,9 +44,49 @@ without maidr. A chart a document returns or prints never opens the
 viewer; an explicit \code{\link[=show]{show()}} still does, during the render, and puts
 nothing in the page.
 
-A chart is drawn at maidr's own size and shrinks to the page: \code{out.width}
-sizes it, and \code{fig.width}, \code{fig.height}, \code{fig.asp} and \code{dpi} are not
-read. Its caption, in R Markdown and bookdown, is plain text: Markdown,
+A chart is drawn at its chunk's \code{fig.width} and \code{fig.height}, in inches,
+as knitr draws the chunk's figures: \code{fig.asp} and \code{fig.dim} set them as
+they do for a figure, and so do R Markdown's \code{fig_width} and \code{fig_height}
+and Quarto's \code{fig-width} and \code{fig-height}. Its SVG is 72 pixels to the
+inch. \code{html_document} and Quarto's HTML formats draw figures at 7 x 5 in,
+maidr's own size outside a document. A format with a figure size of its
+own draws its charts at that size: \code{rmarkdown::html_vignette} at 3 x 3
+in, small enough that a Base R chart shows fewer tick labels, ioslides at
+7.5 x 4.5 in, slidy at 8 x 6 in and \code{knitr::knit()} on its own at 7 x 7
+in. Set \code{fig.width} and \code{fig.height} to draw a chart at another size.
+
+A candlestick chart is drawn at least 12 x 6 in. A chunk that sets a
+smaller size of its own is told so in a message (see \code{\link[=show]{show()}}): among the
+chunk's messages for a ggplot2 chart, and on the console for a Base R
+\code{chartSeries()} chart, which maidr reads once the chunk has run. The
+document's figure size, which the format, its YAML or
+\code{knitr::opts_chunk$set()} sets for every chunk, was not asked of a
+candlestick chart, which is drawn larger than it without a message.
+
+maidr draws a Base R chart again from its recorded calls, with the
+margins and text size its chunk's \code{par()} calls set (\code{mar}, \code{mai},
+\code{oma}, \code{omi}, \code{mex} and \code{cex}), so it fits where R drew it. A chart R
+drew in its chunk with settings maidr does not record -- a \code{par()} called
+by name, as \code{graphics::par()}, or another of its settings -- can still be
+too small for its size in maidr. Too small for the document's figure
+size, it is drawn larger, as one too small for 7 x 5 in is outside a
+document (see \code{\link[=show]{show()}}), and a message on the console names the size.
+Too small for a size its chunk sets of its own, it stays knitr's picture,
+with a warning naming the size.
+
+Whether a chunk set its size is read from the size, not from where it
+was set: a chunk that sets the document's own, \code{fig.width = 7} and
+\code{fig.height = 5} in \code{html_document}, is taken to set none, for a
+candlestick chart and a Base R chart alike.
+
+The size is the room the chart is laid out in, not what a reader hears:
+its data, titles and axes are the same at every size, though a lattice
+chart conditioned on one variable with no \verb{layout =} arranges its panels,
+and the grid a reader moves through, for it (see \code{\link[=show]{show()}}). Nor is it the
+width the chart is shown at, which \code{out.width} sets: a chart shrinks to
+fit a page narrower than itself, keeping its shape. \code{dpi} is not read.
+
+A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 maths and \verb{\\@ref()} in \code{fig.cap} are shown as written, and a bookdown text
 reference (\code{fig.cap = "(ref:label)"}) brings them in. \code{fig.show = "animate"} stays knitr's animation.
 

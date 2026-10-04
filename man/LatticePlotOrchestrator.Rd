@@ -23,6 +23,7 @@ chart is. A chart laid out over several pages is read from its first.
     \item \href{#method-LatticePlotOrchestrator-process_layer}{\code{LatticePlotOrchestrator$process_layer()}}
     \item \href{#method-LatticePlotOrchestrator-generate_maidr_data}{\code{LatticePlotOrchestrator$generate_maidr_data()}}
     \item \href{#method-LatticePlotOrchestrator-get_gtable}{\code{LatticePlotOrchestrator$get_gtable()}}
+    \item \href{#method-LatticePlotOrchestrator-canvas_size}{\code{LatticePlotOrchestrator$canvas_size()}}
     \item \href{#method-LatticePlotOrchestrator-get_layout}{\code{LatticePlotOrchestrator$get_layout()}}
     \item \href{#method-LatticePlotOrchestrator-get_combined_data}{\code{LatticePlotOrchestrator$get_combined_data()}}
     \item \href{#method-LatticePlotOrchestrator-get_layer_processors}{\code{LatticePlotOrchestrator$get_layer_processors()}}
@@ -40,13 +41,22 @@ chart is. A chart laid out over several pages is read from its first.
   Create an orchestrator for a trellis object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LatticePlotOrchestrator$new(plot)}
+    \preformatted{LatticePlotOrchestrator$new(
+  plot,
+  width = NULL,
+  height = NULL,
+  asked = !is.null(width) || !is.null(height)
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot}}{The trellis object}
+      \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+      \item{\code{asked}}{Whether that size was asked for, by default when either
+side is given; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }
@@ -160,6 +170,21 @@ the chart's \code{main}.
   \subsection{Returns}{
     The grob the chart was drawn into, or NULL when it was not
 drawn
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-LatticePlotOrchestrator-canvas_size"></a>}}
+\if{latex}{\out{\hypertarget{method-LatticePlotOrchestrator-canvas_size}{}}}
+\subsection{\code{LatticePlotOrchestrator$canvas_size()}}{
+  The size the chart is drawn at
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{LatticePlotOrchestrator$canvas_size()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A named numeric vector, \code{width} and \code{height}, in inches
   }
 }
 

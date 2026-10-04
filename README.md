@@ -133,6 +133,40 @@ A conditioned chart, such as `xyplot(mpg ~ wt | factor(cyl), mtcars)`, is
 read one panel at a time: each panel is a subplot of its own, named after its
 strip.
 
+### Chart size
+
+A chart is drawn at 7 x 5 inches unless you give it a size, in inches as
+`ggplot2::ggsave()` takes one, and its SVG is 72 pixels to the inch. The
+size is the room the chart is laid out in; the data, titles and axis labels
+a reader hears are the same at every size. Only a lattice chart conditioned
+on one variable with no `layout =` changes for a reader: lattice arranges
+its panels for the shape of the page, and the order a reader moves through
+them follows, so give it `layout =` to keep one. A side over 50 in is
+refused, as `ggsave()` refuses one, since it is most likely pixels.
+
+``` r
+show(p, width = 10, height = 4)
+save_html(p, "wide.html", width = 10, height = 4)
+
+# Base R: draw, then show at a size
+barplot(table(mtcars$cyl))
+show(width = 6, height = 4)
+
+# Shiny: the chart's size; maidr_output()'s width and height size the output
+output$plot <- render_maidr(p, fig_width = 10, fig_height = 4)
+```
+
+In R Markdown and Quarto the chunk's `fig.width` and `fig.height` set it.
+Nothing else does: not the device a Base R chart was drawn on, nor the
+window or Shiny output a chart is shown in, which shrinks a wider chart to
+fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for
+less (in a document, by the chunk's own options), maidr says in a message
+the size it used. A Base R chart too small for its margins and text at the
+size you ask for is an error naming the size. With no size asked for, one
+too small for 7 x 5 in, such as a `par(mfrow)` grid of five rows, is drawn
+larger, at 7 x 7 in or the smallest larger size that leaves each of its
+plots room to be seen, and a message names the size.
+
 ### R Markdown and Quarto
 
 `library(maidr)` in a setup chunk is all a document needs. Every plot it
@@ -168,12 +202,18 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   written. A bookdown text reference, `fig.cap = "(ref:label)"`, brings
   them in, as Quarto does for the caption of a chart in a `fig-` chunk,
   which it writes itself.
-- **Size, cache and animations.** Charts are drawn at maidr's own size and
-  shrink to the page; size one with `out.width`, since `fig.width`,
-  `fig.height`, `fig.asp` and `dpi` are not read. A chunk cached with
-  `cache = TRUE` brings its charts back; one cached with `cache = 1` or
-  `cache = 2` shows knitr's static figures when it is rendered again from
-  the cache. `fig.show = "animate"` stays knitr's animation.
+- **Size.** A chart is drawn at its chunk's `fig.width` and `fig.height`
+  (or `fig.asp`, `fig.dim`, R Markdown's `fig_width`/`fig_height` and
+  Quarto's `fig-width`/`fig-height`), in inches, as knitr draws figures:
+  7 x 5 in in `html_document` and Quarto's HTML, but 3 x 3 in in
+  `html_vignette`, small enough that a Base R chart shows fewer tick labels
+  unless a chunk sets a larger size. `out.width` still sets the width a
+  chart is shown at, and a chart wider than the page shrinks to fit it.
+  See [Chart size](#chart-size) for what the size changes.
+- **Cache and animations.** A chunk cached with `cache = TRUE` brings its
+  charts back; one cached with `cache = 1` or `cache = 2` shows knitr's
+  static figures when it is rendered again from the cache.
+  `fig.show = "animate"` stays knitr's animation.
 - **Static figures are SVG.** In HTML output maidr records a chunk's
   figures with svglite instead of knitr's default png, so the ones that stay
   images are vector images too. A device a chunk names (`dev = "png"`), a
