@@ -310,6 +310,12 @@
   as far below the top edge as R puts it. The drawing is now made on a page
   of the chart's own size, with the graphical parameters `as.grob()` sets,
   so at 7 x 7 in it is the drawing `as.grob()` made (#PR).
+* A Base R chart is drawn with the margins and text size its `par()` calls
+  set -- `mar`, `mai`, `oma`, `omi`, `mex` and `cex` -- where maidr drew it
+  with R's own. A chart given small margins, as `par(mfrow = c(5, 1), mar =
+  c(1, 2, 1, 1))` gives a grid R draws at 7 x 5 in, was drawn with larger
+  ones and its plots squeezed, and at a size asked for it was called too
+  small to draw, though R drew it there (#PR).
 * A Base R chart's axes show the tick labels R shows. R's `axis()` leaves
   out a label that would run into the one before it, but the drawing maidr
   makes of a Base R chart kept every label, so they ran together on a

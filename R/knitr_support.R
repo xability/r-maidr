@@ -52,11 +52,14 @@
 #' `knitr::opts_chunk$set()` sets for every chunk, was not asked of a
 #' candlestick chart, which is drawn larger than it without a message.
 #'
-#' A Base R chart R draws in its chunk can still be too small for its size
-#' in maidr, which draws it again from its recorded calls without the
-#' margins a chunk sets with `par(mar = )`. Too small for the document's
-#' figure size, it is drawn larger, as one too small for 7 x 5 in is outside
-#' a document (see [show()]), and a message on the console names the size.
+#' maidr draws a Base R chart again from its recorded calls, with the
+#' margins and text size its chunk's `par()` calls set (`mar`, `mai`,
+#' `oma`, `omi`, `mex` and `cex`), so it fits where R drew it. A chart R
+#' drew in its chunk with settings maidr does not record -- a `par()` called
+#' by name, as `graphics::par()`, or another of its settings -- can still be
+#' too small for its size in maidr. Too small for the document's figure
+#' size, it is drawn larger, as one too small for 7 x 5 in is outside a
+#' document (see [show()]), and a message on the console names the size.
 #' Too small for a size its chunk sets of its own, it stays knitr's picture,
 #' with a warning naming the size.
 #'

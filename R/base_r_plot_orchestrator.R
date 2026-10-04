@@ -11,6 +11,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
   private = list(
     .plot_calls = list(),
     .plot_groups = list(),
+    .layout_calls = list(),
     .device_id = NULL,
     .layers = list(),
     .layer_processors = list(),
@@ -58,6 +59,21 @@ BaseRPlotOrchestrator <- R6::R6Class(
           base_r_drawing_grob(draw, private$.canvas)
         }
       )
+    },
+
+    # Set the margins the author's `par()` calls gave a plot group's plot,
+    # before the group is drawn again (`par_margin_settings()`), and answer
+    # them. Only those that differ from `set`, the ones the page's last plot
+    # was drawn with, are set: setting the outer margins starts a new page,
+    # in R as here, and a grid's later plots would each have a page of
+    # their own.
+    set_recorded_margins = function(group, set = list()) {
+      settings <- par_margin_settings(private$.layout_calls, group$high_call_index)
+      changed <- settings[!mapply(identical, settings, set[names(settings)])]
+      if (length(changed) > 0) {
+        graphics::par(changed)
+      }
+      settings
     },
 
     # The one result that declares its own subplot grid, or NULL.
@@ -159,6 +175,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
+      private$.layout_calls <- grouped$layout_calls
 
       # Settled before anything is drawn: the recorded calls are drawn again
       # at this size (see `get_gtable()`), which enlarges it only for a
@@ -876,6 +893,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
           # functions to prevent logging new calls during replay. Groups
           # with an NA slot (drawn before the layout call, or on an
           # earlier page) are excluded so the SVG matches the data grid.
+          margins <- list()
           for (i in seq_along(private$.plot_groups)) {
             if (is.na(panel_slots[i])) {
               next
@@ -886,6 +904,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
               message("DEBUG: Replaying group ", i, " - ", group$high_call$function_name)
             }
 
+            margins <- private$set_recorded_margins(group, margins)
             replay_plot_call(
               group$high_call$function_name,
               group$high_call$args,
@@ -935,6 +954,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Use ORIGINAL (unwrapped) functions to prevent logging new calls
           plot_func <- function() {
+            private$set_recorded_margins(group)
             replay_plot_call(
               high_call$function_name,
               high_call$args,

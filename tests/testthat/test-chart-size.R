@@ -541,6 +541,74 @@ test_that("a Base R chart too small for its margins stops, naming the size and R
   )
 })
 
+test_that("a Base R chart is drawn with the margins its par() calls set", {
+  skip_if_no_render()
+  # The size of each plot R draws, in pixels, as R lays them out at a size.
+  native_plots <- function(draw, size) {
+    plots <- list()
+    hooks <- getHook("plot.new")
+    setHook("plot.new", function() plots[[length(plots) + 1L]] <<- graphics::par("pin") * 72)
+    on.exit(setHook("plot.new", hooks, "replace"), add = TRUE)
+    testthat::expect_true(is.na(native_error(draw, size)))
+    plots
+  }
+  # The size of each plot's box in a chart's SVG, in pixels.
+  drawn_plots <- function(markup) {
+    box <- '<polygon id="graphics-plot-[0-9]+-box-[^>]*>'
+    boxes <- regmatches(markup, gregexpr(box, markup))[[1]]
+    lapply(boxes, function(polygon) {
+      points <- sub('^.*points="([^"]*)".*$', "\\1", polygon)
+      xy <- matrix(as.numeric(unlist(strsplit(points, "[ ,]"))), ncol = 2, byrow = TRUE)
+      c(diff(range(xy[, 1])), diff(range(xy[, 2])))
+    })
+  }
+  expect_plots_as_r_draws <- function(draw, size) {
+    markup <- paste(render_sized(draw, size), collapse = "\n")
+    testthat::expect_equal(drawn_plots(markup), native_plots(draw, size), tolerance = 1e-3)
+    invisible(markup)
+  }
+
+  # Each plot has the room the margins in effect when it was drawn leave
+  # it, and a margin set after the last plot -- putting the device back --
+  # changes nothing.
+  expect_plots_as_r_draws(function() {
+    op <- par(mar = rep(0.5, 4))
+    plot(1:5)
+    par(op)
+  }, c(7, 5))
+  expect_plots_as_r_draws(function() {
+    par(mfrow = c(1, 2), oma = c(0, 0, 2, 0))
+    plot(1:5)
+    par(mai = c(0.3, 0.3, 0.1, 0.1))
+    plot(1:5)
+  }, c(7, 5))
+  expect_plots_as_r_draws(function() {
+    par(cex = 0.6, mex = 0.8)
+    plot(1:5)
+  }, c(7, 5))
+
+  # So a grid R draws at a size with margins of its own is drawn there, as
+  # a size asked for, not called too small for R's own margins.
+  five <- function() {
+    par(mfrow = c(5, 1), mar = c(1, 2, 1, 1))
+    for (i in 1:5) plot(1:5)
+  }
+  drawn <- NULL
+  testthat::expect_no_message(drawn <- expect_plots_as_r_draws(five, c(7, 5)))
+  testthat::expect_identical(svg_size(drawn), svg_size_for(c(7, 5)))
+  testthat::expect_identical(size_free_schema(drawn), size_free_schema(render_sized(five, c(7, 7))))
+
+  # A grid set up after the text was made smaller puts it back, as R does,
+  # and a grid R then cannot draw stops.
+  smaller_first <- function() {
+    par(cex = 0.4)
+    par(mfrow = c(5, 1))
+    for (i in 1:5) plot(1:5)
+  }
+  testthat::expect_false(is.na(native_error(smaller_first, c(7, 5))))
+  testthat::expect_error(render_sized(smaller_first, c(7, 5)), class = "maidr_chart_draw_error")
+})
+
 test_that("a Base R chart too small for a size no one asked for is drawn larger, saying so once", {
   testthat::skip_on_cran()
   skip_if_no_render()
@@ -1029,17 +1097,22 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
   local_knitr_state()
   dir <- withr::local_tempdir("maidr-knit-")
   # R draws these six panels in their chunk, with the margins the chunk
-  # sets. maidr draws a Base R grid again with R's own margins (the chunk's
-  # par(mar = ) is not among the calls it replays), which six panels do not
-  # fit on a page 7 in high or less: they need 8.
-  grid <- c("par(mfrow = c(6, 1), mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)")
+  # sets. maidr draws a Base R chart again with the margins of the par()
+  # calls it recorded, and a par() called by name, as graphics::par(), is
+  # not recorded: it draws these with R's own margins, which six panels do
+  # not fit on a page 7 in high or less. They need 8.
+  unrecorded <- c(
+    "par(mfrow = c(6, 1))", "graphics::par(mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)"
+  )
+  recorded <- c("par(mfrow = c(6, 1), mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)")
   warned <- character()
   knitted <- withCallingHandlers(
     with_messages(knit_for(c(
-      "```{r unset}", grid, "```", "",
+      "```{r unset}", unrecorded, "```", "",
       "```{r document-size}", "knitr::opts_chunk$set(fig.height = 6)", "```", "",
-      "```{r document}", grid, "```", "",
-      "```{r asked, fig.height = 6.5}", grid, "```"
+      "```{r document}", unrecorded, "```", "",
+      "```{r asked, fig.height = 6.5}", unrecorded, "```", "",
+      "```{r recorded, fig.height = 6.5}", recorded, "```"
     ), dir)),
     warning = function(w) {
       warned <<- c(warned, conditionMessage(w))
@@ -1065,9 +1138,10 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
       )
     )
   )
+  # The chunk that sets its margins with par() is drawn at its own size.
   testthat::expect_identical(
     lapply(inline_svg_roots(knitted$value), svg_size),
-    list(svg_size_for(c(7, 8)), svg_size_for(c(7, 8)))
+    list(svg_size_for(c(7, 8)), svg_size_for(c(7, 8)), svg_size_for(c(7, 6.5)))
   )
   # A size the chunk asked for is not changed: its figure stays knitr's
   # picture, and the warning says why.
