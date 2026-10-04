@@ -24,16 +24,26 @@ svg_strings <- function(file) {
   ))
 }
 
-# The strings R draws for `call` with Base R recording turned off, when
-# maidr's wrappers hand the arguments to the originals as they were written.
+# The strings R draws for `call` by itself: each function maidr wraps that
+# the call names is bound to its original, so the call never passes through
+# a wrapper, and recording is off for a wrapper reached from inside another
+# function. A wrapper's pass-through is not the reference: it forwards its
+# `...`, and a function that rebuilds its call from `match.call()` --
+# `acf(x, type = "partial")` -- titles the chart "..1" through it.
 native_strings <- function(call, env) {
   old <- options(maidr.base_r = FALSE)
   on.exit(options(old), add = TRUE)
   file <- tempfile(fileext = ".svg")
   on.exit(unlink(file), add = TRUE)
 
+  named <- intersect(maidr:::get_all_function_names(), all.names(call))
+  reference <- list2env(
+    stats::setNames(lapply(named, maidr:::get_original_function), named),
+    parent = env
+  )
+
   svglite::svglite(file, width = 7, height = 5)
-  tryCatch(eval(call, env), finally = grDevices::dev.off())
+  tryCatch(eval(call, reference), finally = grDevices::dev.off())
   svg_strings(file)
 }
 
@@ -120,6 +130,7 @@ test_that("every recorded function titling a chart after an argument draws R's t
     quote(cdplot(mtcars$mpg, factor(mtcars$am))),
     quote(qqplot(mtcars$mpg, mtcars$hp)),
     quote(acf(ldeaths)),
+    quote(acf(ldeaths, type = "partial")),
     quote(pacf(ldeaths)),
     quote(ccf(mdeaths, fdeaths)),
     quote(interaction.plot(tg$dose, tg$supp, tg$len)),
@@ -303,6 +314,12 @@ test_that("the static-image fallback draws R's titles too", {
     replayed_strings(call, environment(), replay = maidr:::replay_base_r_plot),
     native_strings(call, environment())
   )
+})
+
+test_that("chartSeries() is titled after its series as R titles it", {
+  skip_if_not_installed("quantmod")
+  s <- xts::xts(c(1, 3, 2, 5, 4, 6, 5, 8, 7, 9), as.Date("2024-01-01") + 0:9)
+  expect_drawn_as_r_draws(quote(chartSeries(s, theme = "white")))
 })
 
 test_that("a name R prints with backticks inside a call is drawn as written", {
