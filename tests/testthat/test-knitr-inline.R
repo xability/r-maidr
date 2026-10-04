@@ -181,7 +181,7 @@ test_that("an HTML document knitted without pandoc keeps its charts in iframes",
   testthat::expect_false(grepl("data-maidr-knitr", page, fixed = TRUE))
 })
 
-test_that("Markdown output draws its charts as knitr's figures", {
+test_that("Markdown, EPUB and xaringan output draw their charts as knitr's figures", {
   testthat::skip_on_cran()
   skip_if_no_render()
   local_knitr_state()
@@ -198,8 +198,9 @@ test_that("Markdown output draws its charts as knitr's figures", {
   knitr::knit_meta(clean = TRUE)
 
   # GitHub drops an iframe, and rmarkdown refuses to render a Markdown
-  # document that declares the page bundle an online frame brings.
-  for (to in c("gfm", "markdown_strict")) {
+  # document that declares the page bundle an online frame brings; so does
+  # the EPUB writer, unless the document allows HTML.
+  for (to in c("gfm", "markdown_strict", "epub3")) {
     page <- knit_for(chunks, dir, to = to)
     testthat::expect_false(grepl("<iframe|data-maidr-knitr", page), info = to)
     testthat::expect_identical(
@@ -208,6 +209,51 @@ test_that("Markdown output draws its charts as knitr's figures", {
     )
     testthat::expect_length(knitr::knit_meta(clean = TRUE), 0L)
   }
+
+  # xaringan's remark.js shows a raw HTML block as text on the slide.
+  xaringan <- c(
+    "```{r, include = FALSE}",
+    "knitr::opts_knit$set(rmarkdown.pandoc.args = c(",
+    "  '--template', '/lib/xaringan/rmarkdown/templates/xaringan/resources/default.html'",
+    "))",
+    "```",
+    chunks
+  )
+  page <- knit_for(xaringan, dir)
+  testthat::expect_false(grepl("<iframe|data-maidr-knitr", page))
+  testthat::expect_identical(lengths(regmatches(page, gregexpr("!\\[\\]\\(", page))), 2L)
+  testthat::expect_length(knitr::knit_meta(clean = TRUE), 0L)
+})
+
+test_that("an EPUB book and a xaringan deck render with maidr loaded", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("bookdown")
+  testthat::skip_if_not_installed("xaringan")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-epub-")
+  body <- c(
+    "```{r, include = FALSE}", "library(maidr)", "maidr_on()", "```",
+    "```{r gg}", "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()", "```",
+    "```{r base}", "barplot(c(a = 1, b = 2))", "```"
+  )
+  writeLines(
+    c("---", "title: book", "output: bookdown::epub_book", "---", body),
+    file.path(dir, "book.Rmd")
+  )
+  writeLines(
+    c("---", "title: deck", "output: xaringan::moon_reader", "---", body),
+    file.path(dir, "deck.Rmd")
+  )
+
+  epub <- rmarkdown::render(file.path(dir, "book.Rmd"), quiet = TRUE, envir = new.env())
+  testthat::expect_true(file.exists(epub))
+  deck <- rmarkdown::render(file.path(dir, "deck.Rmd"), quiet = TRUE, envir = new.env())
+  html <- paste(readLines(deck, warn = FALSE), collapse = "\n")
+  testthat::expect_false(grepl("<iframe|data-maidr-knitr", html))
+  testthat::expect_identical(lengths(regmatches(html, gregexpr("!\\[\\]\\(", html))), 2L)
 })
 
 test_that("a patchwork maidr does not make a chart is drawn as patchwork draws it", {
@@ -1419,4 +1465,34 @@ test_that("Quarto shows the charts inline, captions them and resolves a referenc
   )
   # The figure that is not a chart is an svg image.
   testthat::expect_match(html, '<img src="charts_files/figure-html/[^"]+\\.svg"')
+})
+
+test_that("Quarto renders an EPUB with maidr loaded", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not_installed("withr")
+  quarto <- Sys.which("quarto")
+  testthat::skip_if(!nzchar(quarto), "Quarto is not installed")
+  withr::local_envvar(QUARTO_R = R.home("bin"))
+  dir <- withr::local_tempdir("maidr-qepub-")
+  qmd <- file.path(dir, "book.qmd")
+  writeLines(c(
+    "---", "title: book", "format: epub", "---",
+    "```{r}",
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    maidr_loader(),
+    "```",
+    "```{r}", "ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl))) + ggplot2::geom_bar()", "```",
+    "```{r}", "barplot(c(a = 1, b = 2))", "```"
+  ), qmd)
+
+  out <- suppressWarnings(system2(
+    quarto, c("render", shQuote(qmd), "--quiet"),
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  status <- attr(out, "status")
+  log <- paste(out, collapse = "\n")
+  testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
+  testthat::expect_true(file.exists(file.path(dir, "book.epub")))
 })

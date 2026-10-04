@@ -15,10 +15,11 @@ True while knitting HTML that pandoc writes as a page a browser opens:
 ioslides, slidy, dashboards. Not for a document knitted without pandoc
 (\code{.Rhtml}, or \code{knitr::knit()} to Markdown), nor for the outputs knitr also
 counts as HTML: Markdown and GitHub Markdown, whose readers drop the
-script, and EPUB. Not for an HTML fragment either, which has no \verb{<head>}
-for maidr.js, nor for xaringan, whose remark.js shows a raw HTML block as
-code, nor for pagedown, whose paged.js rebuilds the page before maidr.js
-could bind a chart in it. Those keep a chart in an iframe of its own,
-except Markdown, which keeps the plot as its library draws it.
+script, EPUB, and xaringan, whose remark.js shows a raw HTML block as
+text. Not for an HTML fragment either, which has no \verb{<head>} for
+maidr.js, nor for pagedown, whose paged.js rebuilds the page before
+maidr.js could bind a chart in it. Markdown, EPUB and xaringan keep the
+plot as its library draws it (\code{is_html_output()}); the others keep a
+chart in an iframe of its own.
 }
 \keyword{internal}

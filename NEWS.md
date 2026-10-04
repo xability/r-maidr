@@ -25,9 +25,12 @@
   dashboards and websites), 'revealjs', ioslides, slidy and
   'flexdashboard'. Before maidr.js has loaded, and if it never does, a chart
   is an image named by `fig.alt`, `fig.cap` or its title; once it has,
-  `fig.alt` and the caption describe it. An HTML fragment, EPUB,
-  'xaringan', 'pagedown' and `.Rhtml` keep each chart in an iframe of its
-  own, as does a chart that cannot be shown inline, with a warning.
+  `fig.alt` and the caption describe it. An HTML fragment, 'pagedown' and
+  `.Rhtml` keep each chart in an iframe of its own, as does a chart that
+  cannot be shown inline, with a warning. In EPUB and 'xaringan' output, as
+  in PDF, Word and Markdown, the plots are knitr's figures, where a
+  document that called `maidr_on()` used to stop with an error (EPUB) or
+  show each chart's iframe as text on its slide ('xaringan').
 * In HTML output 'knitr' records a chunk's figures with 'svglite' instead of
   its default png, so the figures that stay images are vector images too.
   Only the default is replaced: a device a chunk names, a document device

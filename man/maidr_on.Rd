@@ -34,9 +34,9 @@ svglite rather than knitr's default png (\code{maidr.knitr_dev} in
 \code{print(p)} in a loop, several Base R charts -- and each takes the place of
 its own figure; a figure maidr cannot read as one chart stays knitr's
 image. HTML that cannot hold a chart in the page, such as an HTML
-fragment, EPUB or xaringan, shows each chart in a frame of its own. In
-PDF, Word or Markdown output the plots are knitr's figures, as without
-maidr. A chart a document draws never opens the viewer; an explicit
+fragment or pagedown, shows each chart in a frame of its own. In PDF,
+Word, Markdown, EPUB or xaringan output the plots are knitr's figures, as
+without maidr. A chart a document draws never opens the viewer; an explicit
 \code{\link[=show]{show()}} still does.
 
 A chunk cached with \code{cache = TRUE} brings its charts back from knitr's

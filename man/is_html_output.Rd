@@ -18,6 +18,10 @@ Markdown output (\code{github_document}, \code{md_document}, \code{knitr::knit()
 \code{.Rmd}), which knitr also counts as HTML, is not: GitHub and most Markdown
 viewers drop an iframe, and rmarkdown refuses the dependency a frame
 brings, so a chart in one was either lost or stopped the render. Its
-charts are drawn as their libraries draw them, as knitr's figures.
+charts are drawn as their libraries draw them, as knitr's figures. So are
+EPUB's, whose writer refuses HTML a chart brings unless the document
+allows it, and whose readers would not run maidr.js anyway, and
+xaringan's, whose remark.js shows a chart's raw HTML as text on the
+slide.
 }
 \keyword{internal}

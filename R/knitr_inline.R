@@ -11,9 +11,10 @@
 # sharing the page never reach into one another.
 #
 # The other outputs keep what they had: an iframe in HTML that is not a
-# page pandoc writes (`.Rhtml`, an HTML fragment, EPUB, and the formats
-# whose page cannot hold the raw block), and the plot as its library draws
-# it in any other format, Markdown among them (see `is_html_output()`).
+# page pandoc writes (`.Rhtml`, an HTML fragment, and pagedown, whose page
+# cannot hold the raw block), and the plot as its library draws it in any
+# other format, Markdown, EPUB and xaringan among them (see
+# `is_html_output()`).
 
 #' Whether a chart is shown inline in the document being knitted
 #'
@@ -22,11 +23,12 @@
 #' ioslides, slidy, dashboards. Not for a document knitted without pandoc
 #' (`.Rhtml`, or `knitr::knit()` to Markdown), nor for the outputs knitr also
 #' counts as HTML: Markdown and GitHub Markdown, whose readers drop the
-#' script, and EPUB. Not for an HTML fragment either, which has no `<head>`
-#' for maidr.js, nor for xaringan, whose remark.js shows a raw HTML block as
-#' code, nor for pagedown, whose paged.js rebuilds the page before maidr.js
-#' could bind a chart in it. Those keep a chart in an iframe of its own,
-#' except Markdown, which keeps the plot as its library draws it.
+#' script, EPUB, and xaringan, whose remark.js shows a raw HTML block as
+#' text. Not for an HTML fragment either, which has no `<head>` for
+#' maidr.js, nor for pagedown, whose paged.js rebuilds the page before
+#' maidr.js could bind a chart in it. Markdown, EPUB and xaringan keep the
+#' plot as its library draws it (`is_html_output()`); the others keep a
+#' chart in an iframe of its own.
 #'
 #' @return Logical
 #' @keywords internal
@@ -34,14 +36,11 @@ inline_output_ok <- function() {
   if (!knit_in_progress() || is.null(knitr::pandoc_to())) {
     return(FALSE)
   }
-  # knitr folds every markdown_* variant into "markdown", and epub3 into
-  # "epub", before it compares.
-  if (!knitr::is_html_output(excludes = c("markdown", "gfm", "epub", "epub2"))) {
+  if (!is_html_output()) {
     return(FALSE)
   }
   template <- knitr_pandoc_template()
-  is.null(template) ||
-    !grepl("rmd/fragment/|/xaringan/|/pagedown/", gsub("\\\\", "/", template))
+  is.null(template) || !grepl("rmd/fragment/|/pagedown/", gsub("\\\\", "/", template))
 }
 
 #' The pandoc template R Markdown renders the document with

@@ -23,9 +23,9 @@
 #' `print(p)` in a loop, several Base R charts -- and each takes the place of
 #' its own figure; a figure maidr cannot read as one chart stays knitr's
 #' image. HTML that cannot hold a chart in the page, such as an HTML
-#' fragment, EPUB or xaringan, shows each chart in a frame of its own. In
-#' PDF, Word or Markdown output the plots are knitr's figures, as without
-#' maidr. A chart a document draws never opens the viewer; an explicit
+#' fragment or pagedown, shows each chart in a frame of its own. In PDF,
+#' Word, Markdown, EPUB or xaringan output the plots are knitr's figures, as
+#' without maidr. A chart a document draws never opens the viewer; an explicit
 #' [show()] still does.
 #'
 #' A chunk cached with `cache = TRUE` brings its charts back from knitr's
@@ -519,7 +519,11 @@ call_original_plot_hook <- function(x, options, original = NULL) {
 #' `.Rmd`), which knitr also counts as HTML, is not: GitHub and most Markdown
 #' viewers drop an iframe, and rmarkdown refuses the dependency a frame
 #' brings, so a chart in one was either lost or stopped the render. Its
-#' charts are drawn as their libraries draw them, as knitr's figures.
+#' charts are drawn as their libraries draw them, as knitr's figures. So are
+#' EPUB's, whose writer refuses HTML a chart brings unless the document
+#' allows it, and whose readers would not run maidr.js anyway, and
+#' xaringan's, whose remark.js shows a chart's raw HTML as text on the
+#' slide.
 #'
 #' @return TRUE if rendering to HTML, FALSE otherwise
 #' @keywords internal
@@ -528,9 +532,12 @@ is_html_output <- function() {
 
   if (requireNamespace("knitr", quietly = TRUE)) {
     # knitr::is_html_output() checks the current output format; it folds
-    # every markdown_* variant into "markdown" before it compares.
+    # every markdown_* variant into "markdown", and epub3 into "epub",
+    # before it compares.
     if (exists("is_html_output", where = asNamespace("knitr"))) {
-      return(knitr::is_html_output(excludes = c("markdown", "gfm")))
+      template <- knitr_pandoc_template()
+      xaringan <- !is.null(template) && grepl("/xaringan/", gsub("\\\\", "/", template))
+      return(knitr::is_html_output(excludes = c("markdown", "gfm", "epub", "epub2")) && !xaringan)
     }
 
     # Fallback: check pandoc output format

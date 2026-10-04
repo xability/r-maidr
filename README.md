@@ -170,10 +170,10 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   document device other than png, and the device of a cached chunk are
   kept. To keep png for every chunk, set `options(maidr.knitr_dev = FALSE)`
   before rendering or in the setup chunk.
-- **Other outputs.** In PDF, Word and Markdown output (`github_document`),
-  plots are knitr's figures, as without maidr. HTML that cannot hold a chart
-  in the page, such as an HTML fragment, EPUB or xaringan, keeps each chart
-  in an iframe of its own. A chart a document draws never opens the viewer.
+- **Other outputs.** In PDF, Word, Markdown (`github_document`), EPUB and
+  xaringan output, plots are knitr's figures, as without maidr. HTML that
+  cannot hold a chart in the page, such as an HTML fragment or pagedown,
+  keeps each chart in an iframe of its own. A chart a document draws never opens the viewer.
 - **Turning it off.** `maidr_off()` in a chunk knits the chunks after it as
   they would be without maidr, and `maidr_on()` turns maidr back on.
   Documents that call `maidr_on()` in their setup chunk keep working; the
@@ -426,8 +426,8 @@ shows a plain, inaccessible chart. A knitted R Markdown or Quarto page loads
 the bundled maidr.js once for all its charts, from its `_files` folder or
 embedded in it when it is `self_contained` / uses `embed-resources`, so it
 works offline wherever it was rendered. Widgets, Shiny apps, and the few
-knitted outputs that keep a chart in an iframe (an HTML fragment, EPUB,
-xaringan) auto-detect internet availability and use the CDN when online. A
+knitted outputs that keep a chart in an iframe (an HTML fragment, pagedown)
+auto-detect internet availability and use the CDN when online. A
 page holding a widget rendered online also carries its own copy of maidr.js,
 which its charts fall back on when the CDN cannot be reached, so a
 `self_contained` / `embed-resources` page works offline too. Use the

@@ -162,8 +162,8 @@ MAIDR.js, as the Python binding does. Documents rendered with
 the network only for the two things described above: a DotPad's SDK and
 a language other than English. So does a knitted R Markdown or Quarto
 page, which loads the bundled copy once for all its charts; only the
-charts kept in frames of their own, in outputs such as an HTML fragment,
-EPUB or xaringan, load the CDN copy when the machine is online.
+charts kept in frames of their own, in outputs such as an HTML fragment
+or pagedown, load the CDN copy when the machine is online.
 
 The first CDN document in an R session asks which version is the latest:
 jsDelivr's data API
