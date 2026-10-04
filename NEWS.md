@@ -229,7 +229,7 @@
   text and whatever the reader's default, so a maidr.js that sizes its
   dialogs for such a page itself would have shown 22.4px body text under a
   20px title. With the bundled maidr.js 4.13.0 their body text is still
-  14px under a 20px title at a browser's default font size (#PR).
+  14px under a 20px title at a browser's default font size (#354).
 
 ### ggplot2
 
