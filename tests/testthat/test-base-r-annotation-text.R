@@ -190,3 +190,50 @@ test_that("a chart titled with a number is exported with its drawing", {
   )
   testthat::expect_true(length(unlist(chart$layer$selectors)) > 0)
 })
+
+test_that("the title and axis titles announced are the text R draws", {
+  schema <- function(draw) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    on.exit(
+      {
+        clear_base_r_device(device_id)
+        grDevices::dev.off(device_id)
+      },
+      add = TRUE
+    )
+    clear_base_r_device(device_id)
+    draw()
+    maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
+  }
+  first_layer <- function(chart) chart$subplots[[1]][[1]]$layers[[1]]
+
+  # R draws each value on a line of its own and leaves out a missing one.
+  chart <- schema(function() {
+    plot(
+      1:5,
+      main = c("Sales", NA, "2024"), sub = c(1, 2), xlab = factor(c("a", "b")),
+      ylab = list(font = 2, "Units")
+    )
+  })
+  testthat::expect_identical(chart$title, "Sales\n2024")
+  testthat::expect_identical(chart$subtitle, "1\n2")
+  testthat::expect_identical(first_layer(chart)$title, "Sales\n2024")
+  testthat::expect_identical(first_layer(chart)$axes$x$label, "a\nb")
+  testthat::expect_identical(first_layer(chart)$axes$y$label, "Units")
+
+  chart <- schema(function() barplot(c(1, 2), main = 1 / 3, xlab = 2024, ylab = TRUE))
+  testthat::expect_identical(first_layer(chart)$title, "0.333333333333333")
+  testthat::expect_identical(first_layer(chart)$axes$x$label, "2024")
+  testthat::expect_identical(first_layer(chart)$axes$y$label, "TRUE")
+
+  chart <- schema(function() {
+    interaction.plot(c(1, 1, 2, 2), c(1, 2, 1, 2), c(3, 4, 5, 6), xlab = 2024, ylab = c("m", "n"))
+  })
+  testthat::expect_identical(first_layer(chart)$axes$x$label, "2024")
+  testthat::expect_identical(first_layer(chart)$axes$y$label, "m\nn")
+
+  chart <- schema(function() monthplot(ts(1:24, frequency = 12), xlab = 2024L, ylab = TRUE))
+  testthat::expect_identical(first_layer(chart)$axes$x$label, "2024")
+  testthat::expect_identical(first_layer(chart)$axes$y$label, "TRUE")
+})

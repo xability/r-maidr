@@ -162,8 +162,9 @@ BaseRInteractionLayerProcessor <- R6::R6Class(
       paste(private$deparsed(fun), "of ", private$deparsed(response))
     },
     label = function(explicit, fallback) {
-      if (is.character(explicit) && length(explicit) && nzchar(explicit[[1]])) {
-        return(explicit[[1]])
+      text <- base_r_annotation_text(explicit)
+      if (!is.null(text)) {
+        return(text)
       }
       if (is.null(fallback)) {
         return(NULL)

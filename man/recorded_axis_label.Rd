@@ -19,10 +19,12 @@ generic to the renderer, which is where that decision belongs.}
 Character scalar, or \code{default}
 }
 \description{
-The author's own \verb{xlab=}/\verb{ylab=} always wins. An empty string counts as
-unsupplied: Base R draws no title for it, so falling through to the chart
-type's default announces more than the blank would, and the renderer would
-otherwise substitute its generic "X"/"Y" anyway. This is how the
-candlestick processor has always read these arguments.
+The author's own \verb{xlab=}/\verb{ylab=} always wins, read as the text R draws
+for it, whatever it was given as (\code{base_r_annotation_text()}); a plotmath
+title is read as it was written, \code{Miles[gallon]}. An empty string counts
+as unsupplied: Base R draws no title for it, so falling through to the
+chart type's default announces more than the blank would, and the
+renderer would otherwise substitute its generic "X"/"Y" anyway. This is
+how the candlestick processor has always read these arguments.
 }
 \keyword{internal}

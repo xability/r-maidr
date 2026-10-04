@@ -17,11 +17,13 @@ NULL
 
 #' Resolve one axis title from a recorded Base R call
 #'
-#' The author's own `xlab=`/`ylab=` always wins. An empty string counts as
-#' unsupplied: Base R draws no title for it, so falling through to the chart
-#' type's default announces more than the blank would, and the renderer would
-#' otherwise substitute its generic "X"/"Y" anyway. This is how the
-#' candlestick processor has always read these arguments.
+#' The author's own `xlab=`/`ylab=` always wins, read as the text R draws
+#' for it, whatever it was given as (`base_r_annotation_text()`); a plotmath
+#' title is read as it was written, `Miles[gallon]`. An empty string counts
+#' as unsupplied: Base R draws no title for it, so falling through to the
+#' chart type's default announces more than the blank would, and the
+#' renderer would otherwise substitute its generic "X"/"Y" anyway. This is
+#' how the candlestick processor has always read these arguments.
 #'
 #' @param args Recorded argument list, or NULL
 #' @param name Argument to read: `"xlab"` or `"ylab"`
@@ -32,13 +34,12 @@ NULL
 #' @keywords internal
 recorded_axis_label <- function(args, name, default = NULL) {
   supplied <- if (is.list(args)) args[[name]] else NULL
-  if (!is.null(supplied)) {
-    label <- tryCatch(as.character(supplied)[1], error = function(e) NULL)
-    if (!is.null(label) && !is.na(label) && nzchar(label)) {
-      return(label)
-    }
+  label <- if (is.language(supplied)) {
+    tryCatch(as.character(supplied)[1], error = function(e) NULL)
+  } else {
+    base_r_annotation_text(supplied)
   }
-  default
+  if (is.null(label) || is.na(label) || !nzchar(label)) default else label
 }
 
 #' Canonical axes for a categorical Base R chart

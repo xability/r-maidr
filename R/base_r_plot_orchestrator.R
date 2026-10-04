@@ -461,19 +461,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
       y_label <- ""
 
       # Exact-match lookup: `args$sub` would partial-match an unrelated
-      # `subset` argument (e.g. plot(y ~ x, subset = ...)), and recorded
-      # values can be non-character (expressions from NSE calls), which
-      # nzchar() cannot handle.
+      # `subset` argument (e.g. plot(y ~ x, subset = ...)). The text is the
+      # one R draws for the value, whatever it was given as
+      # (`base_r_annotation_text()`).
       get_label_arg <- function(args, name) {
-        value <- args[[name]]
-        if (is.null(value) || is.language(value)) {
-          return(NULL)
-        }
-        value <- tryCatch(as.character(value)[1], error = function(e) NULL)
-        if (is.null(value) || is.na(value) || !nzchar(value)) {
-          return(NULL)
-        }
-        value
+        base_r_annotation_text(args[[name]])
       }
 
       for (group in private$.plot_groups) {

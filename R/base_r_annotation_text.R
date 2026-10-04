@@ -11,12 +11,40 @@
 #' it stops on a title that is a number, a logical, a vector of more than one
 #' value or a list with graphical parameters ("Unrecognised text argument
 #' type"), and draws a missing margin text or tick label as "NA". The
-#' functions here hand it the text R drew.
+#' functions here hand it the text R drew, and read that text for the
+#' accessible title and axis titles.
 #'
 #' @name base_r_annotation_text
 #' @keywords internal
 #' @noRd
 NULL
+
+#' The text R draws for an annotation argument, as one string
+#'
+#' What R draws for `main`, `sub`, `xlab` or `ylab`: each value as
+#' `as.character()` gives it, missing and empty ones left out, one line per
+#' value. A list is read as `title()` reads it, its unnamed element being
+#' the text.
+#'
+#' @param value The argument, as recorded
+#' @return A string, or NULL when R draws no text for it: nothing given, a
+#'   plotmath call or expression, or only missing or empty values
+#' @keywords internal
+#' @noRd
+base_r_annotation_text <- function(value) {
+  if (is.list(value)) {
+    value <- base_r_title_text(value, cex = NA, col = NA, font = NA)$text
+  }
+  if (is.null(value) || is.language(value)) {
+    return(NULL)
+  }
+  text <- tryCatch(as.character(value), error = function(e) NULL)
+  text <- text[!is.na(text) & nzchar(text)]
+  if (length(text) == 0) {
+    return(NULL)
+  }
+  paste(text, collapse = "\n")
+}
 
 #' The text of one `title()` argument, and the parameters it carries
 #'

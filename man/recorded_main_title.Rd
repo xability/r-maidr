@@ -23,5 +23,9 @@ as empty rather than failing the chart it sits on; the drawing keeps it.
 Exact-name lookup, since \code{args$main} would partial-match nothing today but
 is the same shape as the \code{args$x} / \code{xlab} collision that emptied
 \code{monthplot()} (#292).
+
+Any other value is the text R draws for it (\code{base_r_annotation_text()}):
+\code{main = 2024} is titled "2024", and \code{main = c("Sales", "2024")}, which R
+draws on two lines, is titled with those two lines.
 }
 \keyword{internal}
