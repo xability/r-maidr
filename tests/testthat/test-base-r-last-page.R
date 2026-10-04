@@ -428,6 +428,44 @@ test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave i
   expect_drawn_where_r_draws(chart, screens, c("S1", "S2"))
 })
 
+test_that("a plot par(mfg = ) sends out of turn is in the panel R drew it in", {
+  skip_if_no_render()
+
+  # On, past a panel: it was read and drawn in the first, over the plot
+  # there.
+  forward <- quote({
+    par(mfrow = c(2, 2))
+    plot(1:3, main = "TL")
+    par(mfg = c(2, 2))
+    plot(3:1, main = "BR")
+  })
+  chart <- last_page_export(function() eval(forward))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list("TL", character(0), character(0), "BR")
+  )
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, forward, c("TL", "BR"))
+
+  # Back, over a plot drawn before: it was read and drawn over the last.
+  # A plot after it moves on from there, as R moves on.
+  back <- quote({
+    par(mfcol = c(1, 3))
+    plot(1:3, main = "one")
+    plot(1:3, main = "two")
+    plot(1:3, main = "three")
+    par(mfg = c(1, 1))
+    plot(3:1, main = "over one")
+    plot(3:1, main = "over two")
+  })
+  chart <- last_page_export(function() eval(back))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list(c("one", "over one"), c("two", "over two"), "three")
+  )
+  expect_drawn_where_r_draws(chart, back, c("one", "two", "three", "over one", "over two"))
+})
+
 test_that("a call made by another as it draws is read and drawn once, where R drew it", {
   skip_if_no_render()
 

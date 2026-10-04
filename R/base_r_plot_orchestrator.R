@@ -108,17 +108,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
     },
 
     # Draw the plot groups of the page R shows again, each in the panel R
-    # drew it in (`slots`, NA for a group not drawn) and numbered as R
-    # numbered it (`numbers`, from `plot_numbers()`): the plots R started
+    # drew it in (`slots`, NA for a group not drawn, of the grid
+    # `panel_config` describes, NULL for a page of one panel) and numbered as
+    # R numbered it (`numbers`, from `plot_numbers()`): the plots R started
     # between two groups are started again, a panel `plot.new()` or
     # `frame()` passed over with `plot.new()`, and a plot drawn in the panel
-    # of the one before it after `par(new = TRUE)`, as R drew it. A plot
-    # `par(fig = )` or `screen()` placed outside the grid is drawn in the
-    # same region of the page (`place_replayed_plot()`). A group that
+    # of the one before it after `par(new = TRUE)`, as R drew it. A plot R
+    # was sent to out of turn, with `par(mfg = )`, is sent there again, and
+    # one `par(fig = )` or `screen()` placed outside the grid is drawn in
+    # the same region of the page (`place_replayed_plot()`). A group that
     # starts no plot, as an `add = TRUE` call does, draws where it is. The
     # recorded calls are replayed with the ORIGINAL (unwrapped) functions,
     # so nothing new is recorded.
-    replay_page = function(slots, numbers) {
+    replay_page = function(slots, numbers, panel_config = NULL) {
       margins <- list()
       figure <- 0L
       plots <- 0L
@@ -146,7 +148,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
             }
             start_replayed_plot(stays)
           }
-          place_replayed_plot(high, slot, figure)
+          place_replayed_plot(high, slot, figure, panel_config)
           figure <- slot
           plots <- numbers[[i]]
         }
@@ -156,11 +158,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
           replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
         }
         # Where R was once the group was drawn: a call that draws several
-        # plots, as `plot()` of a fitted model does, moves on as many.
+        # plots, as `plot()` of a fitted model does, moves on as many from
+        # the panel its first is in.
         ends <- Filter(function(call) is.numeric(call$end_plot), calls)
         if (length(ends) > 0) {
-          figure <- ends[[length(ends)]]$end_figure
-          plots <- ends[[length(ends)]]$end_plot
+          end <- ends[[length(ends)]]
+          figure <- slot + end$end_figure - (high$figure %||% end$end_figure)
+          plots <- end$end_plot
         }
       }
     },
@@ -979,7 +983,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           # Each group in its panel. Groups with an NA slot (drawn before
           # the layout call) are excluded so the SVG matches the data grid.
-          private$replay_page(panel_slots, private$plot_numbers(panel_slots))
+          private$replay_page(panel_slots, private$plot_numbers(panel_slots), panel_config)
         }
 
         tryCatch(
@@ -1250,23 +1254,32 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #' Send the plot a recorded call starts where R put it, as it is drawn again
 #'
 #' In the panel of the plot before it (`slot`, the panel R drew it in, is
-#' at most `figure`, the one the drawing is in), or in the next. A plot R
-#' drew in a region `par(fig = )` or `screen()` set, outside any grid, is
-#' drawn in that region: R gives it a cell of a grid of one, in a region
-#' that is not the whole page.
+#' `figure`, the one the drawing is in), in the next, or, where R was sent
+#' to it out of turn with `par(mfg = )`, in that panel of the `mfrow` or
+#' `mfcol` grid; `layout()` takes no `par(mfg = )`. A plot R drew in a
+#' region `par(fig = )` or `screen()` set, outside any grid, is drawn in
+#' that region: R gives it a cell of a grid of one, in a region that is not
+#' the whole page.
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
 #'   in (`end_base_r_call()`)
 #' @param slot,figure The panel R drew the plot in, and the one the drawing
 #'   is in, each 0 for none
+#' @param panel_config The page's grid, or NULL for a page of one panel
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-place_replayed_plot <- function(high, slot, figure) {
-  if (is_figure_region(high)) {
-    graphics::par(fig = high$fig)
+place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
+  jumps <- figure > 0L && slot != figure && slot != figure + 1L &&
+    isTRUE(panel_config$type %in% c("mfrow", "mfcol"))
+  if (jumps) {
+    graphics::par(mfg = panel_slot_positions(slot, panel_config)[[1]])
+  } else {
+    if (is_figure_region(high)) {
+      graphics::par(fig = high$fig)
+    }
+    start_replayed_plot(slot <= figure, start = FALSE)
   }
-  start_replayed_plot(slot <= figure, start = FALSE)
   invisible(NULL)
 }
 

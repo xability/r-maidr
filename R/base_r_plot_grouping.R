@@ -285,10 +285,12 @@ is_multipanel_config <- function(panel_config) {
 #'
 #' Maps plot groups to panel slots (1-based) for a multi-panel
 #' configuration: the panel R drew each group's plot in, as its call was
-#' recorded. A plot drawn after `par(new = TRUE)` shares the panel of the
-#' plot before it, and a panel `plot.new()` or `frame()` passed over is left
-#' empty. Groups recorded without their panel, by code that records calls
-#' itself, take one each in drawing order:
+#' recorded -- the cell R put it in, so a plot `par(mfg = )` sent out of
+#' turn is in that panel. A plot drawn after `par(new = TRUE)`, or in a
+#' region `par(fig = )` gave it, shares the panel of the plot before it,
+#' and a panel `plot.new()` or `frame()` passed over is left empty. Groups
+#' recorded without their panel, by code that records calls itself, take
+#' one each in drawing order:
 #' \itemize{
 #'   \item Groups drawn BEFORE the layout call are not part of the grid
 #'     (the next high-level plot starts a fresh page), so they get NA.
@@ -328,8 +330,13 @@ compute_panel_slots <- function(plot_groups, panel_config) {
 
   total <- max(1L, as.integer(panel_config$total_panels))
 
-  # The panel R drew each in, where every one was recorded with it.
-  figures <- lapply(plot_groups[eligible], function(g) g$high_call$figure)
+  # The panel R drew each in, where every one was recorded with it: the
+  # cell R said it put the plot in, in this grid, or else the panel R moved
+  # on to. A plot `par(fig = )` placed is in no cell of the grid, and stays
+  # in the panel of the plot before it.
+  figures <- lapply(plot_groups[eligible], function(g) {
+    panel_of_cell(g$high_call$cell, panel_config) %||% g$high_call$figure
+  })
   if (!any(vapply(figures, is.null, logical(1)))) {
     figures <- as.integer(unlist(figures))
     figures[figures < 1L | figures > total] <- NA_integer_
@@ -341,6 +348,37 @@ compute_panel_slots <- function(plot_groups, panel_config) {
   visible <- eligible[seq.int(last_page_start, n_eligible)]
   slots[visible] <- seq_along(visible)
   slots
+}
+
+#' The panel of a grid a plot was drawn in, from its cell
+#'
+#' @param cell The cell R put the plot in, `par("mfg")` once it was started:
+#'   its row and column, and the grid's rows and columns; or `NULL`
+#' @param panel_config Panel configuration from detect_panel_configuration()
+#' @return The panel's number in the grid's order -- by row for `mfrow`, by
+#'   column for `mfcol`, the number `layout()` gave it -- or `NULL` for a
+#'   cell of another grid, or none
+#' @keywords internal
+#' @noRd
+panel_of_cell <- function(cell, panel_config) {
+  if (length(cell) != 4L || anyNA(cell)) {
+    return(NULL)
+  }
+  nrows <- as.integer(panel_config$nrows)
+  ncols <- as.integer(panel_config$ncols)
+  if (!identical(as.integer(cell[3:4]), c(nrows, ncols))) {
+    return(NULL)
+  }
+  row <- cell[[1]]
+  col <- cell[[2]]
+  if (identical(panel_config$type, "layout")) {
+    panel <- panel_config$matrix[row, col]
+    return(if (isTRUE(panel > 0)) as.integer(panel))
+  }
+  if (identical(panel_config$type, "mfcol")) {
+    return(as.integer((col - 1L) * nrows + row))
+  }
+  as.integer((row - 1L) * ncols + col)
 }
 
 #' Convert a Panel Slot Number to its (row, column) Grid Positions

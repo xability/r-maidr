@@ -68,8 +68,9 @@ is the histogram of \code{b} alone, and after five plots under
 \code{par(mfrow = c(2, 2))} it is the fifth, in the first panel of a 2 x 2
 grid. Each plot of a grid is in the panel R drew it in: a plot drawn
 after \code{par(new = TRUE)}, or with \code{add = TRUE}, is drawn in the panel of
-the plot before it, and a panel \code{plot.new()} or \code{frame()} passed over
-stays empty. A plot drawn in a region of the page \code{par(fig = )} gave it,
+the plot before it, one \code{par(mfg = )} sends to a panel out of turn is in
+that panel, and a panel \code{plot.new()} or \code{frame()} passed over stays
+empty. A plot drawn in a region of the page \code{par(fig = )} gave it,
 as an inset is, or in a screen of \code{split.screen()}, is drawn in that
 region, and read with the plot before it. \code{lines()}, \code{points()},
 \code{abline()}, \code{text()}, \code{legend()},
