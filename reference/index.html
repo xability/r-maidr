@@ -31,7 +31,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-30">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -147,7 +147,7 @@
       </dl></div><div class="section level2">
       <h2 id="turning-interception-on-and-off">Turning interception on and off<a class="anchor" aria-label="anchor" href="#turning-interception-on-and-off"></a></h2>
 
-      <div class="section-desc"><p>Interception is on after library(maidr): printing a ggplot2 or lattice chart opens the viewer and Base R calls are recorded until show(). An R Markdown or Quarto document calls maidr_on() in a setup chunk for the knitr hooks; the options turn parts of it off.</p></div>
+      <div class="section-desc"><p>Interception is on after library(maidr): printing a ggplot2 or lattice chart opens the viewer and Base R calls are recorded until show(). In an R Markdown or Quarto document, library(maidr) makes every plot an accessible chart in the page. maidr_off() and maidr_on() turn it off and on again; the options turn parts of it off.</p></div>
 
       <dl></dl></div><div class="section level2">
 

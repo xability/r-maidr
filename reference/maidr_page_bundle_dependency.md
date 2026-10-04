@@ -1,12 +1,14 @@
 # The bundle a knitted document carries for its charts
 
-The knitr paths put each chart in a `srcdoc` iframe whose `<script>`
-loads maidr.js from the CDN. That document lives in an attribute, where
-neither pandoc's `--embed-resources` (R Markdown's `self_contained`,
-Quarto's `embed-resources`) nor anything else that rewrites a page's
-resources can see it, so a self-contained document still needed the
-network to make its charts accessible, and offline they were plain
-pictures.
+The widget, and a knitted document in the HTML output that cannot show
+its charts inline (see
+[`knitr_chart_output()`](https://r.maidr.ai/reference/knitr_chart_output.md)),
+put each chart in a `srcdoc` iframe whose `<script>` loads maidr.js from
+the CDN. That document lives in an attribute, where neither pandoc's
+`--embed-resources` (R Markdown's `self_contained`, Quarto's
+`embed-resources`) nor anything else that rewrites a page's resources
+can see it, so a self-contained document still needed the network to
+make its charts accessible, and offline they were plain pictures.
 
 ## Usage
 

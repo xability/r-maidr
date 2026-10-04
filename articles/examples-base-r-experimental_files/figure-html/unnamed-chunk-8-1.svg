@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='504.00pt' height='360.00pt' viewBox='0 0 504.00 360.00'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: #FFFFFF;'/>
+<defs>
+  <clipPath id='cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA='>
+    <rect x='0.00' y='0.00' width='504.00' height='360.00' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<text x='266.40' y='34.47' text-anchor='middle' style='font-size: 14.40px; font-weight: bold; font-family: "Liberation Sans";' textLength='181.56px' lengthAdjust='spacingAndGlyphs'>Hair and eye colour, males</text>
+<text x='266.40' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='22.02px' lengthAdjust='spacingAndGlyphs'>Hair</text>
+<text transform='translate(41.76,172.80) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='20.67px' lengthAdjust='spacingAndGlyphs'>Eye</text>
+<text x='114.63' y='64.75' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='19.31px' lengthAdjust='spacingAndGlyphs'>Black</text>
+<text x='247.35' y='64.60' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='22.39px' lengthAdjust='spacingAndGlyphs'>Brown</text>
+<text x='366.23' y='64.75' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='14.48px' lengthAdjust='spacingAndGlyphs'>Red</text>
+<text x='424.05' y='64.75' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='20.19px' lengthAdjust='spacingAndGlyphs'>Blond</text>
+<text transform='translate(67.53,128.23) rotate(-90)' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='22.39px' lengthAdjust='spacingAndGlyphs'>Brown</text>
+<text transform='translate(67.68,210.21) rotate(-90)' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='15.80px' lengthAdjust='spacingAndGlyphs'>Blue</text>
+<text transform='translate(67.68,252.44) rotate(-90)' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='20.19px' lengthAdjust='spacingAndGlyphs'>Hazel</text>
+<text transform='translate(67.57,280.23) rotate(-90)' text-anchor='middle' style='font-size: 7.92px; font-family: "Liberation Sans";' textLength='21.97px' lengthAdjust='spacingAndGlyphs'>Green</text>
+</g>
+<defs>
+  <clipPath id='cpNTkuMDR8NDczLjc2fDU5LjA0fDI4Ni41Ng=='>
+    <rect x='59.04' y='59.04' width='414.72' height='227.52' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpNTkuMDR8NDczLjc2fDU5LjA0fDI4Ni41Ng==)'>
+<polygon points='79.38,186.03 149.87,186.03 149.87,70.43 79.38,70.43 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='79.38,230.08 149.87,230.08 149.87,190.34 79.38,190.34 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='79.38,270.51 149.87,270.51 149.87,234.38 79.38,234.38 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='79.38,285.65 149.87,285.65 149.87,274.81 79.38,274.81 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='157.35,145.41 337.35,145.41 337.35,70.43 157.35,70.43 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='157.35,220.45 337.35,220.45 337.35,149.71 157.35,149.71 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='157.35,260.12 337.35,260.12 337.35,224.75 157.35,224.75 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='157.35,285.65 337.35,285.65 337.35,264.43 157.35,264.43 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='344.83,129.93 387.63,129.93 387.63,70.43 344.83,70.43 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='344.83,193.74 387.63,193.74 387.63,134.23 344.83,134.23 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='344.83,239.69 387.63,239.69 387.63,198.04 344.83,198.04 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='344.83,285.65 387.63,285.65 387.63,244.00 344.83,244.00 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='395.10,83.62 453.00,83.62 453.00,70.43 395.10,70.43 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='395.10,219.87 453.00,219.87 453.00,87.93 395.10,87.93 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='395.10,246.16 453.00,246.16 453.00,224.17 395.10,224.17 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+<polygon points='395.10,285.65 453.00,285.65 453.00,250.46 395.10,250.46 ' style='stroke-width: 0.75; fill: #BEBEBE;' />
+</g>
+</g>
+</svg>

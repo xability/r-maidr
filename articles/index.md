@@ -7,7 +7,8 @@
 
   Install the maidr R package and make a first ggplot2 or Base R plot
   accessible with keyboard navigation, screen reader text, braille and
-  sonification using show(), save_html() and maidr_on().
+  sonification using show(), save_html(), or library(maidr) in an R
+  Markdown or Quarto document.
 
 - [Using MAIDR in Shiny
   Applications](https://r.maidr.ai/articles/shiny-integration.md):

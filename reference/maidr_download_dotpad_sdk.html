@@ -47,7 +47,7 @@ a DotPad is connected – the one path an offline document
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-16">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -152,11 +152,11 @@ From then on <code><a href="show.html">show()</a></code> and <code><a href="save
 next to every <code>use_cdn = FALSE</code> document and tell maidr.js where it is, so
 a reader connects a DotPad without the network. A file already present and
 correct is left alone, so a second call costs nothing.</p>
-<p>A page served from somewhere else – an intranet host, or a knitr document,
-whose charts live in <code>srcdoc</code> frames with no base URL for a relative path
-to resolve against – names its copy by URL instead, through the options
-<code>maidr.dotpad_sdk_url</code> and <code>maidr.dotpad_asset_base_url</code>; see
-<a href="maidr-options.html">maidr-options</a>. A configured URL wins over a downloaded copy.</p>
+<p>A page served from somewhere else – an intranet host, or a knitted
+document, which does not carry the downloaded copy – names its copy by
+URL instead, through the options <code>maidr.dotpad_sdk_url</code> and
+<code>maidr.dotpad_asset_base_url</code>; see <a href="maidr-options.html">maidr-options</a>. A configured URL wins
+over a downloaded copy.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

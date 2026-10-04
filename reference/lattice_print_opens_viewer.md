@@ -42,9 +42,8 @@ lattice_print_opens_viewer(args, stored = NULL)
   [`ggplotify::as.grob()`](https://rdrr.io/pkg/ggplotify/man/as-grob.html)
   expect it on their own off-screen device;
 
-- a print while knitr is running, which is
-  [`knit_print.trellis()`](https://r.maidr.ai/reference/knit_print.trellis.md)'s
-  to make accessible, or inside a Shiny render, which is
+- a print while knitr is running, which draws a figure of the chunk that
+  knitr's plot hook makes accessible, or inside a Shiny render, which is
   [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md)'s;
 
 - a print outside an interactive session, where there is no viewer to

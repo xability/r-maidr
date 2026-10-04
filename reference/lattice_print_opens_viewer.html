@@ -33,7 +33,7 @@ a reader asking to see a chart. Each of these is drawn natively:">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -124,8 +124,9 @@ idiom for arranging several;</p></li>
 <li><p>a print onto a device that is not a screen: a file the user opened with
 <code><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf()</a></code> or <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code> expects the chart in the file, and <code>grid.grabExpr()</code>
 or <code><a href="https://rdrr.io/pkg/ggplotify/man/as-grob.html" class="external-link">ggplotify::as.grob()</a></code> expect it on their own off-screen device;</p></li>
-<li><p>a print while knitr is running, which is <code><a href="knit_print.trellis.html">knit_print.trellis()</a></code>'s to
-make accessible, or inside a Shiny render, which is <code><a href="render_maidr.html">render_maidr()</a></code>'s;</p></li>
+<li><p>a print while knitr is running, which draws a figure of the chunk
+that knitr's plot hook makes accessible, or inside a Shiny render,
+which is <code><a href="render_maidr.html">render_maidr()</a></code>'s;</p></li>
 <li><p>a print outside an interactive session, where there is no viewer to open;</p></li>
 <li><p>a print MAIDR makes while it renders, and any print after <code><a href="maidr_off.html">maidr_off()</a></code>
 or under <code>options(maidr.lattice = FALSE)</code>.</p></li>

@@ -63,7 +63,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -134,7 +134,7 @@
 
 
     <p>Making accessible data representation with <strong>maidr</strong> is easy and straightforward. If you already have data visualization code using <strong>ggplot2</strong> or <strong>Base R</strong>, or, experimentally, <strong>lattice</strong>, you can make your plots accessible with maidr in just a few lines of code.</p>
-<p>In an R Markdown or Quarto document, load the maidr package and call <code><a href="../reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk, as every page here does; from then on each plot the document prints comes out as an accessible chart. At the console <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone is enough (see “How maidr hooks into your session” in the <a href="getting-started.html">getting-started vignette</a>). You can then explore each chart with the keyboard shortcuts below.</p>
+<p>In an R Markdown or Quarto document, load the maidr package with <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in a setup chunk, as every page here does; nothing else is needed. From then on each plot the document draws comes out as an accessible chart in the page, whether a chunk returns it, prints it with <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or draws it with Base R. The same <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> is all it takes at the console (see “How maidr hooks into your session” in the <a href="getting-started.html">getting-started vignette</a>). Documents written for earlier versions call <code><a href="../reference/maidr_on.html">maidr_on()</a></code> in their setup chunk too; that still works, and is no longer needed. You can then explore each chart with the keyboard shortcuts below.</p>
 <!-- maidr-keys:start -->
 <table class="table caption-top">
 <colgroup>

@@ -2,10 +2,10 @@
 
 For the paths that assemble their document from dependencies rather than
 a template: [`show()`](https://r.maidr.ai/reference/show.md),
-[`save_html()`](https://r.maidr.ai/reference/save_html.md) and the knitr
-widget. The globals ride in the dependency's `head`, and the dependency
-is listed ahead of the `maidr` one so the head lands before the bundle's
-`<script>`.
+[`save_html()`](https://r.maidr.ai/reference/save_html.md), the widgets
+and knitted documents. The globals ride in the dependency's `head`, and
+the dependency is listed ahead of the `maidr` one so the head lands
+before the bundle's `<script>`.
 
 ## Usage
 

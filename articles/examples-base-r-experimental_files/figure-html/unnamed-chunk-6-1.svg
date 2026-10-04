@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='504.00pt' height='360.00pt' viewBox='0 0 504.00 360.00'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: #FFFFFF;'/>
+<defs>
+  <clipPath id='cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA='>
+    <rect x='0.00' y='0.00' width='504.00' height='360.00' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<text x='36.54' y='252.77' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='30.69px' lengthAdjust='spacingAndGlyphs'>50-54</text>
+<text x='36.54' y='214.85' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='30.69px' lengthAdjust='spacingAndGlyphs'>55-59</text>
+<text x='36.54' y='176.93' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='30.69px' lengthAdjust='spacingAndGlyphs'>60-64</text>
+<text x='36.54' y='139.01' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='30.69px' lengthAdjust='spacingAndGlyphs'>65-69</text>
+<text x='36.54' y='101.09' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='30.69px' lengthAdjust='spacingAndGlyphs'>70-74</text>
+</g>
+<defs>
+  <clipPath id='cpNzQuNDN8NDczLjc2fDU5LjA0fDI4Ni41Ng=='>
+    <rect x='74.43' y='59.04' width='399.33' height='227.52' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpNzQuNDN8NDczLjc2fDU5LjA0fDI4Ni41Ng==)'>
+<line x1='74.43' y1='248.64' x2='473.76' y2='248.64' style='stroke-width: 0.75; stroke: #BEBEBE; stroke-dasharray: 1.00,3.00;' />
+<line x1='74.43' y1='210.72' x2='473.76' y2='210.72' style='stroke-width: 0.75; stroke: #BEBEBE; stroke-dasharray: 1.00,3.00;' />
+<line x1='74.43' y1='172.80' x2='473.76' y2='172.80' style='stroke-width: 0.75; stroke: #BEBEBE; stroke-dasharray: 1.00,3.00;' />
+<line x1='74.43' y1='134.88' x2='473.76' y2='134.88' style='stroke-width: 0.75; stroke: #BEBEBE; stroke-dasharray: 1.00,3.00;' />
+<line x1='74.43' y1='96.96' x2='473.76' y2='96.96' style='stroke-width: 0.75; stroke: #BEBEBE; stroke-dasharray: 1.00,3.00;' />
+<circle cx='89.22' cy='248.64' r='2.70' style='stroke-width: 0.75; fill: #FFFFFF;' />
+<circle cx='132.80' cy='210.72' r='2.70' style='stroke-width: 0.75; fill: #FFFFFF;' />
+<circle cx='192.72' cy='172.80' r='2.70' style='stroke-width: 0.75; fill: #FFFFFF;' />
+<circle cx='288.73' cy='134.88' r='2.70' style='stroke-width: 0.75; fill: #FFFFFF;' />
+<circle cx='458.97' cy='96.96' r='2.70' style='stroke-width: 0.75; fill: #FFFFFF;' />
+</g>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<line x1='77.64' y1='286.56' x2='418.11' y2='286.56' style='stroke-width: 0.75;' />
+<line x1='77.64' y1='286.56' x2='77.64' y2='293.76' style='stroke-width: 0.75;' />
+<line x1='145.74' y1='286.56' x2='145.74' y2='293.76' style='stroke-width: 0.75;' />
+<line x1='213.83' y1='286.56' x2='213.83' y2='293.76' style='stroke-width: 0.75;' />
+<line x1='281.92' y1='286.56' x2='281.92' y2='293.76' style='stroke-width: 0.75;' />
+<line x1='350.02' y1='286.56' x2='350.02' y2='293.76' style='stroke-width: 0.75;' />
+<line x1='418.11' y1='286.56' x2='418.11' y2='293.76' style='stroke-width: 0.75;' />
+<text x='77.64' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='13.34px' lengthAdjust='spacingAndGlyphs'>10</text>
+<text x='145.74' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='13.34px' lengthAdjust='spacingAndGlyphs'>20</text>
+<text x='213.83' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='13.34px' lengthAdjust='spacingAndGlyphs'>30</text>
+<text x='281.92' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='13.34px' lengthAdjust='spacingAndGlyphs'>40</text>
+<text x='350.02' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='13.34px' lengthAdjust='spacingAndGlyphs'>50</text>
+<text x='418.11' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='13.34px' lengthAdjust='spacingAndGlyphs'>60</text>
+<polygon points='74.43,286.56 473.76,286.56 473.76,59.04 74.43,59.04 ' style='stroke-width: 0.75;' />
+<text x='274.09' y='34.47' text-anchor='middle' style='font-size: 14.40px; font-weight: bold; font-family: "Liberation Sans";' textLength='218.08px' lengthAdjust='spacingAndGlyphs'>Virginia death rates, rural males</text>
+<text x='274.09' y='341.28' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='88.70px' lengthAdjust='spacingAndGlyphs'>Deaths per 1000</text>
+<text transform='translate(18.72,172.80) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='55.36px' lengthAdjust='spacingAndGlyphs'>Age group</text>
+</g>
+</g>
+</svg>

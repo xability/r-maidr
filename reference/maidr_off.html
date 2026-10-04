@@ -3,11 +3,15 @@
 After calling this, Base R plots display in the standard graphics window,
 ggplot2 objects render with the default ggplot2 method, and lattice charts
 print as lattice draws them: lattice.options(print.function = ) is set
-back to what it was before maidr set it."><meta property="og:description" content="Disables automatic MAIDR rendering and restores normal plot behavior.
+back to what it was before maidr set it. In an R Markdown or Quarto
+document, the chunks after it are knitted as they would be without maidr,
+and maidr's knitr hooks are taken out until maidr_on()."><meta property="og:description" content="Disables automatic MAIDR rendering and restores normal plot behavior.
 After calling this, Base R plots display in the standard graphics window,
 ggplot2 objects render with the default ggplot2 method, and lattice charts
 print as lattice draws them: lattice.options(print.function = ) is set
-back to what it was before maidr set it."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+back to what it was before maidr set it. In an R Markdown or Quarto
+document, the chunks after it are knitted as they would be without maidr,
+and maidr's knitr hooks are taken out until maidr_on()."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -35,13 +39,15 @@ back to what it was before maidr set it."><meta property="og:image" content="htt
 After calling this, Base R plots display in the standard graphics window,
 ggplot2 objects render with the default ggplot2 method, and lattice charts
 print as lattice draws them: lattice.options(print.function = ) is set
-back to what it was before maidr set it.">
+back to what it was before maidr set it. In an R Markdown or Quarto
+document, the chunks after it are knitted as they would be without maidr,
+and maidr&#x27;s knitr hooks are taken out until maidr_on().">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/maidr_off.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -99,7 +105,9 @@ back to what it was before maidr set it.">
 After calling this, Base R plots display in the standard graphics window,
 ggplot2 objects render with the default ggplot2 method, and lattice charts
 print as lattice draws them: <code>lattice.options(print.function = )</code> is set
-back to what it was before maidr set it.</p>
+back to what it was before maidr set it. In an R Markdown or Quarto
+document, the chunks after it are knitted as they would be without maidr,
+and maidr's knitr hooks are taken out until <code><a href="maidr_on.html">maidr_on()</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -110,6 +118,14 @@ back to what it was before maidr set it.</p>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Invisible TRUE on success</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>It lasts for the R session, not only the document that calls it: the
+documents rendered after it in the same session – the later vignettes of
+<code>R CMD build</code>, which renders them all in one process – and the console
+stay off too. A document that turns maidr off should end with
+<code><a href="maidr_on.html">maidr_on()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

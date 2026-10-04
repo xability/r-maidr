@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='504.00pt' height='360.00pt' viewBox='0 0 504.00 360.00'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: #FFFFFF;'/>
+<defs>
+  <clipPath id='cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA='>
+    <rect x='0.00' y='0.00' width='504.00' height='360.00' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<rect x='0.00' y='0.00' width='504.00' height='360.00' style='stroke-width: 0.75; stroke: none;' />
+<text x='252.00' y='15.90' text-anchor='middle' style='font-size: 14.40px; font-weight: bold; font-family: "Liberation Sans";' textLength='190.91px' lengthAdjust='spacingAndGlyphs'>Titanic passengers by class</text>
+<text transform='translate(20.26,196.61) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='63.36px' lengthAdjust='spacingAndGlyphs'>Passengers</text>
+</g>
+<defs>
+  <clipPath id='cpNTkuMjV8NDc0Ljk5fDc1LjE1fDMxOC4wNw=='>
+    <rect x='59.25' y='75.15' width='415.74' height='242.91' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpNTkuMjV8NDc0Ljk5fDc1LjE1fDMxOC4wNw==)'>
+</g>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<line x1='59.25' y1='303.15' x2='53.58' y2='303.15' style='stroke-width: 0.75;' />
+<line x1='59.25' y1='239.83' x2='53.58' y2='239.83' style='stroke-width: 0.75;' />
+<line x1='59.25' y1='176.50' x2='53.58' y2='176.50' style='stroke-width: 0.75;' />
+<line x1='59.25' y1='113.18' x2='53.58' y2='113.18' style='stroke-width: 0.75;' />
+<text x='47.91' y='306.45' text-anchor='end' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='5.33px' lengthAdjust='spacingAndGlyphs'>0</text>
+<text x='47.91' y='243.12' text-anchor='end' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='15.98px' lengthAdjust='spacingAndGlyphs'>200</text>
+<text x='47.91' y='179.80' text-anchor='end' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='15.98px' lengthAdjust='spacingAndGlyphs'>400</text>
+<text x='47.91' y='116.48' text-anchor='end' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='15.98px' lengthAdjust='spacingAndGlyphs'>600</text>
+<text x='118.64' y='330.33' text-anchor='middle' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='12.80px' lengthAdjust='spacingAndGlyphs'>1st</text>
+<text x='217.63' y='330.33' text-anchor='middle' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='15.98px' lengthAdjust='spacingAndGlyphs'>2nd</text>
+<text x='316.61' y='330.33' text-anchor='middle' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='13.84px' lengthAdjust='spacingAndGlyphs'>3rd</text>
+<text x='415.60' y='330.33' text-anchor='middle' style='font-size: 9.60px; font-family: "Liberation Sans";' textLength='22.36px' lengthAdjust='spacingAndGlyphs'>Crew</text>
+<line x1='474.99' y1='303.15' x2='480.66' y2='303.15' style='stroke-width: 0.75;' />
+<line x1='474.99' y1='239.83' x2='480.66' y2='239.83' style='stroke-width: 0.75;' />
+<line x1='474.99' y1='176.50' x2='480.66' y2='176.50' style='stroke-width: 0.75;' />
+<line x1='474.99' y1='113.18' x2='480.66' y2='113.18' style='stroke-width: 0.75;' />
+</g>
+<g clip-path='url(#cpNTkuMjV8NDc0Ljk5fDc1LjE1fDMxOC4wNw==)'>
+<line x1='59.25' y1='303.15' x2='474.99' y2='303.15' style='stroke-width: 0.75; stroke: #E5E5E5;' />
+<rect x='85.65' y='264.52' width='33.00' height='38.63' style='stroke-width: 0.75; fill: #94C6FF;' />
+<rect x='118.64' y='238.88' width='33.00' height='64.27' style='stroke-width: 0.75; fill: #FFD6AD;' />
+<rect x='184.63' y='250.28' width='33.00' height='52.87' style='stroke-width: 0.75; fill: #94C6FF;' />
+<rect x='217.63' y='265.79' width='33.00' height='37.36' style='stroke-width: 0.75; fill: #FFD6AD;' />
+<rect x='283.62' y='135.98' width='33.00' height='167.17' style='stroke-width: 0.75; fill: #94C6FF;' />
+<rect x='316.61' y='246.79' width='33.00' height='56.36' style='stroke-width: 0.75; fill: #FFD6AD;' />
+<rect x='382.61' y='90.07' width='33.00' height='213.08' style='stroke-width: 0.75; fill: #94C6FF;' />
+<rect x='415.60' y='236.03' width='33.00' height='67.12' style='stroke-width: 0.75; fill: #FFD6AD;' />
+</g>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<rect x='59.25' y='75.15' width='415.74' height='242.91' style='stroke-width: 0.75;' />
+<rect x='179.61' y='21.90' width='175.03' height='35.91' style='stroke-width: 0.75; stroke: none;' />
+<text x='267.12' y='40.48' text-anchor='middle' style='font-size: 18.00px; font-family: "Liberation Sans";' textLength='70.05px' lengthAdjust='spacingAndGlyphs'>Survived</text>
+<text x='186.28' y='56.37' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='15.34px' lengthAdjust='spacingAndGlyphs'>No</text>
+<text x='281.68' y='56.37' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='19.58px' lengthAdjust='spacingAndGlyphs'>Yes</text>
+<rect x='214.97' y='46.68' width='33.36' height='11.14' style='stroke-width: 0.75; fill: #94C6FF;' />
+<rect x='314.61' y='46.68' width='33.36' height='11.14' style='stroke-width: 0.75; fill: #FFD6AD;' />
+</g>
+</g>
+</svg>

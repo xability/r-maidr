@@ -17,8 +17,8 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <script src="../extra.js"></script><meta property="og:title" content="Getting Started with MAIDR">
-<meta name="description" content="Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html() and maidr_on().">
-<meta property="og:description" content="Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html() and maidr_on().">
+<meta name="description" content="Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html(), or library(maidr) in an R Markdown or Quarto document.">
+<meta property="og:description" content="Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html(), or library(maidr) in an R Markdown or Quarto document.">
 <meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg">
 <meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R">
 <meta name="twitter:card" content="summary">
@@ -55,13 +55,13 @@
 <meta name="DC.creator" content="Seo, JooYoung">
 <meta name="DC.creator" content="Kalaiselvan, Niranjan">
 <meta name="DC.publisher" content="(x)Ability Design Lab, University of Illinois Urbana-Champaign">
-<meta name="DC.description" content="Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html() and maidr_on().">
+<meta name="DC.description" content="Install the maidr R package and make a first ggplot2 or Base R plot accessible with keyboard navigation, screen reader text, braille and sonification using show(), save_html(), or library(maidr) in an R Markdown or Quarto document.">
 <meta name="DC.identifier" content="https://r.maidr.ai/articles/getting-started.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -259,12 +259,19 @@ file device such as <code><a href="https://rdrr.io/r/grDevices/pdf.html" class="
 are drawn by lattice as before, and so is a chart maidr cannot
 read.</li>
 <li>
-<strong>R Markdown and Quarto.</strong> Call <code><a href="../reference/maidr_on.html">maidr_on()</a></code>
-once in a setup chunk. It installs the knitr hooks that turn every plot
-the document draws into an accessible chart; <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>
-alone does not install them. A lattice chart has to be the value a chunk
-returns: one the chunk draws with <code>print(p)</code>, as in a loop,
-stays a static image.</li>
+<strong>R Markdown and Quarto.</strong> <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code>
+in a setup chunk is enough. Every plot the document draws becomes an
+accessible chart in place of its figure: a chart a chunk returns, each
+chart it prints with <code>print(p)</code>, as in a loop, and each Base
+R chart, several to a chunk if need be. In HTML output the charts are
+part of the page, which loads maidr.js once, and the figures that stay
+images are recorded with svglite rather than png
+(<code>options(maidr.knitr_dev = FALSE)</code> keeps png). In PDF, Word,
+Markdown, EPUB and xaringan output the plots are knitr’s figures, as
+without maidr. Return a chart from a chunk or <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> it:
+<code><a href="../reference/show.html">show()</a></code> in a document opens a browser during the render and
+puts nothing in the page. <code><a href="../reference/maidr_on.html">maidr_on()</a></code> in the setup chunk is
+no longer needed, and still works.</li>
 <li>
 <strong>Shiny.</strong> Put <code><a href="../reference/maidr_output.html">maidr_output()</a></code> in the UI
 and <code><a href="../reference/render_maidr.html">render_maidr()</a></code> in the server, with its expression
@@ -364,10 +371,11 @@ into it and <strong>Escape</strong> comes back out.</p>
 <span>  xlab <span class="op">=</span> <span class="st">"Weight (1000 lbs)"</span>,</span>
 <span>  ylab <span class="op">=</span> <span class="st">"Miles per Gallon"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>In R Markdown and Quarto, with <code><a href="../reference/maidr_on.html">maidr_on()</a></code> in a setup
-chunk, end the chunk with the chart itself, as above, rather than
-calling <code>print(p)</code>: knitr hands a chart the chunk returns to
-maidr, and draws a printed one as a static image. A chart maidr cannot
+<p>In R Markdown and Quarto, a lattice chart a chunk returns, as above,
+and one it prints with <code>print(p)</code>, as in a loop, are both
+accessible charts, each in place of its own figure. A print that shares
+its page with other charts (<code>split</code>, <code>position</code>,
+<code>more = TRUE</code>) stays lattice’s figure. A chart maidr cannot
 read, such as <code><a href="https://rdrr.io/pkg/lattice/man/cloud.html" class="external-link">cloud()</a></code>, <code><a href="https://rdrr.io/pkg/lattice/man/splom.html" class="external-link">splom()</a></code> or one drawn
 with a panel function of your own, is drawn by lattice as before, and
 <code><a href="../reference/save_html.html">save_html()</a></code> saves it as a static image. The <a href="https://r.maidr.ai/articles/examples-lattice.html">lattice
@@ -381,10 +389,12 @@ bundled MAIDR.js library, so the result works offline.
 <code><a href="../reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code>
 folder beside the file, and the two have to be shared together (zip the
 folder that holds both): an <code>.html</code> sent on its own loads no
-MAIDR.js and shows a plain, inaccessible chart. Widgets, knitr documents
-and Shiny apps auto-detect internet availability and use the CDN when
-online. You can control this behavior with the <code>use_cdn</code>
-parameter:</p>
+MAIDR.js and shows a plain, inaccessible chart. A knitted R Markdown or
+Quarto page also uses the bundled library, once for all its charts, from
+its <code>_files</code> folder or embedded in a
+<code>self_contained</code> page. Widgets and Shiny apps auto-detect
+internet availability and use the CDN when online. You can control this
+behavior with the <code>use_cdn</code> parameter:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/xability/r-maidr" class="external-link">maidr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -460,8 +470,8 @@ the same names both work; an option wins when both are set:</p>
 <span></span>
 <span><span class="fu"><a href="../reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot_offline.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>Every document maidr produces (<code><a href="../reference/show.html">show()</a></code>,
-<code><a href="../reference/save_html.html">save_html()</a></code>, widgets, knitr and Shiny) then declares
-<code>window.MAIDR_DOTPAD_SDK_URL</code> and
+<code><a href="../reference/save_html.html">save_html()</a></code>, widgets, R Markdown and Quarto documents, and
+Shiny) then declares <code>window.MAIDR_DOTPAD_SDK_URL</code> and
 <code>window.MAIDR_DOTPAD_ASSET_BASE_URL</code> ahead of maidr.js, and
 the CDN is never asked for the SDK. See <code><a href="../reference/maidr-options.html">?"maidr-options"</a></code>
 for the details.</p>
@@ -570,14 +580,18 @@ command palette, settings and the AI chat, is on the <a href="https://maidr.ai/d
 <h2 id="quarto-reveal-js-slides">Quarto reveal.js Slides<a class="anchor" aria-label="anchor" href="#quarto-reveal-js-slides"></a>
 </h2>
 <p>A <code>revealjs</code> deck needs nothing special from this package:
-call <code><a href="../reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk, as in any other
-Quarto or R Markdown document, and every plot the deck draws becomes an
-accessible MAIDR chart.</p>
+<code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in a setup chunk, as in any other Quarto or
+R Markdown document, and every plot the deck draws becomes an accessible
+MAIDR chart on its slide.</p>
 <p>A chart on a <code>revealjs</code> slide is keyboard reachable on its
-own: <strong>Tab</strong> moves into it, the arrow keys explore it, and
-<strong>Shift+Tab</strong> hands focus back to the slide, so
-<strong>Space</strong> advances the deck again. None of that needs
-configuring.</p>
+own: <strong>Tab</strong> moves into it, and while it has the focus the
+arrow keys, <strong>Space</strong> and the deck’s other shortcuts go to
+the chart rather than to the deck, so exploring a chart never changes
+the slide. <strong>Shift+Tab</strong> leaves the chart, and the deck’s
+keys work again: <strong>Space</strong> advances it. None of that needs
+configuring. The same holds for the shortcuts of an ioslides or slidy
+deck, a bookdown book, a Quarto website’s search and a flexdashboard
+storyboard.</p>
 <p>What does need attention is a reveal.js behavior that has nothing to
 do with MAIDR. reveal.js keeps the slides on either side of the current
 one rendered so that transitions stay smooth, and marking them
@@ -607,8 +621,7 @@ them and could not find them again to put them back, which left the
 chart on the <em>current</em> slide unreachable as well.</p>
 <p>With the extension enabled, each slide gives one <strong>Tab</strong>
 to its own chart and <strong>Shift+Tab</strong> back out. The extension
-also adds a skip link ahead of the slides, so Shift+Tab lands there
-rather than on the slide element itself; either way
+also adds a skip link ahead of the slides. Either way
 <strong>Space</strong> still moves to the next slide.</p>
 </div>
 <div class="section level2">

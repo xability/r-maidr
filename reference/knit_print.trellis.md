@@ -3,14 +3,20 @@
 Converts a trellis object a chunk returns to an accessible MAIDR chart,
 as
 [`knit_print.ggplot()`](https://r.maidr.ai/reference/knit_print.ggplot.md)
-does for a ggplot object: in its own iframe in HTML output, as an inline
-image when the chart cannot be read, and as lattice draws it in any
-other output format.
+does for a ggplot object: inline in an HTML page, in its own iframe in
+other HTML output, and as lattice draws it in any other output format. A
+chart knitr prints for a chunk is one of the chunk's figures, drawn by
+lattice, and the chart is shown in its place – unless lattice draws it
+onto a page a `print(more = TRUE)` left open, whose figure stays
+knitr's. One the chunk's code asks `knit_print()` for itself is returned
+as the chart's Markdown, or as an inline image when the chart cannot be
+read.
 
 ## Usage
 
 ``` r
-knit_print.trellis(x, options = list(), ...)
+# S3 method for class 'trellis'
+knit_print(x, options = list(), ...)
 ```
 
 ## Arguments
@@ -29,14 +35,12 @@ knit_print.trellis(x, options = list(), ...)
 
 ## Value
 
-A knit_asis object containing the iframe HTML or inline image
+A knit_asis object holding the chart, or `NULL` (invisible) when the
+chart is drawn natively
 
 ## Details
 
-Only a chart the chunk returns reaches this method. One the chunk prints
-itself – `print(p)`, lattice's idiom for a chart inside a loop or a
-function – is drawn by lattice onto knitr's device and included as the
-figure knitr records, since knitr does not route an explicit print
-through `knit_print`. A Base R chart drawn later in the same chunk takes
-that figure's place: the plot hook hands the first figure of a chunk
-whose device recorded Base R calls to those calls.
+A chart the chunk prints itself – `print(p)`, lattice's idiom for a
+chart inside a loop or a function – does not reach this method, since
+knitr does not route an explicit print through `knit_print`; it is a
+figure of the chunk all the same.

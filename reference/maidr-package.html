@@ -48,7 +48,7 @@ understand data visualizations through multiple sensory modalities.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -119,7 +119,7 @@ understand data visualizations through multiple sensory modalities.</p>
 <ul><li><p><code><a href="show.html">show</a></code>: Display an interactive MAIDR plot in the browser or RStudio Viewer</p></li>
 <li><p><code><a href="save_html.html">save_html</a></code>: Save a plot as a standalone HTML file</p></li>
 <li><p><code><a href="run_example.html">run_example</a></code>: Run interactive example plots</p></li>
-<li><p><code><a href="maidr_on.html">maidr_on</a></code>: Enable automatic MAIDR interception in RMarkdown</p></li>
+<li><p><code><a href="maidr_on.html">maidr_on</a></code>: Turn automatic MAIDR interception back on</p></li>
 <li><p><code><a href="maidr_off.html">maidr_off</a></code>: Disable automatic MAIDR interception</p></li>
 <li><p><code><a href="render_maidr.html">render_maidr</a></code>: Render MAIDR plots in Shiny applications</p></li>
 <li><p><code><a href="maidr_output.html">maidr_output</a></code>: Create MAIDR output container for Shiny UI</p></li>
@@ -198,7 +198,10 @@ Among them:</p><ul><li><p>ggplot2 area charts [experimental]</p></li>
 
 
 <p>The package integrates seamlessly with:</p><ul><li><p><strong>RStudio</strong>: Direct display in the Viewer pane</p></li>
-<li><p><strong>RMarkdown/Quarto</strong>: Automatic rendering with <code><a href="maidr_on.html">maidr_on()</a></code></p></li>
+<li><p><strong>R Markdown/Quarto</strong>: <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in the document
+makes its plots accessible charts, inline in an HTML page; so does
+rendering it in a session where maidr is loaded, even only its
+namespace</p></li>
 <li><p><strong>Shiny</strong>: Interactive plots in Shiny apps via <code><a href="render_maidr.html">render_maidr()</a></code></p></li>
 <li><p><strong>Standalone HTML</strong>: Export plots for sharing with <code><a href="save_html.html">save_html()</a></code></p></li>
 </ul></div>

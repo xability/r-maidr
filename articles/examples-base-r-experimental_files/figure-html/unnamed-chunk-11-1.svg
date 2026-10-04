@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='504.00pt' height='360.00pt' viewBox='0 0 504.00 360.00'>
+<g class='svglite'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+    .svglite g.glyphgroup path {
+      fill: inherit;
+      stroke: none;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: #FFFFFF;'/>
+<defs>
+  <clipPath id='cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA='>
+    <rect x='0.00' y='0.00' width='504.00' height='360.00' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+</g>
+<defs>
+  <clipPath id='cpNTkuMDR8NDczLjc2fDU5LjA0fDI4Ni41Ng=='>
+    <rect x='59.04' y='59.04' width='414.72' height='227.52' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpNTkuMDR8NDczLjc2fDU5LjA0fDI4Ni41Ng==)'>
+<rect x='100.25' y='257.61' width='39.42' height='14.44' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='200.19' y='257.61' width='62.99' height='4.77' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='320.45' y='242.37' width='30.71' height='15.24' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='398.21' y='246.36' width='35.72' height='11.26' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='96.44' y='218.20' width='47.04' height='1.89' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='194.10' y='218.19' width='75.17' height='1.90' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='317.48' y='214.64' width='36.65' height='5.45' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='394.76' y='220.09' width='42.63' height='10.13' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='85.48' y='181.35' width='68.96' height='21.13' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='176.59' y='181.35' width='110.20' height='2.52' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='308.94' y='181.35' width='53.73' height='6.75' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='384.82' y='147.80' width='62.50' height='33.56' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='85.99' y='73.54' width='67.93' height='28.52' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='177.41' y='98.05' width='108.55' height='4.01' style='stroke-width: 0.75; fill: #000000;' />
+<rect x='309.34' y='102.06' width='52.93' height='5.77' style='stroke-width: 0.75; fill: #FF0000;' />
+<rect x='385.29' y='102.06' width='61.56' height='33.58' style='stroke-width: 0.75; fill: #FF0000;' />
+</g>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<text x='119.96' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='29.34px' lengthAdjust='spacingAndGlyphs'>Black</text>
+<text x='231.69' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='34.02px' lengthAdjust='spacingAndGlyphs'>Brown</text>
+<text x='335.80' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='22.02px' lengthAdjust='spacingAndGlyphs'>Red</text>
+<text x='416.07' y='312.48' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='30.69px' lengthAdjust='spacingAndGlyphs'>Blond</text>
+<text transform='translate(41.76,257.61) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='33.34px' lengthAdjust='spacingAndGlyphs'>Green</text>
+<text transform='translate(41.76,181.35) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='24.02px' lengthAdjust='spacingAndGlyphs'>Blue</text>
+<text transform='translate(41.76,102.06) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='34.02px' lengthAdjust='spacingAndGlyphs'>Brown</text>
+</g>
+<g clip-path='url(#cpNTkuMDR8NDczLjc2fDU5LjA0fDI4Ni41Ng==)'>
+<line x1='59.04' y1='257.61' x2='473.76' y2='257.61' style='stroke-width: 0.75; stroke-dasharray: 4.00,4.00;' />
+<line x1='59.04' y1='220.09' x2='473.76' y2='220.09' style='stroke-width: 0.75; stroke-dasharray: 4.00,4.00;' />
+<line x1='59.04' y1='181.35' x2='473.76' y2='181.35' style='stroke-width: 0.75; stroke-dasharray: 4.00,4.00;' />
+<line x1='59.04' y1='102.06' x2='473.76' y2='102.06' style='stroke-width: 0.75; stroke-dasharray: 4.00,4.00;' />
+</g>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHwzNjAuMDA=)'>
+<text x='266.40' y='34.47' text-anchor='middle' style='font-size: 14.40px; font-weight: bold; font-family: "Liberation Sans";' textLength='205.55px' lengthAdjust='spacingAndGlyphs'>Hair and eye colour: residuals</text>
+<text x='266.40' y='341.28' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='22.02px' lengthAdjust='spacingAndGlyphs'>Hair</text>
+<text transform='translate(12.96,172.80) rotate(-90)' text-anchor='middle' style='font-size: 12.00px; font-family: "Liberation Sans";' textLength='20.67px' lengthAdjust='spacingAndGlyphs'>Eye</text>
+</g>
+</g>
+</svg>

@@ -30,9 +30,10 @@ picture alone cannot say it
 ## Turning interception on and off
 
 Interception is on after library(maidr): printing a ggplot2 or lattice
-chart opens the viewer and Base R calls are recorded until show(). An R
-Markdown or Quarto document calls maidr_on() in a setup chunk for the
-knitr hooks; the options turn parts of it off.
+chart opens the viewer and Base R calls are recorded until show(). In an
+R Markdown or Quarto document, library(maidr) makes every plot an
+accessible chart in the page. maidr_off() and maidr_on() turn it off and
+on again; the options turn parts of it off.
 
 - [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) : Enable
   MAIDR Plot Interception

@@ -1,7 +1,9 @@
 # Wrap a chart in its iframe for a knitted document
 
-Online, the frame loads maidr.js from the CDN, and the document is given
-its own copy of the bundle
+For HTML output that cannot show a chart inline (see
+[`knitr_chart_output()`](https://r.maidr.ai/reference/knitr_chart_output.md)),
+and for a chart that could not be. Online, the frame loads maidr.js from
+the CDN, and the document is given its own copy of the bundle
 ([`maidr_page_bundle_dependency()`](https://r.maidr.ai/reference/maidr_page_bundle_dependency.md))
 for the frame to fall back on. The frame's document sits in a `srcdoc`
 attribute, where R Markdown's `self_contained` and Quarto's

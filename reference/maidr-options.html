@@ -29,7 +29,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -97,26 +97,50 @@ When FALSE, all plotting functions behave as standard R. Default: TRUE.</p></dd>
 
 <dt><code>maidr.base_r</code></dt>
 <dd><p>Logical. Enable Base R plot interception.
-When TRUE, Base R plots are captured and displayed in the MAIDR viewer.
-Default: TRUE.</p></dd>
+When TRUE, Base R plots are captured and displayed in the MAIDR viewer,
+and the ones an R Markdown or Quarto document draws are accessible
+charts; when FALSE, a document's Base R plots are knitr's static
+figures (svglite in HTML). Default: TRUE.</p></dd>
 
 <dt><code>maidr.ggplot2</code></dt>
 <dd><p>Logical. Enable ggplot2 auto-display.
 When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
-instead of the standard graphics device. Default: TRUE.</p></dd>
+instead of the standard graphics device, and the ones an R Markdown or
+Quarto document draws are accessible charts; when FALSE, a document's
+ggplot2 plots are knitr's static figures (svglite in HTML).
+Default: TRUE.</p></dd>
 
 <dt><code>maidr.lattice</code></dt>
 <dd><p>Logical. Enable lattice auto-display. When
 TRUE, a lattice (trellis) object printed at the console to the screen
-is rendered in the MAIDR viewer, and <code><a href="maidr_on.html">maidr_on()</a></code> makes the ones
-an R Markdown or Quarto document prints accessible. A print into a
-file device, or one that places the chart on a shared page with
-<code>split</code>, <code>position</code> or <code>more</code>, is drawn by lattice as
-before. Default: TRUE.</p></dd>
+is rendered in the MAIDR viewer, and the ones an R Markdown or Quarto
+document draws, returned from a chunk or printed in it, are accessible
+charts. A print into a file device, or one that places the chart on a
+shared page with <code>split</code>, <code>position</code> or <code>more</code>, is
+drawn by lattice as before. Default: TRUE.</p></dd>
 
 <dt><code>maidr.startup_message</code></dt>
 <dd><p>Logical. Show startup message when
 package is loaded. Default: TRUE.</p></dd>
+
+<dt><code>maidr.knitr_dev</code></dt>
+<dd><p>Logical. In an R Markdown or Quarto
+document rendered to HTML, maidr records the static figures of a chunk
+with <code>svglite</code> rather than knitr's default <code>png</code>, so they are
+vector images like its charts. Only that default is replaced: a device
+a chunk names (<code>dev = "png"</code> in its header or a <code>#|</code> line)
+is kept, as is a document device other than <code>png</code>, the device of
+a cached chunk, of an animation (<code>fig.show = "animate"</code>) and of a
+chunk that crops its figures or hands them to <code>fig.process</code>, and
+that of a chunk in another language than R. The
+switch starts with the chunk after the one that installs maidr into
+the document: the chunk that loads maidr, or, in a session that loaded
+it before the render, the first one that draws a chart or calls
+<code><a href="maidr_on.html">maidr_on()</a></code>. Set this to <code>FALSE</code>, before the render or in
+the setup chunk, to keep <code>png</code> for every chunk: a document whose
+<code>png</code> is a choice, <code>dev: png</code> in its YAML header or Quarto's
+<code>knitr: opts_chunk: dev: png</code>, cannot be told from the default.
+Charts are inline either way. Default: TRUE.</p></dd>
 
 <dt><code>maidr.dotpad_sdk_url</code></dt>
 <dd><p>Character. URL of a copy of the DotPad
@@ -188,6 +212,9 @@ of the bundled version on jsDelivr.</p></dd>
 <span><span class="co"># Suppress startup message</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.startup_message <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Keep knitr's png for the static figures of an R Markdown or Quarto page</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.knitr_dev <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Serve the DotPad SDK from your own server instead of jsDelivr</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://example.org/vendor/DotPadSDK-3.0.3.js"</span>,</span>
@@ -215,10 +242,10 @@ document works offline either way.</p>
 once with <code><a href="maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk()</a></code>: <code><a href="show.html">show()</a></code> and
 <code><a href="save_html.html">save_html()</a></code> then copy it into <code>lib/dotpad-sdk-&lt;version&gt;/</code> beside
 every <code>use_cdn = FALSE</code> document and declare the globals with that
-relative path. A configured URL wins over a downloaded copy. The widget,
-knitr and Shiny paths render their charts in <code>srcdoc</code> frames, where a
-relative path has nothing to resolve against, so they use only the URL
-options.</p>
+relative path. A configured URL wins over a downloaded copy. The widget
+and Shiny paths render their charts in <code>srcdoc</code> frames, where a
+relative path has nothing to resolve against, and a knitted document does
+not carry the downloaded copy, so they use only the URL options.</p>
     </div>
     <div class="section level2">
     <h2 id="languages-other-than-english">Languages other than English<a class="anchor" aria-label="anchor" href="#languages-other-than-english"></a></h2>
@@ -243,12 +270,15 @@ English when they are not. A page that declares
 
 
 <p>Documents that load MAIDR.js from the jsDelivr CDN – <code><a href="show.html">show()</a></code> and
-<code><a href="save_html.html">save_html()</a></code> with <code>use_cdn = TRUE</code>, and the widget, knitr and
-Shiny paths when they find the machine online – load the latest
-published MAIDR.js, as the Python binding does. Documents rendered with
+<code><a href="save_html.html">save_html()</a></code> with <code>use_cdn = TRUE</code>, and the widget and Shiny
+paths when they find the machine online – load the latest published
+MAIDR.js, as the Python binding does. Documents rendered with
 <code>use_cdn = FALSE</code> load the copy bundled with this package, and reach
 the network only for the two things described above: a DotPad's SDK and
-a language other than English.</p>
+a language other than English. So does a knitted R Markdown or Quarto
+page, which loads the bundled copy once for all its charts; only the
+charts kept in frames of their own, in outputs such as an HTML fragment
+or pagedown, load the CDN copy when the machine is online.</p>
 <p>The first CDN document in an R session asks which version is the latest:
 jsDelivr's data API
 (<a href="https://data.jsdelivr.com/v1/packages/npm/maidr/resolved?specifier=latest" class="external-link">https://data.jsdelivr.com/v1/packages/npm/maidr/resolved?specifier=latest</a>),

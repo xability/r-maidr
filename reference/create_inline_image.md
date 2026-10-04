@@ -1,8 +1,9 @@
 # Create inline image HTML for non-iframe rendering
 
-Creates a simple img tag for fallback/non-HTML output. Used when we
-don't need iframe isolation (unsupported plots in HTML, or any plot in
-PDF/EPUB output).
+Creates a simple img tag for a chart MAIDR cannot read, when the chunk's
+code asks `knit_print()` for it itself (see
+[`knit_print.ggplot()`](https://r.maidr.ai/reference/knit_print.ggplot.md));
+a chart knitr prints for a chunk stays knitr's own figure instead.
 
 ## Usage
 

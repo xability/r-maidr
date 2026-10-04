@@ -4,10 +4,11 @@ Renders a printed trellis object in the MAIDR viewer when the print is a
 reader asking to see a chart, and draws it the way lattice would have
 otherwise. See
 [`lattice_print_opens_viewer()`](https://r.maidr.ai/reference/lattice_print_opens_viewer.md)
-for which prints those are. An unsupported chart is drawn natively. One
-that is read but cannot be exported opens in the viewer as a static
-image, with a warning, as it does from
-[`show()`](https://r.maidr.ai/reference/show.md):
+for which prints those are. While knitr runs, the chart is drawn as a
+figure of the chunk, which knitr's plot hook shows as the chart. An
+unsupported chart is drawn natively. One that is read but cannot be
+exported opens in the viewer as a static image, with a warning, as it
+does from [`show()`](https://r.maidr.ai/reference/show.md):
 [`build_interactive_svg()`](https://r.maidr.ai/reference/build_interactive_svg.md)
 turns the failure into the picture. It is drawn natively when fallback
 is off, which hands that error to this hook, and when the viewer cannot

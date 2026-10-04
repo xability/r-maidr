@@ -5,13 +5,19 @@ straightforward. If you already have data visualization code using
 **ggplot2** or **Base R**, or, experimentally, **lattice**, you can make
 your plots accessible with maidr in just a few lines of code.
 
-In an R Markdown or Quarto document, load the maidr package and call
-[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a setup
-chunk, as every page here does; from then on each plot the document
-prints comes out as an accessible chart. At the console
-[`library(maidr)`](https://github.com/xability/r-maidr) alone is enough
-(see “How maidr hooks into your session” in the [getting-started
-vignette](https://r.maidr.ai/articles/getting-started.md)). You can then
+In an R Markdown or Quarto document, load the maidr package with
+[`library(maidr)`](https://github.com/xability/r-maidr) in a setup
+chunk, as every page here does; nothing else is needed. From then on
+each plot the document draws comes out as an accessible chart in the
+page, whether a chunk returns it, prints it with
+[`print()`](https://rdrr.io/r/base/print.html) or draws it with Base R.
+The same [`library(maidr)`](https://github.com/xability/r-maidr) is all
+it takes at the console (see “How maidr hooks into your session” in the
+[getting-started
+vignette](https://r.maidr.ai/articles/getting-started.md)). Documents
+written for earlier versions call
+[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) in their setup
+chunk too; that still works, and is no longer needed. You can then
 explore each chart with the keyboard shortcuts below.
 
 | Key | Action |

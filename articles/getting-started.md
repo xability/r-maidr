@@ -113,13 +113,22 @@ show()
   [`png()`](https://rdrr.io/r/grDevices/png.html), and `plot(p)`, which
   lattice does not route through that option, are drawn by lattice as
   before, and so is a chart maidr cannot read.
-- **R Markdown and Quarto.** Call
-  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a
-  setup chunk. It installs the knitr hooks that turn every plot the
-  document draws into an accessible chart;
-  [`library(maidr)`](https://github.com/xability/r-maidr) alone does not
-  install them. A lattice chart has to be the value a chunk returns: one
-  the chunk draws with `print(p)`, as in a loop, stays a static image.
+- **R Markdown and Quarto.**
+  [`library(maidr)`](https://github.com/xability/r-maidr) in a setup
+  chunk is enough. Every plot the document draws becomes an accessible
+  chart in place of its figure: a chart a chunk returns, each chart it
+  prints with `print(p)`, as in a loop, and each Base R chart, several
+  to a chunk if need be. In HTML output the charts are part of the page,
+  which loads maidr.js once, and the figures that stay images are
+  recorded with svglite rather than png
+  (`options(maidr.knitr_dev = FALSE)` keeps png). In PDF, Word,
+  Markdown, EPUB and xaringan output the plots are knitr’s figures, as
+  without maidr. Return a chart from a chunk or
+  [`print()`](https://rdrr.io/r/base/print.html) it:
+  [`show()`](https://r.maidr.ai/reference/show.md) in a document opens a
+  browser during the render and puts nothing in the page.
+  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) in the setup
+  chunk is no longer needed, and still works.
 - **Shiny.** Put
   [`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md) in
   the UI and
@@ -241,12 +250,12 @@ xyplot(mpg ~ wt | factor(cyl),
 )
 ```
 
-In R Markdown and Quarto, with
-[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) in a setup
-chunk, end the chunk with the chart itself, as above, rather than
-calling `print(p)`: knitr hands a chart the chunk returns to maidr, and
-draws a printed one as a static image. A chart maidr cannot read, such
-as [`cloud()`](https://rdrr.io/pkg/lattice/man/cloud.html),
+In R Markdown and Quarto, a lattice chart a chunk returns, as above, and
+one it prints with `print(p)`, as in a loop, are both accessible charts,
+each in place of its own figure. A print that shares its page with other
+charts (`split`, `position`, `more = TRUE`) stays lattice’s figure. A
+chart maidr cannot read, such as
+[`cloud()`](https://rdrr.io/pkg/lattice/man/cloud.html),
 [`splom()`](https://rdrr.io/pkg/lattice/man/splom.html) or one drawn
 with a panel function of your own, is drawn by lattice as before, and
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) saves it as a
@@ -262,10 +271,11 @@ bundled MAIDR.js library, so the result works offline.
 [`save_html()`](https://r.maidr.ai/reference/save_html.md) writes the
 library to a `lib/` folder beside the file, and the two have to be
 shared together (zip the folder that holds both): an `.html` sent on its
-own loads no MAIDR.js and shows a plain, inaccessible chart. Widgets,
-knitr documents and Shiny apps auto-detect internet availability and use
-the CDN when online. You can control this behavior with the `use_cdn`
-parameter:
+own loads no MAIDR.js and shows a plain, inaccessible chart. A knitted R
+Markdown or Quarto page also uses the bundled library, once for all its
+charts, from its `_files` folder or embedded in a `self_contained` page.
+Widgets and Shiny apps auto-detect internet availability and use the CDN
+when online. You can control this behavior with the `use_cdn` parameter:
 
 ``` r
 
@@ -363,10 +373,10 @@ save_html(p, "plot_offline.html", use_cdn = FALSE)
 
 Every document maidr produces
 ([`show()`](https://r.maidr.ai/reference/show.md),
-[`save_html()`](https://r.maidr.ai/reference/save_html.md), widgets,
-knitr and Shiny) then declares `window.MAIDR_DOTPAD_SDK_URL` and
-`window.MAIDR_DOTPAD_ASSET_BASE_URL` ahead of maidr.js, and the CDN is
-never asked for the SDK. See
+[`save_html()`](https://r.maidr.ai/reference/save_html.md), widgets, R
+Markdown and Quarto documents, and Shiny) then declares
+`window.MAIDR_DOTPAD_SDK_URL` and `window.MAIDR_DOTPAD_ASSET_BASE_URL`
+ahead of maidr.js, and the CDN is never asked for the SDK. See
 [`?"maidr-options"`](https://r.maidr.ai/reference/maidr-options.md) for
 the details.
 
@@ -414,15 +424,19 @@ Plots can be heard through:
 
 ## Quarto reveal.js Slides
 
-A `revealjs` deck needs nothing special from this package: call
-[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md) once in a setup
+A `revealjs` deck needs nothing special from this package:
+[`library(maidr)`](https://github.com/xability/r-maidr) in a setup
 chunk, as in any other Quarto or R Markdown document, and every plot the
-deck draws becomes an accessible MAIDR chart.
+deck draws becomes an accessible MAIDR chart on its slide.
 
 A chart on a `revealjs` slide is keyboard reachable on its own: **Tab**
-moves into it, the arrow keys explore it, and **Shift+Tab** hands focus
-back to the slide, so **Space** advances the deck again. None of that
-needs configuring.
+moves into it, and while it has the focus the arrow keys, **Space** and
+the deck’s other shortcuts go to the chart rather than to the deck, so
+exploring a chart never changes the slide. **Shift+Tab** leaves the
+chart, and the deck’s keys work again: **Space** advances it. None of
+that needs configuring. The same holds for the shortcuts of an ioslides
+or slidy deck, a bookdown book, a Quarto website’s search and a
+flexdashboard storyboard.
 
 What does need attention is a reveal.js behavior that has nothing to do
 with MAIDR. reveal.js keeps the slides on either side of the current one
@@ -464,8 +478,7 @@ unreachable as well.
 
 With the extension enabled, each slide gives one **Tab** to its own
 chart and **Shift+Tab** back out. The extension also adds a skip link
-ahead of the slides, so Shift+Tab lands there rather than on the slide
-element itself; either way **Space** still moves to the next slide.
+ahead of the slides. Either way **Space** still moves to the next slide.
 
 ## Supported Plot Types
 

@@ -20,8 +20,8 @@ multiple sensory modalities.
 - [`run_example`](https://r.maidr.ai/reference/run_example.md): Run
   interactive example plots
 
-- [`maidr_on`](https://r.maidr.ai/reference/maidr_on.md): Enable
-  automatic MAIDR interception in RMarkdown
+- [`maidr_on`](https://r.maidr.ai/reference/maidr_on.md): Turn automatic
+  MAIDR interception back on
 
 - [`maidr_off`](https://r.maidr.ai/reference/maidr_off.md): Disable
   automatic MAIDR interception
@@ -215,8 +215,11 @@ The package integrates seamlessly with:
 
 - **RStudio**: Direct display in the Viewer pane
 
-- **RMarkdown/Quarto**: Automatic rendering with
-  [`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md)
+- **R Markdown/Quarto**:
+  [`library(maidr)`](https://github.com/xability/r-maidr) in the
+  document makes its plots accessible charts, inline in an HTML page; so
+  does rendering it in a session where maidr is loaded, even only its
+  namespace
 
 - **Shiny**: Interactive plots in Shiny apps via
   [`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md)

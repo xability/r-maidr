@@ -293,7 +293,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-03">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -461,6 +461,37 @@
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"cylinders.html"</span><span class="op">)</span></span></code></pre></div>
 <p>A conditioned chart, such as <code>xyplot(mpg ~ wt | factor(cyl), mtcars)</code>, is read one panel at a time: each panel is a subplot of its own, named after its strip.</p>
 </div>
+<div class="section level3">
+<h3 id="r-markdown-and-quarto">R Markdown and Quarto<a class="anchor" aria-label="anchor" href="#r-markdown-and-quarto"></a>
+</h3>
+<p><code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in a setup chunk is all a document needs. Every plot it draws, with ggplot2, lattice or Base R, becomes an accessible chart:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="in">```{r setup, include = FALSE}</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="in">library(maidr)</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="in">```{r cars, fig.cap = "Cars by cylinder count"}</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="in">ggplot(mtcars, aes(factor(cyl))) + geom_bar()</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
+<ul>
+<li>
+<strong>Charts are part of the page.</strong> In HTML output (<code>html_document</code>, bookdown, Quarto, reveal.js, ioslides, slidy, flexdashboard and Quarto dashboards) each chart is an <code>&lt;svg&gt;</code> in the page, not an iframe, and the page loads maidr.js once however many charts it has: from the document’s <code>_files</code> folder, or embedded in it when the document is <code>self_contained</code> or uses <code>embed-resources</code>. <strong>Tab</strong> moves into a chart and <strong>Shift+Tab</strong> out of it. While a chart has the focus, its keys go to the chart, not to the slide deck, book or website around it.</li>
+<li>
+<strong>Several charts in a chunk.</strong> A chunk can return a chart, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> several in a loop, or draw several Base R charts. Each takes the place of its own figure, with that figure’s caption, alt text and number, so <code>fig.cap</code>, <code>fig.alt</code>, bookdown’s <code>\@ref(fig:label)</code> and Quarto’s <code>@fig-</code> references work as they do for images. A figure that is not one chart maidr can read, such as a grid drawing or a chart something else was drawn over, stays knitr’s image. In R Markdown and bookdown a chart’s caption is plain text: Markdown, maths and <code>\@ref()</code> inside <code>fig.cap</code> are shown as written. A bookdown text reference, <code>fig.cap = "(ref:label)"</code>, brings them in, as Quarto does for the caption of a chart in a <code>fig-</code> chunk, which it writes itself.</li>
+<li>
+<strong>Size, cache and animations.</strong> Charts are drawn at maidr’s own size and shrink to the page; size one with <code>out.width</code>, since <code>fig.width</code>, <code>fig.height</code>, <code>fig.asp</code> and <code>dpi</code> are not read. A chunk cached with <code>cache = TRUE</code> brings its charts back; one cached with <code>cache = 1</code> or <code>cache = 2</code> shows knitr’s static figures when it is rendered again from the cache. <code>fig.show = "animate"</code> stays knitr’s animation.</li>
+<li>
+<strong>Static figures are SVG.</strong> In HTML output maidr records a chunk’s figures with svglite instead of knitr’s default png, so the ones that stay images are vector images too. A device a chunk names (<code>dev = "png"</code>), a document device other than png, and the device of a cached chunk, of an animation and of a chunk that crops its figures or uses <code>fig.process</code> are kept. To keep png for every chunk, set <code>options(maidr.knitr_dev = FALSE)</code> before rendering or in the setup chunk.</li>
+<li>
+<strong>Other outputs.</strong> In PDF, Word, Markdown (<code>github_document</code>), EPUB and xaringan output, plots are knitr’s figures, as without maidr. HTML that cannot hold a chart in the page, such as an HTML fragment or pagedown, keeps each chart in an iframe of its own.</li>
+<li>
+<strong>Return or print a chart; do not <code><a href="reference/show.html">show()</a></code> it.</strong> A chart a document returns or prints never opens the viewer. <code><a href="reference/show.html">show()</a></code> still does: in a document it opens a browser during the render and puts nothing in the page.</li>
+<li>
+<strong>Turning it off.</strong> <code><a href="reference/maidr_off.html">maidr_off()</a></code> in a chunk knits the chunks after it as they would be without maidr, and <code><a href="reference/maidr_on.html">maidr_on()</a></code> turns maidr back on. <code><a href="reference/maidr_off.html">maidr_off()</a></code> lasts for the R session, not only the document: a later document rendered in the same session, such as a later vignette of <code>R CMD build</code>, stays off too, so a document that turns maidr off should end with <code><a href="reference/maidr_on.html">maidr_on()</a></code>. Documents that call <code><a href="reference/maidr_on.html">maidr_on()</a></code> in their setup chunk keep working; the call is no longer needed there.</li>
+<li>
+<strong>A session with maidr loaded.</strong> Any document rendered in an R session where maidr is loaded – by <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> at the console, or by loading its namespace alone, as a package that imports maidr does – gets charts and svglite figures, whether or not it loads maidr itself. <code>options(maidr.auto_show = FALSE)</code> before the render prevents that, and <code>options(maidr.knitr_dev = FALSE)</code> keeps png figures.</li>
+</ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="how-maidr-hooks-into-your-session">How maidr hooks into your session<a class="anchor" aria-label="anchor" href="#how-maidr-hooks-into-your-session"></a>
@@ -471,7 +502,7 @@
 <li>
 <strong>lattice.</strong> Printing a lattice chart opens the viewer too, through lattice’s own <code>print.function</code> option, which maidr sets once lattice is loaded. A print that shares its page with other charts (<code>split</code>, <code>position</code>, <code>more = TRUE</code>, <code>newpage = FALSE</code>), a print into a file device such as <code><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf()</a></code> or <code><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png()</a></code>, and <code>plot(p)</code>, which lattice does not route through that option, are drawn by lattice as before, and so is a chart maidr cannot read.</li>
 <li>
-<strong>R Markdown and Quarto.</strong> Call <code><a href="reference/maidr_on.html">maidr_on()</a></code> once in a setup chunk. It installs the knitr hooks that turn every plot the document draws into an accessible chart; <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> alone does not install them. A lattice chart has to be the value a chunk returns: one the chunk draws with <code>print(p)</code>, as in a loop, stays a static image, and is lost to a Base R chart drawn after it in the same chunk.</li>
+<strong>R Markdown and Quarto.</strong> <code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in a setup chunk is enough. Every plot the document draws becomes an accessible chart in place of its figure, including charts printed with <code>print(p)</code> in a loop and several Base R charts in one chunk; see <a href="#r-markdown-and-quarto">R Markdown and Quarto</a>.</li>
 <li>
 <strong>Shiny.</strong> Put <code><a href="reference/maidr_output.html">maidr_output()</a></code> in the UI and <code><a href="reference/render_maidr.html">render_maidr()</a></code> in the server, with its expression returning the ggplot2 or lattice chart rather than printing it; see <code><a href="articles/shiny-integration.html">vignette("shiny-integration", package = "maidr")</a></code>.</li>
 <li>
@@ -1004,8 +1035,8 @@
 <div class="section level2">
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
-<p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. Widgets, knitr documents and Shiny apps auto-detect internet availability and use the CDN when online. A knitted R Markdown or Quarto document rendered online, and any page holding a widget, also carries its own copy of maidr.js, which its charts fall back on when the CDN cannot be reached, so a <code>self_contained</code> / <code>embed-resources</code> document works offline too. Use the <code>use_cdn</code> parameter for explicit control:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. A knitted R Markdown or Quarto page loads the bundled maidr.js once for all its charts, from its <code>_files</code> folder or embedded in it when it is <code>self_contained</code> / uses <code>embed-resources</code>, so it works offline wherever it was rendered. Widgets, Shiny apps, and the few knitted outputs that keep a chart in an iframe (an HTML fragment, pagedown) auto-detect internet availability and use the CDN when online. A page holding a widget rendered online also carries its own copy of maidr.js, which its charts fall back on when the CDN cannot be reached, so a <code>self_contained</code> / <code>embed-resources</code> page works offline too. Use the <code>use_cdn</code> parameter for explicit control:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force CDN: one self-contained file, needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1014,20 +1045,20 @@
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The CDN paths load the <strong>latest published maidr.js</strong>, not the copy bundled with this package, as the Python binding does. The first CDN document in an R session asks jsDelivr (then the npm registry) which version that is, within 3 seconds, and every document in the session names that version. If the lookup cannot be made it costs no error: the document names the bundled version instead, the copy <code>use_cdn = FALSE</code> would serve. Pin a version when a document has to load the same maidr.js whenever it is opened:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span>  <span class="co"># the bundled version, no lookup</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span>    <span class="co"># a particular release</span></span></code></pre></div>
 <p>or set <code>MAIDR_CDN_VERSION</code> in the environment. <code>use_cdn = FALSE</code> never makes that lookup. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</p>
 <p>Two things still reach the network from an offline document, and only when a reader uses them. One is a language other than English. maidr.js reads charts in English on its own and fetches Korean, Japanese, Chinese, Spanish, German, French, Italian or Hindi as a small pack from beside itself. This package does not bundle the packs, which would add 0.8 MB against CRAN’s size limit, so a <code>use_cdn = FALSE</code> document points maidr.js at the packs of the bundled version on jsDelivr: a reader whose language is not English hears it when online, and English when not. Serve the packs yourself, or turn this off:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="st">"https://example.org/maidr/"</span><span class="op">)</span>  <span class="co"># your own copy</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># never fetch a pack: English only</span></span></code></pre></div>
 <p>The other is connecting a <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile display</a>. maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build, and imports the vendor’s copy from jsDelivr the first time a DotPad is connected. Rendering, sonification and braille work offline regardless. To keep the DotPad offline too, download the pinned SDK once and every <code>use_cdn = FALSE</code> document carries it in its <code>lib/</code> folder:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># ~14 MB, once, into a per-user cache</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># lib/dotpad-sdk-&lt;version&gt;/ beside it</span></span></code></pre></div>
-<p>A page served from elsewhere, or a knitr document (whose charts live in <code>srcdoc</code> frames with no base URL), names its copy by URL instead, through options or the environment variables of the same names:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p>A page served from elsewhere, or a knitted R Markdown or Quarto document, which does not carry the downloaded copy, names its copy by URL instead, through options or the environment variables of the same names:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/lib/"</span></span>
