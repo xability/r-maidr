@@ -40,6 +40,13 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #'   Shiny convention.
 #' @param env The environment in which to evaluate expr
 #' @param quoted Is expr a quoted expression
+#' @param fig_width,fig_height The size to draw the chart at, in inches, as
+#'   \code{width} and \code{height} set it in \code{\link{show}()}: each a
+#'   single positive number, or \code{NULL} (the default) for 7 x 5 in,
+#'   12 x 6 in for a candlestick chart. They are not the size of the output
+#'   on the page, which \code{\link{maidr_output}()}'s \code{width} and
+#'   \code{height} set: a chart wider than its output shrinks to fit it.
+#'   Nothing sizes the chart to its output; the size is the one given here.
 #' @return A Shiny render function for use in server
 #' @examples
 #' if (interactive()) {
@@ -50,10 +57,24 @@ maidr_output <- function(output_id, width = "100%", height = "400px") {
 #'       ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
 #'         geom_bar(stat = "identity")
 #'     })
+#'
+#'     # Drawn 10 inches wide and 4 high
+#'     output$wide <- render_maidr(
+#'       {
+#'         ggplot(mtcars, aes(x = wt, y = mpg)) +
+#'           geom_point()
+#'       },
+#'       fig_width = 10,
+#'       fig_height = 4
+#'     )
 #'   }
 #' }
 #' @export
-render_maidr <- function(expr, env = parent.frame(), quoted = FALSE) {
+render_maidr <- function(expr, env = parent.frame(), quoted = FALSE,
+                         fig_width = NULL, fig_height = NULL) {
+  check_chart_size(fig_width, "fig_width")
+  check_chart_size(fig_height, "fig_height")
+
   if (!quoted) {
     quoted <- TRUE
     expr <- substitute(expr)
@@ -90,11 +111,11 @@ render_maidr <- function(expr, env = parent.frame(), quoted = FALSE) {
     }
 
     if (is_maidr_plot_object(plot_result)) {
-      maidr_widget(plot_result)
+      maidr_widget(plot_result, fig_width = fig_width, fig_height = fig_height)
     } else if (drew_something && is_patching_active()) {
       # A Base R call that drew to the recorded device; its return value is
       # irrelevant, so hand over to Base R auto-detection
-      maidr_widget(NULL)
+      maidr_widget(NULL, fig_width = fig_width, fig_height = fig_height)
     } else if (is.null(plot_result)) {
       # Shiny's convention: an empty reactive renders nothing
       NULL

@@ -214,13 +214,15 @@ named by their level.
   Create an orchestrator for a trellis object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{LatticeAdapter$create_orchestrator(plot_object)}
+    \preformatted{LatticeAdapter$create_orchestrator(plot_object, width = NULL, height = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot_object}}{The trellis object}
+      \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }

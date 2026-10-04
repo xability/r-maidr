@@ -29,6 +29,7 @@ the results into a comprehensive interactive plot.
     \item \href{#method-BaseRPlotOrchestrator-get_layers}{\code{BaseRPlotOrchestrator$get_layers()}}
     \item \href{#method-BaseRPlotOrchestrator-get_plot_calls}{\code{BaseRPlotOrchestrator$get_plot_calls()}}
     \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
+    \item \href{#method-BaseRPlotOrchestrator-canvas_size}{\code{BaseRPlotOrchestrator$canvas_size()}}
     \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
     \item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
     \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
@@ -47,13 +48,19 @@ the results into a comprehensive interactive plot.
   Create an orchestrator for the calls recorded on a device
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{BaseRPlotOrchestrator$new(device_id = grDevices::dev.cur())}
+    \preformatted{BaseRPlotOrchestrator$new(
+  device_id = grDevices::dev.cur(),
+  width = NULL,
+  height = NULL
+)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{device_id}}{Graphics device ID}
+      \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
   }
@@ -323,6 +330,21 @@ HIGH-level calls
   }
   \subsection{Returns}{
     A gtable, or NULL when nothing was recorded
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-canvas_size"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-canvas_size}{}}}
+\subsection{\code{BaseRPlotOrchestrator$canvas_size()}}{
+  The size the chart is drawn at
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$canvas_size()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A named numeric vector, \code{width} and \code{height}, in inches
   }
 }
 

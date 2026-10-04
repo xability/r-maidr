@@ -25,6 +25,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .fallback_mode = "none",
     .fallback_groups = integer(0),
     .fallback_panels = integer(0),
+    .canvas = NULL,
 
     # The one result that declares its own subplot grid, or NULL.
     #
@@ -109,7 +110,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
   public = list(
     #' @description Create an orchestrator for the calls recorded on a device
     #' @param device_id Graphics device ID
-    initialize = function(device_id = grDevices::dev.cur()) {
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
+    initialize = function(device_id = grDevices::dev.cur(), width = NULL, height = NULL) {
       private$.device_id <- device_id
       registry <- get_global_registry()
       private$.adapter <- registry$get_adapter("base_r")
@@ -118,6 +121,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
+
+      # Settled before anything is drawn: the recorded calls are drawn again
+      # at this size (see `get_gtable()`). A chartSeries() chart is held to
+      # the candlestick minimum, whose layout it is.
+      has_chartseries <- any(vapply(
+        private$.plot_groups,
+        function(g) identical(g$high_call$function_name, "chartSeries"),
+        logical(1)
+      ))
+      private$.canvas <- chart_canvas_size(width, height, candlestick = has_chartseries)
 
       self$detect_layers()
       self$resolve_fallback_scope()
@@ -771,45 +784,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
 
       # Suppress native R graphics window by using a null PDF device
-      # This ensures only the HTML output is displayed.
-      # chartSeries (candlestick) needs a wider canvas (10x5) because its
-      # title + bracketed date range and 2-row month/year tick labels
-      # require ~10 in to render without clipping/overlap. quantmod
-      # centers the title at ~10% of canvas width and the date bracket at
-      # ~91%; at 9 in long titles still clipped on the left and the
-      # bracket extended past the right edge. Bumping to 10 in clears
-      # both for realistic ticker/title lengths. (See quantmod GH issue
-      # #129 for the underlying upstream layout limitation.) We widen
-      # ONLY when a chartSeries call is present, leaving all other plot
-      # types' visual aspect ratio (7x5) unchanged.
-      has_chartseries <- any(vapply(
-        private$.plot_groups,
-        function(g) identical(g$high_call$function_name, "chartSeries"),
-        logical(1)
-      ))
-      # Enlarge BOTH dimensions for chartSeries plots so the
-      # right-side date-range header (e.g. "[2024-01-12/2024-01-15]")
-      # and the bottom x-axis date labels (e.g. "Jan 12 / 2024")
-      # fit inside the gridSVG viewBox. With 10x5 in (720x360 px),
-      # short-timeseries chartSeries layouts overhung by ~18px right
-      # and ~22px bottom -- clipped by SVG root's default
-      # overflow:hidden. Bumping to 12x6 in (864x432 px) gives the
-      # internal layout 144 more px horizontally and 72 more px
-      # vertically, comfortably absorbing both overhangs. We CANNOT
-      # work around this with CSS `overflow: visible` because
-      # chartSeries also draws volume <rect>s with intentionally-
-      # negative y coordinates that rely on root clipping. We widen
-      # ONLY when a chartSeries call is present, leaving all other
-      # plot types' visual aspect ratio (7x5) unchanged.
-      gt_width  <- if (has_chartseries) 12 else 7
-      gt_height <- if (has_chartseries)  6 else 5
-      # The drawing is made on a page of this size too (see
-      # `base_r_drawing_grob()`), so it is laid out for the page it is
-      # exported on.
-      canvas <- c(width = gt_width, height = gt_height)
+      # This ensures only the HTML output is displayed. The drawing itself is
+      # made on a page of the chart's size (`base_r_drawing_grob()`).
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
-      grDevices::pdf(null_pdf, width = gt_width, height = gt_height)
+      canvas <- private$.canvas
+      grDevices::pdf(null_pdf, width = canvas[["width"]], height = canvas[["height"]])
       on.exit(
         {
           grDevices::dev.off()
@@ -937,6 +917,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         NULL
       }
+    },
+    #' @description The size the chart is drawn at
+    #' @return A named numeric vector, `width` and `height`, in inches
+    canvas_size = function() {
+      private$.canvas
     },
     #' @description The grob a layer's processor searches for its selectors
     #' @param layer_index Index of the layer
@@ -1151,8 +1136,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #' as `as.grob()` does.
 #'
 #' @param draw A function of no arguments that draws the chart
-#' @param size The page size in inches: a named numeric vector, `width` and
-#'   `height`
+#' @param size The chart's canvas, from [chart_canvas_size()]
 #' @return A gTree
 #' @keywords internal
 base_r_drawing_grob <- function(draw, size) {

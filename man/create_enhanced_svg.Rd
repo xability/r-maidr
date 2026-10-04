@@ -4,19 +4,24 @@
 \alias{create_enhanced_svg}
 \title{Create enhanced SVG with maidr data}
 \usage{
-create_enhanced_svg(gt, maidr_data, ...)
+create_enhanced_svg(gt, maidr_data, width = NULL, height = NULL)
 }
 \arguments{
 \item{gt}{A gtable object}
 
 \item{maidr_data}{The maidr-data structure}
 
-\item{...}{Additional arguments}
+\item{width, height}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own. A chart with a candlestick layer is drawn at least
+12 x 6 in, which keeps quantmod \code{chartSeries()}'s title, its bracketed
+date range and its date labels inside the SVG (quantmod issue #129).}
 }
 \value{
 Character vector of SVG content
 }
 \description{
-Create enhanced SVG with maidr data
+The chart is drawn on an svglite page of the size \code{\link[=chart_canvas_size]{chart_canvas_size()}}
+gives, at 72 pixels to the inch: the SVG's \code{width}, \code{height} and \code{viewBox}
+are that size.
 }
 \keyword{internal}

@@ -26,13 +26,20 @@
 #' chart. A print the console hook opens the viewer for is the exception: it
 #' is the reader's own chart.
 #'
+#' The off-screen page is the size of the chart's canvas. lattice reads the
+#' page it draws on to lay a conditioned chart's panels out -- with no
+#' `layout =`, a chart of one conditioning variable gets as many columns as
+#' the page's shape suits -- so drawn on a page of another shape, the grob
+#' would keep that page's columns, squeezed or stretched onto the canvas.
+#'
 #' @param plot A trellis object, as [lattice_prepare()] returns it
 #' @param prefix The grob-name prefix
+#' @param size The chart's canvas, from [chart_canvas_size()]
 #' @return A list: `grob`, the drawn chart; `packets`, the packet matrix
 #'   indexed `[row, column]` as the grob names are; `listing`, a data frame
 #'   of every grob and viewport drawn, with its `name`, `vpPath` and `type`.
 #' @keywords internal
-lattice_draw_scene <- function(plot, prefix = LATTICE_PREFIX) {
+lattice_draw_scene <- function(plot, prefix = LATTICE_PREFIX, size = MAIDR_CHART_SIZE) {
   restore_status <- lattice_keep_status()
   on.exit(restore_status(), add = TRUE)
 
@@ -60,8 +67,8 @@ lattice_draw_scene <- function(plot, prefix = LATTICE_PREFIX) {
       )
       lattice_draw_gaps(captured$packets, prefix)
     },
-    width = 7,
-    height = 5,
+    width = size[["width"]],
+    height = size[["height"]],
     warn = 0,
     name = "maidr.trellis"
   )
@@ -564,13 +571,17 @@ LatticePlotOrchestrator <- R6::R6Class(
     .combined_data = list(),
     .layout = NULL,
     .unsupported = character(0),
-    .pages = 1
+    .pages = 1,
+    .canvas = NULL
   ),
   public = list(
     #' @description Create an orchestrator for a trellis object
     #' @param plot The trellis object
-    initialize = function(plot) {
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
+    initialize = function(plot, width = NULL, height = NULL) {
       private$.plot <- plot
+      private$.canvas <- chart_canvas_size(width, height)
       private$.adapter <- get_global_registry()$get_adapter("lattice")
 
       private$.unsupported <- lattice_static_check(plot)
@@ -582,7 +593,10 @@ LatticePlotOrchestrator <- R6::R6Class(
       private$.drawn_plot <- drawn
       private$.pages <- attr(drawn, "maidr_pages")
 
-      scene <- tryCatch(lattice_draw_scene(drawn), error = function(e) e)
+      scene <- tryCatch(
+        lattice_draw_scene(drawn, size = private$.canvas),
+        error = function(e) e
+      )
       if (inherits(scene, "error")) {
         private$.unsupported <- paste("drawing it failed:", conditionMessage(scene))
         return(invisible(self))
@@ -825,6 +839,12 @@ LatticePlotOrchestrator <- R6::R6Class(
     #'   drawn
     get_gtable = function() {
       private$.gtable
+    },
+
+    #' @description The size the chart is drawn at
+    #' @return A named numeric vector, `width` and `height`, in inches
+    canvas_size = function() {
+      private$.canvas
     },
 
     #' @description The figure-level layout read by `extract_layout()`

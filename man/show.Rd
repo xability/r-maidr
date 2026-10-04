@@ -4,7 +4,15 @@
 \alias{show}
 \title{Display Interactive MAIDR Plot}
 \usage{
-show(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE, ...)
+show(
+  plot = NULL,
+  use_cdn = NULL,
+  shiny = FALSE,
+  as_widget = FALSE,
+  width = NULL,
+  height = NULL,
+  ...
+)
 }
 \arguments{
 \item{plot}{A ggplot2 object, a lattice (trellis) object, or NULL for Base R
@@ -28,6 +36,12 @@ as the Shiny path does.
 \item{shiny}{If TRUE, returns just the SVG content instead of full HTML document}
 
 \item{as_widget}{If TRUE, returns an htmlwidget object instead of opening in browser}
+
+\item{width, height}{The size to draw the chart at, in inches: each a
+single positive number, or \code{NULL} (the default) for 7 x 5 in, 12 x 6 in
+for a candlestick chart. A side not given takes its default. With
+\code{as_widget = TRUE} they size the chart in the widget, not the widget.
+See \strong{Chart size}.}
 
 \item{...}{Additional arguments passed to internal functions}
 }
@@ -56,6 +70,26 @@ same way, made accessible with \code{\link{maidr_htmlwidget}()} first; its
 document carries the chart library, a few megabytes. Any other htmlwidget is
 refused, with the message \code{maidr_htmlwidget()} gives.
 }
+\section{Chart size}{
+
+A chart is drawn at a size in inches, as \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} and knitr's
+\code{fig.width} and \code{fig.height} size a figure, and its SVG is 72 pixels to
+the inch: a 10 x 4 in chart is 720 pixels wide and 288 high. The size is
+the room the chart is laid out in -- how far apart its ticks and labels
+are, how lattice arranges its panels, where Base R puts its titles -- and
+not what maidr reads out: the data, titles and axis labels a reader
+hears are the same at every size. It is set by \code{width} and \code{height}
+here and in \code{\link[=save_html]{save_html()}}, and by \code{fig_width} and \code{fig_height} in
+\code{\link[=render_maidr]{render_maidr()}}. Nothing else sets it: not the size of the device a
+chart was drawn on, nor the size of the window, viewer or Shiny output
+it is shown in, which shrinks a chart wider than itself to fit.
+
+Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
+never drawn smaller than that: quantmod's \code{chartSeries()} needs the room
+for its title, date range and date labels. A smaller size asked for is
+enlarged, with a message naming the size the chart is drawn at.
+}
+
 \examples{
 # ggplot2 bar chart
 library(ggplot2)
@@ -63,6 +97,9 @@ p <- ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
   geom_bar(stat = "identity")
 \donttest{
 maidr::show(p)
+
+# The same chart, 10 inches wide and 4 high
+maidr::show(p, width = 10, height = 4)
 }
 
 # ggplot2 violin plot
@@ -83,6 +120,6 @@ if (requireNamespace("lattice", quietly = TRUE)) {
 # Base R example (requires interactive session for function patching)
 if (interactive()) {
   barplot(c(10, 20, 30), names.arg = c("A", "B", "C"))
-  maidr::show()
+  maidr::show(width = 6, height = 4)
 }
 }

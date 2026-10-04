@@ -28,8 +28,10 @@ SystemAdapter <- R6::R6Class(
 
     #' @description Abstract method to create an orchestrator for this system
     #' @param plot_object The plot object to process
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
     #' @return Orchestrator instance specific to this system
-    create_orchestrator = function(plot_object) {
+    create_orchestrator = function(plot_object, width = NULL, height = NULL) {
       stop("create_orchestrator method must be implemented by subclass")
     }
   )

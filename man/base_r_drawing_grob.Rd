@@ -9,8 +9,7 @@ base_r_drawing_grob(draw, size)
 \arguments{
 \item{draw}{A function of no arguments that draws the chart}
 
-\item{size}{The page size in inches: a named numeric vector, \code{width} and
-\code{height}}
+\item{size}{The chart's canvas, from \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
 }
 \value{
 A gTree

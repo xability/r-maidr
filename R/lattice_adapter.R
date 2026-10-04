@@ -300,12 +300,14 @@ LatticeAdapter <- R6::R6Class(
 
     #' @description Create an orchestrator for a trellis object
     #' @param plot_object The trellis object
+    #' @param width,height The size to draw the chart at, in inches, or `NULL`
+    #'   for maidr's own; see [chart_canvas_size()]
     #' @return LatticePlotOrchestrator instance
-    create_orchestrator = function(plot_object) {
+    create_orchestrator = function(plot_object, width = NULL, height = NULL) {
       if (!self$can_handle(plot_object)) {
         stop("Plot object is not a lattice (trellis) object")
       }
-      LatticePlotOrchestrator$new(plot_object)
+      LatticePlotOrchestrator$new(plot_object, width = width, height = height)
     },
 
     #' @description Get the system name

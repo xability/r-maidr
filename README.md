@@ -133,6 +133,30 @@ A conditioned chart, such as `xyplot(mpg ~ wt | factor(cyl), mtcars)`, is
 read one panel at a time: each panel is a subplot of its own, named after its
 strip.
 
+### Chart size
+
+A chart is drawn at 7 x 5 inches unless you give it a size, in inches as
+`ggplot2::ggsave()` takes one, and its SVG is 72 pixels to the inch. The
+size is the room the chart is laid out in; the data, titles and axis labels
+a reader hears are the same at every size.
+
+``` r
+show(p, width = 10, height = 4)
+save_html(p, "wide.html", width = 10, height = 4)
+
+# Base R: draw, then show at a size
+barplot(table(mtcars$cyl))
+show(width = 6, height = 4)
+
+# Shiny: the chart's size; maidr_output()'s width and height size the output
+output$plot <- render_maidr(p, fig_width = 10, fig_height = 4)
+```
+
+Nothing else sets it: not the device a Base R chart was drawn on, nor the
+window or Shiny output a chart is shown in, which shrinks a wider chart to
+fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for
+less, maidr says in a message the size it used.
+
 ### R Markdown and Quarto
 
 `library(maidr)` in a setup chunk is all a document needs. Every plot it

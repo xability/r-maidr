@@ -4,7 +4,13 @@
 \alias{render_maidr}
 \title{Render MAIDR Plot in Shiny Server}
 \usage{
-render_maidr(expr, env = parent.frame(), quoted = FALSE)
+render_maidr(
+  expr,
+  env = parent.frame(),
+  quoted = FALSE,
+  fig_width = NULL,
+  fig_height = NULL
+)
 }
 \arguments{
 \item{expr}{An expression that draws a plot. Either a ggplot object or a
@@ -18,6 +24,14 @@ Shiny convention.}
 \item{env}{The environment in which to evaluate expr}
 
 \item{quoted}{Is expr a quoted expression}
+
+\item{fig_width, fig_height}{The size to draw the chart at, in inches, as
+\code{width} and \code{height} set it in \code{\link{show}()}: each a
+single positive number, or \code{NULL} (the default) for 7 x 5 in,
+12 x 6 in for a candlestick chart. They are not the size of the output
+on the page, which \code{\link{maidr_output}()}'s \code{width} and
+\code{height} set: a chart wider than its output shrinks to fit it.
+Nothing sizes the chart to its output; the size is the one given here.}
 }
 \value{
 A Shiny render function for use in server
@@ -35,6 +49,16 @@ if (interactive()) {
       ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
         geom_bar(stat = "identity")
     })
+
+    # Drawn 10 inches wide and 4 high
+    output$wide <- render_maidr(
+      {
+        ggplot(mtcars, aes(x = wt, y = mpg)) +
+          geom_point()
+      },
+      fig_width = 10,
+      fig_height = 4
+    )
   }
 }
 }

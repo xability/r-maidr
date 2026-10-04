@@ -13,6 +13,7 @@ the results into a comprehensive interactive plot.
 \subsection{Public methods}{
   \itemize{
     \item \href{#method-Ggplot2PlotOrchestrator-initialize}{\code{Ggplot2PlotOrchestrator$new()}}
+    \item \href{#method-Ggplot2PlotOrchestrator-canvas_size}{\code{Ggplot2PlotOrchestrator$canvas_size()}}
     \item \href{#method-Ggplot2PlotOrchestrator-detect_layers}{\code{Ggplot2PlotOrchestrator$detect_layers()}}
     \item \href{#method-Ggplot2PlotOrchestrator-skip_layers_that_drew_nothing}{\code{Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()}}
     \item \href{#method-Ggplot2PlotOrchestrator-analyze_single_layer}{\code{Ggplot2PlotOrchestrator$analyze_single_layer()}}
@@ -45,15 +46,32 @@ the results into a comprehensive interactive plot.
   Create an orchestrator for a ggplot2 object
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
-    \preformatted{Ggplot2PlotOrchestrator$new(plot)}
+    \preformatted{Ggplot2PlotOrchestrator$new(plot, width = NULL, height = NULL)}
     \if{html}{\out{</div>}}
   }
   \subsection{Arguments}{
     \if{html}{\out{<div class="arguments">}}
     \describe{
       \item{\code{plot}}{The ggplot2 object}
+      \item{\code{width, height}}{The size to draw the chart at, in inches, or \code{NULL}
+for maidr's own; see \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
     }
     \if{html}{\out{</div>}}
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Ggplot2PlotOrchestrator-canvas_size"></a>}}
+\if{latex}{\out{\hypertarget{method-Ggplot2PlotOrchestrator-canvas_size}{}}}
+\subsection{\code{Ggplot2PlotOrchestrator$canvas_size()}}{
+  The size the chart is drawn at
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{Ggplot2PlotOrchestrator$canvas_size()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    A named numeric vector, \code{width} and \code{height}, in inches
   }
 }
 

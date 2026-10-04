@@ -4,16 +4,14 @@
 \alias{build_interactive_svg}
 \title{Build the Interactive SVG, or Answer NULL When It Cannot Be Built}
 \usage{
-build_interactive_svg(orchestrator, ...)
+build_interactive_svg(orchestrator)
 }
 \arguments{
 \item{orchestrator}{The orchestrator for the plot being rendered.}
-
-\item{...}{Passed through to \code{create_enhanced_svg()}.}
 }
 \value{
-The SVG content, or \code{NULL} when the build failed and fallback is
-enabled.
+The SVG content, drawn at the orchestrator's \code{canvas_size()}, or
+\code{NULL} when the build failed and fallback is enabled.
 }
 \description{
 \code{should_fallback()} answers whether the recorded layers are ones maidr can
