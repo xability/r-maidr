@@ -227,8 +227,10 @@
 
   // --- Host page shortcuts ---------------------------------------------
 
-  // reveal.js 4 and 5 (rmarkdown revealjs, Quarto revealjs) read
-  // keyboardCondition on every keydown; whatever the deck set is kept.
+  // reveal.js (rmarkdown revealjs, Quarto revealjs) reads keyboardCondition
+  // on every keydown; whatever the deck set is kept. reveal.js 3, which
+  // older revealjs packages bundle, has no on(), and may be ready only once
+  // its dependencies have loaded.
   function shimReveal() {
     var reveal = window.Reveal;
     if (!reveal || reveal.__maidrKnitr || typeof reveal.configure !== 'function' ||
@@ -251,6 +253,10 @@
       apply();
     } else if (typeof reveal.on === 'function') {
       reveal.on('ready', apply);
+    } else if (typeof reveal.addEventListener === 'function') {
+      reveal.addEventListener('ready', apply);
+    } else {
+      reveal.__maidrKnitr = false;
     }
   }
 
