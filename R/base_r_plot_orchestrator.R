@@ -886,7 +886,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
           } else if (panel_config$type == "mfcol") {
             graphics::par(mfcol = c(panel_config$nrows, panel_config$ncols))
           } else if (panel_config$type == "layout" && !is.null(panel_config$matrix)) {
-            graphics::layout(panel_config$matrix)
+            do.call(graphics::layout, c(list(panel_config$matrix), panel_config$sizes))
           }
 
           # Debug logging

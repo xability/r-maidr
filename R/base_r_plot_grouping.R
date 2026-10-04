@@ -181,9 +181,11 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
         layout_index = call$storage_index
       )
     } else if (call$function_name == "layout" && length(args) > 0) {
+      # The recorded arguments carry the names R matched them to, all but
+      # a `mat` written first without one.
+      mat <- if (!is.null(args[["mat"]])) args[["mat"]] else args[[1]]
       # layout() takes a vector as a one-column matrix: `layout(1)` puts
       # the device back to a single panel.
-      mat <- args[[1]]
       if (is.numeric(mat) && !is.matrix(mat)) {
         mat <- as.matrix(mat)
       }
@@ -195,6 +197,9 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
           # 0 marks empty cells in a layout() matrix, not a panel
           total_panels = length(unique(as.vector(mat[mat > 0]))),
           matrix = mat,
+          # The room the call gave the matrix's columns and rows, and which
+          # of them keep their shape, to set up the grid again with.
+          sizes = args[intersect(names(args), c("widths", "heights", "respect"))],
           layout_index = call$storage_index
         )
       }

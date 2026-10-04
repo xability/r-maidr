@@ -161,12 +161,126 @@ native_plots <- function(draw, size) {
   plots
 }
 
+#' Where R draws each plot of the last page of a Base R chart, as R lays it
+#' out at a size: its left, right, bottom and top edges, in pixels from the
+#' bottom left corner of the page, as a chart's SVG places them; or NULL
+#' when R cannot draw the chart at that size
+native_plot_boxes <- function(draw, size) {
+  boxes <- list()
+  hooks <- list(before = getHook("before.plot.new"), after = getHook("plot.new"))
+  setHook("before.plot.new", function() if (graphics::par("page")) boxes <<- list())
+  setHook("plot.new", function() {
+    edges <- c(
+      graphics::grconvertX(0:1, "npc", "inches"),
+      graphics::grconvertY(0:1, "npc", "inches")
+    )
+    boxes[[length(boxes) + 1L]] <<- edges * 72
+  })
+  on.exit(
+    {
+      setHook("before.plot.new", hooks$before, "replace")
+      setHook("plot.new", hooks$after, "replace")
+    },
+    add = TRUE
+  )
+  if (!is.na(native_error(draw, size))) {
+    return(NULL)
+  }
+  boxes
+}
+
+#' The box around each plot in a chart's SVG, as `native_plot_boxes()` gives
+#' R's
+drawn_plot_boxes <- function(markup) {
+  markup <- paste(as.character(markup), collapse = "\n")
+  box <- '<polygon id="graphics-plot-[0-9]+-box-[^>]*>'
+  boxes <- regmatches(markup, gregexpr(box, markup))[[1]]
+  lapply(boxes, function(polygon) {
+    points <- sub('^.*points="([^"]*)".*$', "\\1", polygon)
+    xy <- matrix(as.numeric(unlist(strsplit(points, "[ ,]"))), ncol = 2, byrow = TRUE)
+    c(range(xy[, 1]), range(xy[, 2]))
+  })
+}
+
+#' Each text R shows on the last page of a Base R chart at a size, as a
+#' string, sorted
+#'
+#' Read from R's own pdf device, whose font metrics are the ones maidr
+#' measures with.
+drawn_by_r <- function(draw, size) {
+  pages <- withr::local_tempdir()
+  grDevices::pdf(
+    file.path(pages, "page%03d.pdf"),
+    width = size[1], height = size[2], onefile = FALSE, compress = FALSE
+  )
+  draw()
+  grDevices::dev.off()
+  last <- utils::tail(sort(list.files(pages, full.names = TRUE)), 1L)
+  # The file's streams are binary; its text lines are ASCII.
+  shown <- grep("T[jJ]$", readLines(last, warn = FALSE), value = TRUE, useBytes = TRUE)
+  strings <- regmatches(shown, gregexpr("\\(([^)]*)\\)", shown, useBytes = TRUE))
+  sort(vapply(strings, function(parts) {
+    paste(substr(parts, 2L, nchar(parts) - 1L), collapse = "")
+  }, character(1)))
+}
+
+#' Each text in the chart maidr draws of a Base R chart at a size, as
+#' `drawn_by_r()` gives R's
+drawn_by_maidr <- function(draw, size) {
+  svg <- paste(as.character(render_sized(draw, size)), collapse = "")
+  shown <- regmatches(svg, gregexpr("<text[^>]*>[^<]*</text>", svg))[[1]]
+  sort(unescape_markup(gsub("<[^>]+>", "", shown)))
+}
+
 #' A function drawing a `par(mfrow)` grid of Base R plots
 grid_of <- function(rows, cols = 1) {
   function() {
     par(mfrow = c(rows, cols))
     for (i in seq_len(rows * cols)) plot(1:5, main = paste("Panel", i))
   }
+}
+
+#' A function drawing a `layout()` page of Base R plots
+#'
+#' @param mat,... The `layout()` call's arguments
+#' @param before A function drawing what comes before the call
+#' @param plots How many plots are drawn, each titled for its panel and
+#'   drawn from one more point than the one before it
+layout_page <- function(mat, ..., before = function() NULL, plots = max(mat)) {
+  function() {
+    before()
+    layout(mat, ...)
+    for (i in seq_len(plots)) {
+      plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+    }
+  }
+}
+
+#' The smallest page larger than 7 x 5 in, grown an inch at a time on one
+#' side, on which R gives each plot of a Base R chart a sixth of an inch,
+#' 12 px, each way
+smallest_page <- function(draw, side) {
+  page <- c(7, 5)
+  repeat {
+    plots <- native_plots(draw, page)
+    if (!is.null(plots) && min(unlist(plots)) >= 12) {
+      return(page)
+    }
+    page[side] <- page[side] + 1
+  }
+}
+
+#' Expect a Base R chart drawn with no size asked for to be drawn at a page,
+#' saying so once
+expect_drawn_at <- function(draw, page) {
+  drawn <- with_messages(render_sized(draw, NULL))
+  testthat::expect_identical(svg_size(drawn$value), svg_size_for(page))
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_match(
+    drawn$said,
+    sprintf("drawn at %g x %g in rather than 7 x 5 in", page[1], page[2]),
+    fixed = TRUE
+  )
 }
 
 #' The value of some code, and the messages it gave, which are kept off the
@@ -644,32 +758,12 @@ test_that("a Base R chart too small for a size no one asked for is drawn larger,
   # sixth of an inch, 12 px, each way, grown only on the side it needs.
   # The least page R draws a grid of six rows on, 7 x 8 in, leaves each
   # plot 8.6 px high; of nine rows, 0.6 px.
-  smallest <- function(draw, side) {
-    page <- c(7, 5)
-    repeat {
-      plots <- native_plots(draw, page)
-      if (!is.null(plots) && min(unlist(plots)) >= 12) {
-        return(page)
-      }
-      page[side] <- page[side] + 1
-    }
-  }
-  expect_drawn_at <- function(draw, page) {
-    drawn <- with_messages(render_sized(draw, NULL))
-    testthat::expect_identical(svg_size(drawn$value), svg_size_for(page))
-    testthat::expect_length(drawn$said, 1L)
-    testthat::expect_match(
-      drawn$said,
-      sprintf("drawn at %g x %g in rather than 7 x 5 in", page[1], page[2]),
-      fixed = TRUE
-    )
-  }
   for (case in list(
     list(draw = grid_of(6), side = 2),
     list(draw = grid_of(9), side = 2),
     list(draw = grid_of(1, 12), side = 1)
   )) {
-    page <- smallest(case$draw, case$side)
+    page <- smallest_page(case$draw, case$side)
     testthat::expect_gt(page[case$side], 7)
     expect_drawn_at(case$draw, page)
   }
@@ -790,23 +884,6 @@ test_that("a Base R chart keeps the tick labels R draws at its size, and only th
   # one it drew; gridGraphics echoed them all, and they ran into each other.
   # What R draws is read from its own pdf device, whose font metrics are the
   # ones maidr measures with: each text it shows, as a string.
-  drawn_by_r <- function(draw, size) {
-    file <- withr::local_tempfile(fileext = ".pdf")
-    grDevices::pdf(file, width = size[1], height = size[2], compress = FALSE)
-    draw()
-    grDevices::dev.off()
-    # The file's streams are binary; its text lines are ASCII.
-    shown <- grep("T[jJ]$", readLines(file, warn = FALSE), value = TRUE, useBytes = TRUE)
-    strings <- regmatches(shown, gregexpr("\\(([^)]*)\\)", shown, useBytes = TRUE))
-    sort(vapply(strings, function(parts) {
-      paste(substr(parts, 2L, nchar(parts) - 1L), collapse = "")
-    }, character(1)))
-  }
-  drawn_by_maidr <- function(draw, size) {
-    svg <- paste(as.character(render_sized(draw, size)), collapse = "")
-    shown <- regmatches(svg, gregexpr("<text[^>]*>[^<]*</text>", svg))[[1]]
-    sort(unescape_markup(gsub("<[^>]+>", "", shown)))
-  }
   numbers <- c(11, 12, 13, 14)
   reversed <- function() plot(1:10, xlim = c(10, 1), main = "Reversed", xlab = "x", ylab = "y")
   # Short panels, whose y axes R thins at 7 x 5 in and more at 10 x 4.
@@ -832,6 +909,151 @@ test_that("a Base R chart keeps the tick labels R draws at its size, and only th
       label = sprintf("%s at %g x %g in", drawing, chart[[2]][1], chart[[2]][2])
     )
   }
+})
+
+test_that("a Base R layout() page is laid out as R lays it out, at every size", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # maidr set a layout() page up again from its matrix alone, so every
+  # column and row of it was as wide and as tall as the others, whatever
+  # the widths, heights and respect the call gave them: the first plot of
+  # layout(matrix(1:2, 1), widths = c(3, 1)) took half the width of a
+  # 7 x 5 in page, where R gives it three quarters. Each plot is drawn where
+  # R draws it, with the tick labels R draws there, and a size R cannot draw
+  # the page at stops, as R does.
+  pages <- list(
+    widths = layout_page(matrix(1:2, 1), widths = c(3, 1)),
+    heights = layout_page(matrix(1:2, 2), heights = c(2, 1)),
+    centimetres = layout_page(matrix(1:3, 1), widths = c(lcm(6), 1, 2)),
+    centimetre_rows = layout_page(matrix(1:2, 2), heights = c(lcm(5), 1)),
+    respect = layout_page(matrix(1:2, 1), widths = c(2, 1), respect = TRUE),
+    respect_matrix = layout_page(
+      matrix(1:4, 2),
+      widths = c(1, 2), heights = c(2, 1), respect = matrix(c(1, 0, 0, 0), 2)
+    ),
+    spans = layout_page(matrix(c(1, 1, 2, 3), 2, byrow = TRUE), heights = c(2, 1)),
+    empty_cell = layout_page(matrix(c(1, 0, 2, 3), 2), widths = c(2, 1), heights = c(1, 2)),
+    margins = layout_page(
+      matrix(1:2, 1),
+      widths = c(1, 3), before = function() par(mar = c(2, 2, 1, 1))
+    ),
+    outer_margins = layout_page(
+      matrix(1:2, 1),
+      widths = c(1, 2), before = function() par(oma = c(2, 2, 3, 0))
+    ),
+    # A third plot starts a second page, whose first cell is the narrow one.
+    second_page = layout_page(matrix(1:2, 1), widths = c(1, 3), plots = 3),
+    matrix_by_name = function() {
+      layout(widths = c(3, 1), mat = matrix(1:2, 1))
+      for (i in 1:2) plot(1:5)
+    }
+  )
+  for (name in names(pages)) {
+    for (size in c(chart_sizes, list(c(9, 9)))) {
+      draw <- pages[[name]]
+      label <- sprintf("%s at %g x %g in", name, size[1], size[2])
+      reason <- native_error(draw, size)
+      if (!is.na(reason)) {
+        testthat::expect_error(
+          render_sized(draw, size),
+          reason,
+          fixed = TRUE,
+          class = "maidr_chart_draw_error",
+          label = label
+        )
+        next
+      }
+      testthat::expect_equal(
+        drawn_plot_boxes(render_sized(draw, size)),
+        native_plot_boxes(draw, size),
+        tolerance = 1e-3,
+        label = label
+      )
+      testthat::expect_identical(drawn_by_maidr(draw, size), drawn_by_r(draw, size), label = label)
+    }
+  }
+})
+
+test_that("a Base R layout() page is read the same whatever room it gives its plots", {
+  skip_if_no_render()
+  # Where a plot is drawn changes nothing a reader hears: the subplot grid
+  # is the layout() matrix, each panel is read in every cell it fills, an
+  # empty cell is an empty subplot, and the last page is the one read.
+  read <- function(draw) size_free_schema(render_sized(draw, c(9, 9)))
+  cells <- function(schema) {
+    lapply(schema$subplots, function(row) {
+      vapply(row, function(cell) {
+        if (length(cell$layers) == 0) "" else cell$layers[[1]]$title
+      }, character(1))
+    })
+  }
+  spans <- matrix(c(1, 1, 2, 3), 2, byrow = TRUE)
+  sized <- read(layout_page(spans, heights = c(2, 1)))
+  testthat::expect_identical(
+    cells(sized),
+    list(c("Panel 1", "Panel 1"), c("Panel 2", "Panel 3"))
+  )
+  testthat::expect_identical(sized, read(layout_page(spans)))
+
+  empty <- matrix(c(1, 0, 2, 3), 2)
+  sized <- read(layout_page(empty, widths = c(lcm(6), 1), heights = c(1, 2), respect = TRUE))
+  testthat::expect_identical(cells(sized), list(c("Panel 1", "Panel 2"), c("", "Panel 3")))
+  testthat::expect_identical(sized, read(layout_page(empty)))
+
+  sized <- read(layout_page(matrix(1:2, 1), widths = c(1, 3), plots = 3))
+  testthat::expect_identical(cells(sized), list(c("Panel 3", "")))
+  testthat::expect_identical(sized, read(layout_page(matrix(1:2, 1), plots = 3)))
+
+  # The matrix is the one the call names `mat`, wherever it is written.
+  by_name <- function() {
+    layout(widths = c(1, 3), mat = matrix(1:2, 1))
+    for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+  }
+  testthat::expect_identical(read(by_name), read(layout_page(matrix(1:2, 1))))
+})
+
+test_that("a Base R layout() page is held to its size by the room R gives its plots", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  # A short first row R cannot draw at 7 x 5 in, which maidr drew there
+  # in a row as tall as the second.
+  short_first <- layout_page(matrix(1:2, 2), heights = c(1, 4))
+  reason <- native_error(short_first, c(7, 5))
+  testthat::expect_false(is.na(reason))
+  testthat::expect_error(
+    render_sized(short_first, c(7, 5)),
+    sprintf("maidr could not draw this chart at 7 x 5 in: %s.", reason),
+    fixed = TRUE,
+    class = "maidr_chart_draw_error"
+  )
+
+  # A short first row with small margins, which R draws at 7 x 3.5 in, and
+  # maidr called too small: half the page did not fit the second plot's.
+  small_margins_first <- function() {
+    layout(matrix(1:2, 2), heights = c(1, 3))
+    par(mar = c(1, 2, 0.5, 0.5))
+    plot(1:5)
+    par(mar = c(5.1, 4.1, 4.1, 2.1))
+    plot(5:1)
+  }
+  testthat::expect_equal(
+    drawn_plot_boxes(render_sized(small_margins_first, c(7, 3.5))),
+    native_plot_boxes(small_margins_first, c(7, 3.5)),
+    tolerance = 1e-3
+  )
+
+  # With no size asked for, each is drawn on the smallest page that leaves
+  # its plots the room R gives them a sixth of an inch each way: the short
+  # row 7 x 11 in, and six plots in a row that keep their shape 9 x 5 in,
+  # which maidr drew at 7 x 5 in, each plot as tall as the page.
+  in_a_row <- function() {
+    layout(matrix(1:6, 1), respect = TRUE)
+    for (i in 1:6) plot(1:5)
+  }
+  testthat::expect_identical(smallest_page(short_first, 2), c(7, 11))
+  expect_drawn_at(short_first, c(7, 11))
+  testthat::expect_identical(smallest_page(in_a_row, 1), c(9, 5))
+  expect_drawn_at(in_a_row, c(9, 5))
 })
 
 test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of it", {

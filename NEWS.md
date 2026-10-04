@@ -337,6 +337,18 @@
   small chart or in the panels of a `par(mfrow)` grid: 10, 12 and 14 on a
   short y axis where R shows 10 and 14. The labels R leaves out are now
   left out too, measured as R measures them at the chart's size (#355).
+* A Base R `layout()` page is drawn with the `widths`, `heights` and
+  `respect` its call sets. maidr set the page up again from the matrix
+  alone, so every column was as wide and every row as tall as the others:
+  the first plot of `layout(matrix(1:2, 1), widths = c(3, 1))` took half
+  the width, where R gives it three quarters. Each plot is now drawn where
+  R draws it, with `lcm()` sizes, a `respect` matrix, cells that span
+  several rows or columns and empty cells, and shows the tick labels R
+  shows at its size. A size asked for now stops when R cannot draw the
+  page at it, and a size no one asked for is enlarged until every plot, the
+  smallest included, has room. A matrix written by name after another
+  argument, as in `layout(widths = c(3, 1), mat = m)`, is read as the
+  matrix, where maidr read the widths as one (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written
