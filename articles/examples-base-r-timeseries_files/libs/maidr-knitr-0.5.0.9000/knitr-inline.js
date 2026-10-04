@@ -136,22 +136,58 @@
 
   // --- maidr's dialogs -------------------------------------------------------
 
+  // Text of maidr's dialogs that MUI sizes from its theme: 1rem under MUI's
+  // default theme, or 0.875rem for body2. Every dialog holds some.
+  var DIALOG_TEXT = '[role="dialog"] .MuiTypography-body1, [role="dialog"] .MuiTypography-body2, ' +
+    '[role="dialog"] .MuiInputBase-root';
+
+  // The font size an element with these classes, or this font size of its
+  // own, comes out at outside the page's content: read off a probe at the
+  // root, never shown, where maidr.js reads the reader's default font size.
+  // There a rule of the page for the element a text is (a book's for p) or
+  // for the place it is in (a deck's for its slides) does not change the
+  // size maidr's theme gives it.
+  function probeFontSize(className, fontSize) {
+    var probe = document.createElement('maidr-knitr-probe');
+    probe.className = className;
+    probe.style.setProperty('display', 'none', 'important');
+    if (fontSize) probe.style.setProperty('font-size', fontSize, 'important');
+    document.documentElement.appendChild(probe);
+    try {
+      return parseFloat(getComputedStyle(probe).fontSize);
+    } finally {
+      probe.remove();
+    }
+  }
+
   // maidr opens its dialogs inside the chart, so they take the page's sizes:
-  // their text is in rem, which a Bootstrap 3 page (html_document's default
-  // theme, bookdown's gitbook) makes 10px rather than 16px, and a slide deck
-  // that zooms its slides (reveal.js on a large window) zooms them past the
-  // window. Each chart's wrapper carries the zoom that undoes the page's, and
-  // the one that gives the dialogs' text its own size back, for the
-  // stylesheet to apply.
+  // a slide deck that zooms its slides (reveal.js on a large window) zooms
+  // them past the window, and their text is in rem, which a Bootstrap 3 page
+  // (html_document's default theme, bookdown's gitbook) makes 10px rather
+  // than the reader's default font size, unless maidr.js sizes its text for
+  // the page's root itself. So the text is measured once a dialog is shown,
+  // and only what it lacks is made up. Each chart's wrapper carries, for the
+  // stylesheet to apply, the zoom that undoes the page's, the size one rem
+  // of MUI's default theme came out at in the chart's dialog, and the zoom
+  // that brings that to the reader's default, as on a page that leaves its
+  // root alone: none when maidr.js sized the text itself.
   function sizeDialogs(wrapper) {
-    var root = parseFloat(getComputedStyle(document.documentElement).fontSize);
     var host = 1;
     for (var node = wrapper.parentElement; node; node = node.parentElement) {
       var z = parseFloat(getComputedStyle(node).zoom);
       if (z > 0) host *= z;
     }
     wrapper.style.setProperty('--maidr-knitr-unzoom', String(1 / host));
-    wrapper.style.setProperty('--maidr-knitr-zoom', String(root > 0 && root < 16 ? 16 / root : 1));
+    var text = wrapper.querySelector(DIALOG_TEXT);
+    if (!text) return;
+    var size = text.classList.contains('MuiTypography-body2') ? 0.875 : 1;
+    // To a hundredth of a pixel, so that text maidr.js sized for the page is
+    // never zoomed by a rounding error.
+    var rem = Math.round(probeFontSize(text.className) / size * 100) / 100;
+    var medium = probeFontSize('', 'medium');
+    if (!(rem > 0) || !(medium > 0)) return;
+    wrapper.style.setProperty('--maidr-knitr-rem', rem + 'px');
+    wrapper.style.setProperty('--maidr-knitr-zoom', String(rem < medium ? medium / rem : 1));
   }
 
   function sizeAllDialogs() {
@@ -404,7 +440,8 @@
   document.addEventListener('focusin', function (event) {
     var target = event.target;
     if (target && target.matches && target.matches(PLOT)) describe(target);
-    // The page may have zoomed since (a deck resized to its window).
+    // The page may have zoomed since (a deck resized to its window), and a
+    // dialog takes the focus when it is shown.
     var wrapper = target && target.closest && target.closest('.maidr-knitr');
     if (wrapper) sizeDialogs(wrapper);
   }, true);
