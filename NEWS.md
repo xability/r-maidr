@@ -254,6 +254,13 @@
 
 ### Base R
 
+* A Base R chart is laid out on a page of the size it is drawn at. maidr
+  drew it with `ggplotify::as.grob()`, which lays every drawing out on a
+  7 x 7 in page of its own, and the chart was then stretched onto its
+  7 x 5 in: a legend's lines ran into one another and the title sat half
+  as far below the top edge as R puts it. The drawing is now made on a page
+  of the chart's own size, with the graphical parameters `as.grob()` sets,
+  so at 7 x 7 in it is the drawing `as.grob()` made (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written

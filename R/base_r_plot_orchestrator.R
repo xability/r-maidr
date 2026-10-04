@@ -803,6 +803,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # plot types' visual aspect ratio (7x5) unchanged.
       gt_width  <- if (has_chartseries) 12 else 7
       gt_height <- if (has_chartseries)  6 else 5
+      # The drawing is made on a page of this size too (see
+      # `base_r_drawing_grob()`), so it is laid out for the page it is
+      # exported on.
+      canvas <- c(width = gt_width, height = gt_height)
       current_dev <- grDevices::dev.cur()
       null_pdf <- tempfile(fileext = ".pdf")
       grDevices::pdf(null_pdf, width = gt_width, height = gt_height)
@@ -872,7 +876,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         tryCatch(
           {
-            composite_grob <- ggplotify::as.grob(composite_func)
+            composite_grob <- base_r_drawing_grob(composite_func, canvas)
 
             # Also store individual grobs for reference
             private$.grob_list <- list(composite_grob)
@@ -915,7 +919,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
           tryCatch(
             {
-              grob <- ggplotify::as.grob(plot_func)
+              grob <- base_r_drawing_grob(plot_func, canvas)
               grob_list[[i]] <- grob
             },
             error = function(e) {
@@ -1126,3 +1130,50 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' A Base R drawing as a grob, laid out on a page of the chart's size
+#'
+#' What [ggplotify::as.grob()] makes of a drawing function -- the base
+#' graphics echoed as grid grobs by gridGraphics, drawn with the graphical
+#' parameters it sets (`xpd = NA`, a transparent background, axis titles two
+#' lines out) -- with the page the drawing is made on sized as the chart's
+#' canvas. `as.grob()` makes every drawing on a 7 x 7 in page of its own,
+#' whatever device is open, and the echo keeps what base graphics laid out
+#' on that page: margins, the lines of text around a plot and a legend's box
+#' are fixed in inches. Drawn on a canvas of another shape they no longer
+#' fit -- measured at 4 x 3 in, the title was cut off at the top of the SVG,
+#' the axis titles were lost and a legend's text ran out of its box, and
+#' even maidr's own 7 x 5 in squeezed a legend's lines together. Made on a
+#' page of the canvas's size, the drawing is the one R draws at that size.
+#'
+#' The grob names, which every selector is written against, are those
+#' `as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as drawn,
+#' as `as.grob()` does.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The page size in inches: a named numeric vector, `width` and
+#'   `height`
+#' @return A gTree
+#' @keywords internal
+base_r_drawing_grob <- function(draw, size) {
+  old_par <- graphics::par(no.readonly = TRUE)
+  on.exit(suppressWarnings(graphics::par(old_par)), add = TRUE)
+
+  draw_as_ggplotify_does <- function() {
+    graphics::par(xpd = NA, bg = "transparent", mgp = c(2, 1, 0))
+    draw()
+  }
+  grab <- function(expr) {
+    grid::grid.grabExpr(
+      expr,
+      warn = 0,
+      width = size[["width"]],
+      height = size[["height"]]
+    )
+  }
+
+  tryCatch(
+    grab(gridGraphics::grid.echo(draw_as_ggplotify_does)),
+    error = function(e) grab(draw_as_ggplotify_does())
+  )
+}

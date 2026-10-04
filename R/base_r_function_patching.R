@@ -107,10 +107,9 @@ open_maidr_temp_device <- function() {
   }
 
   temp_file <- tempfile(fileext = ".pdf")
-  # Match the SVG export device size (R/svg_utils.R) so that grobs
-  # drawn here are not resampled into a different aspect ratio. A
-  # mismatch causes chartSeries title/date bracket to be clipped and
-  # x-axis tick labels (month/year) to overlap on export.
+  # Nothing drawn here reaches the chart: the recorded calls are drawn again
+  # on a page of the chart's own size when it is made (see
+  # `base_r_drawing_grob()`), so this page is opened at maidr's default size.
   grDevices::pdf(temp_file, width = 7, height = 5)
   device_id <- grDevices::dev.cur()
   # A device just opened has drawn nothing. What is kept under its number
