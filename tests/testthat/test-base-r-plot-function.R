@@ -252,6 +252,31 @@ test_that("the function is found wherever it is written among the arguments", {
   testthat::expect_identical(pf_layer(pf_exported(cases[[1]]$call)$schema)$title, "Sine")
 })
 
+test_that("a call matching no argument to the generic's first formal dispatches on its first", {
+  # UseMethod() dispatches on the argument matched to the generic's first
+  # formal, `x`, and when no argument is matched to it, on the first one
+  # written. Taken for plot.default() and mosaicplot.default(), these
+  # titled the x axis "Index", where R writes "wt", and drew the whole
+  # table printed out as the title, where R writes "Titanic".
+  generic <- maidr:::get_original_function("plot")
+  testthat::expect_identical(
+    maidr:::dispatched_definition("plot", generic, list(formula = mpg ~ wt, data = mtcars)),
+    utils::getS3method("plot", "formula")
+  )
+
+  formula_call <- quote(plot(formula = mpg ~ wt, data = mtcars))
+  chart <- pf_exported(formula_call)
+  layer <- pf_layer(chart$schema)
+  testthat::expect_identical(c(layer$axes$x$label, layer$axes$y$label), c("wt", "mpg"))
+  testthat::expect_identical(chart$strings, pf_native_strings(formula_call))
+
+  mosaic_call <- quote(mosaicplot(formula = ~ Sex + Survived, data = Titanic))
+  mosaic <- pf_exported(mosaic_call)
+  native <- pf_native_strings(mosaic_call)
+  testthat::expect_true("Titanic" %in% native)
+  testthat::expect_identical(mosaic$strings, native)
+})
+
 test_that("a function written over several lines is titled with its first, as R draws it", {
   call <- quote(plot(function(x) {
     y <- x^2

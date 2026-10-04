@@ -175,9 +175,10 @@ matched_arg_formals <- function(function_name, target, args) {
 #'
 #' `hist` is the motivating case from #98: the generic is `hist(x, ...)`, so
 #' matching against it leaves a positional `breaks` inside the dots. The
-#' method carries the formals that matter, and picking it by the class of
-#' the argument matched to the generic's first formal is the same choice
-#' `UseMethod()` made when the call ran.
+#' method carries the formals that matter, and it is picked as
+#' `UseMethod()` picked it when the call ran: by the class of the argument
+#' matched to the generic's first formal, or, when no argument is, of the
+#' first argument written.
 #'
 #' @param function_name Name of the recorded function
 #' @param definition The original (unwrapped) function that was called
@@ -204,10 +205,15 @@ dispatched_definition <- function(function_name, definition, args) {
   # The argument matched to that formal need not be the first written:
   # `plot(main = "Sine", sin, -pi, pi)` reaches `plot.function()`. Read from
   # the first slot, the method was `plot.default()`, whose formals then
-  # named `pi` the `type`.
+  # named `pi` the `type`. When no argument is matched to it, UseMethod()
+  # dispatches on the first argument written, so
+  # `plot(formula = mpg ~ wt, data = mtcars)` reaches `plot.formula()`.
   matched <- matched_arg_formals(function_name, definition, args)
-  at <- if (is.null(matched)) 1L else match(names(formals(definition))[1L], matched)
-  first <- if (is.na(at)) NULL else tryCatch(args[[at]], error = function(e) NULL)
+  at <- if (is.null(matched)) NA_integer_ else match(names(formals(definition))[1L], matched)
+  if (is.na(at)) {
+    at <- 1L
+  }
+  first <- tryCatch(args[[at]], error = function(e) NULL)
   candidates <- c(class(first), "default")
   for (cls in candidates) {
     method <- tryCatch(
