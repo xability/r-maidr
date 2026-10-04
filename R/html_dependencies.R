@@ -124,6 +124,9 @@ maidr_head_dependency <- function(name, head) {
 #' * `maidr.js` is loaded with `defer`. In the iframes a document used before,
 #'   the bundle never held up the page around them; in the page's `<head>`,
 #'   1.9 MB of script would hold up its first paint until it had loaded.
+#'   That holds for a page that links the bundle from its `_files` folder: a
+#'   self-contained page (`self_contained`, `embed-resources`) has the
+#'   bundle inlined in its `<head>`, where `defer` does nothing.
 #' * `maidr-math.css`, which `maidr.js` fetches from beside itself, is declared
 #'   as an attachment, so every renderer copies it with the bundle: bookdown
 #'   copies only the files a page references, and left a book's charts with

@@ -1,7 +1,8 @@
 #' Enable MAIDR Plot Interception
 #'
-#' Turns on the accessible rendering of ggplot2, lattice and Base R plots,
-#' and installs the knitr hooks that an R Markdown or Quarto document needs.
+#' Turns on the accessible rendering of ggplot2, lattice and Base R plots.
+#' It is on after `library(maidr)`: `maidr_on()` is needed only to turn it
+#' back on after [maidr_off()].
 #'
 #' Interception is on by default after `library(maidr)`: printing a ggplot2
 #' or lattice object opens it in the MAIDR viewer, and Base R plotting calls
@@ -10,11 +11,14 @@
 #' namespace is loaded; a print function set before is kept, and draws the
 #' prints maidr leaves to lattice.
 #'
-#' In an R Markdown or Quarto document, `library(maidr)` is enough: the
-#' first plot the document draws installs the knitr hooks that make every
-#' plot of it an accessible chart, in each render of a session. Calling
-#' `maidr_on()` yourself is needed after [maidr_off()], to start again; in a
-#' document, it installs the hooks at once.
+#' In an R Markdown or Quarto document, `library(maidr)` is enough: loading
+#' maidr during the knit, or else the first chart the document draws,
+#' installs the knitr hooks that make every plot of it an accessible chart,
+#' in each render of a session. So any document rendered in a session where
+#' maidr is loaded, even only its namespace (as a package that imports maidr
+#' loads it), gets charts, whether or not it loads maidr itself;
+#' `options(maidr.auto_show = FALSE)` before the render prevents that. In a
+#' document, `maidr_on()` installs the hooks at once.
 #'
 #' In HTML output the charts are part of the page, which loads maidr.js once
 #' for all of them, and the static figures of a chunk are recorded with
@@ -25,8 +29,16 @@
 #' image. HTML that cannot hold a chart in the page, such as an HTML
 #' fragment or pagedown, shows each chart in a frame of its own. In PDF,
 #' Word, Markdown, EPUB or xaringan output the plots are knitr's figures, as
-#' without maidr. A chart a document draws never opens the viewer; an explicit
-#' [show()] still does.
+#' without maidr. A chart a document returns or prints never opens the
+#' viewer; an explicit [show()] still does, during the render, and puts
+#' nothing in the page.
+#'
+#' A chart is drawn at maidr's own size and shrinks to the page: `out.width`
+#' sizes it, and `fig.width`, `fig.height`, `fig.asp` and `dpi` are not
+#' read. Its caption, in R Markdown and bookdown, is plain text: Markdown,
+#' maths and `\@ref()` in `fig.cap` are shown as written, and a bookdown text
+#' reference (`fig.cap = "(ref:label)"`) brings them in. `fig.show =
+#' "animate"` stays knitr's animation.
 #'
 #' A chunk cached with `cache = TRUE` brings its charts back from knitr's
 #' cache. One cached with `cache = 1` or `cache = 2` shows them only when its
@@ -41,7 +53,7 @@
 #' # Enable interception (on by default after library(maidr))
 #' maidr_on()
 #'
-#' # Now all plots render as accessible MAIDR widgets
+#' # Now all plots render as accessible MAIDR charts
 #' library(ggplot2)
 #' ggplot(mtcars, aes(x = factor(cyl))) +
 #'   geom_bar()
@@ -112,6 +124,12 @@ maidr_on <- function() {
 #' back to what it was before maidr set it. In an R Markdown or Quarto
 #' document, the chunks after it are knitted as they would be without maidr,
 #' and maidr's knitr hooks are taken out until [maidr_on()].
+#'
+#' It lasts for the R session, not only the document that calls it: the
+#' documents rendered after it in the same session -- the later vignettes of
+#' `R CMD build`, which renders them all in one process -- and the console
+#' stay off too. A document that turns maidr off should end with
+#' `maidr_on()`.
 #'
 #' @return Invisible TRUE on success
 #' @seealso [maidr_on()] to enable MAIDR rendering

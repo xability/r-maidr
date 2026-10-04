@@ -163,21 +163,45 @@ ggplot(mtcars, aes(factor(cyl))) + geom_bar()
   `fig.cap`, `fig.alt`, bookdown's `\@ref(fig:label)` and Quarto's `@fig-`
   references work as they do for images. A figure that is not one chart
   maidr can read, such as a grid drawing or a chart something else was drawn
-  over, stays knitr's image.
+  over, stays knitr's image. In R Markdown and bookdown a chart's caption is
+  plain text: Markdown, maths and `\@ref()` inside `fig.cap` are shown as
+  written. A bookdown text reference, `fig.cap = "(ref:label)"`, brings
+  them in, as Quarto does for the caption of a chart in a `fig-` chunk,
+  which it writes itself.
+- **Size, cache and animations.** Charts are drawn at maidr's own size and
+  shrink to the page; size one with `out.width`, since `fig.width`,
+  `fig.height`, `fig.asp` and `dpi` are not read. A chunk cached with
+  `cache = TRUE` brings its charts back; one cached with `cache = 1` or
+  `cache = 2` shows knitr's static figures when it is rendered again from
+  the cache. `fig.show = "animate"` stays knitr's animation.
 - **Static figures are SVG.** In HTML output maidr records a chunk's
   figures with svglite instead of knitr's default png, so the ones that stay
   images are vector images too. A device a chunk names (`dev = "png"`), a
-  document device other than png, and the device of a cached chunk are
-  kept. To keep png for every chunk, set `options(maidr.knitr_dev = FALSE)`
+  document device other than png, and the device of a cached chunk, of an
+  animation and of a chunk that crops its figures or uses `fig.process`
+  are kept. To keep png for every chunk, set `options(maidr.knitr_dev = FALSE)`
   before rendering or in the setup chunk.
 - **Other outputs.** In PDF, Word, Markdown (`github_document`), EPUB and
   xaringan output, plots are knitr's figures, as without maidr. HTML that
   cannot hold a chart in the page, such as an HTML fragment or pagedown,
-  keeps each chart in an iframe of its own. A chart a document draws never opens the viewer.
+  keeps each chart in an iframe of its own.
+- **Return or print a chart; do not `show()` it.** A chart a document
+  returns or prints never opens the viewer. `show()` still does: in a
+  document it opens a browser during the render and puts nothing in the
+  page.
 - **Turning it off.** `maidr_off()` in a chunk knits the chunks after it as
   they would be without maidr, and `maidr_on()` turns maidr back on.
-  Documents that call `maidr_on()` in their setup chunk keep working; the
-  call is no longer needed there.
+  `maidr_off()` lasts for the R session, not only the document: a later
+  document rendered in the same session, such as a later vignette of
+  `R CMD build`, stays off too, so a document that turns maidr off should
+  end with `maidr_on()`. Documents that call `maidr_on()` in their setup
+  chunk keep working; the call is no longer needed there.
+- **A session with maidr loaded.** Any document rendered in an R session
+  where maidr is loaded -- by `library(maidr)` at the console, or by
+  loading its namespace alone, as a package that imports maidr does -- gets
+  charts and svglite figures, whether or not it loads maidr itself.
+  `options(maidr.auto_show = FALSE)` before the render prevents that, and
+  `options(maidr.knitr_dev = FALSE)` keeps png figures.
 
 ## How maidr hooks into your session
 

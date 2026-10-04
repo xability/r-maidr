@@ -12,8 +12,13 @@
   second `rmarkdown::render()`, and `R CMD build`, which renders every
   vignette in one process, get charts too. `maidr_on()` still works, and
   `maidr_off()` in a chunk knits the chunks after it as they would be
-  without maidr. maidr's startup message is no longer written into a
-  document.
+  without maidr; it lasts for the R session, so a document that turns
+  maidr off, and every document rendered after it in the session, stays
+  off until `maidr_on()`. A document rendered in a session where maidr is
+  loaded, even only its namespace, as by a package that imports it, gets
+  charts whether or not it loads maidr itself; `options(maidr.auto_show =
+  FALSE)` prevents that. maidr's startup message is no longer written into
+  a document.
 * In HTML output a chart is now part of the page, an `<svg>` in a raw HTML
   block, where it used to be an iframe that loaded maidr.js for itself. The
   page loads maidr.js once however many charts it has, from its `_files`
@@ -24,17 +29,24 @@
   and the formats built on it, 'bookdown', Quarto (HTML, reveal.js,
   dashboards and websites), 'revealjs', ioslides, slidy and
   'flexdashboard'. Before maidr.js has loaded, and if it never does, a chart
-  is an image named by `fig.alt`, `fig.cap` or its title; once it has,
-  `fig.alt` and the caption describe it. An HTML fragment, 'pagedown' and
-  `.Rhtml` keep each chart in an iframe of its own, as does a chart that
-  cannot be shown inline, with a warning. In EPUB and 'xaringan' output, as
-  in PDF, Word and Markdown, the plots are knitr's figures, where a
-  document that called `maidr_on()` used to stop with an error (EPUB) or
-  show each chart's iframe as text on its slide ('xaringan').
+  is an image named by `fig.alt`, `fig.cap`, its title or its kind; once it
+  has, `fig.alt` and the caption describe it. maidr's help, settings and
+  chat open in the page at their own size, on a Bootstrap 3 page
+  (`html_document`'s default theme) as on any other, and within the window
+  in a reveal.js deck. Once a page shows a maidr chart, maidr.js also reads
+  the plain 'plotly' widgets on it, which become maidr charts with a tab
+  stop of their own, as they did on a page holding a `maidr_htmlwidget()`.
+  An HTML fragment, 'pagedown' and `.Rhtml` keep each chart in an iframe of
+  its own, as does a chart that cannot be shown inline, with a warning. In
+  EPUB and 'xaringan' output, as in PDF, Word and Markdown, the plots are
+  knitr's figures, where a document that called `maidr_on()` used to stop
+  with an error (EPUB) or show each chart's iframe as text on its slide
+  ('xaringan').
 * In HTML output 'knitr' records a chunk's figures with 'svglite' instead of
   its default png, so the figures that stay images are vector images too.
   Only the default is replaced: a device a chunk names, a document device
-  other than png and the device of a cached chunk are kept.
+  other than png, and the device of a cached chunk, of an animation and of
+  a chunk that crops its figures or hands them to `fig.process` are kept.
   `options(maidr.knitr_dev = FALSE)` keeps png for every chunk, for a
   document whose `dev: png` is a choice, which cannot be told from the
   default; see `?"maidr-options"`. A 'flexdashboard' gets SVG figures too,
@@ -52,7 +64,12 @@
   one page, a chart something was drawn over, a grid drawing, a chart type
   maidr does not read -- stays knitr's image rather than risk showing the
   wrong chart. A chunk cached with `cache = TRUE` brings its charts back;
-  one cached with `cache = 1` or `cache = 2` brings back static figures.
+  one cached with `cache = 1` or `cache = 2` brings back static figures,
+  and `fig.show = "animate"` stays knitr's animation. A chart is drawn at
+  maidr's own size, which `out.width` changes and `fig.width` and
+  `fig.height` do not. In R Markdown and bookdown a chart's caption is
+  plain text, Markdown, maths and `\@ref()` in it shown as written; a
+  bookdown text reference, `fig.cap = "(ref:label)"`, brings them in.
 * The keys of the page around a chart no longer act while the chart has the
   focus. A chart in a frame had its keys to itself; inline, the arrow keys,
   Space and the other shortcuts of a reveal.js deck, the gitbook format of
@@ -68,10 +85,10 @@
 * Charts drawn by 'lattice' are now read (#333). `show()`, `save_html()`,
   `show(as_widget = TRUE)`, `render_maidr()` in Shiny, and R Markdown and
   Quarto take a trellis object, and printing one at the console opens it in
-  the maidr viewer, as printing a ggplot2 object does. Every lattice reading is experimental: none has been
-  through a user study, and each may change without a deprecation period.
-  'lattice' is now in Suggests, as is 'latticeExtra', which only the tests
-  use.
+  the maidr viewer, as printing a ggplot2 object does. Every lattice
+  reading is experimental: none has been through a user study, and each may
+  change without a deprecation period. 'lattice' is now in Suggests, as is
+  'latticeExtra', which only the tests use.
 * `barchart()` is emitted as a `bar` layer, as `dodged_bar` with `groups`,
   and as `stacked_bar` with `stack = TRUE`, the default for a table or a
   matrix; `histogram()` as `hist`; `bwplot()` as `box`; `levelplot()` as
@@ -125,8 +142,8 @@
   that shares its page with other charts (`split`, `position`,
   `more = TRUE`, `newpage = FALSE`, given to `print()` or carried in the
   chart's `plot.args`), a print into a file device such as
-  `pdf()` or `png()`, a print while knitting or inside Shiny, and
-  `plot(p)` are drawn by lattice as before. A chart lattice draws at the
+  `pdf()` or `png()`, a print inside Shiny, and `plot(p)` are drawn by
+  lattice as before. A chart lattice draws at the
   console while a Base R chart waits for `show()` goes on a screen, with
   the theme set by `trellis.par.set()`, not onto the hidden device maidr
   records that chart on. In R Markdown and Quarto a chart the chunk returns

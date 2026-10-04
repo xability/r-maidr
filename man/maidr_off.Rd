@@ -18,6 +18,13 @@ back to what it was before maidr set it. In an R Markdown or Quarto
 document, the chunks after it are knitted as they would be without maidr,
 and maidr's knitr hooks are taken out until \code{\link[=maidr_on]{maidr_on()}}.
 }
+\details{
+It lasts for the R session, not only the document that calls it: the
+documents rendered after it in the same session -- the later vignettes of
+\verb{R CMD build}, which renders them all in one process -- and the console
+stay off too. A document that turns maidr off should end with
+\code{maidr_on()}.
+}
 \seealso{
 \code{\link[=maidr_on]{maidr_on()}} to enable MAIDR rendering
 }

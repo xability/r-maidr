@@ -102,7 +102,9 @@
 #' \itemize{
 #'   \item \strong{RStudio}: Direct display in the Viewer pane
 #'   \item \strong{R Markdown/Quarto}: \code{library(maidr)} in the document
-#'     makes its plots accessible charts, inline in an HTML page
+#'     makes its plots accessible charts, inline in an HTML page; so does
+#'     rendering it in a session where maidr is loaded, even only its
+#'     namespace
 #'   \item \strong{Shiny}: Interactive plots in Shiny apps via \code{render_maidr()}
 #'   \item \strong{Standalone HTML}: Export plots for sharing with \code{save_html()}
 #' }

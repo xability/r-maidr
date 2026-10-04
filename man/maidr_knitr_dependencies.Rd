@@ -21,6 +21,9 @@ copy, the bundle's own changed in two ways, and one more:
 \item \code{maidr.js} is loaded with \code{defer}. In the iframes a document used before,
 the bundle never held up the page around them; in the page's \verb{<head>},
 1.9 MB of script would hold up its first paint until it had loaded.
+That holds for a page that links the bundle from its \verb{_files} folder: a
+self-contained page (\code{self_contained}, \code{embed-resources}) has the
+bundle inlined in its \verb{<head>}, where \code{defer} does nothing.
 \item \code{maidr-math.css}, which \code{maidr.js} fetches from beside itself, is declared
 as an attachment, so every renderer copies it with the bundle: bookdown
 copies only the files a page references, and left a book's charts with

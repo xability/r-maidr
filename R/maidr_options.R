@@ -7,11 +7,16 @@
 #'   \item{\code{maidr.auto_show}}{Logical. Master switch for all MAIDR interception.
 #'     When FALSE, all plotting functions behave as standard R. Default: TRUE.}
 #'   \item{\code{maidr.base_r}}{Logical. Enable Base R plot interception.
-#'     When TRUE, Base R plots are captured and displayed in the MAIDR viewer.
-#'     Default: TRUE.}
+#'     When TRUE, Base R plots are captured and displayed in the MAIDR viewer,
+#'     and the ones an R Markdown or Quarto document draws are accessible
+#'     charts; when FALSE, a document's Base R plots are knitr's static
+#'     figures (svglite in HTML). Default: TRUE.}
 #'   \item{\code{maidr.ggplot2}}{Logical. Enable ggplot2 auto-display.
 #'     When TRUE, ggplot2 objects are automatically rendered in the MAIDR viewer
-#'     instead of the standard graphics device. Default: TRUE.}
+#'     instead of the standard graphics device, and the ones an R Markdown or
+#'     Quarto document draws are accessible charts; when FALSE, a document's
+#'     ggplot2 plots are knitr's static figures (svglite in HTML).
+#'     Default: TRUE.}
 #'   \item{\code{maidr.lattice}}{Logical. Enable lattice auto-display. When
 #'     TRUE, a lattice (trellis) object printed at the console to the screen
 #'     is rendered in the MAIDR viewer, and the ones an R Markdown or Quarto
@@ -27,7 +32,9 @@
 #'     vector images like its charts. Only that default is replaced: a device
 #'     a chunk names (\code{dev = "png"} in its header or a \code{#|} line)
 #'     is kept, as is a document device other than \code{png}, the device of
-#'     a cached chunk, and that of a chunk in another language than R. The
+#'     a cached chunk, of an animation (\code{fig.show = "animate"}) and of a
+#'     chunk that crops its figures or hands them to \code{fig.process}, and
+#'     that of a chunk in another language than R. The
 #'     switch starts with the chunk after the one that installs maidr into
 #'     the document: the chunk that loads maidr, or, in a session that loaded
 #'     it before the render, the first one that draws a chart or calls

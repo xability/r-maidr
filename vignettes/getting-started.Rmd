@@ -122,8 +122,10 @@ show()
   in a loop, and each Base R chart, several to a chunk if need be. In HTML
   output the charts are part of the page, which loads maidr.js once, and
   the figures that stay images are recorded with svglite rather than png
-  (`options(maidr.knitr_dev = FALSE)` keeps png). In PDF, Word and Markdown
-  output the plots are knitr's figures, as without maidr. `maidr_on()` in
+  (`options(maidr.knitr_dev = FALSE)` keeps png). In PDF, Word, Markdown,
+  EPUB and xaringan output the plots are knitr's figures, as without maidr.
+  Return a chart from a chunk or `print()` it: `show()` in a document opens
+  a browser during the render and puts nothing in the page. `maidr_on()` in
   the setup chunk is no longer needed, and still works.
 - **Shiny.** Put `maidr_output()` in the UI and `render_maidr()` in the
   server, with its expression returning the ggplot2 or lattice chart rather
@@ -419,8 +421,7 @@ them back, which left the chart on the *current* slide unreachable as well.
 
 With the extension enabled, each slide gives one **Tab** to its own chart and
 **Shift+Tab** back out. The extension also adds a skip link ahead of the
-slides, so Shift+Tab lands there rather than on the slide element itself;
-either way **Space** still moves to the next slide.
+slides. Either way **Space** still moves to the next slide.
 
 ## Supported Plot Types
 
