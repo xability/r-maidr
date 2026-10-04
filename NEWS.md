@@ -15,8 +15,8 @@
 * In R Markdown and Quarto a chart is drawn at its chunk's `fig.width` and
   `fig.height`, so `fig.asp`, `fig.dim`, YAML `fig_width` and `fig_height`
   and Quarto's `fig-width` and `fig-height` set it too. `html_document`
-  and Quarto's HTML draw figures at 7 x 5 in, so their documents are
-  unchanged. A format with a figure size of its own now draws its charts
+  and Quarto's HTML draw figures at 7 x 5 in, so their charts keep the size
+  they had. A format with a figure size of its own now draws its charts
   at it: `html_vignette` at 3 x 3 in, where a Base R chart shows fewer tick
   labels, ioslides at 7.5 x 4.5 in, slidy at 8 x 6 in (#PR).
 * A candlestick chart is still never drawn smaller than 12 x 6 in, and a

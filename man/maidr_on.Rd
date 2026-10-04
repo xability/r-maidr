@@ -74,6 +74,11 @@ document (see \code{\link[=show]{show()}}), and a message on the console names t
 Too small for a size its chunk sets of its own, it stays knitr's picture,
 with a warning naming the size.
 
+Whether a chunk set its size is read from the size, not from where it
+was set: a chunk that sets the document's own, \code{fig.width = 7} and
+\code{fig.height = 5} in \code{html_document}, is taken to set none, for a
+candlestick chart and a Base R chart alike.
+
 The size is the room the chart is laid out in, not what a reader hears:
 its data, titles and axes are the same at every size, though a lattice
 chart conditioned on one variable with no \verb{layout =} arranges its panels,
