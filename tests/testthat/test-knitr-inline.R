@@ -633,7 +633,9 @@ test_that("knitr's default png becomes svglite in HTML, and every other choice i
     "```{r pipe}", "#| dev: png", draw, "```",
     "```{r template, opts.label = 'maidr_png'}", draw, "```",
     "```{r cached, cache = TRUE}", draw, "```",
-    "```{r cairo, dev.args = list(type = 'cairo')}", draw, "```",
+    # A png argument svglite has no formal for; `antialias`, unlike
+    # `type = "cairo"`, opens a png on every platform's runner.
+    "```{r args, dev.args = list(antialias = 'none')}", draw, "```",
     "```{r ext, fig.ext = 'png'}", draw, "```",
     "```{r animate, fig.show = 'animate', animation.hook = function(x, options) ''}",
     "for (i in 1:2) barplot(c(a = i, b = 2))", "```",
@@ -646,13 +648,13 @@ test_that("knitr's default png becomes svglite in HTML, and every other choice i
   testthat::expect_identical(
     figure_types(dir)[
       c(
-        "default", "header", "pipe", "template", "cached", "cairo", "ext", "animate",
+        "default", "header", "pipe", "template", "cached", "args", "ext", "animate",
         "process", "document"
       )
     ],
     c(
       default = "svg", header = "png", pipe = "png", template = "png",
-      cached = "png", cairo = "png", ext = "png", animate = "png", process = "png",
+      cached = "png", args = "png", ext = "png", animate = "png", process = "png",
       document = "jpeg"
     )
   )
