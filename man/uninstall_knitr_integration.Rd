@@ -10,11 +10,11 @@ uninstall_knitr_integration()
 NULL (invisible)
 }
 \description{
-Called by \code{\link[=maidr_off]{maidr_off()}}. Puts back each hook maidr installed over, and
-removes the marker, so a later \code{\link[=maidr_on]{maidr_on()}} in the same document installs
-them again. A hook of the document's own set over maidr's is left alone;
-maidr's hook under it acts as the one it replaced once interception is
-off. Outside a knit it removes what a plain \code{knitr::knit()} left behind,
-which, unlike \code{rmarkdown::render()}, does not put the option hooks back.
+Called by \code{\link[=maidr_off]{maidr_off()}}, and by maidr's \code{document} hook once the knit is
+done. Puts back each hook maidr installed over, and removes the marker,
+so a later \code{\link[=maidr_on]{maidr_on()}} in the same document installs them again. A hook
+of the document's own set over maidr's is left alone; maidr's hook under
+it acts as the one it replaced once interception is off. Outside a knit
+it removes what a knit that stopped with an error left behind.
 }
 \keyword{internal}

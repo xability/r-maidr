@@ -357,10 +357,14 @@ announce_masking <- function(package) {
   # function from a namespace that is gone.
   tryCatch(restore_lattice_print_method(), error = function(e) NULL)
 
-  # And R and grid would count pages, and markers report them, into it.
+  # And R and grid would count pages, and markers report them, into it, and
+  # a knit that stopped with an error would keep maidr's knitr hooks.
   tryCatch(remove_knit_page_hooks(), error = function(e) NULL)
   if (identical(getOption("maidr.knit.replayed"), knit_page_replayed)) {
     options(maidr.knit.replayed = NULL)
+  }
+  if (isNamespaceLoaded("knitr")) {
+    tryCatch(uninstall_knitr_integration(), error = function(e) NULL)
   }
 }
 

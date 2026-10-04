@@ -20,11 +20,14 @@
 #   in place of knitr's default png, so its static figures are vector images;
 # * a chunk hook, which declares the page dependencies of the charts a
 #   chunk shows, where knitr's cache keeps them;
+# * a `document` hook, which takes all of this out again once the knit is
+#   done, with what its chunks recorded, so none of it reaches the session's
+#   own plots;
 # * R's and grid's new-page hooks, which count the pages the knit draws, and
 #   the `maidr.knit.replayed` option, through which a chart's marker reports
 #   that its page was replayed.
 # Each knitr hook wraps the hook it replaces, which it calls first or falls
-# back on, and `maidr_off()` puts that hook back.
+# back on, and `maidr_off()` and the end of the knit put that hook back.
 
 #' Whether knitr is knitting a document now
 #'
@@ -59,7 +62,8 @@ ensure_knitr_integration <- function() {
   installed <- isTRUE(knitr::opts_knit$get("maidr.integrated")) &&
     is_maidr_knitr_hook(knitr::knit_hooks$get("plot")) &&
     is_maidr_knitr_hook(knitr::knit_hooks$get("chunk")) &&
-    is_maidr_knitr_hook(knitr::knit_hooks$get("evaluate"))
+    is_maidr_knitr_hook(knitr::knit_hooks$get("evaluate")) &&
+    is_maidr_knitr_hook(knitr::knit_hooks$get("document"))
   if (!installed) {
     install_knitr_integration()
   }
@@ -105,6 +109,10 @@ install_knitr_integration <- function() {
   if (!is_maidr_knitr_hook(evaluate)) {
     knitr::knit_hooks$set(evaluate = maidr_knitr_evaluate_hook(evaluate))
   }
+  document <- knitr::knit_hooks$get("document")
+  if (!is_maidr_knitr_hook(document)) {
+    knitr::knit_hooks$set(document = maidr_knitr_document_hook(document))
+  }
   set_knit_page_hooks()
   options(maidr.knit.replayed = knit_page_replayed)
 
@@ -119,12 +127,12 @@ install_knitr_integration <- function() {
 
 #' Take maidr's knitr integration out of the running knit
 #'
-#' Called by [maidr_off()]. Puts back each hook maidr installed over, and
-#' removes the marker, so a later [maidr_on()] in the same document installs
-#' them again. A hook of the document's own set over maidr's is left alone;
-#' maidr's hook under it acts as the one it replaced once interception is
-#' off. Outside a knit it removes what a plain `knitr::knit()` left behind,
-#' which, unlike `rmarkdown::render()`, does not put the option hooks back.
+#' Called by [maidr_off()], and by maidr's `document` hook once the knit is
+#' done. Puts back each hook maidr installed over, and removes the marker,
+#' so a later [maidr_on()] in the same document installs them again. A hook
+#' of the document's own set over maidr's is left alone; maidr's hook under
+#' it acts as the one it replaced once interception is off. Outside a knit
+#' it removes what a knit that stopped with an error left behind.
 #'
 #' @return NULL (invisible)
 #' @keywords internal
@@ -132,7 +140,7 @@ uninstall_knitr_integration <- function() {
   if (!isNamespaceLoaded("knitr")) {
     return(invisible(NULL))
   }
-  for (name in c("plot", "chunk", "evaluate")) {
+  for (name in c("plot", "chunk", "evaluate", "document")) {
     hook <- knitr::knit_hooks$get(name)
     if (is_maidr_knitr_hook(hook)) {
       previous <- list(attr(hook, "previous"))
@@ -466,4 +474,48 @@ maidr_knitr_evaluate_hook <- function(previous) {
     evaluate(...)
   }
   mark_maidr_knitr_hook(hook, previous)
+}
+
+#' maidr's knitr `document` hook, over the hook it replaces
+#'
+#' knitr calls it once a document's chunks have all run, and their devices
+#' have closed. At the end of the knit the session started -- not of a child
+#' document, nor of one rendered from inside another's chunk, whose knit goes
+#' on -- it takes maidr's integration out (`uninstall_knitr_integration()`)
+#' and drops what the knit's chunks recorded (`drop_stale_device_storage()`):
+#' the last chunk's Base R calls would otherwise be kept under its device's
+#' number, which the next device the session opens is given, and read into
+#' that device's chart. The next render installs maidr again from its first
+#' chart, as a second render in a session always has.
+#'
+#' @param previous The `document` hook in place before
+#' @return A `document` hook
+#' @keywords internal
+maidr_knitr_document_hook <- function(previous) {
+  force(previous)
+  hook <- function(x) {
+    if (is.function(previous)) {
+      x <- previous(x)
+    }
+    if (knit_depth() <= 1L) {
+      uninstall_knitr_integration()
+      drop_stale_device_storage()
+    }
+    x
+  }
+  mark_maidr_knitr_hook(hook, previous)
+}
+
+#' How many knits are running, one inside another
+#'
+#' A child document and a document rendered from inside a chunk each run
+#' in a `knitr::knit()` of their own.
+#'
+#' @return Integer
+#' @keywords internal
+#' @noRd
+knit_depth <- function() {
+  knit <- knitr::knit
+  frames <- seq_len(sys.nframe())
+  sum(vapply(frames, function(i) identical(sys.function(i), knit), logical(1)))
 }

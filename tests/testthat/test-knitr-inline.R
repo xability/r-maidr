@@ -503,15 +503,20 @@ test_that("maidr installs into a knit over the hooks it finds, and maidr_off() p
   testthat::expect_match(page, "ON TRUE", fixed = TRUE)
 })
 
-test_that("the dev hook a plain knit() leaves behind does nothing in a later knit", {
+test_that("a knit takes its hooks out, and one left by a failed knit does nothing later", {
   local_knitr_state()
   dir <- withr::local_tempdir("maidr-knit-")
+  knitr::opts_hooks$delete("dev")
   knit_for(c("```{r}", "1", "```"), dir)
-  # knit() puts back opts_knit, but not the option hooks.
-  testthat::expect_true(maidr:::is_maidr_knitr_hook(knitr::opts_hooks$get("dev")))
+  # knit() puts back opts_knit, but not the option hooks: maidr's document
+  # hook does.
+  testthat::expect_null(knitr::opts_hooks$get("dev"))
   testthat::expect_null(knitr::opts_knit$get("maidr.integrated"))
+  testthat::expect_false(maidr:::is_maidr_knitr_hook(knitr::knit_hooks$get("document")))
 
-  # A later knit of HTML that maidr is never installed into keeps its png.
+  # A knit that stops with an error leaves its dev hook behind. A later knit
+  # of HTML that maidr is never installed into keeps its png all the same.
+  knitr::opts_hooks$set(dev = maidr:::maidr_knitr_dev_hook(NULL))
   hooks <- knitr::knit_hooks$get()
   knitr::knit_hooks$restore()
   withr::defer(knitr::knit_hooks$restore(hooks))
@@ -1070,6 +1075,62 @@ test_that("a chart left on the session's device before a render is no chunk's ch
   # The document's one chart, the circle as its own figure, and the console
   # chart left to the session.
   testthat::expect_true("RESULT 1 0 1 TRUE " %in% out, info = log)
+})
+
+test_that("a render leaves nothing of its knit to the session's own charts", {
+  testthat::skip_on_cran()
+  skip_if_no_render()
+  testthat::skip_if_not_installed("rmarkdown")
+  testthat::skip_if_not(rmarkdown::pandoc_available("2.0"), "pandoc is not available")
+  dir <- withr::local_tempdir("maidr-after-")
+
+  document <- function(last) {
+    c(
+      "---", "title: after", "output:", "  html_document:", "    self_contained: false", "---",
+      "```{r}", "library(maidr)", "maidr_on()", "```",
+      "```{r last}", last, "```"
+    )
+  }
+  writeLines(document("barplot(c(knitA = 1, knitB = 2))"), file.path(dir, "done.Rmd"))
+  writeLines(document(c("barplot(c(knitC = 1))", "stop('halt')")), file.path(dir, "failed.Rmd"))
+  script <- file.path(dir, "render.R")
+  writeLines(c(
+    sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+    sprintf("setwd(%s)", deparse(dir)),
+    maidr_loader(),
+    "console <- function(name) {",
+    "  barplot(c(consoleX = 5))",
+    "  calls <- maidr:::get_device_calls()",
+    "  labels <- vapply(calls, function(e) paste(names(e$args[[1]]), collapse = '+'), '')",
+    "  cat('RESULT', name, paste(labels, collapse = ','), '\\n')",
+    "  grDevices::graphics.off()",
+    "}",
+    "rmarkdown::render('done.Rmd', quiet = TRUE)",
+    "cat('HOOKS', length(getHook('before.plot.new')), length(getHook('before.grid.newpage')),",
+    "  is.null(getOption('maidr.knit.replayed')), '\\n')",
+    "console('done')",
+    "try(rmarkdown::render('failed.Rmd', quiet = TRUE), silent = TRUE)",
+    "console('failed')",
+    "knitr::knit('done.Rmd', output = 'done.md', quiet = TRUE)",
+    "cat('KNIT', is.null(knitr::opts_hooks$get('dev')), length(getHook('before.plot.new')), '\\n')",
+    "console('knit')"
+  ), script)
+
+  out <- suppressWarnings(system2(
+    file.path(R.home("bin"), "Rscript"), script,
+    stdout = TRUE, stderr = TRUE, timeout = 300
+  ))
+  status <- attr(out, "status")
+  log <- paste(out, collapse = "\n")
+  testthat::expect_identical(if (is.null(status)) 0L else status, 0L, info = log)
+  # The console chart is the console's call alone, after a render, a render
+  # that stopped with an error, and a plain knit; and the hooks of the knit
+  # are gone with it.
+  testthat::expect_true("RESULT done consoleX " %in% out, info = log)
+  testthat::expect_true("RESULT failed consoleX " %in% out, info = log)
+  testthat::expect_true("RESULT knit consoleX " %in% out, info = log)
+  testthat::expect_true("HOOKS 0 0 TRUE " %in% out, info = log)
+  testthat::expect_true("KNIT TRUE 0 " %in% out, info = log)
 })
 
 test_that("Quarto shows the charts inline, captions them and resolves a reference to one", {

@@ -113,6 +113,10 @@ open_maidr_temp_device <- function() {
   # x-axis tick labels (month/year) to overlap on export.
   grDevices::pdf(temp_file, width = 7, height = 5)
   device_id <- grDevices::dev.cur()
+  # A device just opened has drawn nothing. What is kept under its number
+  # was recorded on a device that had it before, such as the last chunk of
+  # a knit that stopped with an error.
+  clear_device_storage(device_id)
 
   .maidr_patching_env$.temp_device_file <- temp_file
   .maidr_patching_env$.temp_device_id <- device_id
