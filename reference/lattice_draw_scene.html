@@ -51,7 +51,7 @@ and strips.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -117,7 +117,7 @@ and strips.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">lattice_draw_scene</span><span class="op">(</span><span class="va">plot</span>, prefix <span class="op">=</span> <span class="va">LATTICE_PREFIX</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">lattice_draw_scene</span><span class="op">(</span><span class="va">plot</span>, prefix <span class="op">=</span> <span class="va">LATTICE_PREFIX</span>, size <span class="op">=</span> <span class="va">MAIDR_CHART_SIZE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -130,6 +130,10 @@ and strips.</p>
 
 <dt id="arg-prefix">prefix<a class="anchor" aria-label="anchor" href="#arg-prefix"></a></dt>
 <dd><p>The grob-name prefix</p></dd>
+
+
+<dt id="arg-size">size<a class="anchor" aria-label="anchor" href="#arg-size"></a></dt>
+<dd><p>The chart's canvas, from <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -154,6 +158,11 @@ drawing, which no device shows: it is put back afterwards, so
 <code><a href="https://rdrr.io/pkg/lattice/man/interaction.html" class="external-link">trellis.focus()</a></code> and <code>print(more = TRUE)</code> carry on with the reader's own
 chart. A print the console hook opens the viewer for is the exception: it
 is the reader's own chart.</p>
+<p>The off-screen page is the size of the chart's canvas. lattice reads the
+page it draws on to lay a conditioned chart's panels out – with no
+<code>layout =</code>, a chart of one conditioning variable gets as many columns as
+the page's shape suits – so drawn on a page of another shape, the grob
+would keep that page's columns, squeezed or stretched onto the canvas.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

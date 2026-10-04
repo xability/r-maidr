@@ -10,6 +10,8 @@ the results into a comprehensive interactive plot.
 
 - [`Ggplot2PlotOrchestrator$new()`](#method-Ggplot2PlotOrchestrator-initialize)
 
+- [`Ggplot2PlotOrchestrator$canvas_size()`](#method-Ggplot2PlotOrchestrator-canvas_size)
+
 - [`Ggplot2PlotOrchestrator$detect_layers()`](#method-Ggplot2PlotOrchestrator-detect_layers)
 
 - [`Ggplot2PlotOrchestrator$skip_layers_that_drew_nothing()`](#method-Ggplot2PlotOrchestrator-skip_layers_that_drew_nothing)
@@ -64,13 +66,44 @@ Create an orchestrator for a ggplot2 object
 
 #### Usage
 
-    Ggplot2PlotOrchestrator$new(plot)
+    Ggplot2PlotOrchestrator$new(
+      plot,
+      width = NULL,
+      height = NULL,
+      asked = !is.null(width) || !is.null(height)
+    )
 
 #### Arguments
 
 - `plot`:
 
   The ggplot2 object
+
+- `width, height`:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- `asked`:
+
+  Whether that size was asked for, by default when either side is given;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+------------------------------------------------------------------------
+
+### `Ggplot2PlotOrchestrator$canvas_size()`
+
+The size the chart is drawn at
+
+#### Usage
+
+    Ggplot2PlotOrchestrator$canvas_size()
+
+#### Returns
+
+A named numeric vector, `width` and `height`, in inches
 
 ------------------------------------------------------------------------
 

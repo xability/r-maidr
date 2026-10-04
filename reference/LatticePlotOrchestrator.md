@@ -28,6 +28,8 @@ pages is read from its first.
 
 - [`LatticePlotOrchestrator$get_gtable()`](#method-LatticePlotOrchestrator-get_gtable)
 
+- [`LatticePlotOrchestrator$canvas_size()`](#method-LatticePlotOrchestrator-canvas_size)
+
 - [`LatticePlotOrchestrator$get_layout()`](#method-LatticePlotOrchestrator-get_layout)
 
 - [`LatticePlotOrchestrator$get_combined_data()`](#method-LatticePlotOrchestrator-get_combined_data)
@@ -52,13 +54,30 @@ Create an orchestrator for a trellis object
 
 #### Usage
 
-    LatticePlotOrchestrator$new(plot)
+    LatticePlotOrchestrator$new(
+      plot,
+      width = NULL,
+      height = NULL,
+      asked = !is.null(width) || !is.null(height)
+    )
 
 #### Arguments
 
 - `plot`:
 
   The trellis object
+
+- `width, height`:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- `asked`:
+
+  Whether that size was asked for, by default when either side is given;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
 
 ------------------------------------------------------------------------
 
@@ -173,6 +192,20 @@ The drawn chart
 #### Returns
 
 The grob the chart was drawn into, or NULL when it was not drawn
+
+------------------------------------------------------------------------
+
+### `LatticePlotOrchestrator$canvas_size()`
+
+The size the chart is drawn at
+
+#### Usage
+
+    LatticePlotOrchestrator$canvas_size()
+
+#### Returns
+
+A named numeric vector, `width` and `height`, in inches
 
 ------------------------------------------------------------------------
 

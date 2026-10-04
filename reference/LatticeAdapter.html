@@ -51,7 +51,7 @@ computed them while drawing (a density curve, a loess fit).">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -299,11 +299,24 @@ named by their level.</p><div class="section">
 <h3 id="latticeadapter-create-orchestrator-"><code>LatticeAdapter$create_orchestrator()</code><a class="anchor" aria-label="anchor" href="#latticeadapter-create-orchestrator-"></a></h3>
 <p>Create an orchestrator for a trellis object</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticeAdapter</span><span class="op">$</span><span class="fu">create_orchestrator</span><span class="op">(</span><span class="va">plot_object</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticeAdapter</span><span class="op">$</span><span class="fu">create_orchestrator</span><span class="op">(</span></span>
+<span>  <span class="va">plot_object</span>,</span>
+<span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  asked <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">width</span><span class="op">)</span> <span class="op">||</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot_object</code></dt>
 <dd><p>The trellis object</p></dd>
+
+      <dt><code>width, height</code></dt>
+<dd><p>The size to draw the chart at, in inches, or <code>NULL</code>
+for maidr's own; see <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
+
+      <dt><code>asked</code></dt>
+<dd><p>Whether that size was asked for, by default when either
+side is given; see <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
 
 
 </dl><p></p></div>

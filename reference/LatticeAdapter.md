@@ -226,13 +226,30 @@ Create an orchestrator for a trellis object
 
 #### Usage
 
-    LatticeAdapter$create_orchestrator(plot_object)
+    LatticeAdapter$create_orchestrator(
+      plot_object,
+      width = NULL,
+      height = NULL,
+      asked = !is.null(width) || !is.null(height)
+    )
 
 #### Arguments
 
 - `plot_object`:
 
   The trellis object
+
+- `width, height`:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- `asked`:
+
+  Whether that size was asked for, by default when either side is given;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
 
 #### Returns
 

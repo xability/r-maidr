@@ -283,13 +283,30 @@ Create an orchestrator for this system (Base R)
 
 #### Usage
 
-    BaseRAdapter$create_orchestrator(plot_object = NULL)
+    BaseRAdapter$create_orchestrator(
+      plot_object = NULL,
+      width = NULL,
+      height = NULL,
+      asked = !is.null(width) || !is.null(height)
+    )
 
 #### Arguments
 
 - `plot_object`:
 
   The plot object to process (NULL for Base R)
+
+- `width, height`:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- `asked`:
+
+  Whether that size was asked for, by default when either side is given;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
 
 #### Returns
 

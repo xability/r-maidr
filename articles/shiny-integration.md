@@ -336,6 +336,25 @@ maidr_output("plot1", height = "500px")
 maidr_output("plot2", height = "auto")
 ```
 
+[`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md)’s
+`width` and `height` size the output on the page. The chart in it is
+drawn at the size
+[`render_maidr()`](https://r.maidr.ai/reference/render_maidr.md) gives
+it, in inches: `fig_width` and `fig_height`, 7 x 5 unless you set them.
+A chart wider than its output shrinks to fit, keeping its shape; nothing
+sizes it to the output for you. The data a reader hears is the same at
+every size; [`?show`](https://r.maidr.ai/reference/show.md) says what
+the size does change.
+
+``` r
+
+output$wide_plot <- render_maidr(
+  ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point(),
+  fig_width = 10,
+  fig_height = 4
+)
+```
+
 ### 2. Add Descriptive Context
 
 ``` r

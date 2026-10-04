@@ -32,7 +32,7 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-03">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -92,7 +92,15 @@ visualization using the MAIDR (Multimodal Access and Interactive Data Representa
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">show</span><span class="op">(</span>plot <span class="op">=</span> <span class="cn">NULL</span>, use_cdn <span class="op">=</span> <span class="cn">NULL</span>, shiny <span class="op">=</span> <span class="cn">FALSE</span>, as_widget <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">show</span><span class="op">(</span></span>
+<span>  plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  use_cdn <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  shiny <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  as_widget <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -127,6 +135,15 @@ as the Shiny path does.</p></li>
 <dd><p>If TRUE, returns an htmlwidget object instead of opening in browser</p></dd>
 
 
+<dt id="arg-width-height">width, height<a class="anchor" aria-label="anchor" href="#arg-width-height"></a></dt>
+<dd><p>The size to draw the chart at, in inches: each a
+single positive number no larger than 50, or <code>NULL</code> (the default) for
+7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
+its default. With <code>as_widget = TRUE</code> they size the chart in the widget,
+not the widget, whose own CSS size is set on the widget returned:
+<code>widget$width &lt;- "300px"</code>. See <strong>Chart size</strong>.</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments passed to internal functions</p></dd>
 
@@ -153,6 +170,49 @@ same way, made accessible with <code><a href="maidr_htmlwidget.html">maidr_htmlw
 document carries the chart library, a few megabytes. Any other htmlwidget is
 refused, with the message <code><a href="maidr_htmlwidget.html">maidr_htmlwidget()</a></code> gives.</p>
     </div>
+    <div class="section level2">
+    <h2 id="chart-size">Chart size<a class="anchor" aria-label="anchor" href="#chart-size"></a></h2>
+
+
+<p>A chart is drawn at a size in inches, as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> and knitr's
+<code>fig.width</code> and <code>fig.height</code> size a figure, and its SVG is 72 pixels to
+the inch: a 10 x 4 in chart is 720 pixels wide and 288 high. The size is
+the room the chart is laid out in – how far apart its ticks and labels
+are, how lattice arranges its panels, where Base R puts its titles – and
+not what maidr reads out: the data, titles and axis labels a reader
+hears are the same at every size. Only how a reader moves between panels
+can change: lattice arranges the panels of a chart conditioned on one
+variable with no <code>layout =</code> for the shape of the page, 1 x 2 at 7 x 5 in
+and 2 x 1 at 5 x 8 in for two panels, and the subplot grid a reader
+moves through follows; give <code>layout =</code> to keep it. The size is set by
+<code>width</code> and <code>height</code> in <code>show()</code> and <code><a href="save_html.html">save_html()</a></code>, by <code>fig_width</code> and
+<code>fig_height</code> in
+<code><a href="render_maidr.html">render_maidr()</a></code>, and by the chunk's <code>fig.width</code> and <code>fig.height</code> in an
+R Markdown or Quarto document (see <code><a href="maidr_on.html">maidr_on()</a></code>). Nothing else sets it:
+not the size of the device a chart was drawn on, nor the size of the
+window, viewer or Shiny output it is shown in, which shrinks a chart
+wider than itself to fit.</p>
+<p>Unset, a chart is 7 x 5 in. A candlestick chart is 12 x 6 in, and is
+never drawn smaller than that: quantmod's <code><a href="base-r-wrappers.html">chartSeries()</a></code> needs the room
+for its title, date range and date labels. A smaller size asked for is
+enlarged, with a message naming the size the chart is drawn at. A side
+larger than 50 in is refused, as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> refuses one: the
+size is in inches, not the pixels <code><a href="maidr_output.html">maidr_output()</a></code> takes.</p>
+<p>A Base R chart's margins and text take the same room at every size, so
+a chart can be too small for them – R itself stops with "figure margins
+too large" at such a size. maidr draws the chart with the margins and
+text size its <code><a href="base-r-wrappers.html">par()</a></code> calls set, so it fits where R draws it with them.
+Asked for a size too small, maidr stops too, with an error naming the
+size, rather than show an empty chart: draw it larger. With no size
+asked for, a chart too small for 7 x 5 in, such as a <code>par(mfrow)</code> grid
+of five rows or more, is drawn on the 7 x 7 in page maidr laid every
+Base R chart out on before it drew one at its size. Where that is too
+small too, it is drawn on the smallest larger page that leaves each of
+its plots a sixth of an inch, 12 px, each way, each side grown in whole
+inches only as far as it needs: 7 x 9 in for six rows, 12 x 5 in for
+twelve columns. A message names the size it is drawn at. The picture of a
+Base R chart maidr cannot read is held to its size in the same way.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -162,6 +222,9 @@ refused, with the message <code><a href="maidr_htmlwidget.html">maidr_htmlwidget
 <span class="r-in"><span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="fu">maidr</span><span class="fu">::</span><span class="fu">show</span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># The same chart, 10 inches wide and 4 high</span></span></span>
+<span class="r-in"><span><span class="fu">maidr</span><span class="fu">::</span><span class="fu">show</span><span class="op">(</span><span class="va">p</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># ggplot2 violin plot</span></span></span>
@@ -182,7 +245,7 @@ refused, with the message <code><a href="maidr_htmlwidget.html">maidr_htmlwidget
 <span class="r-in"><span><span class="co"># Base R example (requires interactive session for function patching)</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="base-r-wrappers.html">barplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>, names.arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="fu">maidr</span><span class="fu">::</span><span class="fu">show</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu">maidr</span><span class="fu">::</span><span class="fu">show</span><span class="op">(</span>width <span class="op">=</span> <span class="fl">6</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

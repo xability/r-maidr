@@ -7,7 +7,13 @@ initialization.
 ## Usage
 
 ``` r
-render_maidr(expr, env = parent.frame(), quoted = FALSE)
+render_maidr(
+  expr,
+  env = parent.frame(),
+  quoted = FALSE,
+  fig_width = NULL,
+  fig_height = NULL
+)
 ```
 
 ## Arguments
@@ -31,6 +37,18 @@ render_maidr(expr, env = parent.frame(), quoted = FALSE)
 
   Is expr a quoted expression
 
+- fig_width, fig_height:
+
+  The size to draw the chart at, in inches, as `width` and `height` set
+  it in [`show()`](https://r.maidr.ai/reference/show.md): each a single
+  positive number no larger than 50, or `NULL` (the default) for 7 x 5
+  in, 12 x 6 in for a candlestick chart. They are not the size of the
+  output on the page, which
+  [`maidr_output()`](https://r.maidr.ai/reference/maidr_output.md)'s
+  `width` and `height` set: a chart wider than its output shrinks to fit
+  it. Nothing sizes the chart to its output; the size is the one given
+  here.
+
 ## Value
 
 A Shiny render function for use in server
@@ -46,6 +64,16 @@ if (interactive()) {
       ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
         geom_bar(stat = "identity")
     })
+
+    # Drawn 10 inches wide and 4 high
+    output$wide <- render_maidr(
+      {
+        ggplot(mtcars, aes(x = wt, y = mpg)) +
+          geom_point()
+      },
+      fig_width = 10,
+      fig_height = 4
+    )
   }
 }
 ```

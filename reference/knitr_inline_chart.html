@@ -36,7 +36,7 @@ lines around it, so pandoc reads it as a block of its own) inside a
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-03">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -155,8 +155,9 @@ Quarto as the figure it numbers and captions (<code>quarto_figure_float()</code>
 every other chart is captioned here.</p></li>
 <li><p><code>fig.align</code> aligns the chart, and an <code>out.width</code> the author sets (not
 the one knitr derives for a retina figure) sets the wrapper's width,
-which the chart shrinks to; <code>fig.width</code> and <code>fig.height</code> are not read,
-since maidr draws every chart at its own size. The charts in place of
+which the chart shrinks to. The chart itself was drawn at the chunk's
+<code>fig.width</code> and <code>fig.height</code> (<code>knitr_chart_size()</code>), which set the room
+it is laid out in, not the width it is shown at. The charts in place of
 figures <code>fig.show = "hold"</code> holds, at such a width and not aligned,
 sit side by side, as knitr's images do.</p></li>
 </ul><p>A figure's options hold its own caption and alt text alone; of several,

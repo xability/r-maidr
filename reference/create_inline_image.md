@@ -8,7 +8,12 @@ a chart knitr prints for a chunk stays knitr's own figure instead.
 ## Usage
 
 ``` r
-create_inline_image(plot = NULL, width = "100%", height = "auto")
+create_inline_image(
+  plot = NULL,
+  width = "100%",
+  height = "auto",
+  size = MAIDR_CHART_SIZE
+)
 ```
 
 ## Arguments
@@ -24,6 +29,13 @@ create_inline_image(plot = NULL, width = "100%", height = "auto")
 - height:
 
   Height for the image container
+
+- size:
+
+  The size to draw the image at, in inches: a named numeric vector,
+  `width` and `height`, as
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+  gives one
 
 ## Value
 

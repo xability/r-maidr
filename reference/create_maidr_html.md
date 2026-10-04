@@ -10,6 +10,8 @@ create_maidr_html(
   use_cdn = NULL,
   shiny = FALSE,
   orchestrator = NULL,
+  width = NULL,
+  height = NULL,
   ...
 )
 ```
@@ -32,11 +34,21 @@ create_maidr_html(
 
 - orchestrator:
 
-  Optional pre-created orchestrator to reuse (avoids double creation)
+  Optional pre-created orchestrator to reuse (avoids double creation).
+  The chart is drawn at the size it was created with, and `width` and
+  `height` are not read.
+
+- width, height:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md).
+  Checked by the caller.
 
 - ...:
 
-  Additional arguments passed to internal functions
+  Additional arguments passed to
+  [`create_fallback_html()`](https://r.maidr.ai/reference/create_fallback_html.md)
 
 ## Value
 

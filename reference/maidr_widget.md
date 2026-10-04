@@ -14,6 +14,8 @@ maidr_widget(
   width = NULL,
   height = NULL,
   element_id = NULL,
+  fig_width = NULL,
+  fig_height = NULL,
   ...
 )
 ```
@@ -60,6 +62,15 @@ maidr_widget(
 - element_id:
 
   A unique identifier for the widget (default: NULL for auto-generated)
+
+- fig_width, fig_height:
+
+  The size to draw the chart at, in inches, as `width` and `height` set
+  it in [`show()`](https://r.maidr.ai/reference/show.md): each a single
+  positive number no larger than 50, or `NULL` (the default) for 7 x 5
+  in, 12 x 6 in for a candlestick chart. Not the widget's size, which
+  `width` and `height` set; a chart wider than the widget shrinks to fit
+  it.
 
 - ...:
 

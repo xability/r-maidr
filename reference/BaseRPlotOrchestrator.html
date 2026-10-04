@@ -36,7 +36,7 @@ the results into a comprehensive interactive plot.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-04">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -118,6 +118,8 @@ the results into a comprehensive interactive plot.</p>
 <li><p><a href="#method-BaseRPlotOrchestrator-get_layers"><code>BaseRPlotOrchestrator$get_layers()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-get_plot_calls"><code>BaseRPlotOrchestrator$get_plot_calls()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-get_gtable"><code>BaseRPlotOrchestrator$get_gtable()</code></a></p></li>
+<li><p><a href="#method-BaseRPlotOrchestrator-canvas_size"><code>BaseRPlotOrchestrator$canvas_size()</code></a></p></li>
+<li><p><a href="#method-BaseRPlotOrchestrator-picture_size"><code>BaseRPlotOrchestrator$picture_size()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-get_grob_for_layer"><code>BaseRPlotOrchestrator$get_grob_for_layer()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-unsupported_layer_flags"><code>BaseRPlotOrchestrator$unsupported_layer_flags()</code></a></p></li>
 <li><p><a href="#method-BaseRPlotOrchestrator-has_unsupported_layers"><code>BaseRPlotOrchestrator$has_unsupported_layers()</code></a></p></li>
@@ -131,11 +133,26 @@ the results into a comprehensive interactive plot.</p>
 <h3 id="baserplotorchestrator-new-"><code>BaseRPlotOrchestrator$new()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-new-"></a></h3>
 <p>Create an orchestrator for the calls recorded on a device</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/BaseRPlotOrchestrator.html">BaseRPlotOrchestrator</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/BaseRPlotOrchestrator.html">BaseRPlotOrchestrator</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  asked <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">width</span><span class="op">)</span> <span class="op">||</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>device_id</code></dt>
 <dd><p>Graphics device ID</p></dd>
+
+      <dt><code>width, height</code></dt>
+<dd><p>The size to draw the chart at, in inches, or <code>NULL</code>
+for maidr's own; see <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
+
+      <dt><code>asked</code></dt>
+<dd><p>Whether that size was asked for, by default when either
+side is given. A chart too small for a size not asked for is drawn
+larger (<code><a href="base_r_page_that_fits.html">base_r_page_that_fits()</a></code>); one too small for a size asked
+for stops.</p></dd>
 
 
 </dl><p></p></div>
@@ -360,7 +377,40 @@ HIGH-level calls</p><div class="section">
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_gtable</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
-<p>A gtable, or NULL when nothing was recorded</p>
+<p>A gtable, or NULL when nothing was recorded. Stops when the
+chart is too small for R to draw at a size asked for (see
+<code><a href="base_r_drawing_grob.html">base_r_drawing_grob()</a></code>); one not asked for is enlarged to fit
+(<code><a href="base_r_page_that_fits.html">base_r_page_that_fits()</a></code>).</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPlotOrchestrator-canvas_size"></a><div class="section">
+<h3 id="baserplotorchestrator-canvas-size-"><code>BaseRPlotOrchestrator$canvas_size()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-canvas-size-"></a></h3>
+<p>The size the chart is drawn at</p><div class="section">
+<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">canvas_size</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<p>A named numeric vector, <code>width</code> and <code>height</code>, in inches</p>
+</div>
+
+</div>
+
+<p></p><hr><a id="method-BaseRPlotOrchestrator-picture_size"></a><div class="section">
+<h3 id="baserplotorchestrator-picture-size-"><code>BaseRPlotOrchestrator$picture_size()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-picture-size-"></a></h3>
+<p>The size a picture of the chart is drawn at, in place of
+a chart maidr cannot read or export</p>
+<p>The picture draws every recorded call again, as R drew them, and is
+held to the chart's size as the chart is: too small for a size asked
+for, it stops; too small for one no one asked for, it is drawn larger,
+with a message naming the size. A picture R cannot draw at any size
+is drawn at the chart's, as before: it shows what R draws of it.</p><div class="section">
+<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">picture_size</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<p>A named numeric vector, <code>width</code> and <code>height</code>, in inches</p>
 </div>
 
 </div>
@@ -368,7 +418,7 @@ HIGH-level calls</p><div class="section">
 <p></p><hr><a id="method-BaseRPlotOrchestrator-get_grob_for_layer"></a><div class="section">
 <h3 id="baserplotorchestrator-get-grob-for-layer-"><code>BaseRPlotOrchestrator$get_grob_for_layer()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-get-grob-for-layer-"></a></h3>
 <p>The grob a layer's processor searches for its selectors</p><div class="section">
-<h4 id="usage-17">Usage<a class="anchor" aria-label="anchor" href="#usage-17"></a></h4>
+<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">get_grob_for_layer</span><span class="op">(</span><span class="va">layer_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
@@ -378,7 +428,7 @@ HIGH-level calls</p><div class="section">
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
+<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
 <p>A grob, or NULL</p>
 </div>
 
@@ -391,10 +441,10 @@ HIGH-level calls</p><div class="section">
 interactive output loses nothing. Data-bearing LOW-level overlays
 (polygon, rect, segments, ...) with no processor would silently
 disappear from the accessible output, so they count as unsupported.</p><div class="section">
-<h4 id="usage-18">Usage<a class="anchor" aria-label="anchor" href="#usage-18"></a></h4>
+<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">unsupported_layer_flags</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-13">Returns<a class="anchor" aria-label="anchor" href="#returns-13"></a></h4>
+<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
 <p>Logical vector, one entry per detected layer</p>
 </div>
 
@@ -403,10 +453,10 @@ disappear from the accessible output, so they count as unsupported.</p><div clas
 <p></p><hr><a id="method-BaseRPlotOrchestrator-has_unsupported_layers"></a><div class="section">
 <h3 id="baserplotorchestrator-has-unsupported-layers-"><code>BaseRPlotOrchestrator$has_unsupported_layers()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-has-unsupported-layers-"></a></h3>
 <p>Check if any HIGH-level layers are unsupported (unknown type)</p><div class="section">
-<h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
+<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-14">Returns<a class="anchor" aria-label="anchor" href="#returns-14"></a></h4>
+<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
 <p>Logical indicating if there are unsupported layers</p>
 </div>
 
@@ -415,10 +465,10 @@ disappear from the accessible output, so they count as unsupported.</p><div clas
 <p></p><hr><a id="method-BaseRPlotOrchestrator-unsupported_group_indices"></a><div class="section">
 <h3 id="baserplotorchestrator-unsupported-group-indices-"><code>BaseRPlotOrchestrator$unsupported_group_indices()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-unsupported-group-indices-"></a></h3>
 <p>Plot groups holding a layer maidr cannot process</p><div class="section">
-<h4 id="usage-20">Usage<a class="anchor" aria-label="anchor" href="#usage-20"></a></h4>
+<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">unsupported_group_indices</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-15">Returns<a class="anchor" aria-label="anchor" href="#returns-15"></a></h4>
+<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
 <p>Integer vector of plot-group indices, in ascending order</p>
 </div>
 
@@ -435,10 +485,10 @@ affected panels. It widens to the whole figure when there is nothing
 left to scope to: a single-panel figure, a figure whose every
 visible panel is affected, an unsupported call that belongs to no
 panel of the exported page, or an unsupported HIGH-level call.</p><div class="section">
-<h4 id="usage-21">Usage<a class="anchor" aria-label="anchor" href="#usage-21"></a></h4>
+<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">resolve_fallback_scope</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-16">Returns<a class="anchor" aria-label="anchor" href="#returns-16"></a></h4>
+<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
 <p>Invisible NULL; the scope is cached on the orchestrator</p>
 </div>
 
@@ -447,7 +497,7 @@ panel of the exported page, or an unsupported HIGH-level call.</p><div class="se
 <p></p><hr><a id="method-BaseRPlotOrchestrator-is_group_scoped_out"></a><div class="section">
 <h3 id="baserplotorchestrator-is-group-scoped-out-"><code>BaseRPlotOrchestrator$is_group_scoped_out()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-is-group-scoped-out-"></a></h3>
 <p>Check whether a plot group is scoped out of the payload</p><div class="section">
-<h4 id="usage-22">Usage<a class="anchor" aria-label="anchor" href="#usage-22"></a></h4>
+<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">is_group_scoped_out</span><span class="op">(</span><span class="va">group_index</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
@@ -457,7 +507,7 @@ panel of the exported page, or an unsupported HIGH-level call.</p><div class="se
 
 </dl><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-17">Returns<a class="anchor" aria-label="anchor" href="#returns-17"></a></h4>
+<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
 <p>TRUE when the group's panel falls back on its own</p>
 </div>
 
@@ -466,10 +516,10 @@ panel of the exported page, or an unsupported HIGH-level call.</p><div class="se
 <p></p><hr><a id="method-BaseRPlotOrchestrator-fallback_panels"></a><div class="section">
 <h3 id="baserplotorchestrator-fallback-panels-"><code>BaseRPlotOrchestrator$fallback_panels()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-fallback-panels-"></a></h3>
 <p>Panels rendered without accessible data</p><div class="section">
-<h4 id="usage-23">Usage<a class="anchor" aria-label="anchor" href="#usage-23"></a></h4>
+<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">fallback_panels</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-18">Returns<a class="anchor" aria-label="anchor" href="#returns-18"></a></h4>
+<h4 id="returns-20">Returns<a class="anchor" aria-label="anchor" href="#returns-20"></a></h4>
 <p>Integer vector of 1-based panel numbers, empty when the whole
 figure renders normally or falls back as a whole</p>
 </div>
@@ -479,10 +529,10 @@ figure renders normally or falls back as a whole</p>
 <p></p><hr><a id="method-BaseRPlotOrchestrator-should_fallback"></a><div class="section">
 <h3 id="baserplotorchestrator-should-fallback-"><code>BaseRPlotOrchestrator$should_fallback()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-should-fallback-"></a></h3>
 <p>Determine if the plot should fall back to image rendering</p><div class="section">
-<h4 id="usage-24">Usage<a class="anchor" aria-label="anchor" href="#usage-24"></a></h4>
+<h4 id="usage-26">Usage<a class="anchor" aria-label="anchor" href="#usage-26"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-19">Returns<a class="anchor" aria-label="anchor" href="#returns-19"></a></h4>
+<h4 id="returns-21">Returns<a class="anchor" aria-label="anchor" href="#returns-21"></a></h4>
 <p>Logical indicating if fallback should be used</p>
 </div>
 
@@ -491,7 +541,7 @@ figure renders normally or falls back as a whole</p>
 <p></p><hr><a id="method-BaseRPlotOrchestrator-clone"></a><div class="section">
 <h3 id="baserplotorchestrator-clone-"><code>BaseRPlotOrchestrator$clone()</code><a class="anchor" aria-label="anchor" href="#baserplotorchestrator-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-25">Usage<a class="anchor" aria-label="anchor" href="#usage-25"></a></h4>
+<h4 id="usage-27">Usage<a class="anchor" aria-label="anchor" href="#usage-27"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>

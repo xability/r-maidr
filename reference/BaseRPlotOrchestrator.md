@@ -42,6 +42,10 @@ combines the results into a comprehensive interactive plot.
 
 - [`BaseRPlotOrchestrator$get_gtable()`](#method-BaseRPlotOrchestrator-get_gtable)
 
+- [`BaseRPlotOrchestrator$canvas_size()`](#method-BaseRPlotOrchestrator-canvas_size)
+
+- [`BaseRPlotOrchestrator$picture_size()`](#method-BaseRPlotOrchestrator-picture_size)
+
 - [`BaseRPlotOrchestrator$get_grob_for_layer()`](#method-BaseRPlotOrchestrator-get_grob_for_layer)
 
 - [`BaseRPlotOrchestrator$unsupported_layer_flags()`](#method-BaseRPlotOrchestrator-unsupported_layer_flags)
@@ -68,13 +72,31 @@ Create an orchestrator for the calls recorded on a device
 
 #### Usage
 
-    BaseRPlotOrchestrator$new(device_id = grDevices::dev.cur())
+    BaseRPlotOrchestrator$new(
+      device_id = grDevices::dev.cur(),
+      width = NULL,
+      height = NULL,
+      asked = !is.null(width) || !is.null(height)
+    )
 
 #### Arguments
 
 - `device_id`:
 
   Graphics device ID
+
+- `width, height`:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- `asked`:
+
+  Whether that size was asked for, by default when either side is given.
+  A chart too small for a size not asked for is drawn larger
+  ([`base_r_page_that_fits()`](https://r.maidr.ai/reference/base_r_page_that_fits.md));
+  one too small for a size asked for stops.
 
 ------------------------------------------------------------------------
 
@@ -324,7 +346,46 @@ The gtable of the replayed drawing, built once and cached
 
 #### Returns
 
-A gtable, or NULL when nothing was recorded
+A gtable, or NULL when nothing was recorded. Stops when the chart is too
+small for R to draw at a size asked for (see
+[`base_r_drawing_grob()`](https://r.maidr.ai/reference/base_r_drawing_grob.md));
+one not asked for is enlarged to fit
+([`base_r_page_that_fits()`](https://r.maidr.ai/reference/base_r_page_that_fits.md)).
+
+------------------------------------------------------------------------
+
+### `BaseRPlotOrchestrator$canvas_size()`
+
+The size the chart is drawn at
+
+#### Usage
+
+    BaseRPlotOrchestrator$canvas_size()
+
+#### Returns
+
+A named numeric vector, `width` and `height`, in inches
+
+------------------------------------------------------------------------
+
+### `BaseRPlotOrchestrator$picture_size()`
+
+The size a picture of the chart is drawn at, in place of a chart maidr
+cannot read or export
+
+The picture draws every recorded call again, as R drew them, and is held
+to the chart's size as the chart is: too small for a size asked for, it
+stops; too small for one no one asked for, it is drawn larger, with a
+message naming the size. A picture R cannot draw at any size is drawn at
+the chart's, as before: it shows what R draws of it.
+
+#### Usage
+
+    BaseRPlotOrchestrator$picture_size()
+
+#### Returns
+
+A named numeric vector, `width` and `height`, in inches
 
 ------------------------------------------------------------------------
 

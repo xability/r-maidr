@@ -13,7 +13,7 @@ told from its axes and strips.
 ## Usage
 
 ``` r
-lattice_draw_scene(plot, prefix = LATTICE_PREFIX)
+lattice_draw_scene(plot, prefix = LATTICE_PREFIX, size = MAIDR_CHART_SIZE)
 ```
 
 ## Arguments
@@ -27,6 +27,11 @@ lattice_draw_scene(plot, prefix = LATTICE_PREFIX)
 - prefix:
 
   The grob-name prefix
+
+- size:
+
+  The chart's canvas, from
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
 
 ## Value
 
@@ -53,3 +58,9 @@ drawing, which no device shows: it is put back afterwards, so
 and `print(more = TRUE)` carry on with the reader's own chart. A print
 the console hook opens the viewer for is the exception: it is the
 reader's own chart.
+
+The off-screen page is the size of the chart's canvas. lattice reads the
+page it draws on to lay a conditioned chart's panels out – with no
+`layout =`, a chart of one conditioning variable gets as many columns as
+the page's shape suits – so drawn on a page of another shape, the grob
+would keep that page's columns, squeezed or stretched onto the canvas.

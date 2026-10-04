@@ -293,7 +293,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-03">
+<meta name="DC.date" content="2026-10-04">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -462,24 +462,42 @@
 <p>A conditioned chart, such as <code>xyplot(mpg ~ wt | factor(cyl), mtcars)</code>, is read one panel at a time: each panel is a subplot of its own, named after its strip.</p>
 </div>
 <div class="section level3">
+<h3 id="chart-size">Chart size<a class="anchor" aria-label="anchor" href="#chart-size"></a>
+</h3>
+<p>A chart is drawn at 7 x 5 inches unless you give it a size, in inches as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> takes one, and its SVG is 72 pixels to the inch. The size is the room the chart is laid out in; the data, titles and axis labels a reader hears are the same at every size. Only a lattice chart conditioned on one variable with no <code>layout =</code> changes for a reader: lattice arranges its panels for the shape of the page, and the order a reader moves through them follows, so give it <code>layout =</code> to keep one. A side over 50 in is refused, as <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave()</a></code> refuses one, since it is most likely pixels.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"wide.html"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Base R: draw, then show at a size</span></span>
+<span><span class="fu"><a href="reference/base-r-wrappers.html">barplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">cyl</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">6</span>, height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Shiny: the chart's size; maidr_output()'s width and height size the output</span></span>
+<span><span class="va">output</span><span class="op">$</span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/render_maidr.html">render_maidr</a></span><span class="op">(</span><span class="va">p</span>, fig_width <span class="op">=</span> <span class="fl">10</span>, fig_height <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<p>In R Markdown and Quarto the chunk’s <code>fig.width</code> and <code>fig.height</code> set it. Nothing else does: not the device a Base R chart was drawn on, nor the window or Shiny output a chart is shown in, which shrinks a wider chart to fit. A candlestick chart is never drawn smaller than 12 x 6 in; asked for less (in a document, by the chunk’s own options), maidr says in a message the size it used. A Base R chart too small for its margins and text at the size you ask for is an error naming the size. With no size asked for, one too small for 7 x 5 in, such as a <code>par(mfrow)</code> grid of five rows, is drawn larger, at 7 x 7 in or the smallest larger size that leaves each of its plots room to be seen, and a message names the size.</p>
+</div>
+<div class="section level3">
 <h3 id="r-markdown-and-quarto">R Markdown and Quarto<a class="anchor" aria-label="anchor" href="#r-markdown-and-quarto"></a>
 </h3>
 <p><code><a href="https://github.com/xability/r-maidr" class="external-link">library(maidr)</a></code> in a setup chunk is all a document needs. Every plot it draws, with ggplot2, lattice or Base R, becomes an accessible chart:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="in">```{r setup, include = FALSE}</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="in">library(maidr)</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="in">library(ggplot2)</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="in">```{r cars, fig.cap = "Cars by cylinder count"}</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="in">ggplot(mtcars, aes(factor(cyl))) + geom_bar()</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="in">```{r setup, include = FALSE}</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="in">library(maidr)</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="in">library(ggplot2)</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="in">```{r cars, fig.cap = "Cars by cylinder count"}</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="in">ggplot(mtcars, aes(factor(cyl))) + geom_bar()</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
 <ul>
 <li>
 <strong>Charts are part of the page.</strong> In HTML output (<code>html_document</code>, bookdown, Quarto, reveal.js, ioslides, slidy, flexdashboard and Quarto dashboards) each chart is an <code>&lt;svg&gt;</code> in the page, not an iframe, and the page loads maidr.js once however many charts it has: from the document’s <code>_files</code> folder, or embedded in it when the document is <code>self_contained</code> or uses <code>embed-resources</code>. <strong>Tab</strong> moves into a chart and <strong>Shift+Tab</strong> out of it. While a chart has the focus, its keys go to the chart, not to the slide deck, book or website around it.</li>
 <li>
 <strong>Several charts in a chunk.</strong> A chunk can return a chart, <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> several in a loop, or draw several Base R charts. Each takes the place of its own figure, with that figure’s caption, alt text and number, so <code>fig.cap</code>, <code>fig.alt</code>, bookdown’s <code>\@ref(fig:label)</code> and Quarto’s <code>@fig-</code> references work as they do for images. A figure that is not one chart maidr can read, such as a grid drawing or a chart something else was drawn over, stays knitr’s image. In R Markdown and bookdown a chart’s caption is plain text: Markdown, maths and <code>\@ref()</code> inside <code>fig.cap</code> are shown as written. A bookdown text reference, <code>fig.cap = "(ref:label)"</code>, brings them in, as Quarto does for the caption of a chart in a <code>fig-</code> chunk, which it writes itself.</li>
 <li>
-<strong>Size, cache and animations.</strong> Charts are drawn at maidr’s own size and shrink to the page; size one with <code>out.width</code>, since <code>fig.width</code>, <code>fig.height</code>, <code>fig.asp</code> and <code>dpi</code> are not read. A chunk cached with <code>cache = TRUE</code> brings its charts back; one cached with <code>cache = 1</code> or <code>cache = 2</code> shows knitr’s static figures when it is rendered again from the cache. <code>fig.show = "animate"</code> stays knitr’s animation.</li>
+<strong>Size.</strong> A chart is drawn at its chunk’s <code>fig.width</code> and <code>fig.height</code> (or <code>fig.asp</code>, <code>fig.dim</code>, R Markdown’s <code>fig_width</code>/<code>fig_height</code> and Quarto’s <code>fig-width</code>/<code>fig-height</code>), in inches, as knitr draws figures: 7 x 5 in in <code>html_document</code> and Quarto’s HTML, but 3 x 3 in in <code>html_vignette</code>, small enough that a Base R chart shows fewer tick labels unless a chunk sets a larger size. <code>out.width</code> still sets the width a chart is shown at, and a chart wider than the page shrinks to fit it. See <a href="#chart-size">Chart size</a> for what the size changes.</li>
+<li>
+<strong>Cache and animations.</strong> A chunk cached with <code>cache = TRUE</code> brings its charts back; one cached with <code>cache = 1</code> or <code>cache = 2</code> shows knitr’s static figures when it is rendered again from the cache. <code>fig.show = "animate"</code> stays knitr’s animation.</li>
 <li>
 <strong>Static figures are SVG.</strong> In HTML output maidr records a chunk’s figures with svglite instead of knitr’s default png, so the ones that stay images are vector images too. A device a chunk names (<code>dev = "png"</code>), a document device other than png, and the device of a cached chunk, of an animation and of a chunk that crops its figures or uses <code>fig.process</code> are kept. To keep png for every chunk, set <code>options(maidr.knitr_dev = FALSE)</code> before rendering or in the setup chunk.</li>
 <li>
@@ -1036,7 +1054,7 @@
 <h2 id="offline-support">Offline support<a class="anchor" aria-label="anchor" href="#offline-support"></a>
 </h2>
 <p>By default, <code><a href="reference/show.html">show()</a></code> and <code><a href="reference/save_html.html">save_html()</a></code> use the bundled maidr.js library, so the result works offline. <code><a href="reference/save_html.html">save_html()</a></code> writes the library to a <code>lib/</code> folder beside the file, and the two have to be shared together: zip the folder that holds both, or copy both. An <code>.html</code> sent on its own loads no maidr.js and shows a plain, inaccessible chart. A knitted R Markdown or Quarto page loads the bundled maidr.js once for all its charts, from its <code>_files</code> folder or embedded in it when it is <code>self_contained</code> / uses <code>embed-resources</code>, so it works offline wherever it was rendered. Widgets, Shiny apps, and the few knitted outputs that keep a chart in an iframe (an HTML fragment, pagedown) auto-detect internet availability and use the CDN when online. A page holding a widget rendered online also carries its own copy of maidr.js, which its charts fall back on when the CDN cannot be reached, so a <code>self_contained</code> / <code>embed-resources</code> page works offline too. Use the <code>use_cdn</code> parameter for explicit control:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force CDN: one self-contained file, needs internet whenever it is viewed</span></span>
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1045,20 +1063,20 @@
 <span><span class="fu"><a href="reference/show.html">show</a></span><span class="op">(</span><span class="va">p</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The CDN paths load the <strong>latest published maidr.js</strong>, not the copy bundled with this package, as the Python binding does. The first CDN document in an R session asks jsDelivr (then the npm registry) which version that is, within 3 seconds, and every document in the session names that version. If the lookup cannot be made it costs no error: the document names the bundled version instead, the copy <code>use_cdn = FALSE</code> would serve. Pin a version when a document has to load the same maidr.js whenever it is opened:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"bundled"</span><span class="op">)</span>  <span class="co"># the bundled version, no lookup</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.cdn_version <span class="op">=</span> <span class="st">"4.9.0"</span><span class="op">)</span>    <span class="co"># a particular release</span></span></code></pre></div>
 <p>or set <code>MAIDR_CDN_VERSION</code> in the environment. <code>use_cdn = FALSE</code> never makes that lookup. See <code><a href="reference/maidr-options.html">?"maidr-options"</a></code>.</p>
 <p>Two things still reach the network from an offline document, and only when a reader uses them. One is a language other than English. maidr.js reads charts in English on its own and fetches Korean, Japanese, Chinese, Spanish, German, French, Italian or Hindi as a small pack from beside itself. This package does not bundle the packs, which would add 0.8 MB against CRAN’s size limit, so a <code>use_cdn = FALSE</code> document points maidr.js at the packs of the bundled version on jsDelivr: a reader whose language is not English hears it when online, and English when not. Serve the packs yourself, or turn this off:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="st">"https://example.org/maidr/"</span><span class="op">)</span>  <span class="co"># your own copy</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>maidr.locale_base_url <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>  <span class="co"># never fetch a pack: English only</span></span></code></pre></div>
 <p>The other is connecting a <a href="https://maidr.ai/docs/TACTILE_DISPLAY.html" class="external-link">DotPad tactile display</a>. maidr.js does not bundle the DotPad SDK, whose braille engine is a 14 MB liblouis build, and imports the vendor’s copy from jsDelivr the first time a DotPad is connected. Rendering, sonification and braille work offline regardless. To keep the DotPad offline too, download the pinned SDK once and every <code>use_cdn = FALSE</code> document carries it in its <code>lib/</code> folder:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/maidr_download_dotpad_sdk.html">maidr_download_dotpad_sdk</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># ~14 MB, once, into a per-user cache</span></span>
 <span><span class="fu"><a href="reference/save_html.html">save_html</a></span><span class="op">(</span><span class="va">p</span>, <span class="st">"plot.html"</span>, use_cdn <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>   <span class="co"># lib/dotpad-sdk-&lt;version&gt;/ beside it</span></span></code></pre></div>
 <p>A page served from elsewhere, or a knitted R Markdown or Quarto document, which does not carry the downloaded copy, names its copy by URL instead, through options or the environment variables of the same names:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span></span>
 <span>  maidr.dotpad_sdk_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/DotPadSDK-3.0.3.js"</span>,</span>
 <span>  maidr.dotpad_asset_base_url <span class="op">=</span> <span class="st">"https://intranet.example/dotpad/lib/"</span></span>

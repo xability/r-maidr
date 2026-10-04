@@ -15,7 +15,7 @@ svglite export draws both, but an export can still throw.
 ## Usage
 
 ``` r
-build_interactive_svg(orchestrator, ...)
+build_interactive_svg(orchestrator)
 ```
 
 ## Arguments
@@ -24,15 +24,10 @@ build_interactive_svg(orchestrator, ...)
 
   The orchestrator for the plot being rendered.
 
-- ...:
-
-  Passed through to
-  [`create_enhanced_svg()`](https://r.maidr.ai/reference/create_enhanced_svg.md).
-
 ## Value
 
-The SVG content, or `NULL` when the build failed and fallback is
-enabled.
+The SVG content, drawn at the orchestrator's `canvas_size()`, or `NULL`
+when the build failed and fallback is enabled.
 
 ## Details
 
@@ -51,3 +46,8 @@ what they should be given instead.
 `maidr_set_fallback(enabled = FALSE)` is the caller asking for the
 failure rather than the picture, so the error is re-raised untouched
 there.
+
+A chart too small to draw at its size (a `maidr_chart_draw_error` from
+[`base_r_drawing_grob()`](https://r.maidr.ai/reference/base_r_drawing_grob.md))
+is re-raised too: its picture is drawn at the same size and would fail
+the same way.

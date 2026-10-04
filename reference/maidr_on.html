@@ -35,7 +35,7 @@ back on after maidr_off().">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-03">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -131,9 +131,44 @@ Word, Markdown, EPUB or xaringan output the plots are knitr's figures, as
 without maidr. A chart a document returns or prints never opens the
 viewer; an explicit <code><a href="show.html">show()</a></code> still does, during the render, and puts
 nothing in the page.</p>
-<p>A chart is drawn at maidr's own size and shrinks to the page: <code>out.width</code>
-sizes it, and <code>fig.width</code>, <code>fig.height</code>, <code>fig.asp</code> and <code>dpi</code> are not
-read. Its caption, in R Markdown and bookdown, is plain text: Markdown,
+<p>A chart is drawn at its chunk's <code>fig.width</code> and <code>fig.height</code>, in inches,
+as knitr draws the chunk's figures: <code>fig.asp</code> and <code>fig.dim</code> set them as
+they do for a figure, and so do R Markdown's <code>fig_width</code> and <code>fig_height</code>
+and Quarto's <code>fig-width</code> and <code>fig-height</code>. Its SVG is 72 pixels to the
+inch. <code>html_document</code> and Quarto's HTML formats draw figures at 7 x 5 in,
+maidr's own size outside a document. A format with a figure size of its
+own draws its charts at that size: <code><a href="https://pkgs.rstudio.com/rmarkdown/reference/html_vignette.html" class="external-link">rmarkdown::html_vignette</a></code> at 3 x 3
+in, small enough that a Base R chart shows fewer tick labels, ioslides at
+7.5 x 4.5 in, slidy at 8 x 6 in and <code><a href="https://rdrr.io/pkg/knitr/man/knit.html" class="external-link">knitr::knit()</a></code> on its own at 7 x 7
+in. Set <code>fig.width</code> and <code>fig.height</code> to draw a chart at another size.</p>
+<p>A candlestick chart is drawn at least 12 x 6 in. A chunk that sets a
+smaller size of its own is told so in a message (see <code><a href="show.html">show()</a></code>): among the
+chunk's messages for a ggplot2 chart, and on the console for a Base R
+<code><a href="base-r-wrappers.html">chartSeries()</a></code> chart, which maidr reads once the chunk has run. The
+document's figure size, which the format, its YAML or
+<code>knitr::opts_chunk$set()</code> sets for every chunk, was not asked of a
+candlestick chart, which is drawn larger than it without a message.</p>
+<p>maidr draws a Base R chart again from its recorded calls, with the
+margins and text size its chunk's <code><a href="base-r-wrappers.html">par()</a></code> calls set (<code>mar</code>, <code>mai</code>,
+<code>oma</code>, <code>omi</code>, <code>mex</code> and <code>cex</code>), so it fits where R drew it. A chart R
+drew in its chunk with settings maidr does not record – a <code><a href="base-r-wrappers.html">par()</a></code> called
+by name, as <code><a href="https://rdrr.io/r/graphics/par.html" class="external-link">graphics::par()</a></code>, or another of its settings – can still be
+too small for its size in maidr. Too small for the document's figure
+size, it is drawn larger, as one too small for 7 x 5 in is outside a
+document (see <code><a href="show.html">show()</a></code>), and a message on the console names the size.
+Too small for a size its chunk sets of its own, it stays knitr's picture,
+with a warning naming the size.</p>
+<p>Whether a chunk set its size is read from the size, not from where it
+was set: a chunk that sets the document's own, <code>fig.width = 7</code> and
+<code>fig.height = 5</code> in <code>html_document</code>, is taken to set none, for a
+candlestick chart and a Base R chart alike.</p>
+<p>The size is the room the chart is laid out in, not what a reader hears:
+its data, titles and axes are the same at every size, though a lattice
+chart conditioned on one variable with no <code>layout =</code> arranges its panels,
+and the grid a reader moves through, for it (see <code><a href="show.html">show()</a></code>). Nor is it the
+width the chart is shown at, which <code>out.width</code> sets: a chart shrinks to
+fit a page narrower than itself, keeping its shape. <code>dpi</code> is not read.</p>
+<p>A chart's caption, in R Markdown and bookdown, is plain text: Markdown,
 maths and <code>\@ref()</code> in <code>fig.cap</code> are shown as written, and a bookdown text
 reference (<code>fig.cap = "(ref:label)"</code>) brings them in. <code>fig.show = "animate"</code> stays knitr's animation.</p>
 <p>A chunk cached with <code>cache = TRUE</code> brings its charts back from knitr's

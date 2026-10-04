@@ -54,7 +54,7 @@ throw.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-26">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -121,7 +121,7 @@ throw.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">build_interactive_svg</span><span class="op">(</span><span class="va">orchestrator</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">build_interactive_svg</span><span class="op">(</span><span class="va">orchestrator</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -131,15 +131,11 @@ throw.</p>
 <dl><dt id="arg-orchestrator">orchestrator<a class="anchor" aria-label="anchor" href="#arg-orchestrator"></a></dt>
 <dd><p>The orchestrator for the plot being rendered.</p></dd>
 
-
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Passed through to <code><a href="create_enhanced_svg.html">create_enhanced_svg()</a></code>.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The SVG content, or <code>NULL</code> when the build failed and fallback is
-enabled.</p>
+    <p>The SVG content, drawn at the orchestrator's <code>canvas_size()</code>, or
+<code>NULL</code> when the build failed and fallback is enabled.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -154,6 +150,9 @@ interactive chart – and which of the three threw does not change what they
 should be given instead.</p>
 <p><code>maidr_set_fallback(enabled = FALSE)</code> is the caller asking for the failure
 rather than the picture, so the error is re-raised untouched there.</p>
+<p>A chart too small to draw at its size (a <code>maidr_chart_draw_error</code>
+from <code><a href="base_r_drawing_grob.html">base_r_drawing_grob()</a></code>) is re-raised too: its picture is drawn at
+the same size and would fail the same way.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -48,7 +48,7 @@ chart is. A chart laid out over several pages is read from its first.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-29">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -123,6 +123,7 @@ chart is. A chart laid out over several pages is read from its first.</p>
 <li><p><a href="#method-LatticePlotOrchestrator-process_layer"><code>LatticePlotOrchestrator$process_layer()</code></a></p></li>
 <li><p><a href="#method-LatticePlotOrchestrator-generate_maidr_data"><code>LatticePlotOrchestrator$generate_maidr_data()</code></a></p></li>
 <li><p><a href="#method-LatticePlotOrchestrator-get_gtable"><code>LatticePlotOrchestrator$get_gtable()</code></a></p></li>
+<li><p><a href="#method-LatticePlotOrchestrator-canvas_size"><code>LatticePlotOrchestrator$canvas_size()</code></a></p></li>
 <li><p><a href="#method-LatticePlotOrchestrator-get_layout"><code>LatticePlotOrchestrator$get_layout()</code></a></p></li>
 <li><p><a href="#method-LatticePlotOrchestrator-get_combined_data"><code>LatticePlotOrchestrator$get_combined_data()</code></a></p></li>
 <li><p><a href="#method-LatticePlotOrchestrator-get_layer_processors"><code>LatticePlotOrchestrator$get_layer_processors()</code></a></p></li>
@@ -135,11 +136,24 @@ chart is. A chart laid out over several pages is read from its first.</p>
 <h3 id="latticeplotorchestrator-new-"><code>LatticePlotOrchestrator$new()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-new-"></a></h3>
 <p>Create an orchestrator for a trellis object</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/LatticePlotOrchestrator.html">LatticePlotOrchestrator</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">plot</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/LatticePlotOrchestrator.html">LatticePlotOrchestrator</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>  <span class="va">plot</span>,</span>
+<span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  asked <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">width</span><span class="op">)</span> <span class="op">||</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">height</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>plot</code></dt>
 <dd><p>The trellis object</p></dd>
+
+      <dt><code>width, height</code></dt>
+<dd><p>The size to draw the chart at, in inches, or <code>NULL</code>
+for maidr's own; see <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
+
+      <dt><code>asked</code></dt>
+<dd><p>Whether that size was asked for, by default when either
+side is given; see <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code></p></dd>
 
 
 </dl><p></p></div>
@@ -247,13 +261,25 @@ drawn</p>
 
 </div>
 
+<p></p><hr><a id="method-LatticePlotOrchestrator-canvas_size"></a><div class="section">
+<h3 id="latticeplotorchestrator-canvas-size-"><code>LatticePlotOrchestrator$canvas_size()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-canvas-size-"></a></h3>
+<p>The size the chart is drawn at</p><div class="section">
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">canvas_size</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div><p></p><div class="section">
+<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<p>A named numeric vector, <code>width</code> and <code>height</code>, in inches</p>
+</div>
+
+</div>
+
 <p></p><hr><a id="method-LatticePlotOrchestrator-get_layout"></a><div class="section">
 <h3 id="latticeplotorchestrator-get-layout-"><code>LatticePlotOrchestrator$get_layout()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-get-layout-"></a></h3>
 <p>The figure-level layout read by <code>extract_layout()</code></p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">get_layout</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-5">Returns<a class="anchor" aria-label="anchor" href="#returns-5"></a></h4>
+<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
 <p>List</p>
 </div>
 
@@ -262,10 +288,10 @@ drawn</p>
 <p></p><hr><a id="method-LatticePlotOrchestrator-get_combined_data"></a><div class="section">
 <h3 id="latticeplotorchestrator-get-combined-data-"><code>LatticePlotOrchestrator$get_combined_data()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-get-combined-data-"></a></h3>
 <p>The subplot grid</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">get_combined_data</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-6">Returns<a class="anchor" aria-label="anchor" href="#returns-6"></a></h4>
+<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
 <p>List of rows of subplots</p>
 </div>
 
@@ -274,10 +300,10 @@ drawn</p>
 <p></p><hr><a id="method-LatticePlotOrchestrator-get_layer_processors"></a><div class="section">
 <h3 id="latticeplotorchestrator-get-layer-processors-"><code>LatticePlotOrchestrator$get_layer_processors()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-get-layer-processors-"></a></h3>
 <p>The processors created for the layers</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">get_layer_processors</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-7">Returns<a class="anchor" aria-label="anchor" href="#returns-7"></a></h4>
+<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
 <p>List</p>
 </div>
 
@@ -286,10 +312,10 @@ drawn</p>
 <p></p><hr><a id="method-LatticePlotOrchestrator-get_layers"></a><div class="section">
 <h3 id="latticeplotorchestrator-get-layers-"><code>LatticePlotOrchestrator$get_layers()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-get-layers-"></a></h3>
 <p>The layers detected across the panels</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">get_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-8">Returns<a class="anchor" aria-label="anchor" href="#returns-8"></a></h4>
+<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
 <p>List of layer descriptions</p>
 </div>
 
@@ -298,10 +324,10 @@ drawn</p>
 <p></p><hr><a id="method-LatticePlotOrchestrator-unsupported_reasons"></a><div class="section">
 <h3 id="latticeplotorchestrator-unsupported-reasons-"><code>LatticePlotOrchestrator$unsupported_reasons()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-unsupported-reasons-"></a></h3>
 <p>Why the chart cannot be read, if it cannot</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">unsupported_reasons</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-9">Returns<a class="anchor" aria-label="anchor" href="#returns-9"></a></h4>
+<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
 <p>Character vector, empty when it can be read</p>
 </div>
 
@@ -314,10 +340,10 @@ drawn</p>
 could not be read, or no layer at all: a chart that announces itself
 as interactive with nothing in it is worse than an image, because an
 image at least says what it is.</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">has_unsupported_layers</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-10">Returns<a class="anchor" aria-label="anchor" href="#returns-10"></a></h4>
+<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
 <p>Logical</p>
 </div>
 
@@ -326,10 +352,10 @@ image at least says what it is.</p><div class="section">
 <p></p><hr><a id="method-LatticePlotOrchestrator-should_fallback"></a><div class="section">
 <h3 id="latticeplotorchestrator-should-fallback-"><code>LatticePlotOrchestrator$should_fallback()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-should-fallback-"></a></h3>
 <p>Determine if the chart should fall back to an image</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">should_fallback</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
-<h4 id="returns-11">Returns<a class="anchor" aria-label="anchor" href="#returns-11"></a></h4>
+<h4 id="returns-12">Returns<a class="anchor" aria-label="anchor" href="#returns-12"></a></h4>
 <p>Logical</p>
 </div>
 
@@ -338,7 +364,7 @@ image at least says what it is.</p><div class="section">
 <p></p><hr><a id="method-LatticePlotOrchestrator-clone"></a><div class="section">
 <h3 id="latticeplotorchestrator-clone-"><code>LatticePlotOrchestrator$clone()</code><a class="anchor" aria-label="anchor" href="#latticeplotorchestrator-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">LatticePlotOrchestrator</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>

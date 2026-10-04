@@ -205,13 +205,30 @@ Create an orchestrator for this system (ggplot2)
 
 #### Usage
 
-    Ggplot2Adapter$create_orchestrator(plot_object)
+    Ggplot2Adapter$create_orchestrator(
+      plot_object,
+      width = NULL,
+      height = NULL,
+      asked = !is.null(width) || !is.null(height)
+    )
 
 #### Arguments
 
 - `plot_object`:
 
   The ggplot2 plot object to process
+
+- `width, height`:
+
+  The size to draw the chart at, in inches, or `NULL` for maidr's own;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
+
+- `asked`:
+
+  Whether that size was asked for, by default when either side is given;
+  see
+  [`chart_canvas_size()`](https://r.maidr.ai/reference/chart_canvas_size.md)
 
 #### Returns
 

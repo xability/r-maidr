@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-01">
+<meta name="DC.date" content="2026-10-04">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -94,6 +94,8 @@
 <span>  use_cdn <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  shiny <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  orchestrator <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  width <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -116,11 +118,18 @@
 
 
 <dt id="arg-orchestrator">orchestrator<a class="anchor" aria-label="anchor" href="#arg-orchestrator"></a></dt>
-<dd><p>Optional pre-created orchestrator to reuse (avoids double creation)</p></dd>
+<dd><p>Optional pre-created orchestrator to reuse (avoids double
+creation). The chart is drawn at the size it was created with, and
+<code>width</code> and <code>height</code> are not read.</p></dd>
+
+
+<dt id="arg-width-height">width, height<a class="anchor" aria-label="anchor" href="#arg-width-height"></a></dt>
+<dd><p>The size to draw the chart at, in inches, or <code>NULL</code>
+for maidr's own; see <code><a href="chart_canvas_size.html">chart_canvas_size()</a></code>. Checked by the caller.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to internal functions</p></dd>
+<dd><p>Additional arguments passed to <code><a href="create_fallback_html.html">create_fallback_html()</a></code></p></dd>
 
 </dl></div>
     <div class="section level2">
