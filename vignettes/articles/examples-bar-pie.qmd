@@ -256,11 +256,12 @@ maidr::wordcloud(
 > Either attach `wordcloud` **before** `maidr`, or call
 > `maidr::wordcloud()` explicitly as above, which works in either order.
 
-> **No highlighting.** `wordcloud()` draws each term with a bare `text()`
-> call at a rotation chosen by `rot.per`, and nothing names those — the
-> exported SVG carries no `id` attributes at all. So a word cloud is read
-> without a visual highlight, rather than pairing the terms with whatever
-> else happened to resolve.
+> **The word being read is highlighted.** `wordcloud()` draws each term
+> with its own `text()` call, so each word is its own element on the page,
+> and moving with the arrow keys recolors the word being announced in your
+> highlight color. A term `wordcloud()` could not fit on the page (it warns
+> "could not be fit on page") has no word to point at; then the cloud is
+> read without a highlight rather than with highlights on the wrong words.
 
 Two of `wordcloud()`'s arguments decide **which** terms are drawn, and the
 reading replicates both so it never announces a term the chart left out:
