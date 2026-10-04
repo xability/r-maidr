@@ -124,3 +124,39 @@ test_that("matplot and symbols leave the caller with a file either way", {
     grDevices::dev.off()
   }
 })
+
+test_that("a chart gridGraphics cannot draw again falls back to the picture, with a warning", {
+  # It was exported with an empty drawing and nothing said: the replay fell
+  # back to grabbing the Base R drawing as grid graphics, which holds none.
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  clear_all_device_storage()
+  on.exit(clear_all_device_storage(), add = TRUE)
+
+  testthat::local_mocked_bindings(
+    grid.echo = function(...) stop("Unrecognised text argument type"),
+    .package = "gridGraphics"
+  )
+
+  draws <- list(
+    function() plot(1:10),
+    function() {
+      par(mfrow = c(1, 2))
+      plot(1:3)
+      plot(1:4)
+    }
+  )
+  for (draw in draws) {
+    clear_all_device_storage()
+    draw()
+    file <- tempfile(fileext = ".html")
+    on.exit(unlink(file), add = TRUE)
+    expect_warning(
+      maidr::save_html(plot = NULL, file = file),
+      "could not draw the chart again: Unrecognised text argument type"
+    )
+    html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+    expect_true(grepl("base64", html, fixed = TRUE))
+    graphics::par(mfrow = c(1, 1))
+  }
+})

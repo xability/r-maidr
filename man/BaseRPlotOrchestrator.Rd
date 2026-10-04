@@ -338,7 +338,10 @@ HIGH-level calls
     A gtable, or NULL when nothing was recorded. Stops when the
 chart is too small for R to draw at a size asked for (see
 \code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}); one not asked for is enlarged to fit
-(\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}).
+(\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}). Stops too when the chart cannot be
+drawn again, with the reason, every time it is asked for: the
+chart is then drawn as a picture, with a warning that says so
+(\code{\link[=build_interactive_svg]{build_interactive_svg()}}), rather than empty.
   }
 }
 

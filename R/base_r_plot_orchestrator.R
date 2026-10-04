@@ -23,6 +23,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .format_config = NULL,
     .format_config_by_group = list(),
     .cached_gtable = NULL,
+    .drawing_failure = NULL,
     .fallback_mode = "none",
     .fallback_groups = integer(0),
     .fallback_panels = integer(0),
@@ -841,7 +842,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' @return A gtable, or NULL when nothing was recorded. Stops when the
     #'   chart is too small for R to draw at a size asked for (see
     #'   [base_r_drawing_grob()]); one not asked for is enlarged to fit
-    #'   ([base_r_page_that_fits()]).
+    #'   ([base_r_page_that_fits()]). Stops too when the chart cannot be
+    #'   drawn again, with the reason, every time it is asked for: the
+    #'   chart is then drawn as a picture, with a warning that says so
+    #'   ([build_interactive_svg()]), rather than empty.
     get_gtable = function() {
       if (length(private$.plot_groups) == 0) {
         return(NULL)
@@ -852,6 +856,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # so build the gtable once and reuse it.
       if (!is.null(private$.cached_gtable)) {
         return(private$.cached_gtable)
+      }
+      # A drawing that failed fails again: drawn once, and said once.
+      if (!is.null(private$.drawing_failure)) {
+        stop(private$.drawing_failure)
       }
 
       # Suppress native R graphics window by using a null PDF device
@@ -943,12 +951,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
           },
           error = function(e) {
             # A chart too small to draw at a size asked for stops, naming
-            # its size (`base_r_drawing_grob()`).
-            if (inherits(e, "maidr_chart_draw_error")) {
-              stop(e)
+            # its size (`base_r_drawing_grob()`). Any other failure is kept
+            # and raised, for the chart to be drawn as a picture with a
+            # warning saying why (`build_interactive_svg()`), rather than
+            # left empty.
+            if (!inherits(e, "maidr_chart_draw_error")) {
+              private$.drawing_failure <- e
             }
-            warning("Failed to create multipanel grob: ", e$message)
-            NULL
+            stop(e)
           }
         )
       } else {
@@ -983,9 +993,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
           }
 
           # Only the first drawing is shown (below), so only it settles the
-          # canvas, enlarging it or stopping as above. A later one -- a
-          # chart drawn over it on the same device -- that does not fit is
-          # left without a grob, as one that fails for another reason is.
+          # canvas, enlarging it or stopping as above, and only its failure
+          # is the chart's, kept and raised as the multipanel one is. A
+          # later one -- a chart drawn over it on the same device -- that
+          # does not fit is left without a grob, as one that fails for
+          # another reason is.
           tryCatch(
             {
               grob <- if (i == 1) {
@@ -996,7 +1008,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
               grob_list[[i]] <- grob
             },
             error = function(e) {
-              if (i == 1 && inherits(e, "maidr_chart_draw_error")) {
+              if (i == 1) {
+                if (!inherits(e, "maidr_chart_draw_error")) {
+                  private$.drawing_failure <- e
+                }
                 stop(e)
               }
               grob_list[[i]] <- NULL
@@ -1061,8 +1076,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
         return(NULL)
       }
 
+      # A drawing that cannot be made leaves the layer without a grob, and
+      # its selectors empty: the chart is then drawn as a picture, with a
+      # warning saying why, when it is built (`build_interactive_svg()`).
       if (length(private$.grob_list) == 0) {
-        self$get_gtable()
+        tryCatch(self$get_gtable(), error = function(e) {
+          if (inherits(e, "maidr_chart_draw_error")) {
+            stop(e)
+          }
+          NULL
+        })
       }
 
       panel_config <- detect_panel_configuration(private$.device_id)
@@ -1265,7 +1288,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #' `as.grob()` gives. The drawing is recorded and echoed with its titles,
 #' margin texts and axis labels as R drew them (`base_r_echoable_recording()`),
 #' and keeps only the tick labels R draws ([thin_axis_labels()]). A drawing
-#' gridGraphics cannot echo is grabbed as drawn, as `as.grob()` does.
+#' gridGraphics cannot echo stops, with an error of class
+#' `maidr_chart_echo_error` giving gridGraphics' reason. `as.grob()` grabs
+#' such a drawing as drawn instead, which for Base R graphics is an empty
+#' drawing, and maidr exported that without a word.
 #'
 #' A chart too small to draw stops, with an error of class
 #' `maidr_chart_draw_error` that names the size and R's reason. Base R gives
@@ -1310,14 +1336,19 @@ base_r_drawing_grob <- function(draw, size) {
     stop(base_r_too_small(e, size))
   }
 
-  echo <- function() {
-    recording <- base_r_recorded_drawing(draw_as_ggplotify_does, size)
-    gridGraphics::grid.echo(base_r_echoable_recording(recording, size))
-  }
-  echoed <- tryCatch(grab(echo()), error = function(e) NULL)
-  if (is.null(echoed)) {
-    return(tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw))
-  }
+  recording <- tryCatch(
+    base_r_recorded_drawing(draw_as_ggplotify_does, size),
+    error = cannot_draw
+  )
+  echoed <- tryCatch(
+    grab(gridGraphics::grid.echo(base_r_echoable_recording(recording, size))),
+    error = function(e) {
+      stop(errorCondition(
+        paste0("gridGraphics could not draw the chart again: ", conditionMessage(e)),
+        class = "maidr_chart_echo_error"
+      ))
+    }
+  )
   thin_axis_labels(echoed, size)
 }
 

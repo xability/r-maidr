@@ -393,7 +393,9 @@
   `xlab` or `ylab` given as a number, a logical, several values or a list
   such as `list("Title", font = 2)`, and on `axis(labels = NA)`, and it drew
   a missing `mtext()` text or tick label as "NA". Each is now drawn as R
-  draws it, several values a line apart (#PR).
+  draws it, several values a line apart. A chart that still cannot be drawn
+  again falls back to the static image, with a warning that says why,
+  rather than being exported empty (#PR).
 
 ## Documentation
 
