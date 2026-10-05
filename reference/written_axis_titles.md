@@ -27,7 +27,8 @@ List with `x` and `y`, each NULL when the call writes no such title
 
 ## Details
 
-[`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is read only
-when it reached
-[`plot.default()`](https://rdrr.io/r/graphics/plot.default.html); a
-method of a class titles its axes its own way.
+[`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md) is read by
+the method it reached, as
+[`plot_axis_titles()`](https://r.maidr.ai/reference/plot_axis_titles.md)
+says, and only for the axes R draws those titles on
+([`drawn_default_titles()`](https://r.maidr.ai/reference/drawn_default_titles.md)).

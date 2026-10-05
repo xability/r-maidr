@@ -216,7 +216,10 @@ Extract the axis titles for this layer
 The x axis holds whatever variable was smoothed, which the recorded
 arguments no longer name, so it carries no default. The y axis does when
 the curve came from [`density()`](https://rdrr.io/r/stats/density.html):
-that estimate is a density, and plot.density() prints exactly that word.
+that estimate is a density, and plot.density() prints exactly that word,
+where the [`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)
+call leaves it its title
+([`drawn_default_titles()`](https://r.maidr.ai/reference/drawn_default_titles.md)).
 
 #### Usage
 
