@@ -947,6 +947,56 @@ test_that("a plot after one that drew several panels is in the panel R drew it i
   testthat::expect_true("fifth" %in% chart$strings)
 })
 
+test_that("a plot in a screen is drawn with the graphics parameters R gave that screen", {
+  skip_if_no_render()
+
+  # screen(n) puts back screen n's own margins and size of text, and
+  # split.screen() takes away the outer margins while its screens are in
+  # use. maidr drew a screen's plot with the margins and size of text set
+  # last in any screen, under the outer margins R had taken away, in the
+  # chart and in its picture: B with A's margins, axis titles cut away.
+  screens <- list(
+    quote({
+      split.screen(c(1, 2))
+      screen(1)
+      par(mar = c(2, 2, 1, 1))
+      plot(1:10, main = "A", xlab = "", ylab = "")
+      screen(2)
+      plot(10:1, main = "B", xlab = "xb", ylab = "yb")
+      close.screen(all.screens = TRUE)
+    }),
+    quote({
+      split.screen(c(1, 2))
+      screen(1)
+      par(cex = 0.6)
+      plot(1:10, main = "A", xlab = "xa", ylab = "ya")
+      screen(2)
+      plot(10:1, main = "B", xlab = "xb", ylab = "yb")
+      close.screen(all.screens = TRUE)
+    }),
+    quote({
+      par(oma = c(0, 0, 4, 0))
+      split.screen(c(1, 2))
+      screen(1)
+      plot(1:10, main = "A", xlab = "xa", ylab = "ya")
+      screen(2)
+      plot(10:1, main = "B", xlab = "xb", ylab = "yb")
+      close.screen(all.screens = TRUE)
+    })
+  )
+  for (call in screens) {
+    chart <- last_page_export(function() eval(call))
+    expect_drawn_where_r_draws(chart, call, c("A", "B"))
+    # The picture of the same page, with an axis gridGraphics cannot draw.
+    failed <- bquote({
+      .(call)
+      axis(3, padj = c(0, 1))
+    })
+    titles <- intersect(c("A", "B", "xa", "xb"), r_last_page_strings(call))
+    expect_pictured_where_r_draws(failed, titles)
+  }
+})
+
 test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave it", {
   skip_if_no_render()
 

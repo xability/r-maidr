@@ -199,6 +199,15 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
   window <- NULL
   for (call_entry in all_calls) {
     if (identical(call_entry$function_name, "split.screen")) {
+      # Where it started the page, the page is started here, before the
+      # graphics parameters set for the screens after it: R works out the
+      # size of a line of margin text again only for a plot that starts a
+      # page, and keeps it for the plots drawn over it, in the screens.
+      if (isTRUE(call_entry$new_plot) && isTRUE(call_entry$end_plot > plots)) {
+        graphics::par(new = plots > 0L)
+        graphics::plot.new()
+        plots <- call_entry$end_plot
+      }
       next
     }
     on <- call_entry$end_plot
@@ -217,6 +226,7 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
       unrecorded_plot <- TRUE
       window <- NULL
     } else if (sent_back) {
+      set_drawing_pars(call_entry$pars)
       graphics::par(fig = call_entry$drawn_fig, new = TRUE)
       graphics::plot.new()
       unrecorded_plot <- TRUE
@@ -250,6 +260,66 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
       window <- NULL
     }
   }
+}
+
+#' Give a drawing the graphics parameters R had as a recorded call started
+#'
+#' Those `screen()` puts back for each screen of `split.screen()`, and the
+#' outer margins (`base_r_drawing_pars`), as R had them whatever set them
+#' (`begin_base_r_call()`), and the margins R gave the plot it started, in
+#' inches (`note_base_r_plot_started()`). Replayed as they come, the
+#' recorded `par()` calls gave a screen's plot the margins and size of text
+#' set for another, under outer margins `split.screen()` had taken away,
+#' and those `graphics::par()` set were not given at all. Only those that
+#' differ from the drawing's are set, in their order.
+#'
+#' @param pars Graphics parameters, as a named list for `par()`; NULL or
+#'   empty where they were not read
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+set_drawing_pars <- function(pars) {
+  if (!is.list(pars) || length(pars) == 0L) {
+    return(invisible(NULL))
+  }
+  changed <- differing_pars(pars)
+  if (length(changed) > 0L) {
+    graphics::par(changed)
+  }
+  invisible(NULL)
+}
+
+#' The graphics parameters that differ from those the drawing has
+#'
+#' A number is taken to be the same to within a millionth, as one read in
+#' inches where it was set in lines is: setting the outer margins again
+#' starts a new page in a grid, in R as here. The margins, `mar` or `mai`,
+#' are always set: R keeps them in the unit they were last set in, and
+#' works them out again in it as it starts a page or a panel, so the same
+#' margins set in the other unit come out another size.
+#'
+#' @param pars Graphics parameters, as a named list for `par()`
+#' @return Those of `pars` that differ, in their order
+#' @keywords internal
+#' @noRd
+differing_pars <- function(pars) {
+  now <- graphics::par(names(pars))
+  same <- mapply(
+    function(name, want, have) {
+      if (name %in% c("mar", "mai")) {
+        FALSE
+      } else if (is.numeric(want) && is.numeric(have) && length(want) == length(have)) {
+        missing <- is.na(want)
+        identical(missing, is.na(have)) && all(abs(want[!missing] - have[!missing]) < 1e-6)
+      } else {
+        identical(want, have)
+      }
+    },
+    names(pars),
+    pars,
+    now[names(pars)]
+  )
+  pars[!same]
 }
 
 #' The panel of a grid R was sent back to draw a low-level call in
@@ -289,6 +359,8 @@ sent_back_panel <- function(call, grid) {
 #' in, so those before fill that page, as in the chart (`replay_page()`).
 #' A plot in a grid of another shape than the drawing's -- one a call lays
 #' out itself, as `heatmap()` does -- is left where the drawing puts it.
+#' It is drawn with the graphics parameters R had as the call started, and
+#' the margins R gave the plot (`set_drawing_pars()`).
 #'
 #' @param call The recorded call, with the `cell` and `fig` R put the plot
 #'   in
@@ -299,6 +371,24 @@ sent_back_panel <- function(call, grid) {
 #' @keywords internal
 #' @noRd
 place_picture_plot <- function(call, plots, grid) {
+  pars <- call$pars
+  margins <- call$margins
+  csi <- margins$csi
+  if (is.numeric(margins$mai) && is.numeric(margins$omi) && is.numeric(csi) &&
+        is.numeric(pars$cex)) {
+    # In inches, as R drew the plot with them; set in lines again with the
+    # size of text R had set since, they came out another size. R works out
+    # the height of a line of margin text as margins, a region or a cell are
+    # set, from the size of text it has then, which a `par(cex = )` set
+    # after `screen()` does not change: they are set with the size of text
+    # that gives the height R had, and the size R had is set after them.
+    cex <- pars$cex
+    graphics::par(cex = csi / graphics::par("cin")[[2L]])
+    on.exit(graphics::par(cex = cex), add = TRUE)
+    keep <- setdiff(names(pars), c("mar", "oma", "cex"))
+    pars <- c(pars[keep], margins[c("mai", "omi")])
+  }
+  set_drawing_pars(pars)
   if (isTRUE(call$spans_pages)) {
     graphics::par(new = FALSE)
     for (k in seq_len(max(call$start_figure - 1L, 0L))) {

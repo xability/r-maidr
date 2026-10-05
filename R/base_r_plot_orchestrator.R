@@ -68,15 +68,20 @@ BaseRPlotOrchestrator <- R6::R6Class(
       )
     },
 
-    # Set the margins the author's `par()` calls gave the plot a call at
-    # `index` in the recording draws on, before it is drawn again
-    # (`par_margin_settings()`), and answer them. Only those that differ from
-    # `set`, the ones the page's last plot was drawn with, are set: setting
-    # the outer margins starts a new page, in R as here, and a grid's later
-    # plots would each have a page of their own.
-    set_recorded_margins = function(index, set = list()) {
-      settings <- par_margin_settings(private$.layout_calls, index)
+    # Set the margins the plot the recorded `call` at `index` in the
+    # recording draws on was drawn with, before it is drawn again, and
+    # answer them: those R drew it with (`recorded_margins()`), or else
+    # those the author's recorded `par()` calls gave it
+    # (`par_margin_settings()`). Only those that differ from `set`, the ones
+    # the page's last plot was drawn with, and from the drawing's own
+    # (`differing_pars()`), are set: setting the outer margins starts a new
+    # page, in R as here, and a grid's later plots would each have a page
+    # of their own.
+    set_recorded_margins = function(index, set = list(), call = NULL) {
+      settings <- recorded_margins(call) %||%
+        par_margin_settings(private$.layout_calls, index)
       changed <- settings[!mapply(identical, settings, set[names(settings)])]
+      changed <- if (length(changed) > 0) differing_pars(changed) else changed
       if (length(changed) > 0) {
         graphics::par(changed)
       }
@@ -161,7 +166,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         for (call in group$before_calls) {
           at <- private$replay_unrecorded_plot_call(call, at, panel_config)
         }
-        at$margins <- private$set_recorded_margins(group$high_call_index, at$margins)
+        at$margins <- private$set_recorded_margins(group$high_call_index, at$margins, high)
         if (!isFALSE(high$new_plot)) {
           at <- start_skipped_plots(at, numbers[[i]] - 1L, slot)
           # A call that drew plots on a page before this one -- `plot()` of
@@ -239,7 +244,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     # else that plot holds was not recorded. A call R counted on no plot is
     # drawn on the page's first: R draws none before a plot is started.
     replay_unrecorded_plot_call = function(call, at, panel_config) {
-      at$margins <- private$set_recorded_margins(call$storage_index, at$margins)
+      at$margins <- private$set_recorded_margins(call$storage_index, at$margins, call)
       on <- max(call$end_plot, 1L)
       if (on > at$plots) {
         slot <- if (is.null(panel_config)) {

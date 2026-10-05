@@ -534,7 +534,14 @@
   the one before it after a `par(new = TRUE)` made through
   `graphics::par()` or `withr::with_par()` is titled as after one maidr
   records: on a chart of two y axes, each series by what is written
-  beside its own axis, where every title went to the second series. The
+  beside its own axis, where every title went to the second series. A
+  plot in a screen of `split.screen()` is drawn with the margins and size
+  of text R drew it with, those `screen()` puts back for that screen, and
+  without the outer margins `split.screen()` takes away while its screens
+  are in use, where maidr drew it with those set last in any screen, under
+  outer margins R had taken away; and so is a plot whose margins or size
+  of text a `par()` call made through `graphics::par()` or
+  `withr::with_par()` set, which maidr drew with R's own. The
   picture maidr draws of a page it cannot read or draw again has each plot
   where R drew it too -- over the plot before it, in its panel of a grid,
   or in its screen or region of the page -- also where what put it there

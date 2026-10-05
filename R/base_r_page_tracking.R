@@ -247,12 +247,18 @@ display_list_entry_name <- function(entry) {
 #'
 #' Called by `plot.new()` once the plot is started; see the top of this
 #' file. The cell (`par("mfg")`: its row and column, and the grid's rows
-#' and columns) and the region of the page (`par("fig")`) are kept with the
-#' plot's place, and with that of each recorded call this plot is the
-#' first of on its page. A plot started with no device open, as
-#' `plot.new()` or `frame()` is to begin a drawing, opened the device it
-#' is on: it is the first plot of the device's first page, which R
-#' started with it, as the `before.plot.new` hook could not say.
+#' and columns), the region of the page (`par("fig")`) and the margins R
+#' gave the plot, in inches (`par("mai")` and `par("omi")`), with the
+#' height of a line of margin text (`par("csi")`), are kept with the plot's
+#' place, and with that of each recorded call this plot is the first of on
+#' its page. They are those R drew the plot with, which its `mar` and `cex`
+#' do not always say: R works them out again from those only as it starts
+#' a page or a panel, or is given a region with `par(fig = )` or a cell with
+#' `par(mfg = )`, so a `par(cex = )` set after `screen()` keeps the
+#' margins and lines of the size of text before it. A plot started with no
+#' device open, as `plot.new()` or `frame()` is to begin a drawing, opened
+#' the device it is on: it is the first plot of the device's first page,
+#' which R started with it, as the `before.plot.new` hook could not say.
 #'
 #' @return NULL (invisible)
 #' @keywords internal
@@ -269,9 +275,10 @@ note_base_r_plot_started <- function() {
       }
       if (device != 1L && !is.null(at)) {
         before <- at[c("page", "plot")]
-        placed <- graphics::par(c("mfg", "fig"))
+        placed <- graphics::par(c("mfg", "fig", "mai", "omi", "csi"))
         at$cell <- as.integer(placed$mfg)
         at$fig <- placed$fig
+        at$margins <- placed[c("mai", "omi", "csi")]
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
         for (i in seq_along(drawing)) {
@@ -454,13 +461,27 @@ base_r_page_without_plot <- function(device_id = grDevices::dev.cur()) {
   any(drawn) && !any(plots)
 }
 
+# The graphics parameters R draws a call with that are not where it draws:
+# those `screen()` of `split.screen()` puts back for each of its screens --
+# its margins, the size and style of its text, lines and points, and how its
+# axes are drawn -- and the outer margins, which `split.screen()` sets to
+# none while the screens are in use. They are read from R as each recorded
+# call starts (`begin_base_r_call()`): what set them is often not recorded,
+# as `screen()`, `close.screen()` and `graphics::par()` are not.
+base_r_drawing_pars <- c(
+  "adj", "bty", "cex", "col", "crt", "font", "lab", "las", "lty", "lwd",
+  "mar", "mex", "mgp", "oma", "pch", "pty", "srt", "tck", "xaxs", "xaxt",
+  "xpd", "yaxs", "yaxt"
+)
+
 #' Start following a recorded call as it draws
 #'
 #' Called by every recording wrapper before it draws (`ensure_maidr_device()`).
 #' A call that made it while drawing still draws; one in a frame as deep as
 #' this or deeper is done, without having been recorded -- it stopped with an
 #' error, or drew nothing, as `hist(x, plot = FALSE)` does -- and is no
-#' longer followed.
+#' longer followed. The graphics parameters R has as it starts
+#' (`base_r_drawing_pars`), and its margins in inches, are kept with it.
 #'
 #' @param device_id The device it draws on
 #' @param depth The number of the wrapper's frame (`sys.parent()` in it)
@@ -482,9 +503,13 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   outer <- if (length(drawing) > 0L) drawing[[length(drawing)]]
   caller <- if (depth >= 1L) sys.parents()[depth] else NA_integer_
   apart <- !is.null(outer) && isTRUE(caller < outer$depth) && !isTRUE(outer$own_plot)
+  pars <- tryCatch(graphics::par(base_r_drawing_pars), error = function(e) NULL)
+  margins <- tryCatch(graphics::par(c("mai", "omi")), error = function(e) NULL)
   .maidr_base_r_pages$calls[[key]] <- c(
     drawing,
-    list(list(depth = depth, id = id, grid = grid, apart = apart))
+    list(list(
+      depth = depth, id = id, grid = grid, apart = apart, pars = pars, margins = margins
+    ))
   )
   invisible(NULL)
 }
@@ -499,7 +524,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #' @param depth The number of the wrapper's frame, as `begin_base_r_call()`
 #'   was given it
 #' @return A list: `page`, `figure`, `plot`, `cell` and `fig`, where R put
-#'   that plot (`note_base_r_plot_started()`), `new_plot`, whether the call
+#'   that plot, and `margins`, its margins and outer margins in inches, `mai`
+#'   and `omi`, and the height of a line of margin text, `csi`
+#'   (`note_base_r_plot_started()`), where they are those R had as the call
+#'   started; `new_plot`, whether the call
 #'   started a plot, and `end_figure`, `end_plot` and `end_cell`, the panel,
 #'   plot and cell R was on when the call was done, and `window`, the
 #'   coordinates of that plot then (`base_r_plot_window()`); `drawn_cell`
@@ -517,9 +545,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   started a plot itself (see `standalone_calls()`); and `spans_pages`,
 #'   whether the call started its first plot on a page before its last, as
 #'   a call that draws several plots, as `plot()` of a fitted model does,
-#'   can, and `start_figure`, the panel of that plot. Only `page`
-#'   for a call no recording wrapper drew, recorded by code that records
-#'   calls itself.
+#'   can, and `start_figure`, the panel of that plot; and `pars`, the
+#'   graphics parameters R had as the call started (`begin_base_r_call()`).
+#'   Only `page` for a call no recording wrapper drew, recorded by code that
+#'   records calls itself.
 #' @keywords internal
 #' @noRd
 end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
@@ -535,6 +564,13 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   .maidr_base_r_pages$calls[[key]] <- drawing[seq_len(this - 1L)]
   started <- !is.null(call$first)
   first <- if (started) call$first else at
+  # The margins R drew the plot with, where they are those it had as the
+  # call started: R did not work them out again from `mar` and `cex`, as it
+  # does for a plot that starts a page or a panel, and the call did not set
+  # its own, as `filled.contour()` does.
+  kept <- is.list(first$margins) && is.list(call$margins) &&
+    identical(first$margins$mai, call$margins$mai) &&
+    identical(first$margins$omi, call$margins$omi)
   region <- base_r_drawing_region()
   list(
     page = at$page,
@@ -542,6 +578,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     plot = first$plot,
     cell = first$cell,
     fig = first$fig,
+    margins = if (kept) first$margins,
     new_plot = started,
     spans_pages = started && isTRUE(call$start$page < at$page),
     start_figure = call$start$figure,
@@ -557,7 +594,8 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     id = call$id,
     outer = if (this > 1L) drawing[[this - 1L]]$id,
     apart = isTRUE(call$apart),
-    own_plot = isTRUE(call$own_plot)
+    own_plot = isTRUE(call$own_plot),
+    pars = call$pars
   )
 }
 

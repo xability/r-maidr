@@ -828,6 +828,47 @@ par_margin_settings <- function(layout_calls, before) {
   settings
 }
 
+#' The margins R drew a recorded call's plot with
+#'
+#' Read from R, they are those it drew the plot with whatever set them: a
+#' `par()` call maidr records, or one it does not, made through
+#' `graphics::par()` or `withr::with_par()`, `screen()`, which puts back the
+#' margins and size of text of each screen of `split.screen()`, or
+#' `split.screen()` itself, which sets the outer margins to none while its
+#' screens are in use. Read from the recorded `par()` calls instead
+#' (`par_margin_settings()`), a screen's plot was drawn with the margins set
+#' for another screen, and under outer margins R had taken away.
+#'
+#' They are the margins in inches R drew the plot with, where R did not
+#' work them out again as it started it (`end_base_r_call()`): a
+#' `par(cex = )` set after `screen()`, or before a plot drawn over another
+#' after `par(new = TRUE)`, does not change them. Else they are the margins
+#' in lines and the size of text R had as the call started
+#' (`begin_base_r_call()`), which R works them out from, as the drawing
+#' does.
+#'
+#' @param call A recorded call, with the `margins` of the plot it started
+#'   or drew on and the `pars` it started with
+#' @return The settings, as a named list for `par()`, or NULL where they
+#'   were not read
+#' @keywords internal
+#' @noRd
+recorded_margins <- function(call) {
+  pars <- call$pars
+  margins <- call$margins
+  if (!is.numeric(pars$cex)) {
+    return(NULL)
+  }
+  if (is.numeric(margins$mai) && is.numeric(margins$omi)) {
+    return(list(mai = margins$mai, omi = margins$omi, cex = pars$cex))
+  }
+  lines <- c("mar", "oma", "mex", "cex")
+  if (!all(vapply(pars[lines], is.numeric, logical(1)))) {
+    return(NULL)
+  }
+  pars[lines]
+}
+
 #' The size of text R sets for a grid of plots
 #'
 #' `par(mfrow = )`, `par(mfcol = )` and `layout()` set `cex` for the grid
