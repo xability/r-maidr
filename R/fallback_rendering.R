@@ -194,7 +194,8 @@ replay_base_r_plot <- function(device_id) {
         call_entry$function_name,
         call_entry$args,
         call_entry$call_env,
-        call_entry$arg_text
+        call_entry$arg_text,
+        call_entry$rng_state
       ),
       error = function(e) {
         if (starts_base_r_plot(call_entry)) {

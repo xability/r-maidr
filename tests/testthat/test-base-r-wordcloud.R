@@ -107,18 +107,114 @@ test_that("the terms come out heaviest first", {
 })
 
 
-test_that("a cloud carries no selectors", {
-  testthat::skip_if_not_installed("wordcloud")
-  # Measured through the package's own export: the result carries no `id`
-  # attributes at all, so there is no addressable element per term and no
-  # named grob to build a selector from. `wordcloud()` draws each term with
-  # a bare `text()` at a rotation, and nothing names those.
-  layer <- wordcloud_layers(function() {
-    set.seed(1)
-    wordcloud(words = c("a", "b"), freq = c(5, 3), min.freq = 1)
-  })[[1]]
+#' Render a word cloud through `save_html()` and return the page's SVG
+#'
+#' Through the export rather than `generate_maidr_data()`, because the
+#' selectors are only worth anything against the elements the page carries.
+wordcloud_page <- function(draw) {
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off()
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+  draw()
 
-  testthat::expect_null(layer$selectors)
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
+  suppressWarnings(suppressMessages(save_html(file = file)))
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  list(
+    layer = layers_from(html)[[1]],
+    svg = xml2::read_html(html)
+  )
+}
+
+#' The text each selector of a layer resolves to on its page
+#'
+#' The selectors are `#<id> text`, the id with its dots escaped; unescaped,
+#' that id is looked up directly.
+selected_text <- function(page) {
+  vapply(page$layer$selectors, function(selector) {
+    id <- gsub("\\\\", "", sub(" text$", "", sub("^#", "", selector)))
+    node <- xml2::xml_find_all(
+      page$svg, sprintf("//*[@id='%s']//text", id)
+    )
+    paste(xml2::xml_text(node), collapse = "|")
+  }, character(1))
+}
+
+
+test_that("each term's selector names the text that draws it", {
+  testthat::skip_if_not_installed("wordcloud")
+  testthat::skip_if_not_installed("xml2")
+  page <- wordcloud_page(function() {
+    set.seed(1)
+    wordcloud(
+      words = c("machine", "learning", "data", "model"),
+      freq = c(412, 300, 250, 120), min.freq = 1, random.order = FALSE
+    )
+  })
+
+  testthat::expect_equal(selected_text(page), terms_of(page$layer))
+})
+
+
+test_that("a shuffled layout still pairs each term with its own word", {
+  testthat::skip_if_not_installed("wordcloud")
+  testthat::skip_if_not_installed("xml2")
+  # `random.order = TRUE`, the default, draws the terms in a random order,
+  # so the grob numbers no longer follow the weights. Paired by label, the
+  # selectors still follow the terms; paired by position, they would not.
+  page <- wordcloud_page(function() {
+    set.seed(3)
+    wordcloud(
+      words = c("machine", "learning", "data", "model", "neural"),
+      freq = c(412, 300, 250, 120, 90), min.freq = 1, random.order = TRUE
+    )
+  })
+
+  testthat::expect_equal(selected_text(page), terms_of(page$layer))
+})
+
+
+test_that("a label written after the cloud is not taken for a term", {
+  testthat::skip_if_not_installed("wordcloud")
+  testthat::skip_if_not_installed("xml2")
+  # Another `text()` on the same plot is another text grob of it. The
+  # cloud's selectors name its three terms and leave the note out.
+  page <- wordcloud_page(function() {
+    set.seed(1)
+    wordcloud(
+      words = c("a", "b", "c"), freq = c(5, 3, 2), min.freq = 1,
+      random.order = FALSE
+    )
+    graphics::text(0.1, 0.1, "note")
+  })
+
+  testthat::expect_equal(selected_text(page), c("a", "b", "c"))
+})
+
+
+test_that("a term that did not fit leaves the cloud without selectors", {
+  testthat::skip_if_not_installed("wordcloud")
+  # `wordcloud()` skips a term it cannot place and says so. The term is
+  # still announced, but it has no word to point at, and one gap would
+  # shift every later highlight -- so the layer carries no selectors.
+  page <- wordcloud_page(function() {
+    set.seed(1)
+    suppressWarnings(wordcloud(
+      words = c("enormous", "gigantic", "colossal"), freq = c(9, 8, 7),
+      min.freq = 1, scale = c(30, 25), random.order = FALSE
+    ))
+  })
+
+  testthat::expect_length(page$layer$data, 3)
+  testthat::expect_null(page$layer$selectors)
 })
 
 

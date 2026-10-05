@@ -198,7 +198,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
               window <- replay_plot_window(call$window) %||% window
               at$window <- window
             }
-            replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
+            replay_plot_call(
+              call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
+            )
           }
         }
         # Where R was once the group was drawn: a call that draws several
@@ -256,7 +258,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
       if (!identical(call$window, at$window)) {
         at$window <- replay_plot_window(call$window) %||% at$window
       }
-      replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
+      replay_plot_call(
+        call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
+      )
       at
     },
 
@@ -1148,7 +1152,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
     picture_size = function() {
       draw <- function() {
         for (call in private$.plot_calls) {
-          replay_plot_call(call$function_name, call$args, call$call_env)
+          replay_plot_call(
+            call$function_name, call$args, call$call_env,
+            rng_state = call$rng_state
+          )
         }
       }
       canvas <- private$.canvas

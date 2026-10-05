@@ -129,6 +129,10 @@ calls_as_expressions <- function(args) {
 #' @param arg_text Optional text each argument in \code{args} was written
 #'   as, from \code{written_arg_text()}, which the replay titles the chart
 #'   after
+#' @param rng_state The `.Random.seed` the call started from, which the
+#'   replay draws from, so a chart that draws random numbers comes out as
+#'   the reader was shown it; by default the state the recording wrapper
+#'   noted before it drew (`ensure_maidr_device()`)
 #' @return NULL (invisible)
 #' @keywords internal
 log_plot_call_to_device <- function(
@@ -137,7 +141,8 @@ log_plot_call_to_device <- function(
     args,
     device_id = grDevices::dev.cur(),
     call_env = NULL,
-    arg_text = NULL) {
+    arg_text = NULL,
+    rng_state = .maidr_call_start$rng_state) {
   # The first call a document records installs maidr into the running knit
   # (and drops calls recorded before it); every later one costs a lookup.
   if (isTRUE(getOption("knitr.in.progress"))) {
@@ -162,6 +167,7 @@ log_plot_call_to_device <- function(
     device_id = device_id,
     call_env = call_env,
     arg_text = arg_text,
+    rng_state = rng_state,
     # Resolved now rather than at render time. A formula is the one recorded
     # argument that is a reference rather than a value, so a reader that
     # resolved it later would read whatever the names are bound to *then* --
@@ -176,6 +182,9 @@ log_plot_call_to_device <- function(
   # it calls this, and is known by its frame.
   wrapper <- sys.parent()
   call_entry <- c(call_entry, end_base_r_call(device_id, wrapper))
+  # Taken once: a call recorded without passing through
+  # `ensure_maidr_device()` gets no state rather than an earlier call's.
+  .maidr_call_start$rng_state <- NULL
   # In a knit, a call that draws leaves a marker on its page, by which the
   # plot hook knows the figure it is on (see knitr_figure_map.R). A layout
   # call draws nothing, and governs the pages after it instead.
