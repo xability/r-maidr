@@ -249,9 +249,10 @@ display_list_entry_name <- function(entry) {
 #' file. The cell (`par("mfg")`: its row and column, and the grid's rows
 #' and columns), the region of the page (`par("fig")`) and the margins R
 #' gave the plot, in inches (`par("mai")` and `par("omi")`), with the
-#' height of a line of margin text (`par("csi")`), are kept with the plot's
-#' place, and with that of each recorded call this plot is the first of on
-#' its page. They are those R drew the plot with, which its `mar` and `cex`
+#' height of a line of margin text (`par("csi")`) and whether `par(plt = )`
+#' gave the plot a region of its figure in place of the margins, are kept
+#' with the plot's place, and with that of each recorded call this plot is
+#' the first of on its page. They are those R drew the plot with, which its `mar` and `cex`
 #' do not always say: R works them out again from those only as it starts
 #' a page or a panel, or is given a region with `par(fig = )` or a cell with
 #' `par(mfg = )`, so a `par(cex = )` set after `screen()` keeps the
@@ -275,10 +276,17 @@ note_base_r_plot_started <- function() {
       }
       if (device != 1L && !is.null(at)) {
         before <- at[c("page", "plot")]
-        placed <- graphics::par(c("mfg", "fig", "mai", "omi", "csi"))
+        placed <- graphics::par(c("mfg", "fig", "mai", "omi", "csi", "plt", "fin"))
         at$cell <- as.integer(placed$mfg)
         at$fig <- placed$fig
         at$margins <- placed[c("mai", "omi", "csi")]
+        # A region `par(plt = )` gave the plot, where R leaves the margins
+        # as they were and does not draw it within them.
+        within <- c(
+          placed$mai[[2L]] / placed$fin[[1L]], 1 - placed$mai[[4L]] / placed$fin[[1L]],
+          placed$mai[[1L]] / placed$fin[[2L]], 1 - placed$mai[[3L]] / placed$fin[[2L]]
+        )
+        at$margins$region_set <- isTRUE(max(abs(placed$plt - within)) > 1e-6)
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
         for (i in seq_along(drawing)) {
@@ -525,9 +533,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   was given it
 #' @return A list: `page`, `figure`, `plot`, `cell` and `fig`, where R put
 #'   that plot, and `margins`, its margins and outer margins in inches, `mai`
-#'   and `omi`, and the height of a line of margin text, `csi`
-#'   (`note_base_r_plot_started()`), where they are those R had as the call
-#'   started; `new_plot`, whether the call
+#'   and `omi`, the height of a line of margin text, `csi`, and whether
+#'   `par(plt = )` set its region, `region_set` (`note_base_r_plot_started()`),
+#'   where the margins are those R had as the call started; `new_plot`,
+#'   whether the call
 #'   started a plot, and `end_figure`, `end_plot` and `end_cell`, the panel,
 #'   plot and cell R was on when the call was done, and `window`, the
 #'   coordinates of that plot then (`base_r_plot_window()`); `drawn_cell`

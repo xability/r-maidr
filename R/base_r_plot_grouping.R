@@ -927,13 +927,13 @@ par_margin_settings <- function(layout_calls, before) {
 #' @param call A recorded call, with the `margins` of the plot it started
 #'   or drew on and the `pars` it started with
 #' @return The settings, as a named list for `par()`, or NULL where they
-#'   were not read
+#'   were not read, or where `par(plt = )` gave the plot its region
 #' @keywords internal
 #' @noRd
 recorded_margins <- function(call) {
   pars <- call$pars
   margins <- call$margins
-  if (!is.numeric(pars$cex)) {
+  if (!is.numeric(pars$cex) || isTRUE(margins$region_set)) {
     return(NULL)
   }
   if (is.numeric(margins$mai) && is.numeric(margins$omi) && is.numeric(pars$mex)) {

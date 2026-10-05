@@ -388,6 +388,13 @@ place_picture_plot <- function(call, plots, grid) {
   pars <- call$pars
   margins <- call$margins
   csi <- margins$csi
+  if (isTRUE(margins$region_set)) {
+    # A region `par(plt = )` gave the plot in place of the margins, which
+    # the `par()` call drawn again as it was gives it: margins set again
+    # would take it back.
+    pars <- pars[setdiff(names(pars), c("mar", "oma"))]
+    margins <- NULL
+  }
   if (is.numeric(margins$mai) && is.numeric(margins$omi) && is.numeric(csi) &&
         is.numeric(pars$cex)) {
     # In inches, as R drew the plot with them; set in lines again with the

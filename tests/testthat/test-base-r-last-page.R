@@ -997,6 +997,20 @@ test_that("a plot in a screen is drawn with the graphics parameters R gave that 
   }
 })
 
+test_that("the picture draws a plot par(plt = ) placed in the region R gave it", {
+  testthat::skip_if_not_installed("svglite")
+
+  # par(plt = ) gives the plot drawn next a region of its figure in place of
+  # the margins, which R leaves as they were: drawn with those margins, the
+  # inset was drawn over the whole plot it sits in.
+  inset <- quote({
+    plot(1:10, main = "Big")
+    par(plt = c(0.6, 0.9, 0.6, 0.85), new = TRUE)
+    plot(10:1, main = "Small")
+  })
+  expect_pictured_where_r_draws(inset, c("Big", "Small"))
+})
+
 test_that("text in the margins is drawn the lines out R draws it, with the mex R had", {
   skip_if_no_render()
 
