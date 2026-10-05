@@ -883,6 +883,152 @@ test_that("a page replayPlot() puts back is the page read", {
   testthat::expect_identical(cell_titles(chart), list("Third"))
 })
 
+test_that("a page replayPlot() puts back holds what was drawn on it before it was saved", {
+  skip_if_no_render()
+
+  # `recordPlot()` saves the page as it is then; replayed, it holds none of
+  # what was drawn on it after.
+  chart <- last_page_export(function() {
+    grDevices::dev.control("enable")
+    hist(mtcars$mpg, main = "Snap")
+    shown <- grDevices::recordPlot()
+    abline(v = 20)
+    text(30, 10, "Afternote")
+    grDevices::replayPlot(shown)
+  })
+  testthat::expect_identical(cell_titles(chart), list("Snap"))
+  testthat::expect_false("Afternote" %in% chart$strings)
+
+  # In a grid, the panels drawn after it are empty again, and a plot drawn
+  # next takes the panel after the one R had reached when it was saved.
+  saved_in_grid <- function(after = NULL) {
+    function() {
+      grDevices::dev.control("enable")
+      par(mfrow = c(1, 2))
+      hist(mtcars$mpg, main = "Q1")
+      shown <- grDevices::recordPlot()
+      plot(1:3, main = "Q2")
+      grDevices::replayPlot(shown)
+      if (!is.null(after)) after()
+    }
+  }
+  chart <- last_page_export(saved_in_grid())
+  testthat::expect_identical(cell_titles(chart), list("Q1", character(0)))
+  testthat::expect_false("Q2" %in% chart$strings)
+
+  chart <- last_page_export(saved_in_grid(function() barplot(c(a = 1, b = 3), main = "Q3")))
+  testthat::expect_identical(cell_titles(chart), list("Q1", "Q3"))
+  testthat::expect_false("Q2" %in% chart$strings)
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(
+    chart,
+    quote({
+      par(mfrow = c(1, 2))
+      hist(mtcars$mpg, main = "Q1")
+      barplot(c(a = 1, b = 3), main = "Q3")
+    }),
+    c("Q1", "Q3")
+  )
+})
+
+test_that("a drawing that runs the author's own code calling recorded functions is drawn", {
+  skip_if_no_render()
+
+  # Drawn again, `pairs()` calls the panel functions, whose `points()`,
+  # `abline()` and `text()` are maidr's own recording functions.
+  correlation <- function(x, y, ...) {
+    usr <- par("usr")
+    on.exit(par(usr = usr))
+    par(usr = c(0, 1, 0, 1))
+    text(0.5, 0.5, sprintf("r=%.2f", stats::cor(x, y)))
+  }
+  call <- quote(pairs(
+    iris[, 1:3],
+    lower.panel = function(x, y, ...) {
+      points(x, y, ...)
+      abline(stats::lm(y ~ x), col = "red")
+    },
+    upper.panel = correlation
+  ))
+  chart <- last_page_export(function() eval(call))
+  testthat::expect_true(all(c("Sepal.Length", "Sepal.Width", "Petal.Length") %in% chart$strings))
+  testthat::expect_true(sprintf("r=%.2f", stats::cor(iris[[1]], iris[[2]])) %in% chart$strings)
+  testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(call))
+  # The points of each panel below the diagonal, as the lower panel drew
+  # them, are what its layer's selector names.
+  cells <- last_page_cells(chart)
+  for (cell in c(4L, 7L, 8L)) {
+    ids <- selector_ids(cells[[cell]][[1]])
+    testthat::expect_true(any(startsWith(chart$ids, ids[[1]])), label = ids[[1]])
+  }
+})
+
+test_that("gridGraphics can echo a Base R drawing maidr recorded", {
+  skip_if_not_installed("gridGraphics")
+  file <- tempfile(fileext = ".png")
+  # What maidr recorded on gridGraphics' own device, which it closes.
+  on.exit(
+    {
+      unlink(file)
+      clear_all_device_storage()
+    },
+    add = TRUE
+  )
+  echoed <- function(drawing) {
+    grDevices::png(file)
+    tryCatch(
+      {
+        grid::grid.draw(gridGraphics::echoGrob(drawing))
+        "echoed"
+      },
+      error = conditionMessage,
+      finally = grDevices::dev.off()
+    )
+  }
+
+  # A drawing echoed as it is drawn, as patchwork's `wrap_elements(~ ...)`
+  # and ggplotify echo one.
+  testthat::expect_identical(
+    echoed(function() {
+      hist(mtcars$mpg)
+      abline(v = 20)
+    }),
+    "echoed"
+  )
+
+  # And the page a device that keeps a display list holds.
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      if (device_id %in% grDevices::dev.list()) grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  grDevices::dev.control("enable")
+  hist(mtcars$mpg)
+  abline(v = 20)
+  page <- grDevices::recordPlot()
+  testthat::expect_identical(echoed(page), "echoed")
+})
+
+test_that("recording keeps nothing of a call once its device is cleared and closed", {
+  kept <- function() length(serialize(maidr:::.maidr_base_r_pages, NULL))
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  grDevices::dev.control("enable")
+  plot(1:3)
+  clear_base_r_device(device_id)
+  before <- kept()
+  for (i in seq_len(200)) points(2, 2)
+  clear_base_r_device(device_id)
+  grDevices::dev.off(device_id)
+  testthat::expect_lt(kept() - before, 1000)
+})
+
 test_that("each recorded plot carries the page, panel and plot number R drew it at", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

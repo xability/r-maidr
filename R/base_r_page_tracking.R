@@ -47,21 +47,16 @@
 # The number the next recorded call is known by, while it draws and once
 # it is recorded (`standalone_calls()`).
 .maidr_base_r_pages$next_id <- 1L
-# Where R was when each recorded call was done, by the token of the marker
-# it left on its page (`mark_base_r_page()`), and whether a marker is being
-# made now, which evaluates it once.
-.maidr_base_r_pages$marks <- new.env(hash = TRUE, parent = emptyenv())
-.maidr_base_r_pages$mark_count <- 0L
-.maidr_base_r_pages$marking <- FALSE
+# What names this R session in the marks its recorded calls leave on the
+# pages they are drawn on (`mark_base_r_page()`), set once one is made.
+.maidr_base_r_pages$session <- NULL
 
 #' Where R is drawing, on a device
 #'
 #' @param device_id Graphics device ID
-#' @return A list: `page`, the page R is on, by the number of pages it
-#'   had started on the device since maidr was loaded when it started it
-#'   -- one `replayPlot()` put back is on its own -- and `last`, the most
-#'   it has started; `figure`, the panel of the page it is in, and `plot`,
-#'   the plots started on that page. Each 0 for none.
+#' @return A list: `page`, the pages R has started on the device since
+#'   maidr was loaded; `figure`, the panel of the last page it is in, and
+#'   `plot`, the plots started on that page. Each 0 for none.
 #' @keywords internal
 #' @noRd
 base_r_device_position <- function(device_id = grDevices::dev.cur()) {
@@ -86,17 +81,13 @@ note_base_r_plot_new <- function() {
         key <- as.character(device)
         at <- base_r_device_position(device)
         if (isTRUE(graphics::par("page"))) {
-          # Numbered past every page the device has started: one
-          # `replayPlot()` put back is shown again under its own number.
-          page <- max(at$page, at$last %||% 0L) + 1L
-          at <- list(page = page, figure = 1L, plot = 1L, opened = TRUE, last = page)
+          at <- list(page = at$page + 1L, figure = 1L, plot = 1L, opened = TRUE)
         } else {
           if (!isTRUE(graphics::par("new"))) {
             at$figure <- at$figure + 1L
           }
           at$plot <- at$plot + 1L
           at$opened <- FALSE
-          at$replayed <- NULL
         }
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
@@ -125,93 +116,123 @@ note_base_r_plot_new <- function() {
   invisible(NULL)
 }
 
-#' Leave a marker of a recorded call on the page it was drawn on
+#' Leave a mark of a recorded call on the page it was drawn on
 #'
 #' R does not call the `before.plot.new` hook when `replayPlot()` puts a
-#' page back on a device, from a plot `recordPlot()` saved, and the page R
-#' shows is then one before the last it started. Each recorded call leaves a
-#' marker on its page, an entry on the device's display list made with
-#' `grDevices::recordGraphics()`, that draws nothing and, each time the page
-#' is replayed, says where R was when the call was done
-#' (`note_base_r_page_replayed()`). A device that keeps no display list
-#' keeps no marker, and replays no page. Not in a knit, where knitr replays
-#' each figure and the chart's own markers say which it is (see
+#' page back on a device, from a plot `recordPlot()` saved, as RStudio's
+#' plot history does too, and the page R shows is then not the last it
+#' started; nor, for a page saved before all of it was drawn, all of that
+#' page. What R shows is the device's display list, which a device keeps
+#' when it can redraw its page. Each recorded call leaves a mark on it: a
+#' `par()` setting that sets `lheight` to the value it has, so draws nothing
+#' and changes nothing, carrying the call's number in this session. The
+#' display list says which of the calls are on the page R shows
+#' (`base_r_display_list_marks()`). A device that keeps no display list
+#' keeps no mark, and replays no page.
+#'
+#' Any reader of the display list replays the mark as the `par()` call it
+#' is: R's own replay, `dev.copy()`, a saved plot replayed in a session
+#' without maidr, and gridGraphics, whose `grid.echo()` maidr draws its
+#' charts with, and which cannot replay an entry made with
+#' `grDevices::recordGraphics()`. Not in a knit, where knitr replays each
+#' figure and the chart's own markers say which it is (see
 #' knitr_figure_map.R).
 #'
+#' @param id The number the call is known by (`end_base_r_call()`)
 #' @param device_id The device the call was drawn on
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-mark_base_r_page <- function(device_id = grDevices::dev.cur()) {
+mark_base_r_page <- function(id, device_id = grDevices::dev.cur()) {
   elsewhere <- !identical(as.integer(device_id), as.integer(grDevices::dev.cur()))
-  if (elsewhere || isTRUE(getOption("knitr.in.progress"))) {
+  if (is.null(id) || elsewhere || isTRUE(getOption("knitr.in.progress"))) {
     return(invisible(NULL))
   }
   state <- .maidr_base_r_pages
   if (is.null(state$session)) {
     state$session <- paste0(Sys.getpid(), "-", format(unclass(Sys.time()), digits = 16))
   }
-  state$mark_count <- state$mark_count + 1L
-  token <- paste0(state$session, "-", state$mark_count)
-  assign(
-    token,
-    list(device = as.character(device_id), at = base_r_device_position(device_id)),
-    envir = state$marks
-  )
-  state$marking <- TRUE
-  on.exit(state$marking <- FALSE, add = TRUE)
-  # Only base R is needed to evaluate it: a saved plot can be replayed in a
-  # session with another maidr, or none, whose marks it is not among.
   tryCatch(
-    grDevices::recordGraphics(
-      {
-        if ("maidr" %in% loadedNamespaces()) {
-          replayed <- get0(
-            "note_base_r_page_replayed",
-            envir = asNamespace("maidr"),
-            inherits = FALSE
-          )
-          if (is.function(replayed)) replayed(token)
-        }
-      },
-      list(token = token),
-      baseenv()
-    ),
+    graphics::par(structure(
+      list(lheight = graphics::par("lheight")),
+      maidr_mark = paste0(state$session, ":", id)
+    )),
     error = function(e) NULL
   )
   invisible(NULL)
 }
 
-#' Note that a page with a recorded call's marker was replayed
+#' The recorded calls a device's display list holds
 #'
-#' The device is put back where R was when the call was done, so the chart
-#' is read from that page (`last_page_calls()`), and a call drawn on it next
-#' is recorded on it. A page replayed where it already is, as a window
-#' redrawn at a new size is, is left as it is.
+#' The marks the recorded calls left on the page R shows
+#' (`mark_base_r_page()`), read from the display list of the device, which
+#' holds that page from its start: after `replayPlot()` put a page back,
+#' the page it put back, and only what had been drawn on it when
+#' `recordPlot()` saved it, with what was drawn on it since. Not in a knit,
+#' where no call leaves a mark. `NULL` where the device keeps no display
+#' list, or one that does not hold its page from the start, as one
+#' `dev.control("enable")` turned on with a plot already drawn does; or
+#' where the list holds no mark of this session.
 #'
-#' @param token The marker's token (`mark_base_r_page()`)
-#' @return NULL (invisible)
+#' @param device_id Graphics device ID
+#' @return `NULL`, or a list: `ids`, the numbers of the calls marked on it
+#'   (see `end_base_r_call()`), and `plots`, the number of plots R had
+#'   started on the page when each was done
 #' @keywords internal
 #' @noRd
-note_base_r_page_replayed <- function(token) {
-  state <- .maidr_base_r_pages
-  if (isTRUE(state$marking)) {
-    return(invisible(NULL))
+base_r_display_list_marks <- function(device_id = grDevices::dev.cur()) {
+  session <- .maidr_base_r_pages$session
+  if (is.null(session) || isTRUE(getOption("knitr.in.progress")) ||
+        !(as.integer(device_id) %in% grDevices::dev.list())) {
+    return(NULL)
   }
-  mark <- get0(token, envir = state$marks, inherits = FALSE)
-  key <- as.character(grDevices::dev.cur())
-  if (is.null(mark) || !identical(mark$device, key)) {
-    return(invisible(NULL))
+  current <- grDevices::dev.cur()
+  if (current != device_id) {
+    grDevices::dev.set(device_id)
+    on.exit(grDevices::dev.set(current), add = TRUE)
   }
-  now <- base_r_device_position(grDevices::dev.cur())
-  if (identical(mark$at$page, now$page) && !isTRUE(now$replayed)) {
-    return(invisible(NULL))
+  entries <- tryCatch(suppressWarnings(grDevices::recordPlot())[[1L]], error = function(e) NULL)
+  if (!is.list(entries) || length(entries) == 0L) {
+    return(NULL)
   }
-  at <- mark$at
-  at$last <- max(now$last %||% 0L, now$page, at$last %||% 0L)
-  at$replayed <- TRUE
-  state$at[[key]] <- at
-  invisible(NULL)
+  names <- vapply(entries, display_list_entry_name, character(1))
+  # A page R started begins with the plot that started it; a list turned
+  # on later begins with whatever was drawn next.
+  if (!identical(names[[1L]], "C_plot_new")) {
+    return(NULL)
+  }
+  prefix <- paste0(session, ":")
+  started <- cumsum(names == "C_plot_new")
+  ids <- integer()
+  plots <- integer()
+  for (i in which(names == "C_par")) {
+    mark <- attr(entries[[i]][[2L]][[2L]], "maidr_mark", exact = TRUE)
+    if (is.character(mark) && length(mark) == 1L && startsWith(mark, prefix)) {
+      ids <- c(ids, as.integer(substring(mark, nchar(prefix) + 1L)))
+      plots <- c(plots, started[[i]])
+    }
+  }
+  if (length(ids) == 0L) {
+    return(NULL)
+  }
+  list(ids = ids, plots = plots)
+}
+
+#' The name of the graphics operation an entry of a display list records
+#'
+#' @param entry An entry of `recordPlot()[[1]]`
+#' @return The name of the C routine, such as `"C_plot_new"` or
+#'   `"C_par"`; `""` for an entry that names none
+#' @keywords internal
+#' @noRd
+display_list_entry_name <- function(entry) {
+  args <- if (is.list(entry) && length(entry) >= 2L) entry[[2L]]
+  routine <- if (is.list(args) && length(args) >= 1L) args[[1L]]
+  if (inherits(routine, "NativeSymbolInfo") && is.character(routine$name)) {
+    routine$name[[1L]]
+  } else {
+    ""
+  }
 }
 
 #' Note where R put the plot it started: the `plot.new` hook
@@ -302,9 +323,8 @@ remove_base_r_page_hook <- function() {
 #' before it, and they are all left out.
 #'
 #' @param calls Recorded call entries, in the order they were recorded
-#' @param page The page R's device is on (`base_r_device_position()`), one
-#'   `replayPlot()` put back among them; `NULL` for the last page any call
-#'   was drawn on
+#' @param page The page R's device is on (`base_r_device_position()`);
+#'   `NULL` for the last page any call was drawn on
 #' @return The entries R's device shows, in the same order
 #' @keywords internal
 #' @noRd
@@ -323,23 +343,72 @@ last_page_calls <- function(calls, page = NULL) {
   if (all(is.na(pages))) {
     return(calls)
   }
-  shown <- if (is.null(page)) max(pages, na.rm = TRUE) else page
+  shown <- max(c(page, pages), na.rm = TRUE)
   calls[is.na(pages) | pages == shown]
+}
+
+#' The recorded calls on the page a device's display list holds
+#'
+#' The calls whose marks the display list holds (`base_r_display_list_marks()`),
+#' and every layout call, as `last_page_calls()` keeps them. Each is
+#' numbered among the plots of that page as the list numbers it: a call
+#' drawn after `replayPlot()` put a page back was numbered by the
+#' `before.plot.new` hook from the page R had drawn before, which the
+#' replay did not tell it of. The panel R's count reached moves by as much
+#' (`figure`), where no plot of the page it replaced was drawn over
+#' another; R's cell (`cell`) places it in any case.
+#'
+#' @param calls Recorded call entries, in the order they were recorded
+#' @param marks The marks on the display list, from
+#'   `base_r_display_list_marks()`, or `NULL`
+#' @return The entries, in the same order; `NULL` where no recorded call
+#'   is marked on the list
+#' @keywords internal
+#' @noRd
+marked_page_calls <- function(calls, marks) {
+  if (is.null(marks)) {
+    return(NULL)
+  }
+  ids <- vapply(calls, function(call) call$id %||% NA_integer_, integer(1))
+  if (!any(ids %in% marks$ids)) {
+    return(NULL)
+  }
+  kept <- list()
+  for (i in seq_along(calls)) {
+    call <- calls[[i]]
+    unmarked <- identical(call$class_level, "LAYOUT") || is.null(call$page)
+    if (!unmarked && !(ids[[i]] %in% marks$ids)) {
+      next
+    }
+    plots <- marks$plots[match(ids[[i]], marks$ids)]
+    if (!unmarked && length(call$end_plot) == 1L && !is.na(plots)) {
+      moved <- plots - call$end_plot
+      for (field in c("plot", "end_plot", "figure", "end_figure")) {
+        if (length(call[[field]]) == 1L) {
+          call[[field]] <- call[[field]] + moved
+        }
+      }
+    }
+    kept <- c(kept, list(call))
+  }
+  kept
 }
 
 #' The recorded calls a device shows
 #'
-#' Those on the page it is on (`last_page_calls()`), each drawing once
-#' (`standalone_calls()`).
+#' Those on the page its display list holds (`marked_page_calls()`), or,
+#' where it keeps none that says, on the page it is on
+#' (`last_page_calls()`); each drawing once (`standalone_calls()`).
 #'
 #' @param device_id Graphics device ID
 #' @return The entries, in the order they were recorded
 #' @keywords internal
 #' @noRd
 shown_device_calls <- function(device_id = grDevices::dev.cur()) {
-  standalone_calls(
-    last_page_calls(get_device_calls(device_id), base_r_device_position(device_id)$page)
-  )
+  calls <- get_device_calls(device_id)
+  shown <- marked_page_calls(calls, base_r_display_list_marks(device_id)) %||%
+    last_page_calls(calls, base_r_device_position(device_id)$page)
+  standalone_calls(shown)
 }
 
 #' Whether the page a device shows holds no plot maidr recorded

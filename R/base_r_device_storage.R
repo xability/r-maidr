@@ -184,7 +184,7 @@ log_plot_call_to_device <- function(
   if (marked) {
     mark_knit_page(call_entry$uid, .maidr_knit_figures$call_start_page)
   } else if (class_level %in% c("HIGH", "LOW")) {
-    mark_base_r_page(device_id)
+    mark_base_r_page(call_entry$id, device_id)
   }
 
   invisible(NULL)

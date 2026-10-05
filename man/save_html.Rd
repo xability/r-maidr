@@ -84,7 +84,8 @@ Nothing drawn on an
 earlier page reaches the chart: not its data, its titles or the size it
 is drawn at. A page \code{replayPlot()} puts back, from a plot
 \code{recordPlot()} saved on a device that keeps a display list, is the page
-the chart is read from. A page that holds no plot maidr recorded -- one R started
+the chart is read from, with what was drawn on it when it was saved and
+what has been drawn on it since. A page that holds no plot maidr recorded -- one R started
 with \code{plot.new()} or \code{frame()}, with a plot maidr does not record, or
 with one drawn while \code{\link[=maidr_off]{maidr_off()}} was in effect, even with \code{lines()} or
 \code{text()} drawn on it since -- is not read as the plot before it: \code{show()}
