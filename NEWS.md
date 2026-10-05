@@ -418,9 +418,9 @@
   of its own for that axis, as for `plot(x, y, ann = FALSE)`. A bar chart,
   box plot or strip chart keeps maidr's "Category" and "Value", or a
   formula's names, and `hist()`, `curve()` and `qqnorm()` keep the titles
-  they derive, even where R draws none. On a chart of two y axes, drawn
+  they derive, even where R draws none. On a chart of several y axes, drawn
   with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
-  written on the side of its own axis (#PR).
+  written beside its own axis (#PR).
 
 ## Documentation
 

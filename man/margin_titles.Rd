@@ -15,7 +15,7 @@ margin_titles(groups, layout_calls)
 One list per group: the titles written on its axes, in the order
 they were written. Each is a list with the \code{axis} it titles, \code{"x"} or
 \code{"y"}, the \code{side} it is drawn on, its \code{text}, its \code{kind}, \code{"title"} or
-\code{"mtext"}, and, for \code{mtext()}, the \code{line} it is written on.
+\code{"mtext"}, and the \code{line} it is written on.
 }
 \description{
 A title written after a plot, with \code{title()} or \code{mtext()}, is drawn in a
@@ -32,8 +32,9 @@ the first, and the first had no title at all.
 \details{
 So each title goes to the plots, of those drawn over one another
 (\code{overlay_runs()}) in the plot R draws it on (\code{plot_drawn_on()}), whose
-axis is drawn on its side (\code{axis_sides()}), and to each chart drawn onto
-them with \code{add = TRUE}, as \code{contour(add = TRUE)} draws onto an \code{image()}. A
+axis is drawn on its side (\code{axis_sides()}), and nearest it where several
+are (\code{nearest_axes()}), and to each chart drawn onto them with
+\code{add = TRUE}, as \code{contour(add = TRUE)} draws onto an \code{image()}. A
 plot placed beside another or inset in it, with \code{par(fig = , new = TRUE)},
 is drawn in a plot region of its own, not over the other, and the titles
 written after it are its own.

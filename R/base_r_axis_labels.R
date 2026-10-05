@@ -137,8 +137,9 @@ with_margin_titles <- function(axes, titles) {
 #'
 #' So each title goes to the plots, of those drawn over one another
 #' (`overlay_runs()`) in the plot R draws it on (`plot_drawn_on()`), whose
-#' axis is drawn on its side (`axis_sides()`), and to each chart drawn onto
-#' them with `add = TRUE`, as `contour(add = TRUE)` draws onto an `image()`. A
+#' axis is drawn on its side (`axis_sides()`), and nearest it where several
+#' are (`nearest_axes()`), and to each chart drawn onto them with
+#' `add = TRUE`, as `contour(add = TRUE)` draws onto an `image()`. A
 #' plot placed beside another or inset in it, with `par(fig = , new = TRUE)`,
 #' is drawn in a plot region of its own, not over the other, and the titles
 #' written after it are its own.
@@ -153,7 +154,7 @@ with_margin_titles <- function(axes, titles) {
 #' @return One list per group: the titles written on its axes, in the order
 #'   they were written. Each is a list with the `axis` it titles, `"x"` or
 #'   `"y"`, the `side` it is drawn on, its `text`, its `kind`, `"title"` or
-#'   `"mtext"`, and, for `mtext()`, the `line` it is written on.
+#'   `"mtext"`, and the `line` it is written on.
 #' @keywords internal
 margin_titles <- function(groups, layout_calls) {
   runs <- overlay_runs(groups, layout_calls)
@@ -169,6 +170,7 @@ margin_titles <- function(groups, layout_calls) {
         owners <- run[vapply(
           sides[run], function(drawn) isTRUE(drawn[[title$axis]] == title$side), logical(1)
         )]
+        owners <- nearest_axes(owners, sides, title)
         if (!length(owners) && title$side <= 2) {
           owners <- which(plots == plots[[on]])
         }
@@ -226,7 +228,9 @@ plot_drawn_on <- function(call, groups) {
 #'   [group_device_calls()], and those drawn onto it (`shared_plots()`)
 #' @return List with `x`, 1 or 3, and `y`, 2 or 4: the side the axis is
 #'   drawn on, the bottom or the left where it is drawn on both; NA where it
-#'   is drawn on neither
+#'   is drawn on neither. Its `lines` hold, for `x` and `y`, the margin
+#'   lines the axes on that side are drawn on: 0, the edge of the plot, for
+#'   the plot's own, and the `line` an `axis()` call is given.
 #' @keywords internal
 axis_sides <- function(groups) {
   args <- groups[[1L]]$high_call$args
@@ -235,17 +239,53 @@ axis_sides <- function(groups) {
     if (drawn && !identical(args[["xaxt"]], "n")) 1,
     if (drawn && !identical(args[["yaxt"]], "n")) 2
   )
+  lines <- rep(0, length(sides))
   for (group in groups) {
     for (call in group$low_calls) {
       if (identical(call$function_name, "axis")) {
+        line <- suppressWarnings(as.numeric(call$args[["line"]]))[1]
         sides <- c(sides, suppressWarnings(as.numeric(call$args[["side"]]))[1])
+        lines <- c(lines, if (is.na(line)) 0 else line)
       }
     }
   }
+  x <- if (1 %in% sides) 1 else if (3 %in% sides) 3 else NA
+  y <- if (2 %in% sides) 2 else if (4 %in% sides) 4 else NA
   list(
-    x = if (1 %in% sides) 1 else if (3 %in% sides) 3 else NA,
-    y = if (2 %in% sides) 2 else if (4 %in% sides) 4 else NA
+    x = x,
+    y = y,
+    lines = list(x = lines[sides %in% x], y = lines[sides %in% y])
   )
+}
+
+#' Which of several axes on one side a title is written beside
+#'
+#' A chart of three series can draw two y axes on the right, one at the
+#' edge of the plot with `axis(4)` and one farther out with
+#' `axis(4, line = 3.5)`, each titled with `mtext()` on a line just outside
+#' it. A title is written beside the axis nearest it of those drawn inside
+#' its line, or, where none is, the innermost.
+#'
+#' @param owners The plots whose axis is drawn on the title's side
+#' @param sides Each plot's axes, from [axis_sides()]
+#' @param title The title, from [titles_written()]
+#' @return Those of `owners` whose axis on that side the title is written
+#'   beside
+#' @keywords internal
+nearest_axes <- function(owners, sides, title) {
+  if (length(owners) < 2L) {
+    return(owners)
+  }
+  lines <- lapply(sides[owners], function(drawn) drawn$lines[[title$axis]])
+  inside <- vapply(lines, function(at) {
+    at <- at[at <= title$line]
+    if (length(at)) title$line - max(at) else Inf
+  }, numeric(1))
+  if (all(is.infinite(inside))) {
+    innermost <- vapply(lines, min, numeric(1))
+    return(owners[innermost == min(innermost)])
+  }
+  owners[inside == min(inside)]
 }
 
 #' The axis titles one recorded call writes in a margin
@@ -268,12 +308,18 @@ titles_written <- function(call) {
   if (!identical(call$function_name, "title")) {
     return(list())
   }
+  # Drawn on the line R puts an axis title on, `par("mgp")[1]`, 3 unless
+  # the call says otherwise.
+  line <- suppressWarnings(as.numeric(args[["line"]]))[1]
+  line <- if (is.na(line)) 3 else line
   titles <- list()
   for (axis in c("x", "y")) {
     text <- recorded_axis_label(args, paste0(axis, "lab"))
     if (!is.null(text)) {
       side <- if (axis == "x") 1 else 2
-      titles <- c(titles, list(list(axis = axis, side = side, text = text, kind = "title")))
+      titles <- c(titles, list(list(
+        axis = axis, side = side, text = text, kind = "title", line = line
+      )))
     }
   }
   titles

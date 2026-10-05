@@ -13,7 +13,9 @@ axis_sides(groups)
 \value{
 List with \code{x}, 1 or 3, and \code{y}, 2 or 4: the side the axis is
 drawn on, the bottom or the left where it is drawn on both; NA where it
-is drawn on neither
+is drawn on neither. Its \code{lines} hold, for \code{x} and \code{y}, the margin
+lines the axes on that side are drawn on: 0, the edge of the plot, for
+the plot's own, and the \code{line} an \code{axis()} call is given.
 }
 \description{
 A plot draws its x axis on side 1 and its y axis on side 2, unless the

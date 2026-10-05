@@ -721,6 +721,64 @@ test_that("a title written in a margin titles the series whose axis is drawn the
   }
 })
 
+test_that("of several axes on one side, a title titles the series it is written beside", {
+  # A chart of three series can draw two y axes on one side, one at the edge
+  # of the plot and one farther out with axis(line = ), and title each on a
+  # line just outside it. Every series with an axis on that side was given
+  # the string nearest the plot, so the third series was announced with the
+  # second one's title.
+  right <- function(titles) {
+    bquote({
+      op <- par(mar = c(5, 4, 4, 7))
+      plot(1:10, ylab = "Left")
+      par(new = TRUE)
+      plot(10:1, type = "l", axes = FALSE, ann = FALSE)
+      axis(4)
+      par(new = TRUE)
+      plot((1:10)^2, type = "l", axes = FALSE, ann = FALSE, col = 2)
+      axis(4, line = 3.5)
+      .(titles)
+      par(op)
+    })
+  }
+  cases <- list(
+    list(right(quote({
+      mtext("Second", side = 4, line = 2)
+      mtext("Third", side = 4, line = 5.5)
+    })), list(list("Index", "Left"), list(NULL, "Second"), list(NULL, "Third")),
+    c("Index", "Left", "Second", "Third")),
+    list(right(quote({
+      mtext("Third", side = 4, line = 5.5)
+      mtext("Second", side = 4, line = 2)
+    })), list(list("Index", "Left"), list(NULL, "Second"), list(NULL, "Third")),
+    c("Index", "Left", "Second", "Third")),
+    # On the left, title() writes on line 3, beside the plot's own axis.
+    list(quote({
+      op <- par(mar = c(5, 7, 4, 2))
+      plot(1:10, ann = FALSE)
+      par(new = TRUE)
+      plot((1:10)^2, type = "l", axes = FALSE, ann = FALSE)
+      axis(2, line = 3.5)
+      title(ylab = "First")
+      mtext("Squares", side = 2, line = 5.5)
+      par(op)
+    }), list(list(NULL, "First"), list(NULL, "Squares")), c("First", "Squares"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    expected <- case[[2]]
+    testthat::expect_length(axes, length(expected))
+    for (i in seq_along(expected)) {
+      testthat::expect_identical(axes[[i]]$x$label, expected[[i]][[1]], label = label)
+      testthat::expect_identical(axes[[i]]$y$label, expected[[i]][[2]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[3]])
+  }
+})
+
 test_that("a plot placed beside or inset in another keeps the titles written after it", {
   # par(fig = , new = TRUE) and par(plt = , new = TRUE) draw the next plot on
   # the same page, but beside the last one or inset in it rather than over
