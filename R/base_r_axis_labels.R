@@ -113,8 +113,10 @@ with_margin_titles <- function(axes, low_calls) {
       label <- noted[[axis]]
     }
     if (!is.null(label)) {
+      # First, where `build_axis_config()` puts it.
+      config <- axes[[axis]]
       axes <- axes %||% build_axes()
-      axes[[axis]]$label <- label
+      axes[[axis]] <- c(list(label = label), config[setdiff(names(config), "label")])
     }
   }
   axes

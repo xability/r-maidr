@@ -556,6 +556,14 @@ test_that("an axis titled by title() or mtext() after the plot is announced with
     testthat::expect_setequal(r_drawn_titles(call), drawn)
   }
 
+  # Written first, as on every other axis, ahead of the grid fields.
+  scatter <- label_axes(function() {
+    plot(mtcars$wt, mtcars$mpg, ann = FALSE)
+    title(xlab = "Weight", ylab = "MPG")
+  })[[1]]
+  testthat::expect_identical(names(scatter$x), c("label", "min", "max", "tickStep"))
+  testthat::expect_identical(names(scatter$y), c("label", "min", "max", "tickStep"))
+
   # Each plot of a grid keeps the titles written on it.
   grid <- function() {
     op <- par(mfrow = c(1, 2))
