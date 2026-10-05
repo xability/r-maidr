@@ -31,7 +31,10 @@ the first, and the first had no title at all.
 }
 \details{
 So each title goes to the plots, of those drawn over one another
-(\code{overlay_runs()}), whose axis is drawn on its side (\code{axis_sides()}).
+(\code{overlay_runs()}), whose axis is drawn on its side (\code{axis_sides()}). A
+plot placed beside another or inset in it, with \code{par(fig = , new = TRUE)},
+is drawn in a plot region of its own, not over the other, and the titles
+written after it are its own.
 Where none of them draws an axis on the bottom or the left, a title there
 titles the plot it was written after, as \verb{plot(x, y, axes = FALSE); title(xlab = "Time")} does; on the top or the right, it titles none.
 Either one in the outer margin (\code{outer = TRUE}) titles the page rather

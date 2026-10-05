@@ -718,6 +718,62 @@ test_that("a title written in a margin titles the series whose axis is drawn the
   }
 })
 
+test_that("a plot placed beside or inset in another keeps the titles written after it", {
+  # par(fig = , new = TRUE) and par(plt = , new = TRUE) draw the next plot on
+  # the same page, but beside the last one or inset in it rather than over
+  # it. Read as drawn over it, a title() or mtext() written for the second
+  # plot titled the first too, over the first one's own title.
+  cases <- list(
+    list(quote({
+      par(fig = c(0, 0.5, 0, 1))
+      plot(1:10, xlab = "Left")
+      par(fig = c(0.5, 1, 0, 1), new = TRUE)
+      plot(10:1, xlab = "")
+      title(xlab = "Right")
+    }), list(list("Left", "1:10"), list("Right", "10:1")), c("Left", "1:10", "10:1", "Right")),
+    list(quote({
+      par(fig = c(0, 0.5, 0, 1))
+      plot(sin, -pi, pi, ann = FALSE)
+      mtext("A", side = 1, line = 3)
+      par(fig = c(0.5, 1, 0, 1), new = TRUE)
+      plot(cos, -pi, pi, ann = FALSE)
+      mtext("B", side = 1, line = 3)
+    }), list(list("A", NULL), list("B", NULL)), c("A", "B")),
+    list(quote({
+      plot(sin, -pi, pi, ylab = "sine")
+      par(fig = c(0.55, 0.95, 0.5, 0.95), new = TRUE)
+      plot(cos, 0, 1, ann = FALSE)
+      title(ylab = "cos")
+    }), list(list("x", "sine"), list(NULL, "cos")), c("x", "sine", "cos")),
+    list(quote({
+      plot(1:10, ann = FALSE)
+      title(ylab = "Main y")
+      par(plt = c(0.6, 0.9, 0.6, 0.9), new = TRUE)
+      plot(10:1, ann = FALSE)
+      title(ylab = "Inset y")
+    }), list(list(NULL, "Main y"), list(NULL, "Inset y")), c("Main y", "Inset y")),
+    list(quote({
+      plot(1:10, ann = FALSE)
+      par(fig = c(0.5, 0.95, 0.5, 0.95), new = TRUE)
+      plot(10:1, ann = FALSE)
+      mtext("Inset x", side = 1, line = 2)
+    }), list(list(NULL, NULL), list("Inset x", NULL)), "Inset x")
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    expected <- case[[2]]
+    testthat::expect_length(axes, length(expected))
+    for (i in seq_along(expected)) {
+      testthat::expect_identical(axes[[i]]$x$label, expected[[i]][[1]], label = label)
+      testthat::expect_identical(axes[[i]]$y$label, expected[[i]][[2]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[3]])
+  }
+})
+
 test_that("a title() after a chart read as several layers titles each of them", {
   # stripchart() is read as one layer per group, and the titles were written
   # on the result that holds them rather than on the layers themselves, so

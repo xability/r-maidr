@@ -221,9 +221,12 @@ par_setting_arguments <- function(args) {
 
 #' Which plots are drawn over one another
 #'
-#' `par(new = TRUE)` draws the next plot over the last one, in the same plot
-#' region, as a chart of two y axes does. Each such plot is in the run of the
-#' plot it is drawn over.
+#' `par(new = TRUE)` draws the next plot over the last one, as a chart of two
+#' y axes does. Each such plot is in the run of the plot it is drawn over.
+#' With `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next plot
+#' is drawn on the same page but in another region of it, beside the last one
+#' or inset in it, so it is drawn over the last one only where R drew both in
+#' the same plot region (`device_plot_region()`).
 #'
 #' @param groups The plot groups, from [group_device_calls()]
 #' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
@@ -249,11 +252,24 @@ overlay_runs <- function(groups, layout_calls) {
         }
       }
     }
-    if (new) {
+    if (new && same_plot_region(groups[[g - 1L]], groups[[g]])) {
       runs[[g]] <- runs[[g - 1L]]
     }
   }
   runs
+}
+
+#' Whether R drew two plots in the same plot region
+#'
+#' @param a,b Two plot groups, from [group_device_calls()]
+#' @return TRUE where the regions recorded with their high-level calls are
+#'   the same, or where either was not recorded
+#' @keywords internal
+#' @noRd
+same_plot_region <- function(a, b) {
+  first <- a$high_call$plot_region
+  second <- b$high_call$plot_region
+  is.null(first) || is.null(second) || isTRUE(all.equal(first, second))
 }
 
 #' The margins a recorded plot was drawn with
