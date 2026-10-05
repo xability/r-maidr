@@ -952,6 +952,41 @@ test_that("a plot par(mfg = ) sends out of turn is in the panel R drew it in", {
     list(c("one", "over one"), c("two", "over two"), "three")
   )
   expect_drawn_where_r_draws(chart, back, c("one", "two", "three", "over one", "over two"))
+
+  # On a layout() page too, where it was drawn in the next panel. R sends
+  # the plot to the panel numbered (i - 1) * columns + j of the layout,
+  # which here is not the panel in row i, column j: panel 4 is top right.
+  layout_page <- quote({
+    layout(matrix(c(2, 1, 4, 3), 2))
+    plot(1:3, main = "panel 1")
+    par(mfg = c(2, 2))
+    plot(3:1, main = "panel 4")
+  })
+  chart <- last_page_export(function() eval(layout_page))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list(character(0), "panel 4", "panel 1", character(0))
+  )
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, layout_page, c("panel 1", "panel 4"))
+
+  layout_back <- quote({
+    layout(matrix(1:4, 2, byrow = TRUE))
+    plot(1:3, main = "L1")
+    plot(1:3, main = "L2")
+    plot(1:3, main = "L3")
+    par(mfg = c(1, 2))
+    plot(3:1, main = "over L2")
+    plot(3:1, main = "L3 again")
+  })
+  chart <- last_page_export(function() eval(layout_back))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list("L1", c("L2", "over L2"), c("L3", "L3 again"), character(0))
+  )
+  expect_drawn_where_r_draws(
+    chart, layout_back, c("L1", "L2", "L3", "over L2", "L3 again")
+  )
 })
 
 test_that("a call on a panel par(mfg = ) sends R to is drawn in that panel", {

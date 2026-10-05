@@ -1540,10 +1540,10 @@ start_skipped_plots <- function(at, upto, slot) {
 #'
 #' In the panel of the plot before it (`slot`, the panel R drew it in, is
 #' `figure`, the one the drawing is in), in the next, or, where R was sent
-#' to it out of turn with `par(mfg = )`, in that panel of the `mfrow` or
-#' `mfcol` grid; `layout()` takes no `par(mfg = )`. A plot R drew in a
-#' region `par(fig = )` or `screen()` set, outside any grid, is drawn in
-#' that region (`is_figure_region()`).
+#' to it out of turn with `par(mfg = )`, in that panel of the grid
+#' (`mfg_of_panel()`). A plot R drew in a region `par(fig = )` or
+#' `screen()` set, outside any grid, is drawn in that region
+#' (`is_figure_region()`).
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
 #'   in (`end_base_r_call()`)
@@ -1555,9 +1555,9 @@ start_skipped_plots <- function(at, upto, slot) {
 #' @noRd
 place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
   jumps <- figure > 0L && slot != figure && slot != figure + 1L &&
-    isTRUE(panel_config$type %in% c("mfrow", "mfcol"))
+    is_multipanel_config(panel_config)
   if (jumps) {
-    graphics::par(mfg = panel_slot_positions(slot, panel_config)[[1]])
+    graphics::par(mfg = mfg_of_panel(slot, panel_config))
   } else {
     if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
@@ -1565,6 +1565,27 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
     start_replayed_plot(slot <= figure, start = FALSE)
   }
   invisible(NULL)
+}
+
+#' The `par(mfg = )` that sends R to a panel of a grid
+#'
+#' In an `mfrow` or `mfcol` grid, the panel's row and column. On a
+#' `layout()` page R reads `par(mfg = c(i, j))` as panel number
+#' `(i - 1) * columns + j` of the layout, wherever that panel is: in
+#' `layout(matrix(c(2, 1, 4, 3), 2))`, `par(mfg = c(1, 1))` sends it to
+#' panel 1, in row 2.
+#'
+#' @param slot The panel's number in the grid's order
+#' @param panel_config The page's grid
+#' @return The row and column to give `par(mfg = )`
+#' @keywords internal
+#' @noRd
+mfg_of_panel <- function(slot, panel_config) {
+  if (identical(panel_config$type, "layout")) {
+    ncols <- as.integer(panel_config$ncols)
+    return(c((slot - 1L) %/% ncols + 1L, (slot - 1L) %% ncols + 1L))
+  }
+  panel_slot_positions(slot, panel_config)[[1]]
 }
 
 #' Whether R drew a recorded call's plot in a region of the page it was given
