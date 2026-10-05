@@ -807,6 +807,49 @@ test_that("a call whose argument drew a plot is drawn on that plot, and read wit
   testthat::expect_true(grepl("data:image/png;base64", html, fixed = TRUE))
 })
 
+test_that("a call that ran onto the page R shows is drawn with only its plots on it", {
+  skip_if_no_render()
+  fit <- stats::lm(mpg ~ wt, data = mtcars)
+
+  # plot() of a fitted model draws four plots. Started in the second panel,
+  # it fills the first page and draws its last on a page of its own, which
+  # R shows. It was drawn whole from the first panel of that page.
+  for (diagnostics in list(
+    quote({
+      par(mfrow = c(2, 2))
+      hist(mtcars$mpg, main = "Hist first")
+      plot(fit)
+    }),
+    quote({
+      par(mfrow = c(1, 2))
+      plot(1:3, main = "Before")
+      plot(fit)
+    })
+  )) {
+    chart <- last_page_export(function() eval(diagnostics))
+    expect_drawn_where_r_draws(chart, diagnostics, "Residuals vs Leverage")
+    testthat::expect_false(
+      any(c("Residuals vs Fitted", "Q-Q Residuals", "Scale-Location") %in% chart$strings)
+    )
+  }
+
+  # So with termplot(): only the term on R's page is read.
+  terms <- stats::lm(mpg ~ wt + hp + qsec + drat, data = mtcars)
+  partial <- quote({
+    par(mfrow = c(2, 2))
+    hist(mtcars$mpg, main = "Before")
+    termplot(terms)
+  })
+  chart <- last_page_export(function() eval(partial))
+  testthat::expect_identical(
+    vapply(unlist(last_page_cells(chart), recursive = FALSE), function(layer) {
+      layer$axes$x$label
+    }, character(1)),
+    "drat"
+  )
+  testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(partial))
+})
+
 test_that("each recorded plot carries the page, panel and plot number R drew it at", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

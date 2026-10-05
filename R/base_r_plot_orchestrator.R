@@ -160,6 +160,15 @@ BaseRPlotOrchestrator <- R6::R6Class(
         at$margins <- private$set_recorded_margins(group$high_call_index, at$margins)
         if (!isFALSE(high$new_plot)) {
           at <- start_skipped_plots(at, numbers[[i]] - 1L, slot)
+          # A call that drew plots on a page before this one -- `plot()` of
+          # a fitted model after a plot, under `par(mfrow = c(2, 2))` -- is
+          # started in the panel R started it in, so those plots fill that
+          # page, as R's did, and not this one.
+          if (isTRUE(high$start_page < high$page)) {
+            for (k in seq_len(max(high$start_figure - 1L, 0L))) {
+              start_replayed_plot(FALSE)
+            }
+          }
           place_replayed_plot(high, slot, at$slot, panel_config)
           at$slot <- slot
           at$figure <- high$figure

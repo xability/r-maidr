@@ -25,6 +25,9 @@
 #' `((n - 1) %% k) + 1` of them, which is the rule R's device shows whole
 #' plots by, and maidr reads them by -- one level down. A reading that
 #' announced all `n` terms would name curves that are not on the page.
+#' Started after another plot, in a later cell, the call runs onto its last
+#' page sooner: the page carries as many terms as R started plots on it for
+#' the call, which the recorded call says.
 #'
 #' The `par` call is recorded as LAYOUT rather than as a layer, so it does not
 #' reach the processor with the rest of the call. It is read off the device
@@ -151,13 +154,13 @@ BaseRTermplotLayerProcessor <- R6::R6Class(
       }
 
       drawn <- list()
-      for (name in names) {
+      for (name in private$on_the_page(names, layer_info)) {
         curve <- private$curve(name, contributions, frame)
         if (!is.null(curve)) {
           drawn[[length(drawn) + 1]] <- curve
         }
       }
-      private$on_the_page(drawn, layer_info)
+      drawn
     },
     # One term's contribution against its own carrier, in carrier order.
     curve = function(name, contributions, frame) {
@@ -180,17 +183,25 @@ BaseRTermplotLayerProcessor <- R6::R6Class(
       at <- order(carrier)
       list(name = name, x = carrier[at], y = contribution[at])
     },
-    # The tail of the curves that the visible page carries.
+    # The tail of the terms, one panel each, that the visible page carries.
     #
-    # See the file header: `k` cells hold the last `((n - 1) %% k) + 1` of
-    # `n` terms, which is the rule for whole plots one level down.
+    # As many as R started plots on that page for the call
+    # (`end_base_r_call()`): one started mid-page, after another plot, ran
+    # onto a page with fewer of them. For a call recorded without them, see
+    # the file header: `k` cells hold the last `((n - 1) %% k) + 1` of `n`
+    # terms, which is the rule for whole plots one level down.
     on_the_page = function(drawn, layer_info) {
       count <- length(drawn)
       if (count < 2) {
         return(drawn)
       }
-      cells <- private$cells(layer_info)
-      visible <- ((count - 1) %% cells) + 1
+      call <- layer_info$plot_call
+      visible <- if (isTRUE(call$new_plot) && is.numeric(call$plot) && is.numeric(call$end_plot)) {
+        call$end_plot - call$plot + 1L
+      } else {
+        ((count - 1) %% private$cells(layer_info)) + 1
+      }
+      visible <- min(max(as.integer(visible), 1L), count)
       drawn[seq.int(count - visible + 1, count)]
     },
     # How many panels the caller's layout left room for on one page.
