@@ -149,8 +149,8 @@ BaseRLineLayerProcessor <- R6::R6Class(
       }
 
       # Search for axis() call with matching side and labels, but for one
-      # drawn over the plot in coordinates of its own
-      # (`drawn_over_group_plot()`)
+      # drawn over the plot in coordinates of its own, as
+      # `drawn_over_group_plot()` finds them
       for (call in low_calls) {
         if (call$function_name == "axis" && !isTRUE(call$overlay)) {
           call_args <- call$args

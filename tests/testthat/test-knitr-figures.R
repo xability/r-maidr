@@ -379,7 +379,8 @@ test_that("a call that ran onto a figure's page is drawn with only its plots on 
   last <- charts[[length(charts)]]
   strings <- trimws(xml2::xml_text(xml2::xml_find_all(last, "//*[local-name()='text']")))
   testthat::expect_true("Partial for drat" %in% strings)
-  testthat::expect_false(any(c("Partial for wt", "Partial for hp", "Partial for qsec") %in% strings))
+  earlier <- c("Partial for wt", "Partial for hp", "Partial for qsec")
+  testthat::expect_false(any(earlier %in% strings))
 
   # The term read is the one drawn, and its selector names that drawing.
   data <- jsonlite::parse_json(xml2::xml_attr(last, "data-maidr-knitr"))
