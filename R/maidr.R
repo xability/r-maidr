@@ -321,12 +321,14 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
     }
     orchestrator$canvas_size()
   }
-  fallback_html <- function(size = picture_size()) {
+  fallback_html <- function(size = picture_size(), title = NULL, reason = "unsupported") {
     create_fallback_html(
       plot,
       shiny = shiny,
       width = size[["width"]],
       height = size[["height"]],
+      title = title,
+      reason = reason,
       ...
     )
   }
@@ -352,9 +354,11 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   # `build_interactive_svg()` answers NULL for a plot that could not be built,
   # which is the same outcome as the gate above reaching a chart it cannot
-  # read: a picture rather than nothing.
+  # read: a picture rather than nothing. Its alt text names the chart and
+  # says it could not be made interactive, not that it holds elements maidr
+  # cannot read.
   if (is.null(svg_content)) {
-    return(fallback_html())
+    return(fallback_html(title = fallback_title(orchestrator), reason = "failed"))
   }
 
   if (shiny) {
@@ -363,6 +367,17 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   html_doc <- create_html_document(svg_content, use_cdn = use_cdn)
   html_doc
+}
+
+#' The title the picture of a chart is named by
+#'
+#' @param orchestrator The chart's orchestrator
+#' @return The chart's title, one string, or NULL when it has none
+#' @keywords internal
+#' @noRd
+fallback_title <- function(orchestrator) {
+  title <- tryCatch(orchestrator$get_layout()$title, error = function(e) NULL)
+  if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) title
 }
 
 #' Build the Interactive SVG, or Answer NULL When It Cannot Be Built

@@ -160,3 +160,50 @@ test_that("a chart gridGraphics cannot draw again falls back to the picture, wit
     graphics::par(mfrow = c(1, 1))
   }
 })
+
+test_that("the picture of a chart that could not be made interactive says so, and names it", {
+  # Its alt text, which is what a screen reader says of it, said the chart
+  # contained unsupported elements, which it does not, and named nothing.
+  skip_if_not_installed("xml2")
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  clear_all_device_storage()
+  on.exit(clear_all_device_storage(), add = TRUE)
+
+  testthat::local_mocked_bindings(
+    grid.echo = function(...) stop("Unrecognised text argument type"),
+    .package = "gridGraphics"
+  )
+
+  picture <- function(draw) {
+    clear_all_device_storage()
+    draw()
+    file <- tempfile(fileext = ".html")
+    on.exit(unlink(file), add = TRUE)
+    suppressWarnings(maidr::save_html(plot = NULL, file = file))
+    page <- xml2::read_html(file)
+    list(
+      alt = xml2::xml_attr(xml2::xml_find_all(page, "//img"), "alt"),
+      notice = xml2::xml_text(xml2::xml_find_all(page, "//p[@class='fallback-notice']"))
+    )
+  }
+
+  shown <- picture(function() plot(1:5, main = 'Speed & "fuel"'))
+  expect_identical(
+    shown$alt,
+    'Speed & "fuel" (rendered as image - could not be made interactive)'
+  )
+  expect_identical(
+    shown$notice,
+    "This plot could not be made interactive and is rendered as a static image."
+  )
+
+  shown <- picture(function() {
+    plot(1:5)
+    title(main = 2024)
+  })
+  expect_identical(shown$alt, "2024 (rendered as image - could not be made interactive)")
+
+  shown <- picture(function() plot(1:5))
+  expect_identical(shown$alt, "Plot (rendered as image - could not be made interactive)")
+})

@@ -9,7 +9,9 @@ create_fallback_html(
   shiny = FALSE,
   format = get_fallback_format(),
   width = 7,
-  height = 5
+  height = 5,
+  title = NULL,
+  reason = c("unsupported", "failed")
 )
 }
 \arguments{
@@ -23,11 +25,19 @@ option, which \code{\link[=maidr_set_fallback]{maidr_set_fallback()}} sets.}
 \item{width}{Image width in inches}
 
 \item{height}{Image height in inches}
+
+\item{title}{The chart's title, or NULL; the alt text then calls it "Plot"}
+
+\item{reason}{Why the chart is an image: \code{"unsupported"}, it holds
+elements maidr cannot read, or \code{"failed"}, it could not be made
+interactive (\code{\link[=build_interactive_svg]{build_interactive_svg()}})}
 }
 \value{
 HTML content string or htmltools object
 }
 \description{
 Creates HTML content with the fallback image, styled to fit in iframes.
+The image's alt text, which is what a screen reader says of it, names the
+chart by its title when it is given one, and says why it is an image.
 }
 \keyword{internal}
