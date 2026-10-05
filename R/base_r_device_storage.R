@@ -187,8 +187,10 @@ log_plot_call_to_device <- function(
     par_ann = if (class_level == "HIGH") device_par_ann(device_id),
     # Where on the page R drew a high-level plot, which tells a plot drawn
     # over another with `par(new = TRUE)` from one placed beside it or inset
-    # in it with `par(fig = , new = TRUE)` (`overlay_runs()`).
-    plot_region = if (class_level == "HIGH") device_plot_region(device_id)
+    # in it with `par(fig = , new = TRUE)` (`overlay_runs()`), and which plot
+    # a low-level call draws on: after `par(mfg = )` moves back to an earlier
+    # panel, a title() is drawn there (`margin_titles()`).
+    plot_region = if (class_level %in% c("HIGH", "LOW")) device_plot_region(device_id)
   )
   # In a knit, a call that draws leaves a marker on its page, by which the
   # plot hook knows the figure it is on (see knitr_figure_map.R). A layout

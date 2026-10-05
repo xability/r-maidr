@@ -136,12 +136,13 @@ with_margin_titles <- function(axes, titles) {
 #' the first, and the first had no title at all.
 #'
 #' So each title goes to the plots, of those drawn over one another
-#' (`overlay_runs()`), whose axis is drawn on its side (`axis_sides()`). A
+#' (`overlay_runs()`) in the plot R draws it on (`plot_drawn_on()`), whose
+#' axis is drawn on its side (`axis_sides()`). A
 #' plot placed beside another or inset in it, with `par(fig = , new = TRUE)`,
 #' is drawn in a plot region of its own, not over the other, and the titles
 #' written after it are its own.
 #' Where none of them draws an axis on the bottom or the left, a title there
-#' titles the plot it was written after, as `plot(x, y, axes = FALSE);
+#' titles the plot R draws it on, as `plot(x, y, axes = FALSE);
 #' title(xlab = "Time")` does; on the top or the right, it titles none.
 #' Either one in the outer margin (`outer = TRUE`) titles the page rather
 #' than a plot, and is not read.
@@ -158,14 +159,15 @@ margin_titles <- function(groups, layout_calls) {
   sides <- lapply(groups, axis_sides)
   titles <- rep(list(list()), length(groups))
   for (g in seq_along(groups)) {
-    run <- which(runs == runs[[g]])
     for (call in groups[[g]]$low_calls) {
+      on <- plot_drawn_on(call, groups[seq_len(g)])
+      run <- which(runs == runs[[on]])
       for (title in titles_written(call)) {
         owners <- run[vapply(
           sides[run], function(drawn) isTRUE(drawn[[title$axis]] == title$side), logical(1)
         )]
         if (!length(owners) && title$side <= 2) {
-          owners <- g
+          owners <- on
         }
         for (owner in owners) {
           titles[[owner]] <- c(titles[[owner]], list(title))
@@ -174,6 +176,39 @@ margin_titles <- function(groups, layout_calls) {
     }
   }
   titles
+}
+
+#' The plot a low-level call draws on
+#'
+#' A low-level call draws on the plot drawn last, unless `par(mfg = )` moved
+#' back to an earlier panel of a grid first: `par(mfrow = c(1, 2));
+#' plot(a); plot(b); par(mfg = c(1, 1)); title(xlab = "A")` draws "A" under
+#' the first plot. It is recorded with the plot it was written after, so it
+#' is read on the plot, of those drawn up to it, that R drew in the region it
+#' was drawn in (`device_plot_region()`).
+#'
+#' @param call A recorded LOW-level call
+#' @param groups The plot groups drawn up to it, from [group_device_calls()]
+#' @return The index in `groups` of the last one drawn in the call's region,
+#'   or of the last one where none was, or where either region was not
+#'   recorded
+#' @keywords internal
+plot_drawn_on <- function(call, groups) {
+  region <- call$plot_region
+  last <- length(groups)
+  if (is.null(region)) {
+    return(last)
+  }
+  for (g in rev(seq_len(last))) {
+    drawn <- groups[[g]]$high_call$plot_region
+    if (is.null(drawn)) {
+      return(last)
+    }
+    if (isTRUE(all.equal(drawn, region))) {
+      return(g)
+    }
+  }
+  last
 }
 
 #' The sides a plot draws its axes on

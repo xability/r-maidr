@@ -774,6 +774,43 @@ test_that("a plot placed beside or inset in another keeps the titles written aft
   }
 })
 
+test_that("a title written after par(mfg = ) titles the panel R draws it under", {
+  # par(mfg = ) moves back to an earlier panel of a grid, and a title() or
+  # mtext() written then is drawn under that panel. It was recorded with the
+  # plot drawn last, and titled the last panel instead.
+  cases <- list(
+    list(quote({
+      par(mfrow = c(1, 2))
+      plot(1:10, xlab = "")
+      plot(10:1, xlab = "")
+      par(mfg = c(1, 1))
+      mtext("Left panel x", side = 1, line = 3)
+    }), list(list("Left panel x", "1:10"), list(NULL, "10:1")), c("1:10", "10:1", "Left panel x")),
+    list(quote({
+      par(mfrow = c(1, 2))
+      plot(1:10, ann = FALSE)
+      plot(10:1, ann = FALSE)
+      par(mfg = c(1, 1))
+      title(xlab = "First")
+      par(mfg = c(1, 2))
+      title(ylab = "Second")
+    }), list(list("First", NULL), list(NULL, "Second")), c("First", "Second"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    expected <- case[[2]]
+    for (i in seq_along(expected)) {
+      axes <- label_axes(function() eval(call), cell = c(1L, i))
+      testthat::expect_length(axes, 1L)
+      testthat::expect_identical(axes[[1]]$x$label, expected[[i]][[1]], label = label)
+      testthat::expect_identical(axes[[1]]$y$label, expected[[i]][[2]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[3]])
+  }
+})
+
 test_that("a title() after a chart read as several layers titles each of them", {
   # stripchart() is read as one layer per group, and the titles were written
   # on the result that holds them rather than on the layers themselves, so
