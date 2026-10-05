@@ -14,6 +14,10 @@
 .maidr_patching_env$.patching_active <- FALSE
 .maidr_patching_env$.auto_show_callback_id <- NULL
 
+# The random state the Base R call being recorded started from, noted by
+# `ensure_maidr_device()` and taken by `log_plot_call_to_device()`.
+.maidr_call_start <- new.env(parent = emptyenv())
+
 #' Schedule auto-show after the current top-level expression completes
 #'
 #' Uses R's task callback mechanism. When a HIGH-level plot function is called,
@@ -176,8 +180,10 @@ close_maidr_temp_device <- function() {
 #' @keywords internal
 ensure_maidr_device <- function() {
   # Every recording wrapper calls this before it draws: in a knit, the call's
-  # marker tells from the page count whether it drew several pages.
+  # marker tells from the page count whether it drew several pages, and the
+  # call is drawn again from the random state it starts from.
   note_knit_call_start()
+  note_call_random_state()
   if (grDevices::dev.cur() == 1) {
     # No device open - create temp PDF to prevent default window
     open_maidr_temp_device()
@@ -211,7 +217,8 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
       call_entry$function_name,
       call_entry$args,
       call_entry$call_env,
-      call_entry$arg_text
+      call_entry$arg_text,
+      call_entry$rng_state
     )
   }
   # A par() setting every parameter, as par(oldpar) does with a list saved
@@ -240,10 +247,18 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 #'   forced at record time, or NULL when all args are plain values
 #' @param arg_text The text each argument was written as, NA where its
 #'   value is replayed as it is, from `written_arg_text()`; or NULL
+#' @param rng_state The `.Random.seed` the call started from, which the
+#'   replay draws from and then puts the session's own state back (see
+#'   `with_random_state()`); or NULL to draw from the session's state
 #' @return The result of the replayed call (invisibly)
 #' @keywords internal
 replay_plot_call <- function(function_name, args, call_env = NULL,
-                             arg_text = NULL) {
+                             arg_text = NULL, rng_state = NULL) {
+  if (!is.null(rng_state)) {
+    return(with_random_state(rng_state, replay_plot_call(
+      function_name, args, call_env, arg_text
+    )))
+  }
   orig_fn <- get_original_function(function_name)
   args <- clean_maidr_args(args)
 
@@ -1392,4 +1407,77 @@ clear_plot_calls <- function(device_id = grDevices::dev.cur()) {
 #' @keywords internal
 is_patching_active <- function() {
   isTRUE(.maidr_patching_env$.patching_active)
+}
+
+
+#' Note the random state a Base R call starts from
+#'
+#' Called by every recording wrapper before it draws (`ensure_maidr_device()`),
+#' as `note_knit_call_start()` is, and read by `log_plot_call_to_device()`
+#' once the call has drawn: the one place every wrapper passes through before
+#' the original function runs, so none can record a call without it.
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+note_call_random_state <- function() {
+  .maidr_call_start$rng_state <- recorded_random_state()
+  invisible(NULL)
+}
+
+#' The state of R's random number generator, if it has one
+#'
+#' `.Random.seed` in the global environment, or NULL before anything in the
+#' session has drawn a random number.
+#'
+#' @return An integer vector, or NULL
+#' @keywords internal
+#' @noRd
+recorded_random_state <- function() {
+  get0(".Random.seed", envir = globalenv(), inherits = FALSE)
+}
+
+#' Evaluate an expression from a recorded random state, then put the
+#' caller's back
+#'
+#' A chart that draws random numbers -- `wordcloud()` places its words at
+#' random angles, `stripchart(method = "jitter")` jitters its points -- is
+#' drawn again when maidr exports it. Drawn from whatever state the session
+#' had by then, it came out differently from the chart the reader was shown,
+#' and differently again on each save. From the state the call started from,
+#' it is the same chart.
+#'
+#' The caller's state is restored afterwards, so exporting a chart does not
+#' move the session's random numbers on, which would change what a script's
+#' `set.seed()` gives every call after it.
+#'
+#' A call made before anything in the session drew a random number has no
+#' state to record: R makes one, from the clock, as the call draws its first.
+#' Such a call is drawn again from whatever state the session has then, as
+#' every call was before; `set.seed()` before it makes it reproducible.
+#'
+#' A call whose own arguments draw random numbers, `wordcloud(w, rpois(5,
+#' 9))`, drew them before the chart did; replayed, those arguments are the
+#' values already drawn, so the chart starts a few draws earlier than it did
+#' and may differ, as before.
+#'
+#' @param state The recorded `.Random.seed`
+#' @param expr The expression, evaluated lazily
+#' @return The value of `expr`
+#' @keywords internal
+#' @noRd
+with_random_state <- function(state, expr) {
+  previous <- recorded_random_state()
+  on.exit(
+    if (is.null(previous)) {
+      if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+        rm(".Random.seed", envir = globalenv())
+      }
+    } else {
+      assign(".Random.seed", previous, envir = globalenv())
+    },
+    add = TRUE
+  )
+  assign(".Random.seed", state, envir = globalenv())
+  expr
 }

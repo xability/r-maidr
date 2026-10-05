@@ -915,7 +915,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
               group$high_call$function_name,
               group$high_call$args,
               group$high_call$call_env,
-              group$high_call$arg_text
+              group$high_call$arg_text,
+              group$high_call$rng_state
             )
 
             if (length(group$low_calls) > 0) {
@@ -924,7 +925,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
                   low_call$function_name,
                   low_call$args,
                   low_call$call_env,
-                  low_call$arg_text
+                  low_call$arg_text,
+                  low_call$rng_state
                 )
               }
             }
@@ -967,7 +969,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
               high_call$function_name,
               high_call$args,
               high_call$call_env,
-              high_call$arg_text
+              high_call$arg_text,
+              high_call$rng_state
             )
 
             if (length(low_calls) > 0) {
@@ -976,7 +979,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
                   low_call$function_name,
                   low_call$args,
                   low_call$call_env,
-                  low_call$arg_text
+                  low_call$arg_text,
+                  low_call$rng_state
                 )
               }
             }
@@ -1031,7 +1035,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
     picture_size = function() {
       draw <- function() {
         for (call in private$.plot_calls) {
-          replay_plot_call(call$function_name, call$args, call$call_env)
+          replay_plot_call(
+            call$function_name, call$args, call$call_env,
+            rng_state = call$rng_state
+          )
         }
       }
       canvas <- private$.canvas
