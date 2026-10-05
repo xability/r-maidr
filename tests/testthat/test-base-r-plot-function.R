@@ -292,6 +292,29 @@ test_that("a function written over several lines is titled with its first, as R 
   pf_expect_line(layer, pf_native_points(function(x) x^2 + 1, -1, 1))
 })
 
+test_that("plot(..1) in a function of ... is drawn titled as R draws it", {
+  # The function is replayed under a symbol spelled as R titled it, and no
+  # symbol can be spelled "..1", so the stand-in was passed as a value and
+  # plot.function() titled the drawing after it: "function (x)".
+  g <- function(...) plot(..1, 0, 1)
+  chart <- pf_exported(quote(g(sqrt)))
+  native <- pf_native_strings(quote(h(sqrt)), list2env(list(
+    h = function(...) maidr:::get_original_function("plot")(..1, 0, 1)
+  )))
+
+  testthat::expect_true("..1" %in% native)
+  testthat::expect_identical(chart$strings, native)
+  layer <- pf_layer(chart$schema)
+  testthat::expect_identical(c(layer$axes$x$label, layer$axes$y$label), c("x", "..1"))
+  pf_expect_line(layer, pf_native_points(sqrt, 0, 1))
+
+  # Where R draws no title, none is handed on.
+  quiet <- function(...) plot(..1, 0, 1, ann = FALSE)
+  untitled <- pf_exported(quote(quiet(sqrt)))
+  testthat::expect_false("..1" %in% untitled$strings)
+  testthat::expect_null(pf_layer(untitled$schema)$axes$y$label)
+})
+
 test_that("plot(f) is drawn from the values R drew, whatever its variables hold by the save", {
   # maidr's chart is drawn by replaying the call when it is saved. Replayed
   # with the function itself, the function was evaluated again against what

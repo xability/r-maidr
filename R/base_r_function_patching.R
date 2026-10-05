@@ -1198,7 +1198,10 @@ curve_default_labels <- function(recorded_args) {
 #' symbol named by its `arg_text` entry, so that entry is set to the same
 #' first line: a function written over several lines is titled as R titled
 #' it, in the drawing and in the data, and so is one handed over as a
-#' value, as `do.call()` does. Neither title is kept where R draws none
+#' value, as `do.call()` does. A title no symbol can carry, "..1" for
+#' `plot(..1)` in a function of `...`, is handed to the replay as its
+#' `ylab` instead: passed as a value, the stand-in was drawn titled
+#' "function (x)". Neither title is kept where R draws none
 #' (`drawn_default_titles()`), as with `ylab = ""` or `ann = FALSE`.
 #'
 #' @param target `graphics::plot.function()`, which the call dispatched to
@@ -1209,8 +1212,8 @@ curve_default_labels <- function(recorded_args) {
 #' @param value The value `plot()` returned
 #' @return List with `args` and `arg_text`. When `value` is what `curve()`
 #'   returns, `args` holds the function that returns its y values in place
-#'   of the one plotted, and the points under `.maidr_curve_data` when they
-#'   can be read.
+#'   of the one plotted, R's y title as `ylab` when no symbol can carry it,
+#'   and the points under `.maidr_curve_data` when they can be read.
 #' @keywords internal
 plot_function_values <- function(target, args, arg_text, written, value) {
   if (!is.list(value) || !all(c("x", "y") %in% names(value))) {
@@ -1230,6 +1233,14 @@ plot_function_values <- function(target, args, arg_text, written, value) {
     # `xname` is read as `curve()` reads it; the y title is not `curve()`'s.
     values$labels$y <- title
     values$labels <- drawn_default_titles(args, values$labels)
+  }
+  # A title no symbol can carry is handed to the replay as `ylab`, where R
+  # draws it.
+  drawn_title <- drawn_default_titles(args, list(y = title))$y
+  if (!is.null(drawn_title) && is.na(arg_text[at])) {
+    args$ylab <- drawn_title
+  }
+  if (!is.null(values)) {
     args$.maidr_curve_data <- values
   }
   list(args = args, arg_text = arg_text)

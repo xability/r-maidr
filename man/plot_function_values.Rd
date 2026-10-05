@@ -21,8 +21,8 @@ plot_function_values(target, args, arg_text, written, value)
 \value{
 List with \code{args} and \code{arg_text}. When \code{value} is what \code{curve()}
 returns, \code{args} holds the function that returns its y values in place
-of the one plotted, and the points under \code{.maidr_curve_data} when they
-can be read.
+of the one plotted, R's y title as \code{ylab} when no symbol can carry it,
+and the points under \code{.maidr_curve_data} when they can be read.
 }
 \description{
 \code{plot(f)} dispatches to \code{graphics::plot.function()}, which draws \code{f} by
@@ -58,7 +58,10 @@ written, \code{deparse(substitute(x))[1L]}: "sin" for \code{plot(sin)}, where
 symbol named by its \code{arg_text} entry, so that entry is set to the same
 first line: a function written over several lines is titled as R titled
 it, in the drawing and in the data, and so is one handed over as a
-value, as \code{do.call()} does. Neither title is kept where R draws none
+value, as \code{do.call()} does. A title no symbol can carry, "..1" for
+\code{plot(..1)} in a function of \code{...}, is handed to the replay as its
+\code{ylab} instead: passed as a value, the stand-in was drawn titled
+"function (x)". Neither title is kept where R draws none
 (\code{drawn_default_titles()}), as with \code{ylab = ""} or \code{ann = FALSE}.
 }
 \keyword{internal}
