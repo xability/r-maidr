@@ -405,9 +405,10 @@
   "Time" and "AirPassengers" for `plot(AirPassengers)`, where it had none,
   or had them only with another argument written first, as in
   `plot(main = "Nile", Nile)`. A title `plot()` derives for an axis, such
-  as "Time", or "v" for `plot(v)`, is not announced where R draws none
-  because the call blanks it, as `ylab = ""` does, or turns titles off with
-  `ann = FALSE`: `plot(v, ylab = "")` was announced with "v" (#PR).
+  as "Time", or "v" for `plot(v)`, is not announced where R draws none:
+  where the call blanks it, as `ylab = ""` does, or gives it as `NULL` to
+  a time series, or turns titles off with `ann = FALSE` or
+  `par(ann = FALSE)`. `plot(v, ylab = "")` was announced with "v" (#PR).
 
 ## Documentation
 

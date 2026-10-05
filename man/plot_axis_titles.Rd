@@ -27,6 +27,12 @@ has one, against the table as written.
 \item \code{plot.data.frame()}, for a frame of two columns: the two column names.
 }
 
+An \code{xlab} or \code{ylab} given as NULL is the method's to read too.
+\code{plot.default()} and \code{plot.table()} draw their own title for it, but
+\code{plot.ts()} draws none, and \code{plot.data.frame()} hands it on to
+\code{plot.default()}, which titles the axis after the column it was handed,
+\code{x[[1L]]} or \code{x[[2L]]}.
+
 Any other method gives none, and so do these where they draw something
 else: several series in panels, a mosaic, a strip chart or a pairs plot.
 An argument written before the one the method was dispatched on, as in

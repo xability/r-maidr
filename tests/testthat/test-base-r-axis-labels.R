@@ -331,6 +331,96 @@ test_that("an axis the call leaves untitled is announced with no title, as R dra
   }
 })
 
+test_that("a title given as NULL, or turned off by par(ann = FALSE), is announced as R draws it", {
+  testthat::skip_if_not_installed("svglite")
+  testthat::skip_if_not_installed("xml2")
+  # plot.ts() draws no title for an `xlab` or `ylab` given as NULL, and
+  # plot.data.frame() hands the NULL on to plot.default(), which titles the
+  # axis after the column it was handed, "x[[1L]]". `par(ann = FALSE)` turns
+  # the derived titles off, as the call's own `ann = FALSE` does. Read from
+  # the call alone, a NULL was taken for no argument and par() was not read,
+  # so "Time" and "Nile" were announced where R drew neither.
+  drawn_titles <- function(call) {
+    old <- options(maidr.base_r = FALSE)
+    on.exit(options(old), add = TRUE)
+    file <- tempfile(fileext = ".svg")
+    on.exit(unlink(file), add = TRUE)
+    originals <- list2env(
+      list(
+        plot = maidr:::get_original_function("plot"),
+        par = maidr:::get_original_function("par")
+      ),
+      parent = globalenv()
+    )
+    svglite::svglite(file, width = 7, height = 5)
+    tryCatch(eval(call, originals), finally = grDevices::dev.off())
+    text <- trimws(xml2::xml_text(
+      xml2::xml_find_all(xml2::read_xml(file), "//*[local-name()='text']")
+    ))
+    text[!grepl("^-?[0-9.]+$", text)]
+  }
+
+  cases <- list(
+    list(quote(plot(Nile, xlab = NULL)), NULL, "Nile"),
+    list(quote(plot(Nile, ylab = NULL)), "Time", NULL),
+    list(quote({
+      framed <- function(x, xlab = NULL, ylab = NULL) plot(x, xlab = xlab, ylab = ylab)
+      framed(AirPassengers)
+    }), NULL, NULL),
+    list(quote(plot(data.frame(a = 1:5, b = c(2, 4, 3, 5, 1)), ylab = NULL)), "a", "x[[2L]]"),
+    list(quote(plot(cars, xlab = NULL)), "x[[1L]]", "dist"),
+    # Where a method draws its derived title for a NULL, it is announced.
+    list(quote(plot(table(c(1, 1, 2)), ylab = NULL)), NULL, "table(c(1, 1, 2))"),
+    list(quote(plot(1:3, xlab = NULL)), "Index", "1:3"),
+    list(quote(plot(sin, -pi, pi, ylab = NULL)), "x", "sin"),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(Nile)
+      par(op)
+    }), NULL, NULL),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(table(c(1, 1, 2)))
+      par(op)
+    }), NULL, NULL),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(cars)
+      par(op)
+    }), NULL, NULL),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(sin, -pi, pi)
+      par(op)
+    }), NULL, NULL),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(1:10, (1:10)^2)
+      par(op)
+    }), NULL, NULL),
+    # The call's own `ann` wins over par()'s, in R as here.
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(Nile, ann = TRUE)
+      par(op)
+    }), "Time", "Nile")
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    for (layer_axes in axes) {
+      testthat::expect_identical(layer_axes$x$label, case[[2]], label = label)
+      testthat::expect_identical(layer_axes$y$label, case[[3]], label = label)
+    }
+    testthat::expect_identical(
+      drawn_titles(call), as.character(c(case[[2]], case[[3]])),
+      label = label
+    )
+  }
+})
+
 test_that("an author's own scatter plot labels are still announced", {
   axes <- label_axes(function() {
     plot(1:10, (1:10)^2, xlab = "Index", ylab = "Square")

@@ -1201,8 +1201,9 @@ curve_default_labels <- function(recorded_args) {
 #' value, as `do.call()` does. A title no symbol can carry, "..1" for
 #' `plot(..1)` in a function of `...`, is handed to the replay as its
 #' `ylab` instead: passed as a value, the stand-in was drawn titled
-#' "function (x)". Neither title is kept where R draws none
-#' (`drawn_default_titles()`), as with `ylab = ""` or `ann = FALSE`.
+#' "function (x)". Neither title is announced where R draws none
+#' (`drawn_default_titles()`), as with `ylab = ""`, `ann = FALSE` or
+#' `par(ann = FALSE)`, which is read here, on the device R drew on.
 #'
 #' @param target `graphics::plot.function()`, which the call dispatched to
 #' @param args Recorded argument list, as `match_recorded_args()` names it
@@ -1232,10 +1233,11 @@ plot_function_values <- function(target, args, arg_text, written, value) {
   if (!is.null(values)) {
     # `xname` is read as `curve()` reads it; the y title is not `curve()`'s.
     values$labels$y <- title
-    values$labels <- drawn_default_titles(args, values$labels)
+    values$labels <- drawn_default_titles(args, values$labels, device_par_ann())
   }
-  # A title no symbol can carry is handed to the replay as `ylab`, where R
-  # draws it.
+  # A title no symbol can carry is handed to the replay as `ylab`, where the
+  # call draws it. The replay does not set `par(ann)`, so it draws the title
+  # under `par(ann = FALSE)` as it draws `plot(sqrt)`'s "sqrt".
   drawn_title <- drawn_default_titles(args, list(y = title))$y
   if (!is.null(drawn_title) && is.na(arg_text[at])) {
     args$ylab <- drawn_title

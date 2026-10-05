@@ -101,7 +101,9 @@ written_axis_titles <- function(plot_call) {
   switch(plot_call$function_name %||% "",
     hist = list(x = written_arg(plot_call, "x")),
     qqplot = list(x = written_arg(plot_call, "x"), y = written_arg(plot_call, "y")),
-    plot = drawn_default_titles(plot_call$args, plot_axis_titles(plot_call)),
+    plot = drawn_default_titles(
+      plot_call$args, plot_axis_titles(plot_call), plot_call$par_ann %||% TRUE
+    ),
     list()
   )
 }
@@ -111,19 +113,24 @@ written_axis_titles <- function(plot_call) {
 #' A method of `plot()` draws the title it derives for an axis, such as
 #' "Time" or the series as written, only where the call gives that axis no
 #' title of its own: `ylab = ""` is drawn as the blank it is, in place of
-#' the title, and `ann = FALSE` draws no titles at all. Read through
+#' the title, and `ann = FALSE` draws no titles at all. Without an `ann` of
+#' its own, the call draws them as `par("ann")` said when it was made, so
+#' `par(ann = FALSE)` turns them off too. Read through
 #' `recorded_axis_label()`, which takes a blank for no title, the title R
 #' did not draw was announced: "AirPassengers" for
 #' `plot(AirPassengers, ylab = "")`.
 #'
-#' A title the call writes itself is `recorded_axis_label()`'s to read.
+#' A title given as NULL is no title of the call's own: where the method
+#' draws one for it, `plot_axis_titles()` says which. A title the call
+#' writes itself is `recorded_axis_label()`'s to read.
 #'
 #' @param args Recorded argument list
 #' @param titles List with `x` and `y`, the titles the method derives
+#' @param ann What `par("ann")` was when the call was made
 #' @return `titles`, without each one R does not draw
 #' @keywords internal
-drawn_default_titles <- function(args, titles) {
-  if (!recorded_flag(args, "ann", default = TRUE)) {
+drawn_default_titles <- function(args, titles, ann = TRUE) {
+  if (!recorded_flag(args, "ann", default = ann)) {
     return(list())
   }
   if (!is.null(args[["xlab"]])) {
@@ -147,6 +154,12 @@ drawn_default_titles <- function(args, titles) {
 #'   has one, against the table as written.
 #' - `plot.data.frame()`, for a frame of two columns: the two column names.
 #'
+#' An `xlab` or `ylab` given as NULL is the method's to read too.
+#' `plot.default()` and `plot.table()` draw their own title for it, but
+#' `plot.ts()` draws none, and `plot.data.frame()` hands it on to
+#' `plot.default()`, which titles the axis after the column it was handed,
+#' `x[[1L]]` or `x[[2L]]`.
+#'
 #' Any other method gives none, and so do these where they draw something
 #' else: several series in panels, a mosaic, a strip chart or a pairs plot.
 #' An argument written before the one the method was dispatched on, as in
@@ -161,6 +174,8 @@ plot_axis_titles <- function(plot_call) {
   plot_generic <- get_original_function("plot")
   target <- dispatched_definition("plot", plot_generic, args)
   xy <- resolve_xy_args(args)
+  # Given, if only as NULL; `args[["xlab"]]` cannot tell NULL from absent.
+  given <- c("xlab", "ylab") %in% names(args)
 
   if (identical(target, utils::getS3method("plot", "ts"))) {
     if (!is.null(xy$y) || NCOL(xy$x) != 1L) {
@@ -168,8 +183,10 @@ plot_axis_titles <- function(plot_call) {
     }
     name <- colnames(xy$x)
     return(list(
-      x = "Time",
-      y = if (length(name) == 1L) name else written_arg(plot_call, "x")
+      x = if (!given[1L]) "Time",
+      y = if (!given[2L]) {
+        if (length(name) == 1L) name else written_arg(plot_call, "x")
+      }
     ))
   }
   if (identical(target, utils::getS3method("plot", "table"))) {
@@ -186,7 +203,10 @@ plot_axis_titles <- function(plot_call) {
     if (!is.data.frame(xy$x) || ncol(xy$x) != 2L) {
       return(list())
     }
-    return(list(x = names(xy$x)[1L], y = names(xy$x)[2L]))
+    return(list(
+      x = if (given[1L]) "x[[1L]]" else names(xy$x)[1L],
+      y = if (given[2L]) "x[[2L]]" else names(xy$x)[2L]
+    ))
   }
   if (!identical(target, graphics::plot.default)) {
     return(list())

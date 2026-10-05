@@ -4,12 +4,14 @@
 \alias{drawn_default_titles}
 \title{The titles a \code{plot()} method derives that R draws}
 \usage{
-drawn_default_titles(args, titles)
+drawn_default_titles(args, titles, ann = TRUE)
 }
 \arguments{
 \item{args}{Recorded argument list}
 
 \item{titles}{List with \code{x} and \code{y}, the titles the method derives}
+
+\item{ann}{What \code{par("ann")} was when the call was made}
 }
 \value{
 \code{titles}, without each one R does not draw
@@ -18,12 +20,16 @@ drawn_default_titles(args, titles)
 A method of \code{plot()} draws the title it derives for an axis, such as
 "Time" or the series as written, only where the call gives that axis no
 title of its own: \code{ylab = ""} is drawn as the blank it is, in place of
-the title, and \code{ann = FALSE} draws no titles at all. Read through
+the title, and \code{ann = FALSE} draws no titles at all. Without an \code{ann} of
+its own, the call draws them as \code{par("ann")} said when it was made, so
+\code{par(ann = FALSE)} turns them off too. Read through
 \code{recorded_axis_label()}, which takes a blank for no title, the title R
 did not draw was announced: "AirPassengers" for
 \code{plot(AirPassengers, ylab = "")}.
 }
 \details{
-A title the call writes itself is \code{recorded_axis_label()}'s to read.
+A title given as NULL is no title of the call's own: where the method
+draws one for it, \code{plot_axis_titles()} says which. A title the call
+writes itself is \code{recorded_axis_label()}'s to read.
 }
 \keyword{internal}

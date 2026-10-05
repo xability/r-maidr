@@ -61,7 +61,8 @@ it, in the drawing and in the data, and so is one handed over as a
 value, as \code{do.call()} does. A title no symbol can carry, "..1" for
 \code{plot(..1)} in a function of \code{...}, is handed to the replay as its
 \code{ylab} instead: passed as a value, the stand-in was drawn titled
-"function (x)". Neither title is kept where R draws none
-(\code{drawn_default_titles()}), as with \code{ylab = ""} or \code{ann = FALSE}.
+"function (x)". Neither title is announced where R draws none
+(\code{drawn_default_titles()}), as with \code{ylab = ""}, \code{ann = FALSE} or
+\code{par(ann = FALSE)}, which is read here, on the device R drew on.
 }
 \keyword{internal}

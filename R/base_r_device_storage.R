@@ -98,6 +98,21 @@ calls_as_expressions <- function(args) {
   args
 }
 
+#' Whether a device draws the titles a plot derives
+#'
+#' `par("ann")` on the device, without opening one: TRUE, R's default, for a
+#' device that is not the current one, whose `par()` would be another's.
+#'
+#' @param device_id Graphics device ID
+#' @return TRUE or FALSE
+#' @keywords internal
+device_par_ann <- function(device_id = grDevices::dev.cur()) {
+  if (device_id <= 1L || device_id != grDevices::dev.cur()) {
+    return(TRUE)
+  }
+  !isFALSE(tryCatch(graphics::par("ann"), error = function(e) TRUE))
+}
+
 #' Log Plot Call to Device Storage
 #'
 #' Records a plot call in the device-specific storage.
@@ -149,7 +164,11 @@ log_plot_call_to_device <- function(
     # resolved it later would read whatever the names are bound to *then* --
     # see `recorded_formula_frame()` for the measurement (#254).
     formula = formula,
-    formula_frame = recorded_formula_frame(args, call_env, formula)
+    formula_frame = recorded_formula_frame(args, call_env, formula),
+    # Whether R titled a high-level plot, which `par(ann = FALSE)` turns off
+    # as the call's own `ann = FALSE` does (`drawn_default_titles()`). Read
+    # now: by the time the chart is read, par() holds whatever came later.
+    par_ann = if (class_level == "HIGH") device_par_ann(device_id)
   )
   # In a knit, a call that draws leaves a marker on its page, by which the
   # plot hook knows the figure it is on (see knitr_figure_map.R). A layout
