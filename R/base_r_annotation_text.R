@@ -159,7 +159,9 @@ base_r_echoable_recording <- function(recording, size) {
 #' gridGraphics draws a title that is one string or a call. Another value of
 #' length one is handed to it as the string R drew, and one of length zero
 #' as no title, which is what R drew. A title of several values, or given as
-#' a list, is drawn again as R drew it (`base_r_title_as_drawn()`).
+#' a list, is drawn again as R drew it (`base_r_title_as_drawn()`). Its
+#' `line` and `outer` are handed over as R read them
+#' (`base_r_title_place()`).
 #'
 #' @param recording The recorded drawing
 #' @param i The index of the `title()` entry in its display list
@@ -170,6 +172,10 @@ base_r_echoable_recording <- function(recording, size) {
 base_r_echoable_title <- function(recording, i, size) {
   entry <- recording[[1]][[i]]
   args <- as.list(entry[[2]])
+  place <- base_r_title_place(args)
+  plain <- function(x) length(x) == 1 && (is.numeric(x) || is.logical(x))
+  if (!plain(args[[6]])) args[6] <- list(place$line)
+  if (!plain(args[[7]]) || is.na(args[[7]])) args[7] <- list(place$outer)
   texts <- args[2:5]
   one_value <- vapply(
     texts,
@@ -187,6 +193,28 @@ base_r_echoable_title <- function(recording, i, size) {
   }
   entry[[2]] <- as.pairlist(args)
   list(entry)
+}
+
+#' Where R draws a recorded `title()`: its `line` and `outer` as R read them
+#'
+#' R's `C_title()` reads each by its first value, `line` as a number and
+#' `outer` as a logical, a missing `outer` being `FALSE`: `title(main =
+#' "Speed", line = c(1, 2))` is drawn on line 1. gridGraphics tests them as
+#' given, and stops on several values, on none and on a missing `outer`, and
+#' reads a `line` given as text as no line.
+#'
+#' @param args The `title()` entry's arguments, `line` and `outer` the
+#'   sixth and seventh
+#' @return A list: `line`, a number, `NA` for none, and `outer`, `TRUE` or
+#'   `FALSE`
+#' @keywords internal
+#' @noRd
+base_r_title_place <- function(args) {
+  outer <- args[[7]]
+  list(
+    line = suppressWarnings(as.numeric(args[[6]])[1]),
+    outer = is.atomic(outer) && isTRUE(as.logical(outer)[1])
+  )
 }
 
 #' The expression R draws of a title given as several
@@ -326,8 +354,9 @@ base_r_title_as_drawn <- function(recording, i, size) {
   drawn <- length(grDevices::recordPlot()[[1]])
 
   args <- as.list(recording[[1]][[i]][[2]])
-  line <- suppressWarnings(as.numeric(args[[6]])[1])
-  outer <- isTRUE(as.logical(args[[7]])[1])
+  place <- base_r_title_place(args)
+  line <- place$line
+  outer <- place$outer
   inline <- args[-(1:7)]
   cex <- graphics::par("cex")
   pars <- graphics::par()

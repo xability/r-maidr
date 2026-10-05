@@ -322,6 +322,38 @@ test_that("a plotmath title given in a list is drawn as the formula R draws", {
   testthat::expect_identical(chart$layers[[1]]$axes$x$label, "beta[1]")
 })
 
+test_that("a title's line and outer are read by their first value, as R reads them", {
+  # gridGraphics tested them as given, and stopped on several values, on
+  # none and on a missing outer ("the condition has length > 1"); a line
+  # given as text was drawn as no line. The chart fell back to a picture.
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5)
+    graphics::title(main = "Speed", line = c(1, 2))
+  })
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5)
+    graphics::title(main = 3, line = "1")
+  })
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5)
+    graphics::title(main = "Speed", line = numeric(0), outer = logical(0))
+  })
+  expect_drawn_as_r(function() {
+    graphics::par(oma = c(2, 2, 3, 2))
+    graphics::plot(1:5)
+    graphics::title(main = "Outer", outer = c(TRUE, FALSE))
+    graphics::title(main = "Inner", outer = NA, line = c(NA, 2))
+  })
+
+  chart <- exported_chart(function() {
+    plot(1:5)
+    title(main = "Speed", line = c(1, 2))
+  })
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_true("Speed" %in% chart$text)
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+})
+
 test_that("a chart titled with a number is exported with its drawing", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()
