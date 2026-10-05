@@ -1200,14 +1200,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' is drawn at the chart's, as before: it shows what R draws of it.
     #' @return A named numeric vector, `width` and `height`, in inches
     picture_size = function() {
-      draw <- function() {
-        for (call in private$.plot_calls) {
-          replay_plot_call(
-            call$function_name, call$args, call$call_env,
-            rng_state = call$rng_state
-          )
-        }
-      }
+      # The drawing the picture is (`replay_base_r_plot()`).
+      draw <- function() replay_base_r_plot(private$.device_id, strict = TRUE)
       canvas <- private$.canvas
       failure <- tryCatch(
         {

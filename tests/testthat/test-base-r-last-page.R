@@ -758,17 +758,11 @@ test_that("a series drawn over a plot on a plot.new() of its panel is read with 
   }
 })
 
-test_that("the picture of a page draws a call on a plot no recorded call started where R did", {
-  testthat::skip_if_not_installed("svglite")
-
-  # A page maidr shows as a picture, as it does a sunflowerplot(), with a
-  # note on a panel of its own.
-  noted <- quote({
-    par(mfrow = c(1, 2))
-    sunflowerplot(iris[, 3:4], main = "Sun")
-    plot.new()
-    text(0.5, 0.5, "Note panel", adj = c(0.5, 0))
-  })
+# `strings` are drawn in the picture of the page `call` draws, which
+# maidr draws in place of a chart it cannot read or draw again
+# (`replay_base_r_plot()`), where R draws them, each once; and drawing the
+# picture says nothing R did not.
+expect_pictured_where_r_draws <- function(call, strings) {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()
   clear_base_r_device(device_id)
@@ -781,9 +775,11 @@ test_that("the picture of a page draws a call on a plot no recorded call started
     },
     add = TRUE
   )
-  eval(noted)
+  eval(call)
   svglite::svglite(file, width = 7, height = 5)
-  tryCatch(maidr:::replay_base_r_plot(device_id), finally = grDevices::dev.off())
+  testthat::expect_no_warning(
+    tryCatch(maidr:::replay_base_r_plot(device_id), finally = grDevices::dev.off())
+  )
 
   texts <- xml2::xml_find_all(xml2::read_xml(file), "//*[local-name()='text']")
   picture <- data.frame(
@@ -791,13 +787,68 @@ test_that("the picture of a page draws a call on a plot no recorded call started
     x = as.numeric(xml2::xml_attr(texts, "x")),
     y = 360 - as.numeric(xml2::xml_attr(texts, "y"))
   )
-  reference <- r_last_page_text_at(noted)
-  for (string in c("Sun", "Note panel")) {
+  reference <- r_last_page_text_at(call)
+  for (string in strings) {
     drawn <- picture[picture$string == string, c("x", "y")]
     r <- reference[reference$string == string, c("x", "y")]
     testthat::expect_identical(nrow(drawn), 1L, label = string)
-    testthat::expect_lt(max(abs(as.matrix(drawn) - as.matrix(r))), 0.5, label = string)
+    if (nrow(drawn) == 1L) {
+      testthat::expect_lt(max(abs(as.matrix(drawn) - as.matrix(r))), 0.5, label = string)
+    }
   }
+}
+
+test_that("the picture of a page draws a call on a plot no recorded call started where R did", {
+  testthat::skip_if_not_installed("svglite")
+
+  # A page maidr shows as a picture, as it does a sunflowerplot(), with a
+  # note on a panel of its own.
+  noted <- quote({
+    par(mfrow = c(1, 2))
+    sunflowerplot(iris[, 3:4], main = "Sun")
+    plot.new()
+    text(0.5, 0.5, "Note panel", adj = c(0.5, 0))
+  })
+  expect_pictured_where_r_draws(noted, c("Sun", "Note panel"))
+})
+
+test_that("the picture of a split.screen() page draws each plot in the screen R drew it in", {
+  testthat::skip_if_not_installed("svglite")
+
+  # The picture drew `split.screen()` again, but not the `screen()` calls
+  # that chose each screen, which are not recorded: it drew the last
+  # screen's plot alone, squeezed into the first screen's region, said
+  # "calling par(new=TRUE) with no plot", which R did not, and drew what
+  # `screen(1, new = FALSE)` sent R back to the first screen to add on the
+  # last plot.
+  screens <- quote({
+    split.screen(c(1, 2))
+    screen(1)
+    plot(1:5, main = "SA")
+    screen(2)
+    plot(c(10, 20, 30, 40, 50), main = "SB")
+    screen(1, new = FALSE)
+    abline(h = 3, col = "red")
+    text(3, 3.3, "on SA", adj = c(0.5, 0))
+    close.screen(all.screens = TRUE)
+  })
+  expect_pictured_where_r_draws(screens, c("SA", "SB", "on SA"))
+
+  # A screen split again, and a plot `par(fig = )` placed over the screens.
+  nested <- quote({
+    split.screen(c(2, 1))
+    split.screen(c(1, 2), screen = 2)
+    screen(1)
+    plot(1:5, main = "Top")
+    screen(3)
+    plot(5:1, main = "Bottom left")
+    screen(4)
+    hist(mtcars$mpg, main = "Bottom right")
+    close.screen(all.screens = TRUE)
+    par(fig = c(0.5, 1, 0.5, 1), new = TRUE, mar = c(2, 2, 2, 1))
+    plot(1:3, main = "Inset")
+  })
+  expect_pictured_where_r_draws(nested, c("Top", "Bottom left", "Bottom right", "Inset"))
 })
 
 test_that("a plot after one that drew several panels is in the panel R drew it in", {

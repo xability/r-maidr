@@ -133,8 +133,11 @@ create_fallback_image <- function(plot = NULL, format = "png",
 #' Re-executes the recorded Base R plot calls to render the plot.
 #'
 #' @param device_id The device ID to get calls from
+#' @param strict `TRUE` to stop at a call that cannot be drawn again, as
+#'   the measure of the size the picture needs does (`picture_size()`);
+#'   `FALSE` draws the others, with a warning naming a plot left out
 #' @keywords internal
-replay_base_r_plot <- function(device_id) {
+replay_base_r_plot <- function(device_id, strict = FALSE) {
   # Every recorded call on the page R's device shows, with every layout
   # call, in the order it was made (`last_page_calls()`). The grouped view
   # keeps the HIGH and LOW calls and drops the LAYOUT ones, so a
@@ -172,12 +175,28 @@ replay_base_r_plot <- function(device_id) {
   # (`replay_unrecorded_plot_call()`); drawn as it comes, it went over the
   # plot before. `plots` counts the plots started on the page, as R
   # numbered them (`end_base_r_call()`).
+  #
+  # `split.screen()` is not drawn again: the `screen()` calls that chose
+  # each of its screens are not recorded, so the picture drew the last
+  # screen's plot alone, in the first screen's region, and R's
+  # "calling par(new=TRUE) with no plot" with it. A plot R drew in a screen,
+  # or in a region `par(fig = )` gave it, is drawn in that region of the
+  # page, over what is drawn on it already, as the chart draws it
+  # (`is_figure_region()`). What R drew after `screen(n, new = FALSE)` sent
+  # it back to an earlier screen without starting a plot is drawn there,
+  # in the coordinates it was drawn in.
   plots <- 0L
   unrecorded_plot <- FALSE
   window <- NULL
+  regions <- !is_multipanel_config(config)
   for (call_entry in all_calls) {
+    if (identical(call_entry$function_name, "split.screen")) {
+      next
+    }
     on <- call_entry$end_plot
     low <- identical(call_entry$class_level, "LOW") && !starts_base_r_plot(call_entry)
+    sent_back <- low && regions && length(call_entry$drawn_fig) == 4L &&
+      !same_region(call_entry$drawn_fig, graphics::par("fig"))
     if (low && length(on) == 1L && isTRUE(on > plots)) {
       for (k in seq_len(on - plots)) {
         graphics::plot.new()
@@ -185,9 +204,19 @@ replay_base_r_plot <- function(device_id) {
       plots <- on
       unrecorded_plot <- TRUE
       window <- NULL
+    } else if (sent_back) {
+      graphics::par(fig = call_entry$drawn_fig, new = TRUE)
+      graphics::plot.new()
+      unrecorded_plot <- TRUE
+      window <- NULL
     }
     if (low && unrecorded_plot && !identical(call_entry$window, window)) {
       window <- replay_plot_window(call_entry$window) %||% window
+    }
+    placed <- starts_base_r_plot(call_entry) &&
+      is_figure_region(call_entry, config, graphics::par("fig"))
+    if (placed) {
+      graphics::par(fig = call_entry$fig, new = plots > 0L)
     }
     tryCatch(
       replay_plot_call(
@@ -198,6 +227,9 @@ replay_base_r_plot <- function(device_id) {
         call_entry$rng_state
       ),
       error = function(e) {
+        if (strict) {
+          stop(e)
+        }
         if (starts_base_r_plot(call_entry)) {
           warning("Failed to replay: ", call_entry$function_name)
         }
