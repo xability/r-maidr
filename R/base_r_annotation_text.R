@@ -95,8 +95,8 @@ base_r_title_text <- function(value, cex, col, font) {
 #' is not one string or call is drawn again as R drew it
 #' (`base_r_title_as_drawn()`), a margin text is handed over a value at a
 #' time where gridGraphics would not draw it as R did, its missing values
-#' left out (`base_r_echoable_mtext()`), and an axis's logical `labels` is
-#' the one R read. The missing
+#' left out (`base_r_echoable_mtext()`), an axis R drew nothing of is left
+#' out, and an axis's logical `labels` is the one R read. The missing
 #' tick labels R leaves out are taken out after the echo
 #' ([thin_axis_labels()]), since R also leaves them out of its spacing.
 #'
@@ -122,7 +122,7 @@ base_r_echoable_recording <- function(recording, size) {
       return(base_r_echoable_mtext(entry))
     }
     if (identical(operation, "C_axis")) {
-      return(list(base_r_echoable_axis(entry)))
+      return(base_r_echoable_axis(entry))
     }
     list(entry)
   })
@@ -241,25 +241,32 @@ base_r_echoable_mtext <- function(entry) {
   Filter(Negate(is.null), entries)
 }
 
-#' A recorded `axis()`, its logical `labels` the one R reads
+#' A recorded `axis()`, as gridGraphics draws what R drew
 #'
-#' R reads `labels` given as logicals by the first: `TRUE` labels the ticks
-#' as it would unasked, and `FALSE` or `NA` draws no labels. gridGraphics
-#' stops on any but one `TRUE` or `FALSE`.
+#' R draws nothing for an `axis()` whose `at` is empty, as
+#' `axis(1, at = numeric(0))` is, where gridGraphics stops. And R reads
+#' `labels` given as logicals by the first: `TRUE` labels the ticks as it
+#' would unasked, and `FALSE` or `NA` draws no labels. gridGraphics stops on
+#' any but one `TRUE` or `FALSE`.
 #'
 #' @param entry The display-list entry
-#' @return The entry
+#' @return A list of display-list entries: none for an axis R drew nothing
+#'   of, the entry otherwise
 #' @keywords internal
 #' @noRd
 base_r_echoable_axis <- function(entry) {
+  at <- entry[[2]][[3]]
+  if (!is.null(at) && length(at) == 0) {
+    return(list())
+  }
   labels <- entry[[2]][[4]]
   if (!is.logical(labels) || identical(labels, TRUE) || identical(labels, FALSE)) {
-    return(entry)
+    return(list(entry))
   }
   args <- as.list(entry[[2]])
   args[[4]] <- length(labels) == 0 || isTRUE(labels[[1]])
   entry[[2]] <- as.pairlist(args)
-  entry
+  list(entry)
 }
 
 #' A `title()` gridGraphics cannot echo, drawn again as R drew it

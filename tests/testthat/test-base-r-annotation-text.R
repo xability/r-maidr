@@ -248,6 +248,29 @@ test_that("a chart with margin text of several values stays interactive", {
   }
 })
 
+test_that("an axis given no positions is drawn as R draws it, and the chart stays interactive", {
+  # R draws nothing for it; gridGraphics stopped ("'x' and 'units' must have
+  # length > 0"), and the chart fell back to a picture.
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5, axes = FALSE, main = "empty at")
+    graphics::axis(1, at = numeric(0))
+    graphics::axis(2, at = numeric(0), labels = character(0))
+    graphics::axis(3, at = c(1, NA, 3))
+  })
+
+  chart <- exported_chart(function() {
+    par(mfrow = c(1, 2))
+    plot(1:5, main = "ok")
+    plot(5:1, xaxt = "n")
+    axis(1, at = numeric(0))
+  })
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_length(chart$layers, 2)
+  for (layer in chart$layers) {
+    testthat::expect_true(length(unlist(layer$selectors)) > 0)
+  }
+})
+
 test_that("a chart titled with a number is exported with its drawing", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()
