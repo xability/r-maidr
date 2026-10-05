@@ -132,7 +132,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
     # Draw the plot groups of the page R shows again, each in the panel R
     # drew it in (`slots`, NA for a group not drawn, of the grid
-    # `panel_config` describes, NULL for a page of one panel) and numbered as
+    # `panel_config` describes: on a page of one panel NULL, or the
+    # `layout()` of one cell the page was drawn in) and numbered as
     # R numbered it (`numbers`, from `plot_numbers()`): the plots R started
     # between two groups are started again, a panel `plot.new()` or
     # `frame()` passed over with `plot.new()`, and a plot drawn in the panel
@@ -252,7 +253,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       at$margins <- private$set_recorded_margins(call$storage_index, at$margins, call)
       on <- max(call$end_plot, 1L)
       if (on > at$plots) {
-        slot <- if (is.null(panel_config)) {
+        slot <- if (!is_multipanel_config(panel_config)) {
           1L
         } else {
           panel_of_cell(call$cell, panel_config) %||%
@@ -1178,7 +1179,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
         page_func <- function() {
           # A layout() of one cell still places its plot: `lcm()` sizes or
           # `respect` leave the cell less than the page. It is set up once,
-          # before the page's first plot, as R set it up.
+          # before the page's first plot, as R set it up, and the plots R
+          # drew in its cell are drawn in it (`is_figure_region()`).
           laid_out <- identical(panel_config$type, "layout") &&
             any(vapply(
               private$.plot_groups,
@@ -1188,7 +1190,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
           if (laid_out) {
             do.call(graphics::layout, c(list(panel_config$matrix), panel_config$sizes))
           }
-          private$replay_page(rep(1L, length(private$.plot_groups)), private$plot_numbers())
+          private$replay_page(
+            rep(1L, length(private$.plot_groups)),
+            private$plot_numbers(),
+            if (laid_out) panel_config
+          )
         }
 
         # The drawing settles the canvas, enlarging it or stopping as
@@ -1568,7 +1574,8 @@ start_skipped_plots <- function(at, upto, slot) {
 #'   in (`end_base_r_call()`)
 #' @param slot,figure The panel R drew the plot in, and the one the drawing
 #'   is in, each 0 for none
-#' @param panel_config The page's grid, or NULL for a page of one panel
+#' @param panel_config The page's grid, or for a page of one panel NULL or
+#'   the `layout()` of one cell it was drawn in
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
@@ -1614,10 +1621,15 @@ mfg_of_panel <- function(slot, panel_config) {
 #' region that is not the whole page -- or is the whole page, on a page laid
 #' out as a grid of several panels, or where the drawing is in another
 #' region, as on a page of regions or screens: a legend for them all is
-#' drawn over the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`.
+#' drawn over the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`. R
+#' reports the cell of a `layout()` of one cell the same way, a share of the
+#' page the author drew on, which the layout set up again gives a share of
+#' the chart's: a plot R drew there is drawn in the cell
+#' (`layout_cell_region()`).
 #'
 #' @param high The recorded call
-#' @param panel_config The page's grid, or NULL for a page of one panel
+#' @param panel_config The page's grid, or for a page of one panel NULL or
+#'   the `layout()` of one cell it was drawn in
 #' @param drawing_fig The region of the page the drawing is in, before the
 #'   plot is drawn
 #' @return Logical
@@ -1627,7 +1639,7 @@ is_figure_region <- function(high, panel_config = NULL, drawing_fig = c(0, 1, 0,
   page <- c(0, 1, 0, 1)
   apart <- function(fig) isTRUE(max(abs(fig - page)) > 1e-6)
   length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
-    length(high$fig) == 4L &&
+    length(high$fig) == 4L && !in_layout_cell(high$fig, panel_config) &&
     (apart(high$fig) || is_multipanel_config(panel_config) || apart(drawing_fig))
 }
 

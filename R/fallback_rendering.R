@@ -217,13 +217,17 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
     starts <- starts_base_r_plot(call_entry) && isTRUE(call_entry$new_plot) &&
       is.numeric(call_entry$plot)
     low <- identical(call_entry$class_level, "LOW") && !starts_base_r_plot(call_entry)
+    # Drawn in another region than the drawing's, other than the cell of a
+    # layout() of one cell, which the layout drawn again puts elsewhere on
+    # the picture's page (`layout_cell_region()`).
     sent_back <- low && is.null(grid) && length(call_entry$drawn_fig) == 4L &&
-      !same_region(call_entry$drawn_fig, graphics::par("fig"))
+      !same_region(call_entry$drawn_fig, graphics::par("fig")) &&
+      !in_layout_cell(call_entry$drawn_fig, config)
     sent_to <- if (low && !is.null(grid)) sent_back_panel(call_entry, grid)
     if (starts) {
-      place_picture_plot(call_entry, plots, grid)
+      place_picture_plot(call_entry, plots, config)
     } else if (low && length(on) == 1L && isTRUE(on > plots)) {
-      place_picture_plot(call_entry, plots, grid)
+      place_picture_plot(call_entry, plots, config)
       graphics::plot.new()
       plots <- on
       unrecorded_plot <- TRUE
@@ -380,11 +384,13 @@ sent_back_panel <- function(call, grid) {
 #'   in
 #' @param plots The plots the drawing has started on its page, as R
 #'   numbered them
-#' @param grid The page's grid, or NULL for a page of one panel
+#' @param config The page's configuration, from
+#'   [detect_panel_configuration()], or NULL
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-place_picture_plot <- function(call, plots, grid) {
+place_picture_plot <- function(call, plots, config) {
+  grid <- if (is_multipanel_config(config)) config
   pars <- call$pars
   margins <- call$margins
   csi <- margins$csi
@@ -421,7 +427,7 @@ place_picture_plot <- function(call, plots, grid) {
   cell <- as.integer(call$cell)
   in_drawing_grid <- length(cell) == 4L && !anyNA(cell) &&
     identical(as.integer(graphics::par("mfg")[3:4]), cell[3:4])
-  if (is_figure_region(call, grid, graphics::par("fig"))) {
+  if (is_figure_region(call, config, graphics::par("fig"))) {
     graphics::par(fig = call$fig, new = plots > 0L)
   } else if (!in_drawing_grid) {
     return(invisible(NULL))

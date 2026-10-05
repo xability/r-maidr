@@ -523,6 +523,9 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   if (!is.null(config) && !grid_holds_a_plot(grouped$groups, config)) {
     config <- NULL
   }
+  if (identical(config$type, "layout") && length(config$matrix) == 1L) {
+    config$cell_fig <- layout_cell_region(grouped$groups, config, layout_calls)
+  }
 
   config %||% grid_of_cells(grouped$groups)
 }
@@ -764,6 +767,61 @@ layout_matrix <- function(args) {
     mat <- as.matrix(mat)
   }
   if (is.numeric(mat) && is.matrix(mat)) mat
+}
+
+#' The region of the page R gave the cell of a `layout()` of one cell
+#'
+#' `lcm()` sizes or `respect` leave the one cell of such a layout less than
+#' the page, and R reports the region of each plot it draws there
+#' (`par("fig")`) as a share of the page the author drew on, with the cell
+#' of a grid of one, as it reports a region `par(fig = )` gave a plot. The
+#' cell is the region of the first plot R started after the `layout()`
+#' call, which R put there; the layout set up again puts the plots drawn in
+#' it in its cell on the chart's page (`is_figure_region()`). A
+#' `par(fig = )` recorded between the two gave that plot a region of its
+#' own, and R draws in the layout no more after it.
+#'
+#' @param groups Plot groups from group_device_calls()
+#' @param config The page's `layout()` of one cell, from
+#'   [detect_panel_configuration()]
+#' @param layout_calls The recorded layout calls
+#' @return The region, as `par("fig")` gives it, or NULL where the call
+#'   sizes no cell or no plot is known to be in it
+#' @keywords internal
+#' @noRd
+layout_cell_region <- function(groups, config, layout_calls) {
+  if (length(config$sizes) == 0L) {
+    return(NULL)
+  }
+  first <- Find(
+    function(group) {
+      isTRUE(group$high_call_index > config$layout_index) && isTRUE(group$high_call$new_plot)
+    },
+    groups
+  )
+  fig <- first$high_call$fig
+  given <- Find(
+    function(call) {
+      identical(call$function_name, "par") &&
+        isTRUE(call$storage_index > config$layout_index) &&
+        isTRUE(call$storage_index < first$high_call_index) &&
+        "fig" %in% names(par_setting_arguments(call$args))
+    },
+    layout_calls
+  )
+  if (length(fig) == 4L && is.null(given)) fig
+}
+
+#' Whether R drew in the cell of a page's `layout()` of one cell
+#'
+#' @param fig The region R reported for it (`par("fig")`)
+#' @param panel_config The page's configuration, or NULL
+#' @return Logical
+#' @keywords internal
+#' @noRd
+in_layout_cell <- function(fig, panel_config) {
+  cell <- panel_config$cell_fig
+  length(cell) == 4L && length(fig) == 4L && !anyNA(fig) && same_region(fig, cell)
 }
 
 #' Whether a page's `layout()` call sizes any of its cells with `lcm()`

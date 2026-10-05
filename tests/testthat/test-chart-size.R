@@ -952,6 +952,29 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
     # than the page.
     one_cell = layout_page(matrix(1), widths = lcm(8), heights = lcm(8)),
     one_cell_respect = layout_page(matrix(1), widths = 2, heights = 1, respect = TRUE),
+    # R reports the cell as the region of the plots drawn in it, a share of
+    # the page the author drew on, as it reports one par(fig = ) gave a plot,
+    # and the cell was drawn at that share of the chart's page: at 7 x 5 in
+    # an 8 cm cell drawn on a 50 x 50 in device left the plot no room. Drawn
+    # over the cell's plot, a plot is in the cell too, and an inset placed
+    # with par(fig = ) is in its own region.
+    one_cell_second_page = layout_page(matrix(1), widths = lcm(8), heights = lcm(8), plots = 2),
+    one_cell_after_page = layout_page(
+      matrix(1),
+      widths = lcm(10), heights = lcm(8), before = function() plot(1:3)
+    ),
+    one_cell_overlay = function() {
+      layout(matrix(1), widths = lcm(10), heights = lcm(8))
+      plot(1:5, main = "Points")
+      par(new = TRUE)
+      plot(sin, 0, pi, main = 7, xlab = "", ylab = "")
+    },
+    one_cell_inset = function() {
+      layout(matrix(1), widths = 2, heights = 1, respect = TRUE)
+      plot(1:5, main = 99)
+      par(fig = c(0.6, 0.95, 0.5, 0.9), new = TRUE, mar = c(2, 2, 1, 1))
+      plot(5:1)
+    },
     matrix_by_name = function() {
       layout(widths = c(3, 1), mat = matrix(1:2, 1))
       for (i in 1:2) plot(1:5)
@@ -1002,6 +1025,54 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
       )
       testthat::expect_identical(drawn_by_maidr(draw, size), drawn_by_r(draw, size), label = label)
     }
+  }
+})
+
+test_that("a picture of a Base R layout() page of one cell draws its plots in the cell", {
+  skip_if_no_render()
+  # The picture draws every recorded call again (`replay_base_r_plot()`),
+  # the layout() call among them, and drew each plot R drew in the cell at
+  # the share of the page R reported for it on the author's 50 x 50 in
+  # device; a line drawn on that plot was drawn on a plot started for it
+  # there, as if R had been sent back to it.
+  regions <- function(code) {
+    figs <- list()
+    hooks <- getHook("plot.new")
+    setHook("plot.new", function() figs[[length(figs) + 1L]] <<- graphics::par("fig"))
+    on.exit(setHook("plot.new", hooks, "replace"), add = TRUE)
+    code
+    figs
+  }
+  pages <- list(
+    lines = function() {
+      layout(matrix(1), widths = lcm(10), heights = lcm(8))
+      plot(1:5, main = "Points")
+      lines(5:1)
+    },
+    inset = function() {
+      layout(matrix(1), widths = 2, heights = 1, respect = TRUE)
+      persp(volcano, main = "Volcano")
+      par(fig = c(0.6, 0.95, 0.5, 0.9), new = TRUE, mar = c(2, 2, 1, 1))
+      plot(5:1)
+      abline(h = 3)
+    }
+  )
+  for (name in names(pages)) {
+    draw <- pages[[name]]
+    grDevices::pdf(NULL, width = 50, height = 50)
+    device <- grDevices::dev.cur()
+    maidr:::clear_device_storage(device)
+    draw()
+    grDevices::pdf(NULL, width = 7, height = 5)
+    drawn <- regions(maidr:::replay_base_r_plot(device, strict = TRUE))
+    grDevices::dev.off()
+    maidr:::clear_device_storage(device)
+    grDevices::dev.off(device)
+    grDevices::pdf(NULL, width = 7, height = 5)
+    native <- regions(draw())
+    maidr:::clear_device_storage(grDevices::dev.cur())
+    grDevices::dev.off()
+    testthat::expect_equal(drawn, native, tolerance = 1e-6, label = name)
   }
 })
 
