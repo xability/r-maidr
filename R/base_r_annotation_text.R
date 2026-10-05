@@ -34,10 +34,7 @@ NULL
 #' @keywords internal
 #' @noRd
 base_r_annotation_text <- function(value) {
-  value <- tryCatch(grDevices::as.graphicsAnnot(value), error = function(e) NULL)
-  if (is.list(value)) {
-    value <- base_r_title_text(value, cex = NA, col = NA, font = NA)$text
-  }
+  value <- base_r_annotation_value(value)
   if (is.null(value) || is.language(value)) {
     return(NULL)
   }
@@ -47,6 +44,25 @@ base_r_annotation_text <- function(value) {
     return(NULL)
   }
   paste(text, collapse = "\n")
+}
+
+#' What R draws for an annotation argument, a list's text taken out of it
+#'
+#' A classed value made text as `title()` makes it
+#' ([grDevices::as.graphicsAnnot()]), and a list's text as `title()` reads
+#' it, so that a plotmath call given with its colour,
+#' `list(quote(beta[1]), cex = 1.2)`, is the call, as it is given alone.
+#'
+#' @param value The argument, as recorded
+#' @return A call, an expression, an atomic vector, or NULL
+#' @keywords internal
+#' @noRd
+base_r_annotation_value <- function(value) {
+  value <- tryCatch(grDevices::as.graphicsAnnot(value), error = function(e) NULL)
+  if (is.list(value)) {
+    value <- base_r_title_text(value, cex = NA, col = NA, font = NA)$text
+  }
+  value
 }
 
 #' The text of one `title()` argument, and the parameters it carries
@@ -283,7 +299,8 @@ base_r_echoable_axis <- function(entry) {
 #' there, and each value is drawn with `mtext()` where and as `title()` drew
 #' it, from the same calculation (R's `C_title()`), so the entries recorded
 #' are R's own. A title of one value given as a list is drawn with
-#' `title()`, its parameters passed as `cex.main` and the like.
+#' `title()`, its parameters passed as `cex.main` and the like, and a
+#' plotmath call or expression drawn as the formula it is.
 #'
 #' @param recording The recorded drawing
 #' @param i The index of the `title()` entry in its display list
@@ -329,8 +346,14 @@ base_r_title_as_drawn <- function(recording, i, size) {
       next
     }
     if (is.language(text$text) || length(text$text) == 1) {
+      # A call goes in a list, which `title()` reads as its text: handed
+      # over bare, `do.call()` would have it evaluated. It goes as the
+      # expression it stands for, which R draws the same, and which the
+      # drawing echoed and exported holds as one label.
+      value <- base_r_first_expression(text$text)
+      if (is.language(value)) value <- list(as.expression(value))
       own <- stats::setNames(
-        list(base_r_first_expression(text$text), line, outer, text$cex, text$col, text$font),
+        list(value, line, outer, text$cex, text$col, text$font),
         c(which, "line", "outer", paste0(c("cex.", "col.", "font."), suffix))
       )
       do.call(graphics::title, c(own, inline[!names(inline) %in% names(own)]))

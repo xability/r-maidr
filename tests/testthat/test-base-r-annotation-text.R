@@ -288,6 +288,40 @@ test_that("an axis given no positions is drawn as R draws it, and the chart stay
   }
 })
 
+test_that("a plotmath title given in a list is drawn as the formula R draws", {
+  # The call was handed to title() bare, which evaluated it: a call that
+  # could be evaluated drew its value, "Mean:  3.14159265358979", and one
+  # that could not stopped the drawing, and the chart fell back to a picture.
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5, main = list(quote(paste("Mean: ", pi)), col = "blue"))
+  })
+  expect_drawn_as_r(function() {
+    graphics::plot(
+      1:5,
+      main = list(quote(pi)), sub = list(quote(x[i]), col = "red"),
+      xlab = list(quote(beta[1]), cex = 1.2), ylab = list(expression(alpha), font = 2)
+    )
+  })
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5)
+    graphics::title(main = list(bquote(R^2 == .(0.87)), cex = 1.2))
+  })
+  expect_drawn_as_r(function() graphics::barplot(1:3, main = list(quote(mu == 2), col = "red")))
+
+  main <- list(quote(x^2), col = "red")
+  xlab <- list(quote(beta[1]), cex = 1.2)
+  chart <- exported_chart(function() plot(1:5, main = main, xlab = xlab))
+  r_text <- r_drawing(
+    function() graphics::plot(1:5, main = main, xlab = xlab),
+    c(width = 7, height = 5)
+  )
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_identical(chart$text, sort(sub(" \\|.*$", "", r_text)))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+  # Read as it was written, as the same title given alone is.
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "beta[1]")
+})
+
 test_that("a chart titled with a number is exported with its drawing", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

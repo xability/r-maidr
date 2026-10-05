@@ -19,11 +19,12 @@ NULL
 #'
 #' The author's own `xlab=`/`ylab=` always wins, read as the text R draws
 #' for it, whatever it was given as (`base_r_annotation_text()`); a plotmath
-#' title is read as it was written, `Miles[gallon]`. An empty string counts
-#' as unsupplied: Base R draws no title for it, so falling through to the
-#' chart type's default announces more than the blank would, and the
-#' renderer would otherwise substitute its generic "X"/"Y" anyway. This is
-#' how the candlestick processor has always read these arguments.
+#' title is read as it was written, `Miles[gallon]`, given alone or in a list
+#' with its colour or size. An empty string counts as unsupplied: Base R
+#' draws no title for it, so falling through to the chart type's default
+#' announces more than the blank would, and the renderer would otherwise
+#' substitute its generic "X"/"Y" anyway. This is how the candlestick
+#' processor has always read these arguments.
 #'
 #' @param args Recorded argument list, or NULL
 #' @param name Argument to read: `"xlab"` or `"ylab"`
@@ -33,9 +34,9 @@ NULL
 #' @return Character scalar, or `default`
 #' @keywords internal
 recorded_axis_label <- function(args, name, default = NULL) {
-  supplied <- if (is.list(args)) args[[name]] else NULL
+  supplied <- base_r_annotation_value(if (is.list(args)) args[[name]])
   label <- if (is.language(supplied)) {
-    tryCatch(as.character(supplied)[1], error = function(e) NULL)
+    tryCatch(as.character(as.expression(supplied))[1], error = function(e) NULL)
   } else {
     base_r_annotation_text(supplied)
   }
