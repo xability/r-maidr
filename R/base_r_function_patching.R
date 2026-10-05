@@ -330,6 +330,14 @@ call_with_written_args <- function(fn, args, arg_text) {
     forwarded[i] <- TRUE
   }
 
+  # An expression vector is handed over quoted, which evaluates to it. A
+  # function evaluates the arguments it is handed, but plot()'s formula
+  # method evaluates its `...` again with eval(), which runs the expressions
+  # an expression vector holds: `main = expression(alpha)` looked up alpha,
+  # and the chart could not be drawn again.
+  quoted <- vapply(args, is.expression, logical(1))
+  args[quoted] <- lapply(args[quoted], function(value) call("quote", value))
+
   if (length(layers) == 0) {
     return(do.call(fn, args, envir = env))
   }

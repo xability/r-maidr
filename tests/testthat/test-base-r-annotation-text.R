@@ -360,6 +360,24 @@ test_that("a title R was handed as a call is drawn as the formula R draws", {
   testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
 })
 
+test_that("a formula plot titled with plotmath is drawn again as R draws it", {
+  # plot()'s formula method evaluates its `...` with eval(), which ran the
+  # expression vector the title was recorded as: the drawing again, and the
+  # picture drawn in its place, both stopped ("object 'alpha' not found"),
+  # and save_html() stopped with "Failed to create fallback image".
+  d <- data.frame(x = 1:6, y = c(2, 4, 3, 5, 1, 6))
+  chart <- exported_chart(function() {
+    plot(y ~ x, data = d, main = expression(alpha), xlab = quote(beta[1]))
+  })
+  r_text <- suppressWarnings(r_drawing(
+    function() graphics::plot(y ~ x, data = d, main = expression(alpha), xlab = quote(beta[1])),
+    c(width = 7, height = 5)
+  ))
+  testthat::expect_false(any(grepl("rendered interactively", chart$warnings)))
+  testthat::expect_identical(chart$text, sort(sub(" \\|.*$", "", r_text)))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+})
+
 test_that("a plotmath title given in a list is announced as it was written", {
   # It was announced as no title, where the same value given as an axis
   # title is read as it was written, and where reading the list as text
