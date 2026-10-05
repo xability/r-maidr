@@ -4,10 +4,11 @@
 \alias{axis_sides}
 \title{The sides a plot draws its axes on}
 \usage{
-axis_sides(group)
+axis_sides(groups)
 }
 \arguments{
-\item{group}{A plot group, from \code{\link[=group_device_calls]{group_device_calls()}}}
+\item{groups}{The plot group that drew the plot, from
+\code{\link[=group_device_calls]{group_device_calls()}}, and those drawn onto it (\code{shared_plots()})}
 }
 \value{
 List with \code{x}, 1 or 3, and \code{y}, 2 or 4: the side the axis is
@@ -17,6 +18,8 @@ is drawn on neither
 \description{
 A plot draws its x axis on side 1 and its y axis on side 2, unless the
 call turns them off, with \code{axes = FALSE}, \code{xaxt = "n"} or \code{yaxt = "n"}.
-\code{axis()} draws one on the side it is given.
+\code{axis()} draws one on the side it is given. A chart drawn onto the plot
+with \code{add = TRUE} draws none of its own, and an \code{axis()} written after it
+is drawn against the plot's axes.
 }
 \keyword{internal}

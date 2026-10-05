@@ -137,7 +137,8 @@ with_margin_titles <- function(axes, titles) {
 #'
 #' So each title goes to the plots, of those drawn over one another
 #' (`overlay_runs()`) in the plot R draws it on (`plot_drawn_on()`), whose
-#' axis is drawn on its side (`axis_sides()`). A
+#' axis is drawn on its side (`axis_sides()`), and to each chart drawn onto
+#' them with `add = TRUE`, as `contour(add = TRUE)` draws onto an `image()`. A
 #' plot placed beside another or inset in it, with `par(fig = , new = TRUE)`,
 #' is drawn in a plot region of its own, not over the other, and the titles
 #' written after it are its own.
@@ -156,7 +157,9 @@ with_margin_titles <- function(axes, titles) {
 #' @keywords internal
 margin_titles <- function(groups, layout_calls) {
   runs <- overlay_runs(groups, layout_calls)
-  sides <- lapply(groups, axis_sides)
+  # A chart drawn onto a plot with `add = TRUE` draws against its axes.
+  plots <- shared_plots(groups)
+  sides <- lapply(plots, function(plot) axis_sides(groups[plots == plot]))
   titles <- rep(list(list()), length(groups))
   for (g in seq_along(groups)) {
     for (call in groups[[g]]$low_calls) {
@@ -167,7 +170,7 @@ margin_titles <- function(groups, layout_calls) {
           sides[run], function(drawn) isTRUE(drawn[[title$axis]] == title$side), logical(1)
         )]
         if (!length(owners) && title$side <= 2) {
-          owners <- on
+          owners <- which(plots == plots[[on]])
         }
         for (owner in owners) {
           titles[[owner]] <- c(titles[[owner]], list(title))
@@ -215,23 +218,28 @@ plot_drawn_on <- function(call, groups) {
 #'
 #' A plot draws its x axis on side 1 and its y axis on side 2, unless the
 #' call turns them off, with `axes = FALSE`, `xaxt = "n"` or `yaxt = "n"`.
-#' `axis()` draws one on the side it is given.
+#' `axis()` draws one on the side it is given. A chart drawn onto the plot
+#' with `add = TRUE` draws none of its own, and an `axis()` written after it
+#' is drawn against the plot's axes.
 #'
-#' @param group A plot group, from [group_device_calls()]
+#' @param groups The plot group that drew the plot, from
+#'   [group_device_calls()], and those drawn onto it (`shared_plots()`)
 #' @return List with `x`, 1 or 3, and `y`, 2 or 4: the side the axis is
 #'   drawn on, the bottom or the left where it is drawn on both; NA where it
 #'   is drawn on neither
 #' @keywords internal
-axis_sides <- function(group) {
-  args <- group$high_call$args
+axis_sides <- function(groups) {
+  args <- groups[[1L]]$high_call$args
   drawn <- recorded_flag(args, "axes", default = TRUE)
   sides <- c(
     if (drawn && !identical(args[["xaxt"]], "n")) 1,
     if (drawn && !identical(args[["yaxt"]], "n")) 2
   )
-  for (call in group$low_calls) {
-    if (identical(call$function_name, "axis")) {
-      sides <- c(sides, suppressWarnings(as.numeric(call$args[["side"]]))[1])
+  for (group in groups) {
+    for (call in group$low_calls) {
+      if (identical(call$function_name, "axis")) {
+        sides <- c(sides, suppressWarnings(as.numeric(call$args[["side"]]))[1])
+      }
     }
   }
   list(

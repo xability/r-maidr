@@ -32,7 +32,8 @@ the first, and the first had no title at all.
 \details{
 So each title goes to the plots, of those drawn over one another
 (\code{overlay_runs()}) in the plot R draws it on (\code{plot_drawn_on()}), whose
-axis is drawn on its side (\code{axis_sides()}). A
+axis is drawn on its side (\code{axis_sides()}), and to each chart drawn onto
+them with \code{add = TRUE}, as \code{contour(add = TRUE)} draws onto an \code{image()}. A
 plot placed beside another or inset in it, with \code{par(fig = , new = TRUE)},
 is drawn in a plot region of its own, not over the other, and the titles
 written after it are its own.

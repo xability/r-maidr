@@ -222,11 +222,12 @@ par_setting_arguments <- function(args) {
 #' Which plots are drawn over one another
 #'
 #' `par(new = TRUE)` draws the next plot over the last one, as a chart of two
-#' y axes does. Each such plot is in the run of the plot it is drawn over.
-#' With `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next plot
-#' is drawn on the same page but in another region of it, beside the last one
-#' or inset in it, so it is drawn over the last one only where R drew both in
-#' the same plot region (`device_plot_region()`).
+#' y axes does, and a high-level call given `add = TRUE` draws onto it
+#' (`shared_plots()`). Each such plot is in the run of the plot it is drawn
+#' over. With `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next
+#' plot is drawn on the same page but in another region of it, beside the
+#' last one or inset in it, so it is drawn over the last one only where R
+#' drew both in the same plot region (`device_plot_region()`).
 #'
 #' @param groups The plot groups, from [group_device_calls()]
 #' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
@@ -252,11 +253,34 @@ overlay_runs <- function(groups, layout_calls) {
         }
       }
     }
-    if (new && same_plot_region(groups[[g - 1L]], groups[[g]])) {
+    drawn_over <- new || recorded_flag(groups[[g]]$high_call$args, "add")
+    if (drawn_over && same_plot_region(groups[[g - 1L]], groups[[g]])) {
       runs[[g]] <- runs[[g - 1L]]
     }
   }
   runs
+}
+
+#' The plot each high-level call draws on
+#'
+#' A high-level call given `add = TRUE`, such as `contour(add = TRUE)` or
+#' `boxplot(add = TRUE)`, draws onto the plot drawn last, against its axes,
+#' rather than drawing a plot of its own.
+#'
+#' @param groups The plot groups, from [group_device_calls()]
+#' @return Integer vector, one entry per group: the index of the group that
+#'   drew the plot it draws on, its own where it draws a plot of its own
+#' @keywords internal
+#' @noRd
+shared_plots <- function(groups) {
+  plots <- seq_along(groups)
+  for (g in seq_along(groups)[-1L]) {
+    added <- recorded_flag(groups[[g]]$high_call$args, "add")
+    if (added && same_plot_region(groups[[g - 1L]], groups[[g]])) {
+      plots[[g]] <- plots[[g - 1L]]
+    }
+  }
+  plots
 }
 
 #' Whether R drew two plots in the same plot region

@@ -56,7 +56,10 @@ r_drawn_titles <- function(call) {
   on.exit(options(old), add = TRUE)
   file <- tempfile(fileext = ".svg")
   on.exit(unlink(file), add = TRUE)
-  names <- c("plot", "lines", "par", "hist", "title", "mtext", "stripchart", "axis")
+  names <- c(
+    "plot", "lines", "par", "hist", "title", "mtext", "stripchart", "axis",
+    "image", "contour", "boxplot"
+  )
   originals <- list2env(
     stats::setNames(lapply(names, maidr:::get_original_function), names),
     parent = globalenv()
@@ -806,6 +809,44 @@ test_that("a title written after par(mfg = ) titles the panel R draws it under",
       testthat::expect_length(axes, 1L)
       testthat::expect_identical(axes[[1]]$x$label, expected[[i]][[1]], label = label)
       testthat::expect_identical(axes[[1]]$y$label, expected[[i]][[2]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[3]])
+  }
+})
+
+test_that("a title written after a chart drawn onto a plot with add = TRUE titles both", {
+  # contour(add = TRUE) and boxplot(add = TRUE) draw onto the plot drawn
+  # last, against its axes, but as high-level calls they are recorded as
+  # plots of their own. A title written after one titled that layer only,
+  # and the plot it was drawn onto, the one R titles, was announced
+  # untitled.
+  cases <- list(
+    list(quote({
+      image(volcano, ann = FALSE)
+      contour(volcano, add = TRUE, drawlabels = FALSE)
+      title(xlab = "Easting", ylab = "Northing")
+    }), list("Easting", "Northing"), c("Easting", "Northing")),
+    list(quote({
+      image(volcano, ann = FALSE)
+      title(xlab = "Easting")
+      contour(volcano, add = TRUE, drawlabels = FALSE)
+      title(ylab = "Northing")
+    }), list("Easting", "Northing"), c("Easting", "Northing")),
+    list(quote({
+      boxplot(len ~ supp, data = ToothGrowth, ann = FALSE)
+      boxplot(len ~ supp, data = ToothGrowth, add = TRUE, col = NA, border = 2)
+      title(xlab = "Supp", ylab = "Len")
+    }), list("Supp", "Len"), c("OJ", "VC", "OJ", "VC", "Supp", "Len"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    testthat::expect_length(axes, 2L)
+    for (layer_axes in axes) {
+      testthat::expect_identical(layer_axes$x$label, case[[2]][[1]], label = label)
+      testthat::expect_identical(layer_axes$y$label, case[[2]][[2]], label = label)
     }
     testthat::expect_setequal(r_drawn_titles(call), case[[3]])
   }
