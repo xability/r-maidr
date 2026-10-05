@@ -225,7 +225,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #'
 #' A call that leaves an argument empty, as `layout(m, , c(1, 3))` leaves its
 #' widths, is recorded with each of its values already named and the empty
-#' one left out (see [given_argument_values()]).
+#' one left out (see `given_argument_values()`).
 #'
 #' @param args The recorded arguments
 #' @return `args` named by the arguments of `layout()` R matched them to, or
