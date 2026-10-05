@@ -802,6 +802,27 @@ test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave i
   expect_selectors_drawn(chart)
   testthat::expect_setequal(chart$strings, r_last_page_strings(screens))
   expect_drawn_where_r_draws(chart, screens, c("S1", "S2"))
+
+  # The whole page, over a grid, as a legend for all its panels is drawn:
+  # it was drawn in the grid's last panel, and, where the grid was not
+  # recorded, every plot of the grid was drawn in one.
+  for (grid in list(quote(par(mfrow = c(2, 2))), quote(graphics::par(mfrow = c(2, 2))))) {
+    legend_over_grid <- bquote({
+      .(grid)
+      for (i in 1:4) plot(seq_len(5) * i, main = paste("P", i))
+      par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
+      plot(0, 0, type = "l", bty = "n", xaxt = "n", yaxt = "n")
+      legend("bottom", c("alpha", "beta"), xpd = TRUE, horiz = TRUE, bty = "n", lty = 1, col = 1:2)
+    })
+    chart <- last_page_export(function() eval(legend_over_grid))
+    testthat::expect_identical(
+      lapply(cell_titles(chart), function(titles) titles[[1]]),
+      list("P 1", "P 2", "P 3", "P 4")
+    )
+    expect_drawn_where_r_draws(
+      chart, legend_over_grid, c("P 1", "P 2", "P 3", "P 4", "alpha", "beta")
+    )
+  }
 })
 
 test_that("a plot par(mfg = ) sends out of turn is in the panel R drew it in", {

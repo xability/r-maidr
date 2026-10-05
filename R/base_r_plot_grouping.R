@@ -334,7 +334,8 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #' recorded call started that a low-level call was drawn on, as a legend's
 #' `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
 #' `end_base_r_call()`) or that a region of the page was given, by
-#' `par(fig = )` or `screen()`, is not one of them.
+#' `par(fig = )` or `screen()`, in a cell of a grid of one, is not one of
+#' them.
 #'
 #' @param groups Plot groups from group_device_calls()
 #' @return Panel configuration list, with `derived` TRUE, or NULL when the
@@ -344,7 +345,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 grid_of_cells <- function(groups) {
   in_cell <- function(call) {
     length(call$cell) == 4L && !anyNA(call$cell) && !isTRUE(call$laid_out) &&
-      !is_figure_region(call)
+      prod(call$cell[3:4]) > 1L
   }
   highs <- Filter(in_cell, lapply(groups, function(g) g$high_call))
   if (length(highs) == 0L) {

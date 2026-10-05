@@ -1386,8 +1386,7 @@ start_skipped_plots <- function(at, upto, slot) {
 #' to it out of turn with `par(mfg = )`, in that panel of the `mfrow` or
 #' `mfcol` grid; `layout()` takes no `par(mfg = )`. A plot R drew in a
 #' region `par(fig = )` or `screen()` set, outside any grid, is drawn in
-#' that region: R gives it a cell of a grid of one, in a region that is not
-#' the whole page.
+#' that region (`is_figure_region()`).
 #'
 #' @param high The recorded call, with the `cell` and `fig` R put its plot
 #'   in (`end_base_r_call()`)
@@ -1403,7 +1402,7 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
   if (jumps) {
     graphics::par(mfg = panel_slot_positions(slot, panel_config)[[1]])
   } else {
-    if (is_figure_region(high)) {
+    if (is_figure_region(high, panel_config)) {
       graphics::par(fig = high$fig)
     }
     start_replayed_plot(slot <= figure, start = FALSE)
@@ -1415,15 +1414,19 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
 #'
 #' `par(fig = )`, and `screen()` with it, give the plot drawn next a region
 #' of the page outside any grid: R reports the cell of a grid of one, and a
-#' region that is not the whole page.
+#' region that is not the whole page -- or is the whole page, on a page laid
+#' out as a grid of several panels, as a legend for them all is drawn over
+#' the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`.
 #'
 #' @param high The recorded call
+#' @param panel_config The page's grid, or NULL for a page of one panel
 #' @return Logical
 #' @keywords internal
 #' @noRd
-is_figure_region <- function(high) {
+is_figure_region <- function(high, panel_config = NULL) {
   length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
-    length(high$fig) == 4L && isTRUE(max(abs(high$fig - c(0, 1, 0, 1))) > 1e-6)
+    length(high$fig) == 4L &&
+    (isTRUE(max(abs(high$fig - c(0, 1, 0, 1))) > 1e-6) || is_multipanel_config(panel_config))
 }
 
 #' Say whether the next plot of a drawing stays in the panel of the last
