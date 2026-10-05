@@ -16,6 +16,11 @@
 skip_slow_file_on_cran()
 
 label_axes <- function(draw, cell = c(1L, 1L)) {
+  lapply(maidr_layers(draw, cell), function(layer) layer$axes)
+}
+
+# The layers of one subplot of what save_html() writes for `draw`.
+maidr_layers <- function(draw, cell = c(1L, 1L)) {
   testthat::skip_if_not_installed("jsonlite")
 
   maidr:::clear_all_device_storage()
@@ -43,8 +48,7 @@ label_axes <- function(draw, cell = c(1L, 1L)) {
   json <- gsub("&amp;", "&", json, fixed = TRUE)
 
   subplots <- jsonlite::fromJSON(json, simplifyVector = FALSE)$subplots
-  layers <- subplots[[cell[[1L]]]][[cell[[2L]]]]$layers
-  lapply(layers, function(layer) layer$axes)
+  subplots[[cell[[1L]]]][[cell[[2L]]]]$layers
 }
 
 # The titles R itself draws for `call`: the text of its own svglite drawing,
@@ -478,6 +482,30 @@ test_that("a formula or density plot() title the call leaves off is not announce
       "Density" %in% r_drawn_titles(call), !is.null(case[[2]]),
       label = label
     )
+  }
+})
+
+test_that("a density plot() with another argument written first is read as the density", {
+  # plot() dispatches on its first unnamed argument, so
+  # `plot(main = "D", density(x))` draws the density, as
+  # `plot(density(x), main = "D")` does. It was typed by the argument
+  # written first and read as a scatter of the density's 512 points, and
+  # announced without the "Density" R draws.
+  same <- function(layer) layer[setdiff(names(layer), "id")]
+  reference <- maidr_layers(function() plot(density(c(1, 2, 2, 3, 5)), main = "D"))
+  testthat::expect_length(reference, 1L)
+  testthat::expect_identical(reference[[1]]$type, "smooth")
+  calls <- list(
+    quote(plot(main = "D", density(c(1, 2, 2, 3, 5)))),
+    quote(plot(col = 2, density(c(1, 2, 2, 3, 5)), main = "D"))
+  )
+  for (call in calls) {
+    label <- deparse1(call)
+    layers <- maidr_layers(function() eval(call))
+    testthat::expect_length(layers, 1L)
+    testthat::expect_identical(same(layers[[1]]), same(reference[[1]]), label = label)
+    testthat::expect_identical(layers[[1]]$axes$y$label, "Density", label = label)
+    testthat::expect_true("Density" %in% r_drawn_titles(call), label = label)
   }
 })
 

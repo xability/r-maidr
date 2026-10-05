@@ -536,7 +536,9 @@ BaseRAdapter <- R6::R6Class(
           }
         },
         "plot" = {
-          first_arg <- args[[1]]
+          # The argument `plot()` dispatches on, which another written first
+          # does not move: `plot(main = "D", density(x))` draws a density.
+          first_arg <- resolve_xy_args(args)$x
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
           } else if (identical(

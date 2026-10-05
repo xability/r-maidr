@@ -55,7 +55,10 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
 
       # Handle different smooth object types
       if (length(args) > 0) {
-        first_arg <- args[[1]]
+        # The argument the call dispatches on, wherever it is written:
+        # `plot(main = "D", density(x))`.
+        xy <- resolve_xy_args(args)
+        first_arg <- xy$x
 
         x_values <- NULL
         y_values <- NULL
@@ -76,10 +79,10 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
           # Case 4: list with x,y (loess.smooth result)
           x_values <- first_arg$x
           y_values <- first_arg$y
-        } else if (is.numeric(first_arg) && length(args) >= 2 && is.numeric(args[[2]])) {
+        } else if (is.numeric(first_arg) && is.numeric(xy$y)) {
           # Case 5: Two numeric vectors (e.g., from predict(loess))
           x_values <- first_arg
-          y_values <- args[[2]]
+          y_values <- xy$y
         } else {
           # Default: no data
           return(list())
@@ -165,7 +168,7 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
       }
 
       args <- layer_info$plot_call$args
-      is_density <- length(args) > 0 && inherits(args[[1]], "density")
+      is_density <- inherits(resolve_xy_args(args)$x, "density")
       y_default <- if (is_density) "Density" else NULL
 
       # For smooth layers, get axis labels from the HIGH-level call (plot/hist) in the same group

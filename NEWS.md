@@ -404,14 +404,16 @@
   data frame of two columns is announced with the axis titles R draws for
   it, such as "Time" and "AirPassengers" for `plot(AirPassengers)`, where
   it had none, or had them only with another argument written first, as in
-  `plot(main = "Nile", Nile)`. A title `plot()` derives for an axis, such
-  as "Time", "v" for `plot(v)`, "mpg" for `plot(mpg ~ wt, data = mtcars)`
-  or "Density" for `plot(density(x))`, is not announced where R draws none:
-  where the call blanks it, as `ylab = ""` does, or gives it as `NULL` to
-  a time series, or turns titles off with `ann = FALSE` or
-  `par(ann = FALSE)`. `plot(v, ylab = "")` was announced with "v". A title
-  written on an axis after the plot with `title(xlab = )` or `ylab` is
-  announced as R draws it there:
+  `plot(main = "Nile", Nile)`. So written, `plot(main = "D", density(x))` is
+  read as the density curve it draws, as `plot(density(x))` is, where it was
+  read as a scatter of the density's points. A title `plot()` derives for an
+  axis, such as "Time", "v" for `plot(v)`, "mpg" for
+  `plot(mpg ~ wt, data = mtcars)` or "Density" for `plot(density(x))`, is
+  not announced where R draws none: where the call blanks it, as
+  `ylab = ""` does, or gives it as `NULL` to a time series, or turns titles
+  off with `ann = FALSE` or `par(ann = FALSE)`. `plot(v, ylab = "")` was
+  announced with "v". A title written on an axis after the plot with
+  `title(xlab = )` or `ylab` is announced as R draws it there:
   `plot(x, y, ann = FALSE); title(xlab = "Weight")` was announced with "x".
   So is one written with `mtext()` centred on that side, the string
   nearest the axis where there are several, where maidr announces no title
