@@ -50,6 +50,9 @@
 # What names this R session in the marks its recorded calls leave on the
 # pages they are drawn on (`mark_base_r_page()`), set once one is made.
 .maidr_base_r_pages$session <- NULL
+# Whether the plot R is starting opens the device it is drawn on: started
+# with no device open, it is counted once it is (`note_base_r_plot_started()`).
+.maidr_base_r_pages$opening <- FALSE
 
 #' Where R is drawing, on a device
 #'
@@ -67,8 +70,8 @@ base_r_device_position <- function(device_id = grDevices::dev.cur()) {
 #' Follow a plot R starts: the `before.plot.new` hook
 #'
 #' Called by `plot.new()` for every plot, before it is started; see the top
-#' of this file. A plot started with no device open opens a device, whose
-#' first page is counted with its next.
+#' of this file. A plot started with no device open opens a device, and is
+#' counted once it has (`note_base_r_plot_started()`).
 #'
 #' @return NULL (invisible)
 #' @keywords internal
@@ -77,6 +80,7 @@ note_base_r_plot_new <- function() {
   tryCatch(
     {
       device <- grDevices::dev.cur()
+      .maidr_base_r_pages$opening <- device == 1L
       if (device != 1L) {
         key <- as.character(device)
         at <- base_r_device_position(device)
@@ -241,7 +245,10 @@ display_list_entry_name <- function(entry) {
 #' file. The cell (`par("mfg")`: its row and column, and the grid's rows
 #' and columns) and the region of the page (`par("fig")`) are kept with the
 #' plot's place, and with that of each recorded call this plot is the
-#' first of on its page.
+#' first of on its page. A plot started with no device open, as
+#' `plot.new()` or `frame()` is to begin a drawing, opened the device it
+#' is on: it is the first plot of the device's first page, which R
+#' started with it, as the `before.plot.new` hook could not say.
 #'
 #' @return NULL (invisible)
 #' @keywords internal
@@ -252,6 +259,10 @@ note_base_r_plot_started <- function() {
       device <- grDevices::dev.cur()
       key <- as.character(device)
       at <- .maidr_base_r_pages$at[[key]]
+      if (device != 1L && isTRUE(.maidr_base_r_pages$opening)) {
+        .maidr_base_r_pages$opening <- FALSE
+        at <- list(page = (at$page %||% 0L) + 1L, figure = 1L, plot = 1L, opened = TRUE)
+      }
       if (device != 1L && !is.null(at)) {
         before <- at[c("page", "plot")]
         at$cell <- as.integer(graphics::par("mfg"))

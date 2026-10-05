@@ -473,6 +473,49 @@ test_that("a plot drawn with add = TRUE highlights nothing of the plot it is dra
   testthat::expect_true(all(names_drawn(single, layers[[3]])))
 })
 
+test_that("a plot that opened the device is the first plot of its page", {
+  skip_if_no_render()
+  testthat::skip_if_not_installed("withr")
+
+  # With no device open, as at the start of a script, the `plot.new()` a
+  # note is written on opens one, and a plot is drawn over it after
+  # `par(new = TRUE)`.
+  while (grDevices::dev.cur() != 1L) grDevices::dev.off()
+  withr::local_options(device = function(...) grDevices::pdf(NULL))
+  # As in a session that has drawn on no device of the number it opens.
+  pages <- maidr:::.maidr_base_r_pages
+  pages$at[["2"]] <- NULL
+  file <- tempfile(fileext = ".html")
+  on.exit(
+    {
+      while (grDevices::dev.cur() != 1L) grDevices::dev.off()
+      clear_all_device_storage()
+      unlink(file)
+    },
+    add = TRUE
+  )
+  clear_all_device_storage()
+  call <- quote({
+    plot.new()
+    text(0.5, 0.95, "Topnote", adj = c(0.5, 0))
+    par(new = TRUE)
+    plot(1:3, main = "Over")
+  })
+  eval(call)
+  suppressWarnings(suppressMessages(save_html(file = file)))
+
+  document <- xml2::read_html(file)
+  chart <- list(
+    strings = last_page_strings(document),
+    ids = xml2::xml_attr(xml2::xml_find_all(document, "//*[@id]"), "id"),
+    schema = schema_from(paste(readLines(file, warn = FALSE), collapse = "\n")),
+    text_at = maidr_text_at(document)
+  )
+  testthat::expect_identical(cell_titles(chart), list("Over"))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, call, c("Topnote", "Over"))
+})
+
 test_that("a panel plot.new() or frame() passes over stays empty", {
   skip_if_no_render()
   call <- quote({

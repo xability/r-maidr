@@ -204,22 +204,24 @@ BaseRPlotOrchestrator <- R6::R6Class(
     # in: the cell R put it in, or else as many panels on from the last as
     # R's count moved. It is given the coordinates the call was drawn in,
     # which what started it set, unrecorded. Only the call is drawn: what
-    # else that plot holds was not recorded.
+    # else that plot holds was not recorded. A call R counted on no plot is
+    # drawn on the page's first: R draws none before a plot is started.
     replay_unrecorded_plot_call = function(call, at, panel_config) {
       at$margins <- private$set_recorded_margins(call$storage_index, at$margins)
-      if (call$end_plot > at$plots) {
+      on <- max(call$end_plot, 1L)
+      if (on > at$plots) {
         slot <- if (is.null(panel_config)) {
           1L
         } else {
           panel_of_cell(call$cell, panel_config) %||%
             (at$slot + max(call$figure - (at$figure %||% call$figure), 0L))
         }
-        at <- start_skipped_plots(at, call$end_plot - 1L, slot)
+        at <- start_skipped_plots(at, on - 1L, slot)
         place_replayed_plot(call, slot, at$slot, panel_config)
         graphics::plot.new()
         at$slot <- slot
         at$figure <- call$figure
-        at$plots <- call$end_plot
+        at$plots <- on
         at$window <- NULL
       }
       window <- call$window
