@@ -293,7 +293,8 @@ vioplot <- function(...) {
     }
   )
   if (call_failed) {
-    result <- retry_call_in_caller_frame(original, this_call, caller_env, result)
+    retried <- new.env(parent = emptyenv())
+    result <- retry_call_in_caller_frame(original, this_call, caller_env, result, retried)
   }
 
   args_list <- tryCatch(list(...), error = function(e) NULL)
@@ -301,6 +302,10 @@ vioplot <- function(...) {
   if (is.null(args_list)) {
     args_list <- as.list(this_call)[-1L]
     call_env <- snapshot_call_env(args_list, caller_env)
+    args_list <- with_drawn_titles(
+      args_list,
+      if (call_failed) as.list(retried) else forced_titles(...)
+    )
   }
 
   log_plot_call_to_device(

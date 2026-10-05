@@ -181,10 +181,13 @@ BaseRPointLayerProcessor <- R6::R6Class(
       # is titled "Index" against `v`, a matrix by its column names, as
       # xy.coords() decides. Any other call carries no name for what its
       # axes measured, and a guessed noun is worse than none, so the axis
-      # is left for the renderer's generic.
+      # is left for the renderer's generic. Several time series are drawn a
+      # panel each, titled after their series (`plot_ts_panel_title()`).
       written <- written_axis_titles(plot_call)
       x_axis <- build_axis_config(label = recorded_axis_label(args, "xlab", written$x))
-      y_axis <- build_axis_config(label = recorded_axis_label(args, "ylab", written$y))
+      y_axis <- build_axis_config(
+        label = plot_ts_panel_title(plot_call) %||% recorded_axis_label(args, "ylab", written$y)
+      )
 
       # `plot(y ~ x, data = d)` labels its axes with the two variable names,
       # which the recorded frame still carries, where R draws its titles
