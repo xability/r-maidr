@@ -271,6 +271,66 @@ test_that("a time series, a one-way table and a two-column data frame are titled
   }
 })
 
+test_that("an axis the call leaves untitled is announced with no title, as R draws none", {
+  testthat::skip_if_not_installed("svglite")
+  testthat::skip_if_not_installed("xml2")
+  # A plot() method draws the title it derives for an axis only where the
+  # call gives that axis none: `ylab = ""` draws the blank instead, and
+  # `ann = FALSE` no titles at all. Read as no title, the blank fell through
+  # to the derived one, and "AirPassengers" was announced where R drew
+  # nothing.
+  drawn_titles <- function(call) {
+    old <- options(maidr.base_r = FALSE)
+    on.exit(options(old), add = TRUE)
+    file <- tempfile(fileext = ".svg")
+    on.exit(unlink(file), add = TRUE)
+    originals <- list2env(
+      list(
+        plot = maidr:::get_original_function("plot"),
+        lines = maidr:::get_original_function("lines")
+      ),
+      parent = globalenv()
+    )
+    svglite::svglite(file, width = 7, height = 5)
+    tryCatch(eval(call, originals), finally = grDevices::dev.off())
+    text <- trimws(xml2::xml_text(
+      xml2::xml_find_all(xml2::read_xml(file), "//*[local-name()='text']")
+    ))
+    text[!grepl("^-?[0-9.]+$", text)]
+  }
+
+  cases <- list(
+    list(quote(plot(AirPassengers, ylab = "")), "Time", NULL),
+    list(quote(plot(Nile, xlab = "")), NULL, "Nile"),
+    list(quote(plot(AirPassengers, ann = FALSE)), NULL, NULL),
+    list(quote(plot(table(mtcars$cyl), ylab = "")), NULL, NULL),
+    list(quote(plot(mtcars[, c("wt", "mpg")], xlab = "")), NULL, "mpg"),
+    list(quote(plot(mtcars[, c("wt", "mpg")], ann = FALSE)), NULL, NULL),
+    list(quote(plot(mtcars$mpg, ylab = "")), "Index", NULL),
+    list(quote(plot(1:10, (1:10)^2, ann = FALSE)), NULL, NULL),
+    list(quote(plot(sin, -pi, pi, ylab = "")), "x", NULL),
+    list(quote(plot(sin, -pi, pi, ann = FALSE)), NULL, NULL),
+    list(quote({
+      plot(Nile, ylab = "")
+      lines(Nile)
+    }), "Time", NULL)
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    for (layer_axes in axes) {
+      testthat::expect_identical(layer_axes$x$label, case[[2]], label = label)
+      testthat::expect_identical(layer_axes$y$label, case[[3]], label = label)
+    }
+    testthat::expect_identical(
+      drawn_titles(call), as.character(c(case[[2]], case[[3]])),
+      label = label
+    )
+  }
+})
+
 test_that("an author's own scatter plot labels are still announced", {
   axes <- label_axes(function() {
     plot(1:10, (1:10)^2, xlab = "Index", ylab = "Square")

@@ -87,7 +87,8 @@ written_arg <- function(plot_call, formal) {
 #' are the titles R drew rather than a guess at them, and an axis is named
 #' in the data as it is in the picture.
 #'
-#' `plot()` is read by the method it reached, as `plot_axis_titles()` says.
+#' `plot()` is read by the method it reached, as `plot_axis_titles()` says,
+#' and only for the axes R draws those titles on (`drawn_default_titles()`).
 #'
 #' @param plot_call A recorded call
 #' @return List with `x` and `y`, each NULL when the call writes no such
@@ -100,9 +101,38 @@ written_axis_titles <- function(plot_call) {
   switch(plot_call$function_name %||% "",
     hist = list(x = written_arg(plot_call, "x")),
     qqplot = list(x = written_arg(plot_call, "x"), y = written_arg(plot_call, "y")),
-    plot = plot_axis_titles(plot_call),
+    plot = drawn_default_titles(plot_call$args, plot_axis_titles(plot_call)),
     list()
   )
+}
+
+#' The titles a `plot()` method derives that R draws
+#'
+#' A method of `plot()` draws the title it derives for an axis, such as
+#' "Time" or the series as written, only where the call gives that axis no
+#' title of its own: `ylab = ""` is drawn as the blank it is, in place of
+#' the title, and `ann = FALSE` draws no titles at all. Read through
+#' `recorded_axis_label()`, which takes a blank for no title, the title R
+#' did not draw was announced: "AirPassengers" for
+#' `plot(AirPassengers, ylab = "")`.
+#'
+#' A title the call writes itself is `recorded_axis_label()`'s to read.
+#'
+#' @param args Recorded argument list
+#' @param titles List with `x` and `y`, the titles the method derives
+#' @return `titles`, without each one R does not draw
+#' @keywords internal
+drawn_default_titles <- function(args, titles) {
+  if (!recorded_flag(args, "ann", default = TRUE)) {
+    return(list())
+  }
+  if (!is.null(args[["xlab"]])) {
+    titles$x <- NULL
+  }
+  if (!is.null(args[["ylab"]])) {
+    titles$y <- NULL
+  }
+  titles
 }
 
 #' The axis titles a recorded `plot()` call writes

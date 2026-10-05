@@ -58,6 +58,7 @@ written, \code{deparse(substitute(x))[1L]}: "sin" for \code{plot(sin)}, where
 symbol named by its \code{arg_text} entry, so that entry is set to the same
 first line: a function written over several lines is titled as R titled
 it, in the drawing and in the data, and so is one handed over as a
-value, as \code{do.call()} does.
+value, as \code{do.call()} does. Neither title is kept where R draws none
+(\code{drawn_default_titles()}), as with \code{ylab = ""} or \code{ann = FALSE}.
 }
 \keyword{internal}

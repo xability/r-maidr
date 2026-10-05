@@ -1198,7 +1198,8 @@ curve_default_labels <- function(recorded_args) {
 #' symbol named by its `arg_text` entry, so that entry is set to the same
 #' first line: a function written over several lines is titled as R titled
 #' it, in the drawing and in the data, and so is one handed over as a
-#' value, as `do.call()` does.
+#' value, as `do.call()` does. Neither title is kept where R draws none
+#' (`drawn_default_titles()`), as with `ylab = ""` or `ann = FALSE`.
 #'
 #' @param target `graphics::plot.function()`, which the call dispatched to
 #' @param args Recorded argument list, as `match_recorded_args()` names it
@@ -1228,6 +1229,7 @@ plot_function_values <- function(target, args, arg_text, written, value) {
   if (!is.null(values)) {
     # `xname` is read as `curve()` reads it; the y title is not `curve()`'s.
     values$labels$y <- title
+    values$labels <- drawn_default_titles(args, values$labels)
     args$.maidr_curve_data <- values
   }
   list(args = args, arg_text = arg_text)
