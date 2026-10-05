@@ -28,6 +28,11 @@ the call is rebuilt and evaluated in the environment captured at record
 time so those expressions resolve exactly as they did originally.
 }
 \details{
+Such a call's titles are recorded as the values R drew, for the
+processors to read, and their code under \code{.maidr_written_titles}
+(\code{recorded_title_values()}): the code is put back here, and evaluated as
+the original call evaluated it.
+
 Otherwise the recorded values are drawn, each argument \code{arg_text} names
 passed under a symbol spelled as it was written (see
 \code{call_with_written_args()}), so a title R derives from that text comes
