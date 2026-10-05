@@ -1061,6 +1061,46 @@ test_that("a Base R layout() page is read the same whatever room it gives its pl
   testthat::expect_identical(read(empty_argument), read(layout_page(matrix(1:2, 2))))
 })
 
+test_that("a Base R layout() call that leaves an argument empty is evaluated once, by R", {
+  skip_if_no_render()
+  # Its values could not be recorded, so maidr evaluated the call as it was
+  # written each time it read the page: a matrix that is not the same each
+  # time put R's plots, the data and the drawing in different cells, and
+  # saving the chart moved the session's random numbers.
+  evaluated <- 0
+  first_then_other <- function() {
+    evaluated <<- evaluated + 1
+    if (evaluated == 1) matrix(2:1, 1) else matrix(1:2, 1)
+  }
+  draw <- function() {
+    evaluated <<- 0
+    layout(first_then_other(), c(1, 3), )
+    for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+  }
+  as_r_drew_it <- layout_page(matrix(2:1, 1), c(1, 3))
+  drawn <- render_sized(draw, c(7, 5))
+  testthat::expect_identical(evaluated, 1)
+  testthat::expect_equal(
+    drawn_plot_boxes(drawn),
+    native_plot_boxes(as_r_drew_it, c(7, 5)),
+    tolerance = 1e-3
+  )
+  testthat::expect_identical(
+    size_free_schema(drawn),
+    size_free_schema(render_sized(as_r_drew_it, c(7, 5)))
+  )
+
+  withr::local_seed(42)
+  seed <- NULL
+  shuffled <- function() {
+    layout(matrix(sample(2), 1), c(3, 1), )
+    for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+    seed <<- get(".Random.seed", envir = globalenv())
+  }
+  render_sized(shuffled, c(7, 5))
+  testthat::expect_identical(get(".Random.seed", envir = globalenv()), seed)
+})
+
 test_that("a Base R layout() page is held to its size by the room R gives its plots", {
   testthat::skip_on_cran()
   skip_if_no_render()
