@@ -237,6 +237,15 @@
   bar chart has been through the whole path in a browser. `show(as_widget =
   TRUE)` and the Shiny functions have not been tried.
 
+### Base R
+
+* A `wordcloud::wordcloud()` chart highlights the word being read: as the
+  arrow keys move, the word announced is recoloured in the reader's
+  highlight colour. Each term is matched to the text R drew it as by its
+  label, so the layout's random order does not matter. A cloud with a term
+  `wordcloud()` could not fit on the page is read without a highlight
+  rather than with highlights on the wrong words (#356).
+
 ## Performance
 
 * The SVG export, the maidr-data payload and the ggplot2 heatmap grid now
