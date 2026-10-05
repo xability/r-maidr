@@ -15,7 +15,7 @@
 
 skip_slow_file_on_cran()
 
-label_axes <- function(draw) {
+label_axes <- function(draw, cell = c(1L, 1L)) {
   testthat::skip_if_not_installed("jsonlite")
 
   maidr:::clear_all_device_storage()
@@ -42,8 +42,31 @@ label_axes <- function(draw) {
   json <- gsub("&gt;", ">", json, fixed = TRUE)
   json <- gsub("&amp;", "&", json, fixed = TRUE)
 
-  layers <- jsonlite::fromJSON(json, simplifyVector = FALSE)$subplots[[1]][[1]]$layers
+  subplots <- jsonlite::fromJSON(json, simplifyVector = FALSE)$subplots
+  layers <- subplots[[cell[[1L]]]][[cell[[2L]]]]$layers
   lapply(layers, function(layer) layer$axes)
+}
+
+# The titles R itself draws for `call`: the text of its own svglite drawing,
+# less the tick labels, drawn with the functions maidr wraps unwrapped.
+r_drawn_titles <- function(call) {
+  testthat::skip_if_not_installed("svglite")
+  testthat::skip_if_not_installed("xml2")
+  old <- options(maidr.base_r = FALSE)
+  on.exit(options(old), add = TRUE)
+  file <- tempfile(fileext = ".svg")
+  on.exit(unlink(file), add = TRUE)
+  names <- c("plot", "lines", "par", "hist", "title", "mtext")
+  originals <- list2env(
+    stats::setNames(lapply(names, maidr:::get_original_function), names),
+    parent = globalenv()
+  )
+  svglite::svglite(file, width = 7, height = 5)
+  tryCatch(eval(call, originals), finally = grDevices::dev.off())
+  text <- trimws(xml2::xml_text(
+    xml2::xml_find_all(xml2::read_xml(file), "//*[local-name()='text']")
+  ))
+  text[!grepl("^-?[0-9.]+$", text)]
 }
 
 # ==============================================================================
@@ -340,26 +363,6 @@ test_that("a title given as NULL, or turned off by par(ann = FALSE), is announce
   # the derived titles off, as the call's own `ann = FALSE` does. Read from
   # the call alone, a NULL was taken for no argument and par() was not read,
   # so "Time" and "Nile" were announced where R drew neither.
-  drawn_titles <- function(call) {
-    old <- options(maidr.base_r = FALSE)
-    on.exit(options(old), add = TRUE)
-    file <- tempfile(fileext = ".svg")
-    on.exit(unlink(file), add = TRUE)
-    originals <- list2env(
-      list(
-        plot = maidr:::get_original_function("plot"),
-        par = maidr:::get_original_function("par")
-      ),
-      parent = globalenv()
-    )
-    svglite::svglite(file, width = 7, height = 5)
-    tryCatch(eval(call, originals), finally = grDevices::dev.off())
-    text <- trimws(xml2::xml_text(
-      xml2::xml_find_all(xml2::read_xml(file), "//*[local-name()='text']")
-    ))
-    text[!grepl("^-?[0-9.]+$", text)]
-  }
-
   cases <- list(
     list(quote(plot(Nile, xlab = NULL)), NULL, "Nile"),
     list(quote(plot(Nile, ylab = NULL)), "Time", NULL),
@@ -415,10 +418,103 @@ test_that("a title given as NULL, or turned off by par(ann = FALSE), is announce
       testthat::expect_identical(layer_axes$y$label, case[[3]], label = label)
     }
     testthat::expect_identical(
-      drawn_titles(call), as.character(c(case[[2]], case[[3]])),
+      r_drawn_titles(call), as.character(c(case[[2]], case[[3]])),
       label = label
     )
   }
+})
+
+test_that("an axis titled by title() or mtext() after the plot is announced with that title", {
+  # The idiom blanks a plot's own titles to write them with title() or
+  # mtext(), on a line of the author's choosing. R draws them on the axes,
+  # but the axes were read from the plot call alone, so they were announced
+  # untitled: "X is 1.51, Y is 30.4" where R drew "Weight" and "MPG".
+  cases <- list(
+    list(quote({
+      plot(mtcars$wt, mtcars$mpg, xlab = "", ylab = "")
+      title(xlab = "Weight", ylab = "MPG")
+    }), "Weight", "MPG"),
+    list(quote({
+      plot(mtcars$wt, mtcars$mpg, ann = FALSE)
+      title(main = "Cars", xlab = "Weight", ylab = "MPG")
+    }), "Weight", "MPG", c("Cars", "Weight", "MPG")),
+    list(quote({
+      plot(mtcars$wt, mtcars$mpg, ann = FALSE)
+      mtext("Weight", side = 1, line = 3)
+      mtext("MPG", side = 2, line = 3)
+    }), "Weight", "MPG"),
+    list(quote({
+      plot(1:10, xlab = "", ylab = "")
+      title(xlab = "X axis", line = 2)
+      title(ylab = "Y axis", line = 2)
+    }), "X axis", "Y axis"),
+    list(quote({
+      x <- 1:20
+      plot(x, sin(x), type = "l", xlab = "", ylab = "")
+      title(xlab = "Time (s)", ylab = "Signal")
+    }), "Time (s)", "Signal"),
+    list(quote({
+      plot(sin, -pi, pi, ylab = "")
+      title(ylab = "sine")
+    }), "x", "sine"),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(Nile)
+      par(op)
+      title(xlab = "Year")
+    }), "Year", NULL),
+    list(quote({
+      hist(c(1, 2, 2, 3), xlab = "")
+      title(xlab = "Width")
+    }), "Width", "Frequency", c("Histogram of c(1, 2, 2, 3)", "Frequency", "Width")),
+    # Drawn over the plot's own title, as R draws it, title()'s is the one
+    # on top.
+    list(quote({
+      plot(1:3)
+      title(xlab = "Second")
+    }), "Second", "1:3", c("Index", "1:3", "Second")),
+    # A note in the margin, set off to one side or in the outer margin, is
+    # no axis title, and a title in the outer margin is the page's.
+    list(quote({
+      plot(1:3, xlab = "")
+      mtext("n = 3", side = 1, line = 3, adj = 1)
+    }), NULL, "1:3", c("1:3", "n = 3")),
+    list(quote({
+      plot(1:3, xlab = "")
+      mtext("Note", side = 1, line = 3, outer = TRUE)
+      title(xlab = "Page", outer = TRUE)
+    }), NULL, "1:3", c("1:3", "Note", "Page")),
+    list(quote({
+      plot(1:3, xlab = "")
+      mtext("A", side = 3)
+    }), NULL, "1:3", c("1:3", "A"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    for (layer_axes in axes) {
+      testthat::expect_identical(layer_axes$x$label, case[[2]], label = label)
+      testthat::expect_identical(layer_axes$y$label, case[[3]], label = label)
+    }
+    drawn <- if (length(case) > 3L) case[[4]] else c(case[[2]], case[[3]])
+    testthat::expect_setequal(r_drawn_titles(call), drawn)
+  }
+
+  # Each plot of a grid keeps the titles written on it.
+  grid <- function() {
+    op <- par(mfrow = c(1, 2))
+    on.exit(par(op))
+    plot(1:5, ylab = "")
+    title(ylab = "A")
+    plot(5:1, xlab = "")
+    title(xlab = "B")
+  }
+  left <- label_axes(grid, cell = c(1L, 1L))[[1]]
+  right <- label_axes(grid, cell = c(1L, 2L))[[1]]
+  testthat::expect_identical(c(left$x$label, left$y$label), c("Index", "A"))
+  testthat::expect_identical(c(right$x$label, right$y$label), c("B", "5:1"))
 })
 
 test_that("an author's own scatter plot labels are still announced", {

@@ -408,7 +408,11 @@
   as "Time", or "v" for `plot(v)`, is not announced where R draws none:
   where the call blanks it, as `ylab = ""` does, or gives it as `NULL` to
   a time series, or turns titles off with `ann = FALSE` or
-  `par(ann = FALSE)`. `plot(v, ylab = "")` was announced with "v" (#PR).
+  `par(ann = FALSE)`. `plot(v, ylab = "")` was announced with "v". A title
+  written on an axis after the plot, with `title(xlab = )` or `ylab`, or
+  with `mtext()` centred on that side, is announced as R draws it there:
+  `plot(x, y, ann = FALSE); title(xlab = "Weight")` was announced with "x"
+  (#PR).
 
 ## Documentation
 

@@ -65,6 +65,93 @@ base_r_categorical_axes <- function(args, horizontal = FALSE) {
   )
 }
 
+#' A layer's axes, titled as the plot's `title()` and `mtext()` calls title
+#' them
+#'
+#' An author who blanks a plot's own titles, with `xlab = ""` or
+#' `ann = FALSE`, often writes them with `title()` or `mtext()` instead, on
+#' a line of their own choosing. R draws those on the axes, but a layer's
+#' axes are read from the plot's own call, so the reader heard them
+#' untitled: "X is 1.51" where R drew "Weight".
+#'
+#' - `title(xlab =, ylab =)` draws where the plot's own title goes, so it
+#'   titles that axis, over whatever the plot drew there: the last one
+#'   written is the one on top.
+#' - `mtext()` writes any text in a margin. One string centred on side 1 or
+#'   2, as an axis title is, titles that axis where the plot left it
+#'   untitled. One set off to a side, with `adj` or `at`, is a note.
+#'
+#' Either one in the outer margin (`outer = TRUE`) titles the page rather
+#' than this plot, and is not read.
+#'
+#' @param axes The layer's canonical axes, or NULL
+#' @param low_calls The LOW-level calls recorded on the layer's plot
+#' @return `axes`, with those titles
+#' @keywords internal
+with_margin_titles <- function(axes, low_calls) {
+  written <- list()
+  noted <- list()
+  for (call in low_calls) {
+    args <- call$args
+    if (recorded_flag(args, "outer")) {
+      next
+    }
+    if (identical(call$function_name, "title")) {
+      written$x <- recorded_axis_label(args, "xlab", written$x)
+      written$y <- recorded_axis_label(args, "ylab", written$y)
+    } else if (identical(call$function_name, "mtext")) {
+      title <- mtext_axis_title(args)
+      if (!is.null(title)) {
+        noted[[title$axis]] <- title$text
+      }
+    }
+  }
+
+  for (axis in c("x", "y")) {
+    label <- written[[axis]]
+    if (is.null(label) && is.null(axes[[axis]]$label)) {
+      label <- noted[[axis]]
+    }
+    if (!is.null(label)) {
+      axes <- axes %||% build_axes()
+      axes[[axis]]$label <- label
+    }
+  }
+  axes
+}
+
+#' The axis title an `mtext()` call writes, if it writes one
+#'
+#' @param args The recorded arguments of the `mtext()` call. Its `text`,
+#'   the formal it is dispatched on, is left unnamed when written first, as
+#'   `match_recorded_args()` leaves it.
+#' @return List with `axis`, `"x"` for one string centred on side 1 or `"y"`
+#'   on side 2, and its `text`; or NULL
+#' @keywords internal
+mtext_axis_title <- function(args) {
+  unset <- function(value) is.null(value) || all(is.na(value))
+  arg_names <- names(args) %||% rep("", length(args))
+  text <- if ("text" %in% arg_names) {
+    args[["text"]]
+  } else if (any(!nzchar(arg_names))) {
+    args[[which(!nzchar(arg_names))[1L]]]
+  }
+  side <- args[["side"]] %||% 3
+  adj <- args[["adj"]]
+  centred <- unset(adj) || (length(adj) == 1L && isTRUE(adj == 0.5))
+  placed <- length(text) == 1L && length(side) == 1L && is.numeric(side) &&
+    unset(args[["at"]]) && centred
+  if (!placed) {
+    return(NULL)
+  }
+  axis <- if (isTRUE(side == 1)) "x" else if (isTRUE(side == 2)) "y"
+  text <- recorded_axis_label(list(text = text), "text")
+  if (is.null(axis) || is.null(text)) {
+    return(NULL)
+  }
+  list(axis = axis, text = text)
+}
+
 #' The text an argument of a recorded call was written as
 #'
 #' @param plot_call A recorded call
