@@ -404,10 +404,10 @@
   two columns is announced with the axis titles R draws for it, such as
   "Time" and "AirPassengers" for `plot(AirPassengers)`, where it had none,
   or had them only with another argument written first, as in
-  `plot(main = "Nile", Nile)`. No `plot()` is announced with a title R
-  does not draw, where the call blanks it, as `ylab = ""` does, or turns
-  titles off with `ann = FALSE`: `plot(v, ylab = "")` was announced with
-  "v" (#PR).
+  `plot(main = "Nile", Nile)`. A title `plot()` derives for an axis, such
+  as "Time", or "v" for `plot(v)`, is not announced where R draws none
+  because the call blanks it, as `ylab = ""` does, or turns titles off with
+  `ann = FALSE`: `plot(v, ylab = "")` was announced with "v" (#PR).
 
 ## Documentation
 
