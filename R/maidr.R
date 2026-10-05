@@ -36,6 +36,50 @@
 #'       auto-detects internet availability and uses the CDN when online,
 #'       as the Shiny path does.
 #'   }
+#' @section Base R charts:
+#' A Base R chart is read from the plotting calls recorded on the current
+#' device, and is the page that device shows: the last one. R draws a
+#' high-level plot on a new page when it moves past the last panel of the
+#' page it is on -- every plot on a page of one panel, the fifth under
+#' `par(mfrow = c(2, 2))`, the first after `par(mfrow = )`, `par(mfcol = )`
+#' or `layout()` sets a page up again -- and `plot.new()` and `frame()`
+#' move on a panel as a plot does. So after `hist(a); hist(b)` the chart is
+#' the histogram of `b` alone, and after five plots under
+#' `par(mfrow = c(2, 2))` it is the fifth, in the first panel of a 2 x 2
+#' grid. Each plot of a grid is in the panel R drew it in: a plot drawn
+#' after `par(new = TRUE)`, or with `add = TRUE`, is drawn in the panel of
+#' the plot before it, one `par(mfg = )` sends to a panel out of turn is in
+#' that panel, and a panel `plot.new()` or `frame()` passed over stays
+#' empty. So it is where the call that set the grid up was not recorded:
+#' one made through `graphics::par()` or `graphics::layout()`, before
+#' [maidr_on()], or before an earlier `show()` or `save_html()` on the
+#' device. A plot drawn in a region of the page `par(fig = )` gave it, as
+#' an inset is, or in a screen of `split.screen()`, is drawn in that
+#' region, and read with the plot before it. `lines()`, `points()`,
+#' `abline()`, `text()`, `legend()`, `title()`, `axis()` and the other
+#' low-level calls add to the plot they are drawn on: after `par(mfg = )`,
+#' or `screen(n, new = FALSE)` of `split.screen()`, sends R back to the
+#' panel or screen of an earlier plot, to that plot. Drawn on a panel
+#' `plot.new()` or `frame()` took, as a legend of its own is, or on a plot
+#' maidr does not record, such as `smoothScatter()`, they are drawn there,
+#' and read as part of no plot. Drawn over a plot after `par(new = TRUE)`
+#' and `plot.new()`, as a second series with an axis of its own is -- also
+#' over the plot of an earlier panel or screen `par(mfg = )` or `screen()`
+#' sent R back to -- they are drawn in the coordinates they were drawn in,
+#' and read with that plot. Nothing drawn on an earlier page reaches the
+#' chart: not its data, its titles or the size it is drawn at. A page
+#' `replayPlot()` puts back,
+#' from a plot `recordPlot()` saved on a device that keeps a display list,
+#' is the page the chart is read from, with what was drawn on it when it
+#' was saved and what has been drawn on it since. A page that holds no plot
+#' maidr recorded -- one R started with `plot.new()` or `frame()`, with a
+#' plot maidr does not record, or with one drawn while [maidr_off()] was in
+#' effect, even with `lines()` or `text()` drawn on it since, or one
+#' `replayPlot()` put back from such a page, or from a plot saved in
+#' another session or on another device -- is not read as the plot before
+#' it: `show()` and `save_html()` stop, and say so. Each
+#' figure of an R Markdown or Quarto document is read the same way, from
+#' the calls on its own page.
 #' @section Chart size:
 #' A chart is drawn at a size in inches, as [ggplot2::ggsave()] and knitr's
 #' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
@@ -170,9 +214,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
   is_base_r <- is.null(plot)
 
   if (is_base_r) {
-    if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(device_id)
   }
 
   orchestrator <- NULL
@@ -323,12 +365,14 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
     }
     orchestrator$canvas_size()
   }
-  fallback_html <- function(size = picture_size()) {
+  fallback_html <- function(size = picture_size(), title = NULL, reason = "unsupported") {
     create_fallback_html(
       plot,
       shiny = shiny,
       width = size[["width"]],
       height = size[["height"]],
+      title = title,
+      reason = reason,
       ...
     )
   }
@@ -354,9 +398,11 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   # `build_interactive_svg()` answers NULL for a plot that could not be built,
   # which is the same outcome as the gate above reaching a chart it cannot
-  # read: a picture rather than nothing.
+  # read: a picture rather than nothing. Its alt text names the chart and
+  # says it could not be made interactive, not that it holds elements maidr
+  # cannot read.
   if (is.null(svg_content)) {
-    return(fallback_html())
+    return(fallback_html(title = fallback_title(orchestrator), reason = "failed"))
   }
 
   if (shiny) {
@@ -365,6 +411,24 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   html_doc <- create_html_document(svg_content, use_cdn = use_cdn)
   html_doc
+}
+
+#' The title the picture of a chart is named by
+#'
+#' A Base R chart's picture holds every panel of its page, and names itself
+#' (`picture_title()`); any other chart is named by its title.
+#'
+#' @param orchestrator The chart's orchestrator
+#' @return The chart's title, one string, or NULL when it has none
+#' @keywords internal
+#' @noRd
+fallback_title <- function(orchestrator) {
+  title <- if (is.function(orchestrator$picture_title)) {
+    tryCatch(orchestrator$picture_title(), error = function(e) NULL)
+  } else {
+    tryCatch(orchestrator$get_layout()$title, error = function(e) NULL)
+  }
+  if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) title
 }
 
 #' Build the Interactive SVG, or Answer NULL When It Cannot Be Built
@@ -397,6 +461,11 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 #' from [base_r_drawing_grob()]) is re-raised too: its picture is drawn at
 #' the same size and would fail the same way.
 #'
+#' Before the picture is drawn, the failure is signalled as a condition of
+#' class `maidr_build_failure`, holding it as `error`. A caller that shows a
+#' picture of its own catches that and keeps the failure: a knitted chart is
+#' knitr's figure, and the document's build says why.
+#'
 #' @param orchestrator The orchestrator for the plot being rendered.
 #' @return The SVG content, drawn at the orchestrator's `canvas_size()`, or
 #'   `NULL` when the build failed and fallback is enabled.
@@ -420,6 +489,9 @@ build_interactive_svg <- function(orchestrator) {
     if (inherits(e, "maidr_chart_draw_error")) {
       stop(e)
     }
+    # A caller that shows a picture of its own takes the failure instead,
+    # where the warning would not be seen (`knit_chart_content()`).
+    rlang::signal(conditionMessage(e), class = "maidr_build_failure", error = e)
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot could not be rendered interactively (",
@@ -492,6 +564,7 @@ warn_panel_fallback <- function(orchestrator) {
 #'   single positive number no larger than 50, or `NULL` (the default) for
 #'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
 #'   its default. See \strong{Chart size}.
+#' @inheritSection show Base R charts
 #' @inheritSection show Chart size
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)
@@ -538,9 +611,7 @@ save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
   is_base_r <- is.null(plot)
 
   if (is_base_r) {
-    if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(device_id)
   }
 
   html_doc <- create_maidr_html(

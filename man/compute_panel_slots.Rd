@@ -15,8 +15,14 @@ compute_panel_slots(plot_groups, panel_config)
 Integer vector (one entry per group): panel slot or NA
 }
 \description{
-Maps plot groups to panel slots (1-based, in drawing order) for a
-multi-panel configuration:
+Maps plot groups to panel slots (1-based) for a multi-panel
+configuration: the panel R drew each group's plot in, as its call was
+recorded -- the cell R put it in, so a plot \code{par(mfg = )} sent out of
+turn is in that panel. A plot drawn after \code{par(new = TRUE)}, or in a
+region \code{par(fig = )} gave it, shares the panel of the plot before it,
+and a panel \code{plot.new()} or \code{frame()} passed over is left empty. Groups
+recorded without their panel, by code that records calls itself, take
+one each in drawing order:
 \itemize{
 \item Groups drawn BEFORE the layout call are not part of the grid
 (the next high-level plot starts a fresh page), so they get NA.

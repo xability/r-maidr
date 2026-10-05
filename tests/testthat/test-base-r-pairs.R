@@ -212,19 +212,22 @@ test_that("a pair with a missing coordinate is dropped rather than announced", {
 })
 
 
-test_that("a matrix beside another chart reads as it did before grids existed", {
-  # A call that takes over the device's layout is by construction the whole
-  # page, so a grid is read from a single call only. The refused result
-  # carries no type and no data; emitted it would become a layer announcing
-  # nothing, with the grid's own bookkeeping leaked into the payload beside
-  # it -- so it is skipped, and what is left is the reading the figure had
-  # before this change.
+test_that("a matrix drawn after another chart is read alone, as the page R shows", {
+  # pairs() sets up a grid of its own, so R draws it on a new page and its
+  # device shows the matrix alone. The scatter plot before it is on the page
+  # before, and reaches neither the grid nor its cells.
   grid <- pairs_grid(function() {
     plot(1:3, c(2, 4, 6))
     pairs(THREE[, c("a", "b")])
   })
 
-  testthat::expect_length(grid, 1)
-  testthat::expect_length(grid[[1]][[1]]$layers, 1)
-  testthat::expect_equal(grid[[1]][[1]]$layers[[1]]$type, "point")
+  testthat::expect_length(grid, 2)
+  testthat::expect_length(grid[[1]], 2)
+  testthat::expect_null(cell_layer(grid, 1, 1))
+  testthat::expect_equal(cell_points(cell_layer(grid, 2, 1)), list(
+    c(1, 10), c(2, 20), c(3, 30)
+  ))
+  testthat::expect_equal(cell_points(cell_layer(grid, 1, 2)), list(
+    c(10, 1), c(20, 2), c(30, 3)
+  ))
 })

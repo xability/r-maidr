@@ -361,6 +361,42 @@ test_that("a page the chunk replays itself belongs to no figure", {
   ))
 })
 
+test_that("a call that ran onto a figure's page is drawn with only its plots on it", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+
+  # termplot() starts after the histogram, fills the three panels left on
+  # its page and draws its last term on a page of its own, as R shows it.
+  page <- knit_for(c(
+    "```{r spanning}",
+    "par(mfrow = c(2, 2))",
+    "hist(mtcars$mpg, main = 'Before')",
+    "termplot(lm(mpg ~ wt + hp + qsec + drat, data = mtcars))",
+    "```"
+  ), dir)
+  charts <- inline_charts(page)
+  last <- charts[[length(charts)]]
+  strings <- trimws(xml2::xml_text(xml2::xml_find_all(last, "//*[local-name()='text']")))
+  testthat::expect_true("Partial for drat" %in% strings)
+  earlier <- c("Partial for wt", "Partial for hp", "Partial for qsec")
+  testthat::expect_false(any(earlier %in% strings))
+
+  # The term read is the one drawn, and its selector names that drawing.
+  data <- jsonlite::parse_json(xml2::xml_attr(last, "data-maidr-knitr"))
+  layers <- unlist(lapply(unlist(data$subplots, recursive = FALSE), function(cell) cell$layers),
+    recursive = FALSE
+  )
+  testthat::expect_length(layers, 1L)
+  testthat::expect_identical(layers[[1]]$axes$x$label, "drat")
+  ids <- xml2::xml_attr(xml2::xml_find_all(last, "//*[@id]"), "id")
+  selector <- unlist(layers[[1]]$selectors)
+  drawn <- regmatches(selector, regexpr("[[:alnum:]_-]*graphics-plot-[0-9]+-", selector))
+  testthat::expect_true(any(startsWith(ids, paste0(drawn, "ylab"))))
+  ylab <- xml2::xml_find_all(last, sprintf("//*[starts-with(@id, '%sylab')]", drawn))
+  testthat::expect_identical(unique(trimws(xml2::xml_text(ylab))), "Partial for drat")
+})
+
 test_that("a page replayed by the chunk that installs maidr belongs to no figure", {
   skip_if_no_figures()
   local_knitr_state()
@@ -441,6 +477,51 @@ test_that("a chart whose build fails is knitr's figure, with one warning", {
     paste0(
       "maidr: a chart in chunk 'base' could not be made accessible and is shown ",
       "as a static image: the build broke"
+    )
+  )
+})
+
+test_that("a chart that cannot be drawn again is knitr's figure, with one warning", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+  # As a drawing gridGraphics cannot echo stops (`base_r_drawing_grob()`).
+  # The build falls back to a picture, with a warning; knitted, the picture
+  # was left out for knitr's figure and the warning kept out of the
+  # document, so nothing said the chart had not been made accessible.
+  testthat::local_mocked_bindings(
+    base_r_drawing_grob = function(...) {
+      stop(errorCondition(
+        "gridGraphics could not draw the chart again: the condition has length > 1",
+        class = "maidr_chart_echo_error"
+      ))
+    },
+    .package = "maidr"
+  )
+  warnings <- character()
+  page <- withCallingHandlers(
+    knit_for(c(
+      chart_setup,
+      "```{r base}", "barplot(1:3)", "```",
+      "```{r again}", "plot(1:5)", "```",
+      "```{r printed}", "print(p)", "```"
+    ), dir),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  testthat::expect_identical(
+    figure_sequence(page),
+    c("figure base-1.svg", "figure again-1.svg", ": bar:3")
+  )
+  testthat::expect_identical(
+    warnings,
+    paste0(
+      "maidr: a chart in chunk 'base' could not be made accessible and is shown ",
+      "as a static image: gridGraphics could not draw the chart again: the ",
+      "condition has length > 1"
     )
   )
 })

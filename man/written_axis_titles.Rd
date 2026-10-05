@@ -22,7 +22,7 @@ are the titles R drew rather than a guess at them, and an axis is named
 in the data as it is in the picture.
 }
 \details{
-\code{plot()} is read only when it reached \code{plot.default()}; a method of a
-class titles its axes its own way.
+\code{plot()} is read by the method it reached, as \code{plot_axis_titles()} says,
+and only for the axes R draws those titles on (\code{drawn_default_titles()}).
 }
 \keyword{internal}

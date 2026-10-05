@@ -244,6 +244,10 @@ announce_masking <- function(package) {
     }
   )
 
+  # The page R draws each recorded call on, so that a Base R chart is the
+  # page R's device shows (see base_r_page_tracking.R).
+  tryCatch(set_base_r_page_hook(), error = function(e) NULL)
+
   # Register custom print.ggplot method for interactive auto-display
   tryCatch(
     {
@@ -360,6 +364,7 @@ announce_masking <- function(package) {
   # And R and grid would count pages, and markers report them, into it, and
   # a knit that stopped with an error would keep maidr's knitr hooks.
   tryCatch(remove_knit_page_hooks(), error = function(e) NULL)
+  tryCatch(remove_base_r_page_hook(), error = function(e) NULL)
   if (identical(getOption("maidr.knit.replayed"), knit_page_replayed)) {
     options(maidr.knit.replayed = NULL)
   }

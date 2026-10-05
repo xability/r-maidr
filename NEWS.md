@@ -426,6 +426,164 @@
   named "[" in the data, and `barplot()` stopped at the call itself with
   "object 'mu' not found". The call is now recorded as the expression it
   stands for, which R draws the same (#353).
+* A Base R chart whose title or axis title is not one string is drawn as R
+  draws it. `i <- 3; plot(1:5, main = i)` and `barplot(c(1, 2, 3), xlab =
+  2024)` were exported with nothing drawn on them, and nothing said so: the
+  drawing maidr makes of a Base R chart again stopped on a `main`, `sub`,
+  `xlab` or `ylab` given as a number, a logical, several values or a list
+  such as `list("Title", font = 2)`, or as plotmath to `curve()`, `ylab =
+  quote(x^2)`, or to a formula `plot()`, `main = expression(alpha)`; on a
+  `title()` given several `line` or `outer` values, none, or a missing
+  `outer`; on an `axis()` given several values of `side`, `tick`, `pos`,
+  `outer`, `font`, `lwd` or `lwd.ticks` or a missing `outer`, `lwd` or
+  `lwd.ticks`, on `axis(labels = NA)` and `axis(1, at = numeric(0))`; and on
+  an `mtext()` spread over several sides, `adj` or `padj` values, such as
+  `mtext(c("Left", "Right"), side = c(2, 4))`. It left out values of an
+  `mtext()` whose `at` held fewer positions than values, or a missing one,
+  drew a missing `mtext()` text or tick label as "NA", and drew an axis's
+  ticks in each of several `col`, `col.ticks` or `lty` values in turn. Each
+  is now drawn as R draws it, several values of `main`, `xlab` or `ylab` a
+  line apart and those of `sub` all on its one line, and the title and axis
+  titles a screen reader reads are the same text, a line for each value:
+  they were the first value alone. The titles of `curve()`, and of a
+  formula plot with a `subset`, written as code, such as `main = grp` in a
+  loop, are read the same way, and drawn with the values R drew them with:
+  they were announced as the first word of the code, or as no title, and
+  drawn by running the code again, so that a title holding `sample()` or a
+  counter was drawn with another value.
+  The y axis of a `plot()` of several time series, drawn a panel each, is
+  announced as the first series' name, the title R gives its panel; it was
+  the `ylab` R does not draw. A chart that still cannot be drawn again, such
+  as one with `axis(1, padj = c(0, 1))`, falls back to the static image,
+  with a warning that says why, rather than being exported empty; the
+  image's alt text says it could not be made interactive, and names the
+  page it shows, the last one R drew: by the chart's title, or for several
+  panels by the title R drew over them or by each panel's own, its plot's
+  or `title()`'s. In a knitted document it stays knitr's figure,
+  and the document's build says why once, as it does for a chart whose
+  build stops (#358).
+* `plot()` of a function, such as `plot(sin, -pi, pi)`, `plot(dnorm, -3, 3)`
+  or `plot(function(x) x^2)`, is read as the line `curve()` draws for it,
+  over the points R drew, wherever the function is written among the
+  arguments, as in `plot(main = "Sine", sin, -pi, pi)`. `save_html()` and
+  `show()` stopped with "object of type 'builtin' is not subsettable" (or
+  'closure' or 'special'), a knitted chunk showed a picture of it, and
+  `plot(sin)` with no range, or with only `from`, `to` or `xlim`, was read
+  as a scatter with no points. Its axes are named as R names them, "x" and
+  the first line of the function as written, "sin". Drawn over another chart
+  with `add = TRUE`, or as points with `type = "p"`, it is shown as a
+  picture of the chart, as `curve()` is. A function of `TRUE` and `FALSE`,
+  such as `plot(function(x) x > 0.5)`, is read at the 0 and 1 R draws it
+  at, and so is `curve(x > 0.5)`, which was read as a line with no points;
+  one whose values are other than numbers, such as dates, is shown as a
+  picture. `plot()` of a time series of one series, a one-way table or a
+  data frame of two columns is announced with the axis titles R draws for
+  it, such as "Time" and "AirPassengers" for `plot(AirPassengers)`, where
+  it had none, or had them only with another argument written first, as in
+  `plot(main = "Nile", Nile)`. So written, a time series is read as the
+  line R draws for it and `plot(main = "D", density(x))` as the density
+  curve, as they are written first, where each was read as a scatter of its
+  points. A title `plot()` derives for an axis, such as "Time", "v" for
+  `plot(v)`, "mpg" for `plot(mpg ~ wt, data = mtcars)` or "Density" for
+  `plot(density(x))`, is not announced where R draws none: where the call
+  blanks it, as `ylab = ""` does, or gives it as `NULL` to a time series,
+  or turns titles off with `ann = FALSE` or `par(ann = FALSE)`.
+  `plot(v, ylab = "")` was announced with "v". A title written on an axis
+  after the plot with `title(xlab = )` or `ylab` is announced as R draws
+  it there: `plot(x, y, ann = FALSE); title(xlab = "Weight")` was
+  announced with "x".
+  So is one written with `mtext()` centred on that side, the string
+  nearest the axis where there are several, where maidr announces no title
+  of its own for that axis, as for `plot(x, y, ann = FALSE)`. A bar chart,
+  box plot or strip chart keeps maidr's "Category" and "Value", or a
+  formula's names, and `hist()`, `curve()` and `qqnorm()` keep the titles
+  they derive, even where R draws none. On a chart of several y axes, drawn
+  with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
+  written beside its own axis (#359).
+* A Base R chart is the page R's device shows: the last one. After
+  `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram alone,
+  on a page of its own, but `show()` and `save_html()` made one chart of
+  every plot drawn on the device: both histograms' data in one subplot,
+  under a drawing of the first, so a reader heard data that was not on the
+  chart, and saw a chart R no longer showed. The same happened whenever a
+  plot started a new page, as `plot(x)` and then `heatmap(m)`, or a fifth
+  plot under `par(mfrow = c(2, 2))` after a reset to one panel. maidr now
+  reads the page each call was drawn on from R itself, so the chart is the
+  last page, with all the panels of a `par(mfrow)`, `par(mfcol)` or
+  `layout()` grid on it, each plot in the panel R drew it in -- also when
+  maidr did not record the call that set the grid up, made through
+  `graphics::par()` or `withr::with_par()`, or before an earlier `show()`
+  or `save_html()` on the device, or when a plot is drawn over the whole
+  page after `par(mfrow = c(1, 1), new = TRUE)`, as a legend for all the
+  panels is, where maidr read every plot as a layer of one subplot. A plot drawn
+  after `par(new = TRUE)` is drawn over the plot before it, in its panel,
+  where maidr drew the first alone or gave the second a panel of its own;
+  an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of
+  `split.screen()`, is drawn in the region of the page R gave it; a plot
+  `par(mfg = )` sends to a panel out of turn is in that panel;
+  `plot.new()` and `frame()` take a panel as they do in R, where maidr
+  moved the next plot into it; a `legend()`, `text()` or `lines()` drawn
+  on such a panel, or on a plot maidr does not record such as
+  `smoothScatter()`, is drawn there, where maidr drew it over the plot
+  before and read it as part of that plot; one drawn over a plot after
+  `par(new = TRUE)` and `plot.new()`, as a second series with an axis of
+  its own is, is drawn in the coordinates it was drawn in, where maidr drew
+  it in the plot's, and is read with that plot also in an earlier panel or
+  screen `par(mfg = )` or `screen()` sent R back to, where maidr read it
+  with the plot drawn last; one drawn after `par(mfg = )`, or `screen(n, new =
+  FALSE)` of `split.screen()`, sends R back to the panel or screen of an
+  earlier plot is drawn on that plot and read with it, where maidr read it
+  with the plot drawn last, and drew it on that plot or not at all -- but
+  not what R clips away: after `screen(n, new = FALSE)`, until `axis()`,
+  `title()`, `mtext()`, `box()` or a change of `xpd` works R's clip out
+  again, R clips what is drawn to the plot in the screen before and shows
+  none of it, and maidr neither draws nor reads it; and
+  nothing drawn on an
+  earlier page -- its data, titles, `lines()` or `legend()`, or a size it
+  would need -- reaches the chart, even when the plot that started the new
+  page was drawn while `maidr_off()` was in effect. A page `replayPlot()`
+  puts back on a device that keeps a display list is the chart, with what
+  was drawn on it when `recordPlot()` saved it, where maidr read the plots
+  and calls drawn since with it. `symbols()` without
+  `add = TRUE` draws a plot of its own, and is the plot of its page,
+  shown as a picture since maidr does not read it, where `symbols()` alone
+  gave a chart with nothing on it. A page that holds no plot maidr
+  recorded, as after `hist(x); plot.new()`,
+  `hist(x); plot.new(); text(0.5, 0.5, "note")` or
+  `hist(x); smoothScatter(y)`, or a page `replayPlot()` puts back from a
+  plot drawn while `maidr_off()` was in effect, is no longer exported as
+  the histogram before it, or as a chart with nothing on it: `show()` and
+  `save_html()` stop and say the page holds no plot maidr recorded. So do
+  they, and say why, for a line added to a plot an earlier `show()` or
+  `save_html()` read, or to a page `replayPlot()` puts back from before
+  then: that call let go of what maidr recorded of it. A plot drawn over
+  the one before it after a `par(new = TRUE)` made through
+  `graphics::par()` or `withr::with_par()` is titled as after one maidr
+  records: on a chart of two y axes, each series by what is written
+  beside its own axis, where every title went to the second series. A
+  plot in a screen of `split.screen()` is drawn with the margins and size
+  of text R drew it with, those `screen()` puts back for that screen, and
+  without the outer margins `split.screen()` takes away while its screens
+  are in use, where maidr drew it with those set last in any screen, under
+  outer margins R had taken away; and so is a plot whose margins or size
+  of text a `par()` call made through `graphics::par()` or
+  `withr::with_par()` set, which maidr drew with R's own. The
+  picture maidr draws of a page it cannot read or draw again has each plot
+  where R drew it too -- over the plot before it, in its panel of a grid,
+  or in its screen or region of the page -- also where what put it there
+  was not recorded: a `par()` call made through `graphics::par()` or
+  `withr::with_par()`, `screen()`, or a panel `plot.new()` took; and what
+  `par(mfg = )` or `screen(n, new = FALSE)` sent R back to add is drawn on
+  the plot R added it to, clipped as R clips it. The picture drew a plot
+  after such a `par(new = TRUE)` on a page of its own, which lost the
+  plots before it, as on a chart of two y axes whose second axis maidr
+  cannot draw again;
+  drew one such a `par(mfg = )` sent out of turn, or one after a panel
+  `plot.new()` took, in the next panel; drew every plot of a call that
+  draws several, as `plot()` of a fitted model does, on one page, where R
+  shows the last of them; and drew a `split.screen()` page's last plot
+  alone in the first screen's place, with R's warning "calling
+  par(new=TRUE) with no plot" (#360).
 
 ## Documentation
 
