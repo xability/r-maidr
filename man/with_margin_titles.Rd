@@ -2,15 +2,16 @@
 % Please edit documentation in R/base_r_axis_labels.R
 \name{with_margin_titles}
 \alias{with_margin_titles}
-\title{A layer's axes, titled as the plot's \code{title()} and \code{mtext()} calls title
+\title{A layer's axes, titled as the \code{title()} and \code{mtext()} calls written on
 them}
 \usage{
-with_margin_titles(axes, low_calls)
+with_margin_titles(axes, titles)
 }
 \arguments{
 \item{axes}{The layer's canonical axes, or NULL}
 
-\item{low_calls}{The LOW-level calls recorded on the layer's plot}
+\item{titles}{The titles written on the axes of the layer's plot, from
+\code{\link[=margin_titles]{margin_titles()}}, in the order they were written}
 }
 \value{
 \code{axes}, with those titles
@@ -27,17 +28,16 @@ untitled: "X is 1.51" where R drew "Weight".
 \item \code{title(xlab =, ylab =)} draws where the plot's own title goes, so it
 titles that axis, over whatever the plot drew there: the last one
 written is the one on top.
-\item \code{mtext()} writes any text in a margin. One string centred on side 1 or
-2, as an axis title is, titles that axis where the plot left it
-untitled. One set off to a side, with \code{adj} or \code{at}, is a note, and so
-is one written farther out than another on that side: a note under the
-title, such as where the data came from, is written on a line farther
-from the axis. Of those on one line the last one written is the one on
-top, and one inside the plot, on a line below 0, titles the axis only
-where the margin has none.
+\item \code{mtext()} writes any text in a margin. One string centred on the side
+an axis is drawn on, as an axis title is, titles that axis where the
+plot left it untitled. One set off to a side, with \code{adj} or \code{at}, is a
+note, and so is one written farther out than another on that side: a
+note under the title, such as where the data came from, is written on a
+line farther from the axis. Of those on one line the last one written
+is the one on top, and one inside the plot, on a line below 0, titles
+the axis only where the margin has none.
 }
 
-Either one in the outer margin (\code{outer = TRUE}) titles the page rather
-than this plot, and is not read.
+Which axis each one titles is \code{margin_titles()}'s to say.
 }
 \keyword{internal}

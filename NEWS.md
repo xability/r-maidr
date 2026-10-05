@@ -413,7 +413,9 @@
   written on an axis after the plot, with `title(xlab = )` or `ylab`, or
   with `mtext()` centred on that side, the string nearest the axis where
   there are several, is announced as R draws it there:
-  `plot(x, y, ann = FALSE); title(xlab = "Weight")` was announced with "x"
+  `plot(x, y, ann = FALSE); title(xlab = "Weight")` was announced with "x".
+  On a chart of two y axes, drawn with `par(new = TRUE)` and `axis(4)`,
+  each series is titled by what is written on the side of its own axis
   (#PR).
 
 ## Documentation

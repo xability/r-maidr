@@ -12,9 +12,9 @@ the formal it is dispatched on, is left unnamed when written first, as
 \code{match_recorded_args()} leaves it.}
 }
 \value{
-List with \code{axis}, \code{"x"} for one string centred on side 1 or \code{"y"}
-on side 2, its \code{text}, and the \code{line} of the margin it is written on;
-or NULL
+List with the \code{axis} one string centred on a side titles, \code{"x"}
+on side 1 or 3 and \code{"y"} on side 2 or 4, that \code{side}, its \code{text}, and
+the \code{line} of the margin it is written on; or NULL
 }
 \description{
 The axis title an \code{mtext()} call writes, if it writes one

@@ -632,6 +632,92 @@ test_that("of several mtext() strings on one side, the one nearest the axis titl
   }
 })
 
+test_that("a title written in a margin titles the series whose axis is drawn there", {
+  # A chart of two y axes draws its second series over the first with
+  # par(new = TRUE) and axes = FALSE, gives it an axis of its own on the
+  # right with axis(4), and often writes every title after it. Read only on
+  # the plot written last, the second series was titled after the left axis,
+  # "Squares", and the first series had no title at all.
+  dual <- function(titles) {
+    bquote({
+      x <- 1:10
+      op <- par(mar = c(5, 4, 4, 5))
+      plot(x, x^2, type = "l", ann = FALSE)
+      par(new = TRUE)
+      plot(x, sqrt(x), type = "l", axes = FALSE, ann = FALSE)
+      axis(4)
+      .(titles)
+      par(op)
+    })
+  }
+  cases <- list(
+    list(dual(quote({
+      title(xlab = "Time")
+      mtext("Squares", side = 2, line = 3)
+      mtext("Roots", side = 4, line = 3)
+    })), list(list("Time", "Squares"), list(NULL, "Roots"))),
+    list(dual(quote({
+      title(xlab = "Time", ylab = "Squares")
+      mtext("Roots", side = 4, line = 3)
+    })), list(list("Time", "Squares"), list(NULL, "Roots"))),
+    # Each written after its own plot.
+    list(quote({
+      x <- 1:10
+      op <- par(mar = c(5, 4, 4, 5))
+      plot(x, x^2, type = "l", xlab = "Time", ylab = "")
+      mtext("Squares", side = 2, line = 3)
+      par(new = TRUE)
+      plot(x, sqrt(x), type = "l", axes = FALSE, xlab = "", ylab = "")
+      axis(4)
+      mtext("Roots", side = 4, line = 3)
+      par(op)
+    }), list(list("Time", "Squares"), list(NULL, "Roots"))),
+    # The second series draws the x axis too, so it shares its title.
+    list(quote({
+      x <- 1:10
+      op <- par(mar = c(5, 4, 4, 5))
+      plot(x, x^2, type = "l", ann = FALSE)
+      par(new = TRUE)
+      plot(x, sqrt(x), type = "l", yaxt = "n", ann = FALSE)
+      axis(4)
+      title(xlab = "Time", ylab = "Squares")
+      mtext("Roots", side = 4, line = 3)
+      par(op)
+    }), list(list("Time", "Squares"), list("Time", "Roots"))),
+    # One plot whose only y axis is on the right.
+    list(quote({
+      op <- par(mar = c(5, 4, 4, 5))
+      plot(1:10, yaxt = "n", ylab = "")
+      axis(4)
+      mtext("Right", side = 4, line = 3)
+      par(op)
+    }), list(list("Index", "Right")), c("Index", "Right")),
+    # With the y axis drawn on the left as well, the right margin's text is
+    # a note.
+    list(quote({
+      op <- par(mar = c(5, 4, 4, 5))
+      plot(1:10, ylab = "")
+      axis(4)
+      mtext("Note", side = 4, line = 3)
+      par(op)
+    }), list(list("Index", NULL)), c("Index", "Note"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    expected <- case[[2]]
+    testthat::expect_length(axes, length(expected))
+    for (i in seq_along(expected)) {
+      testthat::expect_identical(axes[[i]]$x$label, expected[[i]][[1]], label = label)
+      testthat::expect_identical(axes[[i]]$y$label, expected[[i]][[2]], label = label)
+    }
+    drawn <- if (length(case) > 2L) case[[3]] else c("Time", "Squares", "Roots")
+    testthat::expect_setequal(r_drawn_titles(call), drawn)
+  }
+})
+
 test_that("a title() after a chart read as several layers titles each of them", {
   # stripchart() is read as one layer per group, and the titles were written
   # on the result that holds them rather than on the layers themselves, so

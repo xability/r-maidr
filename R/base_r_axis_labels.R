@@ -65,7 +65,7 @@ base_r_categorical_axes <- function(args, horizontal = FALSE) {
   )
 }
 
-#' A layer's axes, titled as the plot's `title()` and `mtext()` calls title
+#' A layer's axes, titled as the `title()` and `mtext()` calls written on
 #' them
 #'
 #' An author who blanks a plot's own titles, with `xlab = ""` or
@@ -77,48 +77,38 @@ base_r_categorical_axes <- function(args, horizontal = FALSE) {
 #' - `title(xlab =, ylab =)` draws where the plot's own title goes, so it
 #'   titles that axis, over whatever the plot drew there: the last one
 #'   written is the one on top.
-#' - `mtext()` writes any text in a margin. One string centred on side 1 or
-#'   2, as an axis title is, titles that axis where the plot left it
-#'   untitled. One set off to a side, with `adj` or `at`, is a note, and so
-#'   is one written farther out than another on that side: a note under the
-#'   title, such as where the data came from, is written on a line farther
-#'   from the axis. Of those on one line the last one written is the one on
-#'   top, and one inside the plot, on a line below 0, titles the axis only
-#'   where the margin has none.
+#' - `mtext()` writes any text in a margin. One string centred on the side
+#'   an axis is drawn on, as an axis title is, titles that axis where the
+#'   plot left it untitled. One set off to a side, with `adj` or `at`, is a
+#'   note, and so is one written farther out than another on that side: a
+#'   note under the title, such as where the data came from, is written on a
+#'   line farther from the axis. Of those on one line the last one written
+#'   is the one on top, and one inside the plot, on a line below 0, titles
+#'   the axis only where the margin has none.
 #'
-#' Either one in the outer margin (`outer = TRUE`) titles the page rather
-#' than this plot, and is not read.
+#' Which axis each one titles is `margin_titles()`'s to say.
 #'
 #' @param axes The layer's canonical axes, or NULL
-#' @param low_calls The LOW-level calls recorded on the layer's plot
+#' @param titles The titles written on the axes of the layer's plot, from
+#'   [margin_titles()], in the order they were written
 #' @return `axes`, with those titles
 #' @keywords internal
-with_margin_titles <- function(axes, low_calls) {
-  written <- list()
-  noted <- list()
-  for (call in low_calls) {
-    args <- call$args
-    if (recorded_flag(args, "outer")) {
-      next
-    }
-    if (identical(call$function_name, "title")) {
-      written$x <- recorded_axis_label(args, "xlab", written$x)
-      written$y <- recorded_axis_label(args, "ylab", written$y)
-    } else if (identical(call$function_name, "mtext")) {
-      title <- mtext_axis_title(args)
-      if (!is.null(title)) {
-        held <- noted[[title$axis]]
-        if (is.null(held) || !farther_from_axis(title$line, held$line)) {
-          noted[[title$axis]] <- title
-        }
+with_margin_titles <- function(axes, titles) {
+  for (axis in c("x", "y")) {
+    label <- NULL
+    noted <- NULL
+    for (title in titles) {
+      if (!identical(title$axis, axis)) {
+        next
+      }
+      if (identical(title$kind, "title")) {
+        label <- title$text
+      } else if (is.null(noted) || !farther_from_axis(title$line, noted$line)) {
+        noted <- title
       }
     }
-  }
-
-  for (axis in c("x", "y")) {
-    label <- written[[axis]]
     if (is.null(label) && is.null(axes[[axis]]$label)) {
-      label <- noted[[axis]]$text
+      label <- noted$text
     }
     if (!is.null(label)) {
       # First, where `build_axis_config()` puts it.
@@ -130,14 +120,125 @@ with_margin_titles <- function(axes, low_calls) {
   axes
 }
 
+#' The titles written in the margins of each plot, by the axis they title
+#'
+#' A title written after a plot, with `title()` or `mtext()`, is drawn in a
+#' margin, and titles the axis drawn on that side of it: `title(xlab =)` is
+#' drawn on side 1, `title(ylab =)` on side 2, and `mtext()` on the side it
+#' is given. A chart of two y axes draws its second series over the first,
+#' with `par(new = TRUE)` and `axes = FALSE`, gives it an axis of its own on
+#' the right with `axis(4)`, and often writes every title after it:
+#' `mtext("Squares", side = 2)` for the first series' axis and
+#' `mtext("Roots", side = 4)` for the second's. Read on the plot each was
+#' written after, the second series was titled "Squares", after the axis of
+#' the first, and the first had no title at all.
+#'
+#' So each title goes to the plots, of those drawn over one another
+#' (`overlay_runs()`), whose axis is drawn on its side (`axis_sides()`).
+#' Where none of them draws an axis on the bottom or the left, a title there
+#' titles the plot it was written after, as `plot(x, y, axes = FALSE);
+#' title(xlab = "Time")` does; on the top or the right, it titles none.
+#' Either one in the outer margin (`outer = TRUE`) titles the page rather
+#' than a plot, and is not read.
+#'
+#' @param groups The plot groups, from [group_device_calls()]
+#' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
+#' @return One list per group: the titles written on its axes, in the order
+#'   they were written. Each is a list with the `axis` it titles, `"x"` or
+#'   `"y"`, the `side` it is drawn on, its `text`, its `kind`, `"title"` or
+#'   `"mtext"`, and, for `mtext()`, the `line` it is written on.
+#' @keywords internal
+margin_titles <- function(groups, layout_calls) {
+  runs <- overlay_runs(groups, layout_calls)
+  sides <- lapply(groups, axis_sides)
+  titles <- rep(list(list()), length(groups))
+  for (g in seq_along(groups)) {
+    run <- which(runs == runs[[g]])
+    for (call in groups[[g]]$low_calls) {
+      for (title in titles_written(call)) {
+        owners <- run[vapply(
+          sides[run], function(drawn) isTRUE(drawn[[title$axis]] == title$side), logical(1)
+        )]
+        if (!length(owners) && title$side <= 2) {
+          owners <- g
+        }
+        for (owner in owners) {
+          titles[[owner]] <- c(titles[[owner]], list(title))
+        }
+      }
+    }
+  }
+  titles
+}
+
+#' The sides a plot draws its axes on
+#'
+#' A plot draws its x axis on side 1 and its y axis on side 2, unless the
+#' call turns them off, with `axes = FALSE`, `xaxt = "n"` or `yaxt = "n"`.
+#' `axis()` draws one on the side it is given.
+#'
+#' @param group A plot group, from [group_device_calls()]
+#' @return List with `x`, 1 or 3, and `y`, 2 or 4: the side the axis is
+#'   drawn on, the bottom or the left where it is drawn on both; NA where it
+#'   is drawn on neither
+#' @keywords internal
+axis_sides <- function(group) {
+  args <- group$high_call$args
+  drawn <- recorded_flag(args, "axes", default = TRUE)
+  sides <- c(
+    if (drawn && !identical(args[["xaxt"]], "n")) 1,
+    if (drawn && !identical(args[["yaxt"]], "n")) 2
+  )
+  for (call in group$low_calls) {
+    if (identical(call$function_name, "axis")) {
+      sides <- c(sides, suppressWarnings(as.numeric(call$args[["side"]]))[1])
+    }
+  }
+  list(
+    x = if (1 %in% sides) 1 else if (3 %in% sides) 3 else NA,
+    y = if (2 %in% sides) 2 else if (4 %in% sides) 4 else NA
+  )
+}
+
+#' The axis titles one recorded call writes in a margin
+#'
+#' @param call A recorded LOW-level call
+#' @return A list of titles, as [margin_titles()] describes them: the `xlab`
+#'   and `ylab` a `title()` call writes, or the one an `mtext()` call does
+#'   (`mtext_axis_title()`); empty for any other call, a blank title, or one
+#'   in the outer margin
+#' @keywords internal
+titles_written <- function(call) {
+  args <- call$args
+  if (recorded_flag(args, "outer")) {
+    return(list())
+  }
+  if (identical(call$function_name, "mtext")) {
+    title <- mtext_axis_title(args)
+    return(if (is.null(title)) list() else list(c(title, kind = "mtext")))
+  }
+  if (!identical(call$function_name, "title")) {
+    return(list())
+  }
+  titles <- list()
+  for (axis in c("x", "y")) {
+    text <- recorded_axis_label(args, paste0(axis, "lab"))
+    if (!is.null(text)) {
+      side <- if (axis == "x") 1 else 2
+      titles <- c(titles, list(list(axis = axis, side = side, text = text, kind = "title")))
+    }
+  }
+  titles
+}
+
 #' The axis title an `mtext()` call writes, if it writes one
 #'
 #' @param args The recorded arguments of the `mtext()` call. Its `text`,
 #'   the formal it is dispatched on, is left unnamed when written first, as
 #'   `match_recorded_args()` leaves it.
-#' @return List with `axis`, `"x"` for one string centred on side 1 or `"y"`
-#'   on side 2, its `text`, and the `line` of the margin it is written on;
-#'   or NULL
+#' @return List with the `axis` one string centred on a side titles, `"x"`
+#'   on side 1 or 3 and `"y"` on side 2 or 4, that `side`, its `text`, and
+#'   the `line` of the margin it is written on; or NULL
 #' @keywords internal
 mtext_axis_title <- function(args) {
   unset <- function(value) is.null(value) || all(is.na(value))
@@ -155,13 +256,13 @@ mtext_axis_title <- function(args) {
   if (!placed) {
     return(NULL)
   }
-  axis <- if (isTRUE(side == 1)) "x" else if (isTRUE(side == 2)) "y"
+  axis <- if (isTRUE(side %in% c(1, 3))) "x" else if (isTRUE(side %in% c(2, 4))) "y"
   text <- recorded_axis_label(list(text = text), "text")
   if (is.null(axis) || is.null(text)) {
     return(NULL)
   }
   line <- suppressWarnings(as.numeric(args[["line"]]))[1]
-  list(axis = axis, text = text, line = if (is.na(line)) 0 else line)
+  list(axis = axis, side = side, text = text, line = if (is.na(line)) 0 else line)
 }
 
 #' Whether one margin line is farther from the axis than another
