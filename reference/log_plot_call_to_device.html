@@ -95,7 +95,8 @@
 <span>  <span class="va">args</span>,</span>
 <span>  device_id <span class="op">=</span> <span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.cur</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  call_env <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  arg_text <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  arg_text <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  rng_state <span class="op">=</span> <span class="va">.maidr_call_start</span><span class="op">$</span><span class="va">rng_state</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -128,6 +129,13 @@ arguments recorded in <code>args</code></p></dd>
 <dd><p>Optional text each argument in <code>args</code> was written
 as, from <code><a href="written_arg_text.html">written_arg_text()</a></code>, which the replay titles the chart
 after</p></dd>
+
+
+<dt id="arg-rng-state">rng_state<a class="anchor" aria-label="anchor" href="#arg-rng-state"></a></dt>
+<dd><p>The <code>.Random.seed</code> the call started from, which the
+replay draws from, so a chart that draws random numbers comes out as
+the reader was shown it; by default the state the recording wrapper
+noted before it drew (<code><a href="ensure_maidr_device.html">ensure_maidr_device()</a></code>)</p></dd>
 
 </dl></div>
     <div class="section level2">

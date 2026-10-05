@@ -9,7 +9,13 @@ so those expressions resolve exactly as they did originally.
 ## Usage
 
 ``` r
-replay_plot_call(function_name, args, call_env = NULL, arg_text = NULL)
+replay_plot_call(
+  function_name,
+  args,
+  call_env = NULL,
+  arg_text = NULL,
+  rng_state = NULL
+)
 ```
 
 ## Arguments
@@ -33,6 +39,12 @@ replay_plot_call(function_name, args, call_env = NULL, arg_text = NULL)
   as it is, from
   [`written_arg_text()`](https://r.maidr.ai/reference/written_arg_text.md);
   or NULL
+
+- rng_state:
+
+  The `.Random.seed` the call started from, which the replay draws from
+  and then puts the session's own state back (see
+  `with_random_state()`); or NULL to draw from the session's state
 
 ## Value
 

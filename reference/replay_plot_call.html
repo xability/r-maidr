@@ -105,7 +105,13 @@ time so those expressions resolve exactly as they did originally.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replay_plot_call</span><span class="op">(</span><span class="va">function_name</span>, <span class="va">args</span>, call_env <span class="op">=</span> <span class="cn">NULL</span>, arg_text <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replay_plot_call</span><span class="op">(</span></span>
+<span>  <span class="va">function_name</span>,</span>
+<span>  <span class="va">args</span>,</span>
+<span>  call_env <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  arg_text <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  rng_state <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -128,6 +134,12 @@ forced at record time, or NULL when all args are plain values</p></dd>
 <dt id="arg-arg-text">arg_text<a class="anchor" aria-label="anchor" href="#arg-arg-text"></a></dt>
 <dd><p>The text each argument was written as, NA where its
 value is replayed as it is, from <code><a href="written_arg_text.html">written_arg_text()</a></code>; or NULL</p></dd>
+
+
+<dt id="arg-rng-state">rng_state<a class="anchor" aria-label="anchor" href="#arg-rng-state"></a></dt>
+<dd><p>The <code>.Random.seed</code> the call started from, which the
+replay draws from and then puts the session's own state back (see
+<code>with_random_state()</code>); or NULL to draw from the session's state</p></dd>
 
 </dl></div>
     <div class="section level2">
