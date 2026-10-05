@@ -1235,21 +1235,24 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' `title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else,
     #' for one panel, by its title, and for several, by each panel R drew in
     #' turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
-    #' A panel's title is its plot's, or the one `title()` gave it. The
-    #' chart's own title is its last titled panel's, from any page, which
-    #' would name a picture of several panels by one of them; and maidr's
-    #' grid of cells counts a panel spanning two cells twice, and an empty
-    #' cell as a panel.
+    #' A panel's title is its plot's, or the one `title()` gave it; a plot
+    #' drawn over a panel's, after `par(new = TRUE)`, with `add = TRUE` or
+    #' sent back to it with `par(mfg = )`, is in that panel, which is named
+    #' by the first title drawn on it. The chart's own title is its last
+    #' titled panel's, from any page, which would name a picture of several
+    #' panels by one of them; and maidr's grid of cells counts a panel
+    #' spanning two cells twice, and an empty cell as a panel.
     #' @return One string, or NULL when the chart has no title
     picture_title = function() {
       groups <- private$.plot_groups
       panel_config <- detect_panel_configuration(private$.device_id)
       multipanel <- is_multipanel_config(panel_config)
-      shown <- if (multipanel) {
-        which(!is.na(compute_panel_slots(groups, panel_config)))
+      slots <- if (multipanel) {
+        compute_panel_slots(groups, panel_config)
       } else {
-        seq_along(groups)
+        rep(1L, length(groups))
       }
+      shown <- which(!is.na(slots))
 
       # Drawn over every panel, whichever plot it was drawn on: a recorded
       # one, or one no recorded call started, as a panel `plot.new()` took
@@ -1274,8 +1277,18 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
         return(if (length(groups) > 0) private$panel_title(length(groups)))
       }
-      titles <- vapply(shown, function(index) {
-        private$panel_title(index) %||% "untitled"
+      # A plot drawn over a panel's, after `par(new = TRUE)`, with
+      # `add = TRUE` or sent back to it with `par(mfg = )`, is a group of its
+      # own in that panel's slot: the panel is named once, by the first
+      # title drawn on it.
+      titles <- vapply(unique(slots[shown]), function(slot) {
+        for (index in shown[slots[shown] == slot]) {
+          title <- private$panel_title(index)
+          if (!is.null(title)) {
+            return(title)
+          }
+        }
+        "untitled"
       }, character(1))
       if (length(titles) == 1) {
         return(if (!identical(titles, "untitled")) titles)
