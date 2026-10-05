@@ -867,6 +867,33 @@ test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave i
       chart, legend_over_grid, c("P 1", "P 2", "P 3", "P 4", "alpha", "beta")
     )
   }
+
+  # The whole page, over regions or screens: it was drawn in the last.
+  for (regions in list(
+    quote({
+      par(fig = c(0, 0.5, 0, 1))
+      plot(1:5, main = "RL")
+      par(fig = c(0.5, 1, 0, 1), new = TRUE)
+      plot(5:1, main = "RR")
+    }),
+    quote({
+      split.screen(c(1, 2))
+      screen(1)
+      plot(1:5, main = "RL")
+      screen(2)
+      plot(5:1, main = "RR")
+      close.screen(all.screens = TRUE)
+    })
+  )) {
+    legend_over_regions <- bquote({
+      .(regions)
+      par(fig = c(0, 1, 0, 1), new = TRUE, mar = c(0, 0, 0, 0))
+      plot(0, 0, type = "l", bty = "n", xaxt = "n", yaxt = "n")
+      legend("bottom", c("alpha", "beta"), xpd = TRUE, horiz = TRUE, bty = "n", lty = 1, col = 1:2)
+    })
+    chart <- last_page_export(function() eval(legend_over_regions))
+    expect_drawn_where_r_draws(chart, legend_over_regions, c("RL", "RR", "alpha", "beta"))
+  }
 })
 
 test_that("a plot par(mfg = ) sends out of turn is in the panel R drew it in", {

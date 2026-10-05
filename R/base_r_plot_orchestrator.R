@@ -1426,7 +1426,7 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
   if (jumps) {
     graphics::par(mfg = panel_slot_positions(slot, panel_config)[[1]])
   } else {
-    if (is_figure_region(high, panel_config)) {
+    if (is_figure_region(high, panel_config, graphics::par("fig"))) {
       graphics::par(fig = high$fig)
     }
     start_replayed_plot(slot <= figure, start = FALSE)
@@ -1439,18 +1439,23 @@ place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
 #' `par(fig = )`, and `screen()` with it, give the plot drawn next a region
 #' of the page outside any grid: R reports the cell of a grid of one, and a
 #' region that is not the whole page -- or is the whole page, on a page laid
-#' out as a grid of several panels, as a legend for them all is drawn over
-#' the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`.
+#' out as a grid of several panels, or where the drawing is in another
+#' region, as on a page of regions or screens: a legend for them all is
+#' drawn over the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`.
 #'
 #' @param high The recorded call
 #' @param panel_config The page's grid, or NULL for a page of one panel
+#' @param drawing_fig The region of the page the drawing is in, before the
+#'   plot is drawn
 #' @return Logical
 #' @keywords internal
 #' @noRd
-is_figure_region <- function(high, panel_config = NULL) {
+is_figure_region <- function(high, panel_config = NULL, drawing_fig = c(0, 1, 0, 1)) {
+  page <- c(0, 1, 0, 1)
+  apart <- function(fig) isTRUE(max(abs(fig - page)) > 1e-6)
   length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
     length(high$fig) == 4L &&
-    (isTRUE(max(abs(high$fig - c(0, 1, 0, 1))) > 1e-6) || is_multipanel_config(panel_config))
+    (apart(high$fig) || is_multipanel_config(panel_config) || apart(drawing_fig))
 }
 
 #' Say whether the next plot of a drawing stays in the panel of the last
