@@ -441,7 +441,7 @@
   formula's names, and `hist()`, `curve()` and `qqnorm()` keep the titles
   they derive, even where R draws none. On a chart of several y axes, drawn
   with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
-  written beside its own axis (#PR).
+  written beside its own axis (#359).
 
 ## Documentation
 
