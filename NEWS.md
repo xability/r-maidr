@@ -391,23 +391,27 @@
   2024)` were exported with nothing drawn on them, and nothing said so: the
   drawing maidr makes of a Base R chart again stopped on a `main`, `sub`,
   `xlab` or `ylab` given as a number, a logical, several values or a list
-  such as `list("Title", font = 2)`, on a `title()` or `axis()` given
-  several `line`, `outer`, `tick` or `pos` values or a missing one, on
-  `axis(labels = NA)` and `axis(1, at = numeric(0))`, and on an `mtext()`
-  spread over several sides, `adj` or `padj` values, such as
+  such as `list("Title", font = 2)`, on a `title()` given several `line` or
+  `outer` values or a missing one, on an `axis()` given several or missing
+  values of `side`, `tick`, `line`, `pos`, `outer`, `font`, `lwd` or
+  `lwd.ticks`, on `axis(labels = NA)` and `axis(1, at = numeric(0))`, and on
+  an `mtext()` spread over several sides, `adj` or `padj` values, such as
   `mtext(c("Left", "Right"), side = c(2, 4))`; it left out values of an
   `mtext()` whose `at` held fewer positions than values, or a missing one,
-  and drew a missing `mtext()` text or tick label as "NA". Each is now
-  drawn as R draws it, several values of `main`, `xlab` or `ylab` a line
-  apart and those of `sub` all on its one line, and the title and axis
+  drew a missing `mtext()` text or tick label as "NA", and drew an axis's
+  ticks in each of several `col`, `col.ticks` or `lty` values in turn. Each
+  is now drawn as R draws it, several values of `main`, `xlab` or `ylab` a
+  line apart and those of `sub` all on its one line, and the title and axis
   titles a screen reader reads are the same text, a line for each value:
   they were the first value alone. The y axis of a `plot()` of several time
   series, drawn a panel each, is announced as the first series' name, the
   title R gives its panel; it was the `ylab` R does not draw. A chart that
-  still cannot be drawn again falls back to the static image, with a
-  warning that says why, rather than being exported empty; in a knitted
-  document it stays knitr's figure, and the document's build says why once,
-  as it does for a chart whose build stops (#PR).
+  still cannot be drawn again, such as one with `axis(1, padj = c(0, 1))`,
+  falls back to the static image, with a warning that says why, rather than
+  being exported empty; the image's alt text names the chart by its title
+  and says it could not be made interactive. In a knitted document it stays
+  knitr's figure, and the document's build says why once, as it does for a
+  chart whose build stops (#PR).
 
 ## Documentation
 
