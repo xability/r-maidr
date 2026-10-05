@@ -906,6 +906,47 @@ test_that("a call on a panel par(mfg = ) sends R to is drawn in that panel", {
   expect_drawn_where_r_draws(chart, back, c("M1", "M2", "M3", "Over M1"))
 })
 
+test_that("a call made after R was sent back to a plot is drawn and read with that plot", {
+  skip_if_no_render()
+
+  # screen(n, new = FALSE) puts back screen n and the coordinates of its
+  # plot, to add to it, as ?split.screen's own example does. The line was
+  # read as a layer of the plot in the other screen, and drawn on it.
+  screens <- quote({
+    split.screen(c(1, 2))
+    screen(1)
+    plot(1:10, main = "ScA")
+    screen(2)
+    plot(c(50, 40, 30, 20, 10), main = "ScB")
+    screen(1, new = FALSE)
+    abline(h = 5, col = "red")
+    text(5, 5.6, "on ScA", adj = c(0.5, 0))
+    close.screen(all.screens = TRUE)
+  })
+  chart <- last_page_export(function() eval(screens))
+  testthat::expect_identical(cell_titles(chart), list(c("ScA", "ScA", "ScB")))
+  line <- last_page_cells(chart)[[1]][[2]]
+  testthat::expect_identical(line$type, "line")
+  testthat::expect_equal(unlist(lapply(line$data[[1]], function(point) point$y)), c(5, 5))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, screens, c("ScA", "ScB", "on ScA"))
+
+  # par(mfg = ) keeps the coordinates of the plot R was on: what is drawn
+  # in the panel it sends R to is drawn in them.
+  panels <- quote({
+    par(mfrow = c(1, 2))
+    plot(1:5, main = "Left")
+    plot(c(10, 20, 30, 40, 50), main = "Right")
+    par(mfg = c(1, 1))
+    abline(h = 30, col = "red")
+    text(3, 33, "in Right's", adj = c(0.5, 0))
+  })
+  chart <- last_page_export(function() eval(panels))
+  testthat::expect_identical(cell_titles(chart), list(c("Left", "Left"), "Right"))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, panels, c("Left", "Right", "in Right's"))
+})
+
 test_that("a call made by another as it draws is read and drawn once, where R drew it", {
   skip_if_no_render()
 

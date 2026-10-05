@@ -413,7 +413,11 @@
   before and read it as part of that plot; one drawn over a plot after
   `par(new = TRUE)` and `plot.new()`, as a second series with an axis of
   its own is, is drawn in the coordinates it was drawn in, where maidr drew
-  it in the plot's; and nothing drawn on an
+  it in the plot's; one drawn after `par(mfg = )`, or `screen(n, new =
+  FALSE)` of `split.screen()`, sends R back to the panel or screen of an
+  earlier plot is drawn on that plot and read with it, where maidr read it
+  with the plot drawn last, and drew it on that plot or not at all; and
+  nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
   page was drawn while `maidr_off()` was in effect. A page `replayPlot()`

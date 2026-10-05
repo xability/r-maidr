@@ -93,7 +93,9 @@ device. A plot drawn in a region of the page \code{par(fig = )} gave it, as
 an inset is, or in a screen of \code{split.screen()}, is drawn in that
 region, and read with the plot before it. \code{lines()}, \code{points()},
 \code{abline()}, \code{text()}, \code{legend()}, \code{title()}, \code{axis()} and the other
-low-level calls add to the plot they are drawn on. Drawn on a panel
+low-level calls add to the plot they are drawn on: after \code{par(mfg = )},
+or \code{screen(n, new = FALSE)} of \code{split.screen()}, sends R back to the
+panel or screen of an earlier plot, to that plot. Drawn on a panel
 \code{plot.new()} or \code{frame()} took, as a legend of its own is, or on a plot
 maidr does not record, such as \code{smoothScatter()}, they are drawn there,
 and read as part of no plot. Drawn over a plot after \code{par(new = TRUE)}

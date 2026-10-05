@@ -25,6 +25,10 @@ NULL
 #' One drawn on a plot started over the group's own, in its panel, after
 #' `par(new = TRUE)`, is one of them, marked `overlay`: it is drawn on that
 #' plot, in the coordinates it was drawn in (`drawn_over_group_plot()`).
+#' One drawn after `par(mfg = )` or `screen()` sent R back to the cell or
+#' screen of an earlier group's plot, without starting a plot, is one of
+#' that group's, marked `sent_back`: R draws it there, on that plot, in the
+#' coordinates R had (`sent_back_to()`).
 #'
 #' @param device_id Graphics device ID
 #' @return List of plot groups, each containing HIGH and LOW calls
@@ -67,6 +71,18 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
       )
       unrecorded <- list()
     } else if (class_level == "LOW") {
+      back <- sent_back_to(call, c(groups, list(current_group)))
+      if (!is.na(back)) {
+        call$sent_back <- TRUE
+        if (back > length(groups)) {
+          current_group$low_calls <- append(current_group$low_calls, list(call))
+          current_group$low_call_indices <- c(current_group$low_call_indices, i)
+        } else {
+          groups[[back]]$low_calls <- append(groups[[back]]$low_calls, list(call))
+          groups[[back]]$low_call_indices <- c(groups[[back]]$low_call_indices, i)
+        }
+        next
+      }
       unrecorded_plot <- drawn_on_unrecorded_plot(call, current_group)
       if (unrecorded_plot && !drawn_over_group_plot(call, current_group)) {
         call$storage_index <- i
@@ -164,6 +180,57 @@ drawn_over_group_plot <- function(call, group) {
   same_panel <- length(panel) == 1L && length(group_panel) == 1L &&
     isTRUE(as.integer(panel) == as.integer(group_panel))
   same_panel && !in_another_cell(call$cell, group$high_call$end_cell)
+}
+
+#' The group whose plot R was sent back to before a low-level call drew
+#'
+#' `par(mfg = )` sends R to a cell of the grid, and `screen()` of
+#' `split.screen()` to a screen -- with `new = FALSE`, as `?split.screen`'s
+#' own example does to add to a screen -- without starting a plot. What is
+#' drawn next is drawn in that cell or screen, over the plot drawn there,
+#' and not on the plot R started last: `abline()` after `screen(1, new =
+#' FALSE)` is drawn on screen 1's plot, in the coordinates `screen()` put
+#' back. It was read as a layer of the last plot, and drawn on it.
+#'
+#' @param call The recorded LOW-level call
+#' @param groups The page's plot groups recorded before it, in order
+#' @return The index in `groups` of the last group whose plot is in the
+#'   cell and region R drew `call` in (`drawn_cell`, `drawn_fig`), where
+#'   that is not the region of the plot R started last; NA where it is, or
+#'   where no group's plot is there
+#' @keywords internal
+#' @noRd
+sent_back_to <- function(call, groups) {
+  # Where R started its last plot, as against where it drew the call.
+  last_plot_known <- same_region(call$cell, call$fig, call$cell, call$fig)
+  if (!last_plot_known || same_region(call$drawn_cell, call$drawn_fig, call$cell, call$fig)) {
+    return(NA_integer_)
+  }
+  there <- vapply(
+    groups,
+    function(group) {
+      same_region(group$high_call$cell, group$high_call$fig, call$drawn_cell, call$drawn_fig)
+    },
+    logical(1)
+  )
+  if (any(there)) max(which(there)) else NA_integer_
+}
+
+#' Whether two plots are in the same cell and region of the page
+#'
+#' @param cell,fig The cell (`par("mfg")`) and region (`par("fig")`) of
+#'   one
+#' @param other_cell,other_fig Those of the other
+#' @return Logical: `FALSE` where either is not known
+#' @keywords internal
+#' @noRd
+same_region <- function(cell, fig, other_cell, other_fig) {
+  known <- function(cell, fig) {
+    length(cell) == 4L && !anyNA(cell) && length(fig) == 4L && !anyNA(fig)
+  }
+  known(cell, fig) && known(other_cell, other_fig) &&
+    identical(as.integer(cell), as.integer(other_cell)) &&
+    max(abs(fig - other_fig)) < 1e-6
 }
 
 #' Whether a plot is in another cell of the same grid as a plot before it

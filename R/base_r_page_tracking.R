@@ -499,7 +499,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   that plot (`note_base_r_plot_started()`), `new_plot`, whether the call
 #'   started a plot, and `end_figure`, `end_plot` and `end_cell`, the panel,
 #'   plot and cell R was on when the call was done, and `window`, the
-#'   coordinates of that plot then (`base_r_plot_window()`); `opens_page`, whether R started a
+#'   coordinates of that plot then (`base_r_plot_window()`); `drawn_cell`
+#'   and `drawn_fig`, the cell and region of the page R was drawing in
+#'   then, which `par(mfg = )` and `screen()` move to another plot's
+#'   without starting one (`base_r_drawing_region()`); `opens_page`, whether R started a
 #'   page with the plot the call started first on it, which under a grid
 #'   is in the grid's first panel (`plot_in_grid()`), and `laid_out`,
 #'   whether that plot is in a grid of another shape than the one the call
@@ -529,6 +532,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   .maidr_base_r_pages$calls[[key]] <- drawing[seq_len(this - 1L)]
   started <- !is.null(call$first)
   first <- if (started) call$first else at
+  region <- base_r_drawing_region()
   list(
     page = at$page,
     figure = first$figure,
@@ -545,6 +549,8 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     end_plot = at$plot,
     end_cell = at$cell,
     window = base_r_plot_window(),
+    drawn_cell = region$cell,
+    drawn_fig = region$fig,
     id = call$id,
     outer = if (this > 1L) drawing[[this - 1L]]$id,
     apart = isTRUE(call$apart),
@@ -564,6 +570,28 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #' @noRd
 base_r_plot_window <- function() {
   tryCatch(graphics::par(c("usr", "xlog", "ylog")), error = function(e) NULL)
+}
+
+#' Where on the page R is drawing
+#'
+#' The cell of the grid (`par("mfg")`) and the region of the page
+#' (`par("fig")`) a low-level call draws in. They are those of the plot R
+#' started last, until `par(mfg = )`, or `screen()` of `split.screen()`,
+#' sends R back to the cell or screen of another without starting a plot:
+#' what is drawn then is drawn there, on that plot (`group_device_calls()`).
+#'
+#' @return A list: `cell`, the row and column and the grid's rows and
+#'   columns, and `fig`; or NULL
+#' @keywords internal
+#' @noRd
+base_r_drawing_region <- function() {
+  tryCatch(
+    {
+      region <- graphics::par(c("mfg", "fig"))
+      list(cell = as.integer(region$mfg), fig = region$fig)
+    },
+    error = function(e) NULL
+  )
 }
 
 #' The recorded calls that stand for a drawing, each once

@@ -133,7 +133,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
     # low-level call drawn on a plot no recorded call started -- a legend
     # on a panel of its own, after `plot.new()` -- is drawn on a plot
     # started for it in the panel R drew it in, in the coordinates it was
-    # drawn in (`replay_unrecorded_plot_call()`). The recorded calls are
+    # drawn in (`replay_unrecorded_plot_call()`). One drawn after R was sent
+    # back to a plot without starting one, by `par(mfg = )` or `screen()`,
+    # is drawn with that plot's group, where the drawing is on that plot
+    # (`sent_back_to()`). The recorded calls are
     # replayed with the ORIGINAL (unwrapped) functions, so nothing new is
     # recorded.
     replay_page = function(slots, numbers, panel_config = NULL) {
@@ -177,17 +180,30 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
 
         calls <- c(list(high), group$low_calls)
+        window <- high$window
         for (call in calls) {
           if (isTRUE(call$overlay)) {
             at <- private$replay_unrecorded_plot_call(call, at, panel_config)
+            window <- at$window
           } else {
+            # Drawn after R was sent back to this plot, in the coordinates
+            # R had then: those of the plot it was sent back from, after
+            # `par(mfg = )`, which keeps them.
+            if (isTRUE(call$sent_back) && !identical(call$window, window)) {
+              window <- replay_plot_window(call$window) %||% window
+              at$window <- window
+            }
             replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
           }
         }
         # Where R was once the group was drawn: a call that draws several
         # plots, as `plot()` of a fitted model does, moves on as many from
-        # the panel its first is in.
-        ends <- Filter(function(call) is.numeric(call$end_plot), calls)
+        # the panel its first is in. One drawn after R was sent back to it
+        # was drawn later, from another.
+        ends <- Filter(
+          function(call) is.numeric(call$end_plot) && !isTRUE(call$sent_back),
+          calls
+        )
         if (length(ends) > 0) {
           end <- ends[[length(ends)]]
           at$slot <- slot + end$end_figure - (high$figure %||% end$end_figure)
