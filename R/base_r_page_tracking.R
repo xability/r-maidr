@@ -53,6 +53,9 @@
 # Whether the plot R is starting opens the device it is drawn on: started
 # with no device open, it is counted once it is (`note_base_r_plot_started()`).
 .maidr_base_r_pages$opening <- FALSE
+# What maidr last let go of on each device, by device number
+# (`note_base_r_calls_cleared()`).
+.maidr_base_r_pages$let_go <- list()
 
 #' Where R is drawing, on a device
 #'
@@ -641,42 +644,70 @@ standalone_calls <- function(calls) {
 #' Note that the calls recorded on a device were let go of
 #'
 #' `show()` and `save_html()` let go of the calls recorded on a device once
-#' they have read its page (`clear_device_storage()`). What is drawn on
-#' that page afterwards is all that is recorded on it, and may start no
-#' plot, as a line added to the plot they read does not. Kept with where R
-#' is on the device, until R starts a page there (`note_base_r_plot_new()`).
+#' they have read its page (`clear_device_storage()`): of that page's, and
+#' of those of every page before it. What is drawn on that page afterwards
+#' is all that is recorded on it, and may start no plot, as a line added to
+#' the plot they read does not. So is what is drawn on a page from before
+#' it that `replayPlot()` puts back. Noted with where R is on the device,
+#' until R starts a page there (`note_base_r_plot_new()`), and for the
+#' device, until its calls are let go of again: the numbers of the calls
+#' on the page read, from the first to the last, and of the last call
+#' recorded then (`base_r_page_let_go()`).
 #'
 #' @param device_id Graphics device ID
+#' @param read The numbers of the calls on the page read
+#'   (`end_base_r_call()`)
 #' @return NULL (invisible)
 #' @keywords internal
 #' @noRd
-note_base_r_calls_cleared <- function(device_id) {
+note_base_r_calls_cleared <- function(device_id, read = integer()) {
   key <- as.character(device_id)
   if (!is.null(.maidr_base_r_pages$at[[key]])) {
     .maidr_base_r_pages$at[[key]]$cleared <- TRUE
   }
+  .maidr_base_r_pages$let_go[[key]] <- list(
+    read = if (length(read) > 0L) range(read),
+    upto = .maidr_base_r_pages$next_id - 1L
+  )
   invisible(NULL)
 }
 
-#' Whether the plot on the page a device shows was let go of
+#' Whether, and how, maidr let go of the plot on the page a device shows
 #'
-#' maidr let go of the calls recorded on the device since R started the
-#' page it is on (`note_base_r_calls_cleared()`), and the page R shows is
-#' that page: where the device keeps a display list, it holds a mark of a
-#' call no longer recorded (`base_r_display_list_marks()`), rather than a
-#' page `replayPlot()` put back since.
+#' maidr let go of the calls recorded on the device
+#' (`note_base_r_calls_cleared()`), and the page R shows holds a plot of
+#' theirs. Where the device keeps a display list, it says which calls are
+#' on that page (`base_r_display_list_marks()`): those no longer recorded
+#' are on the page the earlier `show()` or `save_html()` read, or on one
+#' drawn before it that `replayPlot()` has put back since. Where it keeps
+#' none, the page is the one read until R starts another.
 #'
 #' @param device_id Graphics device ID
-#' @return Logical
+#' @return `"read"`, where the page is the one read; `"put back"`, where
+#'   it is one drawn before it; or NULL
 #' @keywords internal
 #' @noRd
-base_r_page_cleared <- function(device_id = grDevices::dev.cur()) {
-  if (!isTRUE(base_r_device_position(device_id)$cleared)) {
-    return(FALSE)
-  }
+base_r_page_let_go <- function(device_id = grDevices::dev.cur()) {
   marks <- base_r_display_list_marks(device_id)
-  recorded <- vapply(get_device_calls(device_id), function(call) call$id %||% NA_integer_, 1L)
-  is.null(marks) || any(!marks$ids %in% recorded)
+  if (is.null(marks)) {
+    return(if (isTRUE(base_r_device_position(device_id)$cleared)) "read")
+  }
+  # Recorded on any device: a page copied from another, whose calls are
+  # still recorded there, was not let go of.
+  recorded <- unlist(lapply(names(.maidr_base_r_session$devices), function(key) {
+    vapply(get_device_calls(as.integer(key)), function(call) call$id %||% NA_integer_, 1L)
+  }))
+  gone <- marks$ids[!marks$ids %in% recorded]
+  let_go <- .maidr_base_r_pages$let_go[[as.character(device_id)]]
+  if (length(gone) == 0L || is.null(let_go)) {
+    return(NULL)
+  }
+  read <- let_go$read
+  if (length(read) == 2L && any(gone >= read[[1]] & gone <= read[[2]])) {
+    "read"
+  } else if (any(gone <= let_go$upto)) {
+    "put back"
+  }
 }
 
 #' Stop unless the page a device shows holds a Base R plot maidr recorded
@@ -686,7 +717,8 @@ base_r_page_cleared <- function(device_id = grDevices::dev.cur()) {
 #' (`no_base_r_plots_message()`). A page holding no plot maidr recorded
 #' (`base_r_page_without_plot()`) says that instead, and why: the plot on
 #' it was read by an earlier `show()` or `save_html()`, which let go of its
-#' calls (`base_r_page_cleared()`); or what started the page, or put it
+#' calls, or `replayPlot()` put it back from before that, when they were let
+#' go of with the rest (`base_r_page_let_go()`); or what started the page, or put it
 #' back, was not recorded, and the plots maidr recorded before it are on
 #' pages R no longer shows. maidr can neither read nor draw the page R does
 #' show.
@@ -700,12 +732,21 @@ check_base_r_page_recorded <- function(device_id = grDevices::dev.cur()) {
     stop(no_base_r_plots_message(), call. = FALSE)
   }
   if (base_r_page_without_plot(device_id)) {
-    why <- if (base_r_page_cleared(device_id)) {
+    let_go <- base_r_page_let_go(device_id)
+    why <- if (identical(let_go, "read")) {
       paste0(
         "An earlier show() or save_html() read the plot on that page, and ",
         "maidr let go of what it had recorded of it then: what has been ",
         "drawn on the page since is all maidr holds of it, and starts no ",
         "plot. Draw the plot again, with what was added to it, to read it."
+      )
+    } else if (identical(let_go, "put back")) {
+      paste0(
+        "replayPlot() put back a page drawn before an earlier show() or ",
+        "save_html() read the device, and maidr let go of what it had ",
+        "recorded of that page then, with the rest of the device's: what has ",
+        "been drawn on the page since is all maidr holds of it, and starts ",
+        "no plot. Draw the plot again, with what was added to it, to read it."
       )
     } else {
       paste0(

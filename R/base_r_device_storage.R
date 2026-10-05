@@ -240,9 +240,18 @@ clear_device_storage <- function(device_id = grDevices::dev.cur()) {
   key <- as.character(device_id)
 
   if (!is.null(.maidr_base_r_session$devices[[key]])) {
+    # The calls drawn on the page the device shows, which show() and
+    # save_html() have just read (`base_r_page_let_go()`); a layout call is
+    # kept from every page.
+    shown <- tryCatch(shown_device_calls(device_id), error = function(e) list())
+    read <- vapply(
+      Filter(function(call) !identical(call$class_level, "LAYOUT"), shown),
+      function(call) call$id %||% NA_integer_,
+      integer(1)
+    )
     .maidr_base_r_session$devices[[key]] <- NULL
     reset_device_state(device_id)
-    note_base_r_calls_cleared(device_id)
+    note_base_r_calls_cleared(device_id, read[!is.na(read)])
   }
 
   invisible(NULL)

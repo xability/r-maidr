@@ -1636,6 +1636,51 @@ test_that("a page read before and added to since says its plot was let go of", {
     testthat::expect_match(said, "holds no Base R plot maidr recorded")
     testthat::expect_match(said, "R started that page with plot.new()", fixed = TRUE)
   }
+
+  # A page replayPlot() puts back is the page read only where it is the
+  # one the save read: one drawn before it was let go of with it, unread,
+  # and said to have been read.
+  replayed <- function(before_save, page_between = TRUE) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    on.exit(
+      {
+        clear_base_r_device(device_id)
+        grDevices::dev.off(device_id)
+      },
+      add = TRUE
+    )
+    clear_base_r_device(device_id)
+    grDevices::dev.control("enable")
+    par(mar = c(4, 4, 2, 1))
+    plot(c(3, 7, 2, 9, 4), main = "A")
+    earlier <- grDevices::recordPlot()
+    plot(c(5, 1, 8, 2, 6), main = "B")
+    read <- grDevices::recordPlot()
+    suppressMessages(save_html(file = tempfile(fileext = ".html")))
+    if (page_between) plot(1:3, main = "C")
+    grDevices::replayPlot(if (before_save) earlier else read)
+    abline(h = 5)
+    tryCatch(
+      {
+        save_html(file = tempfile(fileext = ".html"))
+        ""
+      },
+      error = conditionMessage
+    )
+  }
+  for (page_between in c(FALSE, TRUE)) {
+    said <- replayed(before_save = TRUE, page_between = page_between)
+    testthat::expect_match(said, "holds no Base R plot maidr recorded")
+    testthat::expect_match(
+      said,
+      "replayPlot() put back a page drawn before an earlier show() or save_html()",
+      fixed = TRUE
+    )
+    testthat::expect_no_match(said, "read the plot on that page", fixed = TRUE)
+  }
+  said <- replayed(before_save = FALSE)
+  testthat::expect_match(said, "An earlier show() or save_html() read the plot", fixed = TRUE)
 })
 
 test_that("the size a chart is drawn at is settled by its own page", {
