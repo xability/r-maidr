@@ -322,9 +322,14 @@ base_r_echoable_mtext <- function(entry) {
 #' `axis(1, at = numeric(0))` is, where gridGraphics stops. And R reads
 #' `labels` given as logicals by the first: `TRUE` labels the ticks as it
 #' would unasked, and `FALSE` or `NA` draws no labels. gridGraphics stops on
-#' any but one `TRUE` or `FALSE`. R reads `tick`, `line`, `pos` and `outer`
-#' by their first value too, a missing `tick` as `TRUE` and a missing
-#' `outer` as `FALSE` (`base_r_scalar_arg()`).
+#' any but one `TRUE` or `FALSE`. R reads `side`, `tick`, `line`, `pos` and
+#' `outer` by their first value too, a missing `tick` as `TRUE` and a missing
+#' `outer` as `FALSE` (`base_r_scalar_arg()`), and so it reads `font`, `lty`,
+#' `lwd`, `lwd.ticks`, `col` and `col.ticks`, a missing `lwd` or `lwd.ticks`
+#' drawing no line (`base_r_axis_width()`). gridGraphics stops on several
+#' values of `side`, `font`, `lwd` and `lwd.ticks`, and draws the ticks in
+#' each `col.ticks` and `lty` in turn. It also stops on several `padj`
+#' values, which R reads a value per label, and which are left to it.
 #'
 #' @param entry The display-list entry
 #' @return A list of display-list entries: none for an axis R drew nothing
@@ -333,7 +338,8 @@ base_r_echoable_mtext <- function(entry) {
 #' @noRd
 base_r_echoable_axis <- function(entry) {
   args <- as.list(entry[[2]])
-  # side, at, labels, tick, line, pos, outer
+  # side, at, labels, tick, line, pos, outer, font, lty, lwd, lwd.ticks,
+  # col, col.ticks
   at <- args[[3]]
   if (!is.null(at) && length(at) == 0) {
     return(list())
@@ -342,15 +348,40 @@ base_r_echoable_axis <- function(entry) {
   if (is.logical(labels) && !identical(labels, TRUE) && !identical(labels, FALSE)) {
     args[[4]] <- length(labels) == 0 || isTRUE(labels[[1]])
   }
+  args[2] <- list(base_r_scalar_arg(args[[2]]))
   args[5] <- list(base_r_scalar_arg(args[[5]], flag = TRUE, missing = TRUE))
   args[6] <- list(base_r_scalar_arg(args[[6]]))
   args[7] <- list(base_r_scalar_arg(args[[7]]))
   args[8] <- list(base_r_scalar_arg(args[[8]], flag = TRUE, missing = FALSE))
+  for (k in c(9, 10, 13, 14)) {
+    if (length(args[[k]]) > 1) args[k] <- list(args[[k]][[1]])
+  }
+  args[11] <- list(base_r_axis_width(args[[11]]))
+  args[12] <- list(base_r_axis_width(args[[12]]))
   if (identical(args, as.list(entry[[2]]))) {
     return(list(entry))
   }
   entry[[2]] <- as.pairlist(args)
   list(entry)
+}
+
+#' A line width of a recorded `axis()`, as R's C code reads it
+#'
+#' R reads `lwd` and `lwd.ticks` by their first value, and draws no line for
+#' a missing or negative one, or the default width for none. gridGraphics
+#' stops on several values and on a missing one.
+#'
+#' @param x The argument, as recorded
+#' @return `x` itself when gridGraphics reads it as R does: none, or one
+#'   number that is not missing; otherwise the width R drew, 0 for none
+#' @keywords internal
+#' @noRd
+base_r_axis_width <- function(x) {
+  if (length(x) == 0 || (length(x) == 1 && is.numeric(x) && !is.na(x))) {
+    return(x)
+  }
+  width <- suppressWarnings(as.numeric(x)[1])
+  if (is.na(width)) 0 else width
 }
 
 #' A `title()` gridGraphics cannot echo, drawn again as R drew it

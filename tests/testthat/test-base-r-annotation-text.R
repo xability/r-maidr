@@ -71,6 +71,11 @@ expect_drawn_as_r <- function(draw, size = c(width = 7, height = 5)) {
   testthat::expect_identical(maidr_drawing(draw, size), drawn)
 }
 
+expect_lines_drawn_as_r <- function(draw, size = c(width = 7, height = 5)) {
+  drawn <- r_drawing(draw, size, drawn_lines)
+  testthat::expect_identical(maidr_drawing(draw, size, drawn_lines), drawn)
+}
+
 test_that("a title given as a number, a logical or a classed value is drawn as R draws it", {
   values <- list(
     3, 1 / 3, 1e5, 3L, TRUE, 1 + 2i, NA, character(0),
@@ -409,17 +414,15 @@ test_that("an axis's tick, line, pos and outer are read by their first value, as
 
   # Ticks are lines. R draws them by tick's first value, for a missing one
   # too, and none for `tick = 0`, which heatmap() draws its axes with.
-  size <- c(width = 7, height = 5)
   for (tick in list(FALSE, NA, c(FALSE, TRUE), c(TRUE, FALSE), 0, logical(0))) {
-    draw <- function() {
+    expect_lines_drawn_as_r(function() {
       graphics::plot(1:5, xaxt = "n")
       graphics::axis(1, tick = tick)
-    }
-    drawn <- r_drawing(draw, size, drawn_lines)
-    testthat::expect_identical(maidr_drawing(draw, size, drawn_lines), drawn)
+    })
   }
   # A heatmap's dendrograms are drawn a hundredth of a pixel from R's, so
   # its lines are counted.
+  size <- c(width = 7, height = 5)
   heat <- function() stats::heatmap(as.matrix(datasets::mtcars[1:6, 1:4]))
   testthat::expect_length(
     maidr_drawing(heat, size, drawn_lines),
@@ -431,6 +434,36 @@ test_that("an axis's tick, line, pos and outer are read by their first value, as
     axis(1, outer = NA)
   })
   testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+})
+
+test_that("an axis's side, font, line widths, colours and line type are read as R reads them", {
+  # R reads each by its first value, and draws no line for a missing width.
+  # gridGraphics stopped on several values of side, font, lwd or lwd.ticks
+  # ("the condition has length > 1") and on a missing width, and the chart
+  # fell back to a picture; it drew the ticks in each col.ticks and lty in
+  # turn.
+  axes <- list(
+    list(c(1, 3)), list("1"), list(c(2, 4), font = c(2, 1)), list(1, font = c(9, 2)),
+    list(1, lwd = c(1, 3)), list(1, lwd = NA), list(1, lwd.ticks = c(3, 1)),
+    list(1, lwd.ticks = NA), list(1, col = c("red", "blue")),
+    list(1, col.ticks = c("red", "blue")), list(1, lty = c("dashed", "solid"))
+  )
+  for (axis_args in axes) {
+    draw <- function() {
+      graphics::plot(1:5, xaxt = "n", yaxt = "n")
+      do.call(graphics::axis, axis_args)
+    }
+    expect_drawn_as_r(draw)
+    expect_lines_drawn_as_r(draw)
+  }
+
+  chart <- exported_chart(function() {
+    plot(1:5, xaxt = "n", main = "Speed")
+    axis(c(1, 3), font = c(2, 1), lwd = c(1, 3))
+  })
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_true("Speed" %in% chart$text)
   testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
 })
 
