@@ -396,7 +396,11 @@
   plot under `par(mfrow = c(2, 2))` after a reset to one panel. maidr now
   reads the page each call was drawn on from R itself, so the chart is the
   last page, with all the panels of a `par(mfrow)`, `par(mfcol)` or
-  `layout()` grid on it, each plot in the panel R drew it in. A plot drawn
+  `layout()` grid on it, each plot in the panel R drew it in -- also when
+  maidr did not record the call that set the grid up, made through
+  `graphics::par()` or `withr::with_par()`, or before an earlier `show()`
+  or `save_html()` on the device, where maidr read the plots as one and
+  drew them over each other at full size. A plot drawn
   after `par(new = TRUE)` is drawn over the plot before it, in its panel,
   where maidr drew the first alone or gave the second a panel of its own;
   an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of

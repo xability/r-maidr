@@ -398,6 +398,49 @@ test_that("a plot that lays out its own page after a grid is the chart alone", {
   testthat::expect_identical(cell_titles(after), list("after", character(0)))
 })
 
+test_that("a grid no recorded call set up is read from the cells R drew its plots in", {
+  skip_if_no_render()
+
+  # R's page, whichever way its grid was set up.
+  page <- quote({
+    graphics::par(mfrow = c(1, 2))
+    hist(mtcars$wt, main = "Left")
+    barplot(c(a = 1, b = 3), main = "Right")
+  })
+  expect_read_as_r_draws <- function(draw) {
+    chart <- last_page_export(draw)
+    testthat::expect_identical(cell_titles(chart), list("Left", "Right"))
+    expect_selectors_drawn(chart)
+    expect_drawn_where_r_draws(chart, page, c("Left", "Right", "a", "b"))
+  }
+
+  # The par() call was recorded, and cleared with the chart an earlier
+  # save_html() on the device saved.
+  expect_read_as_r_draws(function() {
+    par(mfrow = c(1, 2))
+    hist(mtcars$mpg, main = "First")
+    hist(mtcars$hp, main = "Second")
+    suppressMessages(save_html(file = tempfile(fileext = ".html")))
+    hist(mtcars$wt, main = "Left")
+    barplot(c(a = 1, b = 3), main = "Right")
+  })
+  # Set by a call maidr does not record.
+  expect_read_as_r_draws(function() eval(page))
+  expect_read_as_r_draws(function() {
+    withr::with_par(list(mfrow = c(1, 2)), {
+      hist(mtcars$wt, main = "Left")
+      barplot(c(a = 1, b = 3), main = "Right")
+    })
+  })
+
+  # A plot that lays out a grid of its own is not in one it was not drawn in.
+  pairs <- last_page_export(function() {
+    graphics::par(mfrow = c(1, 2))
+    pairs(iris[1:3])
+  })
+  testthat::expect_length(pairs$schema$subplots, 3L)
+})
+
 test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
   skip_if_no_render()
 

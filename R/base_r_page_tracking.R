@@ -276,7 +276,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   drawing <- Filter(function(call) call$depth < depth, .maidr_base_r_pages$calls[[key]])
   id <- .maidr_base_r_pages$next_id
   .maidr_base_r_pages$next_id <- id + 1L
-  .maidr_base_r_pages$calls[[key]] <- c(drawing, list(list(depth = depth, id = id)))
+  # The shape of the grid the call starts in: one it lays out itself, as
+  # `pairs()` and `heatmap()` do, gives its plots cells of another.
+  grid <- tryCatch(as.integer(graphics::par("mfg")[3:4]), error = function(e) NULL)
+  .maidr_base_r_pages$calls[[key]] <- c(drawing, list(list(depth = depth, id = id, grid = grid)))
   invisible(NULL)
 }
 
@@ -295,7 +298,9 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   was on when the call was done, and `window`, the coordinates of that
 #'   plot then (`base_r_plot_window()`); `opens_page`, whether R started a
 #'   page with the plot the call started first on it, which under a grid
-#'   is in the grid's first panel (`plot_in_grid()`); `id`, the number the
+#'   is in the grid's first panel (`plot_in_grid()`), and `laid_out`,
+#'   whether that plot is in a grid of another shape than the one the call
+#'   started in, which it laid out itself; `id`, the number the
 #'   call is known by,
 #'   `outer`, the number of the recorded call that made it while drawing,
 #'   if one did, and `own_plot`, whether it started a plot itself (see
@@ -324,6 +329,8 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     fig = first$fig,
     new_plot = started,
     opens_page = started && isTRUE(first$opened),
+    laid_out = started && length(call$grid) == 2L && length(first$cell) == 4L &&
+      !identical(call$grid, as.integer(first$cell[3:4])),
     end_figure = at$figure,
     end_plot = at$plot,
     window = base_r_plot_window(),

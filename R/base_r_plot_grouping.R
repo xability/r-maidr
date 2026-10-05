@@ -168,7 +168,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   layout_calls <- grouped$layout_calls
 
   if (length(layout_calls) == 0) {
-    return(NULL)
+    return(grid_of_cells(grouped$groups))
   }
 
   # A layout call only governs the plots drawn AFTER it, so a layout call
@@ -193,7 +193,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     )
 
     if (length(layout_calls) == 0) {
-      return(NULL)
+      return(grid_of_cells(grouped$groups))
     }
   }
 
@@ -246,9 +246,55 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   }
 
   if (!is.null(config) && !grid_holds_a_plot(grouped$groups, config)) {
-    return(NULL)
+    config <- NULL
   }
 
+  config %||% grid_of_cells(grouped$groups)
+}
+
+#' The grid R drew a page's plots in, from the cells it put them in
+#'
+#' Where no recorded layout call sets up the grid the page's plots are in,
+#' R still reports the cell it put each in (`par("mfg")`): a
+#' `par(mfrow = )` made through `graphics::par()` or `withr::with_par()`,
+#' before `maidr_on()`, or before an earlier `show()` or `save_html()` on
+#' the device, which cleared the calls recorded with it. Without it the
+#' page's plots were read as one, and drawn over each other at full size.
+#' Its plots are read in the panels of an `mfrow` grid of that shape, and
+#' each drawn in its cell, where R drew it. A plot that laid out a grid of
+#' its own (`laid_out`, see `end_base_r_call()`) or that a region of the
+#' page was given, by `par(fig = )` or `screen()`, is not one of them.
+#'
+#' @param groups Plot groups from group_device_calls()
+#' @return Panel configuration list, with `derived` TRUE, or NULL when the
+#'   cells name no grid of more than one panel, or several
+#' @keywords internal
+#' @noRd
+grid_of_cells <- function(groups) {
+  highs <- Filter(
+    function(high) {
+      length(high$cell) == 4L && !anyNA(high$cell) && !isTRUE(high$laid_out) &&
+        !is_figure_region(high)
+    },
+    lapply(groups, function(g) g$high_call)
+  )
+  if (length(highs) == 0L) {
+    return(NULL)
+  }
+  dims <- unique(lapply(highs, function(high) as.integer(high$cell[3:4])))
+  if (length(dims) != 1L || prod(dims[[1]]) < 2L) {
+    return(NULL)
+  }
+  config <- list(
+    type = "mfrow",
+    nrows = dims[[1]][[1]],
+    ncols = dims[[1]][[2]],
+    total_panels = prod(dims[[1]]),
+    derived = TRUE
+  )
+  if (!all(vapply(highs, plot_in_grid, logical(1), config = config))) {
+    return(NULL)
+  }
   config
 }
 
@@ -285,7 +331,8 @@ grid_holds_a_plot <- function(groups, config) {
 #' plot `par(mfg = )` sends elsewhere starts none -- and a page of a
 #' `layout()` in its panel 1. One that started a page anywhere else, as
 #' the image of `heatmap()` does in the corner of the 2 x 2 layout it sets
-#' up, is in a grid of its own that has that shape.
+#' up, is in a grid of its own that has that shape; and so is one that laid
+#' out a grid of its own (`laid_out`, see `end_base_r_call()`).
 #'
 #' @param high The plot's recorded call
 #' @param config The grid
@@ -295,7 +342,7 @@ grid_holds_a_plot <- function(groups, config) {
 plot_in_grid <- function(high, config) {
   cell <- high$cell
   dims <- as.integer(c(config$nrows, config$ncols))
-  if (length(cell) != 4L || !identical(as.integer(cell[3:4]), dims)) {
+  if (length(cell) != 4L || !identical(as.integer(cell[3:4]), dims) || isTRUE(high$laid_out)) {
     return(FALSE)
   }
   !isTRUE(high$opens_page) || identical(panel_of_cell(cell, config), 1L)

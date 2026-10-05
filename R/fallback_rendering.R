@@ -147,6 +147,13 @@ replay_base_r_plot <- function(device_id) {
     stop("No Base R plot calls found to replay")
   }
 
+  # A grid no recorded call set up, which R drew the plots in all the same
+  # (`grid_of_cells()`), is set up first, as R had it.
+  config <- tryCatch(detect_panel_configuration(device_id), error = function(e) NULL)
+  if (isTRUE(config$derived)) {
+    graphics::par(mfrow = c(config$nrows, config$ncols))
+  }
+
   # Replay through `replay_plot_call()`, which resolves each name to the
   # *original* graphics function and strips maidr's own bookkeeping
   # arguments. Calling the name through `do.call()` reached maidr's recording

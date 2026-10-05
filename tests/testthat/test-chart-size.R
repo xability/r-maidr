@@ -1080,7 +1080,10 @@ test_that("a Base R chart shown as a picture is held to its size as its chart is
   testthat::expect_false(file.exists(file))
   maidr:::clear_device_storage(device)
 
-  # A picture R draws at the size is drawn there, saying nothing.
+  # A picture R draws at the size is drawn there, saying nothing. The device
+  # is put back to one panel first: under the grid five() left on it, R
+  # draws the plot in the top fifth of the page, and so does maidr.
+  par(mfrow = c(1, 1))
   persp(volcano)
   drawn <- saved()
   testthat::expect_equal(drawn$picture, c(7, 5) * 150)

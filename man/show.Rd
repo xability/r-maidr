@@ -86,7 +86,9 @@ grid. Each plot of a grid is in the panel R drew it in: a plot drawn
 after \code{par(new = TRUE)}, or with \code{add = TRUE}, is drawn in the panel of
 the plot before it, one \code{par(mfg = )} sends to a panel out of turn is in
 that panel, and a panel \code{plot.new()} or \code{frame()} passed over stays
-empty. A plot drawn in a region of the page \code{par(fig = )} gave it,
+empty. So it is where the call that set the grid up was not recorded:
+one made through \code{graphics::par()}, before \code{\link[=maidr_on]{maidr_on()}}, or before an
+earlier \code{show()} or \code{save_html()} on the device. A plot drawn in a region of the page \code{par(fig = )} gave it,
 as an inset is, or in a screen of \code{split.screen()}, is drawn in that
 region, and read with the plot before it. \code{lines()}, \code{points()},
 \code{abline()}, \code{text()}, \code{legend()},

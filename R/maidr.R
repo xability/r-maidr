@@ -50,7 +50,9 @@
 #' after `par(new = TRUE)`, or with `add = TRUE`, is drawn in the panel of
 #' the plot before it, one `par(mfg = )` sends to a panel out of turn is in
 #' that panel, and a panel `plot.new()` or `frame()` passed over stays
-#' empty. A plot drawn in a region of the page `par(fig = )` gave it,
+#' empty. So it is where the call that set the grid up was not recorded:
+#' one made through `graphics::par()`, before [maidr_on()], or before an
+#' earlier `show()` or `save_html()` on the device. A plot drawn in a region of the page `par(fig = )` gave it,
 #' as an inset is, or in a screen of `split.screen()`, is drawn in that
 #' region, and read with the plot before it. `lines()`, `points()`,
 #' `abline()`, `text()`, `legend()`,
