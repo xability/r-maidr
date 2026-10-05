@@ -435,6 +435,25 @@ test_that("detect_panel_configuration reads no layout call before the one that g
   setup_clean_grouping()
 })
 
+test_that("a layout() call's matrix is read wherever it was written", {
+  # Written by name after the sizes, the matrix is not the first argument:
+  # read as the first, `layout(heights = lcm(5), mat = matrix(1))` was not
+  # a layout of one panel, and the 2 x 2 page below was given the size of
+  # text of a grid of two rows and one column, where R gives it 0.83.
+  one <- list(function_name = "layout", args = list(heights = lcm(5), mat = matrix(1)))
+  testthat::expect_true(maidr:::sets_grid_of_one(one))
+  two <- list(function_name = "layout", args = list(widths = 1, mat = matrix(1:2, 1)))
+  testthat::expect_false(maidr:::sets_grid_of_one(two))
+
+  four <- list(
+    function_name = "layout",
+    args = list(widths = c(1, 1), heights = c(1, 1), mat = matrix(1:4, 2)),
+    storage_index = 1L
+  )
+  settings <- maidr:::par_margin_settings(list(four), 2L)
+  testthat::expect_identical(settings$cex, 0.83)
+})
+
 # ==============================================================================
 # Integration Tests
 # ==============================================================================

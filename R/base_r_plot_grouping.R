@@ -451,8 +451,10 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     over_page <- function(call) {
       after <- which(plot_indices > call$storage_index)
       next_plot <- if (length(after) > 0) grouped$groups[[min(after)]]$high_call
-      isTRUE(call$storage_index > min(plot_indices)) && sets_grid_of_one(call) &&
-        isFALSE(next_plot$opens_page)
+      # Whether it sets a grid of one is read last: a layout() call's
+      # arguments are matched against layout() to find its matrix.
+      isTRUE(call$storage_index > min(plot_indices)) && isFALSE(next_plot$opens_page) &&
+        sets_grid_of_one(call)
     }
     layout_calls <- Filter(
       function(call) isTRUE(call$storage_index < last_plot_index) && !over_page(call),
@@ -497,12 +499,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
       )
     } else if (call$function_name == "layout" && length(args) > 0) {
       args <- layout_arguments(args)
-      mat <- args[["mat"]] %||% args[[1]]
-      # layout() takes a vector as a one-column matrix: `layout(1)` puts
-      # the device back to a single panel.
-      if (is.numeric(mat) && !is.matrix(mat)) {
-        mat <- as.matrix(mat)
-      }
+      mat <- layout_matrix(args)
       if (is.matrix(mat)) {
         config <- list(
           type = "layout",
@@ -544,7 +541,7 @@ sets_grid_of_one <- function(call) {
     grid <- args[["mfrow"]] %||% args[["mfcol"]]
     return(is.numeric(grid) && length(grid) == 2L && all(grid == 1))
   }
-  mat <- if (identical(call$function_name, "layout") && length(args) > 0) args[[1]]
+  mat <- if (identical(call$function_name, "layout")) layout_matrix(layout_arguments(args))
   is.numeric(mat) && length(unique(mat[mat > 0])) == 1L
 }
 
@@ -747,6 +744,28 @@ layout_arguments <- function(args) {
   args
 }
 
+#' The matrix a recorded `layout()` call lays the page out by
+#'
+#' The argument R matched to `mat`, wherever it was written, as a matrix:
+#' `layout()` takes a vector as a one-column matrix, so `layout(1)` puts the
+#' device back to a single panel. Read as the first argument, the matrix of
+#' `layout(widths = c(3, 1), mat = m)` was its widths.
+#'
+#' @param args The call's arguments, named as [layout_arguments()] names them
+#' @return A numeric matrix, or NULL
+#' @keywords internal
+#' @noRd
+layout_matrix <- function(args) {
+  if (length(args) == 0L) {
+    return(NULL)
+  }
+  mat <- args[["mat"]] %||% args[[1]]
+  if (is.numeric(mat) && !is.matrix(mat)) {
+    mat <- as.matrix(mat)
+  }
+  if (is.numeric(mat) && is.matrix(mat)) mat
+}
+
 #' Whether a page's `layout()` call sizes any of its cells with `lcm()`
 #'
 #' `lcm()` gives a size as text, "5 cm", and `layout()` takes each of its
@@ -942,8 +961,7 @@ par_margin_settings <- function(layout_calls, before) {
       break
     }
     if (call$function_name == "layout") {
-      mat <- if (length(call$args) > 0) call$args[[1]]
-      settings <- set_up_grid(settings, if (is.numeric(mat)) dim(as.matrix(mat)))
+      settings <- set_up_grid(settings, dim(layout_matrix(layout_arguments(call$args))))
     }
     if (call$function_name != "par") {
       next
