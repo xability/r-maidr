@@ -19,9 +19,10 @@ plot_function_values(target, args, arg_text, written, value)
 \item{value}{The value \code{plot()} returned}
 }
 \value{
-List with \code{args}, holding the points under \code{.maidr_curve_data}
-and the function that returns them in place of the one plotted when
-\code{value} is what \code{curve()} returns, and \code{arg_text}
+List with \code{args} and \code{arg_text}. When \code{value} is what \code{curve()}
+returns, \code{args} holds the function that returns its y values in place
+of the one plotted, and the points under \code{.maidr_curve_data} when they
+can be read.
 }
 \description{
 \code{plot(f)} dispatches to \code{graphics::plot.function()}, which draws \code{f} by
@@ -36,15 +37,19 @@ announced as a scatter with no points.
 \code{plot.function()} returns what \code{curve()} returned, the x and y it drew,
 so they are kept as the \code{curve()} wrapper keeps its own
 (\code{curve_recorded_values()}), and \code{detect_layer_type()} reads the call
-as it reads \code{curve()}.
+as it reads \code{curve()}. Values that wrapper cannot read as numbers, such
+as dates, are not kept, and the call is shown as a picture of the chart.
 
-The replay that draws maidr's chart is given, in place of the function,
-one that returns those same y values (\code{drawn_values_function()}): \code{curve()}
-evaluates it at the x it drew at, so maidr draws what R drew and what is
-announced. Called again, the function itself would be evaluated against
-whatever its free variables hold by then: after
-\code{for (k in 1:2) plot(function(x) sin(k * x), 0, pi)} both panels were drawn
-as \code{sin(2 * x)}, and once \code{k} was removed the chart was drawn blank.
+The replay that draws maidr's chart, or that picture, is given, in place
+of the function, one that returns the y values R drew
+(\code{drawn_values_function()}): \code{curve()} evaluates it at the x it drew at,
+so maidr draws what R drew and what is announced. Called again, the
+function itself would be evaluated against whatever its free variables
+hold by then: after \code{for (k in 1:2) plot(function(x) sin(k * x), 0, pi)}
+both panels were drawn as \code{sin(2 * x)}, and once \code{k} was removed the
+chart was drawn blank. Left in the recorded call, a function of dates was
+read as the points of a scatter, which stopped the save with "object of
+type 'closure' is not subsettable".
 
 The axis titles are \code{plot.function()}'s. The x axis is \code{xname}, which it
 hands on to \code{curve()}. The y axis is the first line of the function as

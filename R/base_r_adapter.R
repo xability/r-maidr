@@ -539,13 +539,17 @@ BaseRAdapter <- R6::R6Class(
           first_arg <- args[[1]]
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
-          } else if (!is.null(args[[".maidr_curve_data"]])) {
+          } else if (identical(
+            dispatched_definition("plot", get_original_function("plot"), args),
+            graphics::plot.function
+          )) {
             # `plot(f)` of a function is drawn by `curve()`, and the wrapper
             # kept what `curve()` returned (`plot_function_values()`). Typed
             # by `type` as a scatter, the function itself was read as the
             # points: the save stopped with "object of type 'builtin' is not
-            # subsettable", or announced a scatter of no points.
-            curve_layer_type(args)
+            # subsettable", or announced a scatter of no points. Values the
+            # wrapper could not keep, such as dates, are shown as a picture.
+            if (is.null(args[[".maidr_curve_data"]])) "unknown" else curve_layer_type(args)
           } else if (self$formula_call(layer) && !self$formula_scatter_readable(layer)) {
             # `plot(y ~ f)` on a factor dispatches to `plot.factor()`, which
             # draws a box plot, and a formula whose frame could not be

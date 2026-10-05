@@ -363,6 +363,88 @@ test_that("plot(f, add = TRUE) over a chart is shown as its picture, as curve(ad
   }
 })
 
+# The strings maidr's replay of the calls recorded for `call` draws, which
+# is how the picture of a chart it cannot read is drawn.
+pf_replayed_strings <- function(call, env = parent.frame()) {
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  eval(call, env)
+  recorded <- maidr:::get_device_calls(device_id)
+  clear_base_r_device(device_id)
+  grDevices::dev.off(device_id)
+
+  file <- tempfile(fileext = ".svg")
+  on.exit(unlink(file), add = TRUE)
+  svglite::svglite(file, width = 7, height = 5)
+  tryCatch(
+    for (entry in recorded) {
+      maidr:::replay_plot_call(
+        entry$function_name, entry$args, entry$call_env, entry$arg_text
+      )
+    },
+    finally = grDevices::dev.off()
+  )
+  pf_strings(xml2::read_xml(file))
+}
+
+test_that("plot(f) of values that are not numbers is a picture of what R drew", {
+  # A function of dates or of time differences was left in the recorded
+  # call, where it was read as the points of a scatter: the save stopped
+  # with "object of type 'closure' is not subsettable", and took the other
+  # panels of a grid with it.
+  cases <- list(
+    quote(plot(function(x) as.Date("2020-01-01") + 10 * x, 0, 1)),
+    quote(plot(function(x) as.difftime(x, units = "mins"), 0, 1)),
+    quote({
+      par(mfrow = c(1, 2))
+      plot(sin, -pi, pi)
+      plot(function(x) as.Date("2020-01-01") + 10 * x, 0, 1)
+    })
+  )
+  for (call in cases) {
+    label <- deparse1(call)
+    chart <- pf_exported(call)
+    testthat::expect_null(chart$schema, label = label)
+    testthat::expect_true(fell_back(chart$html), label = label)
+    testthat::expect_true(
+      any(grepl("Rendering as static image", chart$warnings, fixed = TRUE)),
+      label = label
+    )
+    testthat::expect_false(
+      any(grepl("Failed to replay", chart$warnings, fixed = TRUE)),
+      label = label
+    )
+    testthat::expect_identical(pf_replayed_strings(call), pf_native_strings(call), label = label)
+  }
+
+  # The picture is drawn from the dates R drew, whatever `k` holds by then.
+  drawn_call <- quote({
+    k <- 10
+    f <- function(x) as.Date("2020-01-01") + k * x
+    plot(f, 0, 1)
+  })
+  changed_call <- quote({
+    k <- 10
+    f <- function(x) as.Date("2020-01-01") + k * x
+    plot(f, 0, 1)
+    k <- 300
+  })
+  testthat::expect_identical(pf_replayed_strings(changed_call), pf_native_strings(drawn_call))
+  testthat::expect_true("Jan 09" %in% pf_native_strings(drawn_call))
+
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  clear_base_r_device(grDevices::dev.cur())
+  on.exit(clear_base_r_device(grDevices::dev.cur()), add = TRUE)
+  plot(function(x) as.Date("2020-01-01") + 10 * x, 0, 1)
+  testthat::expect_warning(
+    widget <- maidr::show(as_widget = TRUE, use_cdn = FALSE),
+    "Rendering as static image"
+  )
+  testthat::expect_s3_class(widget, "htmlwidget")
+})
+
 test_that("each panel of a par(mfrow) grid reads its own function", {
   call <- quote({
     par(mfrow = c(1, 2))

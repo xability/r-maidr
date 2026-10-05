@@ -396,7 +396,8 @@
   as a scatter with no points. Its axes are named as R names them, "x" and
   the first line of the function as written, "sin". Drawn over another chart
   with `add = TRUE`, or as points with `type = "p"`, it is shown as a
-  picture of the chart, as `curve()` is. `plot()` of a time series, a
+  picture of the chart, as `curve()` is, and so is a function whose values
+  are not numbers, such as dates. `plot()` of a time series, a
   one-way table or a data frame of two columns is announced with the axis
   titles R draws for it, such as "Time" and "AirPassengers" for
   `plot(AirPassengers)`, where it had none, or had them only with another

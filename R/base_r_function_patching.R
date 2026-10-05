@@ -1168,15 +1168,19 @@ curve_default_labels <- function(recorded_args) {
 #' `plot.function()` returns what `curve()` returned, the x and y it drew,
 #' so they are kept as the `curve()` wrapper keeps its own
 #' (`curve_recorded_values()`), and `detect_layer_type()` reads the call
-#' as it reads `curve()`.
+#' as it reads `curve()`. Values that wrapper cannot read as numbers, such
+#' as dates, are not kept, and the call is shown as a picture of the chart.
 #'
-#' The replay that draws maidr's chart is given, in place of the function,
-#' one that returns those same y values (`drawn_values_function()`): `curve()`
-#' evaluates it at the x it drew at, so maidr draws what R drew and what is
-#' announced. Called again, the function itself would be evaluated against
-#' whatever its free variables hold by then: after
-#' `for (k in 1:2) plot(function(x) sin(k * x), 0, pi)` both panels were drawn
-#' as `sin(2 * x)`, and once `k` was removed the chart was drawn blank.
+#' The replay that draws maidr's chart, or that picture, is given, in place
+#' of the function, one that returns the y values R drew
+#' (`drawn_values_function()`): `curve()` evaluates it at the x it drew at,
+#' so maidr draws what R drew and what is announced. Called again, the
+#' function itself would be evaluated against whatever its free variables
+#' hold by then: after `for (k in 1:2) plot(function(x) sin(k * x), 0, pi)`
+#' both panels were drawn as `sin(2 * x)`, and once `k` was removed the
+#' chart was drawn blank. Left in the recorded call, a function of dates was
+#' read as the points of a scatter, which stopped the save with "object of
+#' type 'closure' is not subsettable".
 #'
 #' The axis titles are `plot.function()`'s. The x axis is `xname`, which it
 #' hands on to `curve()`. The y axis is the first line of the function as
@@ -1193,27 +1197,30 @@ curve_default_labels <- function(recorded_args) {
 #'   `written_arg_text()`
 #' @param written The expressions the arguments were written as
 #' @param value The value `plot()` returned
-#' @return List with `args`, holding the points under `.maidr_curve_data`
-#'   and the function that returns them in place of the one plotted when
-#'   `value` is what `curve()` returns, and `arg_text`
+#' @return List with `args` and `arg_text`. When `value` is what `curve()`
+#'   returns, `args` holds the function that returns its y values in place
+#'   of the one plotted, and the points under `.maidr_curve_data` when they
+#'   can be read.
 #' @keywords internal
 plot_function_values <- function(target, args, arg_text, written, value) {
-  values <- curve_recorded_values(args, value)
-  if (is.null(values)) {
+  if (!is.list(value) || !all(c("x", "y") %in% names(value))) {
     return(list(args = args, arg_text = arg_text))
   }
 
-  # `xname` is read as `curve()` reads it; the y title is not `curve()`'s.
-  values$labels$y <- NULL
+  title <- NULL
   at <- match("x", matched_arg_formals("plot", target, args))
   if (!is.na(at) && at <= length(written)) {
     title <- deparse(written[[at]])[1L]
-    values$labels$y <- title
     arg_text[at] <- symbol_text(title)
-    args[[at]] <- drawn_values_function(values$y)
+    args[[at]] <- drawn_values_function(value$y)
   }
 
-  args$.maidr_curve_data <- values
+  values <- curve_recorded_values(args, value)
+  if (!is.null(values)) {
+    # `xname` is read as `curve()` reads it; the y title is not `curve()`'s.
+    values$labels$y <- title
+    args$.maidr_curve_data <- values
+  }
   list(args = args, arg_text = arg_text)
 }
 
