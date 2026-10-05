@@ -10,7 +10,8 @@ log_plot_call_to_device(
   args,
   device_id = grDevices::dev.cur(),
   call_env = NULL,
-  arg_text = NULL
+  arg_text = NULL,
+  rng_state = NULL
 )
 }
 \arguments{
@@ -28,6 +29,10 @@ arguments recorded in \code{args}}
 \item{arg_text}{Optional text each argument in \code{args} was written
 as, from \code{written_arg_text()}, which the replay titles the chart
 after}
+
+\item{rng_state}{Optional \code{.Random.seed} the call started from, which
+the replay draws from, so a chart that draws random numbers comes out
+as the reader was shown it}
 }
 \value{
 NULL (invisible)

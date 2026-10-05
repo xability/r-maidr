@@ -211,7 +211,8 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
       call_entry$function_name,
       call_entry$args,
       call_entry$call_env,
-      call_entry$arg_text
+      call_entry$arg_text,
+      call_entry$rng_state
     )
   }
   # A par() setting every parameter, as par(oldpar) does with a list saved
@@ -240,10 +241,18 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 #'   forced at record time, or NULL when all args are plain values
 #' @param arg_text The text each argument was written as, NA where its
 #'   value is replayed as it is, from `written_arg_text()`; or NULL
+#' @param rng_state The `.Random.seed` the call started from, which the
+#'   replay draws from and then puts the session's own state back (see
+#'   `with_random_state()`); or NULL to draw from the session's state
 #' @return The result of the replayed call (invisibly)
 #' @keywords internal
 replay_plot_call <- function(function_name, args, call_env = NULL,
-                             arg_text = NULL) {
+                             arg_text = NULL, rng_state = NULL) {
+  if (!is.null(rng_state)) {
+    return(with_random_state(rng_state, replay_plot_call(
+      function_name, args, call_env, arg_text
+    )))
+  }
   orig_fn <- get_original_function(function_name)
   args <- clean_maidr_args(args)
 
@@ -875,6 +884,9 @@ create_function_wrapper <- function(function_name, original_function) {
       # original's own answer about printing: `par("mar")` and
       # `boxplot(x, plot = FALSE)` print their value at the console, and
       # `hist(x)` does not.
+      # The random state the call starts from, so the export draws what the
+      # reader was shown (see `with_random_state()`).
+      rng_state <- recorded_random_state()
       call_failed <- FALSE
       result <- tryCatch(
         withVisible(ORIG(...)),
@@ -943,7 +955,8 @@ create_function_wrapper <- function(function_name, original_function) {
       log_plot_call_to_device(
         FNAME, this_call, args_list, device_id,
         call_env = call_env,
-        arg_text = arg_text
+        arg_text = arg_text,
+        rng_state = rng_state
       )
 
       # NOTE: auto-show is deliberately NOT scheduled here. show() ends the
@@ -1392,4 +1405,57 @@ clear_plot_calls <- function(device_id = grDevices::dev.cur()) {
 #' @keywords internal
 is_patching_active <- function() {
   isTRUE(.maidr_patching_env$.patching_active)
+}
+
+
+#' The state of R's random number generator, if it has one
+#'
+#' `.Random.seed` in the global environment, or NULL before anything in the
+#' session has drawn a random number.
+#'
+#' @return An integer vector, or NULL
+#' @keywords internal
+#' @noRd
+recorded_random_state <- function() {
+  get0(".Random.seed", envir = globalenv(), inherits = FALSE)
+}
+
+#' Evaluate an expression from a recorded random state, then put the
+#' caller's back
+#'
+#' A chart that draws random numbers -- `wordcloud()` places its words at
+#' random angles, `stripchart(method = "jitter")` jitters its points -- is
+#' drawn again when maidr exports it. Drawn from whatever state the session
+#' had by then, it came out differently from the chart the reader was shown,
+#' and differently again on each save. From the state the call started from,
+#' it is the same chart.
+#'
+#' The caller's state is restored afterwards, so exporting a chart does not
+#' move the session's random numbers on, which would change what a script's
+#' `set.seed()` gives every call after it.
+#'
+#' A call whose own arguments draw random numbers, `wordcloud(w, rpois(5,
+#' 9))`, drew them before the chart did; replayed, those arguments are the
+#' values already drawn, so the chart starts a few draws earlier than it did
+#' and may differ, as before.
+#'
+#' @param state The recorded `.Random.seed`
+#' @param expr The expression, evaluated lazily
+#' @return The value of `expr`
+#' @keywords internal
+#' @noRd
+with_random_state <- function(state, expr) {
+  previous <- recorded_random_state()
+  on.exit(
+    if (is.null(previous)) {
+      if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+        rm(".Random.seed", envir = globalenv())
+      }
+    } else {
+      assign(".Random.seed", previous, envir = globalenv())
+    },
+    add = TRUE
+  )
+  assign(".Random.seed", state, envir = globalenv())
+  expr
 }
