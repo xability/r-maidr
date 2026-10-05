@@ -164,7 +164,31 @@ replay_base_r_plot <- function(device_id) {
   # opened, where the stale calls surfaced as phantom layers. It also skipped
   # the `call_env` an NSE call needs to evaluate its expressions the way the
   # original did.
+  #
+  # A low-level call R drew on a plot no recorded call started -- a panel
+  # `plot.new()` or `frame()` took, as for a legend of its own, or a plot
+  # maidr does not record -- is drawn on a plot started for it, in the
+  # coordinates it was drawn in, as the chart draws it
+  # (`replay_unrecorded_plot_call()`); drawn as it comes, it went over the
+  # plot before. `plots` counts the plots started on the page, as R
+  # numbered them (`end_base_r_call()`).
+  plots <- 0L
+  unrecorded_plot <- FALSE
+  window <- NULL
   for (call_entry in all_calls) {
+    on <- call_entry$end_plot
+    low <- identical(call_entry$class_level, "LOW") && !starts_base_r_plot(call_entry)
+    if (low && length(on) == 1L && isTRUE(on > plots)) {
+      for (k in seq_len(on - plots)) {
+        graphics::plot.new()
+      }
+      plots <- on
+      unrecorded_plot <- TRUE
+      window <- NULL
+    }
+    if (low && unrecorded_plot && !identical(call_entry$window, window)) {
+      window <- replay_plot_window(call_entry$window) %||% window
+    }
     tryCatch(
       replay_plot_call(
         call_entry$function_name,
@@ -178,6 +202,11 @@ replay_base_r_plot <- function(device_id) {
         }
       }
     )
+    if (starts_base_r_plot(call_entry) && length(on) == 1L) {
+      plots <- max(plots, on)
+      unrecorded_plot <- FALSE
+      window <- NULL
+    }
   }
 }
 

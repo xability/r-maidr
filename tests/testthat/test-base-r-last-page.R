@@ -685,6 +685,48 @@ test_that("a series drawn over a plot on a plot.new() of its panel is read with 
   expect_drawn_where_r_draws(chart, dual, "Dual")
 })
 
+test_that("the picture of a page draws a call on a plot no recorded call started where R did", {
+  testthat::skip_if_not_installed("svglite")
+
+  # A page maidr shows as a picture, as it does a sunflowerplot(), with a
+  # note on a panel of its own.
+  noted <- quote({
+    par(mfrow = c(1, 2))
+    sunflowerplot(iris[, 3:4], main = "Sun")
+    plot.new()
+    text(0.5, 0.5, "Note panel", adj = c(0.5, 0))
+  })
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  file <- tempfile(fileext = ".svg")
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      if (device_id %in% grDevices::dev.list()) grDevices::dev.off(device_id)
+      unlink(file)
+    },
+    add = TRUE
+  )
+  eval(noted)
+  svglite::svglite(file, width = 7, height = 5)
+  tryCatch(maidr:::replay_base_r_plot(device_id), finally = grDevices::dev.off())
+
+  texts <- xml2::xml_find_all(xml2::read_xml(file), "//*[local-name()='text']")
+  picture <- data.frame(
+    string = trimws(xml2::xml_text(texts)),
+    x = as.numeric(xml2::xml_attr(texts, "x")),
+    y = 360 - as.numeric(xml2::xml_attr(texts, "y"))
+  )
+  reference <- r_last_page_text_at(noted)
+  for (string in c("Sun", "Note panel")) {
+    drawn <- picture[picture$string == string, c("x", "y")]
+    r <- reference[reference$string == string, c("x", "y")]
+    testthat::expect_identical(nrow(drawn), 1L, label = string)
+    testthat::expect_lt(max(abs(as.matrix(drawn) - as.matrix(r))), 0.5, label = string)
+  }
+})
+
 test_that("a plot after one that drew several panels is in the panel R drew it in", {
   skip_if_no_render()
   call <- quote({

@@ -229,18 +229,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
         at$plots <- on
         at$window <- NULL
       }
-      window <- call$window
-      if (length(window$usr) == 4L && !identical(window, at$window)) {
-        log <- paste(c(if (isTRUE(window$xlog)) "x", if (isTRUE(window$ylog)) "y"), collapse = "")
-        limits <- function(usr, logged) if (isTRUE(logged)) 10^usr else usr
-        graphics::plot.window(
-          xlim = limits(window$usr[1:2], window$xlog),
-          ylim = limits(window$usr[3:4], window$ylog),
-          log = log,
-          xaxs = "i",
-          yaxs = "i"
-        )
-        at$window <- window
+      if (!identical(call$window, at$window)) {
+        at$window <- replay_plot_window(call$window) %||% at$window
       }
       replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
       at
@@ -1335,6 +1325,32 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' Give the plot a drawing is on the coordinates a call was drawn in
+#'
+#' Those of a plot no recorded call started, which what set them --
+#' `plot.window()`, or a plot maidr does not record -- set unrecorded
+#' (`base_r_plot_window()`).
+#'
+#' @param window A recorded call's `window`
+#' @return `window`, or NULL where it holds no coordinates, and none are set
+#' @keywords internal
+#' @noRd
+replay_plot_window <- function(window) {
+  if (length(window$usr) != 4L) {
+    return(NULL)
+  }
+  log <- paste(c(if (isTRUE(window$xlog)) "x", if (isTRUE(window$ylog)) "y"), collapse = "")
+  limits <- function(usr, logged) if (isTRUE(logged)) 10^usr else usr
+  graphics::plot.window(
+    xlim = limits(window$usr[1:2], window$xlog),
+    ylim = limits(window$usr[3:4], window$ylog),
+    log = log,
+    xaxs = "i",
+    yaxs = "i"
+  )
+  window
+}
 
 #' Start the plots R started before the one a drawing draws next
 #'
