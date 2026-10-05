@@ -399,8 +399,9 @@
   `layout()` grid on it, each plot in the panel R drew it in -- also when
   maidr did not record the call that set the grid up, made through
   `graphics::par()` or `withr::with_par()`, or before an earlier `show()`
-  or `save_html()` on the device, where maidr read every plot as a layer
-  of one subplot. A plot drawn
+  or `save_html()` on the device, or when a plot is drawn over the whole
+  page after `par(mfrow = c(1, 1), new = TRUE)`, as a legend for all the
+  panels is, where maidr read every plot as a layer of one subplot. A plot drawn
   after `par(new = TRUE)` is drawn over the plot before it, in its panel,
   where maidr drew the first alone or gave the second a panel of its own;
   an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of

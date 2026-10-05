@@ -359,12 +359,22 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   # With no plots recorded there is nothing for a layout call to come after,
   # so the filter does not apply: the call still describes the grid the user
   # set up for plots yet to be drawn.
+  #
+  # A grid of one set up between two plots of the page, as
+  # `par(mfrow = c(1, 1), new = TRUE)` is to draw a legend for a grid over
+  # the whole page, lays out only the plot drawn over the page after it,
+  # which R started no page for: the plots before it keep their panels.
   if (length(grouped$groups) > 0) {
-    last_plot_index <- max(
-      vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
-    )
+    plot_indices <- vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
+    last_plot_index <- max(plot_indices)
+    over_page <- function(call) {
+      after <- which(plot_indices > call$storage_index)
+      next_plot <- if (length(after) > 0) grouped$groups[[min(after)]]$high_call
+      isTRUE(call$storage_index > min(plot_indices)) && sets_grid_of_one(call) &&
+        isFALSE(next_plot$opens_page)
+    }
     layout_calls <- Filter(
-      function(call) isTRUE(call$storage_index < last_plot_index),
+      function(call) isTRUE(call$storage_index < last_plot_index) && !over_page(call),
       layout_calls
     )
 
@@ -426,6 +436,24 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   }
 
   config %||% grid_of_cells(grouped$groups)
+}
+
+#' Whether a recorded layout call sets up a grid of one panel
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical: `par(mfrow = c(1, 1))` or `par(mfcol = c(1, 1))`, or a
+#'   `layout()` of one panel
+#' @keywords internal
+#' @noRd
+sets_grid_of_one <- function(call) {
+  args <- call$args
+  if (identical(call$function_name, "par")) {
+    args <- par_setting_arguments(args)
+    grid <- args[["mfrow"]] %||% args[["mfcol"]]
+    return(is.numeric(grid) && length(grid) == 2L && all(grid == 1))
+  }
+  mat <- if (identical(call$function_name, "layout") && length(args) > 0) args[[1]]
+  is.numeric(mat) && length(unique(mat[mat > 0])) == 1L
 }
 
 #' The grid R drew a page's plots in, from the cells it put them in

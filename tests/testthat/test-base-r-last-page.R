@@ -868,6 +868,23 @@ test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave i
     )
   }
 
+  # The whole page, over a grid, after par(mfrow = c(1, 1), new = TRUE):
+  # the grid was read as one panel, and its plots drawn over each other.
+  reset_over_grid <- quote({
+    par(mfrow = c(1, 2))
+    plot(1:5, main = "M1")
+    plot(5:1, main = "M2")
+    par(mfrow = c(1, 1), new = TRUE, mar = c(0, 0, 0, 0))
+    plot(0, 0, type = "l", bty = "n", xaxt = "n", yaxt = "n")
+    legend("bottom", c("alpha", "beta"), lty = 1, col = 1:2, horiz = TRUE, bty = "n", xpd = TRUE)
+  })
+  chart <- last_page_export(function() eval(reset_over_grid))
+  testthat::expect_identical(
+    lapply(cell_titles(chart), function(titles) titles[[1]]),
+    list("M1", "M2")
+  )
+  expect_drawn_where_r_draws(chart, reset_over_grid, c("M1", "M2", "alpha", "beta"))
+
   # The whole page, over regions or screens: it was drawn in the last.
   for (regions in list(
     quote({
