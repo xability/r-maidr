@@ -181,7 +181,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
         layout_index = call$storage_index
       )
     } else if (call$function_name == "layout" && length(args) > 0) {
-      args <- layout_arguments(args)
+      args <- layout_arguments(args, call$call_env)
       mat <- args[["mat"]] %||% args[[1]]
       # layout() takes a vector as a one-column matrix: `layout(1)` puts
       # the device back to a single panel.
@@ -216,15 +216,29 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #' first. Matched here against `layout()` itself, the matrix is `mat` and the
 #' sizes `widths`, `heights` and `respect`, however each was written.
 #'
+#' A call with an argument left empty, as `layout(m, , c(1, 3))` leaves its
+#' widths, cannot have its arguments taken as values, and is recorded as
+#' written, with the bindings it names (see [snapshot_call_env()]). Its
+#' arguments are matched with the empty one still in its place, which is
+#' what makes `c(1, 3)` the heights, and then evaluated as the call
+#' evaluated them; the empty one is left out, as R leaves it to its default.
+#'
 #' @param args The recorded arguments
+#' @param call_env The bindings a call recorded as written was made with, or
+#'   NULL for one whose arguments are recorded as values
 #' @return `args` named by the arguments of `layout()` R matched them to, or
-#'   as recorded when they cannot be matched
+#'   as recorded when they cannot be matched, each a value
 #' @keywords internal
 #' @noRd
-layout_arguments <- function(args) {
+layout_arguments <- function(args, call_env = NULL) {
   matched <- matched_arg_formals("layout", graphics::layout, args)
   if (!is.null(matched)) {
     names(args) <- matched
+  }
+  if (is.environment(call_env)) {
+    empty <- vapply(seq_along(args), function(i) identical(args[[i]], quote(expr = )), logical(1))
+    args <- lapply(args[!empty], resolve_recorded_value, call_env = call_env)
+    args <- Filter(Negate(is.null), args)
   }
   args
 }

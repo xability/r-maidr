@@ -959,6 +959,19 @@ test_that("a Base R layout() page is laid out as R lays it out, at every size", 
     matrix_unnamed_last = function() {
       layout(widths = c(3, 1), matrix(1:2, 1))
       for (i in 1:2) plot(1:5)
+    },
+    # A size left out with an empty argument, after which maidr read the
+    # call as written rather than its values, and drew the first plot over
+    # the whole page.
+    empty_argument = function() {
+      m <- matrix(1:2, 2)
+      layout(m, , c(1, 3))
+      for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
+    },
+    empty_heights = function() {
+      w <- c(3, 1)
+      layout(matrix(1:2, 1), w, , TRUE)
+      for (i in 1:2) plot(seq_len(i + 2), main = paste("Panel", i), xlab = "x", ylab = "y")
     }
   )
   for (name in names(pages)) {
@@ -1037,6 +1050,15 @@ test_that("a Base R layout() page is read the same whatever room it gives its pl
     plots()
   }
   testthat::expect_identical(read(unnamed_after_heights), read(layout_page(matrix(1:2, 2))))
+
+  # A size left out with an empty argument, which made maidr read one plot
+  # holding both panels' layers.
+  empty_argument <- function() {
+    m <- matrix(1:2, 2)
+    layout(m, , c(1, 3))
+    plots()
+  }
+  testthat::expect_identical(read(empty_argument), read(layout_page(matrix(1:2, 2))))
 })
 
 test_that("a Base R layout() page is held to its size by the room R gives its plots", {

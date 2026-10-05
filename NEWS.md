@@ -355,7 +355,10 @@
   written with one, as in `layout(widths = c(3, 1), m)`. maidr took the
   widths for the matrix: it warned that it could not draw the page, drew
   none of it, and read the plots in a grid of the wrong shape, one of them
-  missing (#PR).
+  missing. A size left out with an empty argument, as in
+  `layout(m, , c(1, 3))`, which leaves out the widths, no longer loses the
+  page either: maidr drew only the first plot, over the whole page, and
+  read every plot as one (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written
