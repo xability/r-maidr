@@ -42,7 +42,7 @@ time so those expressions resolve exactly as they did originally.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-10-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -148,7 +148,12 @@ replay draws from and then puts the session's own state back (see
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Otherwise the recorded values are drawn, each argument <code>arg_text</code> names
+    <p>Such a call's titles are recorded as the values R drew (see
+<code>with_drawn_titles()</code>), and drawn as those values: evaluated again, a
+title's code would run what it does again, and could give another value.
+An expression vector among them is handed over quoted, as
+<code><a href="call_with_written_args.html">call_with_written_args()</a></code> hands it.</p>
+<p>Otherwise the recorded values are drawn, each argument <code>arg_text</code> names
 passed under a symbol spelled as it was written (see
 <code><a href="call_with_written_args.html">call_with_written_args()</a></code>), so a title R derives from that text comes
 out as it did in the user's own call.</p>

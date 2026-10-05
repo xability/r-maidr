@@ -13,7 +13,8 @@ retry_call_in_caller_frame(
   original_function,
   recorded_call,
   caller_env,
-  original_error
+  original_error,
+  drawn = NULL
 )
 ```
 
@@ -35,6 +36,11 @@ retry_call_in_caller_frame(
 - original_error:
 
   The error condition the direct call raised
+
+- drawn:
+
+  An environment the titles the retried call draws are kept in, under
+  their names, or NULL to keep none
 
 ## Value
 
@@ -58,3 +64,11 @@ recording that follows forces the interrupted promise again. An argument
 carrying a side effect therefore runs it more than once here. The
 alternative is the pre-existing behaviour, where the whole call simply
 errored, so the retry is the better trade – but it is a trade.
+
+The retried call draws the chart, so the titles it draws are the ones R
+drew. Handed `drawn`, each `main`, `sub`, `xlab` and `ylab` written as
+code is passed through a function that keeps its value there when the
+call evaluates it, as the call evaluates it:
+[`plot()`](https://r.maidr.ai/reference/base-r-wrappers.md)'s formula
+method reads it within its `data`. See `forced_titles()` for a call that
+did not need the retry.

@@ -42,7 +42,7 @@ as empty rather than failing the chart it sits on; the drawing keeps it.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-01">
+<meta name="DC.date" content="2026-10-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -125,6 +125,11 @@ as empty rather than failing the chart it sits on; the drawing keeps it.</p>
     <p>Exact-name lookup, since <code>args$main</code> would partial-match nothing today but
 is the same shape as the <code>args$x</code> / <code>xlab</code> collision that emptied
 <code><a href="base-r-wrappers.html">monthplot()</a></code> (#292).</p>
+<p>Any other value is the text R draws for it (<code>base_r_annotation_text()</code>):
+<code>main = 2024</code> is titled "2024", and <code>main = c("Sales", "2024")</code>, which R
+draws on two lines, is titled with those two lines. A plotmath title given
+in a list with its colour or size, <code>main = list(quote(pi), col = "red")</code>,
+is titled as it was written, "pi", as an axis title given as plotmath is.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

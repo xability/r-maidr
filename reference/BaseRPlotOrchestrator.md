@@ -46,6 +46,8 @@ combines the results into a comprehensive interactive plot.
 
 - [`BaseRPlotOrchestrator$picture_size()`](#method-BaseRPlotOrchestrator-picture_size)
 
+- [`BaseRPlotOrchestrator$picture_title()`](#method-BaseRPlotOrchestrator-picture_title)
+
 - [`BaseRPlotOrchestrator$get_grob_for_layer()`](#method-BaseRPlotOrchestrator-get_grob_for_layer)
 
 - [`BaseRPlotOrchestrator$unsupported_layer_flags()`](#method-BaseRPlotOrchestrator-unsupported_layer_flags)
@@ -351,6 +353,11 @@ small for R to draw at a size asked for (see
 [`base_r_drawing_grob()`](https://r.maidr.ai/reference/base_r_drawing_grob.md));
 one not asked for is enlarged to fit
 ([`base_r_page_that_fits()`](https://r.maidr.ai/reference/base_r_page_that_fits.md)).
+Stops too when the chart cannot be drawn again, with the reason, every
+time it is asked for: the chart is then drawn as a picture, with a
+warning that says so
+([`build_interactive_svg()`](https://r.maidr.ai/reference/build_interactive_svg.md)),
+rather than empty.
 
 ------------------------------------------------------------------------
 
@@ -386,6 +393,33 @@ the chart's, as before: it shows what R draws of it.
 #### Returns
 
 A named numeric vector, `width` and `height`, in inches
+
+------------------------------------------------------------------------
+
+### `BaseRPlotOrchestrator$picture_title()`
+
+The name of a picture of the chart, drawn in place of a chart that could
+not be made interactive
+
+The picture holds the page R shows, the last one, and is named by what
+is drawn on it: the title R drew over its panels, with
+`title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else, for
+one panel, by its title, and for several, by each panel R drew in turn,
+an untitled one called so: "2 panels: Sales 2023, Costs 2024". A panel's
+title is its plot's, or the one
+[`title()`](https://r.maidr.ai/reference/base-r-wrappers.md) gave it.
+The chart's own title is its last titled panel's, from any page, which
+would name a picture of several panels by one of them; and maidr's grid
+of cells counts a panel spanning two cells twice, and an empty cell as a
+panel.
+
+#### Usage
+
+    BaseRPlotOrchestrator$picture_title()
+
+#### Returns
+
+One string, or NULL when the chart has no title
 
 ------------------------------------------------------------------------
 

@@ -1,6 +1,9 @@
 # Resolve one axis title from a recorded Base R call
 
-The author's own `xlab=`/`ylab=` always wins. An empty string counts as
+The author's own `xlab=`/`ylab=` always wins, read as the text R draws
+for it, whatever it was given as (`base_r_annotation_text()`); a
+plotmath title is read as it was written, `Miles[gallon]`, given alone
+or in a list with its colour or size. An empty string counts as
 unsupplied: Base R draws no title for it, so falling through to the
 chart type's default announces more than the blank would, and the
 renderer would otherwise substitute its generic "X"/"Y" anyway. This is

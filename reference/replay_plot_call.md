@@ -52,6 +52,13 @@ The result of the replayed call (invisibly)
 
 ## Details
 
+Such a call's titles are recorded as the values R drew (see
+`with_drawn_titles()`), and drawn as those values: evaluated again, a
+title's code would run what it does again, and could give another value.
+An expression vector among them is handed over quoted, as
+[`call_with_written_args()`](https://r.maidr.ai/reference/call_with_written_args.md)
+hands it.
+
 Otherwise the recorded values are drawn, each argument `arg_text` names
 passed under a symbol spelled as it was written (see
 [`call_with_written_args()`](https://r.maidr.ai/reference/call_with_written_args.md)),

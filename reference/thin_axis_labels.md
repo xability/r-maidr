@@ -10,7 +10,9 @@ other wherever R thins them: a Base R chart at 4 x 3 in, or the panels
 of a 2 x 2 `par(mfrow)` at 10 x 4 in. Each axis's labels are measured as
 R measures them, in inches along the axis on a page of the chart's size,
 and the ones R leaves out are taken out of the text grob. Labels that
-are expressions are all kept, as R draws them all.
+are expressions are all kept, as R draws them all. A missing label,
+which gridGraphics draws as "NA", is taken out: R draws none and gives
+it no room.
 
 ## Usage
 

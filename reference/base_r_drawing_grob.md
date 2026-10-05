@@ -39,10 +39,14 @@ A gTree
 ## Details
 
 The grob names, which every selector is written against, are those
-`as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as
-drawn, as `as.grob()` does. An echoed drawing keeps only the tick labels
-R draws
+`as.grob()` gives. The drawing is recorded and echoed with its titles,
+margin texts and axis labels as R drew them
+(`base_r_echoable_recording()`), and keeps only the tick labels R draws
 ([`thin_axis_labels()`](https://r.maidr.ai/reference/thin_axis_labels.md)).
+A drawing gridGraphics cannot echo stops, with an error of class
+`maidr_chart_echo_error` giving gridGraphics' reason. `as.grob()` grabs
+such a drawing as drawn instead, which for Base R graphics is an empty
+drawing, and maidr exported that without a word.
 
 A chart too small to draw stops, with an error of class
 `maidr_chart_draw_error` that names the size and R's reason. Base R

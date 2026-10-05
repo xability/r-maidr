@@ -51,3 +51,8 @@ A chart too small to draw at its size (a `maidr_chart_draw_error` from
 [`base_r_drawing_grob()`](https://r.maidr.ai/reference/base_r_drawing_grob.md))
 is re-raised too: its picture is drawn at the same size and would fail
 the same way.
+
+Before the picture is drawn, the failure is signalled as a condition of
+class `maidr_build_failure`, holding it as `error`. A caller that shows
+a picture of its own catches that and keeps the failure: a knitted chart
+is knitr's figure, and the document's build says why.

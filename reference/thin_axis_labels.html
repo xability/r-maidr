@@ -8,7 +8,9 @@ into each other wherever R thins them: a Base R chart at 4 x 3 in, or the
 panels of a 2 x 2 par(mfrow) at 10 x 4 in. Each axis's labels are
 measured as R measures them, in inches along the axis on a page of the
 chart's size, and the ones R leaves out are taken out of the text grob.
-Labels that are expressions are all kept, as R draws them all."><meta property="og:description" content="R's axis() draws a tick label only when it clears the last label drawn
+Labels that are expressions are all kept, as R draws them all. A missing
+label, which gridGraphics draws as &quot;NA&quot;, is taken out: R draws none and
+gives it no room."><meta property="og:description" content="R's axis() draws a tick label only when it clears the last label drawn
 by a gap: an &quot;m&quot; wide for labels along the axis, a quarter of an &quot;m&quot; high
 for labels across it (gap.axis, whose default this is). Labels that
 would collide are left out, which is how the y axis of a short panel goes
@@ -17,7 +19,9 @@ into each other wherever R thins them: a Base R chart at 4 x 3 in, or the
 panels of a 2 x 2 par(mfrow) at 10 x 4 in. Each axis's labels are
 measured as R measures them, in inches along the axis on a page of the
 chart's size, and the ones R leaves out are taken out of the text grob.
-Labels that are expressions are all kept, as R draws them all."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
+Labels that are expressions are all kept, as R draws them all. A missing
+label, which gridGraphics draws as &quot;NA&quot;, is taken out: R draws none and
+gives it no room."><meta property="og:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta property="og:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><meta name="twitter:card" content="summary"><meta name="twitter:creator" content="@seo_jooyoung"><meta name="twitter:site" content="@seo_jooyoung"><meta property="og:type" content="website"><meta property="og:site_name" content="maidr"><meta property="og:locale" content="en_US"><meta name="twitter:image" content="https://raw.githubusercontent.com/xability/maidr/refs/heads/main/media/logo.jpg"><meta name="twitter:image:alt" content="maidr hex sticker logo - accessible data visualization for R"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css" integrity="sha384-9KcNFt4axT+TNOVPHpwGHOm4Kv0UcMjdVya1kl+EPBQG+Vmqtz28cnx0f5PZYcnF" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js" integrity="sha384-xOY5eqzqHsjfa8YYAomICWjVJ3g9q1C1tWgRF09ut5PzRJjLFSpKH7gCsIN3hKcA" crossorigin="anonymous"></script><script type="text/plain" data-category="analytics">
   (function(){
     var s=document.createElement('script');
     s.async=true;
@@ -51,13 +55,15 @@ into each other wherever R thins them: a Base R chart at 4 x 3 in, or the
 panels of a 2 x 2 par(mfrow) at 10 x 4 in. Each axis&#x27;s labels are
 measured as R measures them, in inches along the axis on a page of the
 chart&#x27;s size, and the ones R leaves out are taken out of the text grob.
-Labels that are expressions are all kept, as R draws them all.">
+Labels that are expressions are all kept, as R draws them all. A missing
+label, which gridGraphics draws as &quot;NA&quot;, is taken out: R draws none and
+gives it no room.">
 <meta name="DC.identifier" content="https://r.maidr.ai/reference/thin_axis_labels.html">
 <meta name="DC.type" content="Text">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-10-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -120,7 +126,9 @@ into each other wherever R thins them: a Base R chart at 4 x 3 in, or the
 panels of a 2 x 2 <code>par(mfrow)</code> at 10 x 4 in. Each axis's labels are
 measured as R measures them, in inches along the axis on a page of the
 chart's size, and the ones R leaves out are taken out of the text grob.
-Labels that are expressions are all kept, as R draws them all.</p>
+Labels that are expressions are all kept, as R draws them all. A missing
+label, which gridGraphics draws as "NA", is taken out: R draws none and
+gives it no room.</p>
     </div>
 
     <div class="section level2">
