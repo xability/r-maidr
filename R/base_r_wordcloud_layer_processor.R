@@ -20,18 +20,19 @@
 #' relative frequency. Here the counts are present, so `Occurrences` is an
 #' honest axis name.
 #'
-#' @section Why no selectors:
-#' Measured on a three-term cloud through the package's own export
-#' (`create_enhanced_svg()` over the orchestrator's gtable): the result
-#' carries **no `id` attributes at all**, so there is no addressable element
-#' per term --- nor any named grob to build a selector from, unlike the
-#' `text` grob `lag.plot()` and `biplot()` write their labels as.
+#' @section How a term is highlighted:
+#' `wordcloud()` draws each term with its own `text()` call, so the export
+#' writes each as its own text grob, `graphics-plot-<n>-text-<k>`, with the
+#' term as its label and one `<text>` element under it. Each term is paired
+#' with its grob **by that label**, not by position: the draw order is the
+#' layout's (`random.order = TRUE`, the default, shuffles it), and a `text()`
+#' the author adds after the cloud is another text grob of the same plot.
 #'
-#' `wordcloud()` draws each term with a bare `text()` at a rotation chosen by
-#' `rot.per`, and nothing names those. So this layer emits no selectors and
-#' the reading ships without a highlight, which the core supports:
-#' `WordCloudTrace` returns no highlight rather than pairing the terms with
-#' whatever else resolved.
+#' A term with no grob of its own -- one `wordcloud()` could not fit on the
+#' page, which it warns about and skips -- leaves the layer with no selectors
+#' at all. The core pairs selectors with terms by position, so one gap would
+#' put every later highlight on the wrong word; no highlight is the honest
+#' answer.
 #'
 #' @noRd
 NULL
@@ -61,8 +62,8 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
     #' @param plot Unused; kept for the processor interface.
     #' @param layout Unused; kept for the processor interface.
     #' @param built Unused; kept for the processor interface.
-    #' @param gt Unused. The reading is of the call's arguments, not of the
-    #'   drawing -- there is nothing in the gtable a term can be found by.
+    #' @param gt The drawn grob tree, searched for each term's text grob. The
+    #'   reading itself is of the call's arguments, not of the drawing.
     #' @param grob_id Unused; kept for the processor interface.
     #' @param panel_id Unused; kept for the processor interface.
     #' @param panel_ctx Unused; kept for the processor interface.
@@ -82,16 +83,20 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
         return(NULL)
       }
 
-      list(
+      layer <- list(
         type = "word_cloud",
-        # No selectors: measured, the export carries no addressable element
-        # per term. See the note on this file.
         data = lapply(
           seq_along(terms$words),
           function(i) list(x = terms$words[[i]], y = terms$freq[[i]])
         ),
         axes = build_axes(x = "Term", y = "Occurrences")
       )
+      selectors <- wordcloud_selectors(
+        terms$words, gt, info$group_index %||% info$index
+      )
+      # Assigning NULL leaves the field out rather than writing it empty.
+      layer$selectors <- selectors
+      layer
     }
   ),
   private = list(
@@ -183,3 +188,41 @@ BaseRWordcloudLayerProcessor <- R6::R6Class(
     }
   )
 )
+
+
+#' One selector per term, in term order, or NULL
+#'
+#' See "How a term is highlighted" on this file. Each term takes the first
+#' text grob labelled with it that no earlier term took, so a term the
+#' author listed twice pairs with its two drawings in turn.
+#'
+#' @param words The terms, in the order the layer emits them
+#' @param gt The drawn grob tree
+#' @param plot_index The plot (panel) index the grob names carry
+#' @return A list of CSS selectors, one per term, or NULL when a term has no
+#'   text grob of its own
+#' @keywords internal
+#' @noRd
+wordcloud_selectors <- function(words, gt, plot_index) {
+  if (is.null(gt) || is.null(plot_index)) {
+    return(NULL)
+  }
+  names <- find_graphics_plot_grobs(gt, "text", plot_index)
+  labels <- vapply(names, function(name) {
+    label <- grid::getGrob(gt, name, global = FALSE)$label
+    if (length(label) == 1L) as.character(label) else NA_character_
+  }, character(1), USE.NAMES = FALSE)
+
+  used <- rep(FALSE, length(names))
+  selectors <- vector("list", length(words))
+  for (i in seq_along(words)) {
+    match <- which(!used & labels %in% words[[i]])
+    if (!length(match)) {
+      return(NULL)
+    }
+    used[[match[[1]]]] <- TRUE
+    escaped <- gsub("\\.", "\\\\.", paste0(names[[match[[1]]]], ".1"))
+    selectors[[i]] <- paste0("#", escaped, " text")
+  }
+  selectors
+}

@@ -4,7 +4,13 @@
 \alias{replay_plot_call}
 \title{Replay a recorded plot call with the original (unwrapped) function}
 \usage{
-replay_plot_call(function_name, args, call_env = NULL, arg_text = NULL)
+replay_plot_call(
+  function_name,
+  args,
+  call_env = NULL,
+  arg_text = NULL,
+  rng_state = NULL
+)
 }
 \arguments{
 \item{function_name}{Name of the recorded function}
@@ -16,6 +22,10 @@ forced at record time, or NULL when all args are plain values}
 
 \item{arg_text}{The text each argument was written as, NA where its
 value is replayed as it is, from \code{written_arg_text()}; or NULL}
+
+\item{rng_state}{The \code{.Random.seed} the call started from, which the
+replay draws from and then puts the session's own state back (see
+\code{with_random_state()}); or NULL to draw from the session's state}
 }
 \value{
 The result of the replayed call (invisibly)
