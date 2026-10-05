@@ -15,7 +15,12 @@ NULL
 #' its last page, with every layout call (`last_page_calls()`). R's device
 #' shows only the page drawn last, so a plot that started a page of its own
 #' -- the second of `hist(a); hist(b)` -- leaves the plots before it out.
-#' Each group contains one HIGH-level call and its associated LOW-level calls.
+#' Each group contains one HIGH-level call and the LOW-level calls drawn on
+#' its plot. A LOW-level call drawn on a plot no recorded call started -- a
+#' panel `plot.new()` or `frame()` took, as for a legend of its own, or a
+#' plot maidr does not record, such as `smoothScatter()` -- is not one of
+#' them: it is kept, to be drawn where R drew it, with the group drawn after
+#' it (`before_calls`), or, after the last, with the last (`after_calls`).
 #'
 #' @param device_id Graphics device ID
 #' @return List of plot groups, each containing HIGH and LOW calls
@@ -30,6 +35,8 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   groups <- list()
   current_group <- NULL
   layout_calls <- list()
+  # Drawn on plots no recorded call started, since the last group's.
+  unrecorded <- list()
 
   for (i in seq_along(all_calls)) {
     call <- all_calls[[i]]
@@ -50,10 +57,16 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
         high_call_index = i,
         low_calls = list(),
         low_call_indices = integer(0),
+        before_calls = unrecorded,
+        after_calls = list(),
         panel_info = NULL
       )
+      unrecorded <- list()
     } else if (class_level == "LOW") {
-      if (!is.null(current_group)) {
+      if (drawn_on_unrecorded_plot(call, current_group)) {
+        call$storage_index <- i
+        unrecorded <- append(unrecorded, list(call))
+      } else if (!is.null(current_group)) {
         current_group$low_calls <- append(current_group$low_calls, list(call))
         current_group$low_call_indices <- c(current_group$low_call_indices, i)
       }
@@ -61,6 +74,7 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   }
 
   if (!is.null(current_group)) {
+    current_group$after_calls <- unrecorded
     groups <- append(groups, list(current_group))
   }
 
@@ -72,6 +86,32 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   )
 
   result
+}
+
+#' Whether a low-level call was drawn on a plot no recorded call started
+#'
+#' R numbers the plots it starts on a page (`end_base_r_call()`). A
+#' low-level call drawn on a plot after the last the group before it drew
+#' -- or before the page's first group -- was drawn on a plot something else
+#' started: `plot.new()`, `frame()`, or a plot maidr does not record. A
+#' call recorded without its plot, by code that records calls itself, is
+#' taken to be drawn on the group before it.
+#'
+#' @param call The recorded LOW-level call
+#' @param group The plot group recorded before it, or NULL for none
+#' @return Logical
+#' @keywords internal
+#' @noRd
+drawn_on_unrecorded_plot <- function(call, group) {
+  on <- call$end_plot
+  if (!is.numeric(on) || length(on) != 1L) {
+    return(FALSE)
+  }
+  if (is.null(group)) {
+    return(TRUE)
+  }
+  last <- group$high_call$end_plot
+  is.numeric(last) && length(last) == 1L && on > last
 }
 
 #' Get Plot Group by Index

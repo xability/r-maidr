@@ -17,6 +17,11 @@ Groups the calls a device shows into logical plot units: those drawn on
 its last page, with every layout call (\code{last_page_calls()}). R's device
 shows only the page drawn last, so a plot that started a page of its own
 -- the second of \verb{hist(a); hist(b)} -- leaves the plots before it out.
-Each group contains one HIGH-level call and its associated LOW-level calls.
+Each group contains one HIGH-level call and the LOW-level calls drawn on
+its plot. A LOW-level call drawn on a plot no recorded call started -- a
+panel \code{plot.new()} or \code{frame()} took, as for a legend of its own, or a
+plot maidr does not record, such as \code{smoothScatter()} -- is not one of
+them: it is kept, to be drawn where R drew it, with the group drawn after
+it (\code{before_calls}), or, after the last, with the last (\code{after_calls}).
 }
 \keyword{internal}

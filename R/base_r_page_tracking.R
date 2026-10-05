@@ -291,7 +291,8 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #' @return A list: `page`, `figure`, `plot`, `cell` and `fig`, where R put
 #'   that plot (`note_base_r_plot_started()`), `new_plot`, whether the call
 #'   started a plot, and `end_figure` and `end_plot`, the panel and plot R
-#'   was on when the call was done; `id`, the number the call is known by,
+#'   was on when the call was done, and `window`, the coordinates of that
+#'   plot then (`base_r_plot_window()`); `id`, the number the call is known by,
 #'   `outer`, the number of the recorded call that made it while drawing,
 #'   if one did, and `own_plot`, whether it started a plot itself (see
 #'   `standalone_calls()`). Only `page` for a call no recording wrapper
@@ -320,10 +321,25 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     new_plot = started,
     end_figure = at$figure,
     end_plot = at$plot,
+    window = base_r_plot_window(),
     id = call$id,
     outer = if (this > 1L) drawing[[this - 1L]]$id,
     own_plot = isTRUE(call$own_plot)
   )
+}
+
+#' The coordinates the plot R is drawing on has
+#'
+#' A low-level call drawn on a plot no recorded call started -- a panel
+#' `plot.new()` or `frame()` took, or a plot maidr does not record, such as
+#' `smoothScatter()` -- is drawn again on a plot started for it, in these
+#' coordinates (`replay_page()`): what set them was not recorded.
+#'
+#' @return A list: `usr`, `par("usr")`, and `xlog` and `ylog`; or NULL
+#' @keywords internal
+#' @noRd
+base_r_plot_window <- function() {
+  tryCatch(graphics::par(c("usr", "xlog", "ylog")), error = function(e) NULL)
 }
 
 #' The recorded calls that stand for a drawing, each once

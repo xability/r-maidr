@@ -439,6 +439,77 @@ test_that("a panel plot.new() or frame() passes over stays empty", {
   testthat::expect_setequal(chart$strings, r_last_page_strings(laid_out))
 })
 
+test_that("a low-level call on a plot no recorded call started is drawn there, read with none", {
+  skip_if_no_render()
+
+  # A panel of its own for a legend: the plots after it go on in the panels
+  # after it, and each highlights its own marks.
+  legend_panel <- quote({
+    par(mfrow = c(2, 2))
+    hist(mtcars$mpg, main = "MPG")
+    plot.new()
+    legend("center", legend = c("4 cyl", "6 cyl", "8 cyl"), pch = 19, col = 1:3, title = "Key")
+    plot(mtcars$wt, mtcars$mpg, pch = 19, main = "Weight")
+    barplot(table(mtcars$cyl), main = "Counts")
+  })
+  chart <- last_page_export(function() eval(legend_panel))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list("MPG", character(0), "Weight", "Counts")
+  )
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(
+    chart, legend_panel, c("MPG", "Key", "4 cyl", "8 cyl", "Weight", "Counts")
+  )
+
+  noted <- quote({
+    par(mfrow = c(2, 2))
+    plot(1:3, main = "A")
+    plot(3:1, main = "B")
+    frame()
+    mtext("Blank panel note", side = 3)
+    plot(c(1, 3, 2), main = "D")
+  })
+  chart <- last_page_export(function() eval(noted))
+  testthat::expect_identical(cell_titles(chart), list("A", "B", character(0), "D"))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, noted, c("A", "B", "Blank panel note", "D"))
+
+  # Before the page's first recorded plot. Each text() is set on its
+  # baseline: centred, svglite and the drawing's grid text place it a pixel
+  # apart, on any plot.
+  leading <- quote({
+    par(mfrow = c(1, 2))
+    plot.new()
+    text(0.5, 0.5, "Note panel", adj = c(0.5, 0))
+    hist(mtcars$mpg, main = "Right hist")
+  })
+  chart <- last_page_export(function() eval(leading))
+  testthat::expect_identical(cell_titles(chart), list(character(0), "Right hist"))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, leading, c("Note panel", "Right hist"))
+
+  # On a plot maidr does not record: drawn over it, in its coordinates, and
+  # not read as a layer of the histogram before it.
+  testthat::skip_if_not_installed("KernSmooth")
+  unrecorded <- quote({
+    par(mfrow = c(1, 2))
+    hist(mtcars$mpg, main = "Left hist")
+    smoothScatter(mtcars$wt, mtcars$mpg, main = "Right smooth")
+    abline(h = 20)
+    text(4, 30, "smoothed", adj = c(0.5, 0))
+  })
+  chart <- last_page_export(function() eval(unrecorded))
+  testthat::expect_identical(
+    lapply(last_page_cells(chart), function(layers) {
+      vapply(layers, function(layer) layer$type, character(1))
+    }),
+    list("hist", character(0))
+  )
+  expect_drawn_where_r_draws(chart, unrecorded, c("Left hist", "smoothed"))
+  testthat::expect_true(any(startsWith(chart$ids, "graphics-plot-2-abline")))
+})
+
 test_that("a plot after one that drew several panels is in the panel R drew it in", {
   skip_if_no_render()
   call <- quote({

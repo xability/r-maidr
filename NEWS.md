@@ -402,8 +402,11 @@
   an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of
   `split.screen()`, is drawn in the region of the page R gave it; a plot
   `par(mfg = )` sends to a panel out of turn is in that panel;
-  `plot.new()` and `frame()` take a panel as they do in R, which stays
-  empty, where maidr moved the next plot into it; and nothing drawn on an
+  `plot.new()` and `frame()` take a panel as they do in R, where maidr
+  moved the next plot into it; a `legend()`, `text()` or `lines()` drawn
+  on such a panel, or on a plot maidr does not record such as
+  `smoothScatter()`, is drawn there, where maidr drew it over the plot
+  before and read it as part of that plot; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
   page was drawn while `maidr_off()` was in effect. A page that holds no

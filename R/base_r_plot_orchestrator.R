@@ -67,14 +67,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
       )
     },
 
-    # Set the margins the author's `par()` calls gave a plot group's plot,
-    # before the group is drawn again (`par_margin_settings()`), and answer
-    # them. Only those that differ from `set`, the ones the page's last plot
-    # was drawn with, are set: setting the outer margins starts a new page,
-    # in R as here, and a grid's later plots would each have a page of
-    # their own.
-    set_recorded_margins = function(group, set = list()) {
-      settings <- par_margin_settings(private$.layout_calls, group$high_call_index)
+    # Set the margins the author's `par()` calls gave the plot a call at
+    # `index` in the recording draws on, before it is drawn again
+    # (`par_margin_settings()`), and answer them. Only those that differ from
+    # `set`, the ones the page's last plot was drawn with, are set: setting
+    # the outer margins starts a new page, in R as here, and a grid's later
+    # plots would each have a page of their own.
+    set_recorded_margins = function(index, set = list()) {
+      settings <- par_margin_settings(private$.layout_calls, index)
       changed <- settings[!mapply(identical, settings, set[names(settings)])]
       if (length(changed) > 0) {
         graphics::par(changed)
@@ -98,9 +98,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
     plot_numbers = function(panel_slots = NULL) {
       groups <- private$.plot_groups
       drawn <- unlist(lapply(groups, function(group) {
-        lapply(c(list(group$high_call), group$low_calls), function(call) {
-          c(call$plot, call$end_plot)
-        })
+        calls <- c(list(group$high_call), group$low_calls, group$before_calls, group$after_calls)
+        lapply(calls, function(call) c(call$plot, call$end_plot))
       }))
       last <- as.integer(max(c(0L, drawn)))
       vapply(
@@ -130,13 +129,19 @@ BaseRPlotOrchestrator <- R6::R6Class(
     # was sent to out of turn, with `par(mfg = )`, is sent there again, and
     # one `par(fig = )` or `screen()` placed outside the grid is drawn in
     # the same region of the page (`place_replayed_plot()`). A group that
-    # starts no plot, as an `add = TRUE` call does, draws where it is. The
-    # recorded calls are replayed with the ORIGINAL (unwrapped) functions,
-    # so nothing new is recorded.
+    # starts no plot, as an `add = TRUE` call does, draws where it is. A
+    # low-level call drawn on a plot no recorded call started -- a legend
+    # on a panel of its own, after `plot.new()` -- is drawn on a plot
+    # started for it in the panel R drew it in, in the coordinates it was
+    # drawn in (`replay_unrecorded_plot_call()`). The recorded calls are
+    # replayed with the ORIGINAL (unwrapped) functions, so nothing new is
+    # recorded.
     replay_page = function(slots, numbers, panel_config = NULL) {
-      margins <- list()
-      figure <- 0L
-      plots <- 0L
+      # Where the drawing is: the panel it is in, as `slots` number them,
+      # and the panel R's count had reached there (`figure`, see
+      # `end_base_r_call()`); the plots started on its page; the margins it
+      # set, and the coordinates it gave a plot it started.
+      at <- list(slot = 0L, figure = NULL, plots = 0L, margins = list(), window = NULL)
       for (i in seq_along(private$.plot_groups)) {
         slot <- slots[[i]]
         if (is.na(slot)) {
@@ -149,21 +154,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
           message("DEBUG: Replaying group ", i, " - ", high$function_name)
         }
 
-        margins <- private$set_recorded_margins(group, margins)
+        for (call in group$before_calls) {
+          at <- private$replay_unrecorded_plot_call(call, at, panel_config)
+        }
+        at$margins <- private$set_recorded_margins(group$high_call_index, at$margins)
         if (!isFALSE(high$new_plot)) {
-          # A plot R started before this one moved on a panel while this
-          # one's was still ahead, and was drawn over the last panel once
-          # it was not.
-          for (k in seq_len(max(numbers[[i]] - plots - 1L, 0L))) {
-            stays <- figure > 0L && figure >= slot - 1L
-            if (!stays) {
-              figure <- figure + 1L
-            }
-            start_replayed_plot(stays)
-          }
-          place_replayed_plot(high, slot, figure, panel_config)
-          figure <- slot
-          plots <- numbers[[i]]
+          at <- start_skipped_plots(at, numbers[[i]] - 1L, slot)
+          place_replayed_plot(high, slot, at$slot, panel_config)
+          at$slot <- slot
+          at$figure <- high$figure
+          at$plots <- numbers[[i]]
         }
 
         calls <- c(list(high), group$low_calls)
@@ -176,10 +176,58 @@ BaseRPlotOrchestrator <- R6::R6Class(
         ends <- Filter(function(call) is.numeric(call$end_plot), calls)
         if (length(ends) > 0) {
           end <- ends[[length(ends)]]
-          figure <- slot + end$end_figure - (high$figure %||% end$end_figure)
-          plots <- end$end_plot
+          at$slot <- slot + end$end_figure - (high$figure %||% end$end_figure)
+          at$figure <- end$end_figure
+          at$plots <- end$end_plot
+        }
+
+        for (call in group$after_calls) {
+          at <- private$replay_unrecorded_plot_call(call, at, panel_config)
         }
       }
+    },
+
+    # Draw a low-level call that R drew on a plot no recorded call started
+    # -- a panel `plot.new()` or `frame()` took, or a plot maidr does not
+    # record -- on the drawing `at` describes (see `replay_page()`), and
+    # answer where the drawing is then. The plot it was drawn on is started
+    # first, if the drawing has not started it yet, in the panel R drew it
+    # in: the cell R put it in, or else as many panels on from the last as
+    # R's count moved. It is given the coordinates the call was drawn in,
+    # which what started it set, unrecorded. Only the call is drawn: what
+    # else that plot holds was not recorded.
+    replay_unrecorded_plot_call = function(call, at, panel_config) {
+      at$margins <- private$set_recorded_margins(call$storage_index, at$margins)
+      if (call$end_plot > at$plots) {
+        slot <- if (is.null(panel_config)) {
+          1L
+        } else {
+          panel_of_cell(call$cell, panel_config) %||%
+            (at$slot + max(call$figure - (at$figure %||% call$figure), 0L))
+        }
+        at <- start_skipped_plots(at, call$end_plot - 1L, slot)
+        place_replayed_plot(call, slot, at$slot, panel_config)
+        graphics::plot.new()
+        at$slot <- slot
+        at$figure <- call$figure
+        at$plots <- call$end_plot
+        at$window <- NULL
+      }
+      window <- call$window
+      if (length(window$usr) == 4L && !identical(window, at$window)) {
+        log <- paste(c(if (isTRUE(window$xlog)) "x", if (isTRUE(window$ylog)) "y"), collapse = "")
+        limits <- function(usr, logged) if (isTRUE(logged)) 10^usr else usr
+        graphics::plot.window(
+          xlim = limits(window$usr[1:2], window$xlog),
+          ylim = limits(window$usr[3:4], window$ylog),
+          log = log,
+          xaxs = "i",
+          yaxs = "i"
+        )
+        at$window <- window
+      }
+      replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
+      at
     },
 
     # The one result that declares its own subplot grid, or NULL.
@@ -1263,6 +1311,33 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' Start the plots R started before the one a drawing draws next
+#'
+#' Up to plot `upto` of the page, plots no recorded call started and no
+#' recorded call drew on: a panel `plot.new()` or `frame()` passed over, or
+#' a plot maidr does not record. Each moves on a panel while the panel of
+#' the plot drawn next (`slot`) is still ahead, and is drawn over the last
+#' panel once it is not, as R's would have been.
+#'
+#' @param at Where the drawing is (see `replay_page()`)
+#' @param upto The number of the last plot to start
+#' @param slot The panel of the plot drawn next
+#' @return Where the drawing is then
+#' @keywords internal
+#' @noRd
+start_skipped_plots <- function(at, upto, slot) {
+  for (k in seq_len(max(upto - at$plots, 0L))) {
+    stays <- at$slot > 0L && at$slot >= slot - 1L
+    if (!stays) {
+      at$slot <- at$slot + 1L
+      at$figure <- if (is.numeric(at$figure)) at$figure + 1L
+    }
+    start_replayed_plot(stays)
+    at$plots <- at$plots + 1L
+  }
+  at
+}
 
 #' Send the plot a recorded call starts where R put it, as it is drawn again
 #'

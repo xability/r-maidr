@@ -91,7 +91,10 @@ as an inset is, or in a screen of \code{split.screen()}, is drawn in that
 region, and read with the plot before it. \code{lines()}, \code{points()},
 \code{abline()}, \code{text()}, \code{legend()},
 \code{title()}, \code{axis()} and the other low-level calls add to the plot they
-are drawn on. Nothing drawn on an
+are drawn on. Drawn on a panel \code{plot.new()} or \code{frame()} took, as a
+legend of its own is, or on a plot maidr does not record, such as
+\code{smoothScatter()}, they are drawn there, and read as part of no plot.
+Nothing drawn on an
 earlier page reaches the chart: not its data, its titles or the size it
 is drawn at. A page that holds no plot maidr recorded -- one R started
 with \code{plot.new()} or \code{frame()}, with a plot maidr does not record, or
