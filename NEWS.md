@@ -561,7 +561,7 @@
   draws several, as `plot()` of a fitted model does, on one page, where R
   shows the last of them; and drew a `split.screen()` page's last plot
   alone in the first screen's place, with R's warning "calling
-  par(new=TRUE) with no plot" (#PR).
+  par(new=TRUE) with no plot" (#360).
 
 ## Documentation
 
