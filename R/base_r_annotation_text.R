@@ -5,7 +5,8 @@
 #' classed value to text with `as.character()` (`as.graphicsAnnot()`), and
 #' the C code that draws turns whatever else it is handed to text, a number
 #' to fifteen significant digits, as `as.character()` does. A missing value
-#' is left out, and a title of several values is drawn a line for each.
+#' is left out, and a title of several values is drawn a line for each,
+#' but for `sub`, whose values are all drawn on its one line.
 #'
 #' gridGraphics, which draws a Base R chart again for maidr, accepts less:
 #' it stops on a title that is a number, a logical, a vector of more than one
