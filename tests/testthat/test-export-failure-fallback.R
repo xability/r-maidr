@@ -206,4 +206,37 @@ test_that("the picture of a chart that could not be made interactive says so, an
 
   shown <- picture(function() plot(1:5))
   expect_identical(shown$alt, "Plot (rendered as image - could not be made interactive)")
+
+  # A picture of several panels was named by its last titled panel alone.
+  # It is named by the title R drew over them all, or by every panel.
+  shown <- picture(function() {
+    par(mfrow = c(1, 2))
+    plot(1:5, main = "Sales 2023")
+    plot(5:1, main = c("Costs", "2024"))
+  })
+  expect_identical(
+    shown$alt,
+    "2 panels: Sales 2023, Costs 2024 (rendered as image - could not be made interactive)"
+  )
+  graphics::par(mfrow = c(1, 1))
+
+  shown <- picture(function() {
+    par(mfrow = c(1, 2))
+    plot(1:5, main = "Left")
+    plot(5:1)
+  })
+  expect_identical(
+    shown$alt,
+    "2 panels: Left, untitled (rendered as image - could not be made interactive)"
+  )
+  graphics::par(mfrow = c(1, 1))
+
+  shown <- picture(function() {
+    par(mfrow = c(1, 2), oma = c(0, 0, 2, 0))
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+    title("Overview", outer = TRUE)
+  })
+  expect_identical(shown$alt, "Overview (rendered as image - could not be made interactive)")
+  graphics::par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
 })

@@ -371,12 +371,19 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
 #' The title the picture of a chart is named by
 #'
+#' A Base R chart's picture holds every panel of its page, and names itself
+#' (`picture_title()`); any other chart is named by its title.
+#'
 #' @param orchestrator The chart's orchestrator
 #' @return The chart's title, one string, or NULL when it has none
 #' @keywords internal
 #' @noRd
 fallback_title <- function(orchestrator) {
-  title <- tryCatch(orchestrator$get_layout()$title, error = function(e) NULL)
+  title <- if (is.function(orchestrator$picture_title)) {
+    tryCatch(orchestrator$picture_title(), error = function(e) NULL)
+  } else {
+    tryCatch(orchestrator$get_layout()$title, error = function(e) NULL)
+  }
   if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) title
 }
 

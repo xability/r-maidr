@@ -31,6 +31,7 @@ the results into a comprehensive interactive plot.
     \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
     \item \href{#method-BaseRPlotOrchestrator-canvas_size}{\code{BaseRPlotOrchestrator$canvas_size()}}
     \item \href{#method-BaseRPlotOrchestrator-picture_size}{\code{BaseRPlotOrchestrator$picture_size()}}
+    \item \href{#method-BaseRPlotOrchestrator-picture_title}{\code{BaseRPlotOrchestrator$picture_title()}}
     \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
     \item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
     \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
@@ -379,6 +380,29 @@ is drawn at the chart's, as before: it shows what R draws of it.
   }
   \subsection{Returns}{
     A named numeric vector, \code{width} and \code{height}, in inches
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-picture_title"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-picture_title}{}}}
+\subsection{\code{BaseRPlotOrchestrator$picture_title()}}{
+  The name of a picture of the chart, drawn in place of a
+chart that could not be made interactive
+
+The picture holds every panel of the page. It is named by the title R
+drew over them all, \code{title(outer = TRUE)}'s; else, for one panel, by
+its title, and for several, by each panel's title in turn, an untitled
+one called so: "2 panels: Sales 2023, Costs 2024". The chart's own
+title is its last panel's, which would name a picture of several by
+one of them.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$picture_title()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One string, or NULL when the chart has no title
   }
 }
 
