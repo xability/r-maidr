@@ -509,6 +509,19 @@ test_that("a density plot() with another argument written first is read as the d
   }
 })
 
+test_that("a time series plot() with another argument written first is read as its line", {
+  # plot.ts() draws a series as a line, wherever it is written among the
+  # arguments. Typed by the argument written first, `plot(xlab = "", Nile)`
+  # was read as a scatter, with a selector on a points grob R never drew.
+  same <- function(layer) layer[setdiff(names(layer), "id")]
+  reference <- maidr_layers(function() plot(Nile, xlab = ""))
+  testthat::expect_length(reference, 1L)
+  testthat::expect_identical(reference[[1]]$type, "line")
+  layers <- maidr_layers(function() plot(xlab = "", Nile))
+  testthat::expect_length(layers, 1L)
+  testthat::expect_identical(same(layers[[1]]), same(reference[[1]]))
+})
+
 test_that("an axis titled by title() or mtext() after the plot is announced with that title", {
   # The idiom blanks a plot's own titles to write them with title() or
   # mtext(), on a line of the author's choosing. R draws them on the axes,
