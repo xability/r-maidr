@@ -399,8 +399,8 @@
   `layout()` grid on it, each plot in the panel R drew it in -- also when
   maidr did not record the call that set the grid up, made through
   `graphics::par()` or `withr::with_par()`, or before an earlier `show()`
-  or `save_html()` on the device, where maidr read the plots as one and
-  drew them over each other at full size. A plot drawn
+  or `save_html()` on the device, where maidr read every plot as a layer
+  of one subplot. A plot drawn
   after `par(new = TRUE)` is drawn over the plot before it, in its panel,
   where maidr drew the first alone or gave the second a panel of its own;
   an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of
@@ -415,9 +415,9 @@
   would need -- reaches the chart, even when the plot that started the new
   page was drawn while `maidr_off()` was in effect. `symbols()` without
   `add = TRUE` draws a plot of its own, and is the plot of its page,
-  shown as a picture since maidr does not read it, where `hist(x);
-  symbols(...)` gave a chart with nothing on it. A page that holds no
-  plot maidr recorded, as after `hist(x); plot.new()`,
+  shown as a picture since maidr does not read it, where `symbols()` alone
+  gave a chart with nothing on it. A page that holds no plot maidr
+  recorded, as after `hist(x); plot.new()`,
   `hist(x); plot.new(); text(0.5, 0.5, "note")` or
   `hist(x); smoothScatter(y)`, is no longer exported as the histogram
   before it, or as a chart with nothing on it: `show()` and `save_html()`
