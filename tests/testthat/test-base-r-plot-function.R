@@ -445,6 +445,49 @@ test_that("plot(f) of values that are not numbers is a picture of what R drew", 
   testthat::expect_s3_class(widget, "htmlwidget")
 })
 
+test_that("a function of TRUE and FALSE is read at the 0 and 1 R draws it at", {
+  # Values were kept only when they were numbers, so plot() of such a
+  # function was shown as a picture, and curve(x > 0.5) was a line with no
+  # points in it.
+  native <- pf_native_points(function(x) x > 0.5, 0, 1)
+  testthat::expect_type(native$y, "logical")
+  points <- list(x = native$x, y = as.numeric(native$y))
+
+  cases <- list(
+    list(call = quote(plot(function(x) x > 0.5, 0, 1)), ylab = "function(x) x > 0.5"),
+    list(call = quote(plot(function(x) x > 0.5)), ylab = "function(x) x > 0.5"),
+    list(call = quote(curve(x > 0.5, 0, 1)), ylab = "x > 0.5")
+  )
+  for (case in cases) {
+    label <- deparse1(case$call)
+    chart <- pf_exported(case$call)
+    layer <- pf_layer(chart$schema)
+    pf_expect_line(layer, points, label = label)
+    testthat::expect_identical(c(layer$axes$x$label, layer$axes$y$label), c("x", case$ylab))
+    testthat::expect_identical(chart$strings, pf_native_strings(case$call), label = label)
+  }
+
+  grid_call <- quote({
+    par(mfrow = c(1, 2))
+    plot(sin, -pi, pi)
+    plot(function(x) x > 0, -1, 1)
+  })
+  grid <- pf_exported(grid_call)
+  pf_expect_line(pf_layer(grid$schema, 1, 1), pf_native_points(sin, -pi, pi), group = 1)
+  signs <- pf_native_points(function(x) x > 0, -1, 1)
+  pf_expect_line(
+    pf_layer(grid$schema, 1, 2), list(x = signs$x, y = as.numeric(signs$y)),
+    group = 2
+  )
+  testthat::expect_identical(grid$strings, pf_native_strings(grid_call))
+
+  testthat::skip_if_not_installed("knitr")
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-knit-")
+  page <- knit_for(c("```{r indicator}", "plot(function(x) x > 0.5, 0, 1)", "```"), dir)
+  testthat::expect_identical(chart_summaries(page), "line:1")
+})
+
 test_that("each panel of a par(mfrow) grid reads its own function", {
   call <- quote({
     par(mfrow = c(1, 2))

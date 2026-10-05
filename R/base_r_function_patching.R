@@ -1082,6 +1082,12 @@ create_nse_wrapper <- function(function_name, original_function) {
 #' The values are stored under a `.maidr_` name, so clean_maidr_args()
 #' drops them before the call is replayed.
 #'
+#' An expression of `TRUE` and `FALSE`, such as `curve(x > 0.5)`, is drawn
+#' at 1 and 0, the numbers `xy.coords()` makes of them, and kept as those
+#' numbers. Values of any other kind that are not numbers, such as dates,
+#' are not kept: drawn on an axis of their own, they would be announced as
+#' numbers that axis does not show.
+#'
 #' @param recorded_args Recorded (unevaluated) argument list of the call
 #' @param result The value curve() returned
 #' @return A list with `x`, `y` and `labels`, or NULL when the returned
@@ -1094,6 +1100,9 @@ curve_recorded_values <- function(recorded_args, result) {
 
   x <- result$x
   y <- result$y
+  if (is.logical(y)) {
+    y <- as.numeric(y)
+  }
   if (!is.numeric(x) || !is.numeric(y)) {
     return(NULL)
   }
