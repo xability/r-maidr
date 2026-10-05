@@ -190,14 +190,17 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
   # screen's plot alone, in the first screen's region, and R's
   # "calling par(new=TRUE) with no plot" with it. What R drew after
   # `screen(n, new = FALSE)` sent it back to an earlier screen without
-  # starting a plot is drawn there, in the coordinates it was drawn in; and
+  # starting a plot is drawn there, in the coordinates it was drawn in, and
+  # clipped as R clipped it; and
   # what it drew after `par(mfg = )` sent it back to an earlier cell of a
   # grid, in that cell (`sent_back_panel()`).
   grid <- if (is_multipanel_config(config)) config
   plots <- 0L
   unrecorded_plot <- FALSE
   window <- NULL
-  for (call_entry in all_calls) {
+  clipped <- clipped_away_calls(all_calls)
+  for (i in seq_along(all_calls)) {
+    call_entry <- all_calls[[i]]
     if (identical(call_entry$function_name, "split.screen")) {
       # Where it started the page, the page is started here, before the
       # graphics parameters set for the screens after it: R works out the
@@ -225,7 +228,18 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
       plots <- on
       unrecorded_plot <- TRUE
       window <- NULL
+    } else if (sent_back && clipped[[i]]) {
+      # Sent there as `screen(n, new = FALSE)` sends R, with the screen's
+      # graphics parameters and coordinates and without starting a plot, so
+      # R clips what is drawn there as it did (`clipped_away_calls()`): the
+      # cell it sets before the region keeps the clip R had.
+      graphics::par(mfg = call_entry$drawn_cell)
+      graphics::par(fig = call_entry$drawn_fig)
+      set_drawing_pars(call_entry$pars)
+      unrecorded_plot <- TRUE
+      window <- NULL
     } else if (sent_back) {
+      # Drawn where R had worked its clip out again, there.
       set_drawing_pars(call_entry$pars)
       graphics::par(fig = call_entry$drawn_fig, new = TRUE)
       graphics::plot.new()

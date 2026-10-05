@@ -33,7 +33,9 @@ NULL
 #' One drawn after `par(mfg = )` or `screen()` sent R back to the cell or
 #' screen of an earlier group's plot, without starting a plot, is one of
 #' that group's, marked `sent_back`: R draws it there, on that plot, in the
-#' coordinates R had (`sent_back_to()`).
+#' coordinates R had (`sent_back_to()`). One R clipped away, as it does
+#' what `screen()` sends it back to draw before anything works its clip out
+#' again, is in no group (`clipped_away_calls()`).
 #'
 #' @param device_id Graphics device ID
 #' @return List of plot groups, each containing HIGH and LOW calls
@@ -50,10 +52,15 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   layout_calls <- list()
   # Drawn on plots no recorded call started, since the last group's.
   unrecorded <- list()
+  # Drawn where R clipped all of it away: not drawn, and not read.
+  clipped <- clipped_away_calls(all_calls)
 
   for (i in seq_along(all_calls)) {
     call <- all_calls[[i]]
     class_level <- call$class_level
+    if (clipped[[i]]) {
+      next
+    }
 
     if (class_level == "LAYOUT") {
       # Keep the position in the overall call sequence so panel mapping
@@ -146,6 +153,73 @@ starts_base_r_plot <- function(call) {
     (identical(call$class_level, "LOW") && isTRUE(call$own_plot))
 }
 
+#' The low-level calls R draws clipped away
+#'
+#' R clips what it draws to the plot region of the plot it was drawing on
+#' when it last worked its clip out: as it started a plot, or was sent to a
+#' cell of a grid with `par(mfg = )`, and as `xpd` changes, which `axis()`,
+#' `title()`, `mtext()` and `box()` do to draw in the margins, as does a
+#' call given `xpd`, or `par(xpd = )`, and as `par(fig = )` gives it a
+#' region. `screen(n, new = FALSE)` of `split.screen()` sends R to another
+#' region of the page without starting a plot, and sets the cell before
+#' the region, which keeps the clip R had: an `abline()`, `text()` or
+#' `legend()` drawn there next, as `?split.screen` adds to a screen, is
+#' clipped to the plot region of the plot drawn before, in another screen,
+#' and R shows none of it, until one of those works the clip out again.
+#' maidr drew it, and a reader heard a line R's page does not show. A plot
+#' region the clip overlaps would show part of it; it is read as clipped,
+#' and so is what is drawn after a region `graphics::par(fig = )` gave R,
+#' which maidr does not record.
+#'
+#' @param calls The recorded calls on the page R shows, in order
+#' @return Logical, one per call: TRUE for a low-level call drawn in
+#'   another region of the page than the one R clipped to
+#' @keywords internal
+#' @noRd
+clipped_away_calls <- function(calls) {
+  clipped <- logical(length(calls))
+  # Where R clips to: the region of the page, and `xpd`, as it last worked
+  # the clip out; NULL where it is not known.
+  clip <- NULL
+  plots <- 0L
+  resets <- c("axis", "title", "mtext", "box")
+  for (i in seq_along(calls)) {
+    call <- calls[[i]]
+    region <- call$drawn_fig %||% call$fig
+    xpd <- call$pars$xpd
+    level <- call$class_level
+    if (identical(level, "LAYOUT")) {
+      settings <- if (identical(call$function_name, "par")) par_setting_arguments(call$args)
+      if (any(c("xpd", "mfg", "fig") %in% names(settings))) {
+        clip <- NULL
+      }
+      next
+    }
+    on <- call$end_plot
+    if (!identical(level, "LOW") || starts_base_r_plot(call)) {
+      clip <- list(region = region, xpd = xpd)
+      plots <- max(plots, if (is.numeric(on) && length(on) == 1L) on else plots)
+      next
+    }
+    if (is.numeric(on) && length(on) == 1L && on > plots) {
+      # Drawn on a plot no recorded call started, which R worked the clip
+      # out for as it started it.
+      plots <- on
+      clip <- list(region = call$fig, xpd = xpd)
+    }
+    resets_clip <- call$function_name %in% resets || "xpd" %in% names(call$args)
+    in_region <- length(call$drawn_cell) == 4L &&
+      identical(as.integer(call$drawn_cell[3:4]), c(1L, 1L))
+    if (resets_clip || is.null(clip) || !identical(clip$xpd, xpd) || !in_region) {
+      clip <- list(region = region, xpd = xpd)
+      next
+    }
+    clipped[[i]] <- length(region) == 4L && length(clip$region) == 4L &&
+      !same_region(region, clip$region) && isFALSE(is.na(xpd))
+  }
+  clipped
+}
+
 #' Whether a low-level call was drawn on a plot no recorded call started
 #'
 #' R numbers the plots it starts on a page (`end_base_r_call()`). A
@@ -205,8 +279,10 @@ drawn_over_group_plot <- function(call, group) {
 #' own example does to add to a screen -- without starting a plot. What is
 #' drawn next is drawn in that cell or screen, over the plot drawn there,
 #' and not on the plot R started last: `abline()` after `screen(1, new =
-#' FALSE)` is drawn on screen 1's plot, in the coordinates `screen()` put
-#' back. It was read as a layer of the last plot, and drawn on it.
+#' FALSE)` and `axis(4)` is drawn on screen 1's plot, in the coordinates
+#' `screen()` put back. It was read as a layer of the last plot, and drawn
+#' on it. (Without `axis()`, which works R's clip out again, R clips the
+#' line away: `clipped_away_calls()`.)
 #'
 #' @param call The recorded LOW-level call
 #' @param groups The page's plot groups recorded before it, in order

@@ -1214,7 +1214,8 @@ test_that("a call made after R was sent back to a plot is drawn and read with th
 
   # screen(n, new = FALSE) puts back screen n and the coordinates of its
   # plot, to add to it, as ?split.screen's own example does. The line was
-  # read as a layer of the plot in the other screen, and drawn on it.
+  # read as a layer of the plot in the other screen, and drawn on it. (R
+  # draws it once axis() has worked its clip out again for screen n.)
   screens <- quote({
     split.screen(c(1, 2))
     screen(1)
@@ -1222,6 +1223,7 @@ test_that("a call made after R was sent back to a plot is drawn and read with th
     screen(2)
     plot(c(50, 40, 30, 20, 10), main = "ScB")
     screen(1, new = FALSE)
+    axis(4)
     abline(h = 5, col = "red")
     text(5, 5.6, "on ScA", adj = c(0.5, 0))
     close.screen(all.screens = TRUE)
@@ -1248,6 +1250,58 @@ test_that("a call made after R was sent back to a plot is drawn and read with th
   testthat::expect_identical(cell_titles(chart), list(c("Left", "Left"), "Right"))
   expect_selectors_drawn(chart)
   expect_drawn_where_r_draws(chart, panels, c("Left", "Right", "in Right's"))
+})
+
+test_that("what R clips away after screen() sent it back is neither drawn nor read", {
+  skip_if_no_render()
+
+  # R clips what screen(n, new = FALSE) sends it back to draw to the plot
+  # region of the plot drawn before, in the other screen, until something
+  # works the clip out again, so nothing of this line or text is on its
+  # page. maidr read the line as a layer of screen 1's plot, and drew both,
+  # in the chart and in its picture.
+  clipped <- quote({
+    split.screen(c(1, 2))
+    screen(1)
+    plot(1:10, main = "CA")
+    screen(2)
+    plot(c(50, 40, 30, 20, 10), main = "CB")
+    screen(1, new = FALSE)
+    abline(h = 5, col = "red")
+    text(5, 5.6, "on CA", adj = c(0.5, 0))
+    close.screen(all.screens = TRUE)
+  })
+  chart <- last_page_export(function() eval(clipped))
+  testthat::expect_identical(cell_titles(chart), list(c("CA", "CB")))
+  testthat::expect_false("on CA" %in% chart$strings)
+  expect_selectors_drawn(chart)
+
+  # The picture clips them where R does: R's drawing holds them, in the
+  # clip of the other screen's plot region.
+  red_clip <- function(document) {
+    red <- xml2::xml_find_all(document, "//*[local-name()='line' and contains(@style, '#FF0000')]")
+    clips <- xml2::xml_attr(xml2::xml_find_first(red, "ancestor::*[@clip-path][1]"), "clip-path")
+    unique(clips)
+  }
+  reference <- red_clip(r_last_page_document(clipped, environment()))
+  testthat::expect_length(reference, 1L)
+
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  file <- tempfile(fileext = ".svg")
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      if (device_id %in% grDevices::dev.list()) grDevices::dev.off(device_id)
+      unlink(file)
+    },
+    add = TRUE
+  )
+  eval(clipped)
+  svglite::svglite(file, width = 7, height = 5)
+  tryCatch(maidr:::replay_base_r_plot(device_id), finally = grDevices::dev.off())
+  testthat::expect_identical(red_clip(xml2::read_xml(file)), reference)
 })
 
 test_that("a page started after a grid is drawn with the size of text the grid set", {

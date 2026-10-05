@@ -35,6 +35,8 @@ plots no recorded call started, in its place among them
 One drawn after \code{par(mfg = )} or \code{screen()} sent R back to the cell or
 screen of an earlier group's plot, without starting a plot, is one of
 that group's, marked \code{sent_back}: R draws it there, on that plot, in the
-coordinates R had (\code{sent_back_to()}).
+coordinates R had (\code{sent_back_to()}). One R clipped away, as it does
+what \code{screen()} sends it back to draw before anything works its clip out
+again, is in no group (\code{clipped_away_calls()}).
 }
 \keyword{internal}

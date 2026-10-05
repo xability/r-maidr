@@ -511,7 +511,11 @@
   with the plot drawn last; one drawn after `par(mfg = )`, or `screen(n, new =
   FALSE)` of `split.screen()`, sends R back to the panel or screen of an
   earlier plot is drawn on that plot and read with it, where maidr read it
-  with the plot drawn last, and drew it on that plot or not at all; and
+  with the plot drawn last, and drew it on that plot or not at all -- but
+  not what R clips away: after `screen(n, new = FALSE)`, until `axis()`,
+  `title()`, `mtext()`, `box()` or a change of `xpd` works R's clip out
+  again, R clips what is drawn to the plot in the screen before and shows
+  none of it, and maidr neither draws nor reads it; and
   nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
@@ -548,9 +552,10 @@
   was not recorded: a `par()` call made through `graphics::par()` or
   `withr::with_par()`, `screen()`, or a panel `plot.new()` took; and what
   `par(mfg = )` or `screen(n, new = FALSE)` sent R back to add is drawn on
-  the plot R added it to. The picture drew a plot after such a
-  `par(new = TRUE)` on a page of its own, which lost the plots before it,
-  as on a chart of two y axes whose second axis maidr cannot draw again;
+  the plot R added it to, clipped as R clips it. The picture drew a plot
+  after such a `par(new = TRUE)` on a page of its own, which lost the
+  plots before it, as on a chart of two y axes whose second axis maidr
+  cannot draw again;
   drew one such a `par(mfg = )` sent out of turn, or one after a panel
   `plot.new()` took, in the next panel; drew every plot of a call that
   draws several, as `plot()` of a fitted model does, on one page, where R
