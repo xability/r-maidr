@@ -36,11 +36,11 @@ NULL
 recorded_axis_label <- function(args, name, default = NULL) {
   supplied <- base_r_annotation_value(if (is.list(args)) args[[name]])
   label <- if (is.language(supplied)) {
-    tryCatch(as.character(as.expression(supplied))[1], error = function(e) NULL)
+    base_r_plotmath_as_written(supplied)
   } else {
     base_r_annotation_text(supplied)
   }
-  if (is.null(label) || is.na(label) || !nzchar(label)) default else label
+  label %||% default
 }
 
 #' Canonical axes for a categorical Base R chart

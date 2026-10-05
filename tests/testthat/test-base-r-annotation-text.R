@@ -200,6 +200,7 @@ exported_chart <- function(draw) {
   schema <- schema_from(html)
   list(
     text = sort(xml2::xml_text(xml2::xml_find_all(page, "//*[local-name()='text']"))),
+    title = schema$title,
     layers = unlist(
       lapply(unlist(schema$subplots, recursive = FALSE), function(cell) cell$layers),
       recursive = FALSE
@@ -320,6 +321,33 @@ test_that("a plotmath title given in a list is drawn as the formula R draws", {
   testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
   # Read as it was written, as the same title given alone is.
   testthat::expect_identical(chart$layers[[1]]$axes$x$label, "beta[1]")
+})
+
+test_that("a plotmath title given in a list is announced as it was written", {
+  # It was announced as no title, where the same value given as an axis
+  # title is read as it was written, and where reading the list as text
+  # had announced it before.
+  r2 <- 0.87
+  chart <- exported_chart(function() plot(1:5, main = list(quote(pi))))
+  testthat::expect_identical(chart$title, "pi")
+  testthat::expect_identical(chart$layers[[1]]$title, "pi")
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "Index")
+
+  chart <- exported_chart(function() barplot(c(3, 5, 2), main = list(quote(Total), col = "red")))
+  testthat::expect_identical(chart$layers[[1]]$title, "Total")
+
+  chart <- exported_chart(function() hist(c(1, 2, 2, 3), main = list(quote(bar(x)), col = "red")))
+  testthat::expect_identical(chart$layers[[1]]$title, "bar(x)")
+
+  chart <- exported_chart(function() plot(1:5, main = list(expression(alpha, beta), font = 2)))
+  testthat::expect_identical(chart$layers[[1]]$title, "alpha")
+
+  chart <- exported_chart(function() {
+    plot(1:5)
+    title(main = list(bquote(R^2 == .(r2)), cex = 1.2), sub = list(quote(x[i])))
+  })
+  testthat::expect_identical(chart$title, "R^2 == 0.87")
+  testthat::expect_identical(chart$warnings, character(0))
 })
 
 test_that("a title's line and outer are read by their first value, as R reads them", {

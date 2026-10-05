@@ -27,16 +27,25 @@ NULL
 #' value. A classed value is first made text as `title()` makes it
 #' ([grDevices::as.graphicsAnnot()]), so a data frame row or a `POSIXlt`
 #' date, both lists underneath, is read a line per value. Any other list is
-#' read as `title()` reads it, its unnamed element being the text.
+#' read as `title()` reads it, its unnamed element being the text. A plotmath
+#' call or expression that list holds, as `list(quote(pi), col = "red")`
+#' does, is read as it was written, "pi" (`base_r_plotmath_as_written()`), as
+#' an axis title given as plotmath is ([recorded_axis_label()]). Given alone,
+#' it is not read here: a title given that way is announced as empty
+#' ([recorded_main_title()]).
 #'
 #' @param value The argument, as recorded
 #' @return A string, or NULL when R draws no text for it: nothing given, a
-#'   plotmath call or expression, or only missing or empty values
+#'   plotmath call or expression given alone, or only missing or empty values
 #' @keywords internal
 #' @noRd
 base_r_annotation_text <- function(value) {
+  held <- is.list(value)
   value <- base_r_annotation_value(value)
-  if (is.null(value) || is.language(value)) {
+  if (is.language(value)) {
+    return(if (held) base_r_plotmath_as_written(value))
+  }
+  if (is.null(value)) {
     return(NULL)
   }
   text <- tryCatch(as.character(value), error = function(e) NULL)
@@ -45,6 +54,20 @@ base_r_annotation_text <- function(value) {
     return(NULL)
   }
   paste(text, collapse = "\n")
+}
+
+#' A plotmath title, as it was written
+#'
+#' `quote(beta[1])` is read "beta[1]", and of several expressions the first,
+#' which is the one R draws.
+#'
+#' @param value A call, a symbol or an expression
+#' @return A string, or NULL when it gives none
+#' @keywords internal
+#' @noRd
+base_r_plotmath_as_written <- function(value) {
+  text <- tryCatch(as.character(as.expression(value))[1], error = function(e) NULL)
+  if (is.null(text) || is.na(text) || !nzchar(text)) NULL else text
 }
 
 #' What R draws for an annotation argument, a list's text taken out of it
