@@ -401,6 +401,40 @@ test_that("detect_panel_configuration reads the list par() is given back", {
   setup_clean_grouping()
 })
 
+test_that("detect_panel_configuration reads no layout call before the one that governs", {
+  setup_clean_grouping()
+
+  # A save reads the configuration about once for each plot on the device,
+  # and matching every recorded layout() call against layout() each time
+  # made saving a device of many layout() pages take twice as long.
+  device_id <- grDevices::dev.cur()
+  for (i in 1:20) {
+    maidr:::log_plot_call_to_device("layout", NULL, list(matrix(1:2, 1), c(i, 1)), device_id)
+    maidr:::log_plot_call_to_device("barplot", NULL, list(1:3), device_id)
+    maidr:::log_plot_call_to_device("barplot", NULL, list(3:1), device_id)
+  }
+  # A par() call that sets no grid leaves the layout() before it in place.
+  maidr:::log_plot_call_to_device("par", NULL, list(mar = c(2, 2, 1, 1)), device_id)
+  maidr:::log_plot_call_to_device("barplot", NULL, list(1:4), device_id)
+
+  layout_arguments <- maidr:::layout_arguments
+  read <- 0
+  testthat::local_mocked_bindings(
+    layout_arguments = function(args) {
+      read <<- read + 1
+      layout_arguments(args)
+    },
+    .package = "maidr"
+  )
+  config <- maidr:::detect_panel_configuration(device_id)
+
+  testthat::expect_identical(read, 1)
+  testthat::expect_identical(config$sizes, list(widths = c(20, 1)))
+  testthat::expect_identical(config$layout_index, 58L)
+
+  setup_clean_grouping()
+})
+
 # ==============================================================================
 # Integration Tests
 # ==============================================================================

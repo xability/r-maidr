@@ -153,9 +153,13 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     }
   }
 
-  # Among the layout calls that do govern drawn plots, the last one wins.
+  # Among the layout calls that do govern drawn plots, the last one that
+  # sets a grid wins. They are read from the last back, and no further than
+  # that one: a save comes here about once for each plot the device holds,
+  # and reading every layout() call each time made saving a device of many
+  # layout() pages take twice as long.
   config <- NULL
-  for (call in layout_calls) {
+  for (call in rev(layout_calls)) {
     args <- call$args
     if (call$function_name == "par") {
       args <- par_setting_arguments(args)
@@ -202,6 +206,9 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
           layout_index = call$storage_index
         )
       }
+    }
+    if (!is.null(config)) {
+      break
     }
   }
 
