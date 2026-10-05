@@ -512,6 +512,53 @@ test_that("a layout() no recorded call set up is read from the regions R gave it
   )
 })
 
+test_that("a layout() no recorded call set up keeps the widths and heights R gave its cells", {
+  skip_if_no_render()
+
+  # Read from the regions R drew in, the columns and rows were all as wide
+  # and as tall as each other: both plots of the first page took half of
+  # it, where R gives the first three quarters.
+  expect_read_as_r_draws <- function(page, draw, titles) {
+    chart <- last_page_export(draw)
+    testthat::expect_identical(cell_titles(chart), titles)
+    expect_selectors_drawn(chart)
+    expect_drawn_where_r_draws(chart, page, unique(unlist(titles)))
+  }
+  widths <- quote({
+    graphics::layout(matrix(1:2, 1), widths = c(3, 1))
+    plot(1:5, main = "Wide")
+    plot(5:1, main = "Narrow")
+  })
+  expect_read_as_r_draws(widths, function() eval(widths), list("Wide", "Narrow"))
+
+  spans <- quote({
+    graphics::layout(matrix(c(1, 2, 1, 3), 2, byrow = TRUE), widths = c(2, 1), heights = c(2, 3))
+    hist(mtcars$mpg, main = "Left")
+    plot(1:3, main = "TR")
+    barplot(c(a = 1, b = 2), main = "BR")
+  })
+  expect_read_as_r_draws(spans, function() eval(spans), list("Left", "TR", "Left", "BR"))
+
+  # Recorded, and cleared with the chart an earlier save_html() saved: the
+  # next page is laid out by the same call.
+  second_page <- quote({
+    layout(matrix(1:2, 1), widths = c(1, 3))
+    plot(1:3, main = "Before")
+    plot(3:1, main = "Before")
+    plot(1:5, main = "Narrow")
+    plot(5:1, main = "Wide")
+  })
+  expect_read_as_r_draws(
+    second_page,
+    function() {
+      eval(second_page[1:4])
+      suppressMessages(save_html(file = tempfile(fileext = ".html")))
+      eval(second_page[-(2:4)])
+    },
+    list("Narrow", "Wide")
+  )
+})
+
 test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
   skip_if_no_render()
 

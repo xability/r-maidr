@@ -558,10 +558,11 @@ sets_grid_of_one <- function(call) {
 #' page's plots were read as one, and drawn over each other at full size.
 #' Its plots are read in the panels of an `mfrow` grid of that shape, and
 #' each drawn in its cell, where R drew it. Where R drew a plot across
-#' several cells, as a `layout()` panel that spans them, the grid is that
-#' `layout()` (`layout_of_regions()`), with a panel too for each plot no
-#' recorded call started that a low-level call was drawn on, as a legend's
-#' `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
+#' several cells, as a `layout()` panel that spans them, or in cells of
+#' other widths or heights, as a `layout()` given them makes them, the
+#' grid is that `layout()` (`layout_of_regions()`), with a panel too for
+#' each plot no recorded call started that a low-level call was drawn on,
+#' as a legend's `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
 #' `end_base_r_call()`) or that a region of the page was given, by
 #' `par(fig = )` or `screen()`, in a cell of a grid of one, is not one of
 #' them.
@@ -615,43 +616,53 @@ grid_of_cells <- function(groups) {
 #' covers as many cells of the grid as the panel spans. The panels are
 #' numbered in the order R drew in them, as it numbers a `layout()`'s
 #' panels; a cell no plot was drawn in is empty. A plot drawn over another
-#' after `par(new = TRUE)` is in its panel.
+#' after `par(new = TRUE)` is in its panel. The columns and rows are as wide
+#' and as tall as R made them, as `widths` and `heights` make them, where
+#' every edge of the grid is an edge of a region (`grid_edges()`): drawn in
+#' cells of the same size, the plots of `layout(matrix(1:2, 1), widths =
+#' c(3, 1))` each took half the page, where R gives the first three
+#' quarters.
 #'
 #' @param highs The recorded calls drawn on the page's plots, in the order
 #'   R drew them, each with the `cell` and `fig` of its plot
 #' @param dims The grid's rows and columns
-#' @return A `layout` panel configuration with its `matrix`, or NULL where
-#'   each plot is in one cell, or where a region is not cells of a grid of
-#'   equal rows and columns, as one of a `layout()` with `widths` or
-#'   `heights` is not
+#' @return A `layout` panel configuration with its `matrix`, and the
+#'   `sizes` of its columns and rows where they are not all the same; or
+#'   NULL where each plot is in one cell of a grid of equal columns and
+#'   rows, which is the grid of `par(mfrow = )`, or where a region is not
+#'   cells of a grid that fills the page
 #' @keywords internal
 #' @noRd
 layout_of_regions <- function(highs, dims) {
   nrows <- dims[[1]]
   ncols <- dims[[2]]
+  figs <- lapply(highs, function(high) high$fig)
+  if (!all(vapply(figs, function(fig) length(fig) == 4L && !anyNA(fig), logical(1)))) {
+    return(NULL)
+  }
+  # Left to right, and top to bottom.
+  across <- grid_edges(unlist(lapply(figs, function(fig) fig[1:2])), ncols)
+  down <- rev(grid_edges(unlist(lapply(figs, function(fig) fig[3:4])), nrows))
+  if (length(across) == 0L || length(down) == 0L) {
+    return(NULL)
+  }
+  edge <- function(at, edges) {
+    i <- which(abs(edges - at) < 1e-6)
+    if (length(i) == 1L) i else NA_integer_
+  }
   mat <- matrix(0L, nrows, ncols)
   spans <- FALSE
-  near <- function(a, b) isTRUE(abs(a - b) < 1e-6)
   for (high in highs) {
     fig <- high$fig
-    if (length(fig) != 4L || anyNA(fig)) {
+    cols <- c(edge(fig[[1]], across), edge(fig[[2]], across))
+    rows <- c(edge(fig[[4]], down), edge(fig[[3]], down))
+    placed <- !anyNA(c(cols, rows)) && cols[[2]] > cols[[1]] && rows[[2]] > rows[[1]] &&
+      identical(as.integer(c(rows[[1]], cols[[1]])), as.integer(high$cell[1:2]))
+    if (!placed) {
       return(NULL)
     }
-    row <- high$cell[[1]]
-    col <- high$cell[[2]]
-    across <- (fig[[2]] - fig[[1]]) * ncols
-    down <- (fig[[4]] - fig[[3]]) * nrows
-    aligned <- round(across) >= 1 && round(down) >= 1 &&
-      near(across, round(across)) && near(down, round(down)) &&
-      near(fig[[1]], (col - 1) / ncols) && near(fig[[4]], 1 - (row - 1) / nrows)
-    if (!aligned) {
-      return(NULL)
-    }
-    rows <- row + seq_len(round(down)) - 1L
-    cols <- col + seq_len(round(across)) - 1L
-    if (max(rows) > nrows || max(cols) > ncols) {
-      return(NULL)
-    }
+    rows <- seq(rows[[1]], rows[[2]] - 1L)
+    cols <- seq(cols[[1]], cols[[2]] - 1L)
     spans <- spans || length(rows) > 1L || length(cols) > 1L
     taken <- mat[rows, cols]
     if (all(taken == 0L)) {
@@ -660,16 +671,48 @@ layout_of_regions <- function(highs, dims) {
       return(NULL)
     }
   }
-  if (!spans) {
+  sizes <- list(widths = diff(across), heights = -diff(down))
+  sized <- !all(vapply(sizes, function(size) max(abs(size - size[[1]])) < 1e-6, logical(1)))
+  if (!spans && !sized) {
     return(NULL)
   }
-  list(
+  config <- list(
     type = "layout",
     nrows = nrows,
     ncols = ncols,
     total_panels = max(mat),
     matrix = mat
   )
+  if (sized) {
+    config$sizes <- sizes
+  }
+  config
+}
+
+#' The edges of a grid's columns, or rows, from the regions R drew in
+#'
+#' @param at Where the regions start and end, across the page or up it, as
+#'   shares of it
+#' @param n The grid's columns, or rows
+#' @return The grid's `n + 1` edges, from 0 to 1: the regions' own, where
+#'   there are as many and they span the page, as those of a `layout()`
+#'   that sizes its columns or rows with `widths` or `heights` do; those of
+#'   a grid of columns or rows of the same size where the regions have fewer,
+#'   as where a panel spans the edge between two; and none where they do not
+#'   span the page, as those of a `layout()` with `respect`, or that sizes
+#'   them all with `lcm()`, need not
+#' @keywords internal
+#' @noRd
+grid_edges <- function(at, n) {
+  at <- sort(at)
+  at <- at[c(TRUE, diff(at) > 1e-6)]
+  if (length(at) != n + 1L) {
+    return(seq(0, 1, length.out = n + 1L))
+  }
+  if (abs(at[[1]]) > 1e-6 || abs(at[[n + 1L]] - 1) > 1e-6) {
+    return(numeric(0))
+  }
+  at
 }
 
 #' Whether R drew a plot of the page in a grid

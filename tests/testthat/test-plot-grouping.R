@@ -454,6 +454,44 @@ test_that("a layout() call's matrix is read wherever it was written", {
   testthat::expect_identical(settings$cex, 0.83)
 })
 
+test_that("a layout() read from the regions R drew in keeps the sizes of its cells", {
+  drawn <- function(row, col, fig, dims) list(cell = c(row, col, dims), fig = fig)
+
+  # Every edge of the grid is an edge of a region: the columns are as wide
+  # as R made them.
+  wide <- maidr:::layout_of_regions(
+    list(drawn(1, 1, c(0, 0.75, 0, 1), 1:2), drawn(1, 2, c(0.75, 1, 0, 1), 1:2)),
+    c(1L, 2L)
+  )
+  testthat::expect_identical(wide$matrix, matrix(1:2, 1))
+  testthat::expect_equal(wide$sizes, list(widths = c(0.75, 0.25), heights = 1))
+
+  # Cells of the same size and no panel spanning two are the grid of
+  # par(mfrow = ); cells that do not fill the page, as with `respect`, are
+  # not read as a layout.
+  testthat::expect_null(maidr:::layout_of_regions(
+    list(drawn(1, 1, c(0, 0.5, 0, 1), 1:2), drawn(1, 2, c(0.5, 1, 0, 1), 1:2)),
+    c(1L, 2L)
+  ))
+  testthat::expect_null(maidr:::layout_of_regions(
+    list(drawn(1, 1, c(0, 0.5, 0.15, 0.85), 1:2), drawn(1, 2, c(0.5, 1, 0.15, 0.85), 1:2)),
+    c(1L, 2L)
+  ))
+
+  # An edge no region starts or ends at, inside a panel that spans it, is
+  # where a grid of columns of the same size has it.
+  spans <- maidr:::layout_of_regions(
+    list(
+      drawn(1, 1, c(0, 1, 0.5, 1), 2:3),
+      drawn(2, 1, c(0, 1 / 3, 0, 0.5), 2:3),
+      drawn(2, 2, c(1 / 3, 1, 0, 0.5), 2:3)
+    ),
+    c(2L, 3L)
+  )
+  testthat::expect_identical(spans$matrix, matrix(c(1L, 2L, 1L, 3L, 1L, 3L), 2))
+  testthat::expect_null(spans$sizes)
+})
+
 # ==============================================================================
 # Integration Tests
 # ==============================================================================

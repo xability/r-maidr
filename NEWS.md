@@ -376,7 +376,14 @@
   missing. A size left out with an empty argument, as in
   `layout(m, , c(1, 3))`, which leaves out the widths, no longer loses the
   page either: maidr drew only the first plot, over the whole page, and
-  read every plot as one (#PR).
+  read every plot as one. A `layout()` maidr did not record, made through
+  `graphics::layout()` or before an earlier `show()` or `save_html()` on
+  the device, keeps the widths and heights R gave its cells too, read from
+  where R drew its plots, where every edge of its cells is an edge of one
+  and its cells fill the page, where maidr drew its columns all as wide,
+  and its rows all as tall, as each other. Such a layout's cells sized
+  with `lcm()` keep the share of the page R gave them on the device the
+  plots were drawn on (#PR).
 * `save_html()` of a lattice chart exports that chart even while a Base R
   call is recorded on the current device. The Base R adapter claimed any
   object once the device held a recorded call, so the chart was written
