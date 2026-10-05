@@ -918,8 +918,9 @@ par_margin_settings <- function(layout_calls, before) {
 #' They are the margins in inches R drew the plot with, where R did not
 #' work them out again as it started it (`end_base_r_call()`): a
 #' `par(cex = )` set after `screen()`, or before a plot drawn over another
-#' after `par(new = TRUE)`, does not change them. Else they are the margins
-#' in lines and the size of text R had as the call started
+#' after `par(new = TRUE)`, does not change them; with the size of text,
+#' and `mex`, which sets the height of a line of margin text, as R had them
+#' as the call started. Else they are the margins in lines with those
 #' (`begin_base_r_call()`), which R works them out from, as the drawing
 #' does.
 #'
@@ -935,8 +936,8 @@ recorded_margins <- function(call) {
   if (!is.numeric(pars$cex)) {
     return(NULL)
   }
-  if (is.numeric(margins$mai) && is.numeric(margins$omi)) {
-    return(list(mai = margins$mai, omi = margins$omi, cex = pars$cex))
+  if (is.numeric(margins$mai) && is.numeric(margins$omi) && is.numeric(pars$mex)) {
+    return(list(mai = margins$mai, omi = margins$omi, mex = pars$mex, cex = pars$cex))
   }
   lines <- c("mar", "oma", "mex", "cex")
   if (!all(vapply(pars[lines], is.numeric, logical(1)))) {

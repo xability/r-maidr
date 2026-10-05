@@ -997,6 +997,35 @@ test_that("a plot in a screen is drawn with the graphics parameters R gave that 
   }
 })
 
+test_that("text in the margins is drawn the lines out R draws it, with the mex R had", {
+  skip_if_no_render()
+
+  # par(mex = ) sets how far out a line of margin text is. Drawn with the
+  # margins R gave the plot but not with its mex, the tick labels and the
+  # mtext() were drawn nearer the plot than R draws them.
+  calls <- list(
+    quote({
+      par(mex = 0.6)
+      plot(c(10, 20, 30), c(1, 2, 3), main = "mex")
+      mtext("note", side = 3, line = 0.5)
+    }),
+    quote({
+      split.screen(c(1, 2))
+      screen(1)
+      par(mex = 0.6)
+      plot(c(10, 20, 30), c(1, 2, 3), main = "mex")
+      mtext("note", side = 3, line = 0.5)
+      screen(2)
+      plot(1:5, main = "other")
+      close.screen(all.screens = TRUE)
+    })
+  )
+  for (call in calls) {
+    chart <- last_page_export(function() eval(call))
+    expect_drawn_where_r_draws(chart, call, c("note", "10", "20", "30"))
+  }
+})
+
 test_that("a plot par(fig = ) or a screen placed is drawn in the region R gave it", {
   skip_if_no_render()
 
