@@ -400,10 +400,10 @@
   such as `plot(function(x) x > 0.5)`, is read at the 0 and 1 R draws it
   at, and so is `curve(x > 0.5)`, which was read as a line with no points;
   one whose values are other than numbers, such as dates, is shown as a
-  picture. `plot()` of a time series, a one-way table or a data frame of
-  two columns is announced with the axis titles R draws for it, such as
-  "Time" and "AirPassengers" for `plot(AirPassengers)`, where it had none,
-  or had them only with another argument written first, as in
+  picture. `plot()` of a time series of one series, a one-way table or a
+  data frame of two columns is announced with the axis titles R draws for
+  it, such as "Time" and "AirPassengers" for `plot(AirPassengers)`, where
+  it had none, or had them only with another argument written first, as in
   `plot(main = "Nile", Nile)`. A title `plot()` derives for an axis, such
   as "Time", "v" for `plot(v)`, "mpg" for `plot(mpg ~ wt, data = mtcars)`
   or "Density" for `plot(density(x))`, is not announced where R draws none:
