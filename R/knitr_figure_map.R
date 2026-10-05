@@ -533,12 +533,15 @@ draw_as_knit_figure <- function(x, draw, mark = TRUE) {
 #' already. The one exception is maidr's message that it drew the chart
 #' larger than the chunk asked for (`chart_canvas_size()`), which is the
 #' author's to see. A Base R chart is read from its device's recorded calls when its
-#' figure is written (`render_figure_chart()`).
+#' figure is written (`render_figure_chart()`). A build that fails is not
+#' drawn as maidr's picture, which the document would not show: its failure
+#' is kept, for the figure to stay knitr's and the build to say why.
 #'
 #' @param plot The ggplot2 or lattice chart, or `NULL` for Base R
 #' @param options The chunk options
 #' @return The chart's SVG; `NULL` when maidr cannot read the chart; or the
-#'   error its build stopped with
+#'   error its build stopped with, or failed with
+#'   ([build_interactive_svg()])
 #' @keywords internal
 #' @noRd
 knit_chart_content <- function(plot, options) {
@@ -565,6 +568,7 @@ knit_chart_content <- function(plot, options) {
       },
       maidr_chart_size_message = function(m) resized <<- c(resized, conditionMessage(m))
     ))),
+    maidr_build_failure = function(failure) failure$error,
     error = function(e) e
   )
   for (said in resized) {

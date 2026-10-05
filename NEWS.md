@@ -404,6 +404,80 @@
   named "[" in the data, and `barplot()` stopped at the call itself with
   "object 'mu' not found". The call is now recorded as the expression it
   stands for, which R draws the same (#353).
+* A Base R chart whose title or axis title is not one string is drawn as R
+  draws it. `i <- 3; plot(1:5, main = i)` and `barplot(c(1, 2, 3), xlab =
+  2024)` were exported with nothing drawn on them, and nothing said so: the
+  drawing maidr makes of a Base R chart again stopped on a `main`, `sub`,
+  `xlab` or `ylab` given as a number, a logical, several values or a list
+  such as `list("Title", font = 2)`, or as plotmath to `curve()`, `ylab =
+  quote(x^2)`, or to a formula `plot()`, `main = expression(alpha)`; on a
+  `title()` given several `line` or `outer` values, none, or a missing
+  `outer`; on an `axis()` given several values of `side`, `tick`, `pos`,
+  `outer`, `font`, `lwd` or `lwd.ticks` or a missing `outer`, `lwd` or
+  `lwd.ticks`, on `axis(labels = NA)` and `axis(1, at = numeric(0))`; and on
+  an `mtext()` spread over several sides, `adj` or `padj` values, such as
+  `mtext(c("Left", "Right"), side = c(2, 4))`. It left out values of an
+  `mtext()` whose `at` held fewer positions than values, or a missing one,
+  drew a missing `mtext()` text or tick label as "NA", and drew an axis's
+  ticks in each of several `col`, `col.ticks` or `lty` values in turn. Each
+  is now drawn as R draws it, several values of `main`, `xlab` or `ylab` a
+  line apart and those of `sub` all on its one line, and the title and axis
+  titles a screen reader reads are the same text, a line for each value:
+  they were the first value alone. The titles of `curve()`, and of a
+  formula plot with a `subset`, written as code, such as `main = grp` in a
+  loop, are read the same way, and drawn with the values R drew them with:
+  they were announced as the first word of the code, or as no title, and
+  drawn by running the code again, so that a title holding `sample()` or a
+  counter was drawn with another value.
+  The y axis of a `plot()` of several time series, drawn a panel each, is
+  announced as the first series' name, the title R gives its panel; it was
+  the `ylab` R does not draw. A chart that still cannot be drawn again, such
+  as one with `axis(1, padj = c(0, 1))`, falls back to the static image,
+  with a warning that says why, rather than being exported empty; the
+  image's alt text says it could not be made interactive, and names the
+  page it shows, the last one R drew: by the chart's title, or for several
+  panels by the title R drew over them or by each panel's own, its plot's
+  or `title()`'s. In a knitted document it stays knitr's figure,
+  and the document's build says why once, as it does for a chart whose
+  build stops (#358).
+* `plot()` of a function, such as `plot(sin, -pi, pi)`, `plot(dnorm, -3, 3)`
+  or `plot(function(x) x^2)`, is read as the line `curve()` draws for it,
+  over the points R drew, wherever the function is written among the
+  arguments, as in `plot(main = "Sine", sin, -pi, pi)`. `save_html()` and
+  `show()` stopped with "object of type 'builtin' is not subsettable" (or
+  'closure' or 'special'), a knitted chunk showed a picture of it, and
+  `plot(sin)` with no range, or with only `from`, `to` or `xlim`, was read
+  as a scatter with no points. Its axes are named as R names them, "x" and
+  the first line of the function as written, "sin". Drawn over another chart
+  with `add = TRUE`, or as points with `type = "p"`, it is shown as a
+  picture of the chart, as `curve()` is. A function of `TRUE` and `FALSE`,
+  such as `plot(function(x) x > 0.5)`, is read at the 0 and 1 R draws it
+  at, and so is `curve(x > 0.5)`, which was read as a line with no points;
+  one whose values are other than numbers, such as dates, is shown as a
+  picture. `plot()` of a time series of one series, a one-way table or a
+  data frame of two columns is announced with the axis titles R draws for
+  it, such as "Time" and "AirPassengers" for `plot(AirPassengers)`, where
+  it had none, or had them only with another argument written first, as in
+  `plot(main = "Nile", Nile)`. So written, a time series is read as the
+  line R draws for it and `plot(main = "D", density(x))` as the density
+  curve, as they are written first, where each was read as a scatter of its
+  points. A title `plot()` derives for an axis, such as "Time", "v" for
+  `plot(v)`, "mpg" for `plot(mpg ~ wt, data = mtcars)` or "Density" for
+  `plot(density(x))`, is not announced where R draws none: where the call
+  blanks it, as `ylab = ""` does, or gives it as `NULL` to a time series,
+  or turns titles off with `ann = FALSE` or `par(ann = FALSE)`.
+  `plot(v, ylab = "")` was announced with "v". A title written on an axis
+  after the plot with `title(xlab = )` or `ylab` is announced as R draws
+  it there: `plot(x, y, ann = FALSE); title(xlab = "Weight")` was
+  announced with "x".
+  So is one written with `mtext()` centred on that side, the string
+  nearest the axis where there are several, where maidr announces no title
+  of its own for that axis, as for `plot(x, y, ann = FALSE)`. A bar chart,
+  box plot or strip chart keeps maidr's "Category" and "Value", or a
+  formula's names, and `hist()`, `curve()` and `qqnorm()` keep the titles
+  they derive, even where R draws none. On a chart of several y axes, drawn
+  with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
+  written beside its own axis (#359).
 * A Base R chart is the page R's device shows: the last one. After
   `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram alone,
   on a page of its own, but `show()` and `save_html()` made one chart of

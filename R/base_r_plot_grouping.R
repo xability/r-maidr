@@ -218,14 +218,17 @@ drawn_over_group_plot <- function(call, group) {
 #' @noRd
 sent_back_to <- function(call, groups) {
   # Where R started its last plot, as against where it drew the call.
-  last_plot_known <- same_region(call$cell, call$fig, call$cell, call$fig)
-  if (!last_plot_known || same_region(call$drawn_cell, call$drawn_fig, call$cell, call$fig)) {
+  last_plot_known <- same_cell_and_region(call$cell, call$fig, call$cell, call$fig)
+  drawn_there <- same_cell_and_region(call$drawn_cell, call$drawn_fig, call$cell, call$fig)
+  if (!last_plot_known || drawn_there) {
     return(NA_integer_)
   }
   there <- vapply(
     groups,
     function(group) {
-      same_region(group$high_call$cell, group$high_call$fig, call$drawn_cell, call$drawn_fig)
+      same_cell_and_region(
+        group$high_call$cell, group$high_call$fig, call$drawn_cell, call$drawn_fig
+      )
     },
     logical(1)
   )
@@ -240,7 +243,7 @@ sent_back_to <- function(call, groups) {
 #' @return Logical: `FALSE` where either is not known
 #' @keywords internal
 #' @noRd
-same_region <- function(cell, fig, other_cell, other_fig) {
+same_cell_and_region <- function(cell, fig, other_cell, other_fig) {
   known <- function(cell, fig) {
     length(cell) == 4L && !anyNA(cell) && length(fig) == 4L && !anyNA(fig)
   }
@@ -267,7 +270,9 @@ same_region <- function(cell, fig, other_cell, other_fig) {
 #' @keywords internal
 #' @noRd
 drawn_over_earlier_plot <- function(call, groups, current_group) {
-  on <- function(group) same_region(group$high_call$cell, group$high_call$fig, call$cell, call$fig)
+  on <- function(group) {
+    same_cell_and_region(group$high_call$cell, group$high_call$fig, call$cell, call$fig)
+  }
   if (!is.null(current_group) && on(current_group)) {
     return(NA_integer_)
   }
@@ -643,6 +648,93 @@ plot_in_grid <- function(high, config) {
 #' @noRd
 par_setting_arguments <- function(args) {
   if (length(args) == 1L && is.list(args[[1L]])) args[[1L]] else args
+}
+
+#' Which plots are drawn over one another
+#'
+#' `par(new = TRUE)` draws the next plot over the last one, as a chart of two
+#' y axes does, and a high-level call given `add = TRUE` draws onto it
+#' (`shared_plots()`). Each such plot is in the run of the plot it is drawn
+#' over. With `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next
+#' plot is drawn on the same page but in another region of it, beside the
+#' last one or inset in it, so it is drawn over the last one only where R
+#' drew both in the same plot region (`device_plot_region()`).
+#'
+#' @param groups The plot groups, from [group_device_calls()]
+#' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
+#' @return Integer vector, one entry per group: the index of the first plot
+#'   of its run
+#' @keywords internal
+#' @noRd
+overlay_runs <- function(groups, layout_calls) {
+  runs <- seq_along(groups)
+  for (g in seq_along(groups)[-1L]) {
+    after <- groups[[g - 1L]]$high_call_index
+    before <- groups[[g]]$high_call_index
+    if (is.null(after) || is.null(before)) {
+      next
+    }
+    new <- FALSE
+    for (call in layout_calls) {
+      at <- call$storage_index
+      if (identical(call$function_name, "par") && !is.null(at) && at > after && at < before) {
+        settings <- par_setting_arguments(call$args)
+        if ("new" %in% names(settings)) {
+          new <- isTRUE(as.logical(settings[["new"]]))
+        }
+      }
+    }
+    drawn_over <- new || recorded_flag(groups[[g]]$high_call$args, "add")
+    if (drawn_over && same_plot_region(groups[[g - 1L]], groups[[g]])) {
+      runs[[g]] <- runs[[g - 1L]]
+    }
+  }
+  runs
+}
+
+#' The plot each high-level call draws on
+#'
+#' A high-level call given `add = TRUE`, such as `contour(add = TRUE)` or
+#' `boxplot(add = TRUE)`, draws onto the plot drawn last, against its axes,
+#' rather than drawing a plot of its own.
+#'
+#' @param groups The plot groups, from [group_device_calls()]
+#' @return Integer vector, one entry per group: the index of the group that
+#'   drew the plot it draws on, its own where it draws a plot of its own
+#' @keywords internal
+#' @noRd
+shared_plots <- function(groups) {
+  plots <- seq_along(groups)
+  for (g in seq_along(groups)[-1L]) {
+    added <- recorded_flag(groups[[g]]$high_call$args, "add")
+    if (added && same_plot_region(groups[[g - 1L]], groups[[g]])) {
+      plots[[g]] <- plots[[g - 1L]]
+    }
+  }
+  plots
+}
+
+#' Whether R drew two plots in the same plot region
+#'
+#' @param a,b Two plot groups, from [group_device_calls()]
+#' @return TRUE where the regions recorded with their high-level calls are
+#'   the same, or where either was not recorded
+#' @keywords internal
+#' @noRd
+same_plot_region <- function(a, b) {
+  first <- a$high_call$plot_region
+  second <- b$high_call$plot_region
+  is.null(first) || is.null(second) || same_region(first, second)
+}
+
+#' Whether two regions recorded by `device_plot_region()` are the same
+#'
+#' @param a,b Two recorded regions
+#' @return TRUE or FALSE
+#' @keywords internal
+#' @noRd
+same_region <- function(a, b) {
+  length(a) == length(b) && all(abs(a - b) < 1e-8)
 }
 
 #' The margins a recorded plot was drawn with

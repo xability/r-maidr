@@ -116,6 +116,37 @@ calls_as_expressions <- function(args) {
   args
 }
 
+#' Whether a device draws the titles a plot derives
+#'
+#' `par("ann")` on the device, without opening one: TRUE, R's default, for a
+#' device that is not the current one, whose `par()` would be another's.
+#'
+#' @param device_id Graphics device ID
+#' @return TRUE or FALSE
+#' @keywords internal
+device_par_ann <- function(device_id = grDevices::dev.cur()) {
+  if (device_id <= 1L || device_id != grDevices::dev.cur()) {
+    return(TRUE)
+  }
+  !isFALSE(tryCatch(graphics::par("ann"), error = function(e) TRUE))
+}
+
+#' Where on its page a device draws the current plot
+#'
+#' `par("fig")` and `par("plt")` on the device, without opening one: the
+#' figure region of the page, and the plot region within that figure.
+#'
+#' @param device_id Graphics device ID
+#' @return Numeric vector of eight, the `fig` and then the `plt`; NULL for a
+#'   device that is not the current one, whose `par()` would be another's
+#' @keywords internal
+device_plot_region <- function(device_id = grDevices::dev.cur()) {
+  if (device_id <= 1L || device_id != grDevices::dev.cur()) {
+    return(NULL)
+  }
+  tryCatch(c(graphics::par("fig"), graphics::par("plt")), error = function(e) NULL)
+}
+
 #' Log Plot Call to Device Storage
 #'
 #' Records a plot call in the device-specific storage.
@@ -173,7 +204,17 @@ log_plot_call_to_device <- function(
     # resolved it later would read whatever the names are bound to *then* --
     # see `recorded_formula_frame()` for the measurement (#254).
     formula = formula,
-    formula_frame = recorded_formula_frame(args, call_env, formula)
+    formula_frame = recorded_formula_frame(args, call_env, formula),
+    # Whether R titled a high-level plot, which `par(ann = FALSE)` turns off
+    # as the call's own `ann = FALSE` does (`drawn_default_titles()`). Read
+    # now: by the time the chart is read, par() holds whatever came later.
+    par_ann = if (class_level == "HIGH") device_par_ann(device_id),
+    # Where on the page R drew a high-level plot, which tells a plot drawn
+    # over another with `par(new = TRUE)` from one placed beside it or inset
+    # in it with `par(fig = , new = TRUE)` (`overlay_runs()`), and which plot
+    # a low-level call draws on: after `par(mfg = )` moves back to an earlier
+    # panel, a title() is drawn there (`margin_titles()`).
+    plot_region = if (class_level %in% c("HIGH", "LOW")) device_plot_region(device_id)
   )
   # Where R drew the call: the page, by which a chart is read from the page
   # R's device shows (`last_page_calls()`), and the panel and number of its

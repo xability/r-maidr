@@ -481,6 +481,51 @@ test_that("a chart whose build fails is knitr's figure, with one warning", {
   )
 })
 
+test_that("a chart that cannot be drawn again is knitr's figure, with one warning", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+  # As a drawing gridGraphics cannot echo stops (`base_r_drawing_grob()`).
+  # The build falls back to a picture, with a warning; knitted, the picture
+  # was left out for knitr's figure and the warning kept out of the
+  # document, so nothing said the chart had not been made accessible.
+  testthat::local_mocked_bindings(
+    base_r_drawing_grob = function(...) {
+      stop(errorCondition(
+        "gridGraphics could not draw the chart again: the condition has length > 1",
+        class = "maidr_chart_echo_error"
+      ))
+    },
+    .package = "maidr"
+  )
+  warnings <- character()
+  page <- withCallingHandlers(
+    knit_for(c(
+      chart_setup,
+      "```{r base}", "barplot(1:3)", "```",
+      "```{r again}", "plot(1:5)", "```",
+      "```{r printed}", "print(p)", "```"
+    ), dir),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  testthat::expect_identical(
+    figure_sequence(page),
+    c("figure base-1.svg", "figure again-1.svg", ": bar:3")
+  )
+  testthat::expect_identical(
+    warnings,
+    paste0(
+      "maidr: a chart in chunk 'base' could not be made accessible and is shown ",
+      "as a static image: gridGraphics could not draw the chart again: the ",
+      "condition has length > 1"
+    )
+  )
+})
+
 test_that("a chunk that stops with an error leaves nothing to the next chunk", {
   skip_if_no_figures()
   local_knitr_state()

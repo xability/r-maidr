@@ -31,6 +31,7 @@ the results into a comprehensive interactive plot.
     \item \href{#method-BaseRPlotOrchestrator-get_gtable}{\code{BaseRPlotOrchestrator$get_gtable()}}
     \item \href{#method-BaseRPlotOrchestrator-canvas_size}{\code{BaseRPlotOrchestrator$canvas_size()}}
     \item \href{#method-BaseRPlotOrchestrator-picture_size}{\code{BaseRPlotOrchestrator$picture_size()}}
+    \item \href{#method-BaseRPlotOrchestrator-picture_title}{\code{BaseRPlotOrchestrator$picture_title()}}
     \item \href{#method-BaseRPlotOrchestrator-get_grob_for_layer}{\code{BaseRPlotOrchestrator$get_grob_for_layer()}}
     \item \href{#method-BaseRPlotOrchestrator-unsupported_layer_flags}{\code{BaseRPlotOrchestrator$unsupported_layer_flags()}}
     \item \href{#method-BaseRPlotOrchestrator-has_unsupported_layers}{\code{BaseRPlotOrchestrator$has_unsupported_layers()}}
@@ -338,7 +339,10 @@ HIGH-level calls
     A gtable, or NULL when nothing was recorded. Stops when the
 chart is too small for R to draw at a size asked for (see
 \code{\link[=base_r_drawing_grob]{base_r_drawing_grob()}}); one not asked for is enlarged to fit
-(\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}).
+(\code{\link[=base_r_page_that_fits]{base_r_page_that_fits()}}). Stops too when the chart cannot be
+drawn again, with the reason, every time it is asked for: the
+chart is then drawn as a picture, with a warning that says so
+(\code{\link[=build_interactive_svg]{build_interactive_svg()}}), rather than empty.
   }
 }
 
@@ -376,6 +380,33 @@ is drawn at the chart's, as before: it shows what R draws of it.
   }
   \subsection{Returns}{
     A named numeric vector, \code{width} and \code{height}, in inches
+  }
+}
+
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BaseRPlotOrchestrator-picture_title"></a>}}
+\if{latex}{\out{\hypertarget{method-BaseRPlotOrchestrator-picture_title}{}}}
+\subsection{\code{BaseRPlotOrchestrator$picture_title()}}{
+  The name of a picture of the chart, drawn in place of a
+chart that could not be made interactive
+
+The picture holds the page R shows, the last one, and is named by
+what is drawn on it: the title R drew over its panels, with
+\code{title(outer = TRUE)} or \code{mtext(outer = TRUE)} along the top; else,
+for one panel, by its title, and for several, by each panel R drew in
+turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
+A panel's title is its plot's, or the one \code{title()} gave it. The
+chart's own title is its last titled panel's, from any page, which
+would name a picture of several panels by one of them; and maidr's
+grid of cells counts a panel spanning two cells twice, and an empty
+cell as a panel.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{BaseRPlotOrchestrator$picture_title()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    One string, or NULL when the chart has no title
   }
 }
 

@@ -23,6 +23,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .format_config = NULL,
     .format_config_by_group = list(),
     .cached_gtable = NULL,
+    .drawing_failure = NULL,
     .fallback_mode = "none",
     .fallback_groups = integer(0),
     .fallback_panels = integer(0),
@@ -262,6 +263,36 @@ BaseRPlotOrchestrator <- R6::R6Class(
         call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
       )
       at
+    },
+
+    # The title of a plot group's panel, as one line: its plot's, as its
+    # layer announces it, or else the one a `title()` drawn on it gave it.
+    panel_title = function(group_index) {
+      one_line <- function(title) {
+        if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) {
+          gsub("\n", " ", title, fixed = TRUE)
+        }
+      }
+      for (i in seq_along(private$.layers)) {
+        layer <- private$.layers[[i]]
+        if (identical(layer$group_index, group_index) && identical(layer$source, "HIGH")) {
+          processor <- private$.layer_processors[[i]]
+          result <- if (!is.null(processor)) processor$get_last_result()
+          title <- one_line(result$title)
+          if (!is.null(title)) {
+            return(title)
+          }
+        }
+      }
+      group <- private$.plot_groups[[group_index]]
+      title <- one_line(base_r_annotation_text(group$high_call$args[["main"]]))
+      for (call in group$low_calls) {
+        outer <- base_r_scalar_arg(call$args[["outer"]], flag = TRUE, missing = FALSE)
+        if (identical(call$function_name, "title") && !isTRUE(outer)) {
+          title <- one_line(base_r_annotation_text(base_r_title_main(call$args))) %||% title
+        }
+      }
+      title
     },
 
     # The one result that declares its own subplot grid, or NULL.
@@ -531,6 +562,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       plot_numbers <- private$plot_numbers(panel_slots)
 
+      # The titles written after each plot, with title() or mtext(), by the
+      # plot whose axis each one titles.
+      titles <- margin_titles(private$.plot_groups, private$.layout_calls)
+
       layer_results <- vector("list", length(private$.layers))
       for (i in seq_along(private$.layers)) {
         processor <- private$.layer_processors[[i]]
@@ -555,6 +590,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
 
         layer_info <- private$.layers[[i]]
+        layer_titles <- titles[[layer_info$group_index]]
         layer_info$group_index <- plot_numbers[[layer_info$group_index]]
         # Drawn over the group's plot on one of its own, after
         # `par(new = TRUE)`, a call's marks are that plot's
@@ -575,6 +611,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
           layer_info = layer_info,
           gt = layer_grob
         )
+        # Titles the author wrote after the plot, with title() or mtext(), on
+        # the layer, or on each layer a result of several holds.
+        if (is.list(result) && isTRUE(result$multi_layer) && !is.null(result$layers)) {
+          result$layers <- lapply(result$layers, function(sub) {
+            sub$axes <- with_margin_titles(sub$axes, layer_titles)
+            sub
+          })
+        } else if (is.list(result)) {
+          result$axes <- with_margin_titles(result$axes, layer_titles)
+        }
         processor$set_last_result(result)
         layer_results[[i]] <- result
       }
@@ -649,19 +695,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
       y_label <- ""
 
       # Exact-match lookup: `args$sub` would partial-match an unrelated
-      # `subset` argument (e.g. plot(y ~ x, subset = ...)), and recorded
-      # values can be non-character (expressions from NSE calls), which
-      # nzchar() cannot handle.
+      # `subset` argument (e.g. plot(y ~ x, subset = ...)). The text is the
+      # one R draws for the value, whatever it was given as
+      # (`base_r_annotation_text()`).
       get_label_arg <- function(args, name) {
-        value <- args[[name]]
-        if (is.null(value) || is.language(value)) {
-          return(NULL)
-        }
-        value <- tryCatch(as.character(value)[1], error = function(e) NULL)
-        if (is.null(value) || is.na(value) || !nzchar(value)) {
-          return(NULL)
-        }
-        value
+        base_r_annotation_text(args[[name]])
       }
 
       for (group in private$.plot_groups) {
@@ -1030,7 +1068,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' @return A gtable, or NULL when nothing was recorded. Stops when the
     #'   chart is too small for R to draw at a size asked for (see
     #'   [base_r_drawing_grob()]); one not asked for is enlarged to fit
-    #'   ([base_r_page_that_fits()]).
+    #'   ([base_r_page_that_fits()]). Stops too when the chart cannot be
+    #'   drawn again, with the reason, every time it is asked for: the
+    #'   chart is then drawn as a picture, with a warning that says so
+    #'   ([build_interactive_svg()]), rather than empty.
     get_gtable = function() {
       if (length(private$.plot_groups) == 0) {
         return(NULL)
@@ -1041,6 +1082,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # so build the gtable once and reuse it.
       if (!is.null(private$.cached_gtable)) {
         return(private$.cached_gtable)
+      }
+      # A drawing that failed fails again: drawn once, and said once.
+      if (!is.null(private$.drawing_failure)) {
+        stop(private$.drawing_failure)
       }
 
       # Suppress native R graphics window by using a null PDF device
@@ -1101,12 +1146,14 @@ BaseRPlotOrchestrator <- R6::R6Class(
           },
           error = function(e) {
             # A chart too small to draw at a size asked for stops, naming
-            # its size (`base_r_drawing_grob()`).
-            if (inherits(e, "maidr_chart_draw_error")) {
-              stop(e)
+            # its size (`base_r_drawing_grob()`). Any other failure is kept
+            # and raised, for the chart to be drawn as a picture with a
+            # warning saying why (`build_interactive_svg()`), rather than
+            # left empty.
+            if (!inherits(e, "maidr_chart_draw_error")) {
+              private$.drawing_failure <- e
             }
-            warning("Failed to create multipanel grob: ", e$message)
-            NULL
+            stop(e)
           }
         )
       } else {
@@ -1120,17 +1167,20 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
 
         # The drawing settles the canvas, enlarging it or stopping as
-        # above; one that fails for another reason leaves no drawing.
+        # above. One that fails for another reason -- the plot's, or one
+        # drawn over it, which R drew on the same page -- is kept and
+        # raised as the multipanel one is, for the chart to be drawn as a
+        # picture with a warning saying why (`build_interactive_svg()`).
         grob <- tryCatch(
           private$drawing_grob(page_func),
           error = function(e) {
-            if (inherits(e, "maidr_chart_draw_error")) {
-              stop(e)
+            if (!inherits(e, "maidr_chart_draw_error")) {
+              private$.drawing_failure <- e
             }
-            NULL
+            stop(e)
           }
         )
-        private$.grob_list <- if (is.null(grob)) list() else list(grob)
+        private$.grob_list <- list(grob)
         private$.cached_gtable <- grob
         grob
       }
@@ -1177,6 +1227,55 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       private$.canvas
     },
+    #' @description The name of a picture of the chart, drawn in place of a
+    #'   chart that could not be made interactive
+    #'
+    #' The picture holds the page R shows, the last one, and is named by
+    #' what is drawn on it: the title R drew over its panels, with
+    #' `title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else,
+    #' for one panel, by its title, and for several, by each panel R drew in
+    #' turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
+    #' A panel's title is its plot's, or the one `title()` gave it. The
+    #' chart's own title is its last titled panel's, from any page, which
+    #' would name a picture of several panels by one of them; and maidr's
+    #' grid of cells counts a panel spanning two cells twice, and an empty
+    #' cell as a panel.
+    #' @return One string, or NULL when the chart has no title
+    picture_title = function() {
+      groups <- private$.plot_groups
+      panel_config <- detect_panel_configuration(private$.device_id)
+      multipanel <- is_multipanel_config(panel_config)
+      shown <- if (multipanel) {
+        which(!is.na(compute_panel_slots(groups, panel_config)))
+      } else {
+        seq_along(groups)
+      }
+
+      outer <- NULL
+      for (group in groups[shown]) {
+        for (call in c(list(group$high_call), group$low_calls)) {
+          outer <- base_r_outer_title(call) %||% outer
+        }
+      }
+      if (!is.null(outer)) {
+        return(outer)
+      }
+
+      if (!multipanel || length(shown) == 0) {
+        title <- tryCatch(self$get_layout()$title, error = function(e) NULL)
+        if (is.character(title) && length(title) == 1 && nzchar(title)) {
+          return(title)
+        }
+        return(if (length(groups) > 0) private$panel_title(length(groups)))
+      }
+      titles <- vapply(shown, function(index) {
+        private$panel_title(index) %||% "untitled"
+      }, character(1))
+      if (length(titles) == 1) {
+        return(if (!identical(titles, "untitled")) titles)
+      }
+      sprintf("%d panels: %s", length(titles), paste(titles, collapse = ", "))
+    },
     #' @description The grob a layer's processor searches for its selectors
     #' @param layer_index Index of the layer
     #' @return A grob, or NULL
@@ -1185,8 +1284,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
         return(NULL)
       }
 
+      # A drawing that cannot be made leaves the layer without a grob, and
+      # its selectors empty: the chart is then drawn as a picture, with a
+      # warning saying why, when it is built (`build_interactive_svg()`).
       if (length(private$.grob_list) == 0) {
-        self$get_gtable()
+        tryCatch(self$get_gtable(), error = function(e) {
+          if (inherits(e, "maidr_chart_draw_error")) {
+            stop(e)
+          }
+          NULL
+        })
       }
 
       # Every layer shares the drawing of the page: the processors find their
@@ -1504,9 +1611,13 @@ start_replayed_plot <- function(stays, start = TRUE) {
 #' page of the canvas's size, the drawing is the one R draws at that size.
 #'
 #' The grob names, which every selector is written against, are those
-#' `as.grob()` gives. A drawing gridGraphics cannot echo is grabbed as drawn,
-#' as `as.grob()` does. An echoed drawing keeps only the tick labels R draws
-#' ([thin_axis_labels()]).
+#' `as.grob()` gives. The drawing is recorded and echoed with its titles,
+#' margin texts and axis labels as R drew them (`base_r_echoable_recording()`),
+#' and keeps only the tick labels R draws ([thin_axis_labels()]). A drawing
+#' gridGraphics cannot echo stops, with an error of class
+#' `maidr_chart_echo_error` giving gridGraphics' reason. `as.grob()` grabs
+#' such a drawing as drawn instead, which for Base R graphics is an empty
+#' drawing, and maidr exported that without a word.
 #'
 #' A chart too small to draw stops, with an error of class
 #' `maidr_chart_draw_error` that names the size and R's reason. Base R gives
@@ -1551,14 +1662,47 @@ base_r_drawing_grob <- function(draw, size) {
     stop(base_r_too_small(e, size))
   }
 
-  echoed <- tryCatch(
-    grab(gridGraphics::grid.echo(draw_as_ggplotify_does)),
-    error = function(e) NULL
+  recording <- tryCatch(
+    base_r_recorded_drawing(draw_as_ggplotify_does, size),
+    error = cannot_draw
   )
-  if (is.null(echoed)) {
-    return(tryCatch(grab(draw_as_ggplotify_does()), error = cannot_draw))
-  }
+  echoed <- tryCatch(
+    grab(gridGraphics::grid.echo(base_r_echoable_recording(recording, size))),
+    error = function(e) {
+      stop(errorCondition(
+        paste0("gridGraphics could not draw the chart again: ", conditionMessage(e)),
+        class = "maidr_chart_echo_error"
+      ))
+    }
+  )
   thin_axis_labels(echoed, size)
+}
+
+#' A Base R drawing, recorded on a page of a size
+#'
+#' Drawn on an off-screen page as [gridGraphics::grid.echo()] draws a
+#' function, and recorded there, so that its display list can be echoed.
+#'
+#' @param draw A function of no arguments that draws the chart
+#' @param size The page, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return The drawing, from [grDevices::recordPlot()]
+#' @keywords internal
+#' @noRd
+base_r_recorded_drawing <- function(draw, size) {
+  current <- grDevices::dev.cur()
+  grDevices::pdf(NULL, width = size[["width"]], height = size[["height"]])
+  device <- grDevices::dev.cur()
+  on.exit(
+    {
+      grDevices::dev.off(device)
+      if (current > 1) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  grDevices::dev.control("enable")
+  draw()
+  grDevices::recordPlot()
 }
 
 #' The error a Base R chart too small to draw at a size stops with
@@ -1719,7 +1863,9 @@ base_r_page_that_fits <- function(draw, size) {
 #' panels of a 2 x 2 `par(mfrow)` at 10 x 4 in. Each axis's labels are
 #' measured as R measures them, in inches along the axis on a page of the
 #' chart's size, and the ones R leaves out are taken out of the text grob.
-#' Labels that are expressions are all kept, as R draws them all.
+#' Labels that are expressions are all kept, as R draws them all. A missing
+#' label, which gridGraphics draws as "NA", is taken out: R draws none and
+#' gives it no room.
 #'
 #' @param drawing The gTree [base_r_drawing_grob()] echoed
 #' @param size The chart's canvas, from [chart_canvas_size()]
@@ -1801,6 +1947,9 @@ axis_labels_kept <- function(labels, horizontal) {
   keep <- logical(length(at))
   last <- -Inf
   for (i in order(at)) {
+    if (is.na(labels$label[[i]])) {
+      next
+    }
     if (at[[i]] - extent[[i]] / 2 - last >= gap) {
       keep[[i]] <- TRUE
       last <- at[[i]] + extent[[i]] / 2

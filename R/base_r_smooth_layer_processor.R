@@ -55,7 +55,10 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
 
       # Handle different smooth object types
       if (length(args) > 0) {
-        first_arg <- args[[1]]
+        # The argument the call dispatches on, wherever it is written:
+        # `plot(main = "D", density(x))`.
+        xy <- resolve_xy_args(args)
+        first_arg <- xy$x
 
         x_values <- NULL
         y_values <- NULL
@@ -76,10 +79,10 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
           # Case 4: list with x,y (loess.smooth result)
           x_values <- first_arg$x
           y_values <- first_arg$y
-        } else if (is.numeric(first_arg) && length(args) >= 2 && is.numeric(args[[2]])) {
+        } else if (is.numeric(first_arg) && is.numeric(xy$y)) {
           # Case 5: Two numeric vectors (e.g., from predict(loess))
           x_values <- first_arg
-          y_values <- args[[2]]
+          y_values <- xy$y
         } else {
           # Default: no data
           return(list())
@@ -154,7 +157,8 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
     #' The x axis holds whatever variable was smoothed, which the recorded
     #' arguments no longer name, so it carries no default. The y axis does
     #' when the curve came from `density()`: that estimate is a density, and
-    #' plot.density() prints exactly that word.
+    #' plot.density() prints exactly that word, where the `plot()` call
+    #' leaves it its title (`drawn_default_titles()`).
     #'
     #' @param layer_info Layer information
     #' @return Canonical axes list
@@ -164,15 +168,21 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
       }
 
       args <- layer_info$plot_call$args
-      is_density <- length(args) > 0 && inherits(args[[1]], "density")
+      is_density <- inherits(resolve_xy_args(args)$x, "density")
       y_default <- if (is_density) "Density" else NULL
 
       # For smooth layers, get axis labels from the HIGH-level call (plot/hist) in the same group
       # since lines() doesn't have xlab/ylab parameters
       group <- layer_info$group
       if (!is.null(group) && !is.null(group$high_call)) {
-        high_args <- group$high_call$args
-        written <- written_axis_titles(group$high_call)
+        high_call <- group$high_call
+        high_args <- high_call$args
+        written <- written_axis_titles(high_call)
+        if (identical(high_call$function_name, "plot")) {
+          y_default <- drawn_default_titles(
+            high_args, list(y = y_default), high_call$par_ann %||% TRUE
+          )$y
+        }
         return(build_axes(
           x = recorded_axis_label(high_args, "xlab", written$x),
           y = recorded_axis_label(high_args, "ylab", y_default)
