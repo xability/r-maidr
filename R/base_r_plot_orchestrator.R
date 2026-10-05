@@ -1251,9 +1251,15 @@ BaseRPlotOrchestrator <- R6::R6Class(
         seq_along(groups)
       }
 
+      # Drawn over every panel, whichever plot it was drawn on: a recorded
+      # one, or one no recorded call started, as a panel `plot.new()` took
+      # (`before_calls` and `after_calls`, see `group_device_calls()`).
       outer <- NULL
       for (group in groups[shown]) {
-        for (call in c(list(group$high_call), group$low_calls)) {
+        calls <- c(
+          group$before_calls, list(group$high_call), group$low_calls, group$after_calls
+        )
+        for (call in calls) {
           outer <- base_r_outer_title(call) %||% outer
         }
       }

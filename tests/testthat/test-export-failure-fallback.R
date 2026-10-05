@@ -289,4 +289,20 @@ test_that("the picture of a chart that could not be made interactive says so, an
     plot(1:5, ann = FALSE)
     title("Speed")
   }), "Speed")
+  # A title drawn over the panels from a panel `plot.new()` took, which no
+  # recorded plot is in, is the page's all the same.
+  expect_identical(named(function() {
+    par(mfrow = c(1, 3), oma = c(0, 0, 2, 0))
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+    plot.new()
+    mtext("Overview", outer = TRUE)
+  }), "Overview")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 3), oma = c(0, 0, 2, 0))
+    plot.new()
+    title("Overview", outer = TRUE)
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+  }), "Overview")
 })
