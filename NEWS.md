@@ -413,7 +413,10 @@
   before and read it as part of that plot; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
-  page was drawn while `maidr_off()` was in effect. A page that holds no
+  page was drawn while `maidr_off()` was in effect. `symbols()` without
+  `add = TRUE` draws a plot of its own, and is the plot of its page,
+  shown as a picture since maidr does not read it, where `hist(x);
+  symbols(...)` gave a chart with nothing on it. A page that holds no
   plot maidr recorded, as after `hist(x); plot.new()`,
   `hist(x); plot.new(); text(0.5, 0.5, "note")` or
   `hist(x); smoothScatter(y)`, is no longer exported as the histogram

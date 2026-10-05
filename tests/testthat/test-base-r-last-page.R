@@ -715,6 +715,46 @@ test_that("a call made by another as it draws is read and drawn once, where R dr
   expect_selectors_drawn(chart)
 })
 
+test_that("symbols() drawing a plot of its own is the plot of its page", {
+  skip_if_no_render()
+
+  # symbols() is a low-level call that, without add = TRUE, starts a plot, on
+  # a page of its own after another. It was read as one added to the plot
+  # before it, so the page R shows held no plot, and the chart was empty:
+  # nothing drawn, nothing read. maidr does not read it, so the chart is a
+  # picture of it, as it was when the plot before it was read too.
+  for (draw in list(
+    function() {
+      hist(mtcars$mpg)
+      symbols(mtcars$wt, mtcars$mpg, circles = mtcars$hp / 100, inches = 0.2, main = "Bubbles")
+    },
+    function() {
+      plot(1:3, main = "first")
+      symbols(1:3, c(2, 1, 3), circles = 1:3, main = "Bubbles")
+    },
+    function() symbols(1:3, c(2, 1, 3), circles = 1:3, main = "Bubbles")
+  )) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    clear_base_r_device(device_id)
+    file <- tempfile(fileext = ".html")
+    draw()
+    groups <- maidr:::group_device_calls(device_id)$groups
+    suppressWarnings(save_html(file = file))
+    clear_base_r_device(device_id)
+    grDevices::dev.off(device_id)
+
+    testthat::expect_identical(
+      vapply(groups, function(group) group$high_call$function_name, character(1)),
+      "symbols"
+    )
+    html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+    unlink(file)
+    testthat::expect_true(grepl("data:image/png;base64", html, fixed = TRUE))
+    testthat::expect_false(grepl("maidr-data", html, fixed = TRUE))
+  }
+})
+
 test_that("each recorded plot carries the page, panel and plot number R drew it at", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

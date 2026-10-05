@@ -15,8 +15,9 @@ NULL
 #' its last page, with every layout call (`last_page_calls()`). R's device
 #' shows only the page drawn last, so a plot that started a page of its own
 #' -- the second of `hist(a); hist(b)` -- leaves the plots before it out.
-#' Each group contains one HIGH-level call and the LOW-level calls drawn on
-#' its plot. A LOW-level call drawn on a plot no recorded call started -- a
+#' Each group contains one HIGH-level call, or a LOW-level one that started
+#' a plot of its own (`starts_base_r_plot()`), and the LOW-level calls drawn
+#' on its plot. A LOW-level call drawn on a plot no recorded call started -- a
 #' panel `plot.new()` or `frame()` took, as for a legend of its own, or a
 #' plot maidr does not record, such as `smoothScatter()` -- is not one of
 #' them: it is kept, to be drawn where R drew it, with the group drawn after
@@ -47,7 +48,7 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
       # can tell which plot groups were drawn after the layout change.
       call$storage_index <- i
       layout_calls <- append(layout_calls, list(call))
-    } else if (class_level == "HIGH") {
+    } else if (starts_base_r_plot(call)) {
       if (!is.null(current_group)) {
         groups <- append(groups, list(current_group))
       }
@@ -86,6 +87,23 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   )
 
   result
+}
+
+#' Whether a recorded call starts a plot of its own
+#'
+#' A HIGH-level call does, and a LOW-level one that started a plot itself
+#' (`own_plot`, see `end_base_r_call()`): `symbols()` without `add = TRUE`
+#' draws a plot, on a page of its own after another plot, as `plot()`
+#' does. Read as a call added to the plot before it, it was left out with
+#' that plot's page, and its own page held no plot at all.
+#'
+#' @param call A recorded call entry
+#' @return Logical
+#' @keywords internal
+#' @noRd
+starts_base_r_plot <- function(call) {
+  identical(call$class_level, "HIGH") ||
+    (identical(call$class_level, "LOW") && isTRUE(call$own_plot))
 }
 
 #' Whether a low-level call was drawn on a plot no recorded call started

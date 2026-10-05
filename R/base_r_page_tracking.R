@@ -252,7 +252,7 @@ base_r_page_without_plot <- function(device_id = grDevices::dev.cur()) {
   )
   plots <- vapply(
     shown_device_calls(device_id),
-    function(call) identical(call$class_level, "HIGH") || isTRUE(call$new_plot),
+    starts_base_r_plot,
     logical(1)
   )
   any(drawn) && !any(plots)

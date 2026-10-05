@@ -141,7 +141,7 @@ replay_base_r_plot <- function(device_id) {
   # multi-panel figure's picture was replayed without its `par(mfrow = )`
   # or `layout()` and came out as one panel drawn over another.
   all_calls <- shown_device_calls(device_id)
-  high_calls <- Filter(function(call) identical(call$class_level, "HIGH"), all_calls)
+  high_calls <- Filter(starts_base_r_plot, all_calls)
 
   if (length(high_calls) == 0) {
     stop("No Base R plot calls found to replay")
@@ -171,7 +171,7 @@ replay_base_r_plot <- function(device_id) {
         call_entry$arg_text
       ),
       error = function(e) {
-        if (identical(call_entry$class_level, "HIGH")) {
+        if (starts_base_r_plot(call_entry)) {
           warning("Failed to replay: ", call_entry$function_name)
         }
       }
