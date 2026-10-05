@@ -439,7 +439,7 @@
   panels by the title R drew over them or by each panel's own, its plot's
   or `title()`'s. In a knitted document it stays knitr's figure,
   and the document's build says why once, as it does for a chart whose
-  build stops (#PR).
+  build stops (#358).
 
 ## Documentation
 
