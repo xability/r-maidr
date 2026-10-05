@@ -395,6 +395,11 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 #' from [base_r_drawing_grob()]) is re-raised too: its picture is drawn at
 #' the same size and would fail the same way.
 #'
+#' Before the picture is drawn, the failure is signalled as a condition of
+#' class `maidr_build_failure`, holding it as `error`. A caller that shows a
+#' picture of its own catches that and keeps the failure: a knitted chart is
+#' knitr's figure, and the document's build says why.
+#'
 #' @param orchestrator The orchestrator for the plot being rendered.
 #' @return The SVG content, drawn at the orchestrator's `canvas_size()`, or
 #'   `NULL` when the build failed and fallback is enabled.
@@ -418,6 +423,9 @@ build_interactive_svg <- function(orchestrator) {
     if (inherits(e, "maidr_chart_draw_error")) {
       stop(e)
     }
+    # A caller that shows a picture of its own takes the failure instead,
+    # where the warning would not be seen (`knit_chart_content()`).
+    rlang::signal(conditionMessage(e), class = "maidr_build_failure", error = e)
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot could not be rendered interactively (",

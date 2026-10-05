@@ -404,7 +404,8 @@
   the first series' name, the title R gives its panel; it was the `ylab` R
   does not draw. A chart that still cannot be drawn again falls back to the
   static image, with a warning that says why, rather than being exported
-  empty (#PR).
+  empty; in a knitted document it stays knitr's figure, and the document's
+  build says why once, as it does for a chart whose build stops (#PR).
 
 ## Documentation
 
