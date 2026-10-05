@@ -52,7 +52,9 @@ base_r_annotation_text <- function(value) {
 #' stays a call, an expression an expression, and anything else is text, as
 #' `as.character()` makes it. A list holds the text as its unnamed element
 #' (its first, when no element is named) and may carry `cex`, `col` and
-#' `font` for it, as `title(main = list("Speed", font = 4))` does.
+#' `font` for it, as `title(main = list("Speed", font = 4))` does. R reads
+#' each of the three by its first value, and leaves the one from `par()` in
+#' place where that is missing.
 #'
 #' @param value The argument, as `title()` passed it on
 #' @param cex,col,font The text's own size, colour and font, from `par()`
@@ -78,9 +80,9 @@ base_r_title_text <- function(value, cex, col, font) {
       size <- suppressWarnings(as.numeric(item)[1])
       if (is.finite(size)) cex <- size
     } else if (identical(key, "col")) {
-      if (!all(is.na(item))) col <- item
+      if (length(item) > 0 && !is.na(item[[1]])) col <- item[[1]]
     } else if (identical(key, "font")) {
-      if (!is.na(item[1])) font <- item
+      if (length(item) > 0 && !is.na(item[[1]])) font <- item[[1]]
     } else {
       text <- as_text(item)
     }

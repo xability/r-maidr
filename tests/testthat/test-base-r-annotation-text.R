@@ -133,6 +133,23 @@ test_that("a title of several values, or given as a list, is drawn as R draws it
   })
 })
 
+test_that("a list title's colour, font and size are read by their first value, as R reads them", {
+  # title() was handed the whole vector ("graphical parameter "col.main" has
+  # the wrong length"), and the chart fell back to a picture.
+  expect_drawn_as_r(function() {
+    graphics::plot(
+      1:5,
+      main = list("Speed", col = c("red", "blue")),
+      sub = list("s", cex = c(2, 1)),
+      xlab = list("x", col = c(NA, "blue")),
+      ylab = list("y", font = c(2, 3))
+    )
+  })
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5, main = list(c("a", "b"), col = c(2, 4), font = c(3, 1)))
+  })
+})
+
 test_that("missing margin text and tick labels, and logical labels, are drawn as R draws them", {
   expect_drawn_as_r(function() {
     graphics::plot(1:5, axes = FALSE, ann = FALSE)
