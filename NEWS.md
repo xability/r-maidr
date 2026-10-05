@@ -398,9 +398,12 @@
   values, or a missing one, and drew a missing `mtext()` text or tick label
   as "NA". Each is now drawn as R draws it, several title values a line
   apart, and the title and axis titles a screen reader reads are the same
-  text, a line for each value: they were the first value alone. A chart that
-  still cannot be drawn again falls back to the static image, with a warning
-  that says why, rather than being exported empty (#PR).
+  text, a line for each value: they were the first value alone. The y axis
+  of a `plot()` of several time series, drawn a panel each, is announced as
+  the first series' name, the title R gives its panel; it was the `ylab` R
+  does not draw. A chart that still cannot be drawn again falls back to the
+  static image, with a warning that says why, rather than being exported
+  empty (#PR).
 
 ## Documentation
 

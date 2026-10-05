@@ -246,7 +246,8 @@ BaseRLineLayerProcessor <- R6::R6Class(
           written <- written_axis_titles(group$high_call)
           return(build_axes(
             x = recorded_axis_label(high_args, "xlab", written$x),
-            y = recorded_axis_label(high_args, "ylab", written$y)
+            y = plot_ts_panel_title(group$high_call) %||%
+              recorded_axis_label(high_args, "ylab", written$y)
           ))
         }
       }
@@ -263,13 +264,15 @@ BaseRLineLayerProcessor <- R6::R6Class(
       # written, which the recorded call keeps (`written_axis_titles()`).
       # Nothing else here carries a default: a line drawn by matplot() runs
       # over whatever the caller measured, and the renderer's generic is the
-      # honest answer, so no label is emitted.
+      # honest answer, so no label is emitted. Several time series are drawn
+      # a panel each, titled after their series (`plot_ts_panel_title()`).
       curve_labels <- args$.maidr_curve_data$labels
       written <- written_axis_titles(plot_call)
 
       build_axes(
         x = recorded_axis_label(args, "xlab", curve_labels$x %||% written$x),
-        y = recorded_axis_label(args, "ylab", curve_labels$y %||% written$y)
+        y = plot_ts_panel_title(plot_call) %||%
+          recorded_axis_label(args, "ylab", curve_labels$y %||% written$y)
       )
     },
     #' @description The endpoints of an `abline()` call across the axis the HIGH-level call set up

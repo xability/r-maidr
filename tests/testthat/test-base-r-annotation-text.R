@@ -397,3 +397,43 @@ test_that("a title given as a classed list is announced as the lines R draws", {
   testthat::expect_identical(layer$axes$x$label, "2024-01-02\n2024-02-03")
   expect_drawn_as_r(function() graphics::plot(1:5, main = info, xlab = when))
 })
+
+test_that("several time series a panel each are announced by the series R titles them with", {
+  # plot.ts() draws no ylab for several series a panel each: it titles each
+  # panel after its series. maidr reads the first series, and announced the
+  # ylab R never drew, every value of it.
+  y_label <- function(draw) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    on.exit(
+      {
+        clear_base_r_device(device_id)
+        grDevices::dev.off(device_id)
+      },
+      add = TRUE
+    )
+    clear_base_r_device(device_id)
+    draw()
+    chart <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
+    chart$subplots[[1]][[1]]$layers[[1]]$axes$y$label
+  }
+  deaths <- cbind(mdeaths, fdeaths)
+
+  testthat::expect_identical(
+    y_label(function() plot(deaths, ylab = c("Male", "Female"), main = "Deaths")),
+    "mdeaths"
+  )
+  testthat::expect_identical(
+    y_label(function() plot(deaths, ylab = "Count", type = "p")),
+    "mdeaths"
+  )
+  testthat::expect_identical(
+    y_label(function() plot(ts(matrix(1:10, 5)), ylab = "Count")),
+    "Series 1"
+  )
+  # Drawn as one panel, the series share the ylab R draws.
+  testthat::expect_identical(
+    y_label(function() plot(deaths, plot.type = "single", ylab = c("Male", "Female"))),
+    "Male\nFemale"
+  )
+})

@@ -134,3 +134,39 @@ plot_default_axis_titles <- function(plot_call) {
   }
   list(x = coords$xlab, y = coords$ylab)
 }
+
+#' The y title R draws beside the series maidr reads of several time series
+#'
+#' `plot()` of several time series draws them a panel each (`plot.ts()`'s
+#' `plot.type = "multiple"`, its default), titles each panel after its
+#' series, and draws no `ylab`, whatever it is given. maidr reads only the
+#' first series, which is what [grDevices::xy.coords()] makes of them, so
+#' its y title is that series' name, the one R draws beside it, rather than
+#' a `ylab` R never drew:
+#' `plot(cbind(mdeaths, fdeaths), ylab = c("Male", "Female"))` is titled
+#' "mdeaths".
+#'
+#' @param plot_call A recorded call
+#' @return The first series' name, or NULL when the call is not a `plot()`
+#'   of several time series a panel each
+#' @keywords internal
+plot_ts_panel_title <- function(plot_call) {
+  if (!identical(plot_call$function_name, "plot")) {
+    return(NULL)
+  }
+  args <- plot_call$args
+  xy <- resolve_xy_args(args)
+  if (!stats::is.ts(xy$x) || !is.null(xy$y) || NCOL(xy$x) < 2) {
+    return(NULL)
+  }
+  plot_type <- tryCatch(
+    match.arg(args[["plot.type"]] %||% "multiple", c("multiple", "single")),
+    error = function(e) NULL
+  )
+  target <- dispatched_definition("plot", get_original_function("plot"), args)
+  plot_ts <- utils::getS3method("plot", "ts", envir = asNamespace("stats"))
+  if (!identical(plot_type, "multiple") || !identical(target, plot_ts)) {
+    return(NULL)
+  }
+  colnames(xy$x)[1] %||% "Series 1"
+}
