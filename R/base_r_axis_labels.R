@@ -79,12 +79,14 @@ base_r_categorical_axes <- function(args, horizontal = FALSE) {
 #'   written is the one on top.
 #' - `mtext()` writes any text in a margin. One string centred on the side
 #'   an axis is drawn on, as an axis title is, titles that axis where the
-#'   plot left it untitled. One set off to a side, with `adj` or `at`, is a
-#'   note, and so is one written farther out than another on that side: a
-#'   note under the title, such as where the data came from, is written on a
-#'   line farther from the axis. Of those on one line the last one written
-#'   is the one on top, and one inside the plot, on a line below 0, titles
-#'   the axis only where the margin has none.
+#'   layer has no title of its own, as `plot(x, y, ann = FALSE)` leaves it:
+#'   maidr's "Category" and "Value", and a title `hist()` or `curve()`
+#'   derives, are the layer's own. One set off to a side, with `adj` or
+#'   `at`, is a note, and so is one written farther out than another on
+#'   that side: a note under the title, such as where the data came from, is
+#'   written on a line farther from the axis. Of those on one line the last
+#'   one written is the one on top, and one inside the plot, on a line below
+#'   0, titles the axis only where the margin has none.
 #'
 #' Which axis each one titles is `margin_titles()`'s to say.
 #'

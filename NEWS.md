@@ -410,13 +410,17 @@
   where the call blanks it, as `ylab = ""` does, or gives it as `NULL` to
   a time series, or turns titles off with `ann = FALSE` or
   `par(ann = FALSE)`. `plot(v, ylab = "")` was announced with "v". A title
-  written on an axis after the plot, with `title(xlab = )` or `ylab`, or
-  with `mtext()` centred on that side, the string nearest the axis where
-  there are several, is announced as R draws it there:
+  written on an axis after the plot with `title(xlab = )` or `ylab` is
+  announced as R draws it there:
   `plot(x, y, ann = FALSE); title(xlab = "Weight")` was announced with "x".
-  On a chart of two y axes, drawn with `par(new = TRUE)` and `axis(4)`,
-  each series is titled by what is written on the side of its own axis
-  (#PR).
+  So is one written with `mtext()` centred on that side, the string
+  nearest the axis where there are several, where maidr announces no title
+  of its own for that axis, as for `plot(x, y, ann = FALSE)`. A bar chart,
+  box plot or strip chart keeps maidr's "Category" and "Value", or a
+  formula's names, and `hist()`, `curve()` and `qqnorm()` keep the titles
+  they derive, even where R draws none. On a chart of two y axes, drawn
+  with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
+  written on the side of its own axis (#PR).
 
 ## Documentation
 
