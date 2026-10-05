@@ -797,7 +797,7 @@ layout_arguments <- function(args) {
 #' device back to a single panel. Read as the first argument, the matrix of
 #' `layout(widths = c(3, 1), mat = m)` was its widths.
 #'
-#' @param args The call's arguments, named as [layout_arguments()] names them
+#' @param args The call's arguments, named as `layout_arguments()` names them
 #' @return A numeric matrix, or NULL
 #' @keywords internal
 #' @noRd
