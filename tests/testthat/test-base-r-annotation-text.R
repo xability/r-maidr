@@ -24,7 +24,21 @@ drawn_strings <- function(file) {
   ))
 }
 
-svglite_page <- function(size, draw) {
+# Every line an SVG page draws: where it runs, and its style. Ticks and axis
+# lines are lines, which drawn_strings() does not see.
+drawn_lines <- function(file) {
+  page <- xml2::read_xml(file)
+  lines <- xml2::xml_find_all(page, "//*[local-name()='line' or local-name()='polyline']")
+  attribute <- function(name) xml2::xml_attr(lines, name, default = "")
+  sort(paste(
+    xml2::xml_name(lines),
+    attribute("x1"), attribute("y1"), attribute("x2"), attribute("y2"),
+    attribute("points"), attribute("style"),
+    sep = " | "
+  ))
+}
+
+svglite_page <- function(size, draw, read = drawn_strings) {
   file <- tempfile(fileext = ".svg")
   svglite::svglite(
     file,
@@ -34,21 +48,21 @@ svglite_page <- function(size, draw) {
   draw()
   grDevices::dev.off()
   on.exit(unlink(file), add = TRUE)
-  drawn_strings(file)
+  read(file)
 }
 
 # R's drawing, with the graphical parameters maidr draws it with.
-r_drawing <- function(draw, size) {
-  svglite_page(size, maidr:::ggplotify_drawing(draw))
+r_drawing <- function(draw, size, read = drawn_strings) {
+  svglite_page(size, maidr:::ggplotify_drawing(draw), read)
 }
 
 # maidr's drawing of the same code, as it is exported.
-maidr_drawing <- function(draw, size) {
+maidr_drawing <- function(draw, size, read = drawn_strings) {
   drawing <- maidr:::base_r_drawing_grob(draw, size)
   svglite_page(size, function() {
     grid::grid.newpage()
     grid::grid.draw(drawing)
-  })
+  }, read)
 }
 
 expect_drawn_as_r <- function(draw, size = c(width = 7, height = 5)) {
@@ -392,6 +406,25 @@ test_that("an axis's tick, line, pos and outer are read by their first value, as
     graphics::axis(2, pos = c(2, 3), outer = NA)
     graphics::axis(3, tick = NA, line = "1", outer = c(FALSE, TRUE))
   })
+
+  # Ticks are lines. R draws them by tick's first value, for a missing one
+  # too, and none for `tick = 0`, which heatmap() draws its axes with.
+  size <- c(width = 7, height = 5)
+  for (tick in list(FALSE, NA, c(FALSE, TRUE), c(TRUE, FALSE), 0, logical(0))) {
+    draw <- function() {
+      graphics::plot(1:5, xaxt = "n")
+      graphics::axis(1, tick = tick)
+    }
+    drawn <- r_drawing(draw, size, drawn_lines)
+    testthat::expect_identical(maidr_drawing(draw, size, drawn_lines), drawn)
+  }
+  # A heatmap's dendrograms are drawn a hundredth of a pixel from R's, so
+  # its lines are counted.
+  heat <- function() stats::heatmap(as.matrix(datasets::mtcars[1:6, 1:4]))
+  testthat::expect_length(
+    maidr_drawing(heat, size, drawn_lines),
+    length(r_drawing(heat, size, drawn_lines))
+  )
 
   chart <- exported_chart(function() {
     plot(1:5, xaxt = "n")
