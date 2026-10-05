@@ -192,7 +192,8 @@ the recorded call
 The x axis holds whatever variable was smoothed, which the recorded
 arguments no longer name, so it carries no default. The y axis does
 when the curve came from \code{density()}: that estimate is a density, and
-plot.density() prints exactly that word.
+plot.density() prints exactly that word, where the \code{plot()} call
+leaves it its title (\code{drawn_default_titles()}).
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRSmoothLayerProcessor$extract_axis_titles(layer_info)}

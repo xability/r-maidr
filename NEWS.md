@@ -440,6 +440,44 @@
   or `title()`'s. In a knitted document it stays knitr's figure,
   and the document's build says why once, as it does for a chart whose
   build stops (#358).
+* `plot()` of a function, such as `plot(sin, -pi, pi)`, `plot(dnorm, -3, 3)`
+  or `plot(function(x) x^2)`, is read as the line `curve()` draws for it,
+  over the points R drew, wherever the function is written among the
+  arguments, as in `plot(main = "Sine", sin, -pi, pi)`. `save_html()` and
+  `show()` stopped with "object of type 'builtin' is not subsettable" (or
+  'closure' or 'special'), a knitted chunk showed a picture of it, and
+  `plot(sin)` with no range, or with only `from`, `to` or `xlim`, was read
+  as a scatter with no points. Its axes are named as R names them, "x" and
+  the first line of the function as written, "sin". Drawn over another chart
+  with `add = TRUE`, or as points with `type = "p"`, it is shown as a
+  picture of the chart, as `curve()` is. A function of `TRUE` and `FALSE`,
+  such as `plot(function(x) x > 0.5)`, is read at the 0 and 1 R draws it
+  at, and so is `curve(x > 0.5)`, which was read as a line with no points;
+  one whose values are other than numbers, such as dates, is shown as a
+  picture. `plot()` of a time series of one series, a one-way table or a
+  data frame of two columns is announced with the axis titles R draws for
+  it, such as "Time" and "AirPassengers" for `plot(AirPassengers)`, where
+  it had none, or had them only with another argument written first, as in
+  `plot(main = "Nile", Nile)`. So written, a time series is read as the
+  line R draws for it and `plot(main = "D", density(x))` as the density
+  curve, as they are written first, where each was read as a scatter of its
+  points. A title `plot()` derives for an axis, such as "Time", "v" for
+  `plot(v)`, "mpg" for `plot(mpg ~ wt, data = mtcars)` or "Density" for
+  `plot(density(x))`, is not announced where R draws none: where the call
+  blanks it, as `ylab = ""` does, or gives it as `NULL` to a time series,
+  or turns titles off with `ann = FALSE` or `par(ann = FALSE)`.
+  `plot(v, ylab = "")` was announced with "v". A title written on an axis
+  after the plot with `title(xlab = )` or `ylab` is announced as R draws
+  it there: `plot(x, y, ann = FALSE); title(xlab = "Weight")` was
+  announced with "x".
+  So is one written with `mtext()` centred on that side, the string
+  nearest the axis where there are several, where maidr announces no title
+  of its own for that axis, as for `plot(x, y, ann = FALSE)`. A bar chart,
+  box plot or strip chart keeps maidr's "Category" and "Value", or a
+  formula's names, and `hist()`, `curve()` and `qqnorm()` keep the titles
+  they derive, even where R draws none. On a chart of several y axes, drawn
+  with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
+  written beside its own axis (#359).
 
 ## Documentation
 

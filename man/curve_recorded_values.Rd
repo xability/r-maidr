@@ -35,5 +35,11 @@ curve -- that is true of every recorded call and is not made worse here.
 
 The values are stored under a \code{.maidr_} name, so clean_maidr_args()
 drops them before the call is replayed.
+
+An expression of \code{TRUE} and \code{FALSE}, such as \code{curve(x > 0.5)}, is drawn
+at 1 and 0, the numbers \code{xy.coords()} makes of them, and kept as those
+numbers. Values of any other kind that are not numbers, such as dates,
+are not kept: drawn on an axis of their own, they would be announced as
+numbers that axis does not show.
 }
 \keyword{internal}

@@ -404,6 +404,26 @@ base_r_step_direction <- function(plot_type) {
   if (identical(as.character(plot_type)[1], "s")) "hv" else "vh"
 }
 
+#' The layer a drawing by `curve()` is read as
+#'
+#' Shared by `curve()` and by `plot()` of a function, which
+#' `graphics::plot.function()` draws by calling `curve()`: one drawing, so
+#' one reading. See the `curve` branch of `detect_layer_type()` for why
+#' only an unadded polyline is read.
+#'
+#' @param args The arguments recorded from the call.
+#' @return `"line"`, or `"unknown"` for an overlay (`add = TRUE`) or a draw
+#'   type other than `"l"` and `"o"`.
+#' @keywords internal
+curve_layer_type <- function(args) {
+  curve_type <- args[["type"]]
+  overlays_existing <- "add" %in% names(args) &&
+    !identical(args[["add"]], FALSE)
+  draws_polyline <- is.null(curve_type) ||
+    (is.character(curve_type) && curve_type[1] %in% c("l", "o"))
+  if (overlays_existing || !draws_polyline) "unknown" else "line"
+}
+
 #' Base R System Adapter
 #'
 #' @description
@@ -516,9 +536,22 @@ BaseRAdapter <- R6::R6Class(
           }
         },
         "plot" = {
-          first_arg <- args[[1]]
+          # The argument `plot()` dispatches on, which another written first
+          # does not move: `plot(main = "D", density(x))` draws a density.
+          first_arg <- resolve_xy_args(args)$x
           if (!is.null(first_arg) && inherits(first_arg, "density")) {
             "smooth"
+          } else if (identical(
+            dispatched_definition("plot", get_original_function("plot"), args),
+            graphics::plot.function
+          )) {
+            # `plot(f)` of a function is drawn by `curve()`, and the wrapper
+            # kept what `curve()` returned (`plot_function_values()`). Typed
+            # by `type` as a scatter, the function itself was read as the
+            # points: the save stopped with "object of type 'builtin' is not
+            # subsettable", or announced a scatter of no points. Values the
+            # wrapper could not keep, such as dates, are shown as a picture.
+            if (is.null(args[[".maidr_curve_data"]])) "unknown" else curve_layer_type(args)
           } else if (self$formula_call(layer) && !self$formula_scatter_readable(layer)) {
             # `plot(y ~ f)` on a factor dispatches to `plot.factor()`, which
             # draws a box plot, and a formula whose frame could not be
@@ -614,18 +647,7 @@ BaseRAdapter <- R6::R6Class(
         # that is absent from the exported SVG, with a selector pointing
         # at a grob that group never drew. Overlays stay on the static
         # fallback until they are grouped with the plot they add to.
-        "curve" = {
-          curve_type <- args[["type"]]
-          overlays_existing <- "add" %in% names(args) &&
-            !identical(args[["add"]], FALSE)
-          draws_polyline <- is.null(curve_type) ||
-            (is.character(curve_type) && curve_type[1] %in% c("l", "o"))
-          if (overlays_existing || !draws_polyline) {
-            "unknown"
-          } else {
-            "line"
-          }
-        },
+        "curve" = curve_layer_type(args),
         # A Cleveland dot plot: one value per category, marked on a guide
         # line, categories down the page. Read as `dot`, which the core
         # builds on its bar trace (#237).

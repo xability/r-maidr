@@ -376,6 +376,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
         NULL
       }
 
+      # The titles written after each plot, with title() or mtext(), by the
+      # plot whose axis each one titles.
+      titles <- margin_titles(private$.plot_groups, private$.layout_calls)
+
       layer_results <- vector("list", length(private$.layers))
       for (i in seq_along(private$.layers)) {
         processor <- private$.layer_processors[[i]]
@@ -400,6 +404,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
 
         layer_info <- private$.layers[[i]]
+        layer_titles <- titles[[layer_info$group_index]]
         if (!is.null(panel_slots)) {
           slot <- panel_slots[layer_info$group_index]
           if (!is.na(slot)) {
@@ -418,6 +423,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
           layer_info = layer_info,
           gt = layer_grob
         )
+        # Titles the author wrote after the plot, with title() or mtext(), on
+        # the layer, or on each layer a result of several holds.
+        if (is.list(result) && isTRUE(result$multi_layer) && !is.null(result$layers)) {
+          result$layers <- lapply(result$layers, function(sub) {
+            sub$axes <- with_margin_titles(sub$axes, layer_titles)
+            sub
+          })
+        } else if (is.list(result)) {
+          result$axes <- with_margin_titles(result$axes, layer_titles)
+        }
         processor$set_last_result(result)
         layer_results[[i]] <- result
       }
