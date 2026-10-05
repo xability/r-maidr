@@ -168,39 +168,51 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
   # the `call_env` an NSE call needs to evaluate its expressions the way the
   # original did.
   #
+  # Each plot is drawn where R started it, as the chart draws it
+  # (`place_picture_plot()`): in the cell of the grid, or the region of the
+  # page, R put it in, or over the plot before it. The `par()` calls that
+  # put R there are not all recorded -- `graphics::par()`,
+  # `withr::with_par()`, `screen()` -- so drawn as they come, a plot after
+  # `graphics::par(new = TRUE)` started a page of its own, one sent to a
+  # cell with `graphics::par(mfg = )` went to the next, and one after a
+  # panel `plot.new()` took went to that panel.
+  #
   # A low-level call R drew on a plot no recorded call started -- a panel
   # `plot.new()` or `frame()` took, as for a legend of its own, or a plot
-  # maidr does not record -- is drawn on a plot started for it, in the
-  # coordinates it was drawn in, as the chart draws it
-  # (`replay_unrecorded_plot_call()`); drawn as it comes, it went over the
-  # plot before. `plots` counts the plots started on the page, as R
-  # numbered them (`end_base_r_call()`).
+  # maidr does not record -- is drawn on a plot started for it where R
+  # started that one, in the coordinates it was drawn in, as the chart
+  # draws it (`replay_unrecorded_plot_call()`); drawn as it comes, it went
+  # over the plot before. `plots` counts the plots started on the page, as
+  # R numbered them (`end_base_r_call()`).
   #
   # `split.screen()` is not drawn again: the `screen()` calls that chose
   # each of its screens are not recorded, so the picture drew the last
   # screen's plot alone, in the first screen's region, and R's
-  # "calling par(new=TRUE) with no plot" with it. A plot R drew in a screen,
-  # or in a region `par(fig = )` gave it, is drawn in that region of the
-  # page, over what is drawn on it already, as the chart draws it
-  # (`is_figure_region()`). What R drew after `screen(n, new = FALSE)` sent
-  # it back to an earlier screen without starting a plot is drawn there,
-  # in the coordinates it was drawn in.
+  # "calling par(new=TRUE) with no plot" with it. What R drew after
+  # `screen(n, new = FALSE)` sent it back to an earlier screen without
+  # starting a plot is drawn there, in the coordinates it was drawn in; and
+  # what it drew after `par(mfg = )` sent it back to an earlier cell of a
+  # grid, in that cell (`sent_back_panel()`).
+  grid <- if (is_multipanel_config(config)) config
   plots <- 0L
   unrecorded_plot <- FALSE
   window <- NULL
-  regions <- !is_multipanel_config(config)
   for (call_entry in all_calls) {
     if (identical(call_entry$function_name, "split.screen")) {
       next
     }
     on <- call_entry$end_plot
+    starts <- starts_base_r_plot(call_entry) && isTRUE(call_entry$new_plot) &&
+      is.numeric(call_entry$plot)
     low <- identical(call_entry$class_level, "LOW") && !starts_base_r_plot(call_entry)
-    sent_back <- low && regions && length(call_entry$drawn_fig) == 4L &&
+    sent_back <- low && is.null(grid) && length(call_entry$drawn_fig) == 4L &&
       !same_region(call_entry$drawn_fig, graphics::par("fig"))
-    if (low && length(on) == 1L && isTRUE(on > plots)) {
-      for (k in seq_len(on - plots)) {
-        graphics::plot.new()
-      }
+    sent_to <- if (low && !is.null(grid)) sent_back_panel(call_entry, grid)
+    if (starts) {
+      place_picture_plot(call_entry, plots, grid)
+    } else if (low && length(on) == 1L && isTRUE(on > plots)) {
+      place_picture_plot(call_entry, plots, grid)
+      graphics::plot.new()
       plots <- on
       unrecorded_plot <- TRUE
       window <- NULL
@@ -209,14 +221,11 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
       graphics::plot.new()
       unrecorded_plot <- TRUE
       window <- NULL
+    } else if (!is.null(sent_to)) {
+      graphics::par(mfg = mfg_of_panel(sent_to, grid))
     }
     if (low && unrecorded_plot && !identical(call_entry$window, window)) {
       window <- replay_plot_window(call_entry$window) %||% window
-    }
-    placed <- starts_base_r_plot(call_entry) &&
-      is_figure_region(call_entry, config, graphics::par("fig"))
-    if (placed) {
-      graphics::par(fig = call_entry$fig, new = plots > 0L)
     }
     tryCatch(
       replay_plot_call(
@@ -241,6 +250,87 @@ replay_base_r_plot <- function(device_id, strict = FALSE) {
       window <- NULL
     }
   }
+}
+
+#' The panel of a grid R was sent back to draw a low-level call in
+#'
+#' `par(mfg = )` sends R to another cell of the grid without starting a
+#' plot, and what is drawn then is drawn there, in the coordinates of the
+#' plot R was on (`base_r_drawing_region()`).
+#'
+#' @param call The recorded low-level call
+#' @param grid The page's grid
+#' @return The panel's number in the grid, where it is not the one the
+#'   drawing is in; else NULL
+#' @keywords internal
+#' @noRd
+sent_back_panel <- function(call, grid) {
+  drawn <- as.integer(call$drawn_cell)
+  here <- as.integer(graphics::par("mfg"))
+  if (length(drawn) != 4L || anyNA(drawn) || identical(drawn, here) ||
+        !identical(drawn[3:4], here[3:4])) {
+    return(NULL)
+  }
+  panel_of_cell(drawn, grid)
+}
+
+#' Send a picture's drawing to where R started a plot
+#'
+#' The plot a recorded call starts, or the one no recorded call started that
+#' a low-level call was drawn on, is drawn where R started it on the page R
+#' shows (`end_base_r_call()`): in the region of the page `par(fig = )` or
+#' `screen()` gave it (`is_figure_region()`); in the cell of the grid R put
+#' it in, which `par(mfg = )` can send it to out of turn, or over the plot
+#' drawn there, after `par(new = TRUE)`; or, on a page of one panel, over
+#' the plots started on it before, as R starts a page for any other. Where
+#' R put it is read from where it was, not from the `par()` calls before
+#' it, which are not all recorded. A plot of a call that draws several,
+#' started on a page before the last, is started in the panel R started it
+#' in, so those before fill that page, as in the chart (`replay_page()`).
+#' A plot in a grid of another shape than the drawing's -- one a call lays
+#' out itself, as `heatmap()` does -- is left where the drawing puts it.
+#'
+#' @param call The recorded call, with the `cell` and `fig` R put the plot
+#'   in
+#' @param plots The plots the drawing has started on its page, as R
+#'   numbered them
+#' @param grid The page's grid, or NULL for a page of one panel
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+place_picture_plot <- function(call, plots, grid) {
+  if (isTRUE(call$spans_pages)) {
+    graphics::par(new = FALSE)
+    for (k in seq_len(max(call$start_figure - 1L, 0L))) {
+      graphics::plot.new()
+    }
+    graphics::par(new = FALSE)
+    return(invisible(NULL))
+  }
+  cell <- as.integer(call$cell)
+  in_drawing_grid <- length(cell) == 4L && !anyNA(cell) &&
+    identical(as.integer(graphics::par("mfg")[3:4]), cell[3:4])
+  if (is_figure_region(call, grid, graphics::par("fig"))) {
+    graphics::par(fig = call$fig, new = plots > 0L)
+  } else if (!in_drawing_grid) {
+    return(invisible(NULL))
+  } else if (is.null(grid)) {
+    graphics::par(new = plots > 0L)
+  } else {
+    slot <- panel_of_cell(cell, grid)
+    if (is.null(slot)) {
+      return(invisible(NULL))
+    }
+    graphics::par(new = FALSE)
+    if (plots > 0L || slot != 1L) {
+      # R does not move to a cell before the page's first plot is started.
+      if (plots == 0L) {
+        graphics::plot.new()
+      }
+      graphics::par(mfg = mfg_of_panel(slot, grid))
+    }
+  }
+  invisible(NULL)
 }
 
 #' Create Fallback HTML Content

@@ -851,6 +851,81 @@ test_that("the picture of a split.screen() page draws each plot in the screen R 
   expect_pictured_where_r_draws(nested, c("Top", "Bottom left", "Bottom right", "Inset"))
 })
 
+test_that("the picture of a page draws each plot where R started it", {
+  testthat::skip_if_not_installed("svglite")
+
+  # The picture drew the `par()` calls maidr records as they came, and not
+  # those it does not -- made through graphics::par() or withr::with_par(),
+  # by screen(), or by plot.new() -- so each plot started where those left
+  # R, not where R started it. A plot drawn over the one before it started
+  # a page of its own, which lost that one: on a chart of two y axes whose
+  # second axis cannot be drawn again, the picture held only the second
+  # series, named by the first one's title.
+  shapes <- list(
+    list(quote({
+      plot(1:10, main = "Base")
+      graphics::par(new = TRUE)
+      plot(10:1, type = "l", axes = FALSE, ann = FALSE)
+      mtext("Over", side = 3, line = 0.2, adj = 1)
+    }), c("Base", "Over")),
+    list(quote({
+      plot(1:10, main = "Base")
+      withr::with_par(list(new = TRUE), plot(10:1, type = "l", axes = FALSE, ann = FALSE))
+      mtext("Over", side = 3, line = 0.2, adj = 1)
+    }), c("Base", "Over")),
+    # In a grid: drawn over the panel, sent to a cell out of turn, or after
+    # a panel plot.new() took, each went to the panel after the last.
+    list(quote({
+      par(mfrow = c(1, 2))
+      plot(1:10, main = "L")
+      graphics::par(new = TRUE)
+      plot(10:1, type = "l", axes = FALSE, ann = FALSE)
+      plot(1:5, main = "R")
+    }), c("L", "R")),
+    list(quote({
+      par(mfrow = c(2, 2))
+      plot(1:10, main = "one")
+      graphics::par(mfg = c(2, 2))
+      plot(1:5, main = "four")
+    }), c("one", "four")),
+    list(quote({
+      par(mfrow = c(1, 3))
+      plot(1:10, main = "A")
+      plot.new()
+      plot(1:5, main = "C")
+    }), c("A", "C")),
+    # Sent back to an earlier cell, what is added is drawn there.
+    list(quote({
+      par(mfrow = c(1, 2))
+      plot(1:10, main = "L")
+      plot(1:5, main = "R")
+      graphics::par(mfg = c(1, 1))
+      text(3, 3, "back on L")
+    }), c("L", "R", "back on L")),
+    # A plot.new() in a screen screen(n, new = FALSE) sent R back to started
+    # a page of its own, which lost the other screen's plot.
+    list(quote({
+      split.screen(c(1, 2))
+      screen(2)
+      plot(1:5, main = "Right")
+      screen(1, new = FALSE)
+      plot.new()
+      text(0.5, 0.5, "note")
+      close.screen(all.screens = TRUE)
+    }), c("Right", "note")),
+    # A call that draws several plots, started on a page before: the
+    # picture drew them all on one page, where R shows the last alone.
+    list(quote({
+      par(mfrow = c(2, 2))
+      plot(1:3, main = "first")
+      plot(stats::lm(dist ~ speed, data = cars))
+    }), c("Residuals vs Leverage", "Leverage"))
+  )
+  for (shape in shapes) {
+    expect_pictured_where_r_draws(shape[[1]], shape[[2]])
+  }
+})
+
 test_that("a plot after one that drew several panels is in the panel R drew it in", {
   skip_if_no_render()
   call <- quote({

@@ -535,10 +535,20 @@
   `graphics::par()` or `withr::with_par()` is titled as after one maidr
   records: on a chart of two y axes, each series by what is written
   beside its own axis, where every title went to the second series. The
-  picture maidr draws of a `split.screen()` page it cannot read or draw
-  again has each plot in its screen too, and what `screen(n, new = FALSE)`
-  sent R back to add, where it held the last screen's plot alone in the
-  first screen's place, and drawing it gave R's warning "calling
+  picture maidr draws of a page it cannot read or draw again has each plot
+  where R drew it too -- over the plot before it, in its panel of a grid,
+  or in its screen or region of the page -- also where what put it there
+  was not recorded: a `par()` call made through `graphics::par()` or
+  `withr::with_par()`, `screen()`, or a panel `plot.new()` took; and what
+  `par(mfg = )` or `screen(n, new = FALSE)` sent R back to add is drawn on
+  the plot R added it to. The picture drew a plot after such a
+  `par(new = TRUE)` on a page of its own, which lost the plots before it,
+  as on a chart of two y axes whose second axis maidr cannot draw again;
+  drew one such a `par(mfg = )` sent out of turn, or one after a panel
+  `plot.new()` took, in the next panel; drew every plot of a call that
+  draws several, as `plot()` of a fitted model does, on one page, where R
+  shows the last of them; and drew a `split.screen()` page's last plot
+  alone in the first screen's place, with R's warning "calling
   par(new=TRUE) with no plot" (#PR).
 
 ## Documentation
