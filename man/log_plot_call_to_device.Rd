@@ -11,7 +11,7 @@ log_plot_call_to_device(
   device_id = grDevices::dev.cur(),
   call_env = NULL,
   arg_text = NULL,
-  rng_state = NULL
+  rng_state = .maidr_call_start$rng_state
 )
 }
 \arguments{
@@ -30,9 +30,10 @@ arguments recorded in \code{args}}
 as, from \code{written_arg_text()}, which the replay titles the chart
 after}
 
-\item{rng_state}{Optional \code{.Random.seed} the call started from, which
-the replay draws from, so a chart that draws random numbers comes out
-as the reader was shown it}
+\item{rng_state}{The \code{.Random.seed} the call started from, which the
+replay draws from, so a chart that draws random numbers comes out as
+the reader was shown it; by default the state the recording wrapper
+noted before it drew (\code{ensure_maidr_device()})}
 }
 \value{
 NULL (invisible)

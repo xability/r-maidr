@@ -14,6 +14,10 @@
 .maidr_patching_env$.patching_active <- FALSE
 .maidr_patching_env$.auto_show_callback_id <- NULL
 
+# The random state the Base R call being recorded started from, noted by
+# `ensure_maidr_device()` and taken by `log_plot_call_to_device()`.
+.maidr_call_start <- new.env(parent = emptyenv())
+
 #' Schedule auto-show after the current top-level expression completes
 #'
 #' Uses R's task callback mechanism. When a HIGH-level plot function is called,
@@ -176,8 +180,10 @@ close_maidr_temp_device <- function() {
 #' @keywords internal
 ensure_maidr_device <- function() {
   # Every recording wrapper calls this before it draws: in a knit, the call's
-  # marker tells from the page count whether it drew several pages.
+  # marker tells from the page count whether it drew several pages, and the
+  # call is drawn again from the random state it starts from.
   note_knit_call_start()
+  note_call_random_state()
   if (grDevices::dev.cur() == 1) {
     # No device open - create temp PDF to prevent default window
     open_maidr_temp_device()
@@ -884,9 +890,6 @@ create_function_wrapper <- function(function_name, original_function) {
       # original's own answer about printing: `par("mar")` and
       # `boxplot(x, plot = FALSE)` print their value at the console, and
       # `hist(x)` does not.
-      # The random state the call starts from, so the export draws what the
-      # reader was shown (see `with_random_state()`).
-      rng_state <- recorded_random_state()
       call_failed <- FALSE
       result <- tryCatch(
         withVisible(ORIG(...)),
@@ -955,8 +958,7 @@ create_function_wrapper <- function(function_name, original_function) {
       log_plot_call_to_device(
         FNAME, this_call, args_list, device_id,
         call_env = call_env,
-        arg_text = arg_text,
-        rng_state = rng_state
+        arg_text = arg_text
       )
 
       # NOTE: auto-show is deliberately NOT scheduled here. show() ends the
@@ -1408,6 +1410,21 @@ is_patching_active <- function() {
 }
 
 
+#' Note the random state a Base R call starts from
+#'
+#' Called by every recording wrapper before it draws (`ensure_maidr_device()`),
+#' as `note_knit_call_start()` is, and read by `log_plot_call_to_device()`
+#' once the call has drawn: the one place every wrapper passes through before
+#' the original function runs, so none can record a call without it.
+#'
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+note_call_random_state <- function() {
+  .maidr_call_start$rng_state <- recorded_random_state()
+  invisible(NULL)
+}
+
 #' The state of R's random number generator, if it has one
 #'
 #' `.Random.seed` in the global environment, or NULL before anything in the
@@ -1433,6 +1450,11 @@ recorded_random_state <- function() {
 #' The caller's state is restored afterwards, so exporting a chart does not
 #' move the session's random numbers on, which would change what a script's
 #' `set.seed()` gives every call after it.
+#'
+#' A call made before anything in the session drew a random number has no
+#' state to record: R makes one, from the clock, as the call draws its first.
+#' Such a call is drawn again from whatever state the session has then, as
+#' every call was before; `set.seed()` before it makes it reproducible.
 #'
 #' A call whose own arguments draw random numbers, `wordcloud(w, rpois(5,
 #' 9))`, drew them before the chart did; replayed, those arguments are the
