@@ -110,7 +110,8 @@ calls_as_expressions <- function(args) {
 #' and `xlab` of `plot()`'s formula method, which reads them within its
 #' `data` first. The code is kept under `.maidr_written_titles`, and
 #' `replay_plot_call()` draws the chart again from it. A title that cannot
-#' be evaluated here is left as it was written.
+#' be evaluated here is left as it was written. It is evaluated quietly: R
+#' gave its warnings and messages when it drew it.
 #'
 #' @param function_name Name of the recorded function
 #' @param args Recorded argument list
@@ -139,7 +140,11 @@ recorded_title_values <- function(function_name, args, call_env, formula) {
       next
     }
     within <- if (name != "ylab") data
-    value <- tryCatch(list(eval(code, within, call_env)), error = function(e) NULL)
+    # R gave the warnings and messages of the code when it drew the title.
+    value <- tryCatch(
+      list(suppressWarnings(suppressMessages(eval(code, within, call_env)))),
+      error = function(e) NULL
+    )
     if (is.null(value)) {
       next
     }

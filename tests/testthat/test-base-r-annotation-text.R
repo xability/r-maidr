@@ -713,6 +713,31 @@ test_that("a title written as code on a call recorded as written is announced as
   testthat::expect_identical(chart$layers[[1]]$axes$y$label, "y")
 })
 
+test_that("a title written as code is read without repeating what R said drawing it", {
+  # Its value is read again when the call is recorded, and a warning or a
+  # message R gave while drawing it was given a second time.
+  said <- character(0)
+  chart <- exported_chart(function() {
+    withCallingHandlers(
+      curve(sin, 0, pi, main = {
+        warning("careful")
+        message("drawing")
+        "Sine"
+      }),
+      warning = function(w) {
+        said <<- c(said, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      },
+      message = function(m) {
+        said <<- c(said, trimws(conditionMessage(m)))
+        invokeRestart("muffleMessage")
+      }
+    )
+  })
+  testthat::expect_identical(said, c("careful", "drawing"))
+  testthat::expect_identical(chart$title, "Sine")
+})
+
 test_that("several time series a panel each are announced by the series R titles them with", {
   # plot.ts() draws no ylab for several series a panel each: it titles each
   # panel after its series. maidr reads the first series, and announced the
