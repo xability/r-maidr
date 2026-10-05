@@ -755,6 +755,58 @@ test_that("symbols() drawing a plot of its own is the plot of its page", {
   }
 })
 
+test_that("a call whose argument drew a plot is drawn on that plot, and read with it", {
+  skip_if_no_render()
+  h <- c(A = 3, B = 5, C = 2)
+
+  # barplot() draws while text()'s arguments are evaluated, and text()
+  # labels its bars. The labels were left out: the text() call was taken to
+  # draw nothing of its own beside the barplot() it made.
+  labelled <- quote(
+    text(barplot(h, ylim = c(0, 6), main = "Bars"), h, labels = paste0("v", h), pos = 3)
+  )
+  chart <- last_page_export(function() eval(labelled))
+  testthat::expect_identical(cell_titles(chart), list("Bars"))
+  expect_drawn_where_r_draws(chart, labelled, c("Bars", "v3", "v5", "v2"))
+
+  in_grid <- quote({
+    par(mfrow = c(1, 2))
+    text(barplot(h, ylim = c(0, 6), main = "Bars"), h, labels = paste0("v", h), pos = 3)
+    hist(mtcars$mpg, main = "Hist")
+  })
+  chart <- last_page_export(function() eval(in_grid))
+  testthat::expect_identical(cell_titles(chart), list("Bars", "Hist"))
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, in_grid, c("Bars", "v3", "v5", "v2", "Hist"))
+
+  # A line drawn after the points its argument drew.
+  chart <- last_page_export(function() {
+    plot(1:5, main = "base")
+    lines(1:5, {
+      points(1:5, 5:1)
+      c(2, 3, 2, 3, 2)
+    })
+  })
+  testthat::expect_identical(
+    vapply(last_page_cells(chart)[[1]], function(layer) layer$type, character(1)),
+    c("point", "point", "line")
+  )
+
+  # Error bars maidr does not read make the chart a picture, as they do
+  # drawn on a barplot drawn before them.
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  clear_base_r_device(device_id)
+  file <- tempfile(fileext = ".html")
+  arrows(barplot(h, ylim = c(0, 7)), h - 1, y1 = h + 1, angle = 90, code = 3)
+  suppressWarnings(save_html(file = file))
+  clear_base_r_device(device_id)
+  grDevices::dev.off(device_id)
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  unlink(file)
+  testthat::expect_true(grepl("data:image/png;base64", html, fixed = TRUE))
+})
+
 test_that("each recorded plot carries the page, panel and plot number R drew it at", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

@@ -88,9 +88,15 @@ note_base_r_plot_new <- function() {
         }
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
-        for (i in seq_along(drawing)) {
+        # The plot is the first on this page of the call drawing it, and of
+        # each that made that call, out to one whose arguments it was made
+        # from (`begin_base_r_call()`), which drew nothing of its own yet.
+        for (i in rev(seq_along(drawing))) {
           if (!identical(drawing[[i]]$first$page, at$page)) {
             drawing[[i]]$first <- at
+          }
+          if (isTRUE(drawing[[i]]$apart)) {
+            break
           }
         }
         if (length(drawing) > 0L) {
@@ -279,7 +285,17 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
   # The shape of the grid the call starts in: one it lays out itself, as
   # `pairs()` and `heatmap()` do, gives its plots cells of another.
   grid <- tryCatch(as.integer(graphics::par("mfg")[3:4]), error = function(e) NULL)
-  .maidr_base_r_pages$calls[[key]] <- c(drawing, list(list(depth = depth, id = id, grid = grid)))
+  # Made from the frame the call drawing now was made from, so while its
+  # arguments were evaluated -- the `barplot()` of `text(barplot(h), h)` --
+  # rather than by its body, before it drew a plot of its own: it draws
+  # before that call, which draws over it once it has.
+  outer <- if (length(drawing) > 0L) drawing[[length(drawing)]]
+  caller <- if (depth >= 1L) sys.parents()[depth] else NA_integer_
+  apart <- !is.null(outer) && isTRUE(caller < outer$depth) && !isTRUE(outer$own_plot)
+  .maidr_base_r_pages$calls[[key]] <- c(
+    drawing,
+    list(list(depth = depth, id = id, grid = grid, apart = apart))
+  )
   invisible(NULL)
 }
 
@@ -303,8 +319,9 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   started in, which it laid out itself; `id`, the number the
 #'   call is known by,
 #'   `outer`, the number of the recorded call that made it while drawing,
-#'   if one did, and `own_plot`, whether it started a plot itself (see
-#'   `standalone_calls()`). Only `page` for a call no recording wrapper
+#'   if one did, `apart`, whether it was made from that call's arguments
+#'   before that call drew a plot of its own, and `own_plot`, whether it
+#'   started a plot itself (see `standalone_calls()`). Only `page` for a call no recording wrapper
 #'   drew, recorded by code that records calls itself.
 #' @keywords internal
 #' @noRd
@@ -336,6 +353,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     window = base_r_plot_window(),
     id = call$id,
     outer = if (this > 1L) drawing[[this - 1L]]$id,
+    apart = isTRUE(call$apart),
     own_plot = isTRUE(call$own_plot)
   )
 }
@@ -367,6 +385,12 @@ base_r_plot_window <- function() {
 #' `plot()` and `lines()` does, the calls it made stand for it, and it is
 #' left out: what it drew is theirs. Layout calls are kept.
 #'
+#' A call made from another's arguments before that one drew a plot of its
+#' own (`apart`, see `begin_base_r_call()`) -- the `barplot()` of
+#' `text(barplot(h), h, labels)` -- is drawn before it, and not again by
+#' it, which is given the value it returned: both stand. The labels were
+#' left out of the chart and the drawing.
+#'
 #' @param calls Recorded call entries, in the order they were recorded
 #' @return The entries that stand, in the same order
 #' @keywords internal
@@ -374,13 +398,17 @@ base_r_plot_window <- function() {
 standalone_calls <- function(calls) {
   ids <- vapply(calls, function(call) call$id %||% NA_integer_, integer(1))
   outers <- vapply(calls, function(call) call$outer %||% NA_integer_, integer(1))
-  made <- !is.na(ids) & ids %in% outers
+  apart <- vapply(calls, function(call) isTRUE(call$apart), logical(1))
+  made <- !is.na(ids) & ids %in% outers[!apart]
   stands <- function(i) {
     if (identical(calls[[i]]$class_level, "LAYOUT")) {
       return(TRUE)
     }
     if (made[[i]] && !isTRUE(calls[[i]]$own_plot)) {
       return(FALSE)
+    }
+    if (apart[[i]]) {
+      return(TRUE)
     }
     outer <- if (is.na(outers[[i]])) NA_integer_ else match(outers[[i]], ids)
     is.na(outer) || !stands(outer)
