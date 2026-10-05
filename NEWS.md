@@ -530,12 +530,16 @@
   `save_html()` stop and say the page holds no plot maidr recorded. So do
   they, and say why, for a line added to a plot an earlier `show()` or
   `save_html()` read, or to a page `replayPlot()` puts back from before
-  then: that call let go of what maidr recorded of it. The picture maidr
-  draws of a `split.screen()` page it cannot read or draw again has each
-  plot in its screen too, and what `screen(n, new = FALSE)` sent R back to
-  add, where it held the last screen's plot alone in the first screen's
-  place, and drawing it gave R's warning "calling par(new=TRUE) with no
-  plot" (#PR).
+  then: that call let go of what maidr recorded of it. A plot drawn over
+  the one before it after a `par(new = TRUE)` made through
+  `graphics::par()` or `withr::with_par()` is titled as after one maidr
+  records: on a chart of two y axes, each series by what is written
+  beside its own axis, where every title went to the second series. The
+  picture maidr draws of a `split.screen()` page it cannot read or draw
+  again has each plot in its screen too, and what `screen(n, new = FALSE)`
+  sent R back to add, where it held the last screen's plot alone in the
+  first screen's place, and drawing it gave R's warning "calling
+  par(new=TRUE) with no plot" (#PR).
 
 ## Documentation
 

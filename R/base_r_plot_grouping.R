@@ -655,7 +655,10 @@ par_setting_arguments <- function(args) {
 #' `par(new = TRUE)` draws the next plot over the last one, as a chart of two
 #' y axes does, and a high-level call given `add = TRUE` draws onto it
 #' (`shared_plots()`). Each such plot is in the run of the plot it is drawn
-#' over. With `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next
+#' over. `par(new = TRUE)` is read from a recorded `par()` call, or else from
+#' where R started the plot (`stayed_in_panel()`): made through
+#' `graphics::par()` or `withr::with_par()`, it is not recorded. With
+#' `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next
 #' plot is drawn on the same page but in another region of it, beside the
 #' last one or inset in it, so it is drawn over the last one only where R
 #' drew both in the same plot region (`device_plot_region()`).
@@ -684,12 +687,32 @@ overlay_runs <- function(groups, layout_calls) {
         }
       }
     }
-    drawn_over <- new || recorded_flag(groups[[g]]$high_call$args, "add")
+    drawn_over <- new || recorded_flag(groups[[g]]$high_call$args, "add") ||
+      stayed_in_panel(groups[[g - 1L]]$high_call, groups[[g]]$high_call)
     if (drawn_over && same_plot_region(groups[[g - 1L]], groups[[g]])) {
       runs[[g]] <- runs[[g - 1L]]
     }
   }
   runs
+}
+
+#' Whether R started a plot in the panel it was in once the call before was done
+#'
+#' R moves on a panel for every plot it starts, unless `par(new = TRUE)`
+#' keeps it in the panel of the last (`note_base_r_plot_new()`), however
+#' that was set. So a plot started on the page and in the panel R was in
+#' when the call before it was done was drawn after `par(new = TRUE)`, or
+#' sent to that panel with `par(mfg = )` or `screen()`.
+#'
+#' @param before,high The high-level calls of two plot groups, in the order
+#'   they were made
+#' @return TRUE or FALSE; FALSE for a call recorded without where R drew it
+#' @keywords internal
+#' @noRd
+stayed_in_panel <- function(before, high) {
+  isTRUE(high$new_plot) && is.numeric(high$figure) &&
+    identical(high$page, before$page) &&
+    identical(high$figure, before$end_figure %||% before$figure)
 }
 
 #' The plot each high-level call draws on

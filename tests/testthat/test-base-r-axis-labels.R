@@ -704,6 +704,37 @@ test_that("a title written in a margin titles the series whose axis is drawn the
       title(xlab = "Time", ylab = "Squares")
       mtext("Roots", side = 4, line = 3)
     })), list(list("Time", "Squares"), list(NULL, "Roots"))),
+    # With `par(new = TRUE)` made where maidr does not record it, through
+    # `graphics::par()`, or `withr::with_par()`. R draws the second series
+    # over the first all the same, and maidr's drawing did, but every title
+    # went to the second series: the first was untitled, the second titled
+    # "Time", and "Squares" was announced nowhere.
+    list(quote({
+      x <- 1:10
+      op <- graphics::par(mar = c(5, 4, 4, 5))
+      plot(x, x^2, type = "l", ann = FALSE)
+      graphics::par(new = TRUE)
+      plot(x, sqrt(x), type = "l", axes = FALSE, ann = FALSE)
+      axis(4)
+      title(xlab = "Time")
+      mtext("Squares", side = 2, line = 3)
+      mtext("Roots", side = 4, line = 3)
+      graphics::par(op)
+    }), list(list("Time", "Squares"), list(NULL, "Roots"))),
+    list(quote({
+      x <- 1:10
+      op <- par(mar = c(5, 4, 4, 5))
+      plot(x, x^2, type = "l", ann = FALSE)
+      withr::with_par(
+        list(new = TRUE),
+        plot(x, sqrt(x), type = "l", axes = FALSE, ann = FALSE)
+      )
+      axis(4)
+      title(xlab = "Time")
+      mtext("Squares", side = 2, line = 3)
+      mtext("Roots", side = 4, line = 3)
+      par(op)
+    }), list(list("Time", "Squares"), list(NULL, "Roots"))),
     # Each written after its own plot.
     list(quote({
       x <- 1:10
