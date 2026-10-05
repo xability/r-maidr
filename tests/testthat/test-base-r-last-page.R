@@ -49,8 +49,8 @@ last_page_export <- function(draw) {
 }
 
 # Where maidr's SVG draws each string: its anchor, in px from the left and
-# the bottom of the page. The drawing places each text with a translate()
-# two levels up, in a frame whose y counts up from the bottom.
+# the bottom of the page, and its size. The drawing places each text with a
+# translate() two levels up, in a frame whose y counts up from the bottom.
 maidr_text_at <- function(document) {
   texts <- xml2::xml_find_all(document, "//*[local-name()='text']")
   moves <- vapply(
@@ -63,7 +63,8 @@ maidr_text_at <- function(document) {
   data.frame(
     string = trimws(xml2::xml_text(texts)),
     x = vapply(at, function(m) as.numeric(m[2]), numeric(1)),
-    y = vapply(at, function(m) as.numeric(m[3]), numeric(1))
+    y = vapply(at, function(m) as.numeric(m[3]), numeric(1)),
+    size = as.numeric(xml2::xml_attr(texts, "font-size"))
   )
 }
 
@@ -96,10 +97,12 @@ r_last_page_strings <- function(call, env = parent.frame()) {
 # reads maidr's: svglite counts y down from the top of the 360 px page.
 r_last_page_text_at <- function(call, env = parent.frame()) {
   texts <- xml2::xml_find_all(r_last_page_document(call, env), "//*[local-name()='text']")
+  styles <- xml2::xml_attr(texts, "style")
   data.frame(
     string = trimws(xml2::xml_text(texts)),
     x = as.numeric(xml2::xml_attr(texts, "x")),
-    y = 360 - as.numeric(xml2::xml_attr(texts, "y"))
+    y = 360 - as.numeric(xml2::xml_attr(texts, "y")),
+    size = as.numeric(sub(".*font-size: *([0-9.]+)px.*", "\\1", styles))
   )
 }
 
@@ -1034,6 +1037,33 @@ test_that("a call made after R was sent back to a plot is drawn and read with th
   testthat::expect_identical(cell_titles(chart), list(c("Left", "Left"), "Right"))
   expect_selectors_drawn(chart)
   expect_drawn_where_r_draws(chart, panels, c("Left", "Right", "in Right's"))
+})
+
+test_that("a page started after a grid is drawn with the size of text the grid set", {
+  skip_if_no_render()
+
+  # par(fig = ) ends the grid, but not the size of text par(mfrow = ) set
+  # for it: R draws the plot after it with that size, and maidr drew it
+  # with R's own, 20% to 50% larger.
+  for (n in 2:3) {
+    after_grid <- bquote({
+      par(mfrow = c(.(n), .(n)))
+      for (i in seq_len(.(n)^2)) plot(seq_len(5) * i, main = paste("F", i))
+      par(fig = c(0, 1, 0, 1))
+      hist(mtcars$mpg, main = "After grid")
+    })
+    chart <- last_page_export(function() eval(after_grid))
+    reference <- r_last_page_text_at(after_grid)
+    for (string in c("After grid", "mtcars$mpg", "Frequency")) {
+      testthat::expect_equal(
+        chart$text_at$size[chart$text_at$string == string],
+        reference$size[reference$string == string],
+        tolerance = 0.01,
+        label = string
+      )
+    }
+    expect_drawn_where_r_draws(chart, after_grid, c("After grid", "15", "35"))
+  }
 })
 
 test_that("a call made by another as it draws is read and drawn once, where R drew it", {

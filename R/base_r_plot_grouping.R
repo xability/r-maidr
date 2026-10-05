@@ -658,7 +658,10 @@ par_setting_arguments <- function(args) {
 #' The settings are those the `par()` calls recorded before the plot left in
 #' place, in the order they were last set, as `mar` and `mai` set the same
 #' margins. Setting up a grid, with `par(mfrow = )`, `par(mfcol = )` or
-#' `layout()`, puts `cex` and `mex` back to the grid's own, as R does.
+#' `layout()`, puts `cex` and `mex` back to the grid's own, as R does
+#' (`grid_cex()`): a plot drawn after the grid on a page of its own, as one
+#' after `par(fig = c(0, 1, 0, 1))` is, is drawn with them, and was drawn
+#' with text 20% to 50% larger than R's.
 #'
 #' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
 #' @param before The position in the recording of the plot's HIGH-level call
@@ -668,12 +671,27 @@ par_setting_arguments <- function(args) {
 par_margin_settings <- function(layout_calls, before) {
   margins <- c("mar", "mai", "oma", "omi", "mex", "cex")
   settings <- list()
+  # Moved to the end, as each is set: the last of `mar` and `mai` set wins.
+  set <- function(settings, name, value) {
+    settings[[name]] <- NULL
+    settings[[name]] <- value
+    settings
+  }
+  # A grid of a shape not known leaves them to the grid the drawing sets.
+  set_up_grid <- function(settings, dims) {
+    if (!is.numeric(dims) || length(dims) != 2L || anyNA(dims)) {
+      settings[c("cex", "mex")] <- NULL
+      return(settings)
+    }
+    set(set(settings, "cex", grid_cex(dims[[1]], dims[[2]])), "mex", 1)
+  }
   for (call in layout_calls) {
     if (call$storage_index > before) {
       break
     }
     if (call$function_name == "layout") {
-      settings[c("cex", "mex")] <- NULL
+      mat <- if (length(call$args) > 0) call$args[[1]]
+      settings <- set_up_grid(settings, if (is.numeric(mat)) dim(as.matrix(mat)))
     }
     if (call$function_name != "par") {
       next
@@ -681,15 +699,33 @@ par_margin_settings <- function(layout_calls, before) {
     args <- par_setting_arguments(call$args)
     for (name in names(args)) {
       if (name %in% c("mfrow", "mfcol")) {
-        settings[c("cex", "mex")] <- NULL
+        settings <- set_up_grid(settings, args[[name]])
       } else if (name %in% margins && is.numeric(args[[name]])) {
-        # Moved to the end: the last of `mar` and `mai` set wins.
-        settings[[name]] <- NULL
-        settings[[name]] <- args[[name]]
+        settings <- set(settings, name, args[[name]])
       }
     }
   }
   settings
+}
+
+#' The size of text R sets for a grid of plots
+#'
+#' `par(mfrow = )`, `par(mfcol = )` and `layout()` set `cex` for the grid
+#' they set up: 0.83 for two rows and two columns, 0.66 for three or more of
+#' either, 1 otherwise.
+#'
+#' @param nrows,ncols The grid's rows and columns
+#' @return The `cex`
+#' @keywords internal
+#' @noRd
+grid_cex <- function(nrows, ncols) {
+  if (nrows > 2 || ncols > 2) {
+    0.66
+  } else if (nrows == 2 && ncols == 2) {
+    0.83
+  } else {
+    1
+  }
 }
 
 #' Check Whether a Panel Configuration Describes a Multi-panel Grid
