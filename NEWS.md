@@ -237,6 +237,15 @@
   bar chart has been through the whole path in a browser. `show(as_widget =
   TRUE)` and the Shiny functions have not been tried.
 
+### Base R
+
+* A `wordcloud::wordcloud()` chart highlights the word being read: as the
+  arrow keys move, the word announced is recoloured in the reader's
+  highlight colour. Each term is matched to the text R drew it as by its
+  label, so the layout's random order does not matter. A cloud with a term
+  `wordcloud()` could not fit on the page is read without a highlight
+  rather than with highlights on the wrong words (#356).
+
 ## Performance
 
 * The SVG export, the maidr-data payload and the ggplot2 heatmap grid now
@@ -318,6 +327,15 @@
 
 ### Base R
 
+* A Base R chart that draws random numbers is exported as it was drawn.
+  maidr exports a chart by drawing the recorded call again, and drew it
+  from whatever random state the session had by then: a `wordcloud()`
+  came out with its words turned and placed differently from the cloud on
+  the reader's screen, a `stripchart(method = "jitter")` with other jitter,
+  and each again differently on every save. Each call now keeps the random
+  state it started from and is drawn again from it. Exporting a chart also
+  no longer moves the session's random numbers on, which changed what a
+  script's `set.seed()` gave every call after it.
 * A Base R chart is laid out on a page of the size it is drawn at. maidr
   drew it with `ggplotify::as.grob()`, which lays every drawing out on a
   7 x 7 in page of its own, and the chart was then stretched onto its
