@@ -164,9 +164,13 @@ margin_titles <- function(groups, layout_calls) {
   titles <- rep(list(list()), length(groups))
   for (g in seq_along(groups)) {
     for (call in groups[[g]]$low_calls) {
-      on <- plot_drawn_on(call, groups[seq_len(g)])
+      written <- titles_written(call)
+      if (!length(written)) {
+        next
+      }
+      on <- plot_drawn_on(call, groups, g)
       run <- which(runs == runs[[on]])
-      for (title in titles_written(call)) {
+      for (title in written) {
         owners <- run[vapply(
           sides[run], function(drawn) isTRUE(drawn[[title$axis]] == title$side), logical(1)
         )]
@@ -193,14 +197,15 @@ margin_titles <- function(groups, layout_calls) {
 #' was drawn in (`device_plot_region()`).
 #'
 #' @param call A recorded LOW-level call
-#' @param groups The plot groups drawn up to it, from [group_device_calls()]
-#' @return The index in `groups` of the last one drawn in the call's region,
-#'   or of the last one where none was, or where either region was not
-#'   recorded
+#' @param groups The plot groups, from [group_device_calls()]
+#' @param last The index of the group the call was recorded in, the last
+#'   one drawn before it
+#' @return The index in `groups` of the last one up to `last` drawn in the
+#'   call's region, or `last` where none was, or where either region was
+#'   not recorded
 #' @keywords internal
-plot_drawn_on <- function(call, groups) {
+plot_drawn_on <- function(call, groups, last) {
   region <- call$plot_region
-  last <- length(groups)
   if (is.null(region)) {
     return(last)
   }
@@ -209,7 +214,7 @@ plot_drawn_on <- function(call, groups) {
     if (is.null(drawn)) {
       return(last)
     }
-    if (isTRUE(all.equal(drawn, region))) {
+    if (same_region(drawn, region)) {
       return(g)
     }
   }

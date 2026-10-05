@@ -293,7 +293,17 @@ shared_plots <- function(groups) {
 same_plot_region <- function(a, b) {
   first <- a$high_call$plot_region
   second <- b$high_call$plot_region
-  is.null(first) || is.null(second) || isTRUE(all.equal(first, second))
+  is.null(first) || is.null(second) || same_region(first, second)
+}
+
+#' Whether two regions recorded by `device_plot_region()` are the same
+#'
+#' @param a,b Two recorded regions
+#' @return TRUE or FALSE
+#' @keywords internal
+#' @noRd
+same_region <- function(a, b) {
+  length(a) == length(b) && all(abs(a - b) < 1e-8)
 }
 
 #' The margins a recorded plot was drawn with

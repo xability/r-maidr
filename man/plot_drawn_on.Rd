@@ -4,17 +4,20 @@
 \alias{plot_drawn_on}
 \title{The plot a low-level call draws on}
 \usage{
-plot_drawn_on(call, groups)
+plot_drawn_on(call, groups, last)
 }
 \arguments{
 \item{call}{A recorded LOW-level call}
 
-\item{groups}{The plot groups drawn up to it, from \code{\link[=group_device_calls]{group_device_calls()}}}
+\item{groups}{The plot groups, from \code{\link[=group_device_calls]{group_device_calls()}}}
+
+\item{last}{The index of the group the call was recorded in, the last
+one drawn before it}
 }
 \value{
-The index in \code{groups} of the last one drawn in the call's region,
-or of the last one where none was, or where either region was not
-recorded
+The index in \code{groups} of the last one up to \code{last} drawn in the
+call's region, or \code{last} where none was, or where either region was
+not recorded
 }
 \description{
 A low-level call draws on the plot drawn last, unless \code{par(mfg = )} moved
