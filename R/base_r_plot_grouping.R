@@ -255,12 +255,12 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #' Whether R drew a plot of the page in a grid
 #'
 #' A grid the recorded layout calls set up is the page's only where R drew
-#' a plot of the page in one of its cells. A function that lays out a page
-#' of its own, as `heatmap()` does with `layout()`, draws in a grid it
-#' sets up itself, unrecorded: after `par(mfrow = c(1, 2)); plot(x);
-#' heatmap(m)` R's page is the heatmap alone, not a panel of two. Plots
-#' recorded without their cell, by code that records calls itself, are
-#' taken to be in the grid.
+#' a plot of the page in one of its cells (`plot_in_grid()`). A function
+#' that lays out a page of its own, as `heatmap()` does with `layout()`,
+#' draws in a grid it sets up itself, unrecorded: after
+#' `par(mfrow = c(1, 2)); plot(x); heatmap(m)` R's page is the heatmap
+#' alone, not a panel of two. Plots recorded without their cell, by code
+#' that records calls itself, are taken to be in the grid.
 #'
 #' @param groups Plot groups from group_device_calls()
 #' @param config The grid, from the layout call that set it up
@@ -272,10 +272,33 @@ grid_holds_a_plot <- function(groups, config) {
     function(g) is.null(config$layout_index) || isTRUE(g$high_call_index > config$layout_index),
     groups
   )
-  cells <- Filter(Negate(is.null), lapply(after, function(g) g$high_call$cell))
+  highs <- Filter(function(high) !is.null(high$cell), lapply(after, function(g) g$high_call))
+  length(highs) == 0L ||
+    any(vapply(highs, plot_in_grid, logical(1), config = config))
+}
+
+#' Whether R drew a recorded plot in a cell of a grid
+#'
+#' R put the plot in a cell of a grid of the same shape (its `cell`, from
+#' `par("mfg")`). A plot that started a page is in the grid's first panel:
+#' R starts a page of an `mfrow` or `mfcol` grid in its first cell -- a
+#' plot `par(mfg = )` sends elsewhere starts none -- and a page of a
+#' `layout()` in its panel 1. One that started a page anywhere else, as
+#' the image of `heatmap()` does in the corner of the 2 x 2 layout it sets
+#' up, is in a grid of its own that has that shape.
+#'
+#' @param high The plot's recorded call
+#' @param config The grid
+#' @return Logical
+#' @keywords internal
+#' @noRd
+plot_in_grid <- function(high, config) {
+  cell <- high$cell
   dims <- as.integer(c(config$nrows, config$ncols))
-  length(cells) == 0L ||
-    any(vapply(cells, function(cell) identical(as.integer(cell[3:4]), dims), logical(1)))
+  if (length(cell) != 4L || !identical(as.integer(cell[3:4]), dims)) {
+    return(FALSE)
+  }
+  !isTRUE(high$opens_page) || identical(panel_of_cell(cell, config), 1L)
 }
 
 #' The settings a recorded `par()` call made

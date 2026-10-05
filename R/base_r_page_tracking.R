@@ -78,12 +78,13 @@ note_base_r_plot_new <- function() {
         key <- as.character(device)
         at <- base_r_device_position(device)
         if (isTRUE(graphics::par("page"))) {
-          at <- list(page = at$page + 1L, figure = 1L, plot = 1L)
+          at <- list(page = at$page + 1L, figure = 1L, plot = 1L, opened = TRUE)
         } else {
           if (!isTRUE(graphics::par("new"))) {
             at$figure <- at$figure + 1L
           }
           at$plot <- at$plot + 1L
+          at$opened <- FALSE
         }
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
@@ -292,7 +293,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   that plot (`note_base_r_plot_started()`), `new_plot`, whether the call
 #'   started a plot, and `end_figure` and `end_plot`, the panel and plot R
 #'   was on when the call was done, and `window`, the coordinates of that
-#'   plot then (`base_r_plot_window()`); `id`, the number the call is known by,
+#'   plot then (`base_r_plot_window()`); `opens_page`, whether R started a
+#'   page with the plot the call started first on it, which under a grid
+#'   is in the grid's first panel (`plot_in_grid()`); `id`, the number the
+#'   call is known by,
 #'   `outer`, the number of the recorded call that made it while drawing,
 #'   if one did, and `own_plot`, whether it started a plot itself (see
 #'   `standalone_calls()`). Only `page` for a call no recording wrapper
@@ -319,6 +323,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     cell = first$cell,
     fig = first$fig,
     new_plot = started,
+    opens_page = started && isTRUE(first$opened),
     end_figure = at$figure,
     end_plot = at$plot,
     window = base_r_plot_window(),

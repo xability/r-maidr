@@ -374,6 +374,21 @@ test_that("a plot that lays out its own page after a grid is the chart alone", {
   # The drawing, which draws some labels empty, has R's.
   testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(call))
 
+  # Under a grid of the shape of its own, too. R starts a page of a grid in
+  # its first cell, and the heatmap's image starts its page in the corner of
+  # its own 2 x 2 layout: it was read as cell [2, 2] of the grid, beside
+  # three empty panels that are not on R's page.
+  square <- last_page_export(function() {
+    par(mfrow = c(2, 2))
+    plot(1:3)
+    heatmap(as.matrix(mtcars[1:6, 1:4]))
+  })
+  testthat::expect_length(square$schema$subplots, 1L)
+  testthat::expect_length(square$schema$subplots[[1]], 1L)
+  testthat::expect_identical(
+    vapply(last_page_cells(square)[[1]], function(layer) layer$type, character(1)),
+    "heat"
+  )
   # A plot after it is in the grid again, as R puts it there.
   after <- last_page_export(function() {
     par(mfrow = c(1, 2))
