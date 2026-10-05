@@ -27,6 +27,11 @@ it (\code{before_calls}), or, after the last, with the last (\code{after_calls})
 One drawn on a plot started over the group's own, in its panel, after
 \code{par(new = TRUE)}, is one of them, marked \code{overlay}: it is drawn on that
 plot, in the coordinates it was drawn in (\code{drawn_over_group_plot()}).
+One drawn on a plot started over an earlier group's, in its cell or
+screen, after \code{par(mfg = )} or \code{screen()} sent R back there, is read with
+that group, marked \code{overlay} and \code{read_only}, and drawn with the calls on
+plots no recorded call started, in its place among them
+(\code{drawn_over_earlier_plot()}).
 One drawn after \code{par(mfg = )} or \code{screen()} sent R back to the cell or
 screen of an earlier group's plot, without starting a plot, is one of
 that group's, marked \code{sent_back}: R draws it there, on that plot, in the

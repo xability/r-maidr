@@ -83,10 +83,12 @@ panel or screen of an earlier plot, to that plot. Drawn on a panel
 \code{plot.new()} or \code{frame()} took, as a legend of its own is, or on a plot
 maidr does not record, such as \code{smoothScatter()}, they are drawn there,
 and read as part of no plot. Drawn over a plot after \code{par(new = TRUE)}
-and \code{plot.new()}, as a second series with an axis of its own is, they
-are drawn in the coordinates they were drawn in, and read with that
-plot. Nothing drawn on an earlier page reaches the chart: not its data,
-its titles or the size it is drawn at. A page \code{replayPlot()} puts back,
+and \code{plot.new()}, as a second series with an axis of its own is -- also
+over the plot of an earlier panel or screen \code{par(mfg = )} or \code{screen()}
+sent R back to -- they are drawn in the coordinates they were drawn in,
+and read with that plot. Nothing drawn on an earlier page reaches the
+chart: not its data, its titles or the size it is drawn at. A page
+\code{replayPlot()} puts back,
 from a plot \code{recordPlot()} saved on a device that keeps a display list,
 is the page the chart is read from, with what was drawn on it when it
 was saved and what has been drawn on it since. A page that holds no plot

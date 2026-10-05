@@ -709,6 +709,50 @@ test_that("a series drawn over a plot on a plot.new() of its panel is read with 
   expect_selectors_drawn(chart)
   testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(dual))
   expect_drawn_where_r_draws(chart, dual, "Dual")
+
+  # Over the plot of an earlier panel or screen, which par(mfg = ) or
+  # screen() sent R back to: it was read as part of no plot, or with the
+  # plot drawn last. A page of screens is read as one subplot.
+  shapes <- list(
+    list(
+      back = quote({
+        par(mfrow = c(1, 2))
+        plot(1:10, main = "PA")
+        plot(10:1, main = "PB")
+        par(mfg = c(1, 1))
+      }),
+      cells = list(c("PA", ""), "PB")
+    ),
+    list(
+      back = quote({
+        split.screen(c(1, 2))
+        screen(1)
+        plot(1:10, main = "PA")
+        screen(2)
+        plot(10:1, main = "PB")
+        screen(1, new = FALSE)
+      }),
+      cells = list(c("PA", "", "PB"))
+    )
+  )
+  for (shape in shapes) {
+    over_earlier <- bquote({
+      .(shape$back)
+      par(new = TRUE)
+      plot.new()
+      plot.window(c(1, 10), c(0, 100))
+      points(1:10, (1:10)^2, col = "red", pch = 19)
+      axis(4)
+      text(5.5, 50, "squares", adj = c(0.5, 0))
+      close.screen(all.screens = TRUE)
+    })
+    chart <- last_page_export(function() eval(over_earlier))
+    testthat::expect_identical(cell_titles(chart), shape$cells)
+    over <- last_page_cells(chart)[[1]][[2]]
+    testthat::expect_equal(unlist(lapply(over$data, function(point) point$y)), (1:10)^2)
+    expect_selectors_drawn(chart)
+    expect_drawn_where_r_draws(chart, over_earlier, c("PA", "PB", "squares"))
+  }
 })
 
 test_that("the picture of a page draws a call on a plot no recorded call started where R did", {
@@ -884,8 +928,9 @@ test_that("a call on a panel par(mfg = ) sends R to is drawn in that panel", {
   testthat::expect_setequal(chart$strings, r_last_page_strings(legend_panel))
   expect_drawn_where_r_draws(chart, legend_panel, c("QA", "QB", "qa", "qb"))
 
-  # Back to the panel of an earlier plot: what is drawn there is not a
-  # layer of the plot before it, and the plot after it moves on from there.
+  # Back to the panel of an earlier plot: what is drawn there is read with
+  # the plot there, not with the plot before it, and the plot after it
+  # moves on from there.
   back <- quote({
     par(mfrow = c(2, 2))
     plot(1:3, main = "M1")
@@ -900,7 +945,7 @@ test_that("a call on a panel par(mfg = ) sends R to is drawn in that panel", {
   chart <- last_page_export(function() eval(back))
   testthat::expect_identical(
     cell_titles(chart),
-    list("M1", c("M2", "M3"), character(0), character(0))
+    list(c("M1", ""), c("M2", "M3"), character(0), character(0))
   )
   expect_selectors_drawn(chart)
   expect_drawn_where_r_draws(chart, back, c("M1", "M2", "M3", "Over M1"))

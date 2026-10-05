@@ -182,6 +182,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         calls <- c(list(high), group$low_calls)
         window <- high$window
         for (call in calls) {
+          if (isTRUE(call$read_only)) {
+            # Drawn in its place among the calls on plots no recorded call
+            # started (`drawn_over_earlier_plot()`).
+            next
+          }
           if (isTRUE(call$overlay)) {
             at <- private$replay_unrecorded_plot_call(call, at, panel_config)
             window <- at$window
@@ -199,9 +204,12 @@ BaseRPlotOrchestrator <- R6::R6Class(
         # Where R was once the group was drawn: a call that draws several
         # plots, as `plot()` of a fitted model does, moves on as many from
         # the panel its first is in. One drawn after R was sent back to it
-        # was drawn later, from another.
+        # was drawn later, from another, and one only read with it is drawn
+        # elsewhere.
         ends <- Filter(
-          function(call) is.numeric(call$end_plot) && !isTRUE(call$sent_back),
+          function(call) {
+            is.numeric(call$end_plot) && !isTRUE(call$sent_back) && !isTRUE(call$read_only)
+          },
           calls
         )
         if (length(ends) > 0) {

@@ -413,7 +413,9 @@
   before and read it as part of that plot; one drawn over a plot after
   `par(new = TRUE)` and `plot.new()`, as a second series with an axis of
   its own is, is drawn in the coordinates it was drawn in, where maidr drew
-  it in the plot's; one drawn after `par(mfg = )`, or `screen(n, new =
+  it in the plot's, and is read with that plot also in an earlier panel or
+  screen `par(mfg = )` or `screen()` sent R back to, where maidr read it
+  with the plot drawn last; one drawn after `par(mfg = )`, or `screen(n, new =
   FALSE)` of `split.screen()`, sends R back to the panel or screen of an
   earlier plot is drawn on that plot and read with it, where maidr read it
   with the plot drawn last, and drew it on that plot or not at all; and

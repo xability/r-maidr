@@ -25,6 +25,11 @@ NULL
 #' One drawn on a plot started over the group's own, in its panel, after
 #' `par(new = TRUE)`, is one of them, marked `overlay`: it is drawn on that
 #' plot, in the coordinates it was drawn in (`drawn_over_group_plot()`).
+#' One drawn on a plot started over an earlier group's, in its cell or
+#' screen, after `par(mfg = )` or `screen()` sent R back there, is read with
+#' that group, marked `overlay` and `read_only`, and drawn with the calls on
+#' plots no recorded call started, in its place among them
+#' (`drawn_over_earlier_plot()`).
 #' One drawn after `par(mfg = )` or `screen()` sent R back to the cell or
 #' screen of an earlier group's plot, without starting a plot, is one of
 #' that group's, marked `sent_back`: R draws it there, on that plot, in the
@@ -84,7 +89,18 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
         next
       }
       unrecorded_plot <- drawn_on_unrecorded_plot(call, current_group)
-      if (unrecorded_plot && !drawn_over_group_plot(call, current_group)) {
+      over <- if (unrecorded_plot) drawn_over_earlier_plot(call, groups, current_group) else NA
+      if (!is.na(over)) {
+        # Read with the plot it is drawn over; drawn in its place among
+        # the calls on plots no recorded call started, as R started its
+        # plot after the plots between them.
+        call$storage_index <- i
+        unrecorded <- append(unrecorded, list(call))
+        call$overlay <- TRUE
+        call$read_only <- TRUE
+        groups[[over]]$low_calls <- append(groups[[over]]$low_calls, list(call))
+        groups[[over]]$low_call_indices <- c(groups[[over]]$low_call_indices, i)
+      } else if (unrecorded_plot && !drawn_over_group_plot(call, current_group)) {
         call$storage_index <- i
         unrecorded <- append(unrecorded, list(call))
       } else if (!is.null(current_group)) {
@@ -231,6 +247,32 @@ same_region <- function(cell, fig, other_cell, other_fig) {
   known(cell, fig) && known(other_cell, other_fig) &&
     identical(as.integer(cell), as.integer(other_cell)) &&
     max(abs(fig - other_fig)) < 1e-6
+}
+
+#' The earlier group a plot no recorded call started was drawn over
+#'
+#' A plot started after `par(mfg = )` or `screen()` sent R back to the cell
+#' or screen of an earlier plot, as a second series with an axis of its
+#' own is started with `par(new = TRUE)` and `plot.new()`, is drawn over
+#' that plot: R does not clear a panel of its page. What is drawn on it was
+#' read as part of no plot, or with the plot drawn last.
+#'
+#' @param call The recorded LOW-level call, drawn on that plot
+#' @param groups The page's plot groups before the one recorded last
+#' @param current_group The plot group recorded last, or NULL
+#' @return The index in `groups` of the last group whose plot is in the
+#'   cell and region of the plot `call` is drawn on (`cell`, `fig`); NA
+#'   where none is, or where the last group's plot is there too, which
+#'   `drawn_over_group_plot()` finds
+#' @keywords internal
+#' @noRd
+drawn_over_earlier_plot <- function(call, groups, current_group) {
+  on <- function(group) same_region(group$high_call$cell, group$high_call$fig, call$cell, call$fig)
+  if (!is.null(current_group) && on(current_group)) {
+    return(NA_integer_)
+  }
+  there <- vapply(groups, on, logical(1))
+  if (any(there)) max(which(there)) else NA_integer_
 }
 
 #' Whether a plot is in another cell of the same grid as a plot before it
