@@ -84,10 +84,12 @@ note_base_r_plot_new <- function() {
       if (device != 1L) {
         key <- as.character(device)
         at <- base_r_device_position(device)
-        if (isTRUE(graphics::par("page"))) {
+        # One query: the hook runs for every plot, recorded or not.
+        next_plot <- graphics::par(c("page", "new"))
+        if (isTRUE(next_plot$page)) {
           at <- list(page = at$page + 1L, figure = 1L, plot = 1L, opened = TRUE)
         } else {
-          if (!isTRUE(graphics::par("new"))) {
+          if (!isTRUE(next_plot$new)) {
             at$figure <- at$figure + 1L
           }
           at$plot <- at$plot + 1L
@@ -265,8 +267,9 @@ note_base_r_plot_started <- function() {
       }
       if (device != 1L && !is.null(at)) {
         before <- at[c("page", "plot")]
-        at$cell <- as.integer(graphics::par("mfg"))
-        at$fig <- graphics::par("fig")
+        placed <- graphics::par(c("mfg", "fig"))
+        at$cell <- as.integer(placed$mfg)
+        at$fig <- placed$fig
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
         for (i in seq_along(drawing)) {

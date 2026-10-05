@@ -37,6 +37,24 @@ get_device_storage <- function(device_id = grDevices::dev.cur()) {
   .maidr_base_r_session$devices[[key]]
 }
 
+#' Keep a device's storage
+#'
+#' Put back as a list made afresh, holding the same calls. R walks through
+#' a value bound elsewhere, every call recorded on the device and all they
+#' hold, before it puts it in a list, to make sure the list is not inside
+#' it; recording a call then took time that grew with the calls recorded
+#' before it, and with how much each keeps.
+#'
+#' @param device_id Graphics device ID
+#' @param storage The device's storage, as [get_device_storage()] gives it
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+set_device_storage <- function(device_id, storage) {
+  .maidr_base_r_session$devices[[as.character(device_id)]] <- c(storage)
+  invisible(NULL)
+}
+
 #' Keep the title chartSeries() would have given the call it was made from
 #'
 #' Without a `name`, `quantmod::chartSeries()` titles the chart with the
@@ -172,8 +190,7 @@ log_plot_call_to_device <- function(
   storage$metadata$call_count <- length(storage$calls)
   call_index <- storage$metadata$call_count
 
-  key <- as.character(device_id)
-  .maidr_base_r_session$devices[[key]] <- storage
+  set_device_storage(device_id, storage)
 
   if (class_level == "HIGH") {
     on_high_level_call(device_id, call_index)
