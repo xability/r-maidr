@@ -28,16 +28,17 @@ BaseRPlotOrchestrator <- R6::R6Class(
     .fallback_panels = integer(0),
     .canvas = NULL,
     .size_asked = TRUE,
+    .cells_in_cm = FALSE,
 
     # A drawing as a grob on the chart's canvas (`base_r_drawing_grob()`),
     # the canvas enlarged first where the drawing is too small for one no one
     # asked for (`enlarge_canvas()`).
     drawing_grob = function(draw) {
       tryCatch(
-        base_r_drawing_grob(draw, private$.canvas),
+        base_r_drawing_grob(draw, private$.canvas, private$.cells_in_cm),
         maidr_chart_draw_error = function(e) {
           private$enlarge_canvas(draw, e)
-          base_r_drawing_grob(draw, private$.canvas)
+          base_r_drawing_grob(draw, private$.canvas, private$.cells_in_cm)
         }
       )
     },
@@ -54,7 +55,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       }
       canvas <- private$.canvas
       private$.canvas <- base_r_page_that_fits(draw, canvas)
-      no_room <- if (base_r_cells_too_large(e$reason)) {
+      no_room <- if (isTRUE(e$cells)) {
         "its layout() cells sized with lcm() do not fit"
       } else {
         "its margins and text leave the plot no room"
@@ -186,6 +187,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
       private$.layout_calls <- grouped$layout_calls
+      # Whether the author's own layout() call sizes cells with lcm(), which
+      # a drawing too small for them then names (`base_r_too_small()`).
+      private$.cells_in_cm <- layout_sizes_in_cm(detect_panel_configuration(device_id))
 
       # Settled before anything is drawn: the recorded calls are drawn again
       # at this size (see `get_gtable()`), which enlarges it only for a
@@ -1060,7 +1064,7 @@ BaseRPlotOrchestrator <- R6::R6Class(
       )
       largest <- c(width = MAIDR_MAX_CHART_SIZE, height = MAIDR_MAX_CHART_SIZE)
       if (!is.null(failure) && base_r_draws_at(draw, largest)) {
-        private$enlarge_canvas(draw, base_r_too_small(failure, canvas))
+        private$enlarge_canvas(draw, base_r_too_small(failure, canvas, private$.cells_in_cm))
       }
       private$.canvas
     },
@@ -1295,9 +1299,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
 #'
 #' @param draw A function of no arguments that draws the chart
 #' @param size The chart's canvas, from [chart_canvas_size()]
+#' @param cells_in_cm Whether the chart's own `layout()` call sizes cells
+#'   with `lcm()`, which the error then names when they do not fit
 #' @return A gTree
 #' @keywords internal
-base_r_drawing_grob <- function(draw, size) {
+base_r_drawing_grob <- function(draw, size, cells_in_cm = FALSE) {
   # Restored as ggplotify restores them. On a page too small for the
   # margins R reports a negative plot size ("pin") that it then refuses to
   # be given back, and that refusal would hide why the drawing failed.
@@ -1319,7 +1325,7 @@ base_r_drawing_grob <- function(draw, size) {
     if (!base_r_draws_at(draw, largest)) {
       stop(e)
     }
-    stop(base_r_too_small(e, size))
+    stop(base_r_too_small(e, size, cells_in_cm))
   }
 
   echoed <- tryCatch(
@@ -1334,16 +1340,25 @@ base_r_drawing_grob <- function(draw, size) {
 
 #' The error a Base R chart too small to draw at a size stops with
 #'
+#' The cells a chart's own `layout()` call sized with `lcm()` are named when
+#' they do not fit. A `filled.contour()` sizes its key with `lcm()` too, from
+#' its margins and text, but its author wrote no `layout()`: its error is
+#' about the margins and text, as any other chart's is.
+#'
 #' @param e R's error drawing it at that size
 #' @param size The size, a named numeric vector, `width` and `height`, in
 #'   inches
+#' @param cells_in_cm Whether the chart's own `layout()` call sizes cells
+#'   with `lcm()`, from `layout_sizes_in_cm()`
 #' @return A condition of class `maidr_chart_draw_error`, naming the size and
-#'   R's reason, which it keeps as `reason`
+#'   R's reason, which it keeps as `reason`, and whether it named the cells,
+#'   as `cells`
 #' @keywords internal
 #' @noRd
-base_r_too_small <- function(e, size) {
+base_r_too_small <- function(e, size, cells_in_cm = FALSE) {
   reason <- conditionMessage(e)
-  taken <- if (base_r_cells_too_large(reason)) {
+  cells <- cells_in_cm && base_r_cells_too_large(reason)
+  taken <- if (cells) {
     paste(
       "layout() cells sized with lcm() take the same room at every size, and",
       "at this size they do not fit on the page"
@@ -1360,7 +1375,8 @@ base_r_too_small <- function(e, size) {
       reason, ". A Base R chart's ", taken, ": give the chart a larger size."
     ),
     class = "maidr_chart_draw_error",
-    reason = reason
+    reason = reason,
+    cells = cells
   )
 }
 

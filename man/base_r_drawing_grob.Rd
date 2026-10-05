@@ -4,12 +4,15 @@
 \alias{base_r_drawing_grob}
 \title{A Base R drawing as a grob, laid out on a page of the chart's size}
 \usage{
-base_r_drawing_grob(draw, size)
+base_r_drawing_grob(draw, size, cells_in_cm = FALSE)
 }
 \arguments{
 \item{draw}{A function of no arguments that draws the chart}
 
 \item{size}{The chart's canvas, from \code{\link[=chart_canvas_size]{chart_canvas_size()}}}
+
+\item{cells_in_cm}{Whether the chart's own \code{layout()} call sizes cells
+with \code{lcm()}, which the error then names when they do not fit}
 }
 \value{
 A gTree

@@ -348,8 +348,8 @@
   empty cells, and shows the tick labels R shows at its size. A size asked
   for now stops when R cannot draw the page at it, and a size no one asked
   for is enlarged until every plot, the smallest included, has room. When
-  it is the cells sized with `lcm()` that do not fit on the page, the
-  error and the message name them. The matrix is the argument R takes for
+  it is the cells the call sized with `lcm()` that do not fit on the page,
+  the error and the message name them. The matrix is the argument R takes for
   it, written by name after the sizes, as in
   `layout(widths = c(3, 1), mat = m)`, or without a name after a size
   written with one, as in `layout(widths = c(3, 1), m)`. maidr took the

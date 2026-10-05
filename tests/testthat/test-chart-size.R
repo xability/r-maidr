@@ -1141,6 +1141,34 @@ test_that("a Base R layout() page is held to its size by the room R gives its pl
     fixed = TRUE,
     class = "maidr_chart_draw_error"
   )
+
+  # A filled.contour() sizes its key with lcm() too, from its margins and
+  # text, and R stops the same way, but its author wrote no layout(): the
+  # error and the message are about the margins and text, where both named
+  # layout() cells the author never wrote.
+  key <- function() filled.contour(volcano)
+  testthat::expect_identical(native_error(key, c(1.2, 4)), "figure region too large")
+  said <- testthat::expect_error(render_sized(key, c(1.2, 4)), class = "maidr_chart_draw_error")
+  testthat::expect_identical(
+    conditionMessage(said),
+    paste(
+      "maidr could not draw this chart at 1.2 x 4 in: figure region too large.",
+      "A Base R chart's margins and text take the same room at every size, and",
+      "at this size they leave the plot none: give the chart a larger size."
+    )
+  )
+  wide_key <- function() {
+    par(mar = c(5, 40, 4, 2))
+    filled.contour(volcano)
+  }
+  testthat::expect_identical(native_error(wide_key, c(7, 5)), "figure region too large")
+  drawn <- with_messages(render_sized(wide_key, NULL))
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_match(
+    drawn$said,
+    "rather than 7 x 5 in, where its margins and text leave the plot no room.",
+    fixed = TRUE
+  )
 })
 
 test_that("drawn at 7 x 7 in, a Base R chart is the drawing ggplotify makes of it", {

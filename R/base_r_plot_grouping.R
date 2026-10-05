@@ -243,6 +243,26 @@ layout_arguments <- function(args, call_env = NULL) {
   args
 }
 
+#' Whether a page's `layout()` call sizes any of its cells with `lcm()`
+#'
+#' `lcm()` gives a size as text, "5 cm", and `layout()` takes each of its
+#' sizes that says "cm" as centimetres.
+#'
+#' @param panel_config The page's configuration, from
+#'   [detect_panel_configuration()], or NULL
+#' @return Logical
+#' @keywords internal
+#' @noRd
+layout_sizes_in_cm <- function(panel_config) {
+  if (!identical(panel_config$type, "layout")) {
+    return(FALSE)
+  }
+  sizes <- panel_config$sizes[intersect(names(panel_config$sizes), c("widths", "heights"))]
+  any(vapply(sizes, function(size) {
+    is.character(size) && any(grepl("cm", size, fixed = TRUE))
+  }, logical(1)))
+}
+
 #' The settings a recorded `par()` call made
 #'
 #' `par()` takes its settings as arguments, or as one list of them: the
