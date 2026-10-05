@@ -371,3 +371,29 @@ test_that("the title and axis titles announced are the text R draws", {
   testthat::expect_identical(first_layer(chart)$axes$x$label, "2024")
   testthat::expect_identical(first_layer(chart)$axes$y$label, "TRUE")
 })
+
+test_that("a title given as a classed list is announced as the lines R draws", {
+  # title() makes a classed value text with as.character() first. A data
+  # frame row and a POSIXlt date are lists underneath, and were read as a
+  # list title: the data frame's last column, the date's first value.
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+  info <- data.frame(site = "North", year = 2024)
+  when <- as.POSIXlt(c("2024-01-02", "2024-02-03"), tz = "UTC")
+  plot(1:5, main = info, xlab = when)
+  chart <- maidr:::BaseRPlotOrchestrator$new(device_id)$generate_maidr_data()
+  layer <- chart$subplots[[1]][[1]]$layers[[1]]
+
+  testthat::expect_identical(chart$title, "North\n2024")
+  testthat::expect_identical(layer$title, "North\n2024")
+  testthat::expect_identical(layer$axes$x$label, "2024-01-02\n2024-02-03")
+  expect_drawn_as_r(function() graphics::plot(1:5, main = info, xlab = when))
+})
