@@ -154,6 +154,100 @@ test_that("missing margin text and tick labels, and logical labels, are drawn as
   })
 })
 
+# A chart exported through `save_html()`: the strings it draws, its layers,
+# and the warnings the export gave.
+exported_chart <- function(draw) {
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+  draw()
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file), add = TRUE)
+  warnings <- character(0)
+  withCallingHandlers(
+    suppressMessages(save_html(file = file)),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  page <- xml2::read_html(file)
+  schema <- schema_from(html)
+  list(
+    text = sort(xml2::xml_text(xml2::xml_find_all(page, "//*[local-name()='text']"))),
+    layers = unlist(
+      lapply(unlist(schema$subplots, recursive = FALSE), function(cell) cell$layers),
+      recursive = FALSE
+    ),
+    warnings = warnings
+  )
+}
+
+test_that("margin text of several values is drawn as R draws it, whatever it is spread over", {
+  # gridGraphics stopped on a `side`, `outer`, `adj` or `padj` of several
+  # values and on a missing `outer`, and drew fewer values than R where `at`
+  # and `line` hold fewer, or `at` is missing.
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5)
+    graphics::mtext(c("Left axis", "Right axis"), side = c(2, 4), line = 2)
+    graphics::mtext(c("low", "high"), side = 1, line = 2, adj = c(0, 1))
+    graphics::mtext(c("a", "b"), side = 3, at = c(1, 3), padj = c(0, 1))
+  })
+  expect_drawn_as_r(function() {
+    graphics::par(oma = c(2, 2, 2, 2), las = 2)
+    graphics::plot(1:5)
+    graphics::mtext(c("a", "b"), side = c(1, 3), outer = TRUE)
+    graphics::mtext(c("c", "d"), side = 3, outer = c(TRUE, FALSE), adj = c(0, 1))
+    graphics::mtext("e", outer = NA)
+  })
+  expect_drawn_as_r(function() {
+    graphics::plot(1:5)
+    graphics::mtext(c("a", "b"), at = 2)
+    graphics::mtext(c("c", "d"), side = 1, at = c(1, NA), line = 2)
+    graphics::mtext("e", side = 4, cex = c(1, 2))
+    graphics::mtext(c(1, NA, 3), side = 1:3, line = 1, col = c("red", "blue"), font = c(1, 2))
+    graphics::mtext(expression(alpha, beta), side = c(2, 4))
+  })
+  expect_drawn_as_r(function() {
+    graphics::par(mfrow = c(2, 2))
+    for (k in 1:4) {
+      graphics::plot(1:5, main = k)
+      graphics::mtext(c("units", k), side = c(2, 1), line = c(2.5, 3))
+    }
+  })
+})
+
+test_that("a chart with margin text of several values stays interactive", {
+  chart <- exported_chart(function() {
+    plot(1:5)
+    mtext(c("Left axis", "Right axis"), side = c(2, 4), line = 2)
+  })
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_true(all(c("Left axis", "Right axis") %in% chart$text))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+
+  # One panel's margin text no longer takes the other panel's data with it.
+  chart <- exported_chart(function() {
+    par(mfrow = c(1, 2))
+    plot(1:5, main = "ok")
+    plot(5:1)
+    mtext(c("a", "b"), side = c(2, 4), line = 2)
+  })
+  testthat::expect_identical(chart$warnings, character(0))
+  testthat::expect_length(chart$layers, 2)
+  for (layer in chart$layers) {
+    testthat::expect_true(length(unlist(layer$selectors)) > 0)
+  }
+})
+
 test_that("a chart titled with a number is exported with its drawing", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

@@ -93,8 +93,10 @@ base_r_title_text <- function(value, cex, col, font) {
 #' gridGraphics echoes a drawing from its display list, where each title,
 #' margin text and axis holds the value its function was given. A title that
 #' is not one string or call is drawn again as R drew it
-#' (`base_r_title_as_drawn()`), a missing margin text is left blank, as R
-#' left it, and an axis's logical `labels` is the one R read. The missing
+#' (`base_r_title_as_drawn()`), a margin text is handed over a value at a
+#' time where gridGraphics would not draw it as R did, its missing values
+#' left out (`base_r_echoable_mtext()`), and an axis's logical `labels` is
+#' the one R read. The missing
 #' tick labels R leaves out are taken out after the echo
 #' ([thin_axis_labels()]), since R also leaves them out of its spacing.
 #'
@@ -117,7 +119,7 @@ base_r_echoable_recording <- function(recording, size) {
       return(base_r_echoable_title(recording, i, size))
     }
     if (identical(operation, "C_mtext")) {
-      return(list(base_r_echoable_mtext(entry)))
+      return(base_r_echoable_mtext(entry))
     }
     if (identical(operation, "C_axis")) {
       return(list(base_r_echoable_axis(entry)))
@@ -179,27 +181,64 @@ base_r_first_expression <- function(text) {
   if (is.expression(text) && length(text) > 1) text[1] else text
 }
 
-#' A recorded `mtext()`, its missing values left blank
+#' A recorded `mtext()`, as entries gridGraphics draws as R drew it
 #'
-#' R draws nothing for a missing value of `mtext()`'s text, where
-#' gridGraphics draws "NA". A blank keeps each value's place against `at`
-#' and `line`.
+#' R draws `mtext()` a value at a time, each of its arguments recycled to
+#' the longest, and nothing for a missing text. gridGraphics draws the
+#' values with one `grid.text()`: it stops on a `side`, `outer`, `adj` or
+#' `padj` of more than one value, and on a missing `outer`, which R reads as
+#' `FALSE`; it draws only as many values as `at` or `line` holds, puts none
+#' where `at` is missing, and draws a missing text as "NA". Such an entry is
+#' handed to it a value at a time, each its own entry, and a missing text
+#' left out; one it draws as R does keeps its values together, a missing
+#' text blank, which keeps each value's place.
 #'
 #' @param entry The display-list entry
-#' @return The entry
+#' @return A list of display-list entries
 #' @keywords internal
 #' @noRd
 base_r_echoable_mtext <- function(entry) {
-  text <- entry[[2]][[2]]
-  if (is.language(text) || !is.atomic(text) || !anyNA(text)) {
-    return(entry)
-  }
   args <- as.list(entry[[2]])
-  text <- as.character(text)
-  text[is.na(text)] <- ""
-  args[[2]] <- text
-  entry[[2]] <- as.pairlist(args)
-  entry
+  # text, side, line, outer, at, adj, padj, cex, col, font
+  values <- args[2:11]
+  text <- values[[1]]
+  if (anyNA(values[[4]])) {
+    values[[4]][is.na(values[[4]])] <- FALSE
+  }
+  one_call <- is.language(text) && !is.expression(text)
+  n <- max(if (one_call) 1L else length(text), lengths(values[-1]))
+  at <- values[[5]]
+  per_value <- n > 1 && (
+    any(lengths(values[c(2, 4, 6, 7)]) > 1) ||
+      (length(at) > 1 && !all(is.finite(at))) ||
+      max(length(at), length(values[[3]])) < n
+  )
+  if (!per_value) {
+    if (!is.language(text) && is.atomic(text) && anyNA(text)) {
+      values[[1]] <- as.character(text)
+      values[[1]][is.na(text)] <- ""
+    }
+    if (identical(values, args[2:11])) {
+      return(list(entry))
+    }
+    args[2:11] <- values
+    entry[[2]] <- as.pairlist(args)
+    return(list(entry))
+  }
+
+  entries <- lapply(seq_len(n), function(i) {
+    value <- lapply(seq_along(values), function(k) {
+      x <- values[[k]]
+      if (k == 1 && one_call) x else x[(i - 1) %% length(x) + 1]
+    })
+    if (is.atomic(value[[1]]) && is.na(value[[1]])) {
+      return(NULL)
+    }
+    args[2:11] <- value
+    entry[[2]] <- as.pairlist(args)
+    entry
+  })
+  Filter(Negate(is.null), entries)
 }
 
 #' A recorded `axis()`, its logical `labels` the one R reads
