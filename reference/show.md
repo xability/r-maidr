@@ -94,6 +94,81 @@ other htmlwidget is refused, with the message
 [`maidr_htmlwidget()`](https://r.maidr.ai/reference/maidr_htmlwidget.md)
 gives.
 
+## Base R charts
+
+A Base R chart is read from the plotting calls recorded on the current
+device, and is the page that device shows: the last one. R draws a
+high-level plot on a new page when it moves past the last panel of the
+page it is on – every plot on a page of one panel, the fifth under
+`par(mfrow = c(2, 2))`, the first after `par(mfrow = )`, `par(mfcol = )`
+or [`layout()`](https://r.maidr.ai/reference/base-r-wrappers.md) sets a
+page up again – and
+[`plot.new()`](https://rdrr.io/r/graphics/frame.html) and
+[`frame()`](https://rdrr.io/r/graphics/frame.html) move on a panel as a
+plot does. So after `hist(a); hist(b)` the chart is the histogram of `b`
+alone, and after five plots under `par(mfrow = c(2, 2))` it is the
+fifth, in the first panel of a 2 x 2 grid. Each plot of a grid is in the
+panel R drew it in: a plot drawn after `par(new = TRUE)`, or with
+`add = TRUE`, is drawn in the panel of the plot before it, one
+`par(mfg = )` sends to a panel out of turn is in that panel, and a panel
+[`plot.new()`](https://rdrr.io/r/graphics/frame.html) or
+[`frame()`](https://rdrr.io/r/graphics/frame.html) passed over stays
+empty. So it is where the call that set the grid up was not recorded:
+one made through
+[`graphics::par()`](https://rdrr.io/r/graphics/par.html) or
+[`graphics::layout()`](https://rdrr.io/r/graphics/layout.html), before
+[`maidr_on()`](https://r.maidr.ai/reference/maidr_on.md), or before an
+earlier `show()` or
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) on the
+device. A plot drawn in a region of the page `par(fig = )` gave it, as
+an inset is, or in a screen of
+[`split.screen()`](https://r.maidr.ai/reference/base-r-wrappers.md), is
+drawn in that region, and read with the plot before it.
+[`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`points()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`abline()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`text()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`legend()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`title()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+[`axis()`](https://r.maidr.ai/reference/base-r-wrappers.md) and the
+other low-level calls add to the plot they are drawn on: after
+`par(mfg = )`, or `screen(n, new = FALSE)` of
+[`split.screen()`](https://r.maidr.ai/reference/base-r-wrappers.md),
+sends R back to the panel or screen of an earlier plot, to that plot.
+Drawn on a panel [`plot.new()`](https://rdrr.io/r/graphics/frame.html)
+or [`frame()`](https://rdrr.io/r/graphics/frame.html) took, as a legend
+of its own is, or on a plot maidr does not record, such as
+[`smoothScatter()`](https://rdrr.io/r/graphics/smoothScatter.html), they
+are drawn there, and read as part of no plot. Drawn over a plot after
+`par(new = TRUE)` and
+[`plot.new()`](https://rdrr.io/r/graphics/frame.html), as a second
+series with an axis of its own is – also over the plot of an earlier
+panel or screen `par(mfg = )` or
+[`screen()`](https://rdrr.io/r/graphics/screen.html) sent R back to –
+they are drawn in the coordinates they were drawn in, and read with that
+plot. Nothing drawn on an earlier page reaches the chart: not its data,
+its titles or the size it is drawn at. A page
+[`replayPlot()`](https://rdrr.io/r/grDevices/recordplot.html) puts back,
+from a plot
+[`recordPlot()`](https://rdrr.io/r/grDevices/recordplot.html) saved on a
+device that keeps a display list, is the page the chart is read from,
+with what was drawn on it when it was saved and what has been drawn on
+it since. A page that holds no plot maidr recorded – one R started with
+[`plot.new()`](https://rdrr.io/r/graphics/frame.html) or
+[`frame()`](https://rdrr.io/r/graphics/frame.html), with a plot maidr
+does not record, or with one drawn while
+[`maidr_off()`](https://r.maidr.ai/reference/maidr_off.md) was in
+effect, even with
+[`lines()`](https://r.maidr.ai/reference/base-r-wrappers.md) or
+[`text()`](https://r.maidr.ai/reference/base-r-wrappers.md) drawn on it
+since, or one
+[`replayPlot()`](https://rdrr.io/r/grDevices/recordplot.html) put back
+from such a page, or from a plot saved in another session or on another
+device – is not read as the plot before it: `show()` and
+[`save_html()`](https://r.maidr.ai/reference/save_html.md) stop, and say
+so. Each figure of an R Markdown or Quarto document is read the same
+way, from the calls on its own page.
+
 ## Chart size
 
 A chart is drawn at a size in inches, as

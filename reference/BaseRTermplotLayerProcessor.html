@@ -18,10 +18,12 @@ mfrow c(1,3)  (k = 3)   graphics-plot-1 .. -3           3 panels
 mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
 
 So with n terms and k cells the page carries the last
-((n - 1) %% k) + 1 of them, which is the rule
-compute_panel_slots() already applies to whole plot groups – the same
-arithmetic, one level down. A reading that announced all n terms would
-name curves that are not on the page.
+((n - 1) %% k) + 1 of them, which is the rule R's device shows whole
+plots by, and maidr reads them by – one level down. A reading that
+announced all n terms would name curves that are not on the page.
+Started after another plot, in a later cell, the call runs onto its last
+page sooner: the page carries as many terms as R started plots on it for
+the call, which the recorded call says.
 The par call is recorded as LAYOUT rather than as a layer, so it does not
 reach the processor with the rest of the call. It is read off the device
 the call was recorded on, through the same detect_panel_configuration()
@@ -61,10 +63,12 @@ mfrow c(1,3)  (k = 3)   graphics-plot-1 .. -3           3 panels
 mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
 
 So with n terms and k cells the page carries the last
-((n - 1) %% k) + 1 of them, which is the rule
-compute_panel_slots() already applies to whole plot groups – the same
-arithmetic, one level down. A reading that announced all n terms would
-name curves that are not on the page.
+((n - 1) %% k) + 1 of them, which is the rule R's device shows whole
+plots by, and maidr reads them by – one level down. A reading that
+announced all n terms would name curves that are not on the page.
+Started after another plot, in a later cell, the call runs onto its last
+page sooner: the page carries as many terms as R started plots on it for
+the call, which the recorded call says.
 The par call is recorded as LAYOUT rather than as a layer, so it does not
 reach the processor with the rest of the call. It is read off the device
 the call was recorded on, through the same detect_panel_configuration()
@@ -129,10 +133,12 @@ mfrow c(1,3)  (k = 3)   graphics-plot-1 .. -3           3 panels
 mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
 
 So with n terms and k cells the page carries the last
-((n - 1) %% k) + 1 of them, which is the rule
-compute_panel_slots() already applies to whole plot groups – the same
-arithmetic, one level down. A reading that announced all n terms would
-name curves that are not on the page.
+((n - 1) %% k) + 1 of them, which is the rule R&#x27;s device shows whole
+plots by, and maidr reads them by – one level down. A reading that
+announced all n terms would name curves that are not on the page.
+Started after another plot, in a later cell, the call runs onto its last
+page sooner: the page carries as many terms as R started plots on it for
+the call, which the recorded call says.
 The par call is recorded as LAYOUT rather than as a layer, so it does not
 reach the processor with the rest of the call. It is read off the device
 the call was recorded on, through the same detect_panel_configuration()
@@ -159,7 +165,7 @@ out of the grid rather than given a wrong shape.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-09-02">
+<meta name="DC.date" content="2026-10-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -231,10 +237,12 @@ three-term <code>lm</code>:</p>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>mfrow <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>)  (<span class="at">k =</span> <span class="dv">3</span>)   graphics<span class="sc">-</span>plot<span class="dv">-1</span> .. <span class="sc">-</span><span class="dv">3</span>           <span class="dv">3</span> panels</span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>mfrow <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>)  (<span class="at">k =</span> <span class="dv">4</span>)   graphics<span class="sc">-</span>plot<span class="dv">-1</span> .. <span class="sc">-</span><span class="dv">3</span>           <span class="dv">3</span> panels</span></code></pre><p></p></div>
 <p>So with <code>n</code> terms and <code>k</code> cells the page carries the <strong>last</strong>
-<code>((n - 1) %% k) + 1</code> of them, which is the rule
-<code><a href="compute_panel_slots.html">compute_panel_slots()</a></code> already applies to whole plot groups – the same
-arithmetic, one level down. A reading that announced all <code>n</code> terms would
-name curves that are not on the page.</p>
+<code>((n - 1) %% k) + 1</code> of them, which is the rule R's device shows whole
+plots by, and maidr reads them by – one level down. A reading that
+announced all <code>n</code> terms would name curves that are not on the page.
+Started after another plot, in a later cell, the call runs onto its last
+page sooner: the page carries as many terms as R started plots on it for
+the call, which the recorded call says.</p>
 <p>The <code>par</code> call is recorded as LAYOUT rather than as a layer, so it does not
 reach the processor with the rest of the call. It is read off the device
 the call was recorded on, through the same <code><a href="detect_panel_configuration.html">detect_panel_configuration()</a></code>

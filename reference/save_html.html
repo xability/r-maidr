@@ -32,7 +32,7 @@ accessibility features.">
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2026-10-04">
+<meta name="DC.date" content="2026-10-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -152,6 +152,54 @@ MAIDR.js and shows a plain, inaccessible chart. <code>use_cdn = TRUE</code>
 writes one self-contained file instead, which needs internet access
 whenever it is viewed and loads the latest published MAIDR.js from
 jsDelivr rather than the copy bundled with this package.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="base-r-charts">Base R charts<a class="anchor" aria-label="anchor" href="#base-r-charts"></a></h2>
+
+
+<p>A Base R chart is read from the plotting calls recorded on the current
+device, and is the page that device shows: the last one. R draws a
+high-level plot on a new page when it moves past the last panel of the
+page it is on – every plot on a page of one panel, the fifth under
+<code>par(mfrow = c(2, 2))</code>, the first after <code>par(mfrow = )</code>, <code>par(mfcol = )</code>
+or <code><a href="base-r-wrappers.html">layout()</a></code> sets a page up again – and <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">plot.new()</a></code> and <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">frame()</a></code>
+move on a panel as a plot does. So after <code>hist(a); hist(b)</code> the chart is
+the histogram of <code>b</code> alone, and after five plots under
+<code>par(mfrow = c(2, 2))</code> it is the fifth, in the first panel of a 2 x 2
+grid. Each plot of a grid is in the panel R drew it in: a plot drawn
+after <code>par(new = TRUE)</code>, or with <code>add = TRUE</code>, is drawn in the panel of
+the plot before it, one <code>par(mfg = )</code> sends to a panel out of turn is in
+that panel, and a panel <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">plot.new()</a></code> or <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">frame()</a></code> passed over stays
+empty. So it is where the call that set the grid up was not recorded:
+one made through <code><a href="https://rdrr.io/r/graphics/par.html" class="external-link">graphics::par()</a></code> or <code><a href="https://rdrr.io/r/graphics/layout.html" class="external-link">graphics::layout()</a></code>, before
+<code><a href="maidr_on.html">maidr_on()</a></code>, or before an earlier <code><a href="show.html">show()</a></code> or <code>save_html()</code> on the
+device. A plot drawn in a region of the page <code>par(fig = )</code> gave it, as
+an inset is, or in a screen of <code><a href="base-r-wrappers.html">split.screen()</a></code>, is drawn in that
+region, and read with the plot before it. <code><a href="base-r-wrappers.html">lines()</a></code>, <code><a href="base-r-wrappers.html">points()</a></code>,
+<code><a href="base-r-wrappers.html">abline()</a></code>, <code><a href="base-r-wrappers.html">text()</a></code>, <code><a href="base-r-wrappers.html">legend()</a></code>, <code><a href="base-r-wrappers.html">title()</a></code>, <code><a href="base-r-wrappers.html">axis()</a></code> and the other
+low-level calls add to the plot they are drawn on: after <code>par(mfg = )</code>,
+or <code>screen(n, new = FALSE)</code> of <code><a href="base-r-wrappers.html">split.screen()</a></code>, sends R back to the
+panel or screen of an earlier plot, to that plot. Drawn on a panel
+<code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">plot.new()</a></code> or <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">frame()</a></code> took, as a legend of its own is, or on a plot
+maidr does not record, such as <code><a href="https://rdrr.io/r/graphics/smoothScatter.html" class="external-link">smoothScatter()</a></code>, they are drawn there,
+and read as part of no plot. Drawn over a plot after <code>par(new = TRUE)</code>
+and <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">plot.new()</a></code>, as a second series with an axis of its own is – also
+over the plot of an earlier panel or screen <code>par(mfg = )</code> or <code><a href="https://rdrr.io/r/graphics/screen.html" class="external-link">screen()</a></code>
+sent R back to – they are drawn in the coordinates they were drawn in,
+and read with that plot. Nothing drawn on an earlier page reaches the
+chart: not its data, its titles or the size it is drawn at. A page
+<code><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">replayPlot()</a></code> puts back,
+from a plot <code><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">recordPlot()</a></code> saved on a device that keeps a display list,
+is the page the chart is read from, with what was drawn on it when it
+was saved and what has been drawn on it since. A page that holds no plot
+maidr recorded – one R started with <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">plot.new()</a></code> or <code><a href="https://rdrr.io/r/graphics/frame.html" class="external-link">frame()</a></code>, with a
+plot maidr does not record, or with one drawn while <code><a href="maidr_off.html">maidr_off()</a></code> was in
+effect, even with <code><a href="base-r-wrappers.html">lines()</a></code> or <code><a href="base-r-wrappers.html">text()</a></code> drawn on it since, or one
+<code><a href="https://rdrr.io/r/grDevices/recordplot.html" class="external-link">replayPlot()</a></code> put back from such a page, or from a plot saved in
+another session or on another device – is not read as the plot before
+it: <code><a href="show.html">show()</a></code> and <code>save_html()</code> stop, and say so. Each
+figure of an R Markdown or Quarto document is read the same way, from
+the calls on its own page.</p>
     </div>
     <div class="section level2">
     <h2 id="chart-size">Chart size<a class="anchor" aria-label="anchor" href="#chart-size"></a></h2>

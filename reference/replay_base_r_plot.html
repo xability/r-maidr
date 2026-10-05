@@ -30,7 +30,7 @@
 <meta name="DC.format" content="text/html">
 <meta name="DC.language" content="en">
 <meta name="DC.rights" content="GPL-3.0-or-later">
-<meta name="DC.date" content="2025-12-10">
+<meta name="DC.date" content="2026-10-05">
 </head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -89,7 +89,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replay_base_r_plot</span><span class="op">(</span><span class="va">device_id</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">replay_base_r_plot</span><span class="op">(</span><span class="va">device_id</span>, strict <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -98,6 +98,12 @@
 
 <dl><dt id="arg-device-id">device_id<a class="anchor" aria-label="anchor" href="#arg-device-id"></a></dt>
 <dd><p>The device ID to get calls from</p></dd>
+
+
+<dt id="arg-strict">strict<a class="anchor" aria-label="anchor" href="#arg-strict"></a></dt>
+<dd><p><code>TRUE</code> to stop at a call that cannot be drawn again, as
+the measure of the size the picture needs does (<code>picture_size()</code>);
+<code>FALSE</code> draws the others, with a warning naming a plot left out</p></dd>
 
 </dl></div>
 

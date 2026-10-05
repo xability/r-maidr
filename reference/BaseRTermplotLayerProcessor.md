@@ -28,11 +28,12 @@ cells. Only the last page is exported. Measured on a three-term `lm`:
     mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
 
 So with `n` terms and `k` cells the page carries the **last**
-`((n - 1) %% k) + 1` of them, which is the rule
-[`compute_panel_slots()`](https://r.maidr.ai/reference/compute_panel_slots.md)
-already applies to whole plot groups – the same arithmetic, one level
-down. A reading that announced all `n` terms would name curves that are
-not on the page.
+`((n - 1) %% k) + 1` of them, which is the rule R's device shows whole
+plots by, and maidr reads them by – one level down. A reading that
+announced all `n` terms would name curves that are not on the page.
+Started after another plot, in a later cell, the call runs onto its last
+page sooner: the page carries as many terms as R started plots on it for
+the call, which the recorded call says.
 
 The `par` call is recorded as LAYOUT rather than as a layer, so it does
 not reach the processor with the rest of the call. It is read off the

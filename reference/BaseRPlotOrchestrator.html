@@ -428,11 +428,13 @@ what is drawn on it: the title R drew over its panels, with
 <code>title(outer = TRUE)</code> or <code>mtext(outer = TRUE)</code> along the top; else,
 for one panel, by its title, and for several, by each panel R drew in
 turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
-A panel's title is its plot's, or the one <code><a href="base-r-wrappers.html">title()</a></code> gave it. The
-chart's own title is its last titled panel's, from any page, which
-would name a picture of several panels by one of them; and maidr's
-grid of cells counts a panel spanning two cells twice, and an empty
-cell as a panel.</p><div class="section">
+A panel's title is its plot's, or the one <code><a href="base-r-wrappers.html">title()</a></code> gave it; a plot
+drawn over a panel's, after <code>par(new = TRUE)</code>, with <code>add = TRUE</code> or
+sent back to it with <code>par(mfg = )</code>, is in that panel, which is named
+by the first title drawn on it. The chart's own title is its last
+titled panel's, from any page, which would name a picture of several
+panels by one of them; and maidr's grid of cells counts a panel
+spanning two cells twice, and an empty cell as a panel.</p><div class="section">
 <h4 id="usage-19">Usage<a class="anchor" aria-label="anchor" href="#usage-19"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">BaseRPlotOrchestrator</span><span class="op">$</span><span class="fu">picture_title</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
