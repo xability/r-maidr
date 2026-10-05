@@ -96,6 +96,9 @@ region, and read with the plot before it. \code{lines()}, \code{points()},
 are drawn on. Drawn on a panel \code{plot.new()} or \code{frame()} took, as a
 legend of its own is, or on a plot maidr does not record, such as
 \code{smoothScatter()}, they are drawn there, and read as part of no plot.
+Drawn over a plot after \code{par(new = TRUE)} and \code{plot.new()}, as a second
+series with an axis of its own is, they are drawn in the coordinates
+they were drawn in, and read with that plot.
 Nothing drawn on an
 earlier page reaches the chart: not its data, its titles or the size it
 is drawn at. A page \code{replayPlot()} puts back, from a plot

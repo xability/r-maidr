@@ -22,6 +22,9 @@ NULL
 #' plot maidr does not record, such as `smoothScatter()` -- is not one of
 #' them: it is kept, to be drawn where R drew it, with the group drawn after
 #' it (`before_calls`), or, after the last, with the last (`after_calls`).
+#' One drawn on a plot started over the group's own, in its panel, after
+#' `par(new = TRUE)`, is one of them, marked `overlay`: it is drawn on that
+#' plot, in the coordinates it was drawn in (`drawn_over_group_plot()`).
 #'
 #' @param device_id Graphics device ID
 #' @return List of plot groups, each containing HIGH and LOW calls
@@ -64,10 +67,15 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
       )
       unrecorded <- list()
     } else if (class_level == "LOW") {
-      if (drawn_on_unrecorded_plot(call, current_group)) {
+      unrecorded_plot <- drawn_on_unrecorded_plot(call, current_group)
+      if (unrecorded_plot && !drawn_over_group_plot(call, current_group)) {
         call$storage_index <- i
         unrecorded <- append(unrecorded, list(call))
       } else if (!is.null(current_group)) {
+        if (unrecorded_plot) {
+          call$overlay <- TRUE
+          call$storage_index <- i
+        }
         current_group$low_calls <- append(current_group$low_calls, list(call))
         current_group$low_call_indices <- c(current_group$low_call_indices, i)
       }
@@ -130,6 +138,28 @@ drawn_on_unrecorded_plot <- function(call, group) {
   }
   last <- group$high_call$end_plot
   is.numeric(last) && length(last) == 1L && on > last
+}
+
+#' Whether a low-level call on a plot no recorded call started is drawn
+#' over a group's plot
+#'
+#' A plot started after `par(new = TRUE)` with `plot.new()`, as a second
+#' series with an axis of its own is drawn, is in the panel of the plot
+#' before it: R's count of panels did not move on (`end_base_r_call()`).
+#' What is drawn on it is drawn over that plot, which R shows it with, and
+#' is read with it (`overlay`, see `group_device_calls()`), in the
+#' coordinates it was drawn in.
+#'
+#' @param call The recorded LOW-level call
+#' @param group The plot group recorded before it, or NULL for none
+#' @return Logical
+#' @keywords internal
+#' @noRd
+drawn_over_group_plot <- function(call, group) {
+  panel <- call$end_figure
+  group_panel <- group$high_call$end_figure
+  length(panel) == 1L && length(group_panel) == 1L &&
+    isTRUE(as.integer(panel) == as.integer(group_panel))
 }
 
 #' Get Plot Group by Index

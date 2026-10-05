@@ -178,7 +178,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         calls <- c(list(high), group$low_calls)
         for (call in calls) {
-          replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
+          if (isTRUE(call$overlay)) {
+            at <- private$replay_unrecorded_plot_call(call, at, panel_config)
+          } else {
+            replay_plot_call(call$function_name, call$args, call$call_env, call$arg_text)
+          }
         }
         # Where R was once the group was drawn: a call that draws several
         # plots, as `plot()` of a fitted model does, moves on as many from
@@ -534,6 +538,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         layer_info <- private$.layers[[i]]
         layer_info$group_index <- plot_numbers[[layer_info$group_index]]
+        # Drawn over the group's plot on one of its own, after
+        # `par(new = TRUE)`, a call's marks are that plot's
+        # (`drawn_over_group_plot()`).
+        overlay <- layer_info$plot_call
+        if (isTRUE(overlay$overlay) && length(overlay$end_plot) == 1L) {
+          layer_info$group_index <- as.integer(overlay$end_plot)
+        }
 
         layer_grob <- self$get_grob_for_layer(i)
 
@@ -568,10 +579,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         group <- private$.plot_groups[[group_idx]]
         group_config <- list()
 
-        # Check low-level calls for axis()
+        # Check low-level calls for axis(), but for one drawn over the
+        # group's plot in coordinates of its own (`drawn_over_group_plot()`)
         if (length(group$low_calls) > 0) {
           for (low_call in group$low_calls) {
-            if (low_call$function_name == "axis") {
+            if (low_call$function_name == "axis" && !isTRUE(low_call$overlay)) {
               args <- low_call$args
 
               # Check if this axis() call has format config

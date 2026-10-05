@@ -60,6 +60,9 @@
 #' are drawn on. Drawn on a panel `plot.new()` or `frame()` took, as a
 #' legend of its own is, or on a plot maidr does not record, such as
 #' `smoothScatter()`, they are drawn there, and read as part of no plot.
+#' Drawn over a plot after `par(new = TRUE)` and `plot.new()`, as a second
+#' series with an axis of its own is, they are drawn in the coordinates
+#' they were drawn in, and read with that plot.
 #' Nothing drawn on an
 #' earlier page reaches the chart: not its data, its titles or the size it
 #' is drawn at. A page `replayPlot()` puts back, from a plot

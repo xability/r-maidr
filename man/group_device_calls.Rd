@@ -24,5 +24,8 @@ panel \code{plot.new()} or \code{frame()} took, as for a legend of its own, or a
 plot maidr does not record, such as \code{smoothScatter()} -- is not one of
 them: it is kept, to be drawn where R drew it, with the group drawn after
 it (\code{before_calls}), or, after the last, with the last (\code{after_calls}).
+One drawn on a plot started over the group's own, in its panel, after
+\code{par(new = TRUE)}, is one of them, marked \code{overlay}: it is drawn on that
+plot, in the coordinates it was drawn in (\code{drawn_over_group_plot()}).
 }
 \keyword{internal}

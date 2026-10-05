@@ -410,7 +410,10 @@
   moved the next plot into it; a `legend()`, `text()` or `lines()` drawn
   on such a panel, or on a plot maidr does not record such as
   `smoothScatter()`, is drawn there, where maidr drew it over the plot
-  before and read it as part of that plot; and nothing drawn on an
+  before and read it as part of that plot; one drawn over a plot after
+  `par(new = TRUE)` and `plot.new()`, as a second series with an axis of
+  its own is, is drawn in the coordinates it was drawn in, where maidr drew
+  it in the plot's; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
   page was drawn while `maidr_off()` was in effect. A page `replayPlot()`

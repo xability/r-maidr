@@ -653,6 +653,38 @@ test_that("a low-level call on a plot no recorded call started is drawn there, r
   testthat::expect_true(any(startsWith(chart$ids, "graphics-plot-2-abline")))
 })
 
+test_that("a series drawn over a plot on a plot.new() of its panel is read with it", {
+  skip_if_no_render()
+
+  # A second series with an axis of its own, on a plot started over the
+  # first after par(new = TRUE), in the same panel.
+  dual <- quote({
+    x <- 1:10
+    plot(x, x^2, type = "l", main = "Dual", ylab = "squares")
+    par(new = TRUE)
+    plot.new()
+    plot.window(xlim = range(x), ylim = c(0, 1))
+    lines(x, sqrt(x) / sqrt(10), col = "red")
+    axis(4)
+  })
+  chart <- last_page_export(function() eval(dual))
+  layers <- last_page_cells(chart)[[1]]
+  testthat::expect_identical(
+    vapply(layers, function(layer) layer$type, character(1)),
+    c("line", "line")
+  )
+  series <- function(layer) unlist(lapply(layer$data[[1]], function(point) point$y))
+  testthat::expect_equal(series(layers[[1]]), (1:10)^2)
+  testthat::expect_equal(series(layers[[2]]), sqrt(1:10) / sqrt(10))
+  # Each highlights its own line.
+  first <- selector_ids(layers[[1]])
+  second <- selector_ids(layers[[2]])
+  testthat::expect_false(identical(first, second))
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(dual))
+  expect_drawn_where_r_draws(chart, dual, "Dual")
+})
+
 test_that("a plot after one that drew several panels is in the panel R drew it in", {
   skip_if_no_render()
   call <- quote({
