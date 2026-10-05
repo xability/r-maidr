@@ -387,9 +387,16 @@ BaseRPlotOrchestrator <- R6::R6Class(
           layer_info = layer_info,
           gt = layer_grob
         )
-        # Titles the author wrote after the plot, with title() or mtext().
-        if (is.list(result)) {
-          result$axes <- with_margin_titles(result$axes, layer_info$group$low_calls)
+        # Titles the author wrote after the plot, with title() or mtext(), on
+        # the layer, or on each layer a result of several holds.
+        low_calls <- layer_info$group$low_calls
+        if (is.list(result) && isTRUE(result$multi_layer) && !is.null(result$layers)) {
+          result$layers <- lapply(result$layers, function(sub) {
+            sub$axes <- with_margin_titles(sub$axes, low_calls)
+            sub
+          })
+        } else if (is.list(result)) {
+          result$axes <- with_margin_titles(result$axes, low_calls)
         }
         processor$set_last_result(result)
         layer_results[[i]] <- result

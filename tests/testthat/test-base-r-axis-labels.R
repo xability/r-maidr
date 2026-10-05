@@ -56,7 +56,7 @@ r_drawn_titles <- function(call) {
   on.exit(options(old), add = TRUE)
   file <- tempfile(fileext = ".svg")
   on.exit(unlink(file), add = TRUE)
-  names <- c("plot", "lines", "par", "hist", "title", "mtext")
+  names <- c("plot", "lines", "par", "hist", "title", "mtext", "stripchart", "axis")
   originals <- list2env(
     stats::setNames(lapply(names, maidr:::get_original_function), names),
     parent = globalenv()
@@ -577,6 +577,35 @@ test_that("an axis titled by title() or mtext() after the plot is announced with
   right <- label_axes(grid, cell = c(1L, 2L))[[1]]
   testthat::expect_identical(c(left$x$label, left$y$label), c("Index", "A"))
   testthat::expect_identical(c(right$x$label, right$y$label), c("B", "5:1"))
+})
+
+test_that("a title() after a chart read as several layers titles each of them", {
+  # stripchart() is read as one layer per group, and the titles were written
+  # on the result that holds them rather than on the layers themselves, so
+  # every strip kept its "Value" and "Category" where R drew "Val".
+  cases <- list(
+    list(quote({
+      stripchart(list(a = 1:5, b = 3:8))
+      title(xlab = "Val")
+    }), "Val", "Category", c("a", "b", "Val")),
+    # The formula's own "len" is drawn too, under title()'s, which is on top.
+    list(quote({
+      stripchart(len ~ supp, data = ToothGrowth)
+      title(xlab = "Length", ylab = "Supplement")
+    }), "Length", "Supplement", c("OJ", "VC", "len", "Length", "Supplement"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    testthat::expect_length(axes, 2L)
+    for (layer_axes in axes) {
+      testthat::expect_identical(layer_axes$x$label, case[[2]], label = label)
+      testthat::expect_identical(layer_axes$y$label, case[[3]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[4]])
+  }
 })
 
 test_that("an author's own scatter plot labels are still announced", {
