@@ -27,7 +27,8 @@ NULL
 #' value. A classed value is first made text as `title()` makes it
 #' ([grDevices::as.graphicsAnnot()]), so a data frame row or a `POSIXlt`
 #' date, both lists underneath, is read a line per value. Any other list is
-#' read as `title()` reads it, its unnamed element being the text. A plotmath
+#' read as `title()` reads it, its unnamed element being the text, a factor
+#' or date there the number R draws for it (`base_r_title_text()`). A plotmath
 #' call or expression that list holds, as `list(quote(pi), col = "red")`
 #' does, is read as it was written, "pi" (`base_r_plotmath_as_written()`), as
 #' an axis title given as plotmath is ([recorded_axis_label()]). Given alone,
@@ -93,11 +94,14 @@ base_r_annotation_value <- function(value) {
 #'
 #' As R's own `GetTextArg()` reads `main`, `sub`, `xlab` or `ylab`: a call
 #' stays a call, an expression an expression, and anything else is text, as
-#' `as.character()` makes it. A list holds the text as its unnamed element
-#' (its first, when no element is named) and may carry `cex`, `col` and
-#' `font` for it, as `title(main = list("Speed", font = 4))` does. R reads
-#' each of the three by its first value, and leaves the one from `par()` in
-#' place where that is missing.
+#' its C code makes it, from the value under any class. A list holds the text
+#' as its unnamed element (its first, when no element is named) and may carry
+#' `cex`, `col` and `font` for it, as `title(main = list("Speed", font = 4))`
+#' does. R reads each of the three by its first value, and leaves the one
+#' from `par()` in place where that is missing. `title()` makes text of a
+#' classed value given alone first ([grDevices::as.graphicsAnnot()]), but not
+#' of one in a list: R draws `list(factor("Group A"))` as the factor's code,
+#' "1", and `list(as.Date("2024-03-15"))` as its day number, "19797".
 #'
 #' @param value The argument, as `title()` passed it on
 #' @param cex,col,font The text's own size, colour and font, from `par()`
@@ -109,7 +113,7 @@ base_r_title_text <- function(value, cex, col, font) {
     if (length(x) == 0) {
       return(NULL)
     }
-    if (is.language(x)) x else as.character(x)
+    if (is.language(x)) x else as.character(unclass(x))
   }
   if (!is.list(value)) {
     return(list(text = as_text(value), cex = cex, col = col, font = font))

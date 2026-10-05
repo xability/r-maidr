@@ -577,6 +577,38 @@ test_that("a title given as a classed list is announced as the lines R draws", {
   expect_drawn_as_r(function() graphics::plot(1:5, main = info, xlab = when))
 })
 
+test_that("a factor or date given in a list title is drawn and announced as the number R draws", {
+  # title() makes text of a classed value given alone, but not of one in a
+  # list: R draws the value under the class, a factor's code and a date's
+  # day number. maidr drew and announced the factor's label and the date.
+  values <- list(
+    factor("Group A"), factor(c("lo", "hi")), as.Date("2024-03-15"),
+    as.POSIXct("2024-03-15 10:00", tz = "UTC")
+  )
+  for (value in values) {
+    for (name in c("main", "sub", "xlab", "ylab")) {
+      args <- stats::setNames(list(1:5, list(value, col = "red")), c("", name))
+      expect_drawn_as_r(function() do.call(graphics::plot, args))
+    }
+  }
+  expect_drawn_as_r(function() graphics::plot(1:5, main = list(as.POSIXlt("2024-03-15"))))
+
+  main <- list(factor("Group A"), col = "red")
+  xlab <- list(as.Date("2024-03-15"))
+  chart <- exported_chart(function() plot(1:5, main = main, xlab = xlab))
+  r_text <- r_drawing(
+    function() graphics::plot(1:5, main = main, xlab = xlab),
+    c(width = 7, height = 5)
+  )
+  testthat::expect_identical(chart$text, sort(sub(" \\|.*$", "", r_text)))
+  testthat::expect_identical(chart$title, "1")
+  testthat::expect_identical(chart$layers[[1]]$title, "1")
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "19797")
+
+  chart <- exported_chart(function() barplot(c(3, 5, 2), xlab = list(factor("Year"), font = 2)))
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "1")
+})
+
 test_that("several time series a panel each are announced by the series R titles them with", {
   # plot.ts() draws no ylab for several series a panel each: it titles each
   # panel after its series. maidr reads the first series, and announced the
