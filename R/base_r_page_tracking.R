@@ -498,9 +498,9 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   was given it
 #' @return A list: `page`, `figure`, `plot`, `cell` and `fig`, where R put
 #'   that plot (`note_base_r_plot_started()`), `new_plot`, whether the call
-#'   started a plot, and `end_figure` and `end_plot`, the panel and plot R
-#'   was on when the call was done, and `window`, the coordinates of that
-#'   plot then (`base_r_plot_window()`); `opens_page`, whether R started a
+#'   started a plot, and `end_figure`, `end_plot` and `end_cell`, the panel,
+#'   plot and cell R was on when the call was done, and `window`, the
+#'   coordinates of that plot then (`base_r_plot_window()`); `opens_page`, whether R started a
 #'   page with the plot the call started first on it, which under a grid
 #'   is in the grid's first panel (`plot_in_grid()`), and `laid_out`,
 #'   whether that plot is in a grid of another shape than the one the call
@@ -544,6 +544,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
       !identical(call$grid, as.integer(first$cell[3:4])),
     end_figure = at$figure,
     end_plot = at$plot,
+    end_cell = at$cell,
     window = base_r_plot_window(),
     id = call$id,
     outer = if (this > 1L) drawing[[this - 1L]]$id,

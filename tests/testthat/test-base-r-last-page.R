@@ -816,6 +816,49 @@ test_that("a plot par(mfg = ) sends out of turn is in the panel R drew it in", {
   expect_drawn_where_r_draws(chart, back, c("one", "two", "three", "over one", "over two"))
 })
 
+test_that("a call on a panel par(mfg = ) sends R to is drawn in that panel", {
+  skip_if_no_render()
+
+  # A legend on a panel of its own, out of turn. par(mfg = ) does not move
+  # R's count of panels on, and the legend was read as drawn over the plot
+  # before it: that plot, and the one after it, were lost from the drawing.
+  legend_panel <- quote({
+    par(mfrow = c(1, 3))
+    plot(1:3, main = "QA")
+    par(mfg = c(1, 3))
+    plot.new()
+    legend("center", legend = c("qa", "qb"), pch = 1:2)
+    par(mfg = c(1, 2))
+    hist(mtcars$mpg, main = "QB")
+  })
+  chart <- last_page_export(function() eval(legend_panel))
+  testthat::expect_identical(cell_titles(chart), list("QA", "QB", character(0)))
+  expect_selectors_drawn(chart)
+  testthat::expect_setequal(chart$strings, r_last_page_strings(legend_panel))
+  expect_drawn_where_r_draws(chart, legend_panel, c("QA", "QB", "qa", "qb"))
+
+  # Back to the panel of an earlier plot: what is drawn there is not a
+  # layer of the plot before it, and the plot after it moves on from there.
+  back <- quote({
+    par(mfrow = c(2, 2))
+    plot(1:3, main = "M1")
+    plot(3:1, main = "M2")
+    par(mfg = c(1, 1))
+    plot.new()
+    plot.window(c(0, 1), c(0, 1))
+    lines(c(0, 1), c(1, 0), col = "red")
+    text(0.5, 0.5, "Over M1", adj = c(0.5, 0))
+    plot(2:4, main = "M3")
+  })
+  chart <- last_page_export(function() eval(back))
+  testthat::expect_identical(
+    cell_titles(chart),
+    list("M1", c("M2", "M3"), character(0), character(0))
+  )
+  expect_selectors_drawn(chart)
+  expect_drawn_where_r_draws(chart, back, c("M1", "M2", "M3", "Over M1"))
+})
+
 test_that("a call made by another as it draws is read and drawn once, where R drew it", {
   skip_if_no_render()
 

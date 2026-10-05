@@ -148,7 +148,10 @@ drawn_on_unrecorded_plot <- function(call, group) {
 #' before it: R's count of panels did not move on (`end_base_r_call()`).
 #' What is drawn on it is drawn over that plot, which R shows it with, and
 #' is read with it (`overlay`, see `group_device_calls()`), in the
-#' coordinates it was drawn in.
+#' coordinates it was drawn in. `par(mfg = )` does not move R's count on
+#' either, but sends the plot to another cell of the grid, as for a legend
+#' in a panel of its own: one started there is in another panel, and what
+#' is drawn on it is not drawn over the group's plot.
 #'
 #' @param call The recorded LOW-level call
 #' @param group The plot group recorded before it, or NULL for none
@@ -158,8 +161,24 @@ drawn_on_unrecorded_plot <- function(call, group) {
 drawn_over_group_plot <- function(call, group) {
   panel <- call$end_figure
   group_panel <- group$high_call$end_figure
-  length(panel) == 1L && length(group_panel) == 1L &&
+  same_panel <- length(panel) == 1L && length(group_panel) == 1L &&
     isTRUE(as.integer(panel) == as.integer(group_panel))
+  same_panel && !in_another_cell(call$cell, group$high_call$end_cell)
+}
+
+#' Whether a plot is in another cell of the same grid as a plot before it
+#'
+#' @param cell,before The cells R put each in (`par("mfg")`): the row and
+#'   column, and the grid's rows and columns; or `NULL`
+#' @return Logical: `FALSE` where either is not known, or the two are cells
+#'   of grids of different shapes, as a region `par(fig = )` gave a plot is
+#'   a cell of a grid of one
+#' @keywords internal
+#' @noRd
+in_another_cell <- function(cell, before) {
+  length(cell) == 4L && length(before) == 4L && !anyNA(cell) && !anyNA(before) &&
+    identical(as.integer(cell[3:4]), as.integer(before[3:4])) &&
+    !identical(as.integer(cell[1:2]), as.integer(before[1:2]))
 }
 
 #' Get Plot Group by Index
