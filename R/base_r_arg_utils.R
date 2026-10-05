@@ -576,16 +576,18 @@ recorded_flag <- function(args, name, default = FALSE) {
 #' is the same shape as the `args$x` / `xlab` collision that emptied
 #' `monthplot()` (#292).
 #'
+#' Any other value is the text R draws for it (`base_r_annotation_text()`):
+#' `main = 2024` is titled "2024", and `main = c("Sales", "2024")`, which R
+#' draws on two lines, is titled with those two lines. A plotmath title given
+#' in a list with its colour or size, `main = list(quote(pi), col = "red")`,
+#' is titled as it was written, "pi", as an axis title given as plotmath is.
+#'
 #' @param args Recorded argument list
 #' @return Character scalar, empty when there is no usable title
 #' @keywords internal
 recorded_main_title <- function(args) {
   title <- if (is.list(args)) args[["main"]] else NULL
-  if (is.null(title) || is.language(title)) {
-    return("")
-  }
-  title <- tryCatch(as.character(title)[1], error = function(e) NULL)
-  if (is.null(title) || is.na(title)) "" else title
+  base_r_annotation_text(title) %||% ""
 }
 
 #' Resolve a recorded formula into the frame the chart was drawn from

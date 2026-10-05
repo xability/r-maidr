@@ -1,0 +1,541 @@
+#' The text Base R draws for a chart's annotations
+#'
+#' R draws a title, an axis title, a margin text or a tick label given as
+#' almost anything: `title()`, `mtext()`, `text()` and `axis()` turn a
+#' classed value to text with `as.character()` (`as.graphicsAnnot()`), and
+#' the C code that draws turns whatever else it is handed to text, a number
+#' to fifteen significant digits, as `as.character()` does. A missing value
+#' is left out, and a title of several values is drawn a line for each,
+#' but for `sub`, whose values are all drawn on its one line.
+#'
+#' gridGraphics, which draws a Base R chart again for maidr, accepts less:
+#' it stops on a title that is a number, a logical, a vector of more than one
+#' value or a list with graphical parameters ("Unrecognised text argument
+#' type"), and draws a missing margin text or tick label as "NA". The
+#' functions here hand it the text R drew, and read that text for the
+#' accessible title and axis titles.
+#'
+#' @name base_r_annotation_text
+#' @keywords internal
+#' @noRd
+NULL
+
+#' The text R draws for an annotation argument, as one string
+#'
+#' What R draws for `main`, `sub`, `xlab` or `ylab`: each value as
+#' `as.character()` gives it, missing and empty ones left out, one line per
+#' value. A classed value is first made text as `title()` makes it
+#' ([grDevices::as.graphicsAnnot()]), so a data frame row or a `POSIXlt`
+#' date, both lists underneath, is read a line per value. Any other list is
+#' read as `title()` reads it, its unnamed element being the text, a factor
+#' or date there the number R draws for it (`base_r_title_text()`). A plotmath
+#' call or expression that list holds, as `list(quote(pi), col = "red")`
+#' does, is read as it was written, "pi" (`base_r_plotmath_as_written()`), as
+#' an axis title given as plotmath is ([recorded_axis_label()]). Given alone,
+#' it is not read here: a title given that way is announced as empty
+#' ([recorded_main_title()]).
+#'
+#' @param value The argument, as recorded
+#' @return A string, or NULL when R draws no text for it: nothing given, a
+#'   plotmath call or expression given alone, or only missing or empty values
+#' @keywords internal
+#' @noRd
+base_r_annotation_text <- function(value) {
+  held <- is.list(value)
+  value <- base_r_annotation_value(value)
+  if (is.language(value)) {
+    return(if (held) base_r_plotmath_as_written(value))
+  }
+  if (is.null(value)) {
+    return(NULL)
+  }
+  text <- tryCatch(as.character(value), error = function(e) NULL)
+  text <- text[!is.na(text) & nzchar(text)]
+  if (length(text) == 0) {
+    return(NULL)
+  }
+  paste(text, collapse = "\n")
+}
+
+#' A plotmath title, as it was written
+#'
+#' `quote(beta[1])` is read `"beta[1]"`, and of several expressions the first,
+#' which is the one R draws.
+#'
+#' @param value A call, a symbol or an expression
+#' @return A string, or NULL when it gives none
+#' @keywords internal
+#' @noRd
+base_r_plotmath_as_written <- function(value) {
+  text <- tryCatch(as.character(as.expression(value))[1], error = function(e) NULL)
+  if (is.null(text) || is.na(text) || !nzchar(text)) NULL else text
+}
+
+#' What R draws for an annotation argument, a list's text taken out of it
+#'
+#' A classed value made text as `title()` makes it
+#' ([grDevices::as.graphicsAnnot()]), and a list's text as `title()` reads
+#' it, so that a plotmath call given with its colour,
+#' `list(quote(beta[1]), cex = 1.2)`, is the call, as it is given alone.
+#'
+#' @param value The argument, as recorded
+#' @return A call, an expression, an atomic vector, or NULL
+#' @keywords internal
+#' @noRd
+base_r_annotation_value <- function(value) {
+  value <- tryCatch(grDevices::as.graphicsAnnot(value), error = function(e) NULL)
+  if (is.list(value)) {
+    value <- base_r_title_text(value, cex = NA, col = NA, font = NA)$text
+  }
+  value
+}
+
+#' The text of one `title()` argument, and the parameters it carries
+#'
+#' As R's own `GetTextArg()` reads `main`, `sub`, `xlab` or `ylab`: a call
+#' stays a call, an expression an expression, and anything else is text, as
+#' its C code makes it, from the value under any class. A list holds the text
+#' as its unnamed element (its first, when no element is named) and may carry
+#' `cex`, `col` and `font` for it, as `title(main = list("Speed", font = 4))`
+#' does. R reads each of the three by its first value, and leaves the one
+#' from `par()` in place where that is missing. `title()` makes text of a
+#' classed value given alone first ([grDevices::as.graphicsAnnot()]), but not
+#' of one in a list: R draws `list(factor("Group A"))` as the factor's code,
+#' "1", and `list(as.Date("2024-03-15"))` as its day number, "19797".
+#'
+#' @param value The argument, as `title()` passed it on
+#' @param cex,col,font The text's own size, colour and font, from `par()`
+#' @return A list: `text` (NULL when there is none), `cex`, `col`, `font`
+#' @keywords internal
+#' @noRd
+base_r_title_text <- function(value, cex, col, font) {
+  as_text <- function(x) {
+    if (length(x) == 0) {
+      return(NULL)
+    }
+    if (is.language(x)) x else as.character(unclass(x))
+  }
+  if (!is.list(value)) {
+    return(list(text = as_text(value), cex = cex, col = col, font = font))
+  }
+
+  text <- if (is.null(names(value)) && length(value) > 0) as_text(value[[1]])
+  for (i in seq_along(names(value))) {
+    item <- value[[i]]
+    key <- names(value)[[i]]
+    if (identical(key, "cex")) {
+      size <- suppressWarnings(as.numeric(item)[1])
+      if (is.finite(size)) cex <- size
+    } else if (identical(key, "col")) {
+      if (length(item) > 0 && !is.na(item[[1]])) col <- item[[1]]
+    } else if (identical(key, "font")) {
+      if (length(item) > 0 && !is.na(item[[1]])) font <- item[[1]]
+    } else {
+      text <- as_text(item)
+    }
+  }
+  list(text = text, cex = cex, col = col, font = font)
+}
+
+#' A recorded Base R drawing, its annotations the text R drew
+#'
+#' gridGraphics echoes a drawing from its display list, where each title,
+#' margin text and axis holds the value its function was given. A title that
+#' is not one string or call is drawn again as R drew it
+#' (`base_r_title_as_drawn()`), a margin text is handed over a value at a
+#' time where gridGraphics would not draw it as R did, its missing values
+#' left out (`base_r_echoable_mtext()`), an axis R drew nothing of is left
+#' out, and an axis's logical `labels` is the one R read. The missing
+#' tick labels R leaves out are taken out after the echo
+#' ([thin_axis_labels()]), since R also leaves them out of its spacing.
+#'
+#' @param recording The drawing, from [grDevices::recordPlot()], recorded on
+#'   a page of `size`
+#' @param size The page, a named numeric vector, `width` and `height`, in
+#'   inches
+#' @return The recording, each of its annotations one gridGraphics draws
+#' @keywords internal
+#' @noRd
+base_r_echoable_recording <- function(recording, size) {
+  entries <- as.list(recording[[1]])
+  if (length(entries) == 0) {
+    return(recording)
+  }
+  pieces <- lapply(seq_along(entries), function(i) {
+    entry <- entries[[i]]
+    operation <- tryCatch(entry[[2]][[1]]$name, error = function(e) NULL)
+    if (identical(operation, "C_title")) {
+      return(base_r_echoable_title(recording, i, size))
+    }
+    if (identical(operation, "C_mtext")) {
+      return(base_r_echoable_mtext(entry))
+    }
+    if (identical(operation, "C_axis")) {
+      return(base_r_echoable_axis(entry))
+    }
+    list(entry)
+  })
+  echoable <- do.call(c, pieces)
+  if (!identical(echoable, entries)) {
+    recording[[1]] <- as.pairlist(echoable)
+  }
+  recording
+}
+
+#' A recorded `title()`, as entries gridGraphics draws as R drew it
+#'
+#' gridGraphics draws a title that is one string or an expression. Another
+#' value of length one is handed to it as the string R drew, and one of
+#' length zero as no title, which is what R drew. A call, `curve(x^2, 0, 2,
+#' ylab = quote(x^2))`'s, is handed over as the expression R draws it as:
+#' gridGraphics stops on a call of more than one part ("'length = 3' in
+#' coercion to 'logical(1)'"). A title of several values, or given as a
+#' list, is drawn again as R drew it (`base_r_title_as_drawn()`). Its
+#' `line` and `outer` are handed over as R read them, by their first value,
+#' a missing `outer` as `FALSE` (`base_r_scalar_arg()`): `title(main =
+#' "Speed", line = c(1, 2))` is drawn on line 1.
+#'
+#' @param recording The recorded drawing
+#' @param i The index of the `title()` entry in its display list
+#' @param size The page the drawing was recorded on
+#' @return A list of display-list entries
+#' @keywords internal
+#' @noRd
+base_r_echoable_title <- function(recording, i, size) {
+  entry <- recording[[1]][[i]]
+  args <- as.list(entry[[2]])
+  args[6] <- list(base_r_scalar_arg(args[[6]]))
+  args[7] <- list(base_r_scalar_arg(args[[7]], flag = TRUE, missing = FALSE))
+  texts <- args[2:5]
+  one_value <- vapply(
+    texts,
+    function(text) is.null(text) || is.language(text) || (is.atomic(text) && length(text) <= 1),
+    logical(1)
+  )
+  if (!all(one_value)) {
+    return(base_r_title_as_drawn(recording, i, size))
+  }
+  args[2:5] <- lapply(texts, function(text) {
+    text <- base_r_first_expression(base_r_title_text(text, NA, NA, NA)$text)
+    if (is.call(text)) as.expression(text) else text
+  })
+  if (identical(args, as.list(entry[[2]]))) {
+    return(list(entry))
+  }
+  entry[[2]] <- as.pairlist(args)
+  list(entry)
+}
+
+#' A number or a flag of a recorded call, as R's C code reads it
+#'
+#' R reads such an argument, a `line` or an `outer`, with `asReal()` or
+#' `asLogical()`: by its first value, none being missing. gridGraphics tests
+#' it as given. It stops on several values of most of them (a title's `line`
+#' and `outer`, an axis's `tick`, `pos` and `outer`), on none, and on a
+#' missing `outer`; it reads a missing `tick` as `TRUE` itself, and a number
+#' given as text as missing. Handed the value R read, it draws as R does.
+#'
+#' @param x The argument, as recorded
+#' @param flag Whether R reads it as a logical, rather than a number
+#' @param missing What R takes a missing flag for
+#' @return `x` itself when gridGraphics reads it as R does, one number or
+#'   logical, and not missing for a flag; otherwise the value R read
+#' @keywords internal
+#' @noRd
+base_r_scalar_arg <- function(x, flag = FALSE, missing = NA) {
+  if (length(x) == 1 && (is.numeric(x) || is.logical(x)) && !(flag && is.na(x))) {
+    return(x)
+  }
+  if (!flag) {
+    return(suppressWarnings(as.numeric(x)[1]))
+  }
+  value <- if (is.atomic(x)) as.logical(x)[1] else NA
+  if (is.na(value)) missing else value
+}
+
+#' The expression R draws of a title given as several
+#'
+#' R draws the first expression of a title given as several; gridGraphics
+#' stops on them.
+#'
+#' @param text A title's text
+#' @return The text, an expression vector cut to its first expression
+#' @keywords internal
+#' @noRd
+base_r_first_expression <- function(text) {
+  if (is.expression(text) && length(text) > 1) text[1] else text
+}
+
+#' A recorded `mtext()`, as entries gridGraphics draws as R drew it
+#'
+#' R draws `mtext()` a value at a time, each of its arguments recycled to
+#' the longest, and nothing for a missing text. gridGraphics draws the
+#' values with one `grid.text()`: it stops on a `side`, `outer`, `adj` or
+#' `padj` of more than one value, and on a missing `outer`, which R reads as
+#' `FALSE`; it draws only as many values as `at` or `line` holds, puts none
+#' where `at` is missing, and draws a missing text as "NA". Such an entry is
+#' handed to it a value at a time, each its own entry, and a missing text
+#' left out; one it draws as R does keeps its values together, a missing
+#' text blank, which keeps each value's place.
+#'
+#' @param entry The display-list entry
+#' @return A list of display-list entries
+#' @keywords internal
+#' @noRd
+base_r_echoable_mtext <- function(entry) {
+  args <- as.list(entry[[2]])
+  # text, side, line, outer, at, adj, padj, cex, col, font
+  values <- args[2:11]
+  text <- values[[1]]
+  if (anyNA(values[[4]])) {
+    values[[4]][is.na(values[[4]])] <- FALSE
+  }
+  one_call <- is.language(text) && !is.expression(text)
+  n <- max(if (one_call) 1L else length(text), lengths(values[-1]))
+  at <- values[[5]]
+  per_value <- n > 1 && (
+    any(lengths(values[c(2, 4, 6, 7)]) > 1) ||
+      (length(at) > 1 && !all(is.finite(at))) ||
+      max(length(at), length(values[[3]])) < n
+  )
+  if (!per_value) {
+    if (!is.language(text) && is.atomic(text) && anyNA(text)) {
+      values[[1]] <- as.character(text)
+      values[[1]][is.na(text)] <- ""
+    }
+    if (identical(values, args[2:11])) {
+      return(list(entry))
+    }
+    args[2:11] <- values
+    entry[[2]] <- as.pairlist(args)
+    return(list(entry))
+  }
+
+  entries <- lapply(seq_len(n), function(i) {
+    value <- lapply(seq_along(values), function(k) {
+      x <- values[[k]]
+      if (k == 1 && one_call) x else x[(i - 1) %% length(x) + 1]
+    })
+    if (is.atomic(value[[1]]) && is.na(value[[1]])) {
+      return(NULL)
+    }
+    args[2:11] <- value
+    entry[[2]] <- as.pairlist(args)
+    entry
+  })
+  Filter(Negate(is.null), entries)
+}
+
+#' A recorded `axis()`, as gridGraphics draws what R drew
+#'
+#' R draws nothing for an `axis()` whose `at` is empty, as
+#' `axis(1, at = numeric(0))` is, where gridGraphics stops. And R reads
+#' `labels` given as logicals by the first: `TRUE` labels the ticks as it
+#' would unasked, and `FALSE` or `NA` draws no labels. gridGraphics stops on
+#' any but one `TRUE` or `FALSE`. R reads `side`, `tick`, `line`, `pos` and
+#' `outer` by their first value too, a missing `tick` as `TRUE` and a missing
+#' `outer` as `FALSE` (`base_r_scalar_arg()`), and so it reads `font`, `lty`,
+#' `lwd`, `lwd.ticks`, `col` and `col.ticks`, a missing `lwd` or `lwd.ticks`
+#' drawing no line (`base_r_axis_width()`). gridGraphics stops on several
+#' values of `side`, `font`, `lwd` and `lwd.ticks`, and draws the ticks in
+#' each `col.ticks` and `lty` in turn. It also stops on several `padj`
+#' values, which R reads a value per label, and which are left to it.
+#'
+#' @param entry The display-list entry
+#' @return A list of display-list entries: none for an axis R drew nothing
+#'   of, the entry otherwise
+#' @keywords internal
+#' @noRd
+base_r_echoable_axis <- function(entry) {
+  args <- as.list(entry[[2]])
+  # side, at, labels, tick, line, pos, outer, font, lty, lwd, lwd.ticks,
+  # col, col.ticks
+  at <- args[[3]]
+  if (!is.null(at) && length(at) == 0) {
+    return(list())
+  }
+  labels <- args[[4]]
+  if (is.logical(labels) && !identical(labels, TRUE) && !identical(labels, FALSE)) {
+    args[[4]] <- length(labels) == 0 || isTRUE(labels[[1]])
+  }
+  args[2] <- list(base_r_scalar_arg(args[[2]]))
+  args[5] <- list(base_r_scalar_arg(args[[5]], flag = TRUE, missing = TRUE))
+  args[6] <- list(base_r_scalar_arg(args[[6]]))
+  args[7] <- list(base_r_scalar_arg(args[[7]]))
+  args[8] <- list(base_r_scalar_arg(args[[8]], flag = TRUE, missing = FALSE))
+  for (k in c(9, 10, 13, 14)) {
+    if (length(args[[k]]) > 1) args[k] <- list(args[[k]][[1]])
+  }
+  args[11] <- list(base_r_axis_width(args[[11]]))
+  args[12] <- list(base_r_axis_width(args[[12]]))
+  if (identical(args, as.list(entry[[2]]))) {
+    return(list(entry))
+  }
+  entry[[2]] <- as.pairlist(args)
+  list(entry)
+}
+
+#' A line width of a recorded `axis()`, as R's C code reads it
+#'
+#' R reads `lwd` and `lwd.ticks` by their first value, and draws no line for
+#' a missing or negative one, or the default width for none. gridGraphics
+#' stops on several values and on a missing one.
+#'
+#' @param x The argument, as recorded
+#' @return `x` itself when gridGraphics reads it as R does: none, or one
+#'   number that is not missing; otherwise the width R drew, 0 for none
+#' @keywords internal
+#' @noRd
+base_r_axis_width <- function(x) {
+  if (length(x) == 0 || (length(x) == 1 && is.numeric(x) && !is.na(x))) {
+    return(x)
+  }
+  width <- suppressWarnings(as.numeric(x)[1])
+  if (is.na(width)) 0 else width
+}
+
+#' A `title()` gridGraphics cannot echo, drawn again as R drew it
+#'
+#' R draws the values of a title of several values a line apart: `main`
+#' centred on the line it would draw one value on, `xlab` from that line
+#' outwards and `ylab` from it inwards; `sub` draws them all on its line.
+#' The page is drawn up to the title again, which gives `par()` as R had it
+#' there, and each value is drawn with `mtext()` where and as `title()` drew
+#' it, from the same calculation (R's `C_title()`), so the entries recorded
+#' are R's own. A title of one value given as a list is drawn with
+#' `title()`, its parameters passed as `cex.main` and the like, and a
+#' plotmath call or expression drawn as the formula it is.
+#'
+#' @param recording The recorded drawing
+#' @param i The index of the `title()` entry in its display list
+#' @param size The page the drawing was recorded on
+#' @return A list of display-list entries
+#' @keywords internal
+#' @noRd
+base_r_title_as_drawn <- function(recording, i, size) {
+  current <- grDevices::dev.cur()
+  grDevices::pdf(NULL, width = size[["width"]], height = size[["height"]])
+  device <- grDevices::dev.cur()
+  on.exit(
+    {
+      grDevices::dev.off(device)
+      if (current > 1) grDevices::dev.set(current)
+    },
+    add = TRUE
+  )
+  grDevices::dev.control("enable")
+  before <- recording
+  before[1] <- list(as.pairlist(as.list(recording[[1]])[seq_len(i - 1)]))
+  grDevices::replayPlot(before)
+  drawn <- length(grDevices::recordPlot()[[1]])
+
+  args <- as.list(recording[[1]][[i]][[2]])
+  line <- suppressWarnings(as.numeric(base_r_scalar_arg(args[[6]])))
+  outer <- isTRUE(as.logical(base_r_scalar_arg(args[[7]], flag = TRUE)))
+  inline <- args[-(1:7)]
+  cex <- graphics::par("cex")
+  pars <- graphics::par()
+  pars[names(inline)] <- inline
+  if (!is.finite(line)) line <- NA_real_
+
+  for (which in c("main", "sub", "xlab", "ylab")) {
+    suffix <- switch(which, main = "main", sub = "sub", "lab")
+    text <- base_r_title_text(
+      args[[match(which, c("main", "sub", "xlab", "ylab")) + 1]],
+      cex = pars[[paste0("cex.", suffix)]],
+      col = pars[[paste0("col.", suffix)]],
+      font = pars[[paste0("font.", suffix)]]
+    )
+    if (is.null(text$text)) {
+      next
+    }
+    if (is.language(text$text) || length(text$text) == 1) {
+      # A call goes in a list, which `title()` reads as its text: handed
+      # over bare, `do.call()` would have it evaluated. It goes as the
+      # expression it stands for, which R draws the same, and which the
+      # drawing echoed and exported holds as one label.
+      value <- base_r_first_expression(text$text)
+      if (is.language(value)) value <- list(as.expression(value))
+      own <- stats::setNames(
+        list(value, line, outer, text$cex, text$col, text$font),
+        c(which, "line", "outer", paste0(c("cex.", "col.", "font."), suffix))
+      )
+      do.call(graphics::title, c(own, inline[!names(inline) %in% names(own)]))
+      next
+    }
+    n <- length(text$text)
+    steps <- seq_len(n) - 1
+    at_line <- switch(which,
+      main = 0.5 * (n - 1) + (if (is.na(line)) {
+        0.5 * (if (outer) pars$oma[3] else pars$mar[3])
+      } else {
+        line
+      }) - steps - pars$ylbias / pars$mex,
+      sub = rep(if (is.na(line)) pars$mgp[1] + 1 else line, n),
+      xlab = (if (is.na(line)) pars$mgp[1] else line) + steps,
+      ylab = (if (is.na(line)) pars$mgp[1] else line) - steps
+    )
+    drawn_values <- !is.na(text$text)
+    if (!any(drawn_values)) {
+      next
+    }
+    own <- list(
+      text = text$text[drawn_values],
+      side = switch(which, main = 3, sub = 1, xlab = 1, ylab = 2),
+      line = at_line[drawn_values],
+      outer = outer,
+      adj = pars$adj,
+      padj = if (which == "main" && is.na(line)) 0.5 else 0,
+      cex = cex * text$cex,
+      col = text$col,
+      font = text$font,
+      las = 0
+    )
+    keep <- !names(inline) %in% c(names(own), names(formals(graphics::mtext)))
+    do.call(graphics::mtext, c(own, inline[keep]))
+  }
+
+  entries <- as.list(grDevices::recordPlot()[[1]])
+  entries[seq_along(entries) > drawn]
+}
+
+#' The `main` a recorded `title()` call was given
+#'
+#' `title("Overview")` is recorded with its `main` unnamed.
+#'
+#' @param args The call's recorded arguments
+#' @return The `main`, as recorded, or NULL
+#' @keywords internal
+#' @noRd
+base_r_title_main <- function(args) {
+  main <- args[["main"]]
+  unnamed <- which(!nzchar(names(args) %||% character(length(args))))
+  if (is.null(main) && length(unnamed) > 0) args[[unnamed[1]]] else main
+}
+
+#' The title a recorded call drew over the whole page, as one line
+#'
+#' A call given `outer = TRUE` draws in the page's outer margin, over every
+#' panel: `title()` its `main`, any plot given a `main` that, and `mtext()`
+#' its text, which is a title when it is along the top (`side = 3`, its
+#' default).
+#'
+#' @param call A recorded call
+#' @return A string, or NULL when the call drew no such title
+#' @keywords internal
+#' @noRd
+base_r_outer_title <- function(call) {
+  args <- call$args
+  if (!isTRUE(base_r_scalar_arg(args[["outer"]], flag = TRUE, missing = FALSE))) {
+    return(NULL)
+  }
+  text <- switch(call$function_name,
+    title = base_r_title_main(args),
+    mtext = if (identical(base_r_scalar_arg(args[["side"]] %||% 3), 3)) {
+      args[["text"]] %||% base_r_title_main(args)
+    },
+    args[["main"]]
+  )
+  title <- base_r_annotation_text(text)
+  if (!is.null(title)) gsub("\n", " ", title, fixed = TRUE)
+}

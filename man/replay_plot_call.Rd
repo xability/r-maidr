@@ -38,6 +38,12 @@ the call is rebuilt and evaluated in the environment captured at record
 time so those expressions resolve exactly as they did originally.
 }
 \details{
+Such a call's titles are recorded as the values R drew (see
+\code{with_drawn_titles()}), and drawn as those values: evaluated again, a
+title's code would run what it does again, and could give another value.
+An expression vector among them is handed over quoted, as
+\code{call_with_written_args()} hands it.
+
 Otherwise the recorded values are drawn, each argument \code{arg_text} names
 passed under a symbol spelled as it was written (see
 \code{call_with_written_args()}), so a title R derives from that text comes

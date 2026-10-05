@@ -321,12 +321,14 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
     }
     orchestrator$canvas_size()
   }
-  fallback_html <- function(size = picture_size()) {
+  fallback_html <- function(size = picture_size(), title = NULL, reason = "unsupported") {
     create_fallback_html(
       plot,
       shiny = shiny,
       width = size[["width"]],
       height = size[["height"]],
+      title = title,
+      reason = reason,
       ...
     )
   }
@@ -352,9 +354,11 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   # `build_interactive_svg()` answers NULL for a plot that could not be built,
   # which is the same outcome as the gate above reaching a chart it cannot
-  # read: a picture rather than nothing.
+  # read: a picture rather than nothing. Its alt text names the chart and
+  # says it could not be made interactive, not that it holds elements maidr
+  # cannot read.
   if (is.null(svg_content)) {
-    return(fallback_html())
+    return(fallback_html(title = fallback_title(orchestrator), reason = "failed"))
   }
 
   if (shiny) {
@@ -363,6 +367,24 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 
   html_doc <- create_html_document(svg_content, use_cdn = use_cdn)
   html_doc
+}
+
+#' The title the picture of a chart is named by
+#'
+#' A Base R chart's picture holds every panel of its page, and names itself
+#' (`picture_title()`); any other chart is named by its title.
+#'
+#' @param orchestrator The chart's orchestrator
+#' @return The chart's title, one string, or NULL when it has none
+#' @keywords internal
+#' @noRd
+fallback_title <- function(orchestrator) {
+  title <- if (is.function(orchestrator$picture_title)) {
+    tryCatch(orchestrator$picture_title(), error = function(e) NULL)
+  } else {
+    tryCatch(orchestrator$get_layout()$title, error = function(e) NULL)
+  }
+  if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) title
 }
 
 #' Build the Interactive SVG, or Answer NULL When It Cannot Be Built
@@ -395,6 +417,11 @@ create_maidr_html <- function(plot, use_cdn = NULL, shiny = FALSE, orchestrator 
 #' from [base_r_drawing_grob()]) is re-raised too: its picture is drawn at
 #' the same size and would fail the same way.
 #'
+#' Before the picture is drawn, the failure is signalled as a condition of
+#' class `maidr_build_failure`, holding it as `error`. A caller that shows a
+#' picture of its own catches that and keeps the failure: a knitted chart is
+#' knitr's figure, and the document's build says why.
+#'
 #' @param orchestrator The orchestrator for the plot being rendered.
 #' @return The SVG content, drawn at the orchestrator's `canvas_size()`, or
 #'   `NULL` when the build failed and fallback is enabled.
@@ -418,6 +445,9 @@ build_interactive_svg <- function(orchestrator) {
     if (inherits(e, "maidr_chart_draw_error")) {
       stop(e)
     }
+    # A caller that shows a picture of its own takes the failure instead,
+    # where the warning would not be seen (`knit_chart_content()`).
+    rlang::signal(conditionMessage(e), class = "maidr_build_failure", error = e)
     if (is_fallback_warning_enabled()) {
       warning(
         "Plot could not be rendered interactively (",
