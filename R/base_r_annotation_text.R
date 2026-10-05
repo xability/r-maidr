@@ -58,7 +58,7 @@ base_r_annotation_text <- function(value) {
 
 #' A plotmath title, as it was written
 #'
-#' `quote(beta[1])` is read "beta[1]", and of several expressions the first,
+#' `quote(beta[1])` is read `"beta[1]"`, and of several expressions the first,
 #' which is the one R draws.
 #'
 #' @param value A call, a symbol or an expression

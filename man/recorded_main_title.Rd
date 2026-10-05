@@ -26,6 +26,8 @@ is the same shape as the \code{args$x} / \code{xlab} collision that emptied
 
 Any other value is the text R draws for it (\code{base_r_annotation_text()}):
 \code{main = 2024} is titled "2024", and \code{main = c("Sales", "2024")}, which R
-draws on two lines, is titled with those two lines.
+draws on two lines, is titled with those two lines. A plotmath title given
+in a list with its colour or size, \code{main = list(quote(pi), col = "red")},
+is titled as it was written, "pi", as an axis title given as plotmath is.
 }
 \keyword{internal}
