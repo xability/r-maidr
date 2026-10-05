@@ -330,9 +330,11 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #' Its plots are read in the panels of an `mfrow` grid of that shape, and
 #' each drawn in its cell, where R drew it. Where R drew a plot across
 #' several cells, as a `layout()` panel that spans them, the grid is that
-#' `layout()` (`layout_of_regions()`). A plot that laid out a grid of
-#' its own (`laid_out`, see `end_base_r_call()`) or that a region of the
-#' page was given, by `par(fig = )` or `screen()`, is not one of them.
+#' `layout()` (`layout_of_regions()`), with a panel too for each plot no
+#' recorded call started that a low-level call was drawn on, as a legend's
+#' `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
+#' `end_base_r_call()`) or that a region of the page was given, by
+#' `par(fig = )` or `screen()`, is not one of them.
 #'
 #' @param groups Plot groups from group_device_calls()
 #' @return Panel configuration list, with `derived` TRUE, or NULL when the
@@ -340,13 +342,11 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #' @keywords internal
 #' @noRd
 grid_of_cells <- function(groups) {
-  highs <- Filter(
-    function(high) {
-      length(high$cell) == 4L && !anyNA(high$cell) && !isTRUE(high$laid_out) &&
-        !is_figure_region(high)
-    },
-    lapply(groups, function(g) g$high_call)
-  )
+  in_cell <- function(call) {
+    length(call$cell) == 4L && !anyNA(call$cell) && !isTRUE(call$laid_out) &&
+      !is_figure_region(call)
+  }
+  highs <- Filter(in_cell, lapply(groups, function(g) g$high_call))
   if (length(highs) == 0L) {
     return(NULL)
   }
@@ -354,7 +354,18 @@ grid_of_cells <- function(groups) {
   if (length(dims) != 1L || prod(dims[[1]]) < 2L) {
     return(NULL)
   }
-  config <- layout_of_regions(highs, dims[[1]]) %||% list(
+  # Every plot drawn on, in the order R drew them: a low-level call on a
+  # plot no recorded call started is drawn before the group after it, or,
+  # after the last, with the last.
+  drawn <- unlist(
+    lapply(groups, function(g) c(g$before_calls, list(g$high_call), g$after_calls)),
+    recursive = FALSE
+  )
+  regions <- Filter(
+    function(call) in_cell(call) && identical(as.integer(call$cell[3:4]), dims[[1]]),
+    drawn
+  )
+  config <- layout_of_regions(regions, dims[[1]]) %||% list(
     type = "mfrow",
     nrows = dims[[1]][[1]],
     ncols = dims[[1]][[2]],
@@ -376,8 +387,8 @@ grid_of_cells <- function(groups) {
 #' panels; a cell no plot was drawn in is empty. A plot drawn over another
 #' after `par(new = TRUE)` is in its panel.
 #'
-#' @param highs The recorded calls of the page's plots, each with its `cell`
-#'   and `fig`
+#' @param highs The recorded calls drawn on the page's plots, in the order
+#'   R drew them, each with the `cell` and `fig` of its plot
 #' @param dims The grid's rows and columns
 #' @return A `layout` panel configuration with its `matrix`, or NULL where
 #'   each plot is in one cell, or where a region is not cells of a grid of

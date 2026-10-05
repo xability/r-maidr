@@ -446,7 +446,7 @@ test_that("a layout() no recorded call set up is read from the regions R gave it
 
   # A panel that spans cells spans them in the chart too, as it does when
   # the layout() call is recorded, and leaves no cell empty.
-  expect_read_as_r_draws <- function(page, titles) {
+  expect_read_as_r_draws <- function(page, titles, strings = NULL) {
     for (draw in list(
       function() eval(page),
       # Recorded, and cleared with the chart an earlier save_html() saved.
@@ -460,7 +460,7 @@ test_that("a layout() no recorded call set up is read from the regions R gave it
       chart <- last_page_export(draw)
       testthat::expect_identical(cell_titles(chart), titles)
       expect_selectors_drawn(chart)
-      expect_drawn_where_r_draws(chart, page, unique(unlist(titles)))
+      expect_drawn_where_r_draws(chart, page, c(unique(unlist(titles)), strings))
     }
   }
   expect_read_as_r_draws(
@@ -480,6 +480,32 @@ test_that("a layout() no recorded call set up is read from the regions R gave it
       barplot(c(a = 1, b = 2), main = "BR")
     }),
     list("Left", "TR", "Left", "BR")
+  )
+
+  # A panel plot.new() took for a legend is a panel of the layout too, read
+  # with no layer: after the last plot, the page R shows was started again
+  # for it, and lost every plot; spanning a row, it was drawn in one cell.
+  expect_read_as_r_draws(
+    quote({
+      graphics::layout(matrix(c(1, 1, 2, 3), 2, byrow = TRUE))
+      hist(mtcars$mpg, main = "LgTop")
+      plot(1:3, main = "LgBL")
+      plot.new()
+      legend("center", legend = c("alpha", "beta"), fill = 1:2)
+    }),
+    list("LgTop", "LgTop", "LgBL", character(0)),
+    c("alpha", "beta")
+  )
+  expect_read_as_r_draws(
+    quote({
+      graphics::layout(matrix(c(1, 2, 3, 3), 2, byrow = TRUE))
+      plot(1:3, main = "A1")
+      hist(mtcars$mpg, main = "A2")
+      plot.new()
+      legend("center", legend = c("alpha", "beta"), fill = 1:2, horiz = TRUE)
+    }),
+    list("A1", "A2", character(0), character(0)),
+    c("alpha", "beta")
   )
 })
 
