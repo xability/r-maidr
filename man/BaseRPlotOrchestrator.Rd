@@ -390,12 +390,16 @@ is drawn at the chart's, as before: it shows what R draws of it.
   The name of a picture of the chart, drawn in place of a
 chart that could not be made interactive
 
-The picture holds every panel of the page. It is named by the title R
-drew over them all, \code{title(outer = TRUE)}'s; else, for one panel, by
-its title, and for several, by each panel's title in turn, an untitled
-one called so: "2 panels: Sales 2023, Costs 2024". The chart's own
-title is its last panel's, which would name a picture of several by
-one of them.
+The picture holds the page R shows, the last one, and is named by
+what is drawn on it: the title R drew over its panels, with
+\code{title(outer = TRUE)} or \code{mtext(outer = TRUE)} along the top; else,
+for one panel, by its title, and for several, by each panel R drew in
+turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
+A panel's title is its plot's, or the one \code{title()} gave it. The
+chart's own title is its last titled panel's, from any page, which
+would name a picture of several panels by one of them; and maidr's
+grid of cells counts a panel spanning two cells twice, and an empty
+cell as a panel.
   \subsection{Usage}{
     \if{html}{\out{<div class="r">}}
     \preformatted{BaseRPlotOrchestrator$picture_title()}

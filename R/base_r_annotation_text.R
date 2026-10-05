@@ -498,3 +498,44 @@ base_r_title_as_drawn <- function(recording, i, size) {
   entries <- as.list(grDevices::recordPlot()[[1]])
   entries[seq_along(entries) > drawn]
 }
+
+#' The `main` a recorded `title()` call was given
+#'
+#' `title("Overview")` is recorded with its `main` unnamed.
+#'
+#' @param args The call's recorded arguments
+#' @return The `main`, as recorded, or NULL
+#' @keywords internal
+#' @noRd
+base_r_title_main <- function(args) {
+  main <- args[["main"]]
+  unnamed <- which(!nzchar(names(args) %||% character(length(args))))
+  if (is.null(main) && length(unnamed) > 0) args[[unnamed[1]]] else main
+}
+
+#' The title a recorded call drew over the whole page, as one line
+#'
+#' A call given `outer = TRUE` draws in the page's outer margin, over every
+#' panel: `title()` its `main`, any plot given a `main` that, and `mtext()`
+#' its text, which is a title when it is along the top (`side = 3`, its
+#' default).
+#'
+#' @param call A recorded call
+#' @return A string, or NULL when the call drew no such title
+#' @keywords internal
+#' @noRd
+base_r_outer_title <- function(call) {
+  args <- call$args
+  if (!isTRUE(base_r_scalar_arg(args[["outer"]], flag = TRUE, missing = FALSE))) {
+    return(NULL)
+  }
+  text <- switch(call$function_name,
+    title = base_r_title_main(args),
+    mtext = if (identical(base_r_scalar_arg(args[["side"]] %||% 3), 3)) {
+      args[["text"]] %||% base_r_title_main(args)
+    },
+    args[["main"]]
+  )
+  title <- base_r_annotation_text(text)
+  if (!is.null(title)) gsub("\n", " ", title, fixed = TRUE)
+}

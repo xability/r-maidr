@@ -417,8 +417,9 @@
   as one with `axis(1, padj = c(0, 1))`, falls back to the static image,
   with a warning that says why, rather than being exported empty; the
   image's alt text says it could not be made interactive, and names the
-  chart by its title, or a chart of several panels by the title R drew over
-  them or by each panel's. In a knitted document it stays knitr's figure,
+  page it shows, the last one R drew: by the chart's title, or for several
+  panels by the title R drew over them or by each panel's own, its plot's
+  or `title()`'s. In a knitted document it stays knitr's figure,
   and the document's build says why once, as it does for a chart whose
   build stops (#PR).
 

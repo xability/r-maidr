@@ -83,6 +83,36 @@ BaseRPlotOrchestrator <- R6::R6Class(
       settings
     },
 
+    # The title of a plot group's panel, as one line: its plot's, as its
+    # layer announces it, or else the one a `title()` drawn on it gave it.
+    panel_title = function(group_index) {
+      one_line <- function(title) {
+        if (is.character(title) && length(title) == 1 && !is.na(title) && nzchar(title)) {
+          gsub("\n", " ", title, fixed = TRUE)
+        }
+      }
+      for (i in seq_along(private$.layers)) {
+        layer <- private$.layers[[i]]
+        if (identical(layer$group_index, group_index) && identical(layer$source, "HIGH")) {
+          processor <- private$.layer_processors[[i]]
+          result <- if (!is.null(processor)) processor$get_last_result()
+          title <- one_line(result$title)
+          if (!is.null(title)) {
+            return(title)
+          }
+        }
+      }
+      group <- private$.plot_groups[[group_index]]
+      title <- one_line(base_r_annotation_text(group$high_call$args[["main"]]))
+      for (call in group$low_calls) {
+        outer <- base_r_scalar_arg(call$args[["outer"]], flag = TRUE, missing = FALSE)
+        if (identical(call$function_name, "title") && !isTRUE(outer)) {
+          title <- one_line(base_r_annotation_text(base_r_title_main(call$args))) %||% title
+        }
+      }
+      title
+    },
+
     # The one result that declares its own subplot grid, or NULL.
     #
     # `pairs()` is the case: it draws an `n x n` matrix of panels, sets its
@@ -1063,47 +1093,51 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' @description The name of a picture of the chart, drawn in place of a
     #'   chart that could not be made interactive
     #'
-    #' The picture holds every panel of the page. It is named by the title R
-    #' drew over them all, `title(outer = TRUE)`'s; else, for one panel, by
-    #' its title, and for several, by each panel's title in turn, an untitled
-    #' one called so: "2 panels: Sales 2023, Costs 2024". The chart's own
-    #' title is its last panel's, which would name a picture of several by
-    #' one of them.
+    #' The picture holds the page R shows, the last one, and is named by
+    #' what is drawn on it: the title R drew over its panels, with
+    #' `title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else,
+    #' for one panel, by its title, and for several, by each panel R drew in
+    #' turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
+    #' A panel's title is its plot's, or the one `title()` gave it. The
+    #' chart's own title is its last titled panel's, from any page, which
+    #' would name a picture of several panels by one of them; and maidr's
+    #' grid of cells counts a panel spanning two cells twice, and an empty
+    #' cell as a panel.
     #' @return One string, or NULL when the chart has no title
     picture_title = function() {
+      groups <- private$.plot_groups
+      panel_config <- detect_panel_configuration(private$.device_id)
+      multipanel <- is_multipanel_config(panel_config)
+      shown <- if (multipanel) {
+        which(!is.na(compute_panel_slots(groups, panel_config)))
+      } else {
+        seq_along(groups)
+      }
+
       outer <- NULL
-      for (group in private$.plot_groups) {
+      for (group in groups[shown]) {
         for (call in c(list(group$high_call), group$low_calls)) {
-          args <- call$args
-          if (!isTRUE(base_r_scalar_arg(args[["outer"]], flag = TRUE, missing = FALSE))) {
-            next
-          }
-          # `title("Overview", outer = TRUE)` is recorded with its main unnamed.
-          main <- args[["main"]]
-          unnamed <- which(!nzchar(names(args)))
-          if (is.null(main) && identical(call$function_name, "title") && length(unnamed) > 0) {
-            main <- args[[unnamed[1]]]
-          }
-          outer <- base_r_annotation_text(main) %||% outer
+          outer <- base_r_outer_title(call) %||% outer
         }
       }
       if (!is.null(outer)) {
         return(outer)
       }
-      data <- tryCatch(self$generate_maidr_data(), error = function(e) NULL)
-      panels <- unlist(data$subplots, recursive = FALSE)
-      if (length(panels) <= 1) {
+
+      if (!multipanel || length(shown) == 0) {
         title <- tryCatch(self$get_layout()$title, error = function(e) NULL)
-        return(if (is.character(title) && length(title) == 1 && nzchar(title)) title)
+        if (is.character(title) && length(title) == 1 && nzchar(title)) {
+          return(title)
+        }
+        return(if (length(groups) > 0) private$panel_title(length(groups)))
       }
-      titles <- vapply(panels, function(panel) {
-        named <- Filter(
-          function(title) is.character(title) && length(title) == 1 && nzchar(title),
-          lapply(panel$layers, `[[`, "title")
-        )
-        if (length(named) > 0) gsub("\n", " ", named[[1]], fixed = TRUE) else "untitled"
+      titles <- vapply(shown, function(index) {
+        private$panel_title(index) %||% "untitled"
       }, character(1))
-      sprintf("%d panels: %s", length(panels), paste(titles, collapse = ", "))
+      if (length(titles) == 1) {
+        return(if (!identical(titles, "untitled")) titles)
+      }
+      sprintf("%d panels: %s", length(titles), paste(titles, collapse = ", "))
     },
     #' @description The grob a layer's processor searches for its selectors
     #' @param layer_index Index of the layer

@@ -239,4 +239,54 @@ test_that("the picture of a chart that could not be made interactive says so, an
   })
   expect_identical(shown$alt, "Overview (rendered as image - could not be made interactive)")
   graphics::par(mfrow = c(1, 1), oma = c(0, 0, 0, 0))
+
+  # The picture holds the page R shows, the last one, and the panels R drew
+  # on it. It was named by an outer title from an earlier page, called
+  # panels titled with title() untitled, and counted maidr's cells: a
+  # panel spanning two twice, and an empty one as a panel.
+  named <- function(draw) {
+    on.exit(graphics::par(mfrow = c(1, 1), oma = c(0, 0, 0, 0)), add = TRUE)
+    sub(" \\(rendered as image - could not be made interactive\\)$", "", picture(draw)$alt)
+  }
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2), oma = c(0, 0, 2, 0))
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+    title("Page one", outer = TRUE)
+    plot(1:5, main = "C")
+    plot(5:1, main = "D")
+  }), "2 panels: C, D")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    plot(1:5, ann = FALSE)
+    title("Speed")
+    plot(5:1)
+    title(main = "Cost")
+  }), "2 panels: Speed, Cost")
+  expect_identical(named(function() {
+    par(mfrow = c(2, 2))
+    plot(1:5, main = "Only")
+  }), "Only")
+  expect_identical(named(function() {
+    par(mfrow = c(2, 2))
+    plot(1:5, main = "one")
+    plot(1:5, main = "two")
+    plot(1:5, main = "three")
+  }), "3 panels: one, two, three")
+  expect_identical(named(function() {
+    layout(matrix(c(1, 1, 2, 3), 2, byrow = TRUE))
+    plot(1:5, main = "Top")
+    hist(c(1, 2, 2, 3), main = "H")
+    barplot(c(a = 1, b = 2), main = "B")
+  }), "3 panels: Top, H, B")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2), oma = c(0, 0, 3, 0))
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+    mtext("Overview", outer = TRUE, cex = 1.5)
+  }), "Overview")
+  expect_identical(named(function() {
+    plot(1:5, ann = FALSE)
+    title("Speed")
+  }), "Speed")
 })
