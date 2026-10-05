@@ -682,8 +682,9 @@ test_that("a title written as code on a call recorded as written is announced as
   testthat::expect_identical(chart$layers[[1]]$title, "n = 6")
   testthat::expect_identical(chart$layers[[1]]$axes$x$label, "g 1")
 
-  # Drawn again from the code as written: the formula method evaluates an
-  # expression vector it is handed, and would look up alpha.
+  # Drawn again from the expression R drew, handed over quoted: the formula
+  # method evaluates an expression vector it is handed, and would look up
+  # alpha.
   chart <- exported_chart(function() {
     plot(y ~ x, data = d, subset = g == 1, main = expression(alpha))
   })
@@ -714,7 +715,7 @@ test_that("a title written as code on a call recorded as written is announced as
 })
 
 test_that("a title written as code is read without repeating what R said drawing it", {
-  # Its value is read again when the call is recorded, and a warning or a
+  # Its value was read again when the call was recorded, and a warning or a
   # message R gave while drawing it was given a second time.
   said <- character(0)
   chart <- exported_chart(function() {
@@ -736,6 +737,117 @@ test_that("a title written as code is read without repeating what R said drawing
   })
   testthat::expect_identical(said, c("careful", "drawing"))
   testthat::expect_identical(chart$title, "Sine")
+})
+
+test_that("a title written as code is read as R drew it, without running it again", {
+  # It was evaluated again when the call was recorded, and the chart was
+  # drawn again from its code: what the code does was done again -- the next
+  # random numbers, a counter, a print -- and the title announced and the
+  # title drawn were other values than the one R drew.
+  withr::local_preserve_seed()
+
+  after <- NULL
+  chart <- exported_chart(function() {
+    set.seed(1)
+    curve(dnorm, -3, 3, main = sprintf("draw %.2f", stats::rnorm(1)))
+    after <<- stats::rnorm(3)
+  })
+  set.seed(1)
+  drawn <- sprintf("draw %.2f", stats::rnorm(1))
+  testthat::expect_identical(after, stats::rnorm(3))
+  testthat::expect_identical(chart$title, drawn)
+  testthat::expect_true(drawn %in% chart$text)
+
+  i <- 0
+  count <- function() {
+    i <<- i + 1
+    paste("call", i)
+  }
+  chart <- exported_chart(function() curve(sin, 0, pi, main = count()))
+  testthat::expect_identical(i, 1)
+  testthat::expect_identical(chart$title, "call 1")
+  testthat::expect_true("call 1" %in% chart$text)
+  # R draws no title here, and never evaluates it.
+  chart <- exported_chart(function() curve(sin, 0, pi, ann = FALSE, main = count()))
+  testthat::expect_identical(i, 1)
+
+  printed <- utils::capture.output(
+    chart <- exported_chart(function() {
+      curve(sin, 0, pi, main = {
+        cat("computing the title\n")
+        "Sine"
+      })
+    })
+  )
+  testthat::expect_identical(printed, "computing the title")
+  testthat::expect_identical(chart$title, "Sine")
+
+  # A formula plot whose subset names the data's columns is drawn by a call
+  # rebuilt in the caller's frame. Its title is the one that call drew, and
+  # the chart is drawn again for maidr without running the title again.
+  d <- data.frame(x = 1:6, y = c(2, 4, 3, 5, 1, 6), g = rep(1:2, 3))
+  k <- 0
+  label <- function() {
+    k <<- k + 1
+    paste("draw", sample(100, 1))
+  }
+  plotted <- NULL
+  chart <- exported_chart(function() {
+    plot(y ~ x, data = d, subset = g == 1, main = label())
+    plotted <<- k
+  })
+  testthat::expect_identical(k, plotted)
+  testthat::expect_true(chart$layers[[1]]$title %in% chart$text)
+})
+
+test_that("recording a call drawn from its code runs none of its titles again", {
+  # The titles of a call recorded as written were evaluated again when it
+  # was recorded, and for a formula plot the data they are read within was
+  # built again for them, repeating the warnings building it gave, and its
+  # cost. The data is still read once, for the rows the chart drew
+  # (`recorded_formula_frame()`).
+  built <- 0
+  titled <- 0
+  env <- new.env()
+  env$d <- data.frame(x = 1:6, y = c(2, 4, 3, 5, 1, 6), g = rep(1:2, 3))
+  env$mk <- function() {
+    built <<- built + 1
+    env$d
+  }
+  env$label <- function() {
+    titled <<- titled + 1
+    "Title"
+  }
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      clear_base_r_device(device_id)
+      grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  clear_base_r_device(device_id)
+
+  args <- as.list(quote(plot(y ~ x, data = mk(), subset = g == 1, main = label())))[-1L]
+  log_plot_call_to_device("plot", NULL, args, device_id, call_env = env)
+  testthat::expect_identical(titled, 0)
+  testthat::expect_identical(built, 1)
+
+  args <- as.list(quote(curve(sin, 0, pi, main = label(), ylab = label())))[-1L]
+  log_plot_call_to_device("curve", NULL, args, device_id, call_env = env)
+  testthat::expect_identical(titled, 0)
+})
+
+test_that("a formula plot's ylab is read where R reads it, in the caller, not within data", {
+  # plot()'s formula method reads main, sub and xlab within its data, and
+  # its ylab, which is one of its own arguments, in the caller.
+  lab <- "Response (caller)"
+  d <- data.frame(x = 1:6, y = c(2, 4, 3, 5, 1, 6), g = rep(1:2, 3), lab = "column")
+  chart <- exported_chart(function() plot(y ~ x, data = d, subset = g == 1, ylab = lab))
+  testthat::expect_identical(chart$layers[[1]]$axes$y$label, "Response (caller)")
+  testthat::expect_true("Response (caller)" %in% chart$text)
+  testthat::expect_false("column" %in% chart$text)
 })
 
 test_that("several time series a panel each are announced by the series R titles them with", {

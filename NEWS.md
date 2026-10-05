@@ -407,8 +407,10 @@
   titles a screen reader reads are the same text, a line for each value:
   they were the first value alone. The titles of `curve()`, and of a
   formula plot with a `subset`, written as code, such as `main = grp` in a
-  loop, are read the same way: they were announced as the first word of the
-  code, or as no title.
+  loop, are read the same way, and drawn with the values R drew them with:
+  they were announced as the first word of the code, or as no title, and
+  drawn by running the code again, so that a title holding `sample()` or a
+  counter was drawn with another value.
   The y axis of a `plot()` of several time series, drawn a panel each, is
   announced as the first series' name, the title R gives its panel; it was
   the `ylab` R does not draw. A chart that still cannot be drawn again, such

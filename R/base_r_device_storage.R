@@ -98,65 +98,6 @@ calls_as_expressions <- function(args) {
   args
 }
 
-#' The titles of a call recorded as written, as the values R drew
-#'
-#' A call whose arguments cannot all be evaluated where they were written,
-#' `curve()` always and `plot(y ~ x, data = d, subset = g == k)` among
-#' others, is recorded as it was written, and drawn again from that code in
-#' the snapshot `call_env`. Its `main`, `sub`, `xlab` and `ylab` were then
-#' code too, and were announced as code ("c(\"x\", \"(units)\")") or not at
-#' all (`main = grp`), where R drew their values. Each one written as code is
-#' evaluated here as R evaluated it: in the snapshot, but for `main`, `sub`
-#' and `xlab` of `plot()`'s formula method, which reads them within its
-#' `data` first. The code is kept under `.maidr_written_titles`, and
-#' `replay_plot_call()` draws the chart again from it. A title that cannot
-#' be evaluated here is left as it was written. It is evaluated quietly: R
-#' gave its warnings and messages when it drew it.
-#'
-#' @param function_name Name of the recorded function
-#' @param args Recorded argument list
-#' @param call_env The snapshot the call was recorded with, or NULL when
-#'   every argument is a value
-#' @param formula The call's formula, from `recorded_formula()`, or NULL
-#' @return `args`, each title written as code replaced by its value (an
-#'   expression vector for a plotmath call or symbol, as
-#'   `calls_as_expressions()` gives one)
-#' @keywords internal
-#' @noRd
-recorded_title_values <- function(function_name, args, call_env, formula) {
-  if (!is.environment(call_env) || !is.list(args)) {
-    return(args)
-  }
-  data <- NULL
-  if (identical(function_name, "plot") && !is.null(formula)) {
-    data <- resolve_recorded_value(args[["data"]], call_env)
-    if (is.matrix(data)) data <- as.data.frame(data)
-    if (!is.list(data)) data <- NULL
-  }
-  written <- list()
-  for (name in intersect(c("main", "sub", "xlab", "ylab"), names(args))) {
-    code <- args[[name]]
-    if (!is.language(code) || is_formula_argument(code)) {
-      next
-    }
-    within <- if (name != "ylab") data
-    # R gave the warnings and messages of the code when it drew the title.
-    value <- tryCatch(
-      list(suppressWarnings(suppressMessages(eval(code, within, call_env)))),
-      error = function(e) NULL
-    )
-    if (is.null(value)) {
-      next
-    }
-    written[name] <- list(code)
-    args[name] <- calls_as_expressions(value)
-  }
-  if (length(written) > 0) {
-    args$.maidr_written_titles <- written
-  }
-  args
-}
-
 #' Log Plot Call to Device Storage
 #'
 #' Records a plot call in the device-specific storage.
@@ -190,7 +131,6 @@ log_plot_call_to_device <- function(
     args <- calls_as_expressions(args)
   }
   formula <- recorded_formula(args, call_env)
-  args <- recorded_title_values(function_name, args, call_env, formula)
   if (identical(function_name, "chartSeries")) {
     args <- record_chartseries_name(args, call_expr)
   }

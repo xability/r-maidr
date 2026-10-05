@@ -229,10 +229,11 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 #' the call is rebuilt and evaluated in the environment captured at record
 #' time so those expressions resolve exactly as they did originally.
 #'
-#' Such a call's titles are recorded as the values R drew, for the
-#' processors to read, and their code under `.maidr_written_titles`
-#' (`recorded_title_values()`): the code is put back here, and evaluated as
-#' the original call evaluated it.
+#' Such a call's titles are recorded as the values R drew (see
+#' `with_drawn_titles()`), and drawn as those values: evaluated again, a
+#' title's code would run what it does again, and could give another value.
+#' An expression vector among them is handed over quoted, as
+#' `call_with_written_args()` hands it.
 #'
 #' Otherwise the recorded values are drawn, each argument `arg_text` names
 #' passed under a symbol spelled as it was written (see
@@ -250,14 +251,12 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 replay_plot_call <- function(function_name, args, call_env = NULL,
                              arg_text = NULL) {
   orig_fn <- get_original_function(function_name)
-  written <- args[[".maidr_written_titles"]]
-  if (is.list(written)) {
-    args[names(written)] <- written
-  }
   args <- clean_maidr_args(args)
 
   has_language_args <- any(vapply(args, is.language, logical(1)))
   if (has_language_args && !is.null(call_env) && is.environment(call_env)) {
+    quoted <- vapply(args, is.expression, logical(1))
+    args[quoted] <- lapply(args[quoted], function(value) call("quote", value))
     replay_call <- as.call(c(list(orig_fn), args))
     return(invisible(eval(replay_call, envir = call_env)))
   }
@@ -484,19 +483,35 @@ muffle_promise_restart <- function(expr) {
 #' alternative is the pre-existing behaviour, where the whole call simply
 #' errored, so the retry is the better trade -- but it is a trade.
 #'
+#' The retried call draws the chart, so the titles it draws are the ones R
+#' drew. Handed `drawn`, each `main`, `sub`, `xlab` and `ylab` written as
+#' code is passed through a function that keeps its value there when the
+#' call evaluates it, as the call evaluates it: `plot()`'s formula method
+#' reads it within its `data`. See `forced_titles()` for a call that did not
+#' need the retry.
+#'
 #' @param original_function The unwrapped plotting function
 #' @param recorded_call `match.call()` captured by the wrapper
 #' @param caller_env The wrapper's calling frame
 #' @param original_error The error condition the direct call raised
+#' @param drawn An environment the titles the retried call draws are kept
+#'   in, under their names, or NULL to keep none
 #' @return Result of the retried call
 #' @keywords internal
 retry_call_in_caller_frame <- function(original_function,
                                        recorded_call,
                                        caller_env,
-                                       original_error) {
-  rebuilt_call <- as.call(
-    c(list(original_function), as.list(recorded_call)[-1L])
-  )
+                                       original_error,
+                                       drawn = NULL) {
+  args <- as.list(recorded_call)[-1L]
+  if (is.environment(drawn)) {
+    for (name in intersect(base_r_title_names, names(args))) {
+      if (is.language(args[[name]])) {
+        args[[name]] <- as.call(list(title_keeper(name, drawn), args[[name]]))
+      }
+    }
+  }
+  rebuilt_call <- as.call(c(list(original_function), args))
 
   tryCatch(
     muffle_promise_restart(eval(rebuilt_call, caller_env)),
@@ -504,6 +519,87 @@ retry_call_in_caller_frame <- function(original_function,
     # error the user's actual call produced.
     error = function(e) stop(original_error)
   )
+}
+
+# The titles R draws a chart with, which a call recorded as written records
+# as the values R drew rather than as their code.
+base_r_title_names <- c("main", "sub", "xlab", "ylab")
+
+#' A function that keeps the value of a title as the call evaluates it
+#'
+#' Put around a title's code in a call (see
+#' `retry_call_in_caller_frame()`), it is called with that code as its
+#' argument, which the call evaluates where and when it evaluates the title,
+#' and once, as R does.
+#'
+#' @param name The title's name
+#' @param drawn The environment the value is kept in
+#' @return A function of one argument, returning it
+#' @keywords internal
+#' @noRd
+title_keeper <- function(name, drawn) {
+  force(name)
+  force(drawn)
+  function(value) {
+    assign(name, value, envir = drawn)
+    value
+  }
+}
+
+#' The titles of a call that R evaluated drawing it, as it evaluated them
+#'
+#' A call whose arguments cannot all be evaluated where they were written,
+#' `curve()` always, is recorded as written, and its `main`, `sub`, `xlab`
+#' and `ylab` were recorded as their code. R evaluated each title it drew
+#' once, when it drew it, and the value it got is still held by the
+#' argument it was handed (`...` here). That value is read without
+#' evaluating the title again: evaluating it again ran what it does a
+#' second time -- the next random numbers, a counter -- and read another
+#' value than the one R drew. A title R did not evaluate (`ann = FALSE`) is
+#' left out, and stays as written.
+#'
+#' @param ... The arguments of the call, as the wrapper was handed them
+#' @return A named list of the titles R evaluated, by their values
+#' @keywords internal
+#' @noRd
+forced_titles <- function(...) {
+  titles <- tryCatch(
+    (function(..., main, sub, xlab, ylab) environment())(...),
+    error = function(e) NULL
+  )
+  if (is.null(titles)) {
+    return(list())
+  }
+  given <- Filter(
+    function(name) !eval(call("missing", as.name(name)), titles),
+    base_r_title_names
+  )
+  if (length(given) == 0) {
+    return(list())
+  }
+  forced <- given[!rlang::env_binding_are_lazy(titles, given)]
+  mget(forced, envir = titles)
+}
+
+#' A call recorded as written, with the titles R drew as their values
+#'
+#' The processors read the values, and the replay draws them, so the
+#' chart is drawn and announced with the titles R drew, and drawing it
+#' again does not evaluate them again.
+#'
+#' @param args The arguments of the call, as written
+#' @param drawn The titles R drew, by name, from `forced_titles()` or from
+#'   `retry_call_in_caller_frame()`
+#' @return `args`, each title R drew replaced by its value (an expression
+#'   vector for a plotmath call or symbol, as `calls_as_expressions()` gives
+#'   one)
+#' @keywords internal
+#' @noRd
+with_drawn_titles <- function(args, drawn) {
+  for (name in intersect(names(drawn), names(args))) {
+    args[name] <- calls_as_expressions(drawn[name])
+  }
+  args
 }
 
 #' Get original (unwrapped) function by name
@@ -901,8 +997,10 @@ create_function_wrapper <- function(function_name, original_function) {
         }
       )
       if (call_failed) {
+        # The titles the retried call draws, kept as it draws them.
+        retried <- new.env(parent = emptyenv())
         result <- withVisible(
-          retry_call_in_caller_frame(ORIG, this_call, caller_env, result)
+          retry_call_in_caller_frame(ORIG, this_call, caller_env, result, retried)
         )
       }
 
@@ -920,6 +1018,11 @@ create_function_wrapper <- function(function_name, original_function) {
       if (is.null(args_list)) {
         args_list <- as.list(this_call)[-1L]
         call_env <- snapshot_call_env(args_list, caller_env)
+        # The titles as R drew them, read without evaluating them again.
+        args_list <- with_drawn_titles(
+          args_list,
+          if (call_failed) as.list(retried) else forced_titles(...)
+        )
       } else {
         # Give positionally supplied arguments the names R matched them to,
         # so every processor can read args[["breaks"]] / args[["type"]]
@@ -1040,8 +1143,9 @@ create_nse_wrapper <- function(function_name, original_function) {
       }
     )
     if (call_failed) {
+      retried <- new.env(parent = emptyenv())
       result <- retry_call_in_caller_frame(
-        original_function, this_call, caller_env, result
+        original_function, this_call, caller_env, result, retried
       )
     }
 
@@ -1050,6 +1154,11 @@ create_nse_wrapper <- function(function_name, original_function) {
     # which only accepts language objects, and the curve values appended
     # below are a plain list.
     call_env <- snapshot_call_env(recorded_args, caller_env)
+    # The titles as R drew them, read without evaluating them again.
+    recorded_args <- with_drawn_titles(
+      recorded_args,
+      if (call_failed) as.list(retried) else forced_titles(...)
+    )
 
     if (identical(function_name, "curve")) {
       curve_values <- curve_recorded_values(recorded_args, result)
@@ -1192,12 +1301,13 @@ create_barplot_wrapper <- function(original_function) {
       # right context, with the values they had when the call was made.
       result <- original_function(...)
       recorded_args <- as.list(this_call)[-1L]
+      call_env <- snapshot_call_env(recorded_args, caller_env)
       log_plot_call_to_device(
         "barplot",
         this_call,
-        recorded_args,
+        with_drawn_titles(recorded_args, forced_titles(...)),
         grDevices::dev.cur(),
-        call_env = snapshot_call_env(recorded_args, caller_env)
+        call_env = call_env
       )
     } else {
       args <- match_recorded_args("barplot", original_function, args)
