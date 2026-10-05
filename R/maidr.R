@@ -36,6 +36,50 @@
 #'       auto-detects internet availability and uses the CDN when online,
 #'       as the Shiny path does.
 #'   }
+#' @section Base R charts:
+#' A Base R chart is read from the plotting calls recorded on the current
+#' device, and is the page that device shows: the last one. R draws a
+#' high-level plot on a new page when it moves past the last panel of the
+#' page it is on -- every plot on a page of one panel, the fifth under
+#' `par(mfrow = c(2, 2))`, the first after `par(mfrow = )`, `par(mfcol = )`
+#' or `layout()` sets a page up again -- and `plot.new()` and `frame()`
+#' move on a panel as a plot does. So after `hist(a); hist(b)` the chart is
+#' the histogram of `b` alone, and after five plots under
+#' `par(mfrow = c(2, 2))` it is the fifth, in the first panel of a 2 x 2
+#' grid. Each plot of a grid is in the panel R drew it in: a plot drawn
+#' after `par(new = TRUE)`, or with `add = TRUE`, is drawn in the panel of
+#' the plot before it, one `par(mfg = )` sends to a panel out of turn is in
+#' that panel, and a panel `plot.new()` or `frame()` passed over stays
+#' empty. So it is where the call that set the grid up was not recorded:
+#' one made through `graphics::par()` or `graphics::layout()`, before
+#' [maidr_on()], or before an earlier `show()` or `save_html()` on the
+#' device. A plot drawn in a region of the page `par(fig = )` gave it, as
+#' an inset is, or in a screen of `split.screen()`, is drawn in that
+#' region, and read with the plot before it. `lines()`, `points()`,
+#' `abline()`, `text()`, `legend()`, `title()`, `axis()` and the other
+#' low-level calls add to the plot they are drawn on: after `par(mfg = )`,
+#' or `screen(n, new = FALSE)` of `split.screen()`, sends R back to the
+#' panel or screen of an earlier plot, to that plot. Drawn on a panel
+#' `plot.new()` or `frame()` took, as a legend of its own is, or on a plot
+#' maidr does not record, such as `smoothScatter()`, they are drawn there,
+#' and read as part of no plot. Drawn over a plot after `par(new = TRUE)`
+#' and `plot.new()`, as a second series with an axis of its own is -- also
+#' over the plot of an earlier panel or screen `par(mfg = )` or `screen()`
+#' sent R back to -- they are drawn in the coordinates they were drawn in,
+#' and read with that plot. Nothing drawn on an earlier page reaches the
+#' chart: not its data, its titles or the size it is drawn at. A page
+#' `replayPlot()` puts back,
+#' from a plot `recordPlot()` saved on a device that keeps a display list,
+#' is the page the chart is read from, with what was drawn on it when it
+#' was saved and what has been drawn on it since. A page that holds no plot
+#' maidr recorded -- one R started with `plot.new()` or `frame()`, with a
+#' plot maidr does not record, or with one drawn while [maidr_off()] was in
+#' effect, even with `lines()` or `text()` drawn on it since, or one
+#' `replayPlot()` put back from such a page, or from a plot saved in
+#' another session or on another device -- is not read as the plot before
+#' it: `show()` and `save_html()` stop, and say so. Each
+#' figure of an R Markdown or Quarto document is read the same way, from
+#' the calls on its own page.
 #' @section Chart size:
 #' A chart is drawn at a size in inches, as [ggplot2::ggsave()] and knitr's
 #' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
@@ -168,9 +212,7 @@ show <- function(plot = NULL, use_cdn = NULL, shiny = FALSE, as_widget = FALSE,
   is_base_r <- is.null(plot)
 
   if (is_base_r) {
-    if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(device_id)
   }
 
   orchestrator <- NULL
@@ -520,6 +562,7 @@ warn_panel_fallback <- function(orchestrator) {
 #'   single positive number no larger than 50, or `NULL` (the default) for
 #'   7 x 5 in, 12 x 6 in for a candlestick chart. A side not given takes
 #'   its default. See \strong{Chart size}.
+#' @inheritSection show Base R charts
 #' @inheritSection show Chart size
 #' @param ... Additional arguments passed to internal functions
 #' @return The file path where the HTML was saved (invisibly)
@@ -566,9 +609,7 @@ save_html <- function(plot = NULL, file = "plot.html", use_cdn = NULL,
   is_base_r <- is.null(plot)
 
   if (is_base_r) {
-    if (!is_patching_active() || !has_device_calls(device_id)) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(device_id)
   }
 
   html_doc <- create_maidr_html(

@@ -1,6 +1,7 @@
 #' Base R Plot Grouping
 #'
 #' This module groups plot calls into logical units:
+#' - Only the calls on the page R's device shows are grouped
 #' - Each HIGH-level call starts a new plot group
 #' - Subsequent LOW-level calls are associated with the current plot group
 #' - LAYOUT calls affect multi-panel configuration
@@ -10,14 +11,37 @@ NULL
 
 #' Group Device Calls into Plot Units
 #'
-#' Groups all calls from a device into logical plot units.
-#' Each group contains one HIGH-level call and its associated LOW-level calls.
+#' Groups the calls a device shows into logical plot units: those drawn on
+#' its last page, with every layout call (`last_page_calls()`). R's device
+#' shows only the page drawn last, so a plot that started a page of its own
+#' -- the second of `hist(a); hist(b)` -- leaves the plots before it out.
+#' Each group contains one HIGH-level call, or a LOW-level one that started
+#' a plot of its own (`starts_base_r_plot()`), and the LOW-level calls drawn
+#' on its plot. A LOW-level call drawn on a plot no recorded call started -- a
+#' panel `plot.new()` or `frame()` took, as for a legend of its own, or a
+#' plot maidr does not record, such as `smoothScatter()` -- is not one of
+#' them: it is kept, to be drawn where R drew it, with the group drawn after
+#' it (`before_calls`), or, after the last, with the last (`after_calls`).
+#' One drawn on a plot started over the group's own, in its panel, after
+#' `par(new = TRUE)`, is one of them, marked `overlay`: it is drawn on that
+#' plot, in the coordinates it was drawn in (`drawn_over_group_plot()`).
+#' One drawn on a plot started over an earlier group's, in its cell or
+#' screen, after `par(mfg = )` or `screen()` sent R back there, is read with
+#' that group, marked `overlay` and `read_only`, and drawn with the calls on
+#' plots no recorded call started, in its place among them
+#' (`drawn_over_earlier_plot()`).
+#' One drawn after `par(mfg = )` or `screen()` sent R back to the cell or
+#' screen of an earlier group's plot, without starting a plot, is one of
+#' that group's, marked `sent_back`: R draws it there, on that plot, in the
+#' coordinates R had (`sent_back_to()`). One R clipped away, as it does
+#' what `screen()` sends it back to draw before anything works its clip out
+#' again, is in no group (`clipped_away_calls()`).
 #'
 #' @param device_id Graphics device ID
 #' @return List of plot groups, each containing HIGH and LOW calls
 #' @keywords internal
 group_device_calls <- function(device_id = grDevices::dev.cur()) {
-  all_calls <- get_device_calls(device_id)
+  all_calls <- shown_device_calls(device_id)
 
   if (length(all_calls) == 0) {
     return(list())
@@ -26,17 +50,24 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   groups <- list()
   current_group <- NULL
   layout_calls <- list()
+  # Drawn on plots no recorded call started, since the last group's.
+  unrecorded <- list()
+  # Drawn where R clipped all of it away: not drawn, and not read.
+  clipped <- clipped_away_calls(all_calls)
 
   for (i in seq_along(all_calls)) {
     call <- all_calls[[i]]
     class_level <- call$class_level
+    if (clipped[[i]]) {
+      next
+    }
 
     if (class_level == "LAYOUT") {
       # Keep the position in the overall call sequence so panel mapping
       # can tell which plot groups were drawn after the layout change.
       call$storage_index <- i
       layout_calls <- append(layout_calls, list(call))
-    } else if (class_level == "HIGH") {
+    } else if (starts_base_r_plot(call)) {
       if (!is.null(current_group)) {
         groups <- append(groups, list(current_group))
       }
@@ -46,10 +77,44 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
         high_call_index = i,
         low_calls = list(),
         low_call_indices = integer(0),
+        before_calls = unrecorded,
+        after_calls = list(),
         panel_info = NULL
       )
+      unrecorded <- list()
     } else if (class_level == "LOW") {
-      if (!is.null(current_group)) {
+      back <- sent_back_to(call, c(groups, list(current_group)))
+      if (!is.na(back)) {
+        call$sent_back <- TRUE
+        if (back > length(groups)) {
+          current_group$low_calls <- append(current_group$low_calls, list(call))
+          current_group$low_call_indices <- c(current_group$low_call_indices, i)
+        } else {
+          groups[[back]]$low_calls <- append(groups[[back]]$low_calls, list(call))
+          groups[[back]]$low_call_indices <- c(groups[[back]]$low_call_indices, i)
+        }
+        next
+      }
+      unrecorded_plot <- drawn_on_unrecorded_plot(call, current_group)
+      over <- if (unrecorded_plot) drawn_over_earlier_plot(call, groups, current_group) else NA
+      if (!is.na(over)) {
+        # Read with the plot it is drawn over; drawn in its place among
+        # the calls on plots no recorded call started, as R started its
+        # plot after the plots between them.
+        call$storage_index <- i
+        unrecorded <- append(unrecorded, list(call))
+        call$overlay <- TRUE
+        call$read_only <- TRUE
+        groups[[over]]$low_calls <- append(groups[[over]]$low_calls, list(call))
+        groups[[over]]$low_call_indices <- c(groups[[over]]$low_call_indices, i)
+      } else if (unrecorded_plot && !drawn_over_group_plot(call, current_group)) {
+        call$storage_index <- i
+        unrecorded <- append(unrecorded, list(call))
+      } else if (!is.null(current_group)) {
+        if (unrecorded_plot) {
+          call$overlay <- TRUE
+          call$storage_index <- i
+        }
         current_group$low_calls <- append(current_group$low_calls, list(call))
         current_group$low_call_indices <- c(current_group$low_call_indices, i)
       }
@@ -57,6 +122,7 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   }
 
   if (!is.null(current_group)) {
+    current_group$after_calls <- unrecorded
     groups <- append(groups, list(current_group))
   }
 
@@ -68,6 +134,241 @@ group_device_calls <- function(device_id = grDevices::dev.cur()) {
   )
 
   result
+}
+
+#' Whether a recorded call starts a plot of its own
+#'
+#' A HIGH-level call does, and a LOW-level one that started a plot itself
+#' (`own_plot`, see `end_base_r_call()`): `symbols()` without `add = TRUE`
+#' draws a plot, on a page of its own after another plot, as `plot()`
+#' does. Read as a call added to the plot before it, it was left out with
+#' that plot's page, and its own page held no plot at all.
+#'
+#' @param call A recorded call entry
+#' @return Logical
+#' @keywords internal
+#' @noRd
+starts_base_r_plot <- function(call) {
+  identical(call$class_level, "HIGH") ||
+    (identical(call$class_level, "LOW") && isTRUE(call$own_plot))
+}
+
+#' The low-level calls R draws clipped away
+#'
+#' R clips what it draws to the plot region of the plot it was drawing on
+#' when it last worked its clip out: as it started a plot, or was sent to a
+#' cell of a grid with `par(mfg = )`, and as `xpd` changes, which `axis()`,
+#' `title()`, `mtext()` and `box()` do to draw in the margins, as does a
+#' call given `xpd`, or `par(xpd = )`, and as `par(fig = )` gives it a
+#' region. `screen(n, new = FALSE)` of `split.screen()` sends R to another
+#' region of the page without starting a plot, and sets the cell before
+#' the region, which keeps the clip R had: an `abline()`, `text()` or
+#' `legend()` drawn there next, as `?split.screen` adds to a screen, is
+#' clipped to the plot region of the plot drawn before, in another screen,
+#' and R shows none of it, until one of those works the clip out again.
+#' maidr drew it, and a reader heard a line R's page does not show. A plot
+#' region the clip overlaps would show part of it; it is read as clipped,
+#' and so is what is drawn after a region `graphics::par(fig = )` gave R,
+#' which maidr does not record.
+#'
+#' @param calls The recorded calls on the page R shows, in order
+#' @return Logical, one per call: TRUE for a low-level call drawn in
+#'   another region of the page than the one R clipped to
+#' @keywords internal
+#' @noRd
+clipped_away_calls <- function(calls) {
+  clipped <- logical(length(calls))
+  # Where R clips to: the region of the page, and `xpd`, as it last worked
+  # the clip out; NULL where it is not known.
+  clip <- NULL
+  plots <- 0L
+  resets <- c("axis", "title", "mtext", "box")
+  for (i in seq_along(calls)) {
+    call <- calls[[i]]
+    region <- call$drawn_fig %||% call$fig
+    xpd <- call$pars$xpd
+    level <- call$class_level
+    if (identical(level, "LAYOUT")) {
+      settings <- if (identical(call$function_name, "par")) par_setting_arguments(call$args)
+      if (any(c("xpd", "mfg", "fig") %in% names(settings))) {
+        clip <- NULL
+      }
+      next
+    }
+    on <- call$end_plot
+    if (!identical(level, "LOW") || starts_base_r_plot(call)) {
+      clip <- list(region = region, xpd = xpd)
+      plots <- max(plots, if (is.numeric(on) && length(on) == 1L) on else plots)
+      next
+    }
+    if (is.numeric(on) && length(on) == 1L && on > plots) {
+      # Drawn on a plot no recorded call started, which R worked the clip
+      # out for as it started it.
+      plots <- on
+      clip <- list(region = call$fig, xpd = xpd)
+    }
+    resets_clip <- call$function_name %in% resets || "xpd" %in% names(call$args)
+    in_region <- length(call$drawn_cell) == 4L &&
+      identical(as.integer(call$drawn_cell[3:4]), c(1L, 1L))
+    if (resets_clip || is.null(clip) || !identical(clip$xpd, xpd) || !in_region) {
+      clip <- list(region = region, xpd = xpd)
+      next
+    }
+    clipped[[i]] <- length(region) == 4L && length(clip$region) == 4L &&
+      !same_region(region, clip$region) && isFALSE(is.na(xpd))
+  }
+  clipped
+}
+
+#' Whether a low-level call was drawn on a plot no recorded call started
+#'
+#' R numbers the plots it starts on a page (`end_base_r_call()`). A
+#' low-level call drawn on a plot after the last the group before it drew
+#' -- or before the page's first group -- was drawn on a plot something else
+#' started: `plot.new()`, `frame()`, or a plot maidr does not record. A
+#' call recorded without its plot, by code that records calls itself, is
+#' taken to be drawn on the group before it.
+#'
+#' @param call The recorded LOW-level call
+#' @param group The plot group recorded before it, or NULL for none
+#' @return Logical
+#' @keywords internal
+#' @noRd
+drawn_on_unrecorded_plot <- function(call, group) {
+  on <- call$end_plot
+  if (!is.numeric(on) || length(on) != 1L) {
+    return(FALSE)
+  }
+  if (is.null(group)) {
+    return(TRUE)
+  }
+  last <- group$high_call$end_plot
+  is.numeric(last) && length(last) == 1L && on > last
+}
+
+#' Whether a low-level call on a plot no recorded call started is drawn
+#' over a group's plot
+#'
+#' A plot started after `par(new = TRUE)` with `plot.new()`, as a second
+#' series with an axis of its own is drawn, is in the panel of the plot
+#' before it: R's count of panels did not move on (`end_base_r_call()`).
+#' What is drawn on it is drawn over that plot, which R shows it with, and
+#' is read with it (`overlay`, see `group_device_calls()`), in the
+#' coordinates it was drawn in. `par(mfg = )` does not move R's count on
+#' either, but sends the plot to another cell of the grid, as for a legend
+#' in a panel of its own: one started there is in another panel, and what
+#' is drawn on it is not drawn over the group's plot.
+#'
+#' @param call The recorded LOW-level call
+#' @param group The plot group recorded before it, or NULL for none
+#' @return Logical
+#' @keywords internal
+#' @noRd
+drawn_over_group_plot <- function(call, group) {
+  panel <- call$end_figure
+  group_panel <- group$high_call$end_figure
+  same_panel <- length(panel) == 1L && length(group_panel) == 1L &&
+    isTRUE(as.integer(panel) == as.integer(group_panel))
+  same_panel && !in_another_cell(call$cell, group$high_call$end_cell)
+}
+
+#' The group whose plot R was sent back to before a low-level call drew
+#'
+#' `par(mfg = )` sends R to a cell of the grid, and `screen()` of
+#' `split.screen()` to a screen -- with `new = FALSE`, as `?split.screen`'s
+#' own example does to add to a screen -- without starting a plot. What is
+#' drawn next is drawn in that cell or screen, over the plot drawn there,
+#' and not on the plot R started last: `abline()` after `screen(1, new =
+#' FALSE)` and `axis(4)` is drawn on screen 1's plot, in the coordinates
+#' `screen()` put back. It was read as a layer of the last plot, and drawn
+#' on it. (Without `axis()`, which works R's clip out again, R clips the
+#' line away: `clipped_away_calls()`.)
+#'
+#' @param call The recorded LOW-level call
+#' @param groups The page's plot groups recorded before it, in order
+#' @return The index in `groups` of the last group whose plot is in the
+#'   cell and region R drew `call` in (`drawn_cell`, `drawn_fig`), where
+#'   that is not the region of the plot R started last; NA where it is, or
+#'   where no group's plot is there
+#' @keywords internal
+#' @noRd
+sent_back_to <- function(call, groups) {
+  # Where R started its last plot, as against where it drew the call.
+  last_plot_known <- same_cell_and_region(call$cell, call$fig, call$cell, call$fig)
+  drawn_there <- same_cell_and_region(call$drawn_cell, call$drawn_fig, call$cell, call$fig)
+  if (!last_plot_known || drawn_there) {
+    return(NA_integer_)
+  }
+  there <- vapply(
+    groups,
+    function(group) {
+      same_cell_and_region(
+        group$high_call$cell, group$high_call$fig, call$drawn_cell, call$drawn_fig
+      )
+    },
+    logical(1)
+  )
+  if (any(there)) max(which(there)) else NA_integer_
+}
+
+#' Whether two plots are in the same cell and region of the page
+#'
+#' @param cell,fig The cell (`par("mfg")`) and region (`par("fig")`) of
+#'   one
+#' @param other_cell,other_fig Those of the other
+#' @return Logical: `FALSE` where either is not known
+#' @keywords internal
+#' @noRd
+same_cell_and_region <- function(cell, fig, other_cell, other_fig) {
+  known <- function(cell, fig) {
+    length(cell) == 4L && !anyNA(cell) && length(fig) == 4L && !anyNA(fig)
+  }
+  known(cell, fig) && known(other_cell, other_fig) &&
+    identical(as.integer(cell), as.integer(other_cell)) &&
+    max(abs(fig - other_fig)) < 1e-6
+}
+
+#' The earlier group a plot no recorded call started was drawn over
+#'
+#' A plot started after `par(mfg = )` or `screen()` sent R back to the cell
+#' or screen of an earlier plot, as a second series with an axis of its
+#' own is started with `par(new = TRUE)` and `plot.new()`, is drawn over
+#' that plot: R does not clear a panel of its page. What is drawn on it was
+#' read as part of no plot, or with the plot drawn last.
+#'
+#' @param call The recorded LOW-level call, drawn on that plot
+#' @param groups The page's plot groups before the one recorded last
+#' @param current_group The plot group recorded last, or NULL
+#' @return The index in `groups` of the last group whose plot is in the
+#'   cell and region of the plot `call` is drawn on (`cell`, `fig`); NA
+#'   where none is, or where the last group's plot is there too, which
+#'   `drawn_over_group_plot()` finds
+#' @keywords internal
+#' @noRd
+drawn_over_earlier_plot <- function(call, groups, current_group) {
+  on <- function(group) {
+    same_cell_and_region(group$high_call$cell, group$high_call$fig, call$cell, call$fig)
+  }
+  if (!is.null(current_group) && on(current_group)) {
+    return(NA_integer_)
+  }
+  there <- vapply(groups, on, logical(1))
+  if (any(there)) max(which(there)) else NA_integer_
+}
+
+#' Whether a plot is in another cell of the same grid as a plot before it
+#'
+#' @param cell,before The cells R put each in (`par("mfg")`): the row and
+#'   column, and the grid's rows and columns; or `NULL`
+#' @return Logical: `FALSE` where either is not known, or the two are cells
+#'   of grids of different shapes, as a region `par(fig = )` gave a plot is
+#'   a cell of a grid of one
+#' @keywords internal
+#' @noRd
+in_another_cell <- function(cell, before) {
+  length(cell) == 4L && length(before) == 4L && !anyNA(cell) && !anyNA(before) &&
+    identical(as.integer(cell[3:4]), as.integer(before[3:4])) &&
+    !identical(as.integer(cell[1:2]), as.integer(before[1:2]))
 }
 
 #' Get Plot Group by Index
@@ -124,7 +425,7 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   layout_calls <- grouped$layout_calls
 
   if (length(layout_calls) == 0) {
-    return(NULL)
+    return(grid_of_cells(grouped$groups))
   }
 
   # A layout call only governs the plots drawn AFTER it, so a layout call
@@ -139,17 +440,27 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
   # With no plots recorded there is nothing for a layout call to come after,
   # so the filter does not apply: the call still describes the grid the user
   # set up for plots yet to be drawn.
+  #
+  # A grid of one set up between two plots of the page, as
+  # `par(mfrow = c(1, 1), new = TRUE)` is to draw a legend for a grid over
+  # the whole page, lays out only the plot drawn over the page after it,
+  # which R started no page for: the plots before it keep their panels.
   if (length(grouped$groups) > 0) {
-    last_plot_index <- max(
-      vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
-    )
+    plot_indices <- vapply(grouped$groups, function(g) g$high_call_index, numeric(1))
+    last_plot_index <- max(plot_indices)
+    over_page <- function(call) {
+      after <- which(plot_indices > call$storage_index)
+      next_plot <- if (length(after) > 0) grouped$groups[[min(after)]]$high_call
+      isTRUE(call$storage_index > min(plot_indices)) && sets_grid_of_one(call) &&
+        isFALSE(next_plot$opens_page)
+    }
     layout_calls <- Filter(
-      function(call) isTRUE(call$storage_index < last_plot_index),
+      function(call) isTRUE(call$storage_index < last_plot_index) && !over_page(call),
       layout_calls
     )
 
     if (length(layout_calls) == 0) {
-      return(NULL)
+      return(grid_of_cells(grouped$groups))
     }
   }
 
@@ -201,7 +512,203 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
     }
   }
 
+  if (!is.null(config) && !grid_holds_a_plot(grouped$groups, config)) {
+    config <- NULL
+  }
+
+  config %||% grid_of_cells(grouped$groups)
+}
+
+#' Whether a recorded layout call sets up a grid of one panel
+#'
+#' @param call A recorded LAYOUT call
+#' @return Logical: `par(mfrow = c(1, 1))` or `par(mfcol = c(1, 1))`, or a
+#'   `layout()` of one panel
+#' @keywords internal
+#' @noRd
+sets_grid_of_one <- function(call) {
+  args <- call$args
+  if (identical(call$function_name, "par")) {
+    args <- par_setting_arguments(args)
+    grid <- args[["mfrow"]] %||% args[["mfcol"]]
+    return(is.numeric(grid) && length(grid) == 2L && all(grid == 1))
+  }
+  mat <- if (identical(call$function_name, "layout") && length(args) > 0) args[[1]]
+  is.numeric(mat) && length(unique(mat[mat > 0])) == 1L
+}
+
+#' The grid R drew a page's plots in, from the cells it put them in
+#'
+#' Where no recorded layout call sets up the grid the page's plots are in,
+#' R still reports the cell it put each in (`par("mfg")`): a
+#' `par(mfrow = )` made through `graphics::par()` or `withr::with_par()`,
+#' before `maidr_on()`, or before an earlier `show()` or `save_html()` on
+#' the device, which cleared the calls recorded with it. Without it the
+#' page's plots were read as one, and drawn over each other at full size.
+#' Its plots are read in the panels of an `mfrow` grid of that shape, and
+#' each drawn in its cell, where R drew it. Where R drew a plot across
+#' several cells, as a `layout()` panel that spans them, the grid is that
+#' `layout()` (`layout_of_regions()`), with a panel too for each plot no
+#' recorded call started that a low-level call was drawn on, as a legend's
+#' `plot.new()` is. A plot that laid out a grid of its own (`laid_out`, see
+#' `end_base_r_call()`) or that a region of the page was given, by
+#' `par(fig = )` or `screen()`, in a cell of a grid of one, is not one of
+#' them.
+#'
+#' @param groups Plot groups from group_device_calls()
+#' @return Panel configuration list, with `derived` TRUE, or NULL when the
+#'   cells name no grid of more than one panel, or several
+#' @keywords internal
+#' @noRd
+grid_of_cells <- function(groups) {
+  in_cell <- function(call) {
+    length(call$cell) == 4L && !anyNA(call$cell) && !isTRUE(call$laid_out) &&
+      prod(call$cell[3:4]) > 1L
+  }
+  highs <- Filter(in_cell, lapply(groups, function(g) g$high_call))
+  if (length(highs) == 0L) {
+    return(NULL)
+  }
+  dims <- unique(lapply(highs, function(high) as.integer(high$cell[3:4])))
+  if (length(dims) != 1L || prod(dims[[1]]) < 2L) {
+    return(NULL)
+  }
+  # Every plot drawn on, in the order R drew them: a low-level call on a
+  # plot no recorded call started is drawn before the group after it, or,
+  # after the last, with the last.
+  drawn <- unlist(
+    lapply(groups, function(g) c(g$before_calls, list(g$high_call), g$after_calls)),
+    recursive = FALSE
+  )
+  regions <- Filter(
+    function(call) in_cell(call) && identical(as.integer(call$cell[3:4]), dims[[1]]),
+    drawn
+  )
+  config <- layout_of_regions(regions, dims[[1]]) %||% list(
+    type = "mfrow",
+    nrows = dims[[1]][[1]],
+    ncols = dims[[1]][[2]],
+    total_panels = prod(dims[[1]])
+  )
+  config$derived <- TRUE
+  if (!all(vapply(highs, plot_in_grid, logical(1), config = config))) {
+    return(NULL)
+  }
   config
+}
+
+#' The `layout()` R drew a page's plots in, from the regions it gave them
+#'
+#' Under `layout()` R reports the cell at the top left of a plot's panel
+#' (`par("mfg")`) and the panel's region of the page (`par("fig")`), which
+#' covers as many cells of the grid as the panel spans. The panels are
+#' numbered in the order R drew in them, as it numbers a `layout()`'s
+#' panels; a cell no plot was drawn in is empty. A plot drawn over another
+#' after `par(new = TRUE)` is in its panel.
+#'
+#' @param highs The recorded calls drawn on the page's plots, in the order
+#'   R drew them, each with the `cell` and `fig` of its plot
+#' @param dims The grid's rows and columns
+#' @return A `layout` panel configuration with its `matrix`, or NULL where
+#'   each plot is in one cell, or where a region is not cells of a grid of
+#'   equal rows and columns, as one of a `layout()` with `widths` or
+#'   `heights` is not
+#' @keywords internal
+#' @noRd
+layout_of_regions <- function(highs, dims) {
+  nrows <- dims[[1]]
+  ncols <- dims[[2]]
+  mat <- matrix(0L, nrows, ncols)
+  spans <- FALSE
+  near <- function(a, b) isTRUE(abs(a - b) < 1e-6)
+  for (high in highs) {
+    fig <- high$fig
+    if (length(fig) != 4L || anyNA(fig)) {
+      return(NULL)
+    }
+    row <- high$cell[[1]]
+    col <- high$cell[[2]]
+    across <- (fig[[2]] - fig[[1]]) * ncols
+    down <- (fig[[4]] - fig[[3]]) * nrows
+    aligned <- round(across) >= 1 && round(down) >= 1 &&
+      near(across, round(across)) && near(down, round(down)) &&
+      near(fig[[1]], (col - 1) / ncols) && near(fig[[4]], 1 - (row - 1) / nrows)
+    if (!aligned) {
+      return(NULL)
+    }
+    rows <- row + seq_len(round(down)) - 1L
+    cols <- col + seq_len(round(across)) - 1L
+    if (max(rows) > nrows || max(cols) > ncols) {
+      return(NULL)
+    }
+    spans <- spans || length(rows) > 1L || length(cols) > 1L
+    taken <- mat[rows, cols]
+    if (all(taken == 0L)) {
+      mat[rows, cols] <- max(mat) + 1L
+    } else if (!all(taken == taken[[1]]) || sum(mat == taken[[1]]) != length(taken)) {
+      return(NULL)
+    }
+  }
+  if (!spans) {
+    return(NULL)
+  }
+  list(
+    type = "layout",
+    nrows = nrows,
+    ncols = ncols,
+    total_panels = max(mat),
+    matrix = mat
+  )
+}
+
+#' Whether R drew a plot of the page in a grid
+#'
+#' A grid the recorded layout calls set up is the page's only where R drew
+#' a plot of the page in one of its cells (`plot_in_grid()`). A function
+#' that lays out a page of its own, as `heatmap()` does with `layout()`,
+#' draws in a grid it sets up itself, unrecorded: after
+#' `par(mfrow = c(1, 2)); plot(x); heatmap(m)` R's page is the heatmap
+#' alone, not a panel of two. Plots recorded without their cell, by code
+#' that records calls itself, are taken to be in the grid.
+#'
+#' @param groups Plot groups from group_device_calls()
+#' @param config The grid, from the layout call that set it up
+#' @return Logical
+#' @keywords internal
+#' @noRd
+grid_holds_a_plot <- function(groups, config) {
+  after <- Filter(
+    function(g) is.null(config$layout_index) || isTRUE(g$high_call_index > config$layout_index),
+    groups
+  )
+  highs <- Filter(function(high) !is.null(high$cell), lapply(after, function(g) g$high_call))
+  length(highs) == 0L ||
+    any(vapply(highs, plot_in_grid, logical(1), config = config))
+}
+
+#' Whether R drew a recorded plot in a cell of a grid
+#'
+#' R put the plot in a cell of a grid of the same shape (its `cell`, from
+#' `par("mfg")`). A plot that started a page is in the grid's first panel:
+#' R starts a page of an `mfrow` or `mfcol` grid in its first cell -- a
+#' plot `par(mfg = )` sends elsewhere starts none -- and a page of a
+#' `layout()` in its panel 1. One that started a page anywhere else, as
+#' the image of `heatmap()` does in the corner of the 2 x 2 layout it sets
+#' up, is in a grid of its own that has that shape; and so is one that laid
+#' out a grid of its own (`laid_out`, see `end_base_r_call()`).
+#'
+#' @param high The plot's recorded call
+#' @param config The grid
+#' @return Logical
+#' @keywords internal
+#' @noRd
+plot_in_grid <- function(high, config) {
+  cell <- high$cell
+  dims <- as.integer(c(config$nrows, config$ncols))
+  if (length(cell) != 4L || !identical(as.integer(cell[3:4]), dims) || isTRUE(high$laid_out)) {
+    return(FALSE)
+  }
+  !isTRUE(high$opens_page) || identical(panel_of_cell(cell, config), 1L)
 }
 
 #' The settings a recorded `par()` call made
@@ -224,7 +731,10 @@ par_setting_arguments <- function(args) {
 #' `par(new = TRUE)` draws the next plot over the last one, as a chart of two
 #' y axes does, and a high-level call given `add = TRUE` draws onto it
 #' (`shared_plots()`). Each such plot is in the run of the plot it is drawn
-#' over. With `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next
+#' over. `par(new = TRUE)` is read from a recorded `par()` call, or else from
+#' where R started the plot (`stayed_in_panel()`): made through
+#' `graphics::par()` or `withr::with_par()`, it is not recorded. With
+#' `par(fig = , new = TRUE)` or `par(plt = , new = TRUE)` the next
 #' plot is drawn on the same page but in another region of it, beside the
 #' last one or inset in it, so it is drawn over the last one only where R
 #' drew both in the same plot region (`device_plot_region()`).
@@ -253,12 +763,37 @@ overlay_runs <- function(groups, layout_calls) {
         }
       }
     }
-    drawn_over <- new || recorded_flag(groups[[g]]$high_call$args, "add")
+    drawn_over <- new || recorded_flag(groups[[g]]$high_call$args, "add") ||
+      stayed_in_panel(groups[[g - 1L]]$high_call, groups[[g]]$high_call)
     if (drawn_over && same_plot_region(groups[[g - 1L]], groups[[g]])) {
       runs[[g]] <- runs[[g - 1L]]
     }
   }
   runs
+}
+
+#' Whether R started a plot over the one it was on once the call before was done
+#'
+#' R moves on a panel for every plot it starts, unless `par(new = TRUE)`
+#' keeps it in the panel of the last (`note_base_r_plot_new()`), however
+#' that was set. So a plot started on the page and in the panel R was in
+#' when the call before it was done, as the next plot R started there, was
+#' drawn after `par(new = TRUE)`, or sent to that panel with `par(mfg = )`
+#' or `screen(n, new = FALSE)`. `screen(n)` itself erases the screen first,
+#' with a plot of its own that it fills with the background: a plot drawn
+#' after it is drawn over that one, where the plot before is no longer seen,
+#' and is not drawn over it.
+#'
+#' @param before,high The high-level calls of two plot groups, in the order
+#'   they were made
+#' @return TRUE or FALSE; FALSE for a call recorded without where R drew it
+#' @keywords internal
+#' @noRd
+stayed_in_panel <- function(before, high) {
+  isTRUE(high$new_plot) && is.numeric(high$figure) &&
+    identical(high$page, before$page) &&
+    identical(high$figure, before$end_figure %||% before$figure) &&
+    identical(as.integer(high$plot), as.integer((before$end_plot %||% before$plot) + 1L))
 }
 
 #' The plot each high-level call draws on
@@ -319,7 +854,10 @@ same_region <- function(a, b) {
 #' The settings are those the `par()` calls recorded before the plot left in
 #' place, in the order they were last set, as `mar` and `mai` set the same
 #' margins. Setting up a grid, with `par(mfrow = )`, `par(mfcol = )` or
-#' `layout()`, puts `cex` and `mex` back to the grid's own, as R does.
+#' `layout()`, puts `cex` and `mex` back to the grid's own, as R does
+#' (`grid_cex()`): a plot drawn after the grid on a page of its own, as one
+#' after `par(fig = c(0, 1, 0, 1))` is, is drawn with them, and was drawn
+#' with text 20% to 50% larger than R's.
 #'
 #' @param layout_calls The recorded LAYOUT calls, from [group_device_calls()]
 #' @param before The position in the recording of the plot's HIGH-level call
@@ -329,12 +867,27 @@ same_region <- function(a, b) {
 par_margin_settings <- function(layout_calls, before) {
   margins <- c("mar", "mai", "oma", "omi", "mex", "cex")
   settings <- list()
+  # Moved to the end, as each is set: the last of `mar` and `mai` set wins.
+  set <- function(settings, name, value) {
+    settings[[name]] <- NULL
+    settings[[name]] <- value
+    settings
+  }
+  # A grid of a shape not known leaves them to the grid the drawing sets.
+  set_up_grid <- function(settings, dims) {
+    if (!is.numeric(dims) || length(dims) != 2L || anyNA(dims)) {
+      settings[c("cex", "mex")] <- NULL
+      return(settings)
+    }
+    set(set(settings, "cex", grid_cex(dims[[1]], dims[[2]])), "mex", 1)
+  }
   for (call in layout_calls) {
     if (call$storage_index > before) {
       break
     }
     if (call$function_name == "layout") {
-      settings[c("cex", "mex")] <- NULL
+      mat <- if (length(call$args) > 0) call$args[[1]]
+      settings <- set_up_grid(settings, if (is.numeric(mat)) dim(as.matrix(mat)))
     }
     if (call$function_name != "par") {
       next
@@ -342,15 +895,75 @@ par_margin_settings <- function(layout_calls, before) {
     args <- par_setting_arguments(call$args)
     for (name in names(args)) {
       if (name %in% c("mfrow", "mfcol")) {
-        settings[c("cex", "mex")] <- NULL
+        settings <- set_up_grid(settings, args[[name]])
       } else if (name %in% margins && is.numeric(args[[name]])) {
-        # Moved to the end: the last of `mar` and `mai` set wins.
-        settings[[name]] <- NULL
-        settings[[name]] <- args[[name]]
+        settings <- set(settings, name, args[[name]])
       }
     }
   }
   settings
+}
+
+#' The margins R drew a recorded call's plot with
+#'
+#' Read from R, they are those it drew the plot with whatever set them: a
+#' `par()` call maidr records, or one it does not, made through
+#' `graphics::par()` or `withr::with_par()`, `screen()`, which puts back the
+#' margins and size of text of each screen of `split.screen()`, or
+#' `split.screen()` itself, which sets the outer margins to none while its
+#' screens are in use. Read from the recorded `par()` calls instead
+#' (`par_margin_settings()`), a screen's plot was drawn with the margins set
+#' for another screen, and under outer margins R had taken away.
+#'
+#' They are the margins in inches R drew the plot with, where R did not
+#' work them out again as it started it (`end_base_r_call()`): a
+#' `par(cex = )` set after `screen()`, or before a plot drawn over another
+#' after `par(new = TRUE)`, does not change them; with the size of text,
+#' and `mex`, which sets the height of a line of margin text, as R had them
+#' as the call started. Else they are the margins in lines with those
+#' (`begin_base_r_call()`), which R works them out from, as the drawing
+#' does.
+#'
+#' @param call A recorded call, with the `margins` of the plot it started
+#'   or drew on and the `pars` it started with
+#' @return The settings, as a named list for `par()`, or NULL where they
+#'   were not read, or where `par(plt = )` gave the plot its region
+#' @keywords internal
+#' @noRd
+recorded_margins <- function(call) {
+  pars <- call$pars
+  margins <- call$margins
+  if (!is.numeric(pars$cex) || isTRUE(margins$region_set)) {
+    return(NULL)
+  }
+  if (is.numeric(margins$mai) && is.numeric(margins$omi) && is.numeric(pars$mex)) {
+    return(list(mai = margins$mai, omi = margins$omi, mex = pars$mex, cex = pars$cex))
+  }
+  lines <- c("mar", "oma", "mex", "cex")
+  if (!all(vapply(pars[lines], is.numeric, logical(1)))) {
+    return(NULL)
+  }
+  pars[lines]
+}
+
+#' The size of text R sets for a grid of plots
+#'
+#' `par(mfrow = )`, `par(mfcol = )` and `layout()` set `cex` for the grid
+#' they set up: 0.83 for two rows and two columns, 0.66 for three or more of
+#' either, 1 otherwise.
+#'
+#' @param nrows,ncols The grid's rows and columns
+#' @return The `cex`
+#' @keywords internal
+#' @noRd
+grid_cex <- function(nrows, ncols) {
+  if (nrows > 2 || ncols > 2) {
+    0.66
+  } else if (nrows == 2 && ncols == 2) {
+    0.83
+  } else {
+    1
+  }
 }
 
 #' Check Whether a Panel Configuration Describes a Multi-panel Grid
@@ -366,8 +979,14 @@ is_multipanel_config <- function(panel_config) {
 
 #' Compute Panel Slot for Each Plot Group
 #'
-#' Maps plot groups to panel slots (1-based, in drawing order) for a
-#' multi-panel configuration:
+#' Maps plot groups to panel slots (1-based) for a multi-panel
+#' configuration: the panel R drew each group's plot in, as its call was
+#' recorded -- the cell R put it in, so a plot `par(mfg = )` sent out of
+#' turn is in that panel. A plot drawn after `par(new = TRUE)`, or in a
+#' region `par(fig = )` gave it, shares the panel of the plot before it,
+#' and a panel `plot.new()` or `frame()` passed over is left empty. Groups
+#' recorded without their panel, by code that records calls itself, take
+#' one each in drawing order:
 #' \itemize{
 #'   \item Groups drawn BEFORE the layout call are not part of the grid
 #'     (the next high-level plot starts a fresh page), so they get NA.
@@ -406,10 +1025,56 @@ compute_panel_slots <- function(plot_groups, panel_config) {
   }
 
   total <- max(1L, as.integer(panel_config$total_panels))
+
+  # The panel R drew each in, where every one was recorded with it: the
+  # cell R said it put the plot in, in this grid, or else the panel R moved
+  # on to. A plot `par(fig = )` placed is in no cell of the grid, and stays
+  # in the panel of the plot before it.
+  figures <- lapply(plot_groups[eligible], function(g) {
+    panel_of_cell(g$high_call$cell, panel_config) %||% g$high_call$figure
+  })
+  if (!any(vapply(figures, is.null, logical(1)))) {
+    figures <- as.integer(unlist(figures))
+    figures[figures < 1L | figures > total] <- NA_integer_
+    slots[eligible] <- figures
+    return(slots)
+  }
+
   last_page_start <- ((n_eligible - 1L) %/% total) * total + 1L
   visible <- eligible[seq.int(last_page_start, n_eligible)]
   slots[visible] <- seq_along(visible)
   slots
+}
+
+#' The panel of a grid a plot was drawn in, from its cell
+#'
+#' @param cell The cell R put the plot in, `par("mfg")` once it was started:
+#'   its row and column, and the grid's rows and columns; or `NULL`
+#' @param panel_config Panel configuration from detect_panel_configuration()
+#' @return The panel's number in the grid's order -- by row for `mfrow`, by
+#'   column for `mfcol`, the number `layout()` gave it -- or `NULL` for a
+#'   cell of another grid, or none
+#' @keywords internal
+#' @noRd
+panel_of_cell <- function(cell, panel_config) {
+  if (length(cell) != 4L || anyNA(cell)) {
+    return(NULL)
+  }
+  nrows <- as.integer(panel_config$nrows)
+  ncols <- as.integer(panel_config$ncols)
+  if (!identical(as.integer(cell[3:4]), c(nrows, ncols))) {
+    return(NULL)
+  }
+  row <- cell[[1]]
+  col <- cell[[2]]
+  if (identical(panel_config$type, "layout")) {
+    panel <- panel_config$matrix[row, col]
+    return(if (isTRUE(panel > 0)) as.integer(panel))
+  }
+  if (identical(panel_config$type, "mfcol")) {
+    return(as.integer((col - 1L) * nrows + row))
+  }
+  as.integer((row - 1L) * ncols + col)
 }
 
 #' Convert a Panel Slot Number to its (row, column) Grid Positions

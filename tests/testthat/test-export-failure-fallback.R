@@ -289,4 +289,60 @@ test_that("the picture of a chart that could not be made interactive says so, an
     plot(1:5, ann = FALSE)
     title("Speed")
   }), "Speed")
+  # A title drawn over the panels from a panel `plot.new()` took, which no
+  # recorded plot is in, is the page's all the same.
+  expect_identical(named(function() {
+    par(mfrow = c(1, 3), oma = c(0, 0, 2, 0))
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+    plot.new()
+    mtext("Overview", outer = TRUE)
+  }), "Overview")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 3), oma = c(0, 0, 2, 0))
+    plot.new()
+    title("Overview", outer = TRUE)
+    plot(1:5, main = "A")
+    plot(5:1, main = "B")
+  }), "Overview")
+  # A plot drawn over a panel's, after `par(new = TRUE)`, with
+  # `add = TRUE` or sent back to it with `par(mfg = )`, is in that panel:
+  # it was counted, and named, as a panel of its own.
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "A")
+    par(new = TRUE)
+    plot(3:1, axes = FALSE, ann = FALSE, type = "l")
+    plot(1:5, main = "B")
+  }), "2 panels: A, B")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    boxplot(len ~ supp, data = ToothGrowth, main = "A")
+    boxplot(len ~ supp, data = ToothGrowth, add = TRUE, col = NA)
+    plot(1:5, main = "B")
+  }), "2 panels: A, B")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "A")
+    plot(1:4, main = "B")
+    par(mfg = c(1, 1))
+    plot(3:1, axes = FALSE, ann = FALSE, type = "l")
+  }), "2 panels: A, B")
+  # A panel is named by the first title drawn on it, whichever of its
+  # plots it was drawn on.
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, ann = FALSE)
+    par(new = TRUE)
+    plot(3:1, axes = FALSE, ann = FALSE, type = "l")
+    title("A")
+    plot(1:5, main = "B")
+  }), "2 panels: A, B")
+  expect_identical(named(function() {
+    par(mfrow = c(1, 2))
+    plot(1:3, main = "A")
+    par(new = TRUE)
+    plot(3:1, axes = FALSE, type = "l", main = "Over A")
+    plot(1:5)
+  }), "2 panels: A, untitled")
 })

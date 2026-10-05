@@ -539,3 +539,30 @@ test_that("set_internal_guard handles non-logical values", {
   maidr:::set_internal_guard(NULL)
   testthat::expect_false(maidr:::is_internal_call())
 })
+
+test_that("recording a call takes no longer for what the calls before it hold", {
+  grDevices::pdf(NULL)
+  device_id <- grDevices::dev.cur()
+  on.exit(
+    {
+      maidr:::clear_device_storage(device_id)
+      grDevices::dev.off(device_id)
+    },
+    add = TRUE
+  )
+  maidr:::clear_device_storage(device_id)
+  plot(1:3)
+
+  # Calls recorded before, each holding much: one list, shared by them all.
+  held <- rep(list(as.list(1:10)), 1000)
+  earlier <- list(function_name = "points", class_level = "LOW", args = list(held))
+  storage <- maidr:::get_device_storage(device_id)
+  storage$calls <- c(storage$calls, rep(list(earlier), 5000))
+  session <- maidr:::.maidr_base_r_session
+  session$devices[[as.character(device_id)]] <- storage
+
+  # R walked through all of it before keeping each call recorded next.
+  elapsed <- system.time(for (i in 1:20) points(2, 2))[["elapsed"]]
+  testthat::expect_lt(elapsed, 1)
+  testthat::expect_length(maidr:::get_device_calls(device_id), 5021L)
+})

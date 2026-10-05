@@ -478,6 +478,90 @@
   they derive, even where R draws none. On a chart of several y axes, drawn
   with `par(new = TRUE)` and `axis(4)`, each series is titled by what is
   written beside its own axis (#359).
+* A Base R chart is the page R's device shows: the last one. After
+  `hist(mtcars$mpg); hist(mtcars$hp)` R shows the second histogram alone,
+  on a page of its own, but `show()` and `save_html()` made one chart of
+  every plot drawn on the device: both histograms' data in one subplot,
+  under a drawing of the first, so a reader heard data that was not on the
+  chart, and saw a chart R no longer showed. The same happened whenever a
+  plot started a new page, as `plot(x)` and then `heatmap(m)`, or a fifth
+  plot under `par(mfrow = c(2, 2))` after a reset to one panel. maidr now
+  reads the page each call was drawn on from R itself, so the chart is the
+  last page, with all the panels of a `par(mfrow)`, `par(mfcol)` or
+  `layout()` grid on it, each plot in the panel R drew it in -- also when
+  maidr did not record the call that set the grid up, made through
+  `graphics::par()` or `withr::with_par()`, or before an earlier `show()`
+  or `save_html()` on the device, or when a plot is drawn over the whole
+  page after `par(mfrow = c(1, 1), new = TRUE)`, as a legend for all the
+  panels is, where maidr read every plot as a layer of one subplot. A plot drawn
+  after `par(new = TRUE)` is drawn over the plot before it, in its panel,
+  where maidr drew the first alone or gave the second a panel of its own;
+  an inset drawn after `par(fig = , new = TRUE)`, or a plot in a screen of
+  `split.screen()`, is drawn in the region of the page R gave it; a plot
+  `par(mfg = )` sends to a panel out of turn is in that panel;
+  `plot.new()` and `frame()` take a panel as they do in R, where maidr
+  moved the next plot into it; a `legend()`, `text()` or `lines()` drawn
+  on such a panel, or on a plot maidr does not record such as
+  `smoothScatter()`, is drawn there, where maidr drew it over the plot
+  before and read it as part of that plot; one drawn over a plot after
+  `par(new = TRUE)` and `plot.new()`, as a second series with an axis of
+  its own is, is drawn in the coordinates it was drawn in, where maidr drew
+  it in the plot's, and is read with that plot also in an earlier panel or
+  screen `par(mfg = )` or `screen()` sent R back to, where maidr read it
+  with the plot drawn last; one drawn after `par(mfg = )`, or `screen(n, new =
+  FALSE)` of `split.screen()`, sends R back to the panel or screen of an
+  earlier plot is drawn on that plot and read with it, where maidr read it
+  with the plot drawn last, and drew it on that plot or not at all -- but
+  not what R clips away: after `screen(n, new = FALSE)`, until `axis()`,
+  `title()`, `mtext()`, `box()` or a change of `xpd` works R's clip out
+  again, R clips what is drawn to the plot in the screen before and shows
+  none of it, and maidr neither draws nor reads it; and
+  nothing drawn on an
+  earlier page -- its data, titles, `lines()` or `legend()`, or a size it
+  would need -- reaches the chart, even when the plot that started the new
+  page was drawn while `maidr_off()` was in effect. A page `replayPlot()`
+  puts back on a device that keeps a display list is the chart, with what
+  was drawn on it when `recordPlot()` saved it, where maidr read the plots
+  and calls drawn since with it. `symbols()` without
+  `add = TRUE` draws a plot of its own, and is the plot of its page,
+  shown as a picture since maidr does not read it, where `symbols()` alone
+  gave a chart with nothing on it. A page that holds no plot maidr
+  recorded, as after `hist(x); plot.new()`,
+  `hist(x); plot.new(); text(0.5, 0.5, "note")` or
+  `hist(x); smoothScatter(y)`, or a page `replayPlot()` puts back from a
+  plot drawn while `maidr_off()` was in effect, is no longer exported as
+  the histogram before it, or as a chart with nothing on it: `show()` and
+  `save_html()` stop and say the page holds no plot maidr recorded. So do
+  they, and say why, for a line added to a plot an earlier `show()` or
+  `save_html()` read, or to a page `replayPlot()` puts back from before
+  then: that call let go of what maidr recorded of it. A plot drawn over
+  the one before it after a `par(new = TRUE)` made through
+  `graphics::par()` or `withr::with_par()` is titled as after one maidr
+  records: on a chart of two y axes, each series by what is written
+  beside its own axis, where every title went to the second series. A
+  plot in a screen of `split.screen()` is drawn with the margins and size
+  of text R drew it with, those `screen()` puts back for that screen, and
+  without the outer margins `split.screen()` takes away while its screens
+  are in use, where maidr drew it with those set last in any screen, under
+  outer margins R had taken away; and so is a plot whose margins or size
+  of text a `par()` call made through `graphics::par()` or
+  `withr::with_par()` set, which maidr drew with R's own. The
+  picture maidr draws of a page it cannot read or draw again has each plot
+  where R drew it too -- over the plot before it, in its panel of a grid,
+  or in its screen or region of the page -- also where what put it there
+  was not recorded: a `par()` call made through `graphics::par()` or
+  `withr::with_par()`, `screen()`, or a panel `plot.new()` took; and what
+  `par(mfg = )` or `screen(n, new = FALSE)` sent R back to add is drawn on
+  the plot R added it to, clipped as R clips it. The picture drew a plot
+  after such a `par(new = TRUE)` on a page of its own, which lost the
+  plots before it, as on a chart of two y axes whose second axis maidr
+  cannot draw again;
+  drew one such a `par(mfg = )` sent out of turn, or one after a panel
+  `plot.new()` took, in the next panel; drew every plot of a call that
+  draws several, as `plot()` of a fitted model does, on one page, where R
+  shows the last of them; and drew a `split.screen()` page's last plot
+  alone in the first screen's place, with R's warning "calling
+  par(new=TRUE) with no plot" (#360).
 
 ## Documentation
 

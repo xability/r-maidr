@@ -173,8 +173,8 @@ NULL
     # the caller's `par(mfrow)` decides how many of its partial-effect curves
     # share a page, and R starts a new page when it runs out of cells. Only
     # the last page is exported, so the reading announces the tail of the
-    # terms rather than all of them -- the rule `compute_panel_slots()`
-    # already applies to whole plot groups, one level down. `spectrum` and
+    # terms rather than all of them -- the rule a chart's whole plots are
+    # read by (`last_page_calls()`), one level down. `spectrum` and
     # `cpgram` are the pair after it: each computes a periodogram of a series
     # and draws one curve against frequency, the first as a line and the
     # second as a staircase, with a two-point reference mark beside each that

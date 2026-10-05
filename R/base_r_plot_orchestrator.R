@@ -68,19 +68,206 @@ BaseRPlotOrchestrator <- R6::R6Class(
       )
     },
 
-    # Set the margins the author's `par()` calls gave a plot group's plot,
-    # before the group is drawn again (`par_margin_settings()`), and answer
-    # them. Only those that differ from `set`, the ones the page's last plot
-    # was drawn with, are set: setting the outer margins starts a new page,
-    # in R as here, and a grid's later plots would each have a page of
-    # their own.
-    set_recorded_margins = function(group, set = list()) {
-      settings <- par_margin_settings(private$.layout_calls, group$high_call_index)
+    # Set the margins the plot the recorded `call` at `index` in the
+    # recording draws on was drawn with, before it is drawn again, and
+    # answer them: those R drew it with (`recorded_margins()`), or else
+    # those the author's recorded `par()` calls gave it
+    # (`par_margin_settings()`). Only those that differ from `set`, the ones
+    # the page's last plot was drawn with, and from the drawing's own
+    # (`differing_pars()`), are set: setting the outer margins starts a new
+    # page, in R as here, and a grid's later plots would each have a page
+    # of their own.
+    set_recorded_margins = function(index, set = list(), call = NULL) {
+      settings <- recorded_margins(call) %||%
+        par_margin_settings(private$.layout_calls, index)
       changed <- settings[!mapply(identical, settings, set[names(settings)])]
+      changed <- if (length(changed) > 0) differing_pars(changed) else changed
       if (length(changed) > 0) {
         graphics::par(changed)
       }
       settings
+    },
+
+    # The number of each plot group's plot on the page, which the drawing
+    # names the elements of the plot after (`graphics-plot-<n>-...`), and
+    # by which the group's processors find them: the number R gave the plot
+    # as it started it, counting every plot started on the page -- one drawn
+    # over the plot before it after `par(new = TRUE)`, and a panel
+    # `plot.new()` or `frame()` passed over -- as `replay_page()` starts
+    # them again. A group that started no plot, as an `add = TRUE` call
+    # does, has its elements named after the plot it is drawn over, among
+    # that plot's own, which its processors would find in its place: it has
+    # a number no plot on the page has, and its selectors name nothing. A
+    # group recorded by code that records calls itself, which R did not
+    # number, has its panel's (`panel_slots`), and on a page of one panel
+    # its place among the groups.
+    plot_numbers = function(panel_slots = NULL) {
+      groups <- private$.plot_groups
+      drawn <- unlist(lapply(groups, function(group) {
+        calls <- c(list(group$high_call), group$low_calls, group$before_calls, group$after_calls)
+        lapply(calls, function(call) c(call$plot, call$end_plot))
+      }))
+      last <- as.integer(max(c(0L, drawn)))
+      vapply(
+        seq_along(groups),
+        function(i) {
+          high <- groups[[i]]$high_call
+          if (isTRUE(high$new_plot) && is.numeric(high$plot)) {
+            return(as.integer(high$plot))
+          }
+          if (isFALSE(high$new_plot)) {
+            return(last + i)
+          }
+          slot <- if (is.null(panel_slots)) NA_integer_ else panel_slots[[i]]
+          as.integer(if (is.na(slot)) i else slot)
+        },
+        integer(1)
+      )
+    },
+
+    # Draw the plot groups of the page R shows again, each in the panel R
+    # drew it in (`slots`, NA for a group not drawn, of the grid
+    # `panel_config` describes, NULL for a page of one panel) and numbered as
+    # R numbered it (`numbers`, from `plot_numbers()`): the plots R started
+    # between two groups are started again, a panel `plot.new()` or
+    # `frame()` passed over with `plot.new()`, and a plot drawn in the panel
+    # of the one before it after `par(new = TRUE)`, as R drew it. A plot R
+    # was sent to out of turn, with `par(mfg = )`, is sent there again, and
+    # one `par(fig = )` or `screen()` placed outside the grid is drawn in
+    # the same region of the page (`place_replayed_plot()`). A group that
+    # starts no plot, as an `add = TRUE` call does, draws where it is. A
+    # low-level call drawn on a plot no recorded call started -- a legend
+    # on a panel of its own, after `plot.new()` -- is drawn on a plot
+    # started for it in the panel R drew it in, in the coordinates it was
+    # drawn in (`replay_unrecorded_plot_call()`). One drawn after R was sent
+    # back to a plot without starting one, by `par(mfg = )` or `screen()`,
+    # is drawn with that plot's group, where the drawing is on that plot
+    # (`sent_back_to()`). The recorded calls are
+    # replayed with the ORIGINAL (unwrapped) functions, so nothing new is
+    # recorded.
+    replay_page = function(slots, numbers, panel_config = NULL) {
+      # Where the drawing is: the panel it is in, as `slots` number them,
+      # and the panel R's count had reached there (`figure`, see
+      # `end_base_r_call()`); the plots started on its page; the margins it
+      # set, and the coordinates it gave a plot it started.
+      at <- list(slot = 0L, figure = NULL, plots = 0L, margins = list(), window = NULL)
+      for (i in seq_along(private$.plot_groups)) {
+        slot <- slots[[i]]
+        if (is.na(slot)) {
+          next
+        }
+        group <- private$.plot_groups[[i]]
+        high <- group$high_call
+
+        if (getOption("maidr.debug", FALSE)) {
+          message("DEBUG: Replaying group ", i, " - ", high$function_name)
+        }
+
+        for (call in group$before_calls) {
+          at <- private$replay_unrecorded_plot_call(call, at, panel_config)
+        }
+        at$margins <- private$set_recorded_margins(group$high_call_index, at$margins, high)
+        if (!isFALSE(high$new_plot)) {
+          at <- start_skipped_plots(at, numbers[[i]] - 1L, slot)
+          # A call that drew plots on a page before this one -- `plot()` of
+          # a fitted model after a plot, under `par(mfrow = c(2, 2))` -- is
+          # started in the panel R started it in, so those plots fill that
+          # page, as R's did, and not this one; in a knit too, where the
+          # figure's calls are read without their pages (`with_figure_calls()`).
+          if (isTRUE(high$spans_pages)) {
+            for (k in seq_len(max(high$start_figure - 1L, 0L))) {
+              start_replayed_plot(FALSE)
+            }
+          }
+          place_replayed_plot(high, slot, at$slot, panel_config)
+          at$slot <- slot
+          at$figure <- high$figure
+          at$plots <- numbers[[i]]
+        }
+
+        calls <- c(list(high), group$low_calls)
+        window <- high$window
+        for (call in calls) {
+          if (isTRUE(call$read_only)) {
+            # Drawn in its place among the calls on plots no recorded call
+            # started (`drawn_over_earlier_plot()`).
+            next
+          }
+          if (isTRUE(call$overlay)) {
+            at <- private$replay_unrecorded_plot_call(call, at, panel_config)
+            window <- at$window
+          } else {
+            # Drawn after R was sent back to this plot, in the coordinates
+            # R had then: those of the plot it was sent back from, after
+            # `par(mfg = )`, which keeps them.
+            if (isTRUE(call$sent_back) && !identical(call$window, window)) {
+              window <- replay_plot_window(call$window) %||% window
+              at$window <- window
+            }
+            replay_plot_call(
+              call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
+            )
+          }
+        }
+        # Where R was once the group was drawn: a call that draws several
+        # plots, as `plot()` of a fitted model does, moves on as many from
+        # the panel its first is in. One drawn after R was sent back to it
+        # was drawn later, from another, and one only read with it is drawn
+        # elsewhere.
+        ends <- Filter(
+          function(call) {
+            is.numeric(call$end_plot) && !isTRUE(call$sent_back) && !isTRUE(call$read_only)
+          },
+          calls
+        )
+        if (length(ends) > 0) {
+          end <- ends[[length(ends)]]
+          at$slot <- slot + end$end_figure - (high$figure %||% end$end_figure)
+          at$figure <- end$end_figure
+          at$plots <- end$end_plot
+        }
+
+        for (call in group$after_calls) {
+          at <- private$replay_unrecorded_plot_call(call, at, panel_config)
+        }
+      }
+    },
+
+    # Draw a low-level call that R drew on a plot no recorded call started
+    # -- a panel `plot.new()` or `frame()` took, or a plot maidr does not
+    # record -- on the drawing `at` describes (see `replay_page()`), and
+    # answer where the drawing is then. The plot it was drawn on is started
+    # first, if the drawing has not started it yet, in the panel R drew it
+    # in: the cell R put it in, or else as many panels on from the last as
+    # R's count moved. It is given the coordinates the call was drawn in,
+    # which what started it set, unrecorded. Only the call is drawn: what
+    # else that plot holds was not recorded. A call R counted on no plot is
+    # drawn on the page's first: R draws none before a plot is started.
+    replay_unrecorded_plot_call = function(call, at, panel_config) {
+      at$margins <- private$set_recorded_margins(call$storage_index, at$margins, call)
+      on <- max(call$end_plot, 1L)
+      if (on > at$plots) {
+        slot <- if (is.null(panel_config)) {
+          1L
+        } else {
+          panel_of_cell(call$cell, panel_config) %||%
+            (at$slot + max(call$figure - (at$figure %||% call$figure), 0L))
+        }
+        at <- start_skipped_plots(at, on - 1L, slot)
+        place_replayed_plot(call, slot, at$slot, panel_config)
+        graphics::plot.new()
+        at$slot <- slot
+        at$figure <- call$figure
+        at$plots <- on
+        at$window <- NULL
+      }
+      if (!identical(call$window, at$window)) {
+        at$window <- replay_plot_window(call$window) %||% at$window
+      }
+      replay_plot_call(
+        call$function_name, call$args, call$call_env, call$arg_text, call$rng_state
+      )
+      at
     },
 
     # The title of a plot group's panel, as one line: its plot's, as its
@@ -208,7 +395,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
       registry <- get_global_registry()
       private$.adapter <- registry$get_adapter("base_r")
 
-      private$.plot_calls <- get_device_calls(device_id)
+      # The calls on the page R's device shows: the last. A plot that started
+      # a page of its own leaves those before it out of the chart's data,
+      # titles and drawing, and out of the size it is drawn at.
+      private$.plot_calls <- shown_device_calls(device_id)
 
       grouped <- group_device_calls(device_id)
       private$.plot_groups <- grouped$groups
@@ -364,17 +554,18 @@ BaseRPlotOrchestrator <- R6::R6Class(
       # Extract format config from axis() calls
       private$.format_config <- self$extract_format_config_from_axis_calls()
 
-      # A multipanel replay redraws only the panel-visible groups, so the
-      # exported SVG numbers its panels 1..n in replay order. A skipped
-      # group (drawn before the layout call, or on an earlier page) shifts
-      # every later group's panel number down, so processors have to look
-      # up their grobs by panel SLOT, not by the group's own index.
+      # The drawing numbers the plots of the page as R started them, so a
+      # group's processor looks its grobs up by its plot's number on the
+      # page (`plot_numbers()`), not by the group's own index: a group drawn
+      # before the layout call is not drawn, and a plot drawn over another,
+      # or a panel passed over, takes a number of its own.
       panel_config <- detect_panel_configuration(private$.device_id)
       panel_slots <- if (is_multipanel_config(panel_config)) {
         compute_panel_slots(private$.plot_groups, panel_config)
       } else {
         NULL
       }
+      plot_numbers <- private$plot_numbers(panel_slots)
 
       # The titles written after each plot, with title() or mtext(), by the
       # plot whose axis each one titles.
@@ -405,11 +596,13 @@ BaseRPlotOrchestrator <- R6::R6Class(
 
         layer_info <- private$.layers[[i]]
         layer_titles <- titles[[layer_info$group_index]]
-        if (!is.null(panel_slots)) {
-          slot <- panel_slots[layer_info$group_index]
-          if (!is.na(slot)) {
-            layer_info$group_index <- slot
-          }
+        layer_info$group_index <- plot_numbers[[layer_info$group_index]]
+        # Drawn over the group's plot on one of its own, after
+        # `par(new = TRUE)`, a call's marks are that plot's
+        # (`drawn_over_group_plot()`).
+        overlay <- layer_info$plot_call
+        if (isTRUE(overlay$overlay) && length(overlay$end_plot) == 1L) {
+          layer_info$group_index <- as.integer(overlay$end_plot)
         }
 
         layer_grob <- self$get_grob_for_layer(i)
@@ -455,10 +648,11 @@ BaseRPlotOrchestrator <- R6::R6Class(
         group <- private$.plot_groups[[group_idx]]
         group_config <- list()
 
-        # Check low-level calls for axis()
+        # Check low-level calls for axis(), but for one drawn over the
+        # group's plot in coordinates of its own (`drawn_over_group_plot()`)
         if (length(group$low_calls) > 0) {
           for (low_call in group$low_calls) {
-            if (low_call$function_name == "axis") {
+            if (low_call$function_name == "axis" && !isTRUE(low_call$overlay)) {
               args <- low_call$args
 
               # Check if this axis() call has format config
@@ -940,42 +1134,9 @@ BaseRPlotOrchestrator <- R6::R6Class(
             message("DEBUG: Panel config: ", panel_config$nrows, " x ", panel_config$ncols)
           }
 
-          # Replay the panel-visible plot groups using ORIGINAL (unwrapped)
-          # functions to prevent logging new calls during replay. Groups
-          # with an NA slot (drawn before the layout call, or on an
-          # earlier page) are excluded so the SVG matches the data grid.
-          margins <- list()
-          for (i in seq_along(private$.plot_groups)) {
-            if (is.na(panel_slots[i])) {
-              next
-            }
-            group <- private$.plot_groups[[i]]
-
-            if (getOption("maidr.debug", FALSE)) {
-              message("DEBUG: Replaying group ", i, " - ", group$high_call$function_name)
-            }
-
-            margins <- private$set_recorded_margins(group, margins)
-            replay_plot_call(
-              group$high_call$function_name,
-              group$high_call$args,
-              group$high_call$call_env,
-              group$high_call$arg_text,
-              group$high_call$rng_state
-            )
-
-            if (length(group$low_calls) > 0) {
-              for (low_call in group$low_calls) {
-                replay_plot_call(
-                  low_call$function_name,
-                  low_call$args,
-                  low_call$call_env,
-                  low_call$arg_text,
-                  low_call$rng_state
-                )
-              }
-            }
-          }
+          # Each group in its panel. Groups with an NA slot (drawn before
+          # the layout call) are excluded so the SVG matches the data grid.
+          private$replay_page(panel_slots, private$plot_numbers(panel_slots), panel_config)
         }
 
         tryCatch(
@@ -1001,73 +1162,32 @@ BaseRPlotOrchestrator <- R6::R6Class(
           }
         )
       } else {
-        # Single panel case - original logic
-        grob_list <- list()
+        # A single panel: the page R shows holds one plot, and the plots
+        # drawn over it -- after `par(new = TRUE)`, or with `add = TRUE` --
+        # which R drew on the same page and are drawn on it here too, as R
+        # drew them. Plots on the pages before are not among the groups
+        # (`last_page_calls()`).
+        page_func <- function() {
+          private$replay_page(rep(1L, length(private$.plot_groups)), private$plot_numbers())
+        }
 
-        for (i in seq_along(private$.plot_groups)) {
-          group <- private$.plot_groups[[i]]
-          high_call <- group$high_call
-          low_calls <- group$low_calls
-
-          # Use ORIGINAL (unwrapped) functions to prevent logging new calls
-          plot_func <- function() {
-            private$set_recorded_margins(group)
-            replay_plot_call(
-              high_call$function_name,
-              high_call$args,
-              high_call$call_env,
-              high_call$arg_text,
-              high_call$rng_state
-            )
-
-            if (length(low_calls) > 0) {
-              for (low_call in low_calls) {
-                replay_plot_call(
-                  low_call$function_name,
-                  low_call$args,
-                  low_call$call_env,
-                  low_call$arg_text,
-                  low_call$rng_state
-                )
-              }
+        # The drawing settles the canvas, enlarging it or stopping as
+        # above. One that fails for another reason -- the plot's, or one
+        # drawn over it, which R drew on the same page -- is kept and
+        # raised as the multipanel one is, for the chart to be drawn as a
+        # picture with a warning saying why (`build_interactive_svg()`).
+        grob <- tryCatch(
+          private$drawing_grob(page_func),
+          error = function(e) {
+            if (!inherits(e, "maidr_chart_draw_error")) {
+              private$.drawing_failure <- e
             }
+            stop(e)
           }
-
-          # Only the first drawing is shown (below), so only it settles the
-          # canvas, enlarging it or stopping as above, and only its failure
-          # is the chart's, kept and raised as the multipanel one is. A
-          # later one -- a chart drawn over it on the same device -- that
-          # does not fit is left without a grob, as one that fails for
-          # another reason is.
-          tryCatch(
-            {
-              grob <- if (i == 1) {
-                private$drawing_grob(plot_func)
-              } else {
-                base_r_drawing_grob(plot_func, private$.canvas)
-              }
-              grob_list[[i]] <- grob
-            },
-            error = function(e) {
-              if (i == 1) {
-                if (!inherits(e, "maidr_chart_draw_error")) {
-                  private$.drawing_failure <- e
-                }
-                stop(e)
-              }
-              grob_list[[i]] <- NULL
-            }
-          )
-        }
-
-        private$.grob_list <- grob_list
-
-        if (length(grob_list) > 0 && !is.null(grob_list[[1]])) {
-          private$.cached_gtable <- grob_list[[1]]
-          return(grob_list[[1]])
-        }
-
-        NULL
+        )
+        private$.grob_list <- list(grob)
+        private$.cached_gtable <- grob
+        grob
       }
     },
     #' @description The size the chart is drawn at
@@ -1085,14 +1205,8 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' is drawn at the chart's, as before: it shows what R draws of it.
     #' @return A named numeric vector, `width` and `height`, in inches
     picture_size = function() {
-      draw <- function() {
-        for (call in private$.plot_calls) {
-          replay_plot_call(
-            call$function_name, call$args, call$call_env,
-            rng_state = call$rng_state
-          )
-        }
-      }
+      # The drawing the picture is (`replay_base_r_plot()`).
+      draw <- function() replay_base_r_plot(private$.device_id, strict = TRUE)
       canvas <- private$.canvas
       failure <- tryCatch(
         {
@@ -1120,25 +1234,34 @@ BaseRPlotOrchestrator <- R6::R6Class(
     #' `title(outer = TRUE)` or `mtext(outer = TRUE)` along the top; else,
     #' for one panel, by its title, and for several, by each panel R drew in
     #' turn, an untitled one called so: "2 panels: Sales 2023, Costs 2024".
-    #' A panel's title is its plot's, or the one `title()` gave it. The
-    #' chart's own title is its last titled panel's, from any page, which
-    #' would name a picture of several panels by one of them; and maidr's
-    #' grid of cells counts a panel spanning two cells twice, and an empty
-    #' cell as a panel.
+    #' A panel's title is its plot's, or the one `title()` gave it; a plot
+    #' drawn over a panel's, after `par(new = TRUE)`, with `add = TRUE` or
+    #' sent back to it with `par(mfg = )`, is in that panel, which is named
+    #' by the first title drawn on it. The chart's own title is its last
+    #' titled panel's, from any page, which would name a picture of several
+    #' panels by one of them; and maidr's grid of cells counts a panel
+    #' spanning two cells twice, and an empty cell as a panel.
     #' @return One string, or NULL when the chart has no title
     picture_title = function() {
       groups <- private$.plot_groups
       panel_config <- detect_panel_configuration(private$.device_id)
       multipanel <- is_multipanel_config(panel_config)
-      shown <- if (multipanel) {
-        which(!is.na(compute_panel_slots(groups, panel_config)))
+      slots <- if (multipanel) {
+        compute_panel_slots(groups, panel_config)
       } else {
-        seq_along(groups)
+        rep(1L, length(groups))
       }
+      shown <- which(!is.na(slots))
 
+      # Drawn over every panel, whichever plot it was drawn on: a recorded
+      # one, or one no recorded call started, as a panel `plot.new()` took
+      # (`before_calls` and `after_calls`, see `group_device_calls()`).
       outer <- NULL
       for (group in groups[shown]) {
-        for (call in c(list(group$high_call), group$low_calls)) {
+        calls <- c(
+          group$before_calls, list(group$high_call), group$low_calls, group$after_calls
+        )
+        for (call in calls) {
           outer <- base_r_outer_title(call) %||% outer
         }
       }
@@ -1153,8 +1276,18 @@ BaseRPlotOrchestrator <- R6::R6Class(
         }
         return(if (length(groups) > 0) private$panel_title(length(groups)))
       }
-      titles <- vapply(shown, function(index) {
-        private$panel_title(index) %||% "untitled"
+      # A plot drawn over a panel's, after `par(new = TRUE)`, with
+      # `add = TRUE` or sent back to it with `par(mfg = )`, is a group of its
+      # own in that panel's slot: the panel is named once, by the first
+      # title drawn on it.
+      titles <- vapply(unique(slots[shown]), function(slot) {
+        for (index in shown[slots[shown] == slot]) {
+          title <- private$panel_title(index)
+          if (!is.null(title)) {
+            return(title)
+          }
+        }
+        "untitled"
       }, character(1))
       if (length(titles) == 1) {
         return(if (!identical(titles, "untitled")) titles)
@@ -1181,23 +1314,10 @@ BaseRPlotOrchestrator <- R6::R6Class(
         })
       }
 
-      panel_config <- detect_panel_configuration(private$.device_id)
-      is_multipanel <- is_multipanel_config(panel_config)
-
-      if (is_multipanel) {
-        # For multipanel, all layers share the same composite grob
-        # The processors will use group_index to find their specific elements
-        if (length(private$.grob_list) > 0) {
-          return(private$.grob_list[[1]])
-        }
-      } else {
-        # For single panel, return the grob for this layer's group
-        layer_info <- private$.layers[[layer_index]]
-        group_index <- layer_info$group_index
-
-        if (group_index <= length(private$.grob_list)) {
-          return(private$.grob_list[[group_index]])
-        }
+      # Every layer shares the drawing of the page: the processors find their
+      # own elements in it by their group's number (`group_index`).
+      if (length(private$.grob_list) > 0) {
+        return(private$.grob_list[[1]])
       }
 
       NULL
@@ -1361,6 +1481,158 @@ BaseRPlotOrchestrator <- R6::R6Class(
     }
   )
 )
+
+#' Give the plot a drawing is on the coordinates a call was drawn in
+#'
+#' Those of a plot no recorded call started, which what set them --
+#' `plot.window()`, or a plot maidr does not record -- set unrecorded
+#' (`base_r_plot_window()`).
+#'
+#' @param window A recorded call's `window`
+#' @return `window`, or NULL where it holds no coordinates, and none are set
+#' @keywords internal
+#' @noRd
+replay_plot_window <- function(window) {
+  if (length(window$usr) != 4L) {
+    return(NULL)
+  }
+  log <- paste(c(if (isTRUE(window$xlog)) "x", if (isTRUE(window$ylog)) "y"), collapse = "")
+  limits <- function(usr, logged) if (isTRUE(logged)) 10^usr else usr
+  graphics::plot.window(
+    xlim = limits(window$usr[1:2], window$xlog),
+    ylim = limits(window$usr[3:4], window$ylog),
+    log = log,
+    xaxs = "i",
+    yaxs = "i"
+  )
+  window
+}
+
+#' Start the plots R started before the one a drawing draws next
+#'
+#' Up to plot `upto` of the page, plots no recorded call started and no
+#' recorded call drew on: a panel `plot.new()` or `frame()` passed over, or
+#' a plot maidr does not record. Each moves on a panel while the panel of
+#' the plot drawn next (`slot`) is still ahead, and is drawn over the last
+#' panel once it is not, as R's would have been.
+#'
+#' @param at Where the drawing is (see `replay_page()`)
+#' @param upto The number of the last plot to start
+#' @param slot The panel of the plot drawn next
+#' @return Where the drawing is then
+#' @keywords internal
+#' @noRd
+start_skipped_plots <- function(at, upto, slot) {
+  for (k in seq_len(max(upto - at$plots, 0L))) {
+    stays <- at$slot > 0L && at$slot >= slot - 1L
+    if (!stays) {
+      at$slot <- at$slot + 1L
+      at$figure <- if (is.numeric(at$figure)) at$figure + 1L
+    }
+    start_replayed_plot(stays)
+    at$plots <- at$plots + 1L
+  }
+  at
+}
+
+#' Send the plot a recorded call starts where R put it, as it is drawn again
+#'
+#' In the panel of the plot before it (`slot`, the panel R drew it in, is
+#' `figure`, the one the drawing is in), in the next, or, where R was sent
+#' to it out of turn with `par(mfg = )`, in that panel of the grid
+#' (`mfg_of_panel()`). A plot R drew in a region `par(fig = )` or
+#' `screen()` set, outside any grid, is drawn in that region
+#' (`is_figure_region()`).
+#'
+#' @param high The recorded call, with the `cell` and `fig` R put its plot
+#'   in (`end_base_r_call()`)
+#' @param slot,figure The panel R drew the plot in, and the one the drawing
+#'   is in, each 0 for none
+#' @param panel_config The page's grid, or NULL for a page of one panel
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+place_replayed_plot <- function(high, slot, figure, panel_config = NULL) {
+  jumps <- figure > 0L && slot != figure && slot != figure + 1L &&
+    is_multipanel_config(panel_config)
+  if (jumps) {
+    graphics::par(mfg = mfg_of_panel(slot, panel_config))
+  } else {
+    if (is_figure_region(high, panel_config, graphics::par("fig"))) {
+      graphics::par(fig = high$fig)
+    }
+    start_replayed_plot(slot <= figure, start = FALSE)
+  }
+  invisible(NULL)
+}
+
+#' The `par(mfg = )` that sends R to a panel of a grid
+#'
+#' In an `mfrow` or `mfcol` grid, the panel's row and column. On a
+#' `layout()` page R reads `par(mfg = c(i, j))` as panel number
+#' `(i - 1) * columns + j` of the layout, wherever that panel is: in
+#' `layout(matrix(c(2, 1, 4, 3), 2))`, `par(mfg = c(1, 1))` sends it to
+#' panel 1, in row 2.
+#'
+#' @param slot The panel's number in the grid's order
+#' @param panel_config The page's grid
+#' @return The row and column to give `par(mfg = )`
+#' @keywords internal
+#' @noRd
+mfg_of_panel <- function(slot, panel_config) {
+  if (identical(panel_config$type, "layout")) {
+    ncols <- as.integer(panel_config$ncols)
+    return(c((slot - 1L) %/% ncols + 1L, (slot - 1L) %% ncols + 1L))
+  }
+  panel_slot_positions(slot, panel_config)[[1]]
+}
+
+#' Whether R drew a recorded call's plot in a region of the page it was given
+#'
+#' `par(fig = )`, and `screen()` with it, give the plot drawn next a region
+#' of the page outside any grid: R reports the cell of a grid of one, and a
+#' region that is not the whole page -- or is the whole page, on a page laid
+#' out as a grid of several panels, or where the drawing is in another
+#' region, as on a page of regions or screens: a legend for them all is
+#' drawn over the page after `par(fig = c(0, 1, 0, 1), new = TRUE)`.
+#'
+#' @param high The recorded call
+#' @param panel_config The page's grid, or NULL for a page of one panel
+#' @param drawing_fig The region of the page the drawing is in, before the
+#'   plot is drawn
+#' @return Logical
+#' @keywords internal
+#' @noRd
+is_figure_region <- function(high, panel_config = NULL, drawing_fig = c(0, 1, 0, 1)) {
+  page <- c(0, 1, 0, 1)
+  apart <- function(fig) isTRUE(max(abs(fig - page)) > 1e-6)
+  length(high$cell) == 4L && identical(as.integer(high$cell[3:4]), c(1L, 1L)) &&
+    length(high$fig) == 4L &&
+    (apart(high$fig) || is_multipanel_config(panel_config) || apart(drawing_fig))
+}
+
+#' Say whether the next plot of a drawing stays in the panel of the last
+#'
+#' `par(new = )` is set either way, never left as it was. R clears it once a
+#' plot draws anything, but gridGraphics, which echoes the drawing as grobs
+#' (`base_r_drawing_grob()`), follows only `par()` and `plot.new()`: after
+#' one plot drawn with `par(new = TRUE)` it kept every later plot in that
+#' plot's panel, so after `par(new = TRUE); plot(b); plot(c)` in a grid `c`
+#' was drawn over `b`, where R draws it in the next panel.
+#'
+#' @param stays Whether the plot stays in the panel of the plot before it
+#' @param start Whether to start the plot here, with `plot.new()`, or leave
+#'   it to the recorded call that draws it
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+start_replayed_plot <- function(stays, start = TRUE) {
+  graphics::par(new = stays)
+  if (start) {
+    graphics::plot.new()
+  }
+  invisible(NULL)
+}
 
 #' A Base R drawing as a grob, laid out on a page of the chart's size
 #'

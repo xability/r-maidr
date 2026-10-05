@@ -657,6 +657,15 @@ with_figure_calls <- function(device, calls, code) {
   }
   key <- as.character(grDevices::dev.cur())
   saved <- .maidr_base_r_session$devices[[key]]
+  # The figure's calls are those its page's markers name, all of them on the
+  # page the figure shows. They are read as one page, whatever page R
+  # counted each on: a page `replayPlot()` put back is not counted again,
+  # and a plot added to it would otherwise be read without it
+  # (`last_page_calls()`).
+  calls <- lapply(calls, function(entry) {
+    entry$page <- NULL
+    entry
+  })
   .maidr_base_r_session$devices[[key]] <- list(
     device_id = grDevices::dev.cur(),
     calls = calls,

@@ -720,32 +720,37 @@ test_that("a Base R chart too small for a size no one asked for is drawn larger,
   }
 })
 
-test_that("only the drawing a Base R chart shows settles its size", {
+test_that("only the page a Base R chart shows settles its size", {
   skip_if_no_render()
-  # Of two charts drawn one over the other on a device, maidr shows the
-  # first. A heatmap with wide margins, which R cannot draw at 7 x 5 in,
-  # drawn after it neither enlarges the chart nor stops it.
+  # Of two charts drawn one after the other on a device of one panel, R
+  # shows the second, on a page of its own, and so does maidr. A heatmap
+  # with wide margins, which R cannot draw at 7 x 5 in, settles the size
+  # when it is shown, and says nothing of the chart drawn after it.
   m <- matrix(1:20, 4)
   heat <- function() heatmap(m, margins = c(25, 25))
   # R warns as well as stops, of the plot it then has not started.
   testthat::expect_false(is.na(suppressWarnings(native_error(heat, c(7, 5)))))
-  scatter_first <- function() {
+  heat_last <- function() {
     plot(1:5)
     heat()
   }
-  for (size in list(NULL, c(7, 5))) {
-    drawn <- with_messages(render_sized(scatter_first, size))
-    testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 5)))
-    testthat::expect_length(drawn$said, 0L)
-  }
-  # Shown first, the heatmap is drawn larger.
+  drawn <- with_messages(render_sized(heat_last, NULL))
+  testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 7)))
+  testthat::expect_length(drawn$said, 1L)
+  testthat::expect_error(
+    suppressWarnings(render_sized(heat_last, c(7, 5))),
+    class = "maidr_chart_draw_error"
+  )
+  # Drawn before the chart shown, the heatmap neither enlarges it nor stops it.
   heat_first <- function() {
     heat()
     plot(1:5)
   }
-  drawn <- with_messages(render_sized(heat_first, NULL))
-  testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 7)))
-  testthat::expect_length(drawn$said, 1L)
+  for (size in list(NULL, c(7, 5))) {
+    drawn <- with_messages(render_sized(heat_first, size))
+    testthat::expect_identical(svg_size(drawn$value), svg_size_for(c(7, 5)))
+    testthat::expect_length(drawn$said, 0L)
+  }
 })
 
 test_that("a size asked for that a Base R chart is too small for still stops", {
@@ -1075,7 +1080,10 @@ test_that("a Base R chart shown as a picture is held to its size as its chart is
   testthat::expect_false(file.exists(file))
   maidr:::clear_device_storage(device)
 
-  # A picture R draws at the size is drawn there, saying nothing.
+  # A picture R draws at the size is drawn there, saying nothing. The device
+  # is put back to one panel first: under the grid five() left on it, R
+  # draws the plot in the top fifth of the page, and so does maidr.
+  par(mfrow = c(1, 1))
   persp(volcano)
   drawn <- saved()
   testthat::expect_equal(drawn$picture, c(7, 5) * 150)
@@ -1213,15 +1221,20 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
   skip_if_no_render()
   local_knitr_state()
   dir <- withr::local_tempdir("maidr-knit-")
-  # R draws these six panels in their chunk, with the margins the chunk
-  # sets. maidr draws a Base R chart again with the margins of the par()
-  # calls it recorded, and a par() called by name, as graphics::par(), is
-  # not recorded: it draws these with R's own margins, which six panels do
-  # not fit on a page 7 in high or less, and are drawn on one 9 in high.
+  # R draws these six panels in their chunk, in the plot region par(plt = )
+  # gives each. maidr draws a Base R chart again with the margins R had,
+  # not with a plot region par(plt = ) set: it draws these with R's own
+  # margins, which six panels do not fit on a page 7 in high or less, and
+  # are drawn on one 9 in high.
   unrecorded <- c(
-    "par(mfrow = c(6, 1))", "graphics::par(mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)"
+    "par(mfrow = c(6, 1))", "par(plt = c(0.1, 0.95, 0.15, 0.85))", "for (i in 1:6) plot(1:5)"
   )
   recorded <- c("par(mfrow = c(6, 1), mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)")
+  # Margins set by a par() maidr does not record, called by name, are
+  # those R had too.
+  by_name <- c(
+    "par(mfrow = c(6, 1))", "graphics::par(mar = c(1, 2, 1, 1))", "for (i in 1:6) plot(1:5)"
+  )
   warned <- character()
   knitted <- withCallingHandlers(
     with_messages(knit_for(c(
@@ -1229,7 +1242,8 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
       "```{r document-size}", "knitr::opts_chunk$set(fig.height = 6)", "```", "",
       "```{r document}", unrecorded, "```", "",
       "```{r asked, fig.height = 6.5}", unrecorded, "```", "",
-      "```{r recorded, fig.height = 6.5}", recorded, "```"
+      "```{r recorded, fig.height = 6.5}", recorded, "```", "",
+      "```{r by-name, fig.height = 6.5}", by_name, "```"
     ), dir)),
     warning = function(w) {
       warned <<- c(warned, conditionMessage(w))
@@ -1255,10 +1269,14 @@ test_that("a knitted Base R chart is drawn larger than the document's size, not 
       )
     )
   )
-  # The chunk that sets its margins with par() is drawn at its own size.
+  # The chunks that set their margins with par() are drawn at their own
+  # size.
   testthat::expect_identical(
     lapply(inline_svg_roots(knitted$value), svg_size),
-    list(svg_size_for(c(7, 9)), svg_size_for(c(7, 9)), svg_size_for(c(7, 6.5)))
+    list(
+      svg_size_for(c(7, 9)), svg_size_for(c(7, 9)), svg_size_for(c(7, 6.5)),
+      svg_size_for(c(7, 6.5))
+    )
   )
   # A size the chunk asked for is not changed: its figure stays knitr's
   # picture, and the warning says why.

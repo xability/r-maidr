@@ -183,11 +183,19 @@ ensure_maidr_device <- function() {
   # marker tells from the page count whether it drew several pages, and the
   # call is drawn again from the random state it starts from.
   note_knit_call_start()
+  # The page the call draws on is counted (see base_r_page_tracking.R),
+  # even where something took out the hook `.onLoad()` set.
+  set_base_r_page_hook()
   note_call_random_state()
   if (grDevices::dev.cur() == 1) {
     # No device open - create temp PDF to prevent default window
     open_maidr_temp_device()
   }
+  # And the panel and number of the plot it starts (`end_base_r_call()`),
+  # known by the wrapper's frame, which `log_plot_call_to_device()` is
+  # called from too.
+  wrapper <- sys.parent()
+  begin_base_r_call(grDevices::dev.cur(), wrapper)
   grDevices::dev.cur()
 }
 

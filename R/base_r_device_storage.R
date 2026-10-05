@@ -37,6 +37,24 @@ get_device_storage <- function(device_id = grDevices::dev.cur()) {
   .maidr_base_r_session$devices[[key]]
 }
 
+#' Keep a device's storage
+#'
+#' Put back as a list made afresh, holding the same calls. R walks through
+#' a value bound elsewhere, every call recorded on the device and all they
+#' hold, before it puts it in a list, to make sure the list is not inside
+#' it; recording a call then took time that grew with the calls recorded
+#' before it, and with how much each keeps.
+#'
+#' @param device_id Graphics device ID
+#' @param storage The device's storage, as [get_device_storage()] gives it
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+set_device_storage <- function(device_id, storage) {
+  .maidr_base_r_session$devices[[as.character(device_id)]] <- c(storage)
+  invisible(NULL)
+}
+
 #' Keep the title chartSeries() would have given the call it was made from
 #'
 #' Without a `name`, `quantmod::chartSeries()` titles the chart with the
@@ -198,6 +216,13 @@ log_plot_call_to_device <- function(
     # panel, a title() is drawn there (`margin_titles()`).
     plot_region = if (class_level %in% c("HIGH", "LOW")) device_plot_region(device_id)
   )
+  # Where R drew the call: the page, by which a chart is read from the page
+  # R's device shows (`last_page_calls()`), and the panel and number of its
+  # plot on that page (`end_base_r_call()`). Recorded once the call has
+  # drawn, so a plot that started a page is on it. The wrapper that drew
+  # it calls this, and is known by its frame.
+  wrapper <- sys.parent()
+  call_entry <- c(call_entry, end_base_r_call(device_id, wrapper))
   # Taken once: a call recorded without passing through
   # `ensure_maidr_device()` gets no state rather than an earlier call's.
   .maidr_call_start$rng_state <- NULL
@@ -215,8 +240,7 @@ log_plot_call_to_device <- function(
   storage$metadata$call_count <- length(storage$calls)
   call_index <- storage$metadata$call_count
 
-  key <- as.character(device_id)
-  .maidr_base_r_session$devices[[key]] <- storage
+  set_device_storage(device_id, storage)
 
   if (class_level == "HIGH") {
     on_high_level_call(device_id, call_index)
@@ -226,6 +250,8 @@ log_plot_call_to_device <- function(
 
   if (marked) {
     mark_knit_page(call_entry$uid, .maidr_knit_figures$call_start_page)
+  } else if (class_level %in% c("HIGH", "LOW")) {
+    mark_base_r_page(call_entry$id, device_id)
   }
 
   invisible(NULL)
@@ -264,8 +290,18 @@ clear_device_storage <- function(device_id = grDevices::dev.cur()) {
   key <- as.character(device_id)
 
   if (!is.null(.maidr_base_r_session$devices[[key]])) {
+    # The calls drawn on the page the device shows, which show() and
+    # save_html() have just read (`base_r_page_let_go()`); a layout call is
+    # kept from every page.
+    shown <- tryCatch(shown_device_calls(device_id), error = function(e) list())
+    read <- vapply(
+      Filter(function(call) !identical(call$class_level, "LAYOUT"), shown),
+      function(call) call$id %||% NA_integer_,
+      integer(1)
+    )
     .maidr_base_r_session$devices[[key]] <- NULL
     reset_device_state(device_id)
+    note_base_r_calls_cleared(device_id, read[!is.na(read)])
   }
 
   invisible(NULL)

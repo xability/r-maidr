@@ -27,10 +27,12 @@ mfrow c(2,2)  (k = 4)   graphics-plot-1 .. -3           3 panels
 }\if{html}{\out{</div>}}
 
 So with \code{n} terms and \code{k} cells the page carries the \strong{last}
-\code{((n - 1) \%\% k) + 1} of them, which is the rule
-\code{\link[=compute_panel_slots]{compute_panel_slots()}} already applies to whole plot groups -- the same
-arithmetic, one level down. A reading that announced all \code{n} terms would
-name curves that are not on the page.
+\code{((n - 1) \%\% k) + 1} of them, which is the rule R's device shows whole
+plots by, and maidr reads them by -- one level down. A reading that
+announced all \code{n} terms would name curves that are not on the page.
+Started after another plot, in a later cell, the call runs onto its last
+page sooner: the page carries as many terms as R started plots on it for
+the call, which the recorded call says.
 
 The \code{par} call is recorded as LAYOUT rather than as a layer, so it does not
 reach the processor with the rest of the call. It is read off the device

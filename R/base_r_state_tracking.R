@@ -30,8 +30,7 @@ get_device_state <- function(device_id = grDevices::dev.cur()) {
       last_high_call_index = NULL
     )
 
-    key <- as.character(device_id)
-    .maidr_base_r_session$devices[[key]] <- storage
+    set_device_storage(device_id, storage)
   }
 
   storage$state
@@ -49,8 +48,7 @@ update_device_state <- function(device_id = grDevices::dev.cur(), state) {
   storage <- get_device_storage(device_id)
   storage$state <- state
 
-  key <- as.character(device_id)
-  .maidr_base_r_session$devices[[key]] <- storage
+  set_device_storage(device_id, storage)
 
   invisible(NULL)
 }
@@ -178,8 +176,7 @@ reset_device_state <- function(device_id = grDevices::dev.cur()) {
   storage <- get_device_storage(device_id)
   storage$state <- NULL
 
-  key <- as.character(device_id)
-  .maidr_base_r_session$devices[[key]] <- storage
+  set_device_storage(device_id, storage)
 
   invisible(NULL)
 }

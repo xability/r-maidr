@@ -43,9 +43,7 @@ maidr_widget <- function(plot, use_cdn = NULL, width = NULL, height = NULL, elem
 
   # NULL means Base R auto-detection (recorded plot calls), mirroring show()
   if (is.null(plot)) {
-    if (!is_patching_active() || !has_device_calls(grDevices::dev.cur())) {
-      stop(no_base_r_plots_message(), call. = FALSE)
-    }
+    check_base_r_page_recorded(grDevices::dev.cur())
   } else if (!is_maidr_plot_object(plot)) {
     stop(
       "Input must be a ggplot object, a lattice (trellis) object, ",
