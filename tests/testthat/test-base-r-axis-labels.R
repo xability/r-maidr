@@ -907,6 +907,68 @@ test_that("a plot placed beside or inset in another keeps the titles written aft
   }
 })
 
+test_that("a plot drawn after screen() erased its screen keeps its own titles", {
+  # screen(n) erases screen n before the plot drawn next, with a plot of its
+  # own filled with the background, so the plot drawn there before is no
+  # longer seen: the next one is not drawn over it, as one after
+  # screen(n, new = FALSE) is. Read as drawn over it, the erased plot was
+  # announced with the axis titles written for the plot after it, in place
+  # of those R drew with it.
+  cases <- list(
+    list(quote({
+      split.screen(c(1, 2))
+      screen(1)
+      plot(1:10, main = "A", xlab = "xa", ylab = "ya")
+      screen(1)
+      plot(5:1, ann = FALSE)
+      title(xlab = "xc", ylab = "yc")
+      screen(2)
+      plot(Nile, main = "N")
+      close.screen(all.screens = TRUE)
+    }), list(list("xa", "ya"), list("xc", "yc"), list("Time", "Nile")),
+    c("A", "xa", "ya", "xc", "yc", "N", "Time", "Nile")),
+    list(quote({
+      split.screen(c(1, 2))
+      screen(1)
+      plot(1:10, ann = FALSE)
+      title(main = "A", xlab = "xa", ylab = "ya")
+      screen(1)
+      plot(5:1, ann = FALSE)
+      title(xlab = "xc", ylab = "yc")
+      close.screen(all.screens = TRUE)
+    }), list(list("xa", "ya"), list("xc", "yc")), c("A", "xa", "ya", "xc", "yc")),
+    # Sent back with new = FALSE, the screen is not erased, and the second
+    # series is drawn over the first, as on a chart of two y axes.
+    list(quote({
+      x <- 1:10
+      split.screen(c(1, 2))
+      screen(1)
+      par(mar = c(5, 4, 4, 5))
+      plot(x, x^2, type = "l", ann = FALSE)
+      screen(1, new = FALSE)
+      plot(x, sqrt(x), type = "l", axes = FALSE, ann = FALSE)
+      axis(4)
+      title(xlab = "Time")
+      mtext("Squares", side = 2, line = 3)
+      mtext("Roots", side = 4, line = 3)
+      close.screen(all.screens = TRUE)
+    }), list(list("Time", "Squares"), list(NULL, "Roots")), c("Time", "Squares", "Roots"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    expected <- case[[2]]
+    testthat::expect_length(axes, length(expected))
+    for (i in seq_along(expected)) {
+      testthat::expect_identical(axes[[i]]$x$label, expected[[i]][[1]], label = label)
+      testthat::expect_identical(axes[[i]]$y$label, expected[[i]][[2]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[3]])
+  }
+})
+
 test_that("a title written after par(mfg = ) titles the panel R draws it under", {
   # par(mfg = ) moves back to an earlier panel of a grid, and a title() or
   # mtext() written then is drawn under that panel. It was recorded with the

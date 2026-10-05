@@ -696,13 +696,17 @@ overlay_runs <- function(groups, layout_calls) {
   runs
 }
 
-#' Whether R started a plot in the panel it was in once the call before was done
+#' Whether R started a plot over the one it was on once the call before was done
 #'
 #' R moves on a panel for every plot it starts, unless `par(new = TRUE)`
 #' keeps it in the panel of the last (`note_base_r_plot_new()`), however
 #' that was set. So a plot started on the page and in the panel R was in
-#' when the call before it was done was drawn after `par(new = TRUE)`, or
-#' sent to that panel with `par(mfg = )` or `screen()`.
+#' when the call before it was done, as the next plot R started there, was
+#' drawn after `par(new = TRUE)`, or sent to that panel with `par(mfg = )`
+#' or `screen(n, new = FALSE)`. `screen(n)` itself erases the screen first,
+#' with a plot of its own that it fills with the background: a plot drawn
+#' after it is drawn over that one, where the plot before is no longer seen,
+#' and is not drawn over it.
 #'
 #' @param before,high The high-level calls of two plot groups, in the order
 #'   they were made
@@ -712,7 +716,8 @@ overlay_runs <- function(groups, layout_calls) {
 stayed_in_panel <- function(before, high) {
   isTRUE(high$new_plot) && is.numeric(high$figure) &&
     identical(high$page, before$page) &&
-    identical(high$figure, before$end_figure %||% before$figure)
+    identical(high$figure, before$end_figure %||% before$figure) &&
+    identical(as.integer(high$plot), as.integer((before$end_plot %||% before$plot) + 1L))
 }
 
 #' The plot each high-level call draws on
