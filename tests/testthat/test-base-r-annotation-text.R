@@ -342,6 +342,24 @@ test_that("a plotmath title given in a list is drawn as the formula R draws", {
   testthat::expect_identical(chart$layers[[1]]$axes$x$label, "beta[1]")
 })
 
+test_that("a title R was handed as a call is drawn as the formula R draws", {
+  # curve() hands its titles to title() as evaluated, a call among them.
+  # gridGraphics stopped on a call of more than one part ("'length = 3' in
+  # coercion to 'logical(1)'"), and the chart fell back to a picture. It
+  # warns of any plotmath title as it reads it, which is its own reading.
+  suppressWarnings({
+    expect_drawn_as_r(function() graphics::curve(x^2, 0, 2, ylab = quote(x^2)))
+    expect_drawn_as_r(function() {
+      k <- 2
+      graphics::curve(x^k, 0, 2, main = bquote(x^.(k)), xlab = quote(bar(x)))
+    })
+  })
+
+  chart <- exported_chart(function() curve(x^2, 0, 2, ylab = quote(x^2)))
+  testthat::expect_false(any(grepl("rendered interactively", chart$warnings)))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+})
+
 test_that("a plotmath title given in a list is announced as it was written", {
   # It was announced as no title, where the same value given as an axis
   # title is read as it was written, and where reading the list as text

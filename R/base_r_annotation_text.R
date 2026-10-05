@@ -184,10 +184,13 @@ base_r_echoable_recording <- function(recording, size) {
 
 #' A recorded `title()`, as entries gridGraphics draws as R drew it
 #'
-#' gridGraphics draws a title that is one string or a call. Another value of
-#' length one is handed to it as the string R drew, and one of length zero
-#' as no title, which is what R drew. A title of several values, or given as
-#' a list, is drawn again as R drew it (`base_r_title_as_drawn()`). Its
+#' gridGraphics draws a title that is one string or an expression. Another
+#' value of length one is handed to it as the string R drew, and one of
+#' length zero as no title, which is what R drew. A call, `curve(x^2, 0, 2,
+#' ylab = quote(x^2))`'s, is handed over as the expression R draws it as:
+#' gridGraphics stops on a call of more than one part ("'length = 3' in
+#' coercion to 'logical(1)'"). A title of several values, or given as a
+#' list, is drawn again as R drew it (`base_r_title_as_drawn()`). Its
 #' `line` and `outer` are handed over as R read them, by their first value,
 #' a missing `outer` as `FALSE` (`base_r_scalar_arg()`): `title(main =
 #' "Speed", line = c(1, 2))` is drawn on line 1.
@@ -213,7 +216,8 @@ base_r_echoable_title <- function(recording, i, size) {
     return(base_r_title_as_drawn(recording, i, size))
   }
   args[2:5] <- lapply(texts, function(text) {
-    base_r_first_expression(base_r_title_text(text, NA, NA, NA)$text)
+    text <- base_r_first_expression(base_r_title_text(text, NA, NA, NA)$text)
+    if (is.call(text)) as.expression(text) else text
   })
   if (identical(args, as.list(entry[[2]]))) {
     return(list(entry))
