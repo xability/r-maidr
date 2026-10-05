@@ -43,38 +43,37 @@
 #' page it is on -- every plot on a page of one panel, the fifth under
 #' `par(mfrow = c(2, 2))`, the first after `par(mfrow = )`, `par(mfcol = )`
 #' or `layout()` sets a page up again -- and `plot.new()` and `frame()`
-#' move on a panel as a plot does. So after `hist(a); hist(b)` the chart
-#' is the histogram of `b` alone, and after five plots under
+#' move on a panel as a plot does. So after `hist(a); hist(b)` the chart is
+#' the histogram of `b` alone, and after five plots under
 #' `par(mfrow = c(2, 2))` it is the fifth, in the first panel of a 2 x 2
 #' grid. Each plot of a grid is in the panel R drew it in: a plot drawn
 #' after `par(new = TRUE)`, or with `add = TRUE`, is drawn in the panel of
 #' the plot before it, one `par(mfg = )` sends to a panel out of turn is in
 #' that panel, and a panel `plot.new()` or `frame()` passed over stays
 #' empty. So it is where the call that set the grid up was not recorded:
-#' one made through `graphics::par()`, before [maidr_on()], or before an
-#' earlier `show()` or `save_html()` on the device. A plot drawn in a region of the page `par(fig = )` gave it,
-#' as an inset is, or in a screen of `split.screen()`, is drawn in that
+#' one made through `graphics::par()` or `graphics::layout()`, before
+#' [maidr_on()], or before an earlier `show()` or `save_html()` on the
+#' device. A plot drawn in a region of the page `par(fig = )` gave it, as
+#' an inset is, or in a screen of `split.screen()`, is drawn in that
 #' region, and read with the plot before it. `lines()`, `points()`,
-#' `abline()`, `text()`, `legend()`,
-#' `title()`, `axis()` and the other low-level calls add to the plot they
-#' are drawn on. Drawn on a panel `plot.new()` or `frame()` took, as a
-#' legend of its own is, or on a plot maidr does not record, such as
-#' `smoothScatter()`, they are drawn there, and read as part of no plot.
-#' Drawn over a plot after `par(new = TRUE)` and `plot.new()`, as a second
-#' series with an axis of its own is, they are drawn in the coordinates
-#' they were drawn in, and read with that plot.
-#' Nothing drawn on an
-#' earlier page reaches the chart: not its data, its titles or the size it
-#' is drawn at. A page `replayPlot()` puts back, from a plot
-#' `recordPlot()` saved on a device that keeps a display list, is the page
-#' the chart is read from, with what was drawn on it when it was saved and
-#' what has been drawn on it since. A page that holds no plot maidr recorded -- one R started
-#' with `plot.new()` or `frame()`, with a plot maidr does not record, or
-#' with one drawn while [maidr_off()] was in effect, even with `lines()` or
-#' `text()` drawn on it since -- is not read as the plot before it: `show()`
-#' and `save_html()` stop, and say so. Each figure
-#' of an R Markdown or Quarto document is read the same way, from the calls
-#' on its own page.
+#' `abline()`, `text()`, `legend()`, `title()`, `axis()` and the other
+#' low-level calls add to the plot they are drawn on. Drawn on a panel
+#' `plot.new()` or `frame()` took, as a legend of its own is, or on a plot
+#' maidr does not record, such as `smoothScatter()`, they are drawn there,
+#' and read as part of no plot. Drawn over a plot after `par(new = TRUE)`
+#' and `plot.new()`, as a second series with an axis of its own is, they
+#' are drawn in the coordinates they were drawn in, and read with that
+#' plot. Nothing drawn on an earlier page reaches the chart: not its data,
+#' its titles or the size it is drawn at. A page `replayPlot()` puts back,
+#' from a plot `recordPlot()` saved on a device that keeps a display list,
+#' is the page the chart is read from, with what was drawn on it when it
+#' was saved and what has been drawn on it since. A page that holds no plot
+#' maidr recorded -- one R started with `plot.new()` or `frame()`, with a
+#' plot maidr does not record, or with one drawn while [maidr_off()] was in
+#' effect, even with `lines()` or `text()` drawn on it since -- is not read
+#' as the plot before it: `show()` and `save_html()` stop, and say so. Each
+#' figure of an R Markdown or Quarto document is read the same way, from
+#' the calls on its own page.
 #' @section Chart size:
 #' A chart is drawn at a size in inches, as [ggplot2::ggsave()] and knitr's
 #' `fig.width` and `fig.height` size a figure, and its SVG is 72 pixels to
