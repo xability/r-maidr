@@ -106,8 +106,10 @@ is the page the chart is read from, with what was drawn on it when it
 was saved and what has been drawn on it since. A page that holds no plot
 maidr recorded -- one R started with \code{plot.new()} or \code{frame()}, with a
 plot maidr does not record, or with one drawn while \code{\link[=maidr_off]{maidr_off()}} was in
-effect, even with \code{lines()} or \code{text()} drawn on it since -- is not read
-as the plot before it: \code{show()} and \code{save_html()} stop, and say so. Each
+effect, even with \code{lines()} or \code{text()} drawn on it since, or one
+\code{replayPlot()} put back from such a page, or from a plot saved in
+another session or on another device -- is not read as the plot before
+it: \code{show()} and \code{save_html()} stop, and say so. Each
 figure of an R Markdown or Quarto document is read the same way, from
 the calls on its own page.
 }

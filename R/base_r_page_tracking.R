@@ -174,16 +174,18 @@ mark_base_r_page <- function(id, device_id = grDevices::dev.cur()) {
 #' (`mark_base_r_page()`), read from the display list of the device, which
 #' holds that page from its start: after `replayPlot()` put a page back,
 #' the page it put back, and only what had been drawn on it when
-#' `recordPlot()` saved it, with what was drawn on it since. Not in a knit,
-#' where no call leaves a mark. `NULL` where the device keeps no display
-#' list, or one that does not hold its page from the start, as one
-#' `dev.control("enable")` turned on with a plot already drawn does; or
-#' where the list holds no mark of this session.
+#' `recordPlot()` saved it, with what was drawn on it since. A page that
+#' holds none of this session's marks holds no call maidr recorded: one
+#' drawn while `maidr_off()` was in effect, or saved in another session,
+#' that `replayPlot()` put back. Not in a knit, where no call leaves a mark.
+#' `NULL` where the device keeps no display list, or one that does not hold
+#' its page from the start, as one `dev.control("enable")` turned on with a
+#' plot already drawn does; or where no call of this session left a mark.
 #'
 #' @param device_id Graphics device ID
 #' @return `NULL`, or a list: `ids`, the numbers of the calls marked on it
 #'   (see `end_base_r_call()`), and `plots`, the number of plots R had
-#'   started on the page when each was done
+#'   started on the page when each was done; each empty for none
 #' @keywords internal
 #' @noRd
 base_r_display_list_marks <- function(device_id = grDevices::dev.cur()) {
@@ -217,9 +219,6 @@ base_r_display_list_marks <- function(device_id = grDevices::dev.cur()) {
       ids <- c(ids, as.integer(substring(mark, nchar(prefix) + 1L)))
       plots <- c(plots, started[[i]])
     }
-  }
-  if (length(ids) == 0L) {
-    return(NULL)
   }
   list(ids = ids, plots = plots)
 }
@@ -375,8 +374,9 @@ last_page_calls <- function(calls, page = NULL) {
 #' @param calls Recorded call entries, in the order they were recorded
 #' @param marks The marks on the display list, from
 #'   `base_r_display_list_marks()`, or `NULL`
-#' @return The entries, in the same order; `NULL` where no recorded call
-#'   is marked on the list
+#' @return The entries, in the same order: only layout calls, where the
+#'   list holds no recorded call, as on a page `replayPlot()` put back that
+#'   holds none; `NULL` where `marks` is
 #' @keywords internal
 #' @noRd
 marked_page_calls <- function(calls, marks) {
@@ -384,9 +384,6 @@ marked_page_calls <- function(calls, marks) {
     return(NULL)
   }
   ids <- vapply(calls, function(call) call$id %||% NA_integer_, integer(1))
-  if (!any(ids %in% marks$ids)) {
-    return(NULL)
-  }
   kept <- list()
   for (i in seq_along(calls)) {
     call <- calls[[i]]
@@ -430,9 +427,11 @@ shown_device_calls <- function(device_id = grDevices::dev.cur()) {
 #' Something was drawn on the device, but no plot maidr recorded is on the
 #' page R shows: R started that page with `plot.new()` or `frame()`, with a
 #' plot maidr does not record, or with one drawn while `maidr_off()` was in
-#' effect, and anything recorded on it since is a low-level call that
-#' started no plot, such as `lines()` or `text()`. A device holding only
-#' layout calls has drawn nothing, and is not such a device.
+#' effect, or `replayPlot()` put back a page drawn so, or saved in another
+#' session or on another device; and anything recorded on it since is a
+#' low-level call that started no plot, such as `lines()` or `text()`. A
+#' device holding only layout calls has drawn nothing, and is not such a
+#' device.
 #'
 #' @param device_id Graphics device ID
 #' @return Logical
@@ -634,9 +633,10 @@ check_base_r_page_recorded <- function(device_id = grDevices::dev.cur()) {
         "The page R's device shows holds no Base R plot maidr recorded, ",
         "so maidr cannot read it. R started that page with plot.new() or ",
         "frame(), with a plot maidr does not record, or with a plot drawn ",
-        "while maidr_off() was in effect, and any plot maidr recorded is on ",
-        "an earlier page, which R no longer shows. Draw the chart with ",
-        "maidr on, from a plot such as plot() or hist(), to read it."
+        "while maidr_off() was in effect, or replayPlot() put back a page ",
+        "drawn so, or saved in another session or on another device; any ",
+        "plot maidr recorded is on a page R no longer shows. Draw the chart ",
+        "with maidr on, from a plot such as plot() or hist(), to read it."
       ),
       call. = FALSE
     )

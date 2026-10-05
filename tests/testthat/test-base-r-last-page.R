@@ -1130,6 +1130,51 @@ test_that("a page replayPlot() puts back is the page read", {
   # And a plot drawn next starts a page of its own, with none of the second.
   chart <- last_page_export(replayed(function() hist(mtcars$wt, main = "Third")))
   testthat::expect_identical(cell_titles(chart), list("Third"))
+
+  # A page that holds no plot maidr recorded on the device, put back: R
+  # shows it, and the page R had started before, which was read in its
+  # place by its number, is not the chart.
+  saved <- list(
+    "drawn while maidr_off() was in effect" = function() {
+      maidr_off()
+      on.exit(maidr_on(), add = TRUE)
+      plot(1:5, main = "Unrecorded")
+      grDevices::recordPlot()
+    },
+    "saved on another device" = function() {
+      shown <- grDevices::dev.cur()
+      grDevices::pdf(NULL)
+      other <- grDevices::dev.cur()
+      on.exit(
+        {
+          clear_base_r_device(other)
+          grDevices::dev.off(other)
+          grDevices::dev.set(shown)
+        },
+        add = TRUE
+      )
+      grDevices::dev.control("enable")
+      barplot(c(a = 1, b = 2), main = "Elsewhere")
+      grDevices::recordPlot()
+    }
+  )
+  for (name in names(saved)) {
+    grDevices::pdf(NULL)
+    device_id <- grDevices::dev.cur()
+    clear_base_r_device(device_id)
+    grDevices::dev.control("enable")
+    page <- saved[[name]]()
+    hist(mtcars$mpg, main = "Recorded")
+    grDevices::replayPlot(page)
+    for (export in list(
+      function() save_html(file = tempfile(fileext = ".html")),
+      function() show()
+    )) {
+      testthat::expect_error(export(), "holds no Base R plot maidr recorded", label = name)
+    }
+    clear_base_r_device(device_id)
+    grDevices::dev.off(device_id)
+  }
 })
 
 test_that("a page replayPlot() puts back holds what was drawn on it before it was saved", {

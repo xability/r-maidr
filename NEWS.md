@@ -425,9 +425,10 @@
   gave a chart with nothing on it. A page that holds no plot maidr
   recorded, as after `hist(x); plot.new()`,
   `hist(x); plot.new(); text(0.5, 0.5, "note")` or
-  `hist(x); smoothScatter(y)`, is no longer exported as the histogram
-  before it, or as a chart with nothing on it: `show()` and `save_html()`
-  stop and say the page holds no plot maidr recorded (#PR).
+  `hist(x); smoothScatter(y)`, or a page `replayPlot()` puts back from a
+  plot drawn while `maidr_off()` was in effect, is no longer exported as
+  the histogram before it, or as a chart with nothing on it: `show()` and
+  `save_html()` stop and say the page holds no plot maidr recorded (#PR).
 
 ## Documentation
 

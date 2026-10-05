@@ -70,8 +70,10 @@
 #' was saved and what has been drawn on it since. A page that holds no plot
 #' maidr recorded -- one R started with `plot.new()` or `frame()`, with a
 #' plot maidr does not record, or with one drawn while [maidr_off()] was in
-#' effect, even with `lines()` or `text()` drawn on it since -- is not read
-#' as the plot before it: `show()` and `save_html()` stop, and say so. Each
+#' effect, even with `lines()` or `text()` drawn on it since, or one
+#' `replayPlot()` put back from such a page, or from a plot saved in
+#' another session or on another device -- is not read as the plot before
+#' it: `show()` and `save_html()` stop, and say so. Each
 #' figure of an R Markdown or Quarto document is read the same way, from
 #' the calls on its own page.
 #' @section Chart size:
