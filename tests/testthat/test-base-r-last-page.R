@@ -441,6 +441,48 @@ test_that("a grid no recorded call set up is read from the cells R drew its plot
   testthat::expect_length(pairs$schema$subplots, 3L)
 })
 
+test_that("a layout() no recorded call set up is read from the regions R gave its panels", {
+  skip_if_no_render()
+
+  # A panel that spans cells spans them in the chart too, as it does when
+  # the layout() call is recorded, and leaves no cell empty.
+  expect_read_as_r_draws <- function(page, titles) {
+    for (draw in list(
+      function() eval(page),
+      # Recorded, and cleared with the chart an earlier save_html() saved.
+      function() {
+        layout(eval(page[[2]][[2]]))
+        for (i in 1:3) plot(i, main = "Before")
+        suppressMessages(save_html(file = tempfile(fileext = ".html")))
+        eval(page[-2])
+      }
+    )) {
+      chart <- last_page_export(draw)
+      testthat::expect_identical(cell_titles(chart), titles)
+      expect_selectors_drawn(chart)
+      expect_drawn_where_r_draws(chart, page, unique(unlist(titles)))
+    }
+  }
+  expect_read_as_r_draws(
+    quote({
+      graphics::layout(matrix(c(1, 1, 2, 3), 2, byrow = TRUE))
+      hist(mtcars$mpg, main = "Top")
+      plot(1:3, main = "BL")
+      barplot(c(a = 1, b = 2), main = "BR")
+    }),
+    list("Top", "Top", "BL", "BR")
+  )
+  expect_read_as_r_draws(
+    quote({
+      graphics::layout(matrix(c(1, 2, 1, 3), 2, byrow = TRUE))
+      hist(mtcars$mpg, main = "Left")
+      plot(1:3, main = "TR")
+      barplot(c(a = 1, b = 2), main = "BR")
+    }),
+    list("Left", "TR", "Left", "BR")
+  )
+})
+
 test_that("a plot drawn with add = TRUE highlights nothing of the plot it is drawn over", {
   skip_if_no_render()
 

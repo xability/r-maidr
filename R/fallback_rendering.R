@@ -150,7 +150,9 @@ replay_base_r_plot <- function(device_id) {
   # A grid no recorded call set up, which R drew the plots in all the same
   # (`grid_of_cells()`), is set up first, as R had it.
   config <- tryCatch(detect_panel_configuration(device_id), error = function(e) NULL)
-  if (isTRUE(config$derived)) {
+  if (isTRUE(config$derived) && identical(config$type, "layout")) {
+    graphics::layout(config$matrix)
+  } else if (isTRUE(config$derived)) {
     graphics::par(mfrow = c(config$nrows, config$ncols))
   }
 

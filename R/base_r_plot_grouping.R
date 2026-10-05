@@ -279,7 +279,9 @@ detect_panel_configuration <- function(device_id = grDevices::dev.cur()) {
 #' the device, which cleared the calls recorded with it. Without it the
 #' page's plots were read as one, and drawn over each other at full size.
 #' Its plots are read in the panels of an `mfrow` grid of that shape, and
-#' each drawn in its cell, where R drew it. A plot that laid out a grid of
+#' each drawn in its cell, where R drew it. Where R drew a plot across
+#' several cells, as a `layout()` panel that spans them, the grid is that
+#' `layout()` (`layout_of_regions()`). A plot that laid out a grid of
 #' its own (`laid_out`, see `end_base_r_call()`) or that a region of the
 #' page was given, by `par(fig = )` or `screen()`, is not one of them.
 #'
@@ -303,17 +305,81 @@ grid_of_cells <- function(groups) {
   if (length(dims) != 1L || prod(dims[[1]]) < 2L) {
     return(NULL)
   }
-  config <- list(
+  config <- layout_of_regions(highs, dims[[1]]) %||% list(
     type = "mfrow",
     nrows = dims[[1]][[1]],
     ncols = dims[[1]][[2]],
-    total_panels = prod(dims[[1]]),
-    derived = TRUE
+    total_panels = prod(dims[[1]])
   )
+  config$derived <- TRUE
   if (!all(vapply(highs, plot_in_grid, logical(1), config = config))) {
     return(NULL)
   }
   config
+}
+
+#' The `layout()` R drew a page's plots in, from the regions it gave them
+#'
+#' Under `layout()` R reports the cell at the top left of a plot's panel
+#' (`par("mfg")`) and the panel's region of the page (`par("fig")`), which
+#' covers as many cells of the grid as the panel spans. The panels are
+#' numbered in the order R drew in them, as it numbers a `layout()`'s
+#' panels; a cell no plot was drawn in is empty. A plot drawn over another
+#' after `par(new = TRUE)` is in its panel.
+#'
+#' @param highs The recorded calls of the page's plots, each with its `cell`
+#'   and `fig`
+#' @param dims The grid's rows and columns
+#' @return A `layout` panel configuration with its `matrix`, or NULL where
+#'   each plot is in one cell, or where a region is not cells of a grid of
+#'   equal rows and columns, as one of a `layout()` with `widths` or
+#'   `heights` is not
+#' @keywords internal
+#' @noRd
+layout_of_regions <- function(highs, dims) {
+  nrows <- dims[[1]]
+  ncols <- dims[[2]]
+  mat <- matrix(0L, nrows, ncols)
+  spans <- FALSE
+  near <- function(a, b) isTRUE(abs(a - b) < 1e-6)
+  for (high in highs) {
+    fig <- high$fig
+    if (length(fig) != 4L || anyNA(fig)) {
+      return(NULL)
+    }
+    row <- high$cell[[1]]
+    col <- high$cell[[2]]
+    across <- (fig[[2]] - fig[[1]]) * ncols
+    down <- (fig[[4]] - fig[[3]]) * nrows
+    aligned <- round(across) >= 1 && round(down) >= 1 &&
+      near(across, round(across)) && near(down, round(down)) &&
+      near(fig[[1]], (col - 1) / ncols) && near(fig[[4]], 1 - (row - 1) / nrows)
+    if (!aligned) {
+      return(NULL)
+    }
+    rows <- row + seq_len(round(down)) - 1L
+    cols <- col + seq_len(round(across)) - 1L
+    if (max(rows) > nrows || max(cols) > ncols) {
+      return(NULL)
+    }
+    spans <- spans || length(rows) > 1L || length(cols) > 1L
+    taken <- mat[rows, cols]
+    if (all(taken == 0L)) {
+      mat[rows, cols] <- max(mat) + 1L
+    } else if (!all(taken == taken[[1]]) || sum(mat == taken[[1]]) != length(taken)) {
+      return(NULL)
+    }
+  }
+  if (!spans) {
+    return(NULL)
+  }
+  list(
+    type = "layout",
+    nrows = nrows,
+    ncols = ncols,
+    total_panels = max(mat),
+    matrix = mat
+  )
 }
 
 #' Whether R drew a plot of the page in a grid
