@@ -627,6 +627,73 @@ test_that("a factor or date given in a list title is drawn and announced as the 
   testthat::expect_identical(chart$layers[[1]]$axes$x$label, "1")
 })
 
+test_that("a title written as code on a call recorded as written is announced as R draws it", {
+  # curve(), and a formula plot whose subset names the data's columns, are
+  # recorded as written. A title given as anything but a literal was then
+  # announced as its code, `c("x", "(units)")`, or as no title, where R drew
+  # its value.
+  d <- data.frame(x = 1:6, y = c(2, 4, 3, 5, 1, 6), g = rep(1:2, 3))
+  size <- c(width = 7, height = 5)
+  r_text <- function(draw) sort(sub(" \\|.*$", "", r_drawing(draw, size)))
+
+  chart <- exported_chart(function() {
+    par(mfrow = c(1, 2))
+    for (grp in 1:2) {
+      plot(y ~ x, data = d, subset = g == grp, main = grp, xlab = c("x", "(units)"))
+    }
+  })
+  testthat::expect_identical(chart$text, r_text(function() {
+    graphics::par(mfrow = c(1, 2))
+    for (grp in 1:2) {
+      graphics::plot(y ~ x, data = d, subset = g == grp, main = grp, xlab = c("x", "(units)"))
+    }
+  }))
+  testthat::expect_identical(vapply(chart$layers, `[[`, "", "title"), c("1", "2"))
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "x\n(units)")
+
+  # plot()'s formula method reads main, sub and xlab within its data.
+  chart <- exported_chart(function() {
+    plot(y ~ x, data = d, subset = g == 1, main = paste("n =", length(y)), xlab = paste("g", g[1]))
+  })
+  testthat::expect_identical(chart$text, r_text(function() {
+    graphics::plot(
+      y ~ x, data = d, subset = g == 1, main = paste("n =", length(y)), xlab = paste("g", g[1])
+    )
+  }))
+  testthat::expect_identical(chart$layers[[1]]$title, "n = 6")
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "g 1")
+
+  # Drawn again from the code as written: the formula method evaluates an
+  # expression vector it is handed, and would look up alpha.
+  chart <- exported_chart(function() {
+    plot(y ~ x, data = d, subset = g == 1, main = expression(alpha))
+  })
+  testthat::expect_false(any(grepl("rendered interactively", chart$warnings)))
+  testthat::expect_true(length(unlist(chart$layers[[1]]$selectors)) > 0)
+
+  chart <- exported_chart(function() {
+    s <- 2
+    curve(dnorm(x, sd = s), -5, 5, main = s, ylab = c("density", "(sd 2)"))
+  })
+  testthat::expect_identical(chart$title, "2")
+  testthat::expect_identical(chart$layers[[1]]$axes$y$label, "density\n(sd 2)")
+
+  chart <- exported_chart(function() {
+    curve(sin, 0, pi, xlab = list("angle", col = "red"), ylab = list(2024))
+  })
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "angle")
+  testthat::expect_identical(chart$layers[[1]]$axes$y$label, "2024")
+
+  chart <- exported_chart(function() curve(x^2, 0, 2, xlab = expression(x), ylab = quote(x^2)))
+  testthat::expect_identical(chart$layers[[1]]$axes$x$label, "x")
+  testthat::expect_identical(chart$layers[[1]]$axes$y$label, "x^2")
+
+  chart <- exported_chart(function() {
+    boxplot(y ~ g, data = d, subset = x > 1, ylab = list("y", font = 2))
+  })
+  testthat::expect_identical(chart$layers[[1]]$axes$y$label, "y")
+})
+
 test_that("several time series a panel each are announced by the series R titles them with", {
   # plot.ts() draws no ylab for several series a panel each: it titles each
   # panel after its series. maidr reads the first series, and announced the

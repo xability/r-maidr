@@ -229,6 +229,11 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 #' the call is rebuilt and evaluated in the environment captured at record
 #' time so those expressions resolve exactly as they did originally.
 #'
+#' Such a call's titles are recorded as the values R drew, for the
+#' processors to read, and their code under `.maidr_written_titles`
+#' (`recorded_title_values()`): the code is put back here, and evaluated as
+#' the original call evaluated it.
+#'
 #' Otherwise the recorded values are drawn, each argument `arg_text` names
 #' passed under a symbol spelled as it was written (see
 #' `call_with_written_args()`), so a title R derives from that text comes
@@ -245,6 +250,10 @@ replay_to_native_device <- function(device_id = grDevices::dev.cur()) {
 replay_plot_call <- function(function_name, args, call_env = NULL,
                              arg_text = NULL) {
   orig_fn <- get_original_function(function_name)
+  written <- args[[".maidr_written_titles"]]
+  if (is.list(written)) {
+    args[names(written)] <- written
+  }
   args <- clean_maidr_args(args)
 
   has_language_args <- any(vapply(args, is.language, logical(1)))
