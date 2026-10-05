@@ -438,9 +438,10 @@ test_that("a title's line and outer are read by their first value, as R reads th
 })
 
 test_that("an axis's tick, line, pos and outer are read by their first value, as R reads them", {
-  # gridGraphics tested them as given, and stopped on several values and on
-  # a missing tick or outer ("missing value where TRUE/FALSE needed"); the
-  # chart fell back to a picture.
+  # gridGraphics tested them as given, and stopped on several values of tick,
+  # pos or outer and on a missing outer ("missing value where TRUE/FALSE
+  # needed"); the chart fell back to a picture. It reads a missing tick as
+  # TRUE itself, as R does.
   expect_drawn_as_r(function() {
     graphics::plot(1:5, axes = FALSE)
     graphics::axis(1, tick = c(FALSE, TRUE), line = c(1, 2))

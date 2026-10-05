@@ -230,8 +230,10 @@ base_r_echoable_title <- function(recording, i, size) {
 #'
 #' R reads such an argument, a `line` or an `outer`, with `asReal()` or
 #' `asLogical()`: by its first value, none being missing. gridGraphics tests
-#' it as given, and stops on several values, on none and on a missing flag,
-#' and reads a number given as text as missing.
+#' it as given. It stops on several values of most of them (a title's `line`
+#' and `outer`, an axis's `tick`, `pos` and `outer`), on none, and on a
+#' missing `outer`; it reads a missing `tick` as `TRUE` itself, and a number
+#' given as text as missing. Handed the value R read, it draws as R does.
 #'
 #' @param x The argument, as recorded
 #' @param flag Whether R reads it as a logical, rather than a number

@@ -392,9 +392,10 @@
   drawing maidr makes of a Base R chart again stopped on a `main`, `sub`,
   `xlab` or `ylab` given as a number, a logical, several values or a list
   such as `list("Title", font = 2)`, on a `title()` given several `line` or
-  `outer` values or a missing one, on an `axis()` given several or missing
-  values of `side`, `tick`, `line`, `pos`, `outer`, `font`, `lwd` or
-  `lwd.ticks`, on `axis(labels = NA)` and `axis(1, at = numeric(0))`, and on
+  `outer` values, none, or a missing `outer`, on an `axis()` given several
+  values of `side`, `tick`, `pos`, `outer`, `font`, `lwd` or `lwd.ticks` or a
+  missing `outer`, `lwd` or `lwd.ticks`, on `axis(labels = NA)` and
+  `axis(1, at = numeric(0))`, and on
   an `mtext()` spread over several sides, `adj` or `padj` values, such as
   `mtext(c("Left", "Right"), side = c(2, 4))`; it left out values of an
   `mtext()` whose `at` held fewer positions than values, or a missing one,
