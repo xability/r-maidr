@@ -47,13 +47,21 @@
 # The number the next recorded call is known by, while it draws and once
 # it is recorded (`standalone_calls()`).
 .maidr_base_r_pages$next_id <- 1L
+# Where R was when each recorded call was done, by the token of the marker
+# it left on its page (`mark_base_r_page()`), and whether a marker is being
+# made now, which evaluates it once.
+.maidr_base_r_pages$marks <- new.env(hash = TRUE, parent = emptyenv())
+.maidr_base_r_pages$mark_count <- 0L
+.maidr_base_r_pages$marking <- FALSE
 
 #' Where R is drawing, on a device
 #'
 #' @param device_id Graphics device ID
-#' @return A list: `page`, the pages R has started on the device since
-#'   maidr was loaded; `figure`, the panel of the last page it is in, and
-#'   `plot`, the plots started on that page. Each 0 for none.
+#' @return A list: `page`, the page R is on, by the number of pages it
+#'   had started on the device since maidr was loaded when it started it
+#'   -- one `replayPlot()` put back is on its own -- and `last`, the most
+#'   it has started; `figure`, the panel of the page it is in, and `plot`,
+#'   the plots started on that page. Each 0 for none.
 #' @keywords internal
 #' @noRd
 base_r_device_position <- function(device_id = grDevices::dev.cur()) {
@@ -78,13 +86,17 @@ note_base_r_plot_new <- function() {
         key <- as.character(device)
         at <- base_r_device_position(device)
         if (isTRUE(graphics::par("page"))) {
-          at <- list(page = at$page + 1L, figure = 1L, plot = 1L, opened = TRUE)
+          # Numbered past every page the device has started: one
+          # `replayPlot()` put back is shown again under its own number.
+          page <- max(at$page, at$last %||% 0L) + 1L
+          at <- list(page = page, figure = 1L, plot = 1L, opened = TRUE, last = page)
         } else {
           if (!isTRUE(graphics::par("new"))) {
             at$figure <- at$figure + 1L
           }
           at$plot <- at$plot + 1L
           at$opened <- FALSE
+          at$replayed <- NULL
         }
         .maidr_base_r_pages$at[[key]] <- at
         drawing <- .maidr_base_r_pages$calls[[key]]
@@ -110,6 +122,95 @@ note_base_r_plot_new <- function() {
     },
     error = function(e) NULL
   )
+  invisible(NULL)
+}
+
+#' Leave a marker of a recorded call on the page it was drawn on
+#'
+#' R does not call the `before.plot.new` hook when `replayPlot()` puts a
+#' page back on a device, from a plot `recordPlot()` saved, and the page R
+#' shows is then one before the last it started. Each recorded call leaves a
+#' marker on its page, an entry on the device's display list made with
+#' `grDevices::recordGraphics()`, that draws nothing and, each time the page
+#' is replayed, says where R was when the call was done
+#' (`note_base_r_page_replayed()`). A device that keeps no display list
+#' keeps no marker, and replays no page. Not in a knit, where knitr replays
+#' each figure and the chart's own markers say which it is (see
+#' knitr_figure_map.R).
+#'
+#' @param device_id The device the call was drawn on
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+mark_base_r_page <- function(device_id = grDevices::dev.cur()) {
+  elsewhere <- !identical(as.integer(device_id), as.integer(grDevices::dev.cur()))
+  if (elsewhere || isTRUE(getOption("knitr.in.progress"))) {
+    return(invisible(NULL))
+  }
+  state <- .maidr_base_r_pages
+  if (is.null(state$session)) {
+    state$session <- paste0(Sys.getpid(), "-", format(unclass(Sys.time()), digits = 16))
+  }
+  state$mark_count <- state$mark_count + 1L
+  token <- paste0(state$session, "-", state$mark_count)
+  assign(
+    token,
+    list(device = as.character(device_id), at = base_r_device_position(device_id)),
+    envir = state$marks
+  )
+  state$marking <- TRUE
+  on.exit(state$marking <- FALSE, add = TRUE)
+  # Only base R is needed to evaluate it: a saved plot can be replayed in a
+  # session with another maidr, or none, whose marks it is not among.
+  tryCatch(
+    grDevices::recordGraphics(
+      {
+        if ("maidr" %in% loadedNamespaces()) {
+          replayed <- get0(
+            "note_base_r_page_replayed",
+            envir = asNamespace("maidr"),
+            inherits = FALSE
+          )
+          if (is.function(replayed)) replayed(token)
+        }
+      },
+      list(token = token),
+      baseenv()
+    ),
+    error = function(e) NULL
+  )
+  invisible(NULL)
+}
+
+#' Note that a page with a recorded call's marker was replayed
+#'
+#' The device is put back where R was when the call was done, so the chart
+#' is read from that page (`last_page_calls()`), and a call drawn on it next
+#' is recorded on it. A page replayed where it already is, as a window
+#' redrawn at a new size is, is left as it is.
+#'
+#' @param token The marker's token (`mark_base_r_page()`)
+#' @return NULL (invisible)
+#' @keywords internal
+#' @noRd
+note_base_r_page_replayed <- function(token) {
+  state <- .maidr_base_r_pages
+  if (isTRUE(state$marking)) {
+    return(invisible(NULL))
+  }
+  mark <- get0(token, envir = state$marks, inherits = FALSE)
+  key <- as.character(grDevices::dev.cur())
+  if (is.null(mark) || !identical(mark$device, key)) {
+    return(invisible(NULL))
+  }
+  now <- base_r_device_position(grDevices::dev.cur())
+  if (identical(mark$at$page, now$page) && !isTRUE(now$replayed)) {
+    return(invisible(NULL))
+  }
+  at <- mark$at
+  at$last <- max(now$last %||% 0L, now$page, at$last %||% 0L)
+  at$replayed <- TRUE
+  state$at[[key]] <- at
   invisible(NULL)
 }
 
@@ -201,8 +302,9 @@ remove_base_r_page_hook <- function() {
 #' before it, and they are all left out.
 #'
 #' @param calls Recorded call entries, in the order they were recorded
-#' @param page The page R's device is on (`base_r_device_position()`);
-#'   `NULL` for the last page any call was drawn on
+#' @param page The page R's device is on (`base_r_device_position()`), one
+#'   `replayPlot()` put back among them; `NULL` for the last page any call
+#'   was drawn on
 #' @return The entries R's device shows, in the same order
 #' @keywords internal
 #' @noRd
@@ -221,7 +323,7 @@ last_page_calls <- function(calls, page = NULL) {
   if (all(is.na(pages))) {
     return(calls)
   }
-  shown <- max(c(page, pages), na.rm = TRUE)
+  shown <- if (is.null(page)) max(pages, na.rm = TRUE) else page
   calls[is.na(pages) | pages == shown]
 }
 

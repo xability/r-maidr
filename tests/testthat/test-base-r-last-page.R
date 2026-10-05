@@ -850,6 +850,39 @@ test_that("a call that ran onto the page R shows is drawn with only its plots on
   testthat::expect_setequal(chart$strings[nzchar(chart$strings)], r_last_page_strings(partial))
 })
 
+test_that("a page replayPlot() puts back is the page read", {
+  skip_if_no_render()
+
+  # R does not start a plot when it replays a page, as RStudio's device does
+  # with a display list, so the page R shows is not the last it started.
+  replayed <- function(after = NULL) {
+    function() {
+      grDevices::dev.control("enable")
+      hist(mtcars$mpg, main = "First")
+      shown <- grDevices::recordPlot()
+      hist(mtcars$hp, main = "Second")
+      grDevices::replayPlot(shown)
+      if (!is.null(after)) after()
+    }
+  }
+  chart <- last_page_export(replayed())
+  testthat::expect_identical(cell_titles(chart), list("First"))
+  testthat::expect_true("First" %in% chart$strings)
+  testthat::expect_false("Second" %in% chart$strings)
+
+  # A call drawn next is added to it.
+  chart <- last_page_export(replayed(function() abline(v = 20)))
+  testthat::expect_identical(cell_titles(chart), list(c("First", "First")))
+  testthat::expect_identical(
+    vapply(last_page_cells(chart)[[1]], function(layer) layer$type, character(1)),
+    c("hist", "line")
+  )
+
+  # And a plot drawn next starts a page of its own, with none of the second.
+  chart <- last_page_export(replayed(function() hist(mtcars$wt, main = "Third")))
+  testthat::expect_identical(cell_titles(chart), list("Third"))
+})
+
 test_that("each recorded plot carries the page, panel and plot number R drew it at", {
   grDevices::pdf(NULL)
   device_id <- grDevices::dev.cur()

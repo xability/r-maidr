@@ -413,7 +413,9 @@
   before and read it as part of that plot; and nothing drawn on an
   earlier page -- its data, titles, `lines()` or `legend()`, or a size it
   would need -- reaches the chart, even when the plot that started the new
-  page was drawn while `maidr_off()` was in effect. `symbols()` without
+  page was drawn while `maidr_off()` was in effect. A page `replayPlot()`
+  puts back on a device that keeps a display list is the chart, where
+  maidr drew it but read the plots drawn since with it. `symbols()` without
   `add = TRUE` draws a plot of its own, and is the plot of its page,
   shown as a picture since maidr does not read it, where `symbols()` alone
   gave a chart with nothing on it. A page that holds no plot maidr

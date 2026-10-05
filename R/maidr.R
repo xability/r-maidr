@@ -62,7 +62,9 @@
 #' `smoothScatter()`, they are drawn there, and read as part of no plot.
 #' Nothing drawn on an
 #' earlier page reaches the chart: not its data, its titles or the size it
-#' is drawn at. A page that holds no plot maidr recorded -- one R started
+#' is drawn at. A page `replayPlot()` puts back, from a plot
+#' `recordPlot()` saved on a device that keeps a display list, is the page
+#' the chart is read from. A page that holds no plot maidr recorded -- one R started
 #' with `plot.new()` or `frame()`, with a plot maidr does not record, or
 #' with one drawn while [maidr_off()] was in effect, even with `lines()` or
 #' `text()` drawn on it since -- is not read as the plot before it: `show()`
