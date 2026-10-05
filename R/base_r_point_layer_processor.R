@@ -187,14 +187,19 @@ BaseRPointLayerProcessor <- R6::R6Class(
       y_axis <- build_axis_config(label = recorded_axis_label(args, "ylab", written$y))
 
       # `plot(y ~ x, data = d)` labels its axes with the two variable names,
-      # which the recorded frame still carries.
+      # which the recorded frame still carries, where R draws its titles
+      # (`drawn_default_titles()`).
       frame <- self$formula_variables(plot_call)
       if (!is.null(frame)) {
+        named <- list(x = frame$x_name, y = frame$y_name)
+        if (identical(plot_call$function_name, "plot")) {
+          named <- drawn_default_titles(args, named, plot_call$par_ann %||% TRUE)
+        }
         if (is.null(x_axis$label)) {
-          x_axis <- build_axis_config(label = frame$x_name)
+          x_axis <- build_axis_config(label = named$x)
         }
         if (is.null(y_axis$label)) {
-          y_axis <- build_axis_config(label = frame$y_name)
+          y_axis <- build_axis_config(label = named$y)
         }
       }
 

@@ -424,6 +424,60 @@ test_that("a title given as NULL, or turned off by par(ann = FALSE), is announce
   }
 })
 
+test_that("a formula or density plot() title the call leaves off is not announced", {
+  # plot.formula() titles its axes after the formula's variables and
+  # plot.density() its y axis "Density", where the call leaves them their
+  # titles. Read as defaults of their own, they were announced where the
+  # call blanked them, so `plot(mpg ~ wt, data = mtcars, ylab = "")` was
+  # announced with "mpg" where `plot(mtcars$wt, mtcars$mpg, ylab = "")`
+  # was not, and R draws neither.
+  cases <- list(
+    list(quote(plot(mpg ~ wt, data = mtcars)), "wt", "mpg"),
+    list(quote(plot(mpg ~ wt, data = mtcars, ylab = "")), "wt", NULL),
+    list(quote(plot(mpg ~ wt, data = mtcars, xlab = "")), NULL, "mpg"),
+    list(quote(plot(mpg ~ wt, data = mtcars, ann = FALSE)), NULL, NULL),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(mpg ~ wt, data = mtcars)
+      par(op)
+    }), NULL, NULL)
+  )
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    testthat::expect_identical(axes[[1]]$x$label, case[[2]], label = label)
+    testthat::expect_identical(axes[[1]]$y$label, case[[3]], label = label)
+    testthat::expect_identical(
+      r_drawn_titles(call), as.character(c(case[[2]], case[[3]])),
+      label = label
+    )
+  }
+
+  # plot.density() draws a title of its own too, which maidr does not
+  # announce, so only its "Density" is checked.
+  densities <- list(
+    list(quote(plot(density(c(1, 2, 2, 3, 5)))), "Density"),
+    list(quote(plot(density(c(1, 2, 2, 3, 5)), ylab = "")), NULL),
+    list(quote(plot(density(c(1, 2, 2, 3, 5)), ann = FALSE)), NULL),
+    list(quote({
+      op <- par(ann = FALSE)
+      plot(density(c(1, 2, 2, 3, 5)))
+      par(op)
+    }), NULL)
+  )
+  for (case in densities) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    testthat::expect_identical(axes[[1]]$y$label, case[[2]], label = label)
+    testthat::expect_identical(
+      "Density" %in% r_drawn_titles(call), !is.null(case[[2]]),
+      label = label
+    )
+  }
+})
+
 test_that("an axis titled by title() or mtext() after the plot is announced with that title", {
   # The idiom blanks a plot's own titles to write them with title() or
   # mtext(), on a line of the author's choosing. R draws them on the axes,

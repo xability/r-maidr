@@ -154,7 +154,8 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
     #' The x axis holds whatever variable was smoothed, which the recorded
     #' arguments no longer name, so it carries no default. The y axis does
     #' when the curve came from `density()`: that estimate is a density, and
-    #' plot.density() prints exactly that word.
+    #' plot.density() prints exactly that word, where the `plot()` call
+    #' leaves it its title (`drawn_default_titles()`).
     #'
     #' @param layer_info Layer information
     #' @return Canonical axes list
@@ -171,8 +172,14 @@ BaseRSmoothLayerProcessor <- R6::R6Class(
       # since lines() doesn't have xlab/ylab parameters
       group <- layer_info$group
       if (!is.null(group) && !is.null(group$high_call)) {
-        high_args <- group$high_call$args
-        written <- written_axis_titles(group$high_call)
+        high_call <- group$high_call
+        high_args <- high_call$args
+        written <- written_axis_titles(high_call)
+        if (identical(high_call$function_name, "plot")) {
+          y_default <- drawn_default_titles(
+            high_args, list(y = y_default), high_call$par_ann %||% TRUE
+          )$y
+        }
         return(build_axes(
           x = recorded_axis_label(high_args, "xlab", written$x),
           y = recorded_axis_label(high_args, "ylab", y_default)
