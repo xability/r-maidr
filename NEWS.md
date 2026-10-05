@@ -411,7 +411,8 @@
   a time series, or turns titles off with `ann = FALSE` or
   `par(ann = FALSE)`. `plot(v, ylab = "")` was announced with "v". A title
   written on an axis after the plot, with `title(xlab = )` or `ylab`, or
-  with `mtext()` centred on that side, is announced as R draws it there:
+  with `mtext()` centred on that side, the string nearest the axis where
+  there are several, is announced as R draws it there:
   `plot(x, y, ann = FALSE); title(xlab = "Weight")` was announced with "x"
   (#PR).
 

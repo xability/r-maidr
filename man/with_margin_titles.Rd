@@ -29,7 +29,12 @@ titles that axis, over whatever the plot drew there: the last one
 written is the one on top.
 \item \code{mtext()} writes any text in a margin. One string centred on side 1 or
 2, as an axis title is, titles that axis where the plot left it
-untitled. One set off to a side, with \code{adj} or \code{at}, is a note.
+untitled. One set off to a side, with \code{adj} or \code{at}, is a note, and so
+is one written farther out than another on that side: a note under the
+title, such as where the data came from, is written on a line farther
+from the axis. Of those on one line the last one written is the one on
+top, and one inside the plot, on a line below 0, titles the axis only
+where the margin has none.
 }
 
 Either one in the outer margin (\code{outer = TRUE}) titles the page rather

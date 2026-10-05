@@ -579,6 +579,59 @@ test_that("an axis titled by title() or mtext() after the plot is announced with
   testthat::expect_identical(c(right$x$label, right$y$label), c("B", "5:1"))
 })
 
+test_that("of several mtext() strings on one side, the one nearest the axis titles it", {
+  # A note under the axis title, such as the source of the data, is written
+  # on a line farther out. The last string written was taken for the title,
+  # so the chart was announced "Source: mtcars" where R drew "Weight" at the
+  # axis, and written the other way round it was "Weight".
+  cases <- list(
+    list(quote({
+      plot(mtcars$wt, mtcars$mpg, ann = FALSE)
+      mtext("Weight", side = 1, line = 2.5)
+      mtext("Source: mtcars", side = 1, line = 4, cex = 0.8)
+    }), "Weight", NULL, c("Weight", "Source: mtcars")),
+    list(quote({
+      plot(mtcars$wt, mtcars$mpg, ann = FALSE)
+      mtext("Source: mtcars", side = 1, line = 4, cex = 0.8)
+      mtext("Weight", side = 1, line = 2.5)
+    }), "Weight", NULL, c("Weight", "Source: mtcars")),
+    list(quote({
+      plot(sin, -pi, pi, xlab = "")
+      mtext("angle (rad)", side = 1, line = 2.5)
+      mtext("n = 101", side = 1, line = 4)
+    }), "angle (rad)", "sin", c("sin", "angle (rad)", "n = 101")),
+    list(quote({
+      plot(1:3, ann = FALSE)
+      mtext("Height", 2, 2.5)
+      mtext("in metres", 2, 4)
+    }), NULL, "Height", c("Height", "in metres")),
+    # One inside the plot, on a negative line, is a note in the plot where
+    # the margin has a title.
+    list(quote({
+      plot(1:3, ann = FALSE)
+      mtext("Index", 1, 3)
+      mtext("n = 3", 1, -1.5)
+    }), "Index", NULL, c("Index", "n = 3")),
+    # Written on one line, the last is the one on top.
+    list(quote({
+      plot(1:3, ann = FALSE)
+      mtext("A", side = 1, line = 3)
+      mtext("B", side = 1, line = 3)
+    }), "B", NULL, c("A", "B"))
+  )
+
+  for (case in cases) {
+    call <- case[[1]]
+    label <- deparse1(call)
+    axes <- label_axes(function() eval(call))
+    for (layer_axes in axes) {
+      testthat::expect_identical(layer_axes$x$label, case[[2]], label = label)
+      testthat::expect_identical(layer_axes$y$label, case[[3]], label = label)
+    }
+    testthat::expect_setequal(r_drawn_titles(call), case[[4]])
+  }
+})
+
 test_that("a title() after a chart read as several layers titles each of them", {
   # stripchart() is read as one layer per group, and the titles were written
   # on the result that holds them rather than on the layers themselves, so

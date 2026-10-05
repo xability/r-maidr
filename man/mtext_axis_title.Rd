@@ -13,7 +13,8 @@ the formal it is dispatched on, is left unnamed when written first, as
 }
 \value{
 List with \code{axis}, \code{"x"} for one string centred on side 1 or \code{"y"}
-on side 2, and its \code{text}; or NULL
+on side 2, its \code{text}, and the \code{line} of the margin it is written on;
+or NULL
 }
 \description{
 The axis title an \code{mtext()} call writes, if it writes one

@@ -79,7 +79,12 @@ base_r_categorical_axes <- function(args, horizontal = FALSE) {
 #'   written is the one on top.
 #' - `mtext()` writes any text in a margin. One string centred on side 1 or
 #'   2, as an axis title is, titles that axis where the plot left it
-#'   untitled. One set off to a side, with `adj` or `at`, is a note.
+#'   untitled. One set off to a side, with `adj` or `at`, is a note, and so
+#'   is one written farther out than another on that side: a note under the
+#'   title, such as where the data came from, is written on a line farther
+#'   from the axis. Of those on one line the last one written is the one on
+#'   top, and one inside the plot, on a line below 0, titles the axis only
+#'   where the margin has none.
 #'
 #' Either one in the outer margin (`outer = TRUE`) titles the page rather
 #' than this plot, and is not read.
@@ -102,7 +107,10 @@ with_margin_titles <- function(axes, low_calls) {
     } else if (identical(call$function_name, "mtext")) {
       title <- mtext_axis_title(args)
       if (!is.null(title)) {
-        noted[[title$axis]] <- title$text
+        held <- noted[[title$axis]]
+        if (is.null(held) || !farther_from_axis(title$line, held$line)) {
+          noted[[title$axis]] <- title
+        }
       }
     }
   }
@@ -110,7 +118,7 @@ with_margin_titles <- function(axes, low_calls) {
   for (axis in c("x", "y")) {
     label <- written[[axis]]
     if (is.null(label) && is.null(axes[[axis]]$label)) {
-      label <- noted[[axis]]
+      label <- noted[[axis]]$text
     }
     if (!is.null(label)) {
       # First, where `build_axis_config()` puts it.
@@ -128,7 +136,8 @@ with_margin_titles <- function(axes, low_calls) {
 #'   the formal it is dispatched on, is left unnamed when written first, as
 #'   `match_recorded_args()` leaves it.
 #' @return List with `axis`, `"x"` for one string centred on side 1 or `"y"`
-#'   on side 2, and its `text`; or NULL
+#'   on side 2, its `text`, and the `line` of the margin it is written on;
+#'   or NULL
 #' @keywords internal
 mtext_axis_title <- function(args) {
   unset <- function(value) is.null(value) || all(is.na(value))
@@ -151,7 +160,21 @@ mtext_axis_title <- function(args) {
   if (is.null(axis) || is.null(text)) {
     return(NULL)
   }
-  list(axis = axis, text = text)
+  line <- suppressWarnings(as.numeric(args[["line"]]))[1]
+  list(axis = axis, text = text, line = if (is.na(line)) 0 else line)
+}
+
+#' Whether one margin line is farther from the axis than another
+#'
+#' The lines of a margin count outwards from the axis, from 0. A line below
+#' 0 is inside the plot, so it is farther than every line of the margin,
+#' and farther the further in it is.
+#'
+#' @param line,than Two lines of one margin, as `mtext()` takes them
+#' @return TRUE when `line` is the farther of the two
+#' @keywords internal
+farther_from_axis <- function(line, than) {
+  if ((line < 0) != (than < 0)) line < 0 else abs(line) > abs(than)
 }
 
 #' The text an argument of a recorded call was written as
