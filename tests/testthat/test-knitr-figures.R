@@ -361,6 +361,41 @@ test_that("a page the chunk replays itself belongs to no figure", {
   ))
 })
 
+test_that("a call that ran onto a figure's page is drawn with only its plots on it", {
+  skip_if_no_figures()
+  local_knitr_state()
+  dir <- withr::local_tempdir("maidr-figures-")
+
+  # termplot() starts after the histogram, fills the three panels left on
+  # its page and draws its last term on a page of its own, as R shows it.
+  page <- knit_for(c(
+    "```{r spanning}",
+    "par(mfrow = c(2, 2))",
+    "hist(mtcars$mpg, main = 'Before')",
+    "termplot(lm(mpg ~ wt + hp + qsec + drat, data = mtcars))",
+    "```"
+  ), dir)
+  charts <- inline_charts(page)
+  last <- charts[[length(charts)]]
+  strings <- trimws(xml2::xml_text(xml2::xml_find_all(last, "//*[local-name()='text']")))
+  testthat::expect_true("Partial for drat" %in% strings)
+  testthat::expect_false(any(c("Partial for wt", "Partial for hp", "Partial for qsec") %in% strings))
+
+  # The term read is the one drawn, and its selector names that drawing.
+  data <- jsonlite::parse_json(xml2::xml_attr(last, "data-maidr-knitr"))
+  layers <- unlist(lapply(unlist(data$subplots, recursive = FALSE), function(cell) cell$layers),
+    recursive = FALSE
+  )
+  testthat::expect_length(layers, 1L)
+  testthat::expect_identical(layers[[1]]$axes$x$label, "drat")
+  ids <- xml2::xml_attr(xml2::xml_find_all(last, "//*[@id]"), "id")
+  selector <- unlist(layers[[1]]$selectors)
+  drawn <- regmatches(selector, regexpr("[[:alnum:]_-]*graphics-plot-[0-9]+-", selector))
+  testthat::expect_true(any(startsWith(ids, paste0(drawn, "ylab"))))
+  ylab <- xml2::xml_find_all(last, sprintf("//*[starts-with(@id, '%sylab')]", drawn))
+  testthat::expect_identical(unique(trimws(xml2::xml_text(ylab))), "Partial for drat")
+})
+
 test_that("a page replayed by the chunk that installs maidr belongs to no figure", {
   skip_if_no_figures()
   local_knitr_state()

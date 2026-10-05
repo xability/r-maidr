@@ -506,10 +506,10 @@ begin_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
 #'   `outer`, the number of the recorded call that made it while drawing,
 #'   if one did, `apart`, whether it was made from that call's arguments
 #'   before that call drew a plot of its own, and `own_plot`, whether it
-#'   started a plot itself (see `standalone_calls()`); and `start_page`
-#'   and `start_figure`, the page and panel of the first plot the call
-#'   started, which a call that draws several plots, as `plot()` of a
-#'   fitted model does, started on a page before its last. Only `page`
+#'   started a plot itself (see `standalone_calls()`); and `spans_pages`,
+#'   whether the call started its first plot on a page before its last, as
+#'   a call that draws several plots, as `plot()` of a fitted model does,
+#'   can, and `start_figure`, the panel of that plot. Only `page`
 #'   for a call no recording wrapper drew, recorded by code that records
 #'   calls itself.
 #' @keywords internal
@@ -534,7 +534,7 @@ end_base_r_call <- function(device_id = grDevices::dev.cur(), depth = 0L) {
     cell = first$cell,
     fig = first$fig,
     new_plot = started,
-    start_page = call$start$page,
+    spans_pages = started && isTRUE(call$start$page < at$page),
     start_figure = call$start$figure,
     opens_page = started && isTRUE(first$opened),
     laid_out = started && length(call$grid) == 2L && length(first$cell) == 4L &&
